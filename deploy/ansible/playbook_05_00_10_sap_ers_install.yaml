@@ -1,0 +1,97 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Prepare for SAP ERS Install                          |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- hosts:                               localhost
+  name:                                Get SAP Password from KeyVault
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+  tasks:
+
+    - name:                            Remove .step51 flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.step51"
+        state:                         absent
+
+    - name:                            Include 0.1 passwords role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for SAP ERS Install                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_ERS"
+
+  name:                                SAP Installation - ERS
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            Set 'ers' tier facts
+      ansible.builtin.set_fact:
+        tier:                          scs
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+      tags:
+        - always
+
+    - name:                            Show SAP password
+      ansible.builtin.debug:
+        msg:                           "{{ hostvars.localhost.sap_password }}"
+        verbosity:                       2
+
+
+    - block:
+        - name:                        Include 5.0.0-scs-install role
+          ansible.builtin.include_role:
+            name:                      roles-sap/5.0.0-scs-install
+      tags:
+        - 5.0.0-scs-install
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for SAP SCS Logging                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               localhost
+  name:                                Log results
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+    - name:                            Create .step5 flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.step5"
+        state:                         touch
+        mode:                          0755
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                    END                                     |
+# +------------------------------------4--------------------------------------*/

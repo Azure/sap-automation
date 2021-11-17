@@ -1,0 +1,15 @@
+---
+
+bom_base_name:                 S41909SPS03_v0006ms
+
+#Name of the key vault containing the S user credentials
+kv_name:                       MGMTWEEUDEP00user###
+
+# Set the following value to true to calculate checksums for the downloaded files
+# Not needed for the Microsoft provided BOMs
+#create_checksums:              true
+
+# Set this to false to force a re-download of the SAP software
+#check_storage_account:         false
+
+...

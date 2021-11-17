@@ -1,0 +1,6 @@
+---
+bom_base_name:               S41909SPS03_v0005ms
+sapbits_location_base_path:  https://<storage_account_name_for_sapbits>.blob.core.windows.net/sapbits
+kv_name:   <MGMT KeyVault Name>
+secret_prefix: S                  
+...

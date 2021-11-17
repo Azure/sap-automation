@@ -1,0 +1,61 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Post processing
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                Pause to give cluster time to stabilize
+  ansible.builtin.pause:
+    seconds:                           "{{ cluster_status_report_wait_in_s }}"
+
+- name:                                Check the post-provisioning cluster status
+  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
+  register:                            cluster_status_report
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                Output cluster status
+  ansible.builtin.debug:
+    msg:                               "{{ cluster_status_report.stdout }}"
+
+- name:                                Check the SBD devices status
+  ansible.builtin.shell:               set -o pipefail && crm_mon -1 | grep sbd
+  register:                            sbd_status_report
+  changed_when:                        false
+  failed_when:                         false
+  when:                                ansible_os_family == 'Suse'
+
+- name:                                Output SBD status
+  ansible.builtin.debug:
+    msg:                               "{{ sbd_status_report.stdout }}"
+  when:                                ansible_os_family == 'Suse'
+
+- name:                                Verify the hook Installation
+  become_user:                         "{{ db_sid | lower }}adm"
+  when:                                inventory_hostname == primary_instance_name
+  ansible.builtin.shell:          |
+                                       set -o pipefail
+                                       IFS=' '
+                                       get_saphanasr_rc=$(grep ha_dr_ nameserver_* | \
+                                           awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
+                                           { printf "%s ",$16 }')
+                                       read -a saphanasr_status <<< ${get_saphanasr_rc}
+                                       echo "${saphanasr_status[-1]}"
+#     awk '/ha_dr_SAPHanaSR.*crm_attribute/ { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
+  args:
+    chdir:                             /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ primary_instance_name }}/trace
+  register:                            saphanasr
+  failed_when:                         saphanasr.stdout != 'SOK'
+
+
+- name:                                Verify the hook Installation
+  ansible.builtin.debug:
+    var:                               saphanasr
+    verbosity:                         2
+
+- name:                                "HANA PCM Install: reset"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
+    state:                             touch
+    mode:                              0755

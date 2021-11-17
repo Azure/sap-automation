@@ -1,0 +1,111 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         Key Vault helpers                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 0.2     - kv-secrets
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# <Comment Header>
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+
+- name:                                Show Key Vault
+  ansible.builtin.debug:
+    var:                               kv_name
+  when:
+    - tier == "bom"
+
+- name:                                "BoM Secrets: Retrieve S User details"
+  ansible.builtin.command: >-
+    az keyvault secret show
+      --vault-name {{ kv_name }}
+      --name "S-Username"
+  changed_when:                        false
+  register:                            keyvault_secret_show_s_user
+  when:
+    - tier == "bom"
+
+- name:                                "BoM Secrets: Extract S User secret details"
+  ansible.builtin.set_fact:
+    s_user: >-
+      {{ (keyvault_secret_show_s_user.stdout | from_json).value }}
+  no_log:                              true
+  when:
+    - tier == "bom"
+
+- name:                                Show S User
+  ansible.builtin.debug:
+    var:                               s_user
+    verbosity:                         2
+  when:
+    - tier == "bom"
+
+
+- name:                                "BoM Secrets: Retrieve S Password details"
+  ansible.builtin.command: >-
+    az keyvault secret show
+      --vault-name {{ kv_name }}
+      --name "S-Password"
+  changed_when:                        false
+  register:                            keyvault_secret_show_s_password
+  no_log:                              true
+  when:
+    - tier == "bom"
+
+- name:                                "BoM Secrets: Extract S User Password secret details"
+  ansible.builtin.set_fact:
+    s_password: >-
+      {{ (keyvault_secret_show_s_password.stdout | from_json).value }}
+  no_log:                              true
+  when:
+    - tier == "bom"
+
+- name:                                "BoM Secrets: Retrieve Access Key details"
+  ansible.builtin.command: >-
+    az keyvault secret show
+      --vault-name {{ kv_name }}
+      --name "sapbits-access-key"
+  changed_when:                        false
+  register:                            keyvault_secret_show_accesskey
+  no_log:                              true
+  when:
+    - tier == "bom"
+
+- name:                                "BoM Secrets: Extract S User Password details"
+  ansible.builtin.set_fact:
+    sapbits_access_key: >-
+      {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
+  no_log:                              true
+  when:
+    - tier == "bom"
+
+- name:                                "BoM Secrets: Retrieve Access Key details"
+  ansible.builtin.command: >-
+    az keyvault secret show
+      --vault-name {{ kv_name }}
+      --name "sapbits-access-key"
+  changed_when:                        false
+  register:                            keyvault_secret_show_accesskey
+  no_log:                              true
+  when:
+    - tier == "bom"
+
+- name:                                Construct SPN Client ID secret name
+  ansible.builtin.import_tasks:        "fencing.yaml"
+  when:
+    - tier == "fencing"
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                     |
+# +------------------------------------4--------------------------------------*/

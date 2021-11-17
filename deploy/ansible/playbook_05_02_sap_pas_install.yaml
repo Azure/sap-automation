@@ -1,0 +1,105 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Prepare for SAP PAS Install                          |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- hosts:                               localhost
+  name:                                Get SAP Password from KeyVault
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+  tasks:
+
+    - name:                            Remove .step502 flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.step502"
+        state:                         absent
+
+    - name:                            Include 0.1 passwords role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for SAP PAS Install                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_PAS"
+
+  name:                                SAP Installation - PAS
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            Set 'pas' tier facts
+      ansible.builtin.set_fact:
+        tier:                          pas
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+      tags:
+        - always
+
+# -------------------------------------+---------------------------------------8
+# Role: 5.2-PAS Installation
+#
+# Description:
+#
+# -------------------------------------+---------------------------------------8
+
+    - block:
+        - name:                        Include 2.6-sap-mounts role
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+      tags:
+        - 2.6-sap-mounts
+
+    - block:
+        - name:                        Include 5.2-pas-install
+          ansible.builtin.include_role:
+            name:     roles-sap/5.2-pas-install
+      tags:
+        - 5.2-pas-install
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for SAP SCS Logging                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               localhost
+  name:                                Log results
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+    - name:                            Create .step502 flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.step502"
+        state:                         touch
+        mode:                          0755
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                    END                                     |
+# +------------------------------------4--------------------------------------*/

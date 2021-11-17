@@ -1,0 +1,170 @@
+---
+
+###############################################################################################
+# Enqueue Server 2 Information                                                                #
+# SAP introduced support for enqueue server 2, including replication, as of SAP NW 7.52.      #
+# Starting with ABAP Platform 1809, enqueue server 2 is installed by default.                 #
+# See SAP note 2630416 for enqueue server 2 support.                                          #
+###############################################################################################
+
+- name:                                "Add the user '{{ sap_sid | lower }}adm' to haclient group"
+  ansible.builtin.user:
+    name:                              "{{ sap_sid | lower }}adm"
+    comment:                           "{{ sap_sid | lower }}adm User account"
+    group:                             haclient
+  when:                                ansible_os_family|upper == "SUSE"
+
+- name:                                "SUSE - Remove the ASCS and ERS service definitions from sapservices file"
+  ansible.builtin.lineinfile:
+    backup:                            true
+    path:                              /usr/sap/sapservices
+    regexp:                            "{{ item.regexp }}"
+    line:                              "{{ item.lif }}"
+    state:                             present
+  loop:
+    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} -D -u {{ sap_sid | lower }}adm" }
+    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} -D -u {{ sap_sid | lower }}adm"     }
+  when:
+    - ansible_os_family|upper == "SUSE"
+
+- name:                                "REDHAT - Comment the ASCS and ERS service definitions from sapservices file"
+  ansible.builtin.replace:
+    backup:                            true
+    path:                              /usr/sap/sapservices
+    regexp:                            '^LD_LIBRARY_PATH='
+    replace:                           "#LD_LIBRARY_PATH="
+  when:
+    - ansible_os_family|upper == "REDHAT"
+
+- name:                                ASCS, ERS profile changes
+  block:
+
+    - name:                            ASCS Profile - add service/halib
+      ansible.builtin.blockinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        block: |
+                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
+
+      register: scsservicehalib
+
+    - name:                            "ERS Profile - add service/halib"
+      ansible.builtin.blockinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        block: |
+                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
+
+      register: ersservicehalib
+  when:
+    - ansible_os_family|upper  == "SUSE"
+    - inventory_hostname == primary_instance_name
+
+
+###################################################### 
+#
+#
+#
+######################################################
+- name:                                 Enqueue Server Setup
+  block:
+
+    - name:                             "Get the variable for ENSA1"
+      become_user:                      "{{ sap_sid | lower }}adm"
+      ansible.builtin.shell:            >
+                                        source ~/.bashrc ;
+                                        {{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList | grep enserver
+      register:                         enq_server1
+      failed_when:                      enq_server1.stdout != 'enserver'
+      changed_when:                     false
+
+    - name:                             Capture the Enqueue server version
+      ansible.builtin.set_fact:
+        ensa1:                          "{{ enq_server1.stdout_lines.1.split().1 }}"
+
+    - name:                             Print the value of ENSA1
+      ansible.builtin.debug:
+        var:                            ensa1
+
+    - name:                             "Set the variable for ENSA2"
+      become_user:                      "{{ sap_sid | lower }}adm"
+      become:                           true
+      ansible.builtin.shell:            "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList | grep enq_server"
+      register:                         enq_server2
+      failed_when:                      enq_server2.stdout != 'enq_server'
+
+    - name:                             Capture the Enqueue server version
+      ansible.builtin.set_fact:
+        ensa2:                          "{{ enq_server2.stdout_lines.1.split().1 }}"
+
+    - name:                             Print the value of ENSA2
+      ansible.builtin.debug:
+        var:                            ensa2
+
+  when:
+    - inventory_hostname == secondary_instance_name
+    - 1 == 2 # TODO Add if needed later
+
+# Following are the changes in ASCS/ERS profiles based if ENSA1 is applicable
+
+- name:                                "ASCS, ERS profile changes"
+  block:
+
+     # execute the following tasks only when using ENSA1
+     # SAP introduced support for enqueue server 2, including replication, as of SAP NW 7.52.
+     # Starting with ABAP Platform 1809, enqueue server 2 is installed by default
+    - name:                            "ASCS Profile - Comment Restart_Program_01 If Using ENSA1"
+      ansible.builtin.replace:
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        backup:                        true
+        regexp:                        '^Restart_Program_01'
+        replace:                       '#Restart_Program_01'
+      tags:
+        - ascscomment
+
+    - name:                            "ASCS Profile- Add the right Start command to ASCS profile If Using ENSA1"
+      lineinfile:
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        line:                          Start_Program_01 = local $(_EN) pf=$(_PF)
+        insertafter:                   Restart_Program_01
+      tags:
+        - ascspara
+
+    - name:                            "ERS Profile - Comment Restart_Program_00 in ERS Profile if using ENSA1"
+      ansible.builtin.replace:
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        backup:                        true
+        regexp:                        '^Restart_Program_00'
+        replace:                       '#Restart_Program_00'
+      tags:
+        - erscomment
+
+    - name:                            "ERS Profile - Change the restart command to a start command if using ENSA1"
+      lineinfile:
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        line:                          Start_Program_00 = local $(_ER) pf=$(_PFL) NR=$(SCSID)
+        insertafter:                   Restart_Program_01
+      tags:
+        - erspara
+
+    - name:                            "ERS Profile - Remove Autostart from ERS profile if using ENSA1"
+      ansible.builtin.replace:
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        regexp:                        '^Autostart = 1'
+        replace:                       '#Autostart = 1'
+      tags:
+        - ersautostart
+
+    - name:                            "Add the keep alive parameter, if using ENSA1"
+      lineinfile:
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ ascs_instance_number }}_{{ ascs_virtual_hostname }}
+        line:                          enque/encni/set_so_keepalive = true
+      tags:
+        - keepalive
+
+  when:
+    - inventory_hostname == secondary_instance_name
+    - ensa1 is defined
+#    - ensa1 == "enserver"
+
+...

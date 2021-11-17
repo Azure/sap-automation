@@ -1,0 +1,81 @@
+---
+# API Input template with defaults
+
+# Example of passing input YAML to ansible-playbook
+#
+#         ansible-playbook                                                                                                \
+#           --inventory   new-hosts.yaml                                                                                  \
+#           --user        azureadm                                                                                        \
+#           --private-key sshkey                                                                                          \
+#           --extra-vars="@sap-parameters.yaml"                                                                           \
+#           ~/Azure_SAP_Automated_Deployment/centiq-sap-hana/deploy/ansible/${playbook}
+
+# OS Config Settings variables
+chrony_pool:                  ""
+chrony_servers:               []
+
+# BoM Processing variables
+sapbits_location_base_path:   ""                                                        # REQUIRED
+sapbits_bom_files:            "sapfiles"                                                # Default
+bom_base_name:                ""                                                        # REQUIRED
+target_media_location:        "/usr/sap/install"                                        # Default
+sapbits_sas_token:            ""                                                        # Optional
+sapbits_access_key:           ""                                                        # Optional
+s_user:                       ""
+s_password:                   ""
+download_directory:           "/mnt/downloads"
+check_storage_account:        true        
+
+# SAP Configuration for templates and install
+aas_hostname:                 ""
+aas_instance_number:          ""
+sap_sid:                      ""                                                        # REQUIRED - SAP Install
+download_basket_dir:          "{{ target_media_location }}/download_basket"
+hdb_hostname:                 ""
+db_sid:                       "XDB"                                                     # Default
+hdb_instance_number:          "00"                                                      # Default
+pas_hostname:                 ""
+pas_instance_number:          "00"
+password_hana_system:         ""
+main_password:                ""                                                        # SAP Install
+sap_fqdn:                     ""                                                        # SAP Install
+sapadm_uid:                   2100
+sapinst_gid:                  2001
+sapsys_gid:                   2000
+hdbshm_gid:                   2002
+scs_hostname:                 ""
+scs_instance_number:          "00"                                                      # SAP Install
+ers_instance_number:          "02"
+sidadm_uid:                   2000
+hdbadm_uid:                   2200
+scs_lb_ip:                    ""                                                        # SAP HA
+db_lb_ip:                     ""                                                        # SAP HA
+reinstall:                    false                                                     # Provide a way to override the idempotency flags for SAP tasks
+
+orchestration_ansible_user:   azureadm
+
+password_cockpit_admin:       ""
+password_db_systemdb:         ""
+password_ha_db_cluster:       ""
+password_os_sapadm:           ""
+password_os_sidadm:           ""
+password_db_xsa_admin:        ""
+
+download_templates:           false
+prometheus:                   false                                                      # Install Prometheus Monitoring Agent
+
+# Keyvault
+deployer_kv_name:             "deployer-kv-name"                                         # Name of secret containing the deployer keyvault name in the workload zone keyvault
+sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
+sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
+
+sap_swap:
+  - { tier: 'scs',  swap_size_mb: '4096' }
+  - { tier: 'ers',  swap_size_mb: '4096' }
+  - { tier: 'pas',  swap_size_mb: '20480' }
+  - { tier: 'app',  swap_size_mb: '20480' }
+  - { tier: 'web',  swap_size_mb: '4096' }
+  - { tier: 'hana', swap_size_mb: '2048' }
+
+
+...

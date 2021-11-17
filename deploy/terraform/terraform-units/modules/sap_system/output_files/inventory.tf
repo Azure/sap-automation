@@ -1,0 +1,150 @@
+resource "local_file" "ansible_inventory_new_yml" {
+  content = templatefile(format("%s%s", path.module, "/ansible_inventory_new.yml.tmpl"), {
+    ips_dbnodes = var.database_admin_ips,
+    dbnodes     = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+    ips_scs = length(local.ips_scs) > 0 ? (
+      length(local.ips_scs) > 1 ? (
+        slice(local.ips_scs, 0, 1)) : (
+        local.ips_scs
+      )) : (
+      []
+    )
+    ips_ers = length(local.ips_scs) > 0 ? (
+      length(local.ips_scs) > 1 ? (
+        slice(local.ips_scs, 1, length(local.ips_scs))) : (
+        []
+      )) : (
+      []
+    )
+
+    ips_pas = length(local.ips_app) > 0 ? slice(local.ips_app, 0, 1) : [],
+    ips_app = length(local.ips_app) > 1 ? slice(local.ips_app, 1, length(local.ips_app)) : []
+    ips_web = length(local.ips_web) > 0 ? local.ips_web : [],
+    sid     = var.sap_sid,
+    passervers = length(local.ips_app) > 0 ? (
+      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
+      []
+    ),
+    appservers = length(local.ips_app) > 1 ? (
+      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app))) : (
+      []
+    ),
+    scsservers = length(local.ips_scs) > 0 ? (
+      length(local.ips_scs) > 1 ? (
+        slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
+        var.naming.virtualmachine_names.SCS_COMPUTERNAME
+      )) : (
+      []
+    ),
+    ersservers = length(local.ips_scs) > 0 ? (
+      length(local.ips_scs) > 1 ? (
+        slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(local.ips_scs))) : (
+        []
+      )) : (
+      []
+    ),
+    webservers        = length(local.ips_web) > 0 ? var.naming.virtualmachine_names.WEB_COMPUTERNAME : [],
+    prefix            = var.naming.prefix.SDU,
+    separator         = var.naming.separator,
+    platform          = lower(var.platform)
+    dbconnection      = var.platform == "SQLSERVER" ? "winrm" : "ssh"
+    scsconnection     = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    ersconnection     = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    appconnection     = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
+    webconnection     = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
+    appconnectiontype = try(var.authentication_type, "key")
+    webconnectiontype = try(var.authentication_type, "key")
+    scsconnectiontype = try(var.authentication_type, "key")
+    ersconnectiontype = try(var.authentication_type, "key")
+    dbconnectiontype  = try(var.db_auth_type, "key")
+    ansible_user      = var.ansible_user
+    }
+  )
+  filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
+
+resource "local_file" "sap-parameters_yml" {
+  content = templatefile(format("%s/sap-parameters.yml.tmpl", path.module), {
+    sid           = var.sap_sid,
+    db_sid        = var.db_sid
+    kv_name       = local.kv_name,
+    secret_prefix = local.secret_prefix,
+    disks         = var.disks
+    scs_ha        = var.scs_ha
+    scs_lb_ip     = var.scs_lb_ip
+    ers_lb_ip     = var.ers_lb_ip
+    db_lb_ip      = var.db_lb_ip
+    db_ha         = var.db_ha
+    dns           = local.dns_label
+    bom           = local.bom
+    sap_mnt = length(trimspace(var.sap_mnt)) > 0 ? (
+      format("sap_mnt:                       %s", var.sap_mnt)) : (
+      ""
+    )
+    sap_transport = length(trimspace(var.sap_transport)) > 0 ? (
+      format("sap_trans:                     %s", var.sap_transport)) : (
+      ""
+    )
+    platform            = var.platform
+    scs_instance_number = var.scs_instance_number
+    ers_instance_number = var.ers_instance_number
+
+    }
+  )
+  filename             = format("%s/sap-parameters.yaml", path.cwd)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
+
+
+resource "azurerm_storage_blob" "hosts_yaml" {
+  provider               = azurerm.deployer
+  name                   = format("%s_hosts.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
+  storage_account_name   = local.tfstate_storage_account_name
+  storage_container_name = local.ansible_container_name
+  type                   = "Block"
+  source                 = local_file.ansible_inventory_new_yml.filename
+}
+
+resource "azurerm_storage_blob" "sap_parameters_yaml" {
+  depends_on = [
+    local_file.sap-parameters_yml
+  ]
+  provider               = azurerm.deployer
+  name                   = format("%s_sap-parameters.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
+  storage_account_name   = local.tfstate_storage_account_name
+  storage_container_name = local.ansible_container_name
+  type                   = "Block"
+  source                 = local_file.sap-parameters_yml.filename
+}
+
+locals {
+  fileContents     = fileexists(format("%s/sap-parameters.yaml", path.cwd)) ? file(format("%s/sap-parameters.yaml", path.cwd)) : ""
+  fileContentsList = split("\n", local.fileContents)
+
+  items = compact([for strValue in local.fileContentsList :
+    length(trimspace(strValue)) > 0 ? (
+      length(split(":", strValue)) > 1 ? (
+        substr(trimspace(strValue), 0, 1) != "-" ? (
+          trimspace(strValue)) : (
+          ""
+        )
+        ) : (
+        ""
+      )) : (
+      ""
+    )
+    ]
+  )
+
+  itemvalues = tomap({ for strValue in local.items :
+    trimspace(split(":", strValue)[0]) => trimspace(substr(strValue, length(split(":", strValue)[0]) + 1, -1))
+  })
+
+  bom = trimspace(coalesce(var.bom_name, lookup(local.itemvalues, "bom_base_name", ""), " "))
+
+  token = lookup(local.itemvalues, "sapbits_sas_token", "")
+}
+

@@ -1,0 +1,58 @@
+# Tasks:
+#   OS: hosts file, Entries - /etc/hosts
+#
+# TODO:
+
+---
+
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Validation for Prerequisites
+#
+- import_tasks:     pre_checks.yaml
+# -------------------------------------+---------------------------------------8
+
+#   OS: hosts file, Entries - /etc/hosts
+- name:                                "OS: Common, Entries - /etc/hosts"
+  ansible.builtin.blockinfile:
+    path:                              /etc/hosts
+    mode:                              0644
+    create:                            true
+    backup:                            true
+    state:                             present
+    block:                             "{{ lookup('file', 'hosts.block') }}"
+    marker:                            "# {mark} ANSIBLE MANAGED BLOCK - COMMON"
+
+
+- name:                                "OS: SID, Entries - /etc/hosts"
+  ansible.builtin.blockinfile:
+    path:                              /etc/hosts
+    mode:                              0644
+    create:                            true
+    state:                             present
+    block:                             "{{ lookup('template', 'hosts.j2') }}"
+    marker:                            "# {mark} ANSIBLE MANAGED BLOCK - {{ sap_sid|upper }}"
+
+- name:                                Set the SCS and ERS Virtual Instance hostname
+  ansible.builtin.set_fact:
+    scs_virtual_hostname:              "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+    ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+  when:
+    - scs_high_availability
+
+- name:                                "Hostname: Setup Virtual host name resolution - SCS & ERS"
+  ansible.builtin.blockinfile:
+    path:                              /etc/hosts
+    mode:                              0644
+    create:                            true
+    state:                             present
+    block: |
+      {{ scs_lb_ip }} {{ scs_virtual_hostname }}.{{ sap_fqdn }} {{ scs_virtual_hostname }}
+      {{ ers_lb_ip }} {{ ers_virtual_hostname }}.{{ sap_fqdn }} {{ ers_virtual_hostname }}
+    marker:                           "# {mark} ASCS/ERS Entries {{ scs_virtual_hostname }}"
+  when:
+    - scs_high_availability
+    - node_tier in ['hana', 'pas', 'app', 'web']
+
+...

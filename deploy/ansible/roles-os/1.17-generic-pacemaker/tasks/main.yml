@@ -1,0 +1,15 @@
+---
+- import_tasks: 1.17.0-set_runtime_facts.yml
+- import_tasks: 1.17.1-pre_checks.yml
+
+# Import this task only if the cluster is not yet created
+- block:
+    - import_tasks: 1.17.2-provision.yml
+  tags:
+    - 1.17.2-provision
+  when: not cluster_existence_check == '0'
+
+
+- import_tasks: 1.17.3-post_provision_report.yml
+
+...

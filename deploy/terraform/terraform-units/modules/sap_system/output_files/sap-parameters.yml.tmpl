@@ -1,0 +1,83 @@
+---
+
+# bom_base_name is the name of the SAP Application Bill of Materials file
+bom_base_name:                 ${bom}
+
+# Set to true to instruct Ansible to update all the packages on the virtual machines
+upgrade_packages:              false 
+
+# TERRAFORM CREATED
+sap_fqdn:                      ${dns}                      
+
+# kv_name is the name of the key vault containing the system credentials
+kv_name:                       ${kv_name}
+
+# secret_prefix is the prefix for the name of the secret stored in key vault
+secret_prefix:                 ${secret_prefix}
+
+#############################################################################
+#                                                                           #
+#                                  SCS                                      #
+#                                                                           #
+#############################################################################
+
+# sap_sid is the application SID
+sap_sid:                       ${sid}
+
+# scs_high_availability is a boolean flag indicating 
+# if the SAP Central Services are deployed using high availability 
+scs_high_availability:         ${scs_ha}
+
+# SCS Instance Number
+scs_instance_number:           "${scs_instance_number}"
+
+# scs_lb_ip is the SCS IP address of the load balancer in 
+# from of the SAP Central Services virtual machines
+scs_lb_ip:                     ${scs_lb_ip}
+
+# ERS Instance Number
+ers_instance_number:           "${ers_instance_number}"
+
+# ecs_lb_ip is the ERS IP address of the load balancer in
+# from of the SAP Central Services virtual machines
+ers_lb_ip:                     ${ers_lb_ip}
+
+#############################################################################
+#                                                                           #
+#                                  DB                                       #
+#                                                                           #
+#############################################################################
+
+# sap_sid is the database SID
+db_sid:                        ${db_sid}
+
+# platform
+platform:                      ${platform}
+
+# db_high_availability is a boolean flag indicating if the 
+# SAP database servers are deployed using high availability
+db_high_availability:          ${db_ha}
+# db_lb_ip is the IP address of the load balancer in from of the database virtual machines
+db_lb_ip:                      ${db_lb_ip}
+
+#############################################################################
+#                                                                           #
+#                                 ANF                                       #
+#                                                                           #
+#############################################################################
+
+${sap_mnt}
+${sap_transport}
+
+#############################################################################
+#                                                                           #
+#                                Disks                                      #
+#                                                                           #
+#############################################################################
+
+disks: 
+%{~ for disk in disks }
+  - ${disk} 
+%{~ endfor }
+
+...

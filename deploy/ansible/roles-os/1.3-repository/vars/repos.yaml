@@ -1,0 +1,26 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               Task: 1.3       - Repos per OS                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# For each supported 'distro_id' we want a list of dictionary entries that
+# specify the associated tier (or 'all' to always match), the repository name name
+# See the definition of 'distro_full_id' to determine what to use when
+# creating an entry for a new distribution.
+# For example, XX.Y where XX is the major version and Y is the minor version
+repos:
+  redhat7.7:
+  redhat7.9:
+  redhat8.2:
+  redhat8.4:
+  # do not have any repos that are needed for RedHat at the moment.
+  suse15.2:
+  suse15.1:
+  suse15.0:
+  suse12.5:
+  suse12.4:
+  suse12.3:
+  suse12.2:
+  suse12.1:

@@ -1,0 +1,26 @@
+---
+
+###########################################################################################
+# This file calls the OS specific tasks to configure HANA specific clustering resources  #8
+###########################################################################################
+
+# 1. Design the role 5.5.4.0-cluster one into all the actions upto cluster roles defenition including installation
+# 2. create a separate task which has common ASCS profile changes actions which could be used for both sles/rhel
+# 3. create os based cluster resources yaml where you actually create the cluster resources
+
+# Clustering commands are based on the Host OS
+- name:                                Cluster based on OS in VM
+  debug:
+    msg:                               "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
+
+- name:                                Cluster based on OS in VM
+  include_tasks:                       "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
+  #when:                                cluster_existence_check_result.rc != 0
+
+- name:                                "Profile"
+  include_tasks:                       "5.6.4.1-scsersprofile.yaml"
+
+- name:
+  include_tasks:                       "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
+
+...

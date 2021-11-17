@@ -1,0 +1,212 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         OS Base Disk Configuration                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.5     - os-disk-setup
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# <Comment Header>
+#
+# -------------------------------------+---------------------------------------8
+
+# ----------------------------------------
+# BEGIN
+# ----------------------------------------
+
+# ----------------------------------------
+# END
+# ----------------------------------------
+
+# # Prepare disks and mount points
+
+# # TODO: Refactor
+# # Check if installation paths are ready. If paths are unready, path_status_flag will be set. Then subsequent tasks will be executed.
+# - import_tasks: installation_path_prechecks.yml
+
+# - include_tasks: lvm_mount.yml
+#   when: path_status_flag is defined
+
+# Expectations:
+#
+#   Volume Groups: (pvs are only examples)
+#     - { tier: 'all',      vg: 'vg_sap',         pvs: '/dev/disk/azure/scsi1/lun0' }
+#     - { tier: 'hdb',      vg: 'vg_hana_data',   pvs: '/dev/disk/azure/scsi1/lun1,/dev/disk/azure/scsi1/lun2,/dev/disk/azure/scsi1/lun3' }
+#     - { tier: 'hdb',      vg: 'vg_hana_log',    pvs: '/dev/disk/azure/scsi1/lun4,/dev/disk/azure/scsi1/lun5,/dev/disk/azure/scsi1/lun6' }
+#     - { tier: 'hdb',      vg: 'vg_hana_backup', pvs: '/dev/disk/azure/scsi1/lun7' }
+#
+#   Logical Volumes:
+#    - { tier: 'all',         lv: 'lv_usrsap',        vg: 'vg_sap',         size: '64g',       opts: '' }
+#    - { tier: 'preparation', lv: 'lv_sapmnt',        vg: 'vg_sap',         size: '128g',      opts: '' }
+#    - { tier: 'preparation', lv: 'lv_usrsapinstall', vg: 'vg_sap',         size: '100%FREE',  opts: '' }
+#    - { tier: 'hdb',         lv: 'lv_hana_shared',   vg: 'vg_sap',         size: '100%FREE',  opts: '' }
+#    - { tier: 'hdb',         lv: 'lv_hana_data',     vg: 'vg_hana_data',   size: '100%FREE',  opts: '-i 3 -I 128' }
+#    - { tier: 'hdb',         lv: 'lv_hana_log',      vg: 'vg_hana_log',    size: '100%FREE',  opts: '-i 3 -I 32' }
+#    - { tier: 'hdb',         lv: 'lv_hana_backup',   vg: 'vg_hana_backup', size: '100%FREE',  opts: '' }
+#    - { tier: 'web',         lv: 'lv_sapmnt',        vg: 'vg_sap',         size: '1g',        opts: '' }
+#
+#   Filesystems:
+#    - { tier: 'all',         fstype: 'xfs', dev: '/dev/vg_sap/lv_usrsap' }
+#    - { tier: 'preparation', fstype: 'xfs', dev: '/dev/vg_sap/lv_sapmnt' }
+#    - { tier: 'preparation', fstype: 'xfs', dev: '/dev/vg_sap/lv_usrsapinstall' }
+#    - { tier: 'hdb',         fstype: 'xfs', dev: '/dev/vg_sap/lv_hana_shared' }
+#    - { tier: 'hdb',         fstype: 'xfs', dev: '/dev/vg_hana_data/lv_hana_data' }
+#    - { tier: 'hdb',         fstype: 'xfs', dev: '/dev/vg_hana_log/lv_hana_log' }
+#    - { tier: 'hdb',         fstype: 'xfs', dev: '/dev/vg_hana_backup/lv_hana_backup' }
+#    - { tier: 'web',         fstype: 'xfs', dev: '/dev/vg_sap/lv_sapmnt' }
+
+# Get all the unique disk types from sap-parameters
+
+
+# -------------------------------------+---------------------------------------8
+#
+- name:                                Load the disk configuration settings
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                "Print unique disks"
+  ansible.builtin.debug:
+    var:                               disktypes
+    verbosity:                         2
+
+- name:                                "Volume group details"
+  ansible.builtin.debug:
+    var:                               volume_groups
+    verbosity:                         2
+
+# CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
+# -------------------------------------+---------------------------------------8
+#
+- name:                                "Volume Group creation"
+  ansible.builtin.lvg:
+    vg:                                "{{ item.vg }}"
+    pvs:                               "{{ item.pvs }}"
+    pesize:                            4M
+    state:                             present
+  loop:                                "{{ volume_groups }}"
+  register:                            vgscreated
+  when:
+    - tier == "sapos"
+
+- name:                                "Filter the vg name from vgscreated results"
+  ansible.builtin.set_fact:
+    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
+  when:
+    - tier == "sapos"
+
+# Debug for testing
+- name:                                "Print vgcreated details"
+  ansible.builtin.debug:
+    var:                               vgscreated.results
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+    - vgscreated is defined
+
+- name:                                "Print vgcreated details"
+  ansible.builtin.debug:
+    var:                               vgcreatedlist
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+- name:                                "Print vgcreated details"
+  ansible.builtin.debug:
+    var:                               logical_volumes
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+# Debug testing end of line
+
+# CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
+# -------------------------------------+---------------------------------------8
+#
+- name:                                "Logical Volume creation"
+  ansible.builtin.lvol:
+    lv:                                "{{ item.lv }}"
+    vg:                                "{{ item.vg }}"
+    size:                              "{{ item.size }}"
+    opts:                              "{{ lvol_opts_from_lv_item }}"
+    active:                            true
+    state:                             present
+    shrink:                            false
+    resizefs:                          false
+  loop:                                "{{ logical_volumes }}"
+  register:                            lvscreated
+  when:
+    - tier == "sapos"
+    - item.node_tier in ["all", node_tier]
+    - item.vg in vgcreatedlist
+
+
+# Debug for testing
+- name:                                "Print lvscreated details"
+  ansible.builtin.debug:
+    var:                               lvscreated
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+
+- name:                                "Filter the logical volumes created results"
+  ansible.builtin.set_fact:
+    lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
+  when:
+    - tier == "sapos"
+
+# Debug for testing
+- name:                                "Print vgcreated filtered details"
+  ansible.builtin.debug:
+    var:                               lvcreatedlist_tmp
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+
+- name:                                "Filter the logical volumes created results1"
+  ansible.builtin.set_fact:
+    lvcreatedlist:                     "{{ lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
+  when:
+    - tier == "sapos"
+
+
+# Debug for testing
+- name:                                "Print vgcreated details"
+  ansible.builtin.debug:
+    var:                               lvcreatedlist
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+
+- name:                                "Filesystem creation"
+  ansible.builtin.filesystem:
+    dev:                               "{{ dev_path_from_lv_item }}"
+    fstype:                            "{{ item.fstype }}"
+    opts:                              "{{ item.fsopts | default('') }}"
+  loop:                                "{{ logical_volumes }}"
+  register :                           filesystemscreated
+  when:
+    - item.tier in ["all", tier ]
+    - item.node_tier in ["all", node_tier]
+    - item.fstype is defined
+    - item.lv in lvcreatedlist
+
+# Debug for testing
+- name:                                "Print values to be passed for filesystem creation"
+  ansible.builtin.debug:
+    var:                               filesystemscreated
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

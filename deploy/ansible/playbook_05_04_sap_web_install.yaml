@@ -1,0 +1,100 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for SAP Web Dispatcher Install                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- hosts:                               localhost
+  name:                                Get SAP Password from KeyVault
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+  tasks:
+
+    - name:                            Remove .step504 flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.step504"
+        state:                         absent
+
+    - name:                            Include 0.1 passwords role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for SAP Web Dispatcher Install                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_WEB"
+
+  name:                                SAP Installation - WebDispatcher
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  serial:                              1                                       # /usr/sap/install is an NFS and we share SID/instance number
+                                                                               # - must be ran serially
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            Set 'web' tier facts
+      ansible.builtin.set_fact:
+        tier:                          web
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+      tags:
+        - always
+
+# -------------------------------------+---------------------------------------8
+# Role: 5.4 Web Dispatcher Installation
+#
+# Description:
+#
+# -------------------------------------+---------------------------------------8
+
+    - block:
+        - name:                        Include 5.4-web-install
+          ansible.builtin.include_role:
+            name:     roles-sap/5.4-web-install
+      tags:
+        - 5.4-web-install
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for SAP Web Logging                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               localhost
+  name:                                Log results
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+    - name:                            Create .step504 flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.step504"
+        state:                         touch
+        mode:                          0755
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                    END                                     |
+# +------------------------------------4--------------------------------------*/

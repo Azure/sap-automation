@@ -1,0 +1,42 @@
+---
+
+# sapcontrol EXITCODES
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     0  Last webmethod call successful
+# |     1  Last webmethod call failed, invalid parameter
+# |     2  StartWait, StopWait, WaitforStarted, WaitforStopped, RestartServiceWait
+# |        timed out
+# |        CheckSystemCertificates detected warnings
+# |     3  GetProcessList succeeded, all processes running correctly
+# |        CheckSystemCertificates detected errors
+# |     4  GetProcessList succeeded, all processes stopped
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                Determine if HANA is running
+  become_user:                         "{{ db_sid | lower }}adm"
+  become:                              true
+  ansible.builtin.shell: >
+                                       source ~/.bashrc ;
+                                       {{ sapcontrol_command }} -function GetProcessList
+  failed_when:                         false
+  changed_when:                        false
+  register:                            hana_running
+
+- name:                                Ensure HANA is running
+  become_user:                         "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: >
+                                       source ~/.bashrc ;
+                                       {{ sapcontrol_command }} -function StartWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}
+  when:                                hana_running.rc != 3
+
+- name:                                Check if HANA is running
+  become_user:                         "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: >
+                                       source ~/.bashrc ;
+                                       {{ sapcontrol_command }} -function GetProcessList
+  changed_when:                        false
+  register:                            hana_running
+  failed_when:                         hana_running.rc != 3

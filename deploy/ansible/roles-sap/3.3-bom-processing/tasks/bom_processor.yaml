@@ -1,0 +1,198 @@
+---
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |         BOM Validation role                                                |
+# |                                                                            |
+# | Assumptions                                                                |
+# |   target_media_location exists on disk                                     |
+# |                                                                            |
+# | Inputs:                                                                    |
+# |   target_media_location             Default     /usr/sap/install           |
+# | download_directory                                                         |
+# | bom_name                                                                   |
+# | sapbits_location_base_path                                                 |
+# | sapbits_bom_files                                                          |
+# | sapbits_sas_token                                                          |
+# | sapbits_access_key                                                         |
+# | S_user                                                                     |
+# | S_password:                                                                |
+# | download_directory:               Default /mnt/downloads                   |
+# |                                                                            |
+# |Locals:                                                                     |
+# | _bom                                                                       |
+# | item                                                                       |
+# | result                                                                     |
+# |                                                                            |
+# | BOM Fields:                                                                |
+# | download                                                                   |
+# | archive                                                                    |
+# | permissions                                                                |
+# |                                                                            |
+# |                                                                            |
+# | Steps:                                                                     |
+# |  01) Register BOM                                                          |
+# |  02) Create static download directories
+# |  03) Create dynamic extract directories
+# |  04) Download media from bom
+# |  05) Extract files - SAPCAR
+# |  06) Extract files - UNRAR
+# |  07) Extract files - UNZIP
+# |  08) Purge BOM file from Ansible Controller - TBD
+
+# +------------------------------------4--------------------------------------*/
+
+- name:                                Run the bom-register
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    inventory_dir:                     "{{ download_directory }}/bom"
+
+
+#   02) Create static download directories
+- name:                                "BOM: Create SAP download directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
+  loop:
+    - path: '/usr/sap/install/downloads'
+    - path: '/usr/sap/install/download_basket'
+
+
+#   03) Create dynamic extract directories
+- name:                                "BOM: Create BOM directories"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/{{ item.extractDir }}"
+    state:                             directory
+    mode:                              0755
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  when:                                not ( (item.extractDir is undefined) or (item.extractDir == '') )
+
+
+# Download Files
+# ------------------<DEBUGGING>-------------------
+- name:                                "BOM: List files"
+  ansible.builtin.debug:
+    msg:
+      - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+               {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+      - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+      - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+    verbosity:                         2
+  loop:       "{{ bom.materials.media|flatten(levels=1) }}"
+# ------------------</DEBUGGING>------------------
+
+- name:                                "BOM: Set Python version {{ distro_id }}"
+  ansible.builtin.set_fact:
+    python_version:                    'python2'
+
+- name:                                "BOM: Set Python version {{ distro_id }}"
+  ansible.builtin.set_fact:
+    python_version:                    'python3'
+  when:                                distro_id in ['suse15', 'redhat82']
+
+
+#   04) Download media from bom
+# Loop through BOM media files and download to correct location
+- name:                                "BOM: Download Files SUSE15"
+  ansible.builtin.get_url:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+                                       {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+    dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+                                       {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+    mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+    tmp_dest:                          '/mnt/resource'
+    validate_certs:                    true
+  register:                            result
+  until:                               result is succeeded
+  retries:                             2
+  delay:                               5
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  vars:
+    ansible_python_interpreter:        "{{ python_version }}"
+  when:
+    - item.download is undefined or item.download
+    - "distro_id == 'suse15' or distro_id == 'redhat82'"
+
+- name:                                "BOM: Download Files"
+  ansible.builtin.get_url:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+                                       {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+    dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+                                       {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+    mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+    tmp_dest:                          '/mnt/resource'
+    validate_certs:                    true
+  register:                            result
+  until:                               result is succeeded
+  retries:                             2
+  delay:                               5
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  when:
+    - item.download is undefined or item.download
+    - distro_id != 'suse15'
+    - distro_id != 'redhat82'
+    
+
+
+#   05) Extract files - SAPCAR
+- name:                                "BOM: Extract File, SAPCAR"
+  ansible.builtin.command:             "{{ target_media_location }}/downloads/SAPCAR -manifest SIGNATURE.SMF \
+                                         -xf {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+                                         {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  args:
+    chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
+    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
+                                        {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  when:
+    - item.extract is not undefined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="SAR") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="SAR") )
+
+
+#   06) Extract files - UNRAR
+- name:                                "BOM: Extract File, UNRAR"
+  ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+                                       {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  args:
+    chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
+    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
+                                        {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  when:
+    - item.extract is not undefined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") )
+
+
+#   07) Extract files - UNZIP
+- name:                                "BOM: Extract File, UNZIP"
+  ansible.builtin.unarchive:
+    src:                               "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+    dest:                              "{{ target_media_location }}/{{ item.extractDir }}"
+    remote_src:                        true
+    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/{% if item.creates is defined %}\
+                                        {{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  when:
+    - item.extract is not undefined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") )
+
+
+# #   08) Purge BOM file from Ansible Controller
+# - name:         "Ensure {{ bom_name }} is absent"
+#   ansible.builtin.file:
+#     path:       "{{ inventory_dir }}/{{ bom_name }}.yaml"
+#     state:      absent
+#   delegate_to:  localhost
+
+# -------------------------------------+---------------------------------------8
+
+...
