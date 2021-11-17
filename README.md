@@ -8,6 +8,10 @@ The framework uses Terraform for infrastructure deployment, and Ansible for the 
 
 The project is being build in partnership with [SUSE](https://www.suse.com/) and [Red Hat](https://www.redhat.com/)
 
+## Documentation
+
+The user guidance can be located here [SAP deployment automation framework](https://docs.microsoft.com/azure/virtual-machines/workloads/sap/automation-deployment-framework)
+
 ## Contributing
 
 If you want to contribute to our project, be sure to review the [contributing guidelines](/CONTRIBUTING.md).
