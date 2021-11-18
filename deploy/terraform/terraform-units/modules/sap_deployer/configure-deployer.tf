@@ -26,6 +26,7 @@ resource "null_resource" "prepare-deployer" {
       client_id       = azurerm_user_assigned_identity.deployer.client_id,
       subscription_id = data.azurerm_subscription.primary.subscription_id,
       tenant_id       = data.azurerm_subscription.primary.tenant_id
+      object_id       = azurerm_user_assigned_identity.deployer.principal_id
       }
     )
 

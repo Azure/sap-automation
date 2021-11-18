@@ -54,7 +54,7 @@ VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
     showhelp
 fi
-echo "$INPUT_ARGUMENTS"
+
 eval set -- "$INPUT_ARGUMENTS"
 while :; do
     case "$1" in

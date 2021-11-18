@@ -42,7 +42,7 @@ function showhelp {
     echo "#   The script experts the following exports:                                                                   #"
     echo "#                                                                                                               #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                                            #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                                #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                          #"
     echo "#                                                                                                               #"
     echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for         #"
     echo "#    the deployer and the library and the environment.                                                          #"
@@ -119,7 +119,7 @@ if [ "$VALID_ARGUMENTS" != "0" ]; then
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
-while :
+while :;
 do
     case "$1" in
         -d | --deployer_parameter_file)            deployer_parameter_file="$2"     ; shift 2 ;;
@@ -133,7 +133,7 @@ do
         -o | --only_deployer)                      only_deployer=1                  ; shift ;;
         -r | --recover)                            recover=1                        ; shift ;;
         -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
-        -h | --help)                               showhelp
+        -h | --help)                               showhelp                         
         exit 3                           ; shift ;;
         --) shift; break ;;
     esac
@@ -261,10 +261,6 @@ if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
     exit 65                                                                                           #data format error
 fi
 
-echo "1"
-echo "$DEPLOYMENT_REPO_PATH"
-echo "2"
-
 templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
 # Subscription length is 37
 if [ 37 != $templen ]; then
@@ -358,7 +354,6 @@ fi
 set_executing_user_environment_variables "${spn_secret}"
 
 load_config_vars "${deployer_config_information}" "step"
-
 
 if [ $recover == 1 ]; then
     if [ -n "$REMOTE_STATE_SA" ]; then
@@ -526,9 +521,12 @@ if [ 1 == $step ]; then
         read -r -p "Deployer keyvault name: " keyvault
     fi
     
-    az keyvault secret show --name "$secretname" --vault "$keyvault" --only-show-errors 2>error.log
-    if [ -s error.log ]; then
-        if [ ! -z "$spn_secret" ]; then
+    access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
+    if [ ! -n "${access_error}" ]; then
+        save_config_var "client_id" "${deployer_config_information}"
+        save_config_var "tenant_id" "${deployer_config_information}"
+
+        if [ -n "$spn_secret" ]; then
             allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region}" "${keyvault}" "${spn_secret}")
             
             "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
@@ -560,7 +558,16 @@ if [ 1 == $step ]; then
         cd "${curdir}" || exit
         step=2
         save_config_var "step" "${deployer_config_information}"
-        
+    else
+        az_subscription_id=$(az account show --query id -o tsv)
+        printf -v val %-40.40s "$az_subscription_id"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+
     fi
 fi
 unset TF_DATA_DIR

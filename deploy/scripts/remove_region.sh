@@ -482,4 +482,6 @@ unset TF_DATA_DIR
 step=0
 save_config_var "step" "${deployer_config_information}"
 
+rm "${deployer_config_information}"
+
 exit 0

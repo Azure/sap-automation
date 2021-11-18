@@ -17,16 +17,6 @@ output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
 }
 
-# output "subnet_mgmt" {
-#   sensitive = true
-#   value     = module.sap_deployer.subnet_mgmt.id
-# }
-
-# output "nsg_mgmt" {
-#   sensitive = true
-#   value     = module.sap_deployer.nsg_mgmt.id
-# }
-
 output "deployer_uai" {
   sensitive = true
   value = {
@@ -35,28 +25,11 @@ output "deployer_uai" {
   }
 }
 
-# output "deployer" {
-#   sensitive = true
-#   value     = module.sap_deployer.deployers
-# }
-
-// Comment out code with users.object_id for the time being.
-/*
-output "deployer_user" {
-  sensitive = true
-  value = module.sap_deployer.deployer_user
-}
-*/
 
 output "deployer_kv_user_arm_id" {
   sensitive = true
   value     = module.sap_deployer.deployer_kv_user_arm_id
 }
-
-# TODO Add this back when we separate the usage
-# output "deployer_kv_prvt_name" {
-#  value = module.sap_deployer.prvt_vault_name
-#}
 
 output "deployer_kv_user_name" {
   value = module.sap_deployer.user_vault_name
@@ -96,4 +69,8 @@ output "firewall_id" {
 
 output "automation_version" {
   value = local.version_label
+}
+
+output "arm_client_id" {
+  value = var.arm_client_id
 }
