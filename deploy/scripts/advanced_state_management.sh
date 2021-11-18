@@ -21,7 +21,7 @@ function showhelp {
     echo "#   This file contains the logic to reimport an Azure artifact to the Terraform state file                       #"
     echo "#   The script experts the following exports:                                                                    #"
     echo "#                                                                                                                #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana                                 #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                                 #"
     echo "#                                                                                                                #"
     echo "#                                                                                                                #"
     echo "#                                                                                                                #"

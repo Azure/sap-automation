@@ -28,7 +28,7 @@ source "${script_directory}/deploy_utils.sh"
 #                                                                                              #
 #   The script experts the following exports:                                                  #
 #   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                             #
-#   DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana                 #
+#   DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                 #
 #                                                                                              #
 ################################################################################################
 
@@ -42,7 +42,7 @@ function showhelp {
     echo "#   The script experts the following exports:                                                                   #"
     echo "#                                                                                                               #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                                            #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-hana                                #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                                #"
     echo "#                                                                                                               #"
     echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for         #"
     echo "#    the deployer and the library and the environment.                                                          #"
@@ -254,7 +254,7 @@ if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
     echo -e "#  $boldred Missing environment variables (DEPLOYMENT_REPO_PATH)!!! $resetformatting                            #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -274,7 +274,7 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo -e "#  $boldred Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $resetformatting                             #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-hana))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"

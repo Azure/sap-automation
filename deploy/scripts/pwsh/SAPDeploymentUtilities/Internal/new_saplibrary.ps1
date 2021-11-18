@@ -23,7 +23,7 @@ function New-SAPLibrary {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version

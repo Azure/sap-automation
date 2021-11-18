@@ -451,9 +451,9 @@ echo '# Configure environment settings for deployer interactive session'
 # are preferred over any installed standard system versions.
 
 export ARM_SUBSCRIPTION_ID=${subscription_id}
-export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-hana
+export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation
 
-export "PATH=${ansible_bin}:${tf_bin}:"'${PATH}':$HOME/Azure_SAP_Automated_Deployment/sap-hana/deploy/scripts:$HOME/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible
+export "PATH=${ansible_bin}:${tf_bin}:"'${PATH}':$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible
 
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
@@ -475,9 +475,9 @@ az login --identity --output none
 echo '# Configure environment settings for deployer interactive sessions' | sudo tee /etc/profile.d/deploy_server.sh
 
 echo export ARM_SUBSCRIPTION_ID=${subscription_id} | sudo tee -a /etc/profile.d/deploy_server.sh
-echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-hana | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation | sudo tee -a /etc/profile.d/deploy_server.sh
 
-echo export "PATH=${ansible_bin}:${tf_bin}:"'${PATH}':$HOME/Azure_SAP_Automated_Deployment/sap-hana/deploy/scripts:$HOME/Azure_SAP_Automated_Deployment/sap-hana/deploy/ansible | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export "PATH=${ansible_bin}:${tf_bin}:"'${PATH}':$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible | sudo tee -a /etc/profile.d/deploy_server.sh
 
 
 # Set env for ansible

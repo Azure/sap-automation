@@ -24,7 +24,7 @@ function Remove-SAPAutomationRegion {
      -LibraryParameterfile .\LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version

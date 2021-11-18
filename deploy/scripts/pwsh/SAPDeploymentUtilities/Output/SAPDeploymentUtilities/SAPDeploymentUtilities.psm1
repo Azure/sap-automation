@@ -147,7 +147,7 @@ function New-SAPAutomationRegion {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -572,7 +572,7 @@ function New-SAPDeployer {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -860,7 +860,7 @@ function New-SAPSystem {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -1439,7 +1439,7 @@ function New-SAPLibrary {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -1708,7 +1708,7 @@ function New-SAPWorkloadZone {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -2420,7 +2420,7 @@ function Read-SAPDeploymentTemplate {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -2800,7 +2800,7 @@ function Remove-SAPAutomationRegion {
      -LibraryParameterfile .\LIBRARY\PROD-WEEU-SAP_LIBRARY\PROD-WEEU-SAP_LIBRARY.json 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -3033,7 +3033,7 @@ function Remove-SAPSystem {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
@@ -3338,7 +3338,7 @@ Function Set-SAPSPNSecrets {
 
     
 .LINK
-    https://github.com/Azure/sap-hana
+    https://github.com/Azure/sap-automation
 
 .NOTES
     v0.1 - Initial version
