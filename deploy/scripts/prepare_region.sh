@@ -261,6 +261,10 @@ if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
     exit 65                                                                                           #data format error
 fi
 
+echo "1"
+echo "$DEPLOYMENT_REPO_PATH"
+echo "2"
+
 templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
 # Subscription length is 37
 if [ 37 != $templen ]; then
@@ -295,6 +299,13 @@ library_file_parametername=$(basename "${library_parameter_file}")
 relative_path="${root_dirname}"/"${deployer_dirname}"
 export TF_DATA_DIR="${relative_path}"/.terraform
 # Checking for valid az session
+
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir -p "$HOME/.terraform.d/plugin-cache"
+fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
 
 temp=$(grep "az login" stdout.az)
 if [ -n "${temp}" ]; then

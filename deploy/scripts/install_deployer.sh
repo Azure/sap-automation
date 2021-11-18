@@ -204,6 +204,13 @@ export TF_DATA_DIR="${param_dirname}"/.terraform
 ok_to_proceed=false
 new_deployment=false
 
+if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
+then
+    mkdir -p "$HOME/.terraform.d/plugin-cache"
+fi
+export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+
+
 
 if [ ! -d ./.terraform/ ]; then
     echo "#########################################################################################"
@@ -230,10 +237,10 @@ else
                 exit 0
             fi
         else
-            terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
+            terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
         fi
     else
-        terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
     fi
 fi
 

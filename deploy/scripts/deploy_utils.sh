@@ -73,8 +73,16 @@ function init() {
     else
         touch "${generic_config_information}"
         touch "${app_config_information}"
-        load_config_vars "${generic_config_information}" "DEPLOYMENT_REPO_PATH"
-        load_config_vars "${app_config_information}" "ARM_SUBSCRIPTION_ID"
+        if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
+            save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
+        else
+            load_config_vars "${generic_config_information}" "DEPLOYMENT_REPO_PATH"
+        fi
+        if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
+            save_config_var "ARM_SUBSCRIPTION_ID" "${app_config_information}"
+        else
+            load_config_vars "${app_config_information}" "ARM_SUBSCRIPTION_ID"
+        fi
     fi
 
 }

@@ -212,6 +212,8 @@ resource_group_name=$(echo $tfstate_resource_id | cut -d/ -f5 | tr -d \" | xargs
 
 directory=$(pwd)/.terraform
 
+echo $DEPLOYMENT_REPO_PATH
+
 module_dir=$DEPLOYMENT_REPO_PATH/deploy/terraform/run/${type}
 var_file=~/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER/PERM-WEEU-DEP01-INFRASTRUCTURE/PERM-WEEU-DEP01-INFRASTRUCTURE.tfvars
 
