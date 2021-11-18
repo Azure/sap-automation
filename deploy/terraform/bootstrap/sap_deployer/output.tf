@@ -70,7 +70,3 @@ output "firewall_id" {
 output "automation_version" {
   value = local.version_label
 }
-
-output "arm_client_id" {
-  value = var.arm_client_id
-}

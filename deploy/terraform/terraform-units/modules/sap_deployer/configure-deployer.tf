@@ -26,7 +26,6 @@ resource "null_resource" "prepare-deployer" {
       client_id       = azurerm_user_assigned_identity.deployer.client_id,
       subscription_id = data.azurerm_subscription.primary.subscription_id,
       tenant_id       = data.azurerm_subscription.primary.tenant_id
-      object_id       = azurerm_user_assigned_identity.deployer.principal_id
       }
     )
 
@@ -55,7 +54,7 @@ resource "null_resource" "prepare-deployer" {
 resource "local_file" "configure_deployer" {
   count = local.enable_deployer_public_ip ? 0 : length(local.deployers)
   content = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
-    tfversion       = "0.14.7",
+    tfversion       = "1.0.8",
     rg_name         = local.rg_name,
     client_id       = azurerm_user_assigned_identity.deployer.client_id,
     subscription_id = data.azurerm_subscription.primary.subscription_id,

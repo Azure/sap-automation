@@ -603,7 +603,6 @@ then
 fi
 
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
-echo $allParams
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams > plan_output.log
 return_value=$?
