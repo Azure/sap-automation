@@ -112,6 +112,57 @@
 #                  'command' or 'shell'?
 #----------------------------------------
 
+#----------------------------------------
+# BEGIN
+#
+# TODO: 20210824 - This only takes into account pay-as-you-go deployments.
+#                  Need to support BYOL with OEL satellite Registrations.
+#                  Is there a better way to do this other than using
+#                  'command' or 'shell'?
+#----------------------------------------
+
+- name:     Ensure yum repos are configured on OEL VMs
+  block:
+    - name:     Check that yum repos are registered
+      command:    yum repolist
+      args:
+        warn: false  # quieten warning about using yum directly
+
+  when:     ansible_os_family|upper == 'Oracle'
+
+#----------------------------------------
+# END
+#
+# TODO: 20210824 - This only takes into account pay-as-you-go deployments.
+#                  Need to support BYOL with OEL satellite Registrations.
+#                  Is there a better way to do this other than using
+#                  'command' or 'shell'?
+#----------------------------------------
+
+
+#----------------------------------------
+# BEGIN
+#
+# TODO: 20210825 - This only takes into account pay-as-you-go deployments.
+#                  Need to support BYOL with OEL satellite Registrations.
+#                  Is there a better way to do this other than using
+#                  'command' or 'shell'?
+#----------------------------------------
+
+- name:     Ensure yum repos are configured on Oracle Linux VMs
+  block:
+    - name:     Check that yum repos are registered
+      command:    yum repolist
+      args:
+        warn: false  # quieten warning about using yum directly
+
+  when:     ansible_os_family|upper == 'ORACLELINUX'
+
+#----------------------------------------
+# END
+
+
+
 
 - name:                                Ensure additional zypper repo is configured on SLE VMs
   block:

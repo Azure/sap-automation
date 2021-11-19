@@ -1,0 +1,84 @@
+---
+
+- name: Gather Logical volumes created in 1.5.1
+  include_vars: disks_config_asm.yml
+   
+
+
+
+- name: Check if LVs exists.
+  stat:
+    path: "{{ dev_path_from_lv_item }}"
+  loop: "{{logical_volumes }}"
+  register: oravgstat
+
+- debug:
+    var:                         oravgstat
+
+- name: Gater existing LVs 
+  set_fact:
+    lvexists: "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}" 
+
+
+- debug:
+    var:                         lvexists
+
+#- fail: msg="here"
+
+# Mount Filesystems
+- name:     "Mount Filesystems for Oracle"
+  mount:
+    src:    "{{ dev_path_from_lv_item }}"
+    #path:   "{{ ['/'~item.lv|split('_')[-2], db_sid|upper, item.lv|split('_')[-1]] | join('/') }}"
+    path: >-
+        {%- set lv_parts = item.lv.split('_') -%}
+        {%- if lv_parts| length == 2 -%}
+        {%- set _path = '/' ~ lv_parts[-1] -%}
+        {%- else -%}
+        {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
+        {%- endif -%}
+        {{- _path -}} 
+    fstype: "{{ item.fstype }}"
+    opts:   defaults
+    state:  mounted
+  loop: "{{logical_volumes |sort(attribute='lv') }}"
+  when:         
+              - item.tier == "ora"
+              - item.node_tier == "oracle-asm" 
+              - item.lv in  lvexists
+  register:  oraclefilesystemmounts
+
+
+# Mount Filesystems
+- name:     "Mount SAP Filesystems on Database for installation"
+  mount:
+    src:    "{{ item.src }}"
+    path:   "{{ item.path }}"
+    fstype: "{{ item.type }}"
+    opts:   defaults
+    state:  mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop:
+    - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/usr/sap/install',               path: '/usr/sap/install' }                # Special Install Structure; Destroy on Completion
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ db_sid|upper }}',     path: '/sapmnt/{{ db_sid|upper }}' }
+  
+  when:         
+                item.tier == "sapos" or 
+                item.tier == "ora"
+
+# ORASID should be the owner of the file systems /oracle directories. 
+#.PARAMS folder is not required for oracle install as we are not passing any parameters files.
+
+- name:              "Make oracle:oinstall as owners"          
+  ansible.builtin.shell: | 
+                      chown -R oracle:oinstall /oracle
+                      chmod -R 777 /usr/sap/install/
+
+
+#Debug for testing
+- name:                           "Print oracle filesystems"
+  debug:
+    var:                         oraclefilesystemmounts

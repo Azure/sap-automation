@@ -1,0 +1,100 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Mount Filesystems
+
+- name:                                "ORACLE: Gather Logical volumes created in 1.5"
+  ansible.builtin.include_vars:        disks_config.yml
+   
+
+
+
+- name:                                "ORACLE: Check if LVs exists."
+  ansible.builtin.stat:
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{logical_volumes }}"
+  register:                            oravgstat
+
+- name:                                "ORACLE: Show oravgstat"
+  ansible.builtin.debug:
+    var:                               oravgstat
+    verbosity:                         2
+
+- name:                                "ORACLE: Gather existing LVs" 
+  set_fact:
+    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}" 
+
+- name:                                "ORACLE: Show lvexists"
+  ansible.builtin.debug:
+    var:                               lvexists
+    verbosity:                         2
+
+
+# Mount Filesystems
+- name:                                "ORACLE: Mount Filesystems for Oracle"
+  ansible.builtin.mount:
+    src:                               "{{ dev_path_from_lv_item }}"
+    path: >-
+                                       {%- set lv_parts = item.lv.split('_') -%}
+                                       {%- if lv_parts| length == 2 -%}
+                                       {%- set _path = '/' ~ lv_parts[-1] -%}
+                                       {%- else -%}
+                                       {%- set _path = ['/' ~ lv_parts[-2], sap_sid | upper, lv_parts[-1]] | join('/') -%}
+                                       {%- endif -%}
+                                       {{- _path -}} 
+    fstype:                            "{{ item.fstype }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:                                "{{logical_volumes |sort(attribute='lv') }}"
+  register:  oraclefilesystemmounts
+  when:         
+    - item.node_tier == "oracle" 
+    - item.lv in  lvexists
+  
+
+
+# Mount Filesystems
+- name:                                "ORACLE: Mount SAP Filesystems on Database for installation"
+  mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:                       "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop:
+    - { tier: 'sapos',          type: 'xfs',     src: '/dev/vg_sap/lv_usrsap',                           path: '/usr/sap' }
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/usr/sap/install',               path: '/usr/sap/install' }                # Special Install Structure; Destroy on Completion
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
+  
+  when:         
+    item.tier in ["sapos","ora"]
+
+# ORACLE should be the owner of the file systems /oracle directories. 
+#.PARAMS folder is not required for oracle install as we are not passing any parameters files.
+
+
+- name:                                "ORACLE: Make orasid:dba as owners"          
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    mode:                              0777
+  loop:
+    - { path: '/oracle',          group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install', group: 'oinstall',   owner: 'oracle'}
+
+
+#Debug for testing
+- name:                                "ORACLE: Print oracle filesystems"
+  debug:
+    var:                               oraclefilesystemmounts
+    verbosity:                         2

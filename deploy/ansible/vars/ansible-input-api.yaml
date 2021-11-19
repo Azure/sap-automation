@@ -29,7 +29,7 @@ check_storage_account:        true
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""
-sap_sid:                      ""                                                        # REQUIRED - SAP Install
+sap_sid:                      "BPC"                                                        # REQUIRED - SAP Install
 download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
 db_sid:                       "XDB"                                                     # Default
@@ -37,12 +37,24 @@ hdb_instance_number:          "00"                                              
 pas_hostname:                 ""
 pas_instance_number:          "00"
 password_hana_system:         ""
-main_password:                ""                                                        # SAP Install
+main_password:                "Demo12345"                                                        # SAP Install
 sap_fqdn:                     ""                                                        # SAP Install
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
+
+# Oracle specific parameters
+ora_sid:                      "ORA" 
+dba_gid:                      3000
+oper_gid:                     3001
+asmoper_gid:                  3002
+asmadmin_gid:                 3003
+asmdba_gid:                   3004
+oinstall_gid:                 3005
+orasid_uid:                   3000
+oracle_uid:                   3001    
 hdbshm_gid:                   2002
+
 scs_hostname:                 ""
 scs_instance_number:          "00"                                                      # SAP Install
 ers_instance_number:          "02"
@@ -51,7 +63,9 @@ hdbadm_uid:                   2200
 scs_lb_ip:                    ""                                                        # SAP HA
 db_lb_ip:                     ""                                                        # SAP HA
 reinstall:                    false                                                     # Provide a way to override the idempotency flags for SAP tasks
-
+ora_release:                  19
+ora_version:                  19.0.0
+ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
 
 password_cockpit_admin:       ""
@@ -76,6 +90,8 @@ sap_swap:
   - { tier: 'app',  swap_size_mb: '20480' }
   - { tier: 'web',  swap_size_mb: '4096' }
   - { tier: 'hana', swap_size_mb: '2048' }
+  - { tier: 'oracle', swap_size_mb: '20480' }
+  - { tier: 'oracle-asm', swap_size_mb: '20480' }
 
 
 ...

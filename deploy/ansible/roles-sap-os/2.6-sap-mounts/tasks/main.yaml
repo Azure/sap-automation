@@ -108,4 +108,10 @@
     - sap_mnt | trim | length != 0
     - tier == 'sapos'
 
+# Import this task only if the tier is ora.
+- import_tasks:                        "oracle.yaml"
+  when: 
+    - node_tier == "oracle"
+    - node_tier != "oracle-asm"
+
 ...

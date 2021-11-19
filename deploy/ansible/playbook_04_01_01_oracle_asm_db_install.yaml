@@ -1,0 +1,80 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for HANA DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+# Steps:
+#   01) NFS: Mount
+#
+
+- hosts:          "{{ db_sid|upper }}_DB"
+
+  name:           DB Installation prechecks - Oracle ASM
+  remote_user:    "{{ orchestration_ansible_user }}"                
+  become:         yes
+  become_user:    root
+  gather_facts:   true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here. 
+#
+# -------------------------------------+---------------------------------------8
+
+  - ansible.builtin.set_fact:
+      tier:     ora                                                       # Actions for Oracle DB Servers
+      node_tier: oracle-asm
+    tags:
+      - always
+
+# -------------------------------------+---------------------------------------8
+# Role: oracle-users
+#
+# Description: Create oracle users and groups.
+#              
+#
+  - include_role:
+      name:     roles-os/1.11-accounts
+# -------------------------------------+---------------------------------------8
+
+# Description: Installs ASM Packages, configures ASMLIB and initialises the disks for ASM.
+# Mounts local filesystems and NFS file systems for installation.
+  - include_role:
+      name:                      roles-os/1.5.1-disk-setup-asm
+      
+    tags:
+      - 1.5.1-disk-setup-asm
+    
+# -------------------------------------+---------------------------------------8
+# Role: ASM Grid SOftware install.
+#
+# Description: ASM Grid SOftware Install
+#              
+#
+  - include_role:
+      name:     roles-db/4.1.1-ora-asm-grid
+    tags:
+      - 4.1.1-ora-asm-grid
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Role: ASM Grid SOftware install.
+#
+# Description: ASM Grid SOftware Install
+#              
+#
+  - include_role:
+      name:     roles-db/4.1.2-ora-asm-db-install
+    tags:
+      - 4.1.2-ora-asm-db-install
+# -------------------------------------+---------------------------------------8
+
+
+
+
