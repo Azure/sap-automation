@@ -78,7 +78,7 @@ function init() {
         else
             load_config_vars "${generic_config_information}" "DEPLOYMENT_REPO_PATH"
         fi
-        if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
+        if [ -n "${ARM_SUBSCRIPTION_ID}" ]; then
             save_config_var "ARM_SUBSCRIPTION_ID" "${app_config_information}"
         else
             load_config_vars "${app_config_information}" "ARM_SUBSCRIPTION_ID"
