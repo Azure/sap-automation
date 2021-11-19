@@ -16,7 +16,20 @@ repos:
   redhat8.2:
   redhat8.4:
   # do not have any repos that are needed for RedHat at the moment.
-  suse15.2:
+  # Adding the entries for Oracle-Linux for testing. cat /etc/oracle-release is the command to get the os version info in Oracle linux.
+  oraclelinux8.1:
+
+  oraclelinux8.2:
+
+  oraclelinux8.3:
+
+  oraclelinux8.4:
+
+
+
+
+
+
   suse15.1:
   suse15.0:
   suse12.5:
