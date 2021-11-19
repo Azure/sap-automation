@@ -192,7 +192,7 @@ packages:
   # Assumption: Public_Cloud_Module_x86_64 already available
   # python3-azure-mgmt-compute depends on az-cli
   # investigate by running
-  # [1] sudo zypper search -s -n python3-azure-mgmt-compute=4.6.2 
+  # [1] sudo zypper search -s -n python3-azure-mgmt-compute=4.6.2
   # look at required packages
   # [2] sudo zypper search --requires -n python3-azure-mgmt-compute=4.6.2
   # identify requirements for azure-cli-vm which allows the restart of VMs
@@ -204,7 +204,7 @@ packages:
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'ers',     state: 'present' } 
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8
   suse15.1:
   suse15.2:

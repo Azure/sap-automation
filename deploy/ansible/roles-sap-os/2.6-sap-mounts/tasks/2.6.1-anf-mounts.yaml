@@ -132,6 +132,7 @@
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
+    mode:                              0755
   loop:
     - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
     - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
@@ -146,6 +147,7 @@
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
+    mode:                              0755
   loop:
     - { path: '/saptrans/usrsaptrans' }
   when:
@@ -230,7 +232,7 @@
   ansible.builtin.file:
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
-    mode:                              0755 
+    mode:                              0755
     path:                              "{{ item.path }}"
     state:                             directory
   loop:
@@ -247,7 +249,7 @@
   ansible.builtin.file:
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
-    mode:                              0755 
+    mode:                              0755
     path:                              "{{ item.path }}"
     state:                             directory
   loop:
@@ -266,7 +268,7 @@
     state:                             directory
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
-    mode:                              0755 
+    mode:                              0755
   loop:
     - { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
     - { path: '/usr/sap/{{ sap_sid|upper }}/ASCS{{ scs_instance_number }}' }

@@ -57,9 +57,9 @@
       ansible.builtin.command:         pcs node standby {{ secondary_instance_name }}
 
     - name:                            "SCS - Assign ownership"
-      ansible.builtin.file:            
+      ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}" 
+        owner:                         "{{ sidadm_uid }}"
         group:                         sapsys
       loop:
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
@@ -122,9 +122,9 @@
       ansible.builtin.command:         pcs node standby {{ primary_instance_name }}
 
     - name:                            "ERS - Assign ownership"
-      ansible.builtin.file:            
+      ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}" 
+        owner:                         "{{ sidadm_uid }}"
         group:                         sapsys
       loop:
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }

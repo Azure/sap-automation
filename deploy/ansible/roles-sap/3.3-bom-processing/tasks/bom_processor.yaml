@@ -133,8 +133,6 @@
     - item.download is undefined or item.download
     - distro_id != 'suse15'
     - distro_id != 'redhat82'
-    
-
 
 #   05) Extract files - SAPCAR
 - name:                                "BOM: Extract File, SAPCAR"

@@ -24,12 +24,12 @@
 - name:                                "Print - SCS Virtual Instance hostname variable"
   ansible.builtin.debug:
     msg:                               "The SCS Vir hostname system is {{ scs_virtual_hostname }}"
-    verbosity:                         2 
+    verbosity:                         2
 
 - name:                                "Print - ERS Virtual Instance hostname variable"
   ansible.builtin.debug:
     msg:                               "The ERS Vir hostname system is {{ ers_virtual_hostname }}"
-    verbosity:                         2 
+    verbosity:                         2
 
 
 # /*---------------------------------------------------------------------------8
