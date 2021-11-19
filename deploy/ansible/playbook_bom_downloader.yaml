@@ -61,7 +61,6 @@
       vars:
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits-location-base-path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        check_storage_account:         "{{ check_storage_account }}" 
       tags:
         - 0.1-bom-validator
 ...

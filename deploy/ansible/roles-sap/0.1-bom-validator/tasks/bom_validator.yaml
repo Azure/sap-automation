@@ -63,11 +63,13 @@
 
 #   02) Validate media from SAP
 #   Loop through BOM media URLs
+
 - name:                                "BOM: {{ bom_name }} Check and Download Files"
   include_tasks:                       bom_download.yaml
   vars: 
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
+    
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   no_log:                              false
 

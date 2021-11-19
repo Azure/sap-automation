@@ -55,7 +55,6 @@
     - path: "{{ download_directory }}/bom"
     - path: "{{ download_directory }}/files"
 
-
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing BOM name.
@@ -66,6 +65,7 @@
 - include_tasks:                       "bom_validator.yaml"
   vars:
     bom_name:                          "{{ bom_base_name }}"
+    check_storage_account:             true
 # -------------------------------------+---------------------------------------8
 
 
@@ -76,6 +76,7 @@
 - include_tasks:                       "bom_validator.yaml"
   vars:
     bom_name:                          "{{ bom_dependency.name }}"
+    check_storage_account:             true
   loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
