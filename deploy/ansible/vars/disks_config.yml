@@ -17,7 +17,15 @@ disk_type_to_name_map:
   data:   '{{ node_tier | lower }}_data'
   log:    '{{ node_tier | lower }}_log'
   backup: '{{ node_tier | lower }}_backup'
-
+  sapdata1: '{{ node_tier | lower }}_sapdata1'
+  sapdata2: '{{ node_tier | lower }}_sapdata2'
+  sapdata3: '{{ node_tier | lower }}_sapdata3'
+  sapdata4: '{{ node_tier | lower }}_sapdata4'
+  origloga: '{{ node_tier | lower }}_origlogA'
+  origlogb: '{{ node_tier | lower }}_origlogB'
+  mirrloga:  '{{ node_tier | lower }}_mirrlogA'
+  mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
+  oraarch: '{{ node_tier | lower }}_oraarch'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -53,7 +61,7 @@ logical_volumes:
     node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
-    size:       '128g'
+    size:       '64g'
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -106,6 +114,87 @@ logical_volumes:
     lv:         'lv_usrsapinstall'
     size:       '100%FREE'
     fstype:     'xfs'
+  
+# Adding Tier and disk types for Oracle installation non-ASM.
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata1'
+    lv:         'lv_oracle_sapdata1'
+    size:       '100%FREE'
+    stripesize: 256
+    fstype:     'xfs'
+  
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata2'
+    lv:         'lv_oracle_sapdata2'
+    size:       '100%FREE'
+    stripesize: 256
+    fstype:     'xfs'
+
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata3'
+    lv:         'lv_oracle_sapdata3'
+    size:       '100%FREE'
+    stripesize: 256
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata4'
+    lv:         'lv_oracle_sapdata4'
+    size:       '100%FREE'
+    stripesize: 256
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_origlogA'
+    lv:         'lv_oracle_origlogA'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_origlogB'
+    lv:         'lv_oracle_origlogB'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_mirrlogA'
+    lv:         'lv_oracle_mirrlogA'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_mirrlogB'
+    lv:         'lv_oracle_mirrlogB'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+ 
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_oraarch'
+    lv:         'lv_oracle_oraarch'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle'
+    lv:         'lv_oracle'
+    size:       '64g'
+    fstype:     'xfs'
+
 
 
 # Define a dynamic expression based upon the 'item' fact that can

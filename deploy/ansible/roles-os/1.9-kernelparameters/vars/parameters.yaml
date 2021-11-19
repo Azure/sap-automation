@@ -90,4 +90,8 @@ parameters:
     - { tier: 'os', name: 'net.core.bpf_jit_harden',                       value: '2',                        state: 'present' }
     - { tier: 'ha', name: 'net.ipv4.tcp_keepalive_time',                   value: '300',                      state: 'present' }
 
+  oracle-linux8:
+    - { tier: 'os', name: 'kernel.sem',                                     value: '1250 256000 100 1024',          state: 'present' }
+    - { tier: 'os', name: 'vm.max_map_count',                               value: '2000000',                       state: 'present' }
+...
 ...
