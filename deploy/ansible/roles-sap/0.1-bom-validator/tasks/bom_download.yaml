@@ -1,12 +1,17 @@
 ---
 
+- name:                                "BOM: {{ bom_name }} Set Fact  {{ item.archive }}"
+  ansible.builtin.set_fact: 
+    proceed:                           true
+  when:                                check_storage_account is not defined or (check_storage_account is defined and not check_storage_account) 
+
 - name:                                "BOM: {{ bom_name }} Check File {{ item.archive }}"
   ansible.builtin.uri:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
     status_code:                       [200, 403, 404]
     method:                            HEAD
   register:                            blob_exists
-  when:                                check_storage_account
+  when:                                proceed
 
 - name:                                "BOM: Debug {{ bom_name }} Download File {{ item.archive }} result"
   ansible.builtin.debug: 
@@ -16,13 +21,7 @@
 - name:                                "BOM: {{ bom_name }} Set Fact  {{ item.archive }}"
   ansible.builtin.set_fact: 
     proceed:                           "{{ blob_exists.status==404 | bool }}"
-  when:                                check_storage_account
-
-- name:                                "BOM: {{ bom_name }} Set Fact  {{ item.archive }}"
-  ansible.builtin.set_fact: 
-    proceed:                           true
-  when:                                not check_storage_account
-
+  when:                                check_storage_account is not defined or (check_storage_account is defined and not check_storage_account) 
 
 - name:                                "BOM: Debug {{ bom_name }} Download File {{ item.archive }}"
   ansible.builtin.debug: 
