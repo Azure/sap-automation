@@ -685,10 +685,20 @@ echo "#     - Storage Account: "${REMOTE_STATE_SA}"                             
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
-
 if [ 5 == $step ]; then
+
+    end=`date -u -d "180 days" '+%Y-%m-%dT%H:%MZ'`
+
+    sas=?$(az storage account generate-sas --permissions rpl --account-name "${REMOTE_STATE_SA}" --services b --resource-types sco --expiry $end -o tsv)
+
+    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
+
+    step=6
+    save_config_var "step" "${deployer_config_information}"
+fi
+
+if [ 6 == $step ]; then
     cd "${curdir}" || exit
-    
     
     ssh_timeout_s=10
     

@@ -16,7 +16,13 @@
 
     - name:                            "BOM: Debug {{ bom_name }} Download File {{ item.archive }} result"
       ansible.builtin.debug:
-        msg:                           blob_exists
+        var:                           blob_exists
+        verbosity:                     2
+
+    - name:                            "BOM: {{ bom_name }} Authentication error {{ item.archive }}"
+      ansible.builtin.fail:
+        msg:                           "Authentication error, please check the SAS token"
+      when:                            blob_exists.status == 403
 
     - name:                            "BOM: {{ bom_name }} Set Fact  {{ item.archive }}"
       ansible.builtin.set_fact:
