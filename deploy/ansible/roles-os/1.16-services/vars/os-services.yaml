@@ -42,14 +42,13 @@ services:
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'enabled'   }
 
-  suse12:
+  sles_sap12:
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'restarted' }
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
 
-  suse15:
+  sles_sap15:
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'restarted' }
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
-
 
   oraclelinux8:
     - { tier: 'os',          service: 'auditd',       node_tier: 'all',     state: 'started'   }
