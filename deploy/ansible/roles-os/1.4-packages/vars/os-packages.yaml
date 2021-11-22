@@ -228,7 +228,7 @@ packages:
     - { tier: 'os',    package: 'csh',                          state: 'present' }    
     - { tier: 'ha',    package: 'jq',                           state: 'present' }
     - { tier: 'os',    package: 'unzip',                        state: 'present' }
-    - { tier: 'os',    package: 'oracleasm',                    state: 'present' }
+  #  - { tier: 'os',    package: 'oracleasm',                    state: 'present' }
   
   oraclelinux8.1:
   
