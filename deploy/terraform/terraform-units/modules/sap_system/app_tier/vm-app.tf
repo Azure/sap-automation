@@ -247,7 +247,7 @@ resource "azurerm_managed_disk" "app" {
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
   zones = local.use_app_avset ? null : (
-    upper(local.scs_ostype) == "LINUX" ? (
+    upper(local.app_ostype) == "LINUX" ? (
       [azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone]) : (
       [azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone]
     )
