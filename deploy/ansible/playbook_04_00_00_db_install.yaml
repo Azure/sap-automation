@@ -156,10 +156,14 @@
           tags:
             - 1.17-generic-pacemaker
 
-      when:
+      when:                            
         - db_high_availability
         - node_tier == 'hana'
 
+        - name:                        Installing Oracle
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.0-ora-install
+      when:                            node_tier == 'oracle'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -172,7 +176,7 @@
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "root"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -194,16 +198,21 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
-           
-        - name:                        Check for file system mounts
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-      
-
+        - block:
+            - name:                    Include 1.11-accounts
+              ansible.builtin.include_role:
+                name:                  roles-os/1.11-accounts
+      tags:
+        - 1.11-accounts
+    
         - name:                        Installing Oracle
           ansible.builtin.include_role:
             name:                      roles-db/4.1.0-ora-install
+          become_user:                 "oracle"
+
+
       when:                            node_tier == 'oracle'
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |

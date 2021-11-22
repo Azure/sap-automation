@@ -52,26 +52,6 @@
     - item.node_tier == "oracle" 
     - item.lv in  lvexists
 
-# ORACLE should be the owner of the file systems /oracle directories. 
-#.PARAMS folder is not required for oracle install as we are not passing any parameters files.
-
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"          
-  ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/filepermission.txt   
-  register:                            oracle_permissions_set
-
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    owner:                             "{{ item.owner }}"
-    group:                             "{{ item.group }}"
-    recurse:                           true
-  loop:
-    - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
-  when:
-     - not oracle_permissions_set.stat.exists
-
 - name:                                "ORACLE: Create sap_deployment_automation folder"          
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
@@ -122,7 +102,6 @@
 #   ansible.builtin.file:
 #     path:                              /etc/sap_deployment_automation/filepermission.txt
 #     state:                             touch
-
 
 #Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"
