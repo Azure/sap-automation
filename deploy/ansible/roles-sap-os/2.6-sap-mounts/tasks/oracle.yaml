@@ -10,9 +10,6 @@
 
 - name:                                "ORACLE: Gather Logical volumes created in 1.5"
   ansible.builtin.include_vars:        disks_config.yml
-   
-
-
 
 - name:                                "ORACLE: Check if LVs exists."
   ansible.builtin.stat:
@@ -34,7 +31,6 @@
     var:                               lvexists
     verbosity:                         2
 
-
 # Mount Filesystems
 - name:                                "ORACLE: Mount Filesystems for Oracle"
   ansible.builtin.mount:
@@ -55,31 +51,9 @@
   when:         
     - item.node_tier == "oracle" 
     - item.lv in  lvexists
-  
-
-
-# Mount Filesystems
-- name:                                "ORACLE: Mount SAP Filesystems on Database for installation"
-  mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
-    opts:                              defaults
-    state:                             mounted
-  vars:
-    # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:                       "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-  loop:
-    - { tier: 'sapos',          type: 'xfs',     src: '/dev/vg_sap/lv_usrsap',                           path: '/usr/sap' }
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/usr/sap/install',               path: '/usr/sap/install' }                # Special Install Structure; Destroy on Completion
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
-  
-  when:         
-    item.tier in ["sapos","ora"]
 
 # ORACLE should be the owner of the file systems /oracle directories. 
 #.PARAMS folder is not required for oracle install as we are not passing any parameters files.
-
 
 - name:                                "ORACLE: Make orasid:dba as owners"          
   ansible.builtin.file:
@@ -91,7 +65,6 @@
   loop:
     - { path: '/oracle',          group: 'oinstall',   owner: 'oracle'}
     - { path: '/usr/sap/install', group: 'oinstall',   owner: 'oracle'}
-
 
 #Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"

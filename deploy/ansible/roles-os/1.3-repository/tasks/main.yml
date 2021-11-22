@@ -121,12 +121,12 @@
 #                  'command' or 'shell'?
 #----------------------------------------
 
-- name:     Ensure yum repos are configured on OEL VMs
+- name:                                Ensure yum repos are configured on OEL VMs
   block:
-    - name:     Check that yum repos are registered
-      command:    yum repolist
+    - name:                            Check that yum repos are registered
+      command:                         yum repolist
       args:
-        warn: false  # quieten warning about using yum directly
+        warn:                          false  # quieten warning about using yum directly
 
   when:     ansible_os_family|upper == 'Oracle'
 
@@ -149,14 +149,14 @@
 #                  'command' or 'shell'?
 #----------------------------------------
 
-- name:     Ensure yum repos are configured on Oracle Linux VMs
+- name:                                Ensure yum repos are configured on Oracle Linux VMs
   block:
-    - name:     Check that yum repos are registered
-      command:    yum repolist
+    - name:                            Check that yum repos are registered
+      command:                         yum repolist
       args:
-        warn: false  # quieten warning about using yum directly
+        warn:                          false  # quieten warning about using yum directly
 
-  when:     ansible_os_family|upper == 'ORACLELINUX'
+  when:                                ansible_os_family|upper == 'ORACLELINUX'
 
 #----------------------------------------
 # END
@@ -190,7 +190,7 @@
 
 # Analyse the repo list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
-- name:                                Determine repos appropriate for tier
+- name:                                "Determine repos appropriate for tier {{ distro_full_id }}"
   ansible.builtin.set_fact:
     repos_for_tier:                    "{{ repos[distro_full_id] |
                                              selectattr('tier', 'in', ['all', tier]) |
