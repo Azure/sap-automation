@@ -1,6 +1,6 @@
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                      Prepare for HANA DB Install                           |
+# |                      Prepare for DB Install                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
@@ -82,6 +82,7 @@
                 name:                  roles-db/4.0.0-hdb-install
           tags:
             - 4.0.0-hdb-install
+      when: node_tier == 'hana'
 
     - name:                            "Install Pacemaker (base)"
       block:
@@ -148,12 +149,63 @@
           tags:
             - 1.17-generic-pacemaker
 
-      when:                            db_high_availability
+      when:                            
+        - db_high_availability
+        - node_tier == 'hana'
 
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                         PLAYBOOK FOR HANA DB LOGGING                       |
+# |                      Playbook for Oracle DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_DB"
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "root"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Install Oracle"
+      block:
+
+        - name:                        Setting the DB facts
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+        - block:
+            - name:                    Include 1.11-accounts
+              ansible.builtin.include_role:
+                name:                  roles-os/1.11-accounts
+      tags:
+        - 1.11-accounts
+    
+        - name:                        Installing Oracle
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.0-ora-install
+          become_user:                 "oracle"
+
+
+      when:                            node_tier == 'oracle'
+
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                         PLAYBOOK FOR DB LOGGING                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
