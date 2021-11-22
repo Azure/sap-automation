@@ -1,37 +1,42 @@
 ---
 
-- name:                                "BOM: {{ bom_name }} Check File {{ item.archive }}"
-  ansible.builtin.uri:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
-    status_code:                       [200, 403, 404]
-    method:                            HEAD
-  register:                            blob_exists
-  when:                                check_storage_account
-
-- name:                                "BOM: Debug {{ bom_name }} Download File {{ item.archive }} result"
-  ansible.builtin.debug: 
-    var:                               blob_exists
-    verbosity:                         2
-
-- name:                                "BOM: {{ bom_name }} Set Fact  {{ item.archive }}"
-  ansible.builtin.set_fact: 
-    proceed:                           "{{ blob_exists.status==404 | bool }}"
-  when:                                check_storage_account
-
-- name:                                "BOM: {{ bom_name }} Set Fact  {{ item.archive }}"
-  ansible.builtin.set_fact: 
+- name:                                "BOM: {{ bom_name }} Download {{ item.archive }}"
+  ansible.builtin.set_fact:
     proceed:                           true
-  when:                                not check_storage_account
 
+- name:                                "BOM: {{ bom_name }} Check Storage Account for {{ item.archive }}"
+  block:
+
+    - name:                            "BOM: {{ bom_name }} Check is file {{ item.archive }} is already downloaded"
+      ansible.builtin.uri:
+        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+        status_code:                   [200, 403, 404]
+        method:                        HEAD
+      register:                        blob_exists
+
+    - name:                            "BOM: Debug {{ bom_name }} Download File {{ item.archive }} result"
+      ansible.builtin.debug:
+        var:                           blob_exists
+        verbosity:                     2
+
+    - name:                            "BOM: {{ bom_name }} Authentication error {{ item.archive }}"
+      ansible.builtin.fail:
+        msg:                           "Authentication error, please check the SAS token"
+      when:                            blob_exists.status == 403
+
+    - name:                            "BOM: {{ bom_name }} Set Fact  {{ item.archive }}"
+      ansible.builtin.set_fact:
+        proceed:                       false
+      when:                            blob_exists.status != 404
+  when:                                check_storage_account
 
 - name:                                "BOM: Debug {{ bom_name }} Download File {{ item.archive }}"
-  ansible.builtin.debug: 
+  ansible.builtin.debug:
     var:                               proceed
     verbosity:                         2
 
 - name:                                "BOM: Download File {{ item.archive }}"
   block:
-
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
       ansible.builtin.get_url:
         url:                           "{{ item.url }}"
@@ -45,13 +50,13 @@
       become:                          true
       become_user:                     root
       register:                        result
-      until:                           result is succeeded
+      until:                           result is succeeded or not result.changed
       retries:                         2
       delay:                           1
       no_log:                          false
 
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
-      ansible.builtin.debug: 
+      ansible.builtin.debug:
         var:                           result
         verbosity:                     2
 
@@ -75,8 +80,8 @@
             regexp:                    '      archive:      {{ item.archive }}'
             insertafter:               '      archive:      {{ item.archive }}'
             block:                     "      checksum:     {{ fs_check.stat.checksum }}"
-            marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ item.archive }}" 
-          when:                                
+            marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ item.archive }}"
+          when:
             - fs_check is defined
             - create_checksums is defined
             - bom_file is defined
@@ -92,13 +97,13 @@
             path:                      "{{ bom_file }}"
             regexp:                    '# END ANSIBLE MANAGED BLOCK {{ item.archive }}'
             state:                     absent
-      when: 
+      when:
         - item.checksum is not defined
         - create_checksums is defined
 
     #   03) Upload files to Azure
     - name:                            "BOM: {{ bom_name }} Upload File {{ item.archive }}"
-    
+
       ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name {{ account }}
@@ -116,8 +121,13 @@
         - azresult.stderr is defined
         - azresult.stderr.find("BlobAlreadyExists") == -1
 
-  when: proceed
+    - name:                            "BOM: {{ bom_name }} Remove File {{ item.archive }}"
+      become:                          true
+      ansible.builtin.file:
+        dest:                          "{{ download_directory }}/files/{{ item.archive }}"
+        state:                         absent
 
+  when: proceed
 
 ...
 # /*---------------------------------------------------------------------------8

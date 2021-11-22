@@ -88,14 +88,14 @@
       changed_when:                    false
       register:                        keyvault_secret_show_fencing_spn_tenant_id
       no_log:                          true
-    
+
     - name:                            "BoM Secrets: Extract Fencing agent SPN Tenant"
       ansible.builtin.set_fact:
         sap_fencing_spn_tenant_id: >-
           {{ (keyvault_secret_show_fencing_spn_tenant_id.stdout | from_json).value }}
       no_log:                          true
 
-  when:                                scs_high_availability or db_high_availability    
+  when:                                scs_high_availability or db_high_availability
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |

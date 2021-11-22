@@ -44,9 +44,9 @@
 
 # [1] Install SAP NetWeaver ASCS - here we can call the SCS installation playbook -
     - name:                            "SCS - Assign ownership"
-      ansible.builtin.file:            
+      ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}" 
+        owner:                         "{{ sidadm_uid }}"
         group:                         sapsys
       loop:
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
@@ -69,9 +69,13 @@
   block:
     - name:                            "Bring Secondary host online"
       ansible.builtin.command:         crm node online {{ secondary_instance_name }}
+      register:                        secondary_online
+      changed_when:                    secondary_online.rc != 0
 
     - name :                           "Put Primary host on standby"
       ansible.builtin.command:         crm node standby {{ primary_instance_name }}
+      register:                        primary_standby
+      changed_when:                    primary_standby.rc != 0
 
 
     - name:                            "ERS - Configure File system resources"
@@ -113,9 +117,9 @@
   block:
 
     - name:                            "ERS - Assign ownership"
-      ansible.builtin.file:            
+      ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}" 
+        owner:                         "{{ sidadm_uid }}"
         group:                         sapsys
       loop:
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
@@ -131,9 +135,9 @@
   when: inventory_hostname == secondary_instance_name
 
 - name:                                "Bring Primary host online"
-  ansible.builtin.command:             crm node online {{ primary_instance_name }}
-
+  ansible.builtin.command:             "crm node online {{ primary_instance_name }}"
+  register:                            primary_online
+  changed_when:                        primary_online.rc != 0
 
 # END of playbook.
-
 ...

@@ -24,7 +24,7 @@ sapbits_access_key:           ""                                                
 s_user:                       ""
 s_password:                   ""
 download_directory:           "/mnt/downloads"
-check_storage_account:        true        
+check_storage_account:        true
 
 # SAP Configuration for templates and install
 aas_hostname:                 ""
