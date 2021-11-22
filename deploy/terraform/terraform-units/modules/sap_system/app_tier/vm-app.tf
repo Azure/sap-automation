@@ -248,8 +248,8 @@ resource "azurerm_managed_disk" "app" {
 
   zones = local.use_app_avset ? null : (
     upper(local.scs_ostype) == "LINUX" ? (
-      [azurerm_linux_virtual_machine.scs[local.app_data_disks[count.index].vm_index].zone]) : (
-      [azurerm_windows_virtual_machine.scs[local.app_data_disks[count.index].vm_index].zone]
+      [azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone]) : (
+      [azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone]
     )
   )
 
