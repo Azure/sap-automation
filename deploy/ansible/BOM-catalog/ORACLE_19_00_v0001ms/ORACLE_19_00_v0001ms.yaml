@@ -171,18 +171,18 @@ materials:
       url:          https://softwaredownloads.sap.com/file/0020000000703122018
 
 
-    - name:         "Oracle ASMSUPPORT RPM"
-      archive:      oracleasm-support-2.1.12-1.el8.x86_64.rpm
-      extract:      false
-      download:     true
-      url:          https://public-yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64/getPackage/oracleasm-support-2.1.12-1.el8.x86_64.rpm
+    # - name:         "Oracle ASMSUPPORT RPM"
+    #   archive:      oracleasm-support-2.1.12-1.el8.x86_64.rpm
+    #   extract:      false
+    #   download:     true
+    #   url:          https://public-yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64/getPackage/oracleasm-support-2.1.12-1.el8.x86_64.rpm
 
 
-    - name:         "Oracle ASMLIB RPM"
-      archive:      oracleasmlib-2.0.17-1.el8.x86_64.rpm
-      extract:      false
-      download:     true
-      url:          https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.17-1.el8.x86_64.rpm
+    # - name:         "Oracle ASMLIB RPM"
+    #   archive:      oracleasmlib-2.0.17-1.el8.x86_64.rpm
+    #   extract:      false
+    #   download:     true
+    #   url:          https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.17-1.el8.x86_64.rpm
 
     # - name:         X
     #   archive:      saphostagentrpm_51-20009394.rpm
