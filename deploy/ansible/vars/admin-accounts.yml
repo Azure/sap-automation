@@ -85,42 +85,42 @@ admin_groups:
   - name:         dba
     gid:          "{{ dba_gid }}"
     state:        present
-    tier:         ora
+    tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
   
   - name:         oper
     gid:          "{{ oper_gid }}"
     state:        present
-    tier:         ora
+    tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
   
   - name:         asmoper
     gid:          "{{ asmoper_gid }}"
     state:        present
-    tier:         ora
+    tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
   
   - name:         asmadmin
     gid:          "{{ asmadmin_gid }}"
     state:        present
-    tier:         ora
+    tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
   
   - name:         asmdba
     gid:          "{{ asmdba_gid }}"
     state:        present
-    tier:         ora
+    tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
   
   - name:         oinstall
     gid:          "{{ oinstall_gid }}"
     state:        present
-    tier:         ora
+    tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
 
@@ -211,7 +211,7 @@ admin_users:
     password:     "{{ main_password }}"
     shell:        /bin/csh
     state:        present
-    tier:         ora
+    tier:         oraasm
     node_tier:    oracle-asm
     enabled:      true
 
@@ -224,6 +224,6 @@ admin_users:
     password:     "{{ main_password }}"
     shell:        /bin/csh
     state:        present
-    tier:         ora
+    tier:         oraasm
     node_tier:    oracle-asm
     enabled:      true

@@ -24,7 +24,7 @@
 
 # Need to create groups first, if they are going to be referenced
 # by the following user actions
-- name:                                Create specified admin groups if needed
+- name:                                "Create specified admin groups if needed tier: {{ tier }}"
   ansible.builtin.group:
     name:                              "{{ item.name }}"
     gid:                               "{{ item.gid }}"
@@ -58,8 +58,8 @@
     label:         "{{ item.name }}"
   when:
     - item.enabled | bool
-    - item.node_tier == "all" or node_tier in item.node_tier
-    - item.tier in ["all", tier]
+    - item.node_tier == node_tier
+    - item.tier == tier
 
 # Create or delete associated /etc/sudoers.d files as needed
 # NOTE: This loops over including a separate task list, which is

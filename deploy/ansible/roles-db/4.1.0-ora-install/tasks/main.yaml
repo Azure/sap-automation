@@ -41,7 +41,6 @@
   environment:
     DB_SID:                            "{{db_sid}}"
     CV_ASSUME_DISTID:                  OL7
-
   args:
     executable:                        /bin/csh        
     chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"

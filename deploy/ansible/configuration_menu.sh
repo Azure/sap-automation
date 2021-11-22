@@ -101,7 +101,7 @@ options=(
         "Base OS Config"
         "SAP specific OS Config"
         "BOM Processing"
-        "HANA DB Install"
+        "DB Install"
         "SCS Install"
         "DB Load"
         "PAS Install"

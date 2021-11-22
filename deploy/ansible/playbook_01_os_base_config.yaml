@@ -121,6 +121,14 @@
       tags:
         - 1.11-accounts
 
+    - name:                            Include 1.11-accounts role
+      ansible.builtin.include_role:
+        name:                          roles-os/1.11-accounts
+      vars:
+        tier:                          ora               
+      when:                            node_tier == "oracle"
+
+
     - block:
         - name:                        Include 1.16-services role
           ansible.builtin.include_role:
