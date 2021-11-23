@@ -93,7 +93,7 @@
   become_user:                         root
   ansible.builtin.shell: |   
                                        /oracle/oraInventory/orainstRoot.sh    
-                                       /oracle/{{db_sid}}/19.0.0/root.sh
+                                       /oracle/{{ db_sid }}/19.0.0/root.sh
   register:                            rootscript_results
   args:
     executable:                        /bin/csh
@@ -101,7 +101,7 @@
 
 - name:                                Create rootscripts_executed.txt
   ansible.builtin.file:
-    path:                              /oracle/{{db_sid|upper }}/19.0.0/bin/oracle
+    path:                              /oracle/{{ db_sid|upper }}/19.0.0/bin/oracle
     state:                             file
     mode:                              6751
 
@@ -118,20 +118,20 @@
 
 
 - name:                                "Oracle Post Processing - SBP Patching"                
-  become:                              yes
+  become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell: |   
                                        set -o errexit
-                                       mv  /oracle/{{db_sid}}/19.0.0/OPatch   /oracle/{{ db_sid }}/19.0.0/OPatch.bck 
-                                       cp -R OPATCH/OPatch  /oracle/{{ db_sid }}/19.0.0/.
-                                       cp -R SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/{{ db_sid }}/19.0.0/.
-                                       $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SAP19P_2108-70004508.ZIP |tee -a /oracle/sbp.log
+                                       mv  $ORACLE_HOME/OPatch   $ORACLE_HOME/OPatch.bck 
+                                       cp -R OPATCH/OPatch $ORACLE_HOME/.
+                                       cp -R SAPSBP/SBP_191200210720_202108/MOPatch $ORACLE_HOME/.
+                                       $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SAP19P_2108-70004508.ZIP
   environment:
-    DB_SID:                            "{{db_sid}}"
+    DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
-    IHRDBMS:                           /oracle/{{ db_sid }}/19.0.0
-    ORACLE_HOME:                       /oracle/{{ db_sid }}/19.0.0
-    RDBMS:                             /oracle/{{ db_sid }}/19
+    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/19.0.0"
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/19.0.0"
+    RDBMS:                             "/oracle/{{ db_sid | upper  }}/19"
   register:                            sbpscript_results
   failed_when:                         sbpscript_results.rc >= 2 
   args:
