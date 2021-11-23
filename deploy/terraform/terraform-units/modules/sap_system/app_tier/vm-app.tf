@@ -246,6 +246,14 @@ resource "azurerm_managed_disk" "app" {
   disk_size_gb           = local.app_data_disks[count.index].disk_size_gb
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
+  zones = local.use_app_avset ? null : (
+    upper(local.app_ostype) == "LINUX" ? (
+      [azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone]) : (
+      [azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone]
+    )
+  )
+
+
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "app" {
