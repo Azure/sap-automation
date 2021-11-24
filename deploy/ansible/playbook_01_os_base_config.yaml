@@ -12,11 +12,15 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
-    - name:                            Remove .step1 flag
+    - name:                            Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step1"
-        state:                          absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
 
+    - name:                            Remove os-configuration-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
+        state:                          absent
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -162,9 +166,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                           Create .step1 flag
+    - name:                           Create os-configuration-done flag
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.step1"
+        path:                         "{{ _workspace_directory }}/.progress/os-configuration-done"
         state:                        touch
         mode:                         0755
 

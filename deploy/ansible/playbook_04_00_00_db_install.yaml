@@ -12,6 +12,18 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+
+    - name:                            Remove db-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-install-done"
+        state:                          absent
+
+
     - name:                            Set hdb fact
       ansible.builtin.set_fact:
         tier:                          hdb
@@ -31,11 +43,6 @@
         tier:                          fencing
       tags:
         - 0.2-kv-secrets
-
-    - name:                            Remove .step4 flag
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step4"
-        state:                          absent
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -187,6 +194,13 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
+    
+        - block:
+            - name:                    Include 2.6-sap-mounts role
+              ansible.builtin.include_role:
+                name:                  roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
 
         - name:                        Installing Oracle
           ansible.builtin.include_role:
@@ -206,9 +220,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                           Create .step4 flag
+    - name:                           Create db-install-done flag
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.step4"
+        path:                         "{{ _workspace_directory }}/.progress/db-install-done"
         state:                        touch
         mode:                         0755
 

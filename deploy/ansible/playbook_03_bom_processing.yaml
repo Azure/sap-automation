@@ -14,22 +14,24 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+
+    - name:                            Remove bom-processing-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/bom-processing-done"
+        state:                          absent
+
     - name:                            Set 'sa' tier
       ansible.builtin.set_fact:
         tier:                          sa
 
-    - block:
-        - name:                        Remove .step3 flag
-          ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.step3"
-            state:                     absent
-
-        - name:                        Include 0.3.sap-installation-media-storage-details role
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.3.sap-installation-media-storage-details
-            public:                    true
-          tags:
-            - 0.3.sap-installation-media-storage-details
+    - name:                            Include 0.3.sap-installation-media-storage-details role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -82,9 +84,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Create .step3 flag
+    - name:                            Create bom-processing flag
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step3"
+        path:                          "{{ _workspace_directory }}/.progress/bom-processing"
         state:                         touch
         mode:                          0755
 
