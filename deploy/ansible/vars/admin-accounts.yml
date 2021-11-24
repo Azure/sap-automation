@@ -29,13 +29,13 @@ admin_groups:
   - name:         sapsys
     gid:          "{{ sapsys_gid }}"
     state:        present
-    tier:         ha
+    tier:         os
     enabled:      true
     node_tier:    all
   - name:         sapinst
     gid:          "{{ sapinst_gid }}"
     state:        present
-    tier:         ha
+    tier:         os
     enabled:      true
     node_tier:    all
   
