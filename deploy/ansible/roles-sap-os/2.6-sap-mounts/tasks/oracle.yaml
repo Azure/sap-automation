@@ -61,13 +61,15 @@
     state:                             directory
     owner:                             "{{ item.owner }}"
     group:                             "{{ item.group }}"
-    mode:                              0777
+    recurse:                           true
   loop:
-    - { path: '/oracle',          group: 'oinstall',   owner: 'oracle'}
-    - { path: '/usr/sap/install', group: 'oinstall',   owner: 'oracle'}
+    - { path: '/oracle',                    group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install/oraclient', group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install/oraserver', group: 'oinstall',   owner: 'oracle'}
 
 #Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"
-  debug:
+  ansible.builtin.debug:
     var:                               oraclefilesystemmounts
     verbosity:                         2
