@@ -25,10 +25,15 @@
 
 
   tasks:
-    - name:                            Remove .step602 flag
+    - name:                            Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step602"
-        state:                         absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+
+    - name:                            Remove scs-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/scs-install-done"
+        state:                          absent
 
     - name:                            Initialize tier
       ansible.builtin.set_fact:
@@ -124,7 +129,6 @@
               - sap_mnt is defined
             fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
 
-
         - name:                        Print the fencing tenant id
           ansible.builtin.debug:
             msg:                       "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
@@ -157,7 +161,7 @@
             - 1.4-packages
 
         - block:
-            - name:                    Include 1.9-kernelparameters role  # Setup the kernel parameters required for pacemaker cluster VMs
+            - name:                    Include 1.9-kernelparameters role  
               ansible.builtin.include_role:
                 name:                  roles-os/1.9-kernelparameters
           tags:
@@ -186,9 +190,9 @@
             - 1.17-generic-pacemaker
 
         - block:
-            - name:                        Include 2.6-sap-mounts role
+            - name:                    Include 2.6-sap-mounts role
               ansible.builtin.include_role:
-                name:                      roles-sap-os/2.6-sap-mounts
+                name:                  roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
 
@@ -198,7 +202,7 @@
                 name:                  roles-sap/5.6-scsers-pacemaker
           tags:
             - 5.6-scsers-pacemaker
-      when:                                scs_high_availability
+      when:                            scs_high_availability
 
 
 - hosts:                               localhost
@@ -207,9 +211,9 @@
 
   tasks:
 
-    - name:                            Ensure the step file exists
+    - name:                            Ensure the scs-install-done file exists
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step602"
+        path:                          "{{ _workspace_directory }}/.progress/scs-install-done"
         state:                         touch
         mode:                          0755
 ...

@@ -12,10 +12,15 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
-    - name:                            Remove .step502 flag
+    - name:                            Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step502"
-        state:                         absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+
+    - name:                            Remove pas-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
+        state:                          absent
 
     - name:                            Include 0.1 passwords role
       ansible.builtin.include_role:
@@ -92,9 +97,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Create .step502 flag
+    - name:                            Create pas-install-done flag
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step502"
+        path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
         state:                         touch
         mode:                          0755
 
