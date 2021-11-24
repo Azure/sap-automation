@@ -48,26 +48,67 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            Setting the dbload facts
-      ansible.builtin.set_fact:
-        tier:                          dbload                                                          # SAP Install phase: DBLOAD
-        main_password:                 "{{ hostvars.localhost.sap_password }}"
-      tags:
-        - always
+    - name:                            "Perform DB Load on HANA"
+      block:
+        - name:                        Setting the dbload facts
+          ansible.builtin.set_fact:
+            tier:                      dbload                                                          # SAP Install phase: DBLOAD
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
 
-    - block:
-        - name:                        Include 2.6-sap-mounts role
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-      tags:
-        - 2.6-sap-mounts
-
-    - block:
+        - block:
+            - name:                    Include 2.6-sap-mounts role
+              ansible.builtin.include_role:
+                name:                  roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
+    
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-      tags:
-        - 5.1-dbload
+      when:                            node_tier=='hana'
+
+
+- hosts:                               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+
+  name:                                DB Installation - ORACLE
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "Perform DB Load on Oracle"
+      block:
+        - name:                        Setting the dbload facts
+          ansible.builtin.set_fact:
+            tier:                      dbload                                                          # SAP Install phase: DBLOAD
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - block:
+            - name:                    Include 2.6-sap-mounts role
+              ansible.builtin.include_role:
+                name:                  roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
+    
+        - name:                        Include 5.1-dbload role
+          ansible.builtin.include_role:
+            name:                      roles-sap/5.1-dbload
+      when:                            node_tier=='oracle'
+
+
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
