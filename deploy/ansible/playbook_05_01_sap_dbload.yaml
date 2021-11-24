@@ -9,9 +9,20 @@
   name:                                Get SAP Password from KeyVault
   gather_facts:                        true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                               
+    # API Input template with defaults
 
   tasks:
+
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+
+    - name:                            Remove db-load-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-load-done"
+        state:                          absent
 
     - name:                            Include 0.1-passwords Role
       ansible.builtin.include_role:
@@ -19,11 +30,6 @@
         public:                        true
       tags:
         - 0.1-passwords
-
-    - name:                            Remove .step501 flag
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step501"
-        state:                          absent
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -123,9 +129,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                           Create .step501 flag
+    - name:                           Create db-load-done flag
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.step501"
+        path:                         "{{ _workspace_directory }}/.progress/db-load-done"
         state:                        touch
         mode:                         0755
 
