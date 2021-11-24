@@ -61,7 +61,7 @@
     state:                             directory
     owner:                             "{{ item.owner }}"
     group:                             "{{ item.group }}"
-    mode:                              6751
+    mode:                              0777
     recurse:                           true
   loop:
     - { path: '/oracle',                    group: 'oinstall',   owner: 'oracle'}
