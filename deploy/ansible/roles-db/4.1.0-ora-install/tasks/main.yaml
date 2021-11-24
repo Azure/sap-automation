@@ -141,7 +141,7 @@
   args:
     executable:                        /bin/csh
     chdir:                             "/usr/sap/install/SBP/"
-    creates:                           /oracle/sap_deployment_automation/sbpinstalled.txt
+   # creates:                           /oracle/sap_deployment_automation/sbpinstalled.txt
 
 - name:                                Create sbpinstalled.txt
   ansible.builtin.file:
