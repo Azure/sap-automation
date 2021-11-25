@@ -245,7 +245,7 @@ stages:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
-  - HANA_DB_Install
+  - DB_Install
   - SCS_Install
   jobs:
   - job: DB_Load
