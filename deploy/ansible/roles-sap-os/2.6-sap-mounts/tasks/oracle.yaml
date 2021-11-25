@@ -65,6 +65,28 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt   
     state:                             touch
 
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/filepermission.txt   
+  register:                            oracle_permissions_set
+
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+  loop:
+    - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
+  when:
+     - not oracle_permissions_set.stat.exists
+
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    state:                             touch
+
 - name:                                "ORACLE: Make orasid:dba as owners"          
   become:                              true
   become_user:                         root
@@ -73,7 +95,6 @@
     state:                             directory
     owner:                             "{{ item.owner }}"
     group:                             "{{ item.group }}"
-    mode:                              0777
     recurse:                           true
   loop:
     - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
