@@ -21,7 +21,7 @@ locals {
   ]
 
   anydb_computer_names_ha = [for idx in range(var.db_server_count) :
-    format("%sdb%02dl%d%s", lower(var.sap_sid),  idx + var.resource_offset, 1, local.random_id_vm_verified)
+    format("%sdb%02dl%d%s", lower(var.sap_sid), idx + var.resource_offset, 1, local.random_id_vm_verified)
   ]
 
   anydb_vm_names = [for idx in range(var.db_server_count) :
@@ -97,7 +97,7 @@ locals {
     )
   ]
 
-  observer_computer_names = [for idx in range(length(local.zones)) :
+  observer_computer_names = [for idx in range(max(length(local.zones), 1)) :
     format("%sobserver%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.db_oscode, local.random_id_vm_verified)
   ]
 

@@ -194,13 +194,11 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
-    
-        - block:
-            - name:                    Include 2.6-sap-mounts role
-              ansible.builtin.include_role:
-                name:                  roles-sap-os/2.6-sap-mounts
-          tags:
-            - 2.6-sap-mounts
+           
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+      
 
         - name:                        Installing Oracle
           ansible.builtin.include_role:
