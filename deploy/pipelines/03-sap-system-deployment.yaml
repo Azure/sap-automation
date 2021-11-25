@@ -43,7 +43,7 @@ stages:
         echo -e "$green--- Install Terraform ---$reset"
           wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
           unzip -qq terraform_1.0.9_linux_amd64.zip
-          sudo mv terraform /bin/ ; rm terraform_1.0.9_linux_amd64.zip
+          sudo mv terraform /bin/ ; rm terraform_1.0.8_linux_amd64.zip
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
