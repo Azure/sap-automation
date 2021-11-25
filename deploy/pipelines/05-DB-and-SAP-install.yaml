@@ -8,7 +8,7 @@ parameters:
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
-  default: DEV-GEWC-SAP01-E01
+  default: DEV-NOEU-SAP01-X00
 
 - name: bom_base_name
   displayName: BOM Base Name
