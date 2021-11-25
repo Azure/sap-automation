@@ -209,7 +209,7 @@ stages:
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: HANA_DB_Install
+      displayName: DB_Install
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_00_hana_db_install.yaml'
