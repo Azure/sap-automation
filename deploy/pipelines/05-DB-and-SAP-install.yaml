@@ -21,7 +21,7 @@ parameters:
   default: sap.contoso.net
 
 - name: baseosconfig
-  displayName: Base OS Config
+  displayName: Base OS Configuration
   type: boolean
   default: true
 
