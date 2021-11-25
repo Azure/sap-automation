@@ -36,7 +36,7 @@ parameters:
   default: true
 
 - name: hanadbinstall
-  displayName: HANA DB Install 
+  displayName: Database Install 
   type: boolean
   default: true
 
