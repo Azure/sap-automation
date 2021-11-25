@@ -205,7 +205,7 @@ stages:
   - SAP_OS_Config
   - BOM_Processing
   jobs:
-  - job: HANA_DB_Install
+  - job: DB_Install
     steps:
     - checkout: none
     - task: Ansible@0
