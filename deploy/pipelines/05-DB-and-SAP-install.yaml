@@ -198,7 +198,7 @@ stages:
         failOnStderr: false
 
 
-- stage: HANA_DB_Install
+- stage: DB_Install
   condition: eq(${{ parameters.hanadbinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
