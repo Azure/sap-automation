@@ -212,7 +212,7 @@ stages:
       displayName: DB_Install
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_00_hana_db_install.yaml'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_00_db_install.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/SYSTEM/$(sapsystemfolder)/"'
