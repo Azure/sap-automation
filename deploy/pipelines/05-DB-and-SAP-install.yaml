@@ -35,7 +35,7 @@ parameters:
   type: boolean
   default: true
 
-- name: hanadbinstall
+- name: dbinstall
   displayName: Database Install 
   type: boolean
   default: true
