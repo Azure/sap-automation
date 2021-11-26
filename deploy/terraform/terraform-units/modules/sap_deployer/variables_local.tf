@@ -29,6 +29,11 @@ variable "configure" {
   default = false
 }
 
+variable "tf_version" {
+  default = ""
+}
+
+
 // Set defaults
 locals {
 
@@ -41,8 +46,8 @@ locals {
   enable_secure_transfer    = try(var.options.enable_secure_transfer, true)
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
 
-  // Resource group and location
-  region = try(var.infrastructure.region, "")
+  // Resource group
+  
   prefix = length(var.infrastructure.resource_group.name) > 0 ? var.infrastructure.resource_group.name : var.naming.prefix.DEPLOYER
 
   rg_arm_id = try(var.infrastructure.resource_group.arm_id, "")
@@ -120,28 +125,18 @@ locals {
   sub_fw_snet_name   = "AzureFirewallSubnet"
   sub_fw_snet_prefix = local.sub_fw_snet_exists ? "" : try(local.sub_fw_snet.prefix, "")
 
-  firewall_service_tags = format("AzureCloud.%s", local.region)
+  firewall_service_tags = format("AzureCloud.%s", var.infrastructure.region)
 
-  // Deployer(s) information from input
-  deployer_input = var.deployers
-
-  // Deployer(s) information with default override
-  enable_deployers = length(local.deployer_input) > 0 ? true : false
-
-  // Deployer(s) authentication method with default
-  enable_password = try(local.deployer_input[0].authentication.type, "key") == "password"
+  enable_password = try(var.deployer.authentication.type, "key") == "password"
   enable_key      = !local.enable_password
 
-  username = local.enable_deployers ? (
-    local.username_exist ? (
+  username = local.username_exist ? (
       data.azurerm_key_vault_secret.username[0].value) : (
       try(var.authentication.username, "azureadm")
-    )) : (
-    ""
-  )
+    )
 
   // By default use generated password. Provide password under authentication overides it
-  password = (local.enable_deployers && local.enable_password) ? (
+  password = local.enable_password ? (
     local.pwd_exist ? (
       data.azurerm_key_vault_secret.pwd[0].value) : (
       try(var.authentication.password, random_password.deployer[0].result)
@@ -150,7 +145,7 @@ locals {
   )
 
   // By default use generated public key. Provide authentication.path_to_public_key and path_to_private_key overides it
-  public_key = (local.enable_deployers && local.enable_key) ? (
+  public_key = local.enable_key ? (
     local.key_exist ? (
       data.azurerm_key_vault_secret.pk[0].value) : (
       try(file(var.authentication.path_to_public_key), tls_private_key.deployer[0].public_key_openssh)
@@ -158,73 +153,13 @@ locals {
     null
   )
 
-  private_key = (local.enable_deployers && local.enable_key) ? (
+  private_key = local.enable_key ? (
     local.key_exist ? (
       data.azurerm_key_vault_secret.ppk[0].value) : (
       try(file(var.authentication.path_to_private_key), tls_private_key.deployer[0].private_key_pem)
     )) : (
     null
   )
-
-  deployers = [
-    for idx, deployer in local.deployer_input : {
-      "name"                 = local.virtualmachine_names[idx],
-      "destroy_after_deploy" = true,
-      "size"                 = try(deployer.size, "Standard_D4ds_v4"),
-      "disk_type"            = try(deployer.disk_type, "Premium_LRS")
-      "use_DHCP"             = try(deployer.use_DHCP, false)
-      "os" = {
-        "source_image_id" = try(deployer.os.source_image_id, "")
-        "publisher"       = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.publisher, "Canonical") : ""
-        "offer"           = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.offer, "0001-com-ubuntu-server-focal") : ""
-        "sku"             = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.sku, "20_04-lts") : ""
-        "version"         = try(deployer.os.source_image_id, "") == "" ? try(deployer.os.version, "latest") : ""
-      },
-      "authentication" = {
-        "type"     = try(deployer.authentication.type, "key")
-        "username" = local.username
-        "sshkey" = {
-          "public_key"  = local.public_key
-          "private_key" = local.private_key
-        }
-        "password" = local.password
-      },
-      "components" = [
-        "terraform",
-        "ansible"
-      ],
-      "private_ip_address" = length(deployer.private_ip_address) > 0 ? deployer.private_ip_address : cidrhost(local.sub_mgmt_deployed.address_prefixes[0], idx + 4),
-      "users" = {
-        "object_id" = try(deployer.users.object_id, [])
-      }
-    }
-  ]
-
-  // Deployer(s) information with updated pip
-  deployers_updated = [
-    for idx, deployer in local.deployers : merge({
-      "public_ip_address" = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[idx].ip_address : ""
-    }, deployer)
-  ]
-
-  // This is to be aligned with sap_library design.
-  // If no additonal user going to be supported, this part needs to be changed.
-  deployer_users_id = distinct(
-    flatten([
-      for deployer in local.deployers :
-      deployer.users.object_id
-    ])
-  )
-
-  // public ip address list of deployers
-  deployer_public_ip_address_list = distinct(flatten([
-    for pip_deployer in azurerm_public_ip.deployer :
-    pip_deployer.ip_address
-  ]))
-
-  // public ip address of the first deployer
-  deployer_public_ip_address = local.enable_deployers && local.enable_deployer_public_ip ? local.deployer_public_ip_address_list[0] : ""
-
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
   user_key_vault_id = try(var.key_vault.kv_user_id, "")
@@ -256,7 +191,7 @@ locals {
   prvt_kv_rg_name = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[4] : ""
 
   // Tags
-  tags = try(var.deployers[0].tags, { "JumpboxName" = "Deployer" })
+  tags = try(var.deployer.tags, { "Role" = "Deployer" })
 
 
 }

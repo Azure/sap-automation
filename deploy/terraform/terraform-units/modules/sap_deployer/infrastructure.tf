@@ -63,8 +63,8 @@ Usage:
               Module Caller     : Pass module.sap_namegenerator.naming object into module as naming
 
 
-  local.region
-      Variable                  : local.region derived from var.infrastructure.region
+  var.infrastructure.region
+      Variable                  : var.infrastructure.region derived from var.infrastructure.region
       Variable                  : var.infrastructure.region is contained in var.infrastructure
       Variable                  : var.infrastructure defined empty
       Module Caller             : Pass var.infrastructure object into module as infrastructure
@@ -73,9 +73,9 @@ Usage:
 */
 
 resource "azurerm_resource_group" "deployer" {
-  count    = local.enable_deployers && !local.rg_exists ? 1 : 0
+  count    = !local.rg_exists ? 1 : 0
   name     = local.rg_name
-  location = local.region
+  location = var.infrastructure.region
   tags     = var.infrastructure.tags
 
   lifecycle {
@@ -87,7 +87,7 @@ resource "azurerm_resource_group" "deployer" {
 }
 
 data "azurerm_resource_group" "deployer" {
-  count = local.enable_deployers && local.rg_exists ? 1 : 0
+  count = local.rg_exists ? 1 : 0
   name  = local.rg_name
 }
 // TODO: Add management lock when this issue is addressed https://github.com/terraform-providers/terraform-provider-azurerm/issues/5473
@@ -96,7 +96,7 @@ data "azurerm_resource_group" "deployer" {
 
 // Create/Import management vnet
 resource "azurerm_virtual_network" "vnet_mgmt" {
-  count               = (local.enable_deployers && !local.vnet_mgmt_exists) ? 1 : 0
+  count               = (!local.vnet_mgmt_exists) ? 1 : 0
   name                = local.vnet_mgmt_name
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -104,14 +104,14 @@ resource "azurerm_virtual_network" "vnet_mgmt" {
 }
 
 data "azurerm_virtual_network" "vnet_mgmt" {
-  count               = (local.enable_deployers && local.vnet_mgmt_exists) ? 1 : 0
+  count               = (local.vnet_mgmt_exists) ? 1 : 0
   name                = split("/", local.vnet_mgmt_arm_id)[8]
   resource_group_name = split("/", local.vnet_mgmt_arm_id)[4]
 }
 
 // Create/Import management subnet
 resource "azurerm_subnet" "subnet_mgmt" {
-  count                = (local.enable_deployers && !local.sub_mgmt_exists) ? 1 : 0
+  count                = (!local.sub_mgmt_exists) ? 1 : 0
   name                 = local.sub_mgmt_name
   resource_group_name  = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
   virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
@@ -124,7 +124,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
 }
 
 data "azurerm_subnet" "subnet_mgmt" {
-  count                = (local.enable_deployers && local.sub_mgmt_exists) ? 1 : 0
+  count                = (local.sub_mgmt_exists) ? 1 : 0
   name                 = split("/", local.sub_mgmt_arm_id)[10]
   resource_group_name  = split("/", local.sub_mgmt_arm_id)[4]
   virtual_network_name = split("/", local.sub_mgmt_arm_id)[8]
@@ -132,7 +132,7 @@ data "azurerm_subnet" "subnet_mgmt" {
 
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
-  count                     = local.enable_deployers ? 1 : 0
+  count                     = 1
   name                      = local.storageaccount_names
   resource_group_name       = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                  = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location

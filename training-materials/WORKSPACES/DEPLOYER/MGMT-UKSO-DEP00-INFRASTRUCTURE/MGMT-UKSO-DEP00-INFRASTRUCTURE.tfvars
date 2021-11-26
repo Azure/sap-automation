@@ -23,6 +23,7 @@ location="uksouth"
 #
 
 #management_network_name=""
+management_network_logical_name="DEP00"
 #management_network_arm_id=""
 management_network_address_space="10.12.20.0/25"
 

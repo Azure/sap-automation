@@ -6,7 +6,7 @@ Description:
 module "sap_deployer" {
   source                             = "../../terraform-units/modules/sap_deployer"
   infrastructure                     = local.infrastructure
-  deployers                          = local.deployers
+  deployer                           = local.deployer
   options                            = local.options
   ssh-timeout                        = var.ssh-timeout
   authentication                     = local.authentication
@@ -19,6 +19,7 @@ module "sap_deployer" {
   arm_client_id                      = var.arm_client_id
   use_private_endpoint               = var.use_private_endpoint
   configure                          = false
+  tf_version                         = var.tf_version
 }
 
 module "sap_namegenerator" {
