@@ -29,13 +29,13 @@ NW_GetSidNoProfiles.sid                                              = {{ sap_si
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
 hostAgent.sapAdmPassword                                             = {{ main_password }}
 nwUsers.sidadmPassword                                               = {{ main_password }}
-#NW_readProfileDir.profileDir                                        = {{ sap_profile_dir }}
+NW_readProfileDir.profileDir                                        = {{ sap_profile_dir }}
 
 
 
 #Oracle Database parameters
 
-NW_ABAP_Import_Dialog.migmonJobNum                                   = 10
+NW_ABAP_Import_Dialog.migmonJobNum                                   = 20
 NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
 NW_getDBInfoGeneric.dbsid                                            = {{ db_sid|upper }}

@@ -44,18 +44,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
     }
   }
 
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count, 1)].id : var.ppg[0].id
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-    azurerm_availability_set.anydb[0].id
-  )
-
-  zone = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null) : (
-    null
-  )
+  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = [
     azurerm_network_interface.observer[count.index].id
@@ -100,19 +89,8 @@ resource "azurerm_windows_virtual_machine" "observer" {
   computer_name       = var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME[count.index]
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count, 1)].id : var.ppg[0].id
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-    azurerm_availability_set.anydb[0].id
-  )
 
-  zone = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null) : (
-    null
-  )
-
+  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
   network_interface_ids = [
     azurerm_network_interface.observer[count.index].id
   ]

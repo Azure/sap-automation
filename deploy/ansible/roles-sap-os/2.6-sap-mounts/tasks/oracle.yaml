@@ -55,7 +55,7 @@
 # ORACLE should be the owner of the file systems /oracle directories. 
 #.PARAMS folder is not required for oracle install as we are not passing any parameters files.
 
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"          
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/filepermission.txt   
   register:                            oracle_permissions_set
@@ -72,7 +72,15 @@
   when:
      - not oracle_permissions_set.stat.exists
 
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+- name:                                "ORACLE: Create sap_deployment_automation folder"          
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+- name:                                "ORACLE: Create filepermission.txt"          
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/filepermission.txt   
     state:                             touch
@@ -99,12 +107,11 @@
     path:   "{{ item.path }}"
     fstype: "{{ item.type }}"
     opts:   defaults
-    state:  remounted
+    state:  mounted
   vars:
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop:
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/usr/sap/install',               path: '/usr/sap/install' }                # Special Install Structure; Destroy on Completion
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
   
   when:         

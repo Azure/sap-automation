@@ -286,6 +286,7 @@ variable "resource_suffixes" {
     "sdu_rg"                       = ""
     "tfstate"                      = "tfstate"
     "transport_volume"             = "transport"
+    "install_volume"               = "install"
     "vm"                           = ""
     "vnet"                         = "-vnet"
     "vnet_rg"                      = "-INFRASTRUCTURE"

@@ -77,8 +77,8 @@ locals {
     high_availability = var.database_high_availability || try(var.databases[0].high_availability, false)
     use_DHCP          = var.database_vm_use_DHCP || try(var.databases[0].use_DHCP, false)
 
-    platform = try(coalesce(var.database_platform, try(var.databases[0].platform, "HANA")), "")
-    size     = try(coalesce(var.database_size, try(var.databases[0].size, "")), "")
+    platform = coalesce(var.database_platform, try(var.databases[0].platform, ""))
+    size     = coalesce(var.database_size, try(var.databases[0].size, ""))
 
     use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
     dual_nics = var.database_dual_nics || try(var.databases[0].dual_nics, false)
