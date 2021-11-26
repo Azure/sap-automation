@@ -229,5 +229,6 @@ module "output_files" {
   platform              = upper(try(local.databases[0].platform, "HANA"))
   db_auth_type          = try(local.databases[0].authentication.type, "key")
   tfstate_resource_id   = var.tfstate_resource_id
+  install_path          = module.common_infrastructure.install_path
 
 }

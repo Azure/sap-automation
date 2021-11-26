@@ -28,6 +28,7 @@
   when:
     - (ansible_os_family|upper == "SUSE" or (ansible_os_family|lower ~ ansible_distribution_major_version) == "redhat7")
     - node_tier == 'scs'
+    - usr_sap_install_mountpoint is not defined
 
 - name:                               "Exports: NFS Server Config on Suse (sapmnt)"
   ansible.builtin.lineinfile:
@@ -75,6 +76,7 @@
   when:
     - distro_id == "redhat8"
     - node_tier == 'scs'
+    - usr_sap_install_mountpoint is not defined
 
 - name:                               "Exports: NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }}"
   ansible.builtin.lineinfile:
@@ -92,7 +94,7 @@
   when:
     - distro_id == "redhat7"
     - node_tier == 'scs'
-
+    - usr_sap_install_mountpoint is not defined
 
 - name:                               "Exports: NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }} (sapmnt)"
   ansible.builtin.lineinfile:

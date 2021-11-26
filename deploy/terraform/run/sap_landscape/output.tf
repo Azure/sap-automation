@@ -122,3 +122,7 @@ output "dns_resource_group_name" {
 output "spn_kv_id" {
   value = local.spn_key_vault_arm_id
 }
+
+output "subnet_mgmt_id" {
+  value = module.sap_landscape.subnet_mgmt_id
+}

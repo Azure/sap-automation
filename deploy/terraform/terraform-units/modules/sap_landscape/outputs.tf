@@ -180,3 +180,7 @@ output "ANF_pool_settings" {
     use_ANF = false
   }
 }
+
+output "subnet_mgmt_id" {
+  value = try(var.deployer_tfstate.subnet_mgmt.id, "")
+}
