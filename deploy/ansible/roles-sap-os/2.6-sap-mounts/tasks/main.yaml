@@ -89,10 +89,25 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'nfs4',  src: '{{ nfs_server }}:/usr/sap/install',             path: '/usr/sap/install'  }
+    - { type: 'nfs4',  src: '{{ usr_sap_install_path }}',   path: '/usr/sap/install'  }
   when:
     - tier == 'sapos'
     - node_tier != 'scs'
+
+- name:                                Mount Install folder
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
+    - { type: 'nfs4',  src: '{{ usr_sap_install_path }}',   path: '/usr/sap/install'  }
+  when:
+    - tier == 'sapos'
+    - node_tier == 'scs'
+    - usr_sap_install_mountpoint is defined
+
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                Show sap_mnt

@@ -108,6 +108,6 @@ output "saptransport_path" {
   value = local.ANF_pool_settings.use_ANF ? format("%s:/%s", azurerm_netapp_volume.transport[0].mount_ip_addresses[0], azurerm_netapp_volume.transport[0].volume_path) : ""
 }
 
-# output "shared_path" {
-#   value = local.ANF_pool_settings.use_ANF ? format("%s:/%s",azurerm_netapp_volume.shared[0].mount_ip_addresses[0]) : ""
-# }
+output "install_path" {
+  value = "" #azurerm_storage_share.install.url
+}
