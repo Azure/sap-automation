@@ -85,7 +85,7 @@ output "route_table_id" {
 }
 
 output "firewall_id" {
-  value =  try(var.deployer_tfstate.firewall_id, "")
+  value = try(var.deployer_tfstate.firewall_id, "")
 }
 
 output "db_asg_id" {
@@ -109,5 +109,5 @@ output "saptransport_path" {
 }
 
 output "install_path" {
-  value = "" #azurerm_storage_share.install.url
+  value = format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install.url, "https://", ""))[0], azurerm_storage_account.install.name, azurerm_storage_share.install.name)
 }
