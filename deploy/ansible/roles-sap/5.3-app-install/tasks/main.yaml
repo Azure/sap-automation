@@ -68,11 +68,11 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-    - name:                            "PAS install: register variables"
+    - name:                            "App install: register variables"
       ansible.builtin.set_fact:
         app_bom_id:                    "{% if scs_high_availability %}{{ bom.product_ids.app_ha }}{% else %}{{ bom.product_ids.app }}{% endif %}"
 
-    - name:                            "APP install: variables"
+    - name:                            "APP install: debug variables"
       ansible.builtin.debug:
         msg:
           - "{{ sap_inifile }}"
