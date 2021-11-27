@@ -26,9 +26,15 @@ resource "azurerm_network_interface" "deployer" {
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
 
   ip_configuration {
-    name                          = "ipconfig1"
-    subnet_id                     = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
-    private_ip_address            = var.deployer.use_DHCP ? "" : length(var.deployer.private_ip_address) > 0 ? var.deployer.private_ip_address : cidrhost(local.sub_mgmt_deployed.address_prefixes[0], idx + 4),
+    name      = "ipconfig1"
+    subnet_id = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
+    private_ip_address = var.deployer.use_DHCP ? (
+      "") : (
+      length(var.deployer.private_ip_address) > 0 ? (
+        var.deployer.private_ip_address) : (
+        cidrhost(local.sub_mgmt_deployed.address_prefixes[0],  4)
+      )
+    )
     private_ip_address_allocation = var.deployer.use_DHCP ? "Dynamic" : "Static"
     public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[0].id : ""
   }
