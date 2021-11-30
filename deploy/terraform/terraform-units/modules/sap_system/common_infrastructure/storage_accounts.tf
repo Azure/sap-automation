@@ -10,7 +10,7 @@ resource "azurerm_storage_account" "install" {
 
   network_rules {
     default_action             = "Deny"
-    virtual_network_subnet_ids = [compact(var.landscape_tfstate.app_subnet_id, var.landscape_tfstate.db_subnet_id, try(var.landscape_tfstate.web_subnet_id, ""), try(var.landscape_tfstate.subnet_mgmt_id, ""))]
+    virtual_network_subnet_ids = compact([var.landscape_tfstate.app_subnet_id, var.landscape_tfstate.db_subnet_id, try(var.landscape_tfstate.web_subnet_id, ""), try(var.landscape_tfstate.subnet_mgmt_id, "")])
     bypass                     = ["AzureServices", "Logging", "Metrics"]
   }
 }
