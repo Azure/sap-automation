@@ -20,8 +20,8 @@ locals {
 
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  spn_key_vault_arm_id = coalesce(local.key_vault.kv_spn_id, data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id)
 
+  spn_key_vault_arm_id = coalesce(local.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""))
   // Locate the tfstate storage account
   saplib_subscription_id       = split("/", var.tfstate_resource_id)[2]
   saplib_resource_group_name   = split("/", var.tfstate_resource_id)[4]
@@ -29,12 +29,12 @@ locals {
   tfstate_container_name       = module.sap_namegenerator.naming.resource_suffixes.tfstate
   deployer_tfstate_key         = length(var.deployer_tfstate_key) > 0 ? var.deployer_tfstate_key : format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
 
-  spn =  {
+  spn = {
     subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
     client_id       = var.use_deployer ? data.azurerm_key_vault_secret.client_id[0].value : null,
     client_secret   = var.use_deployer ? data.azurerm_key_vault_secret.client_secret[0].value : null,
     tenant_id       = var.use_deployer ? data.azurerm_key_vault_secret.tenant_id[0].value : null
-  } 
+  }
 
   service_principal = {
     subscription_id = local.spn.subscription_id,

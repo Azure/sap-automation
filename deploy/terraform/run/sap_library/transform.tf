@@ -28,12 +28,12 @@ locals {
     account_kind             = coalesce(var.library_sapmedia_account_kind, try(var.storage_account_sapbits.account_kind, ""))
     file_share = {
       enable_deployment = var.library_sapmedia_file_share_enable_deployment || try(var.storage_account_sapbits.file_share.enable_deployment, true)
-      is_existing       = var.library_sapmedia_file_share_is_existing && try(var.storage_account_sapbits.file_share.is_existing, false)
+      is_existing       = var.library_sapmedia_file_share_is_existing || try(var.storage_account_sapbits.file_share.is_existing, false)
       name              = coalesce(var.library_sapmedia_file_share_name, try(var.storage_account_sapbits.file_share.name, "sapbits"))
     }
     sapbits_blob_container = {
       enable_deployment = var.library_sapmedia_blob_container_enable_deployment || try(var.storage_account_sapbits.sapbits_blob_container.enable_deployment, true)
-      is_existing       = var.library_sapmedia_blob_container_is_existing && try(var.storage_account_sapbits.sapbits_blob_container.is_existing, false)
+      is_existing       = var.library_sapmedia_blob_container_is_existing || try(var.storage_account_sapbits.sapbits_blob_container.is_existing, false)
       name              = coalesce(var.library_sapmedia_blob_container_name, try(var.storage_account_sapbits.sapbits_blob_container.name, "sapbits"))
     }
   }
@@ -43,11 +43,11 @@ locals {
     account_replication_type = coalesce(var.library_terraform_state_account_replication_type, try(var.storage_account_tfstate.account_replication_type, ""))
     account_kind             = coalesce(var.library_terraform_state_account_kind, try(var.storage_account_tfstate.account_kind, ""))
     tfstate_blob_container = {
-      is_existing = var.library_terraform_state_blob_container_is_existing && try(var.storage_account_tfstate.tfstate_blob_container.is_existing, false)
+      is_existing = var.library_terraform_state_blob_container_is_existing || try(var.storage_account_tfstate.tfstate_blob_container.is_existing, false)
       name        = coalesce(var.library_terraform_state_blob_container_name, try(var.storage_account_tfstate.tfstate_blob_container.name, "tfstate"))
     }
     ansible_blob_container = {
-      is_existing = var.library_ansible_blob_container_is_existing && try(var.storage_account_tfstate.ansible_blob_container.is_existing, false)
+      is_existing = var.library_ansible_blob_container_is_existing || try(var.storage_account_tfstate.ansible_blob_container.is_existing, false)
       name        = coalesce(var.library_ansible_blob_container_name, try(var.storage_account_tfstate.ansible_blob_container.name, "ansible"))
     }
   }
