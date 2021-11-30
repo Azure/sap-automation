@@ -108,7 +108,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
 
   tenant_id = data.azurerm_client_config.deployer.tenant_id
   # If running as a normal user use the object ID of the user otherwise use the object_id from AAD
-  object_id = coalesce(var.arm_client_id, data.azurerm_client_config.deployer.object_id, data.azurerm_client_config.deployer.client_id)
+  object_id = coalesce(data.azurerm_client_config.deployer.object_id, data.azurerm_client_config.deployer.client_id, var.arm_client_id)
   #application_id = data.azurerm_client_config.deployer.client_id
 
 
