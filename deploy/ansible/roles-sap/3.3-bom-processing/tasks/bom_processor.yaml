@@ -95,6 +95,9 @@
 
 #   04) Download media from bom
 # Loop through BOM media files and download to correct location
+# validate checksum while downloading the files.
+# For checksum validation, if we need to worry about portability, only the 
+# sha1 algorithm is available on all platforms and python versions.
 - name:                                "BOM: Download Files SUSE15"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
@@ -103,6 +106,7 @@
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     tmp_dest:                          '/mnt/resource'
+    checksum:                          "sha256:{{ item.checksum | upper }}"
     validate_certs:                    true
   register:                            result
   until:                               result is succeeded
@@ -122,6 +126,7 @@
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+    checksum:                          "sha256:{{ item.checksum | upper }}"
     tmp_dest:                          '/mnt/resource'
     validate_certs:                    true
   register:                            result
