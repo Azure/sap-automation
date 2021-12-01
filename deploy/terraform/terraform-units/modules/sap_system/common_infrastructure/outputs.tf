@@ -30,7 +30,11 @@ output "admin_subnet" {
 }
 
 output "db_subnet" {
-  value = local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
+  value = local.enable_db_deployment ? (
+    local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
+    null
+  ) 
+  #local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 
 output "network_location" {
