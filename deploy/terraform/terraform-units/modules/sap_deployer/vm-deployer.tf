@@ -107,8 +107,8 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   connection {
     type        = "ssh"
     host        = azurerm_public_ip.deployer[count.index].ip_address
-    user        = var.deployer.authentication.username
-    private_key = var.deployer.authentication.type == "key" ? var.deployer.authentication.sshkey.private_key : null
+    user        = local.username
+    private_key = var.deployer.authentication.type == "key" ? local.private_key : null
     password    = lookup(var.deployer.authentication, "password", null)
     timeout     = var.ssh-timeout
   }
