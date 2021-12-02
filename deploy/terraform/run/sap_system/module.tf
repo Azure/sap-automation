@@ -41,7 +41,7 @@ module "common_infrastructure" {
   options                            = local.options
   key_vault                          = local.key_vault
   naming                             = module.sap_namegenerator.naming
-  service_principal                  = local.use_spn ? local.service_principal : local.account
+  service_principal                  = var.use_spn ? local.service_principal : local.account
   deployer_tfstate                   = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
   custom_disk_sizes_filename         = var.db_disk_sizes_filename
