@@ -562,6 +562,6 @@ variable "bom_name" {
   default = ""
 }
 
-variable "no_spn" {
-  default = false
+variable "use_spn" {
+  default = true
 }

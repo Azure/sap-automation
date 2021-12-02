@@ -282,5 +282,5 @@ variable "use_private_endpoint" {
 }
 
 variable "use_spn" {
-  default = false
+  default = true
 }
