@@ -1,4 +1,5 @@
 resource "azurerm_storage_account" "install" {
+  count                     = 0
   name                      = replace(lower(format("%s%s", local.prefix, local.resource_suffixes.install_volume)), "/[^a-z0-9]/", "")
   resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                  = var.infrastructure.region
@@ -16,6 +17,7 @@ resource "azurerm_storage_account" "install" {
 }
 
 resource "azurerm_storage_share" "install" {
+  count                = 0
   name                 = format("%s", local.resource_suffixes.install_volume)
   storage_account_name = azurerm_storage_account.install.name
   enabled_protocol     = "NFS"
