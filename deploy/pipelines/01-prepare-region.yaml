@@ -53,6 +53,9 @@ stages:
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+          export ARM_TENANT_ID=$(ARM_TENANT_ID)
+          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
           mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
           export HOME=$(Build.Repository.LocalPath)
