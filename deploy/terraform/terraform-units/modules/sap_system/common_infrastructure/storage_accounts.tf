@@ -19,7 +19,7 @@ resource "azurerm_storage_account" "install" {
 resource "azurerm_storage_share" "install" {
   count                = 0
   name                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name = azurerm_storage_account.install.name
+  storage_account_name = azurerm_storage_account.install[0].name
   enabled_protocol     = "NFS"
 
   quota = 128
