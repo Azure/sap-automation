@@ -269,7 +269,6 @@
 - name:                               "SAP Oracle DB ASM: Sleep for 30 seconds and continue with play"
   ansible.builtin.wait_for:
     timeout:                          30
-  
 
 #STEP5 POST PROCESSING - Change RDBMS Compatiable Setting.
 # #Update Compatiable for DATA, ARCH and RECO disk groups using ASMCA.
@@ -277,15 +276,15 @@
 # SAP Note 1739274 - Database Parameter COMPATIBLE
 # SAP Note 1773593 - CREATE DATABASE  on ASM Fails with ORA-15204
 
-- name:                               "SAP Oracle DB ASM: Update ASM Disk groups ARCH and RECO for DBLOAD"                
-  become:                             yes
+- name:                               "SAP Oracle DB ASM: Update ASM Disk groups ARCH and RECO for DBLOAD"
+  become:                             true
   become_user:                        oracle
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                                       set -o errexit
                                       /oracle/stage/{{ ora_release }}/grid_home/bin/srvctl start LISTENER
                                       /oracle/stage/{{ ora_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.rdbms={{ ora_version }}
                                       /oracle/stage/{{ ora_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName ARCH -attribute compatible.rdbms={{ ora_version }}
-                                      /oracle/stage/{{ ora_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName RECO -attribute compatible.rdbms={{ ora_version }}                                     
+                                      /oracle/stage/{{ ora_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName RECO -attribute compatible.rdbms={{ ora_version }}
   register:                           diskgroupcreation_results
   environment:
     DB_SID:                           "{{ db_sid }}"
@@ -299,7 +298,7 @@
   ansible.builtin.file:
     path:                             /etc/sap_deployment_automation/oracle/diskgroupupdated.txt
     state:                            touch
-  
+    mode:                             0755
 
 ...
 # /*---------------------------------------------------------------------------8
