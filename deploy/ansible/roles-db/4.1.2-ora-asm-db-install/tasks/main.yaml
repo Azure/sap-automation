@@ -21,7 +21,7 @@
 
 - name:                                "SAP Oracle DB ASM: Create run MOPatch directory"
   ansible.builtin.file:
-    path:                              /oracle/stage/{{ora_release}}/grid_home/MOPatch
+    path:                              /oracle/stage/{{ ora_release }}/grid_home/MOPatch
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -201,10 +201,10 @@
 
 - name:                                "SAP Oracle DB ASM: Prepare for GRID SBP Patching"
   ansible.builtin.shell: |                    
-                                       cp -rp /oracle/stage/{{ora_release}}/grid_home /oracle/stage/{{ora_release}}/grid_home.bck
-                                       /oracle/stage/{{ora_release}}/grid_home/crs/install/roothas.sh -prepatch |tee /oracle/installlogs/pre-patchcmd.log
-                                       cp -R /usr/sap/install/SBP/SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/stage/{{ora_release}}/grid_home/.
-                                       chown -R oracle:oinstall  /oracle/stage/{{ora_release}}/grid_home/MOPatch            
+                                       cp -rp /oracle/stage/{{ ora_release }}/grid_home /oracle/stage/{{ ora_release }}/grid_home.bck
+                                       /oracle/stage/{{ ora_release }}/grid_home/crs/install/roothas.sh -prepatch |tee /oracle/installlogs/pre-patchcmd.log
+                                       cp -R /usr/sap/install/SBP/SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/stage/{{ ora_release }}/grid_home/.
+                                       chown -R oracle:oinstall  /oracle/stage/{{ ora_release }}/grid_home/MOPatch            
   args:
     creates:                           /etc/sap_deployment_automation/oracle/gridpreinstall.txt
 
@@ -220,9 +220,9 @@
   become_user:                         oracle
   ansible.builtin.shell: |   
                                        set -o errexit
-                                       mv  /oracle/stage/{{ora_release}}/grid_home/OPatch   /oracle/stage/{{ora_release}}/grid_home/OPatch.bck
-                                       cp -R OPATCH/OPatch  /oracle/stage/{{ora_release}}/grid_home/.
-                                       chmod 6751 /oracle/stage/{{ora_release}}/grid_home/bin/oracle
+                                       mv  /oracle/stage/{{ ora_release }}/grid_home/OPatch   /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
+                                       cp -R OPATCH/OPatch  /oracle/stage/{{ ora_release }}/grid_home/.
+                                       chmod 6751 /oracle/stage/{{ ora_release }}/grid_home/bin/oracle
                                        $OHGRID/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SGR19P_2108-70004550.ZIP |tee -a /oracle/installlogs/sbpgrid.log
   register:                            sbpgscript_results
   environment:

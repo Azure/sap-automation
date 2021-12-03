@@ -41,7 +41,7 @@
   register:                            oraprecheck_results
   failed_when:                         oraprecheck_results.rc >= 3
   environment:
-    DB_SID:                            "{{db_sid}}"
+    DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh        
@@ -70,7 +70,7 @@
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
-    DB_SID:                            "{{db_sid}}"
+    DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh        
