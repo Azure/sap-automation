@@ -16,6 +16,7 @@
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                          directory
+        mode:                          0755
 
     - name:                            Remove sap-os-configuration-done flag
       ansible.builtin.file:

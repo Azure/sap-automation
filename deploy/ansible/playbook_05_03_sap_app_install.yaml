@@ -15,7 +15,8 @@
     - name:                            Create Progress folder
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
-        state:                          directory
+        state:                         directory
+        mode:                          0755 
 
     - name:                            Remove app-install-done flag
       ansible.builtin.file:

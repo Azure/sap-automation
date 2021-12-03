@@ -16,7 +16,8 @@
     - name:                            Create Progress folder
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
-        state:                          directory
+        state:                         directory
+        mode:                          0755
 
     - name:                            Remove db-install-done flag
       ansible.builtin.file:
@@ -160,10 +161,6 @@
         - db_high_availability
         - node_tier == 'hana'
 
-        - name:                        Installing Oracle
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.0-ora-install
-      when:                            node_tier == 'oracle'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -198,11 +195,10 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
-           
+
         - name:                        Check for file system mounts
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
-      
 
         - name:                        Installing Oracle
           ansible.builtin.include_role:

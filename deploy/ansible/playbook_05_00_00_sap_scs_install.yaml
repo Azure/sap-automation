@@ -28,7 +28,8 @@
     - name:                            Create Progress folder
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
-        state:                          directory
+        state:                         directory
+        mode:                          0755
 
     - name:                            Remove scs-install-done flag
       ansible.builtin.file:
@@ -161,7 +162,7 @@
             - 1.4-packages
 
         - block:
-            - name:                    Include 1.9-kernelparameters role  
+            - name:                    Include 1.9-kernelparameters role
               ansible.builtin.include_role:
                 name:                  roles-os/1.9-kernelparameters
           tags:
