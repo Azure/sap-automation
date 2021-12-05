@@ -7,6 +7,12 @@ parameters:
   displayName: BOM Base Name
   type: string
   default: S41909SPS03_v0006ms
+  values:
+   - S41909SPS03_v0006ms
+   - BW4HANA2021SPS01_v0001ms
+   - HANA_2_00_055_v0005ms
+   - NW750SPS20_v0002ms
+
 
 - name: deployer_kvname
   displayName: Deployer KeyVault
