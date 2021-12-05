@@ -88,6 +88,26 @@
     var:                               sapbits_sas_token
     verbosity:                         2
 
+- name:                                "BoM Secrets: Retrieve Access Key secret"
+  block:
+    - name:                            "BoM Secrets: Retrieve Access Key details"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name "sapbits-access-key"
+      changed_when:                    false
+      register:                        keyvault_secret_show_accesskey
+      no_log:                          true
+    
+    - name:                            "BoM Secrets: Extract Access Key details"
+      ansible.builtin.set_fact:
+        sapbits_access_key: >-
+          {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
+      no_log:                          true
+  when:
+   - tier == "bom"
+   - sapbits_access_key is not defined    
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |

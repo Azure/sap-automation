@@ -29,14 +29,18 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                        Set the bom tier
-      ansible.builtin.set_fact:
-        tier:                      bom
+    - name:                            Show the BOM
+      ansible.builtin.debug:
+        var:                           bom_base_name
 
-    - name:                        Set deployer keyvault name
+    - name:                            Set the bom tier
       ansible.builtin.set_fact:
-        kv_name:                   "{{ deployer_kv_name }}"
-      when:                        deployer_kv_name is defined
+        tier:                          bom
+
+    - name:                            Set deployer keyvault name
+      ansible.builtin.set_fact:
+        kv_name:                       "{{ deployer_kv_name }}"
+      when:                            deployer_kv_name is defined
 
     - block:
         - name:                        Load the keyvault secrets
@@ -62,9 +66,6 @@
         - name:                        Run the bom-validator
           include_role:
             name:                      roles-sap/0.1-bom-validator
-      vars:
-        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits-location-base-path }}"
-        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - 0.1-bom-validator
 ...

@@ -15,12 +15,8 @@ chrony_pool:                  ""
 chrony_servers:               []
 
 # BoM Processing variables
-sapbits_location_base_path:   ""                                                        # REQUIRED
 sapbits_bom_files:            "sapfiles"                                                # Default
-bom_base_name:                ""                                                        # REQUIRED
 target_media_location:        "/usr/sap/install"                                        # Default
-sapbits_sas_token:            ""                                                        # Optional
-sapbits_access_key:           ""                                                        # Optional
 s_user:                       ""
 s_password:                   ""
 download_directory:           "/mnt/downloads"
