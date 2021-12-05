@@ -29,10 +29,14 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - block:
-        - name:                        Set the bom tier
-          ansible.builtin.set_fact:
-            tier:                      bom
+    - name:                        Set the bom tier
+      ansible.builtin.set_fact:
+        tier:                      bom
+
+    - name:                        Set deployer keyvault name
+      ansible.builtin.set_fact:
+        kv_name:                   "{{ deployer_kv_name }}"
+      when:                        deployer_kv_name is defined
 
     - block:
         - name:                        Load the keyvault secrets

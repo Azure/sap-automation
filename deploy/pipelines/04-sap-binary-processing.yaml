@@ -84,5 +84,5 @@ stages:
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
-        args: ' -e "HOME=$(Build.Repository.LocalPath)" -e "_workspace_directory=$(Build.Repository.LocalPath)/BOMS/" -e "bom_base_name=$(bom)" -e "kv_name=$(kv_name)"'
+        args: ' -e "HOME=$(Build.Repository.LocalPath)" -e "_workspace_directory=$(Build.Repository.LocalPath)/BOMS/" -e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv_name)"  -e "s_user=$(S-Username)"  -e "s_password=$(S-Password)"'
         failOnStderr: false

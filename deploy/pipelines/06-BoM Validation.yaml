@@ -1,0 +1,44 @@
+
+name: BOM Download
+
+parameters:
+
+- name: bom_base_name
+  displayName: BOM Base Name
+  type: string
+  default: S41909SPS03_v0006ms
+
+- name: kv
+  displayName: Deployer KeyVault
+  type: string
+  default: PERMWEEUDEP00user56F 
+  
+
+variables:
+- group: 'BOM Validation'
+trigger:
+  branches:
+    include:
+    - main
+    - private-preview
+  paths:
+    include:
+    - deploy/ansible/BOM-catalog/*.yaml
+
+
+pool:
+  name: PERM-WEEU
+
+steps:
+
+  - checkout: self
+    clean: true
+
+  - task: Ansible@0
+    displayName: 'Run the BOM downloader for $(BOM)'
+    inputs:
+      ansibleInterface: 'agentMachine'
+      playbookPathOnAgentMachine: $(Pipeline.Workspace)'/s/deploy/ansible/playbook_bom_downloader.yaml'
+      inventoriesAgentMachine: 'noInventory'
+      args: '--extra-vars "bom_base_name=$(bom_base_name) deployer_kv_name:=$(kv) s_user=$(S-Username) s_password=$(S-Password) "'
+
