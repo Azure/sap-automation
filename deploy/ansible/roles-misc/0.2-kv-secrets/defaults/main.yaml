@@ -1,0 +1,10 @@
+
+- name:                                Check required variables are present and not empty
+  ansible.builtin.assert:
+    that:
+      - "kv_name is defined"                    # Has the variable been defined
+      - "kv_name | type_debug != 'NoneType'"    # and given a value
+      - "kv_name | string | length != 0 "       # Detect null values
+    fail_msg:                          "Please define the kv_name parameter"
+
+# -------------------------------------+---------------------------------------8

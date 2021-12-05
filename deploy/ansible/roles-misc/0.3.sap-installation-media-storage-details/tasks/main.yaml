@@ -15,7 +15,6 @@
   ansible.builtin.set_fact:
     workload_kv_name:                  "{{ kv_name }}"
 
-
 - name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
   block:
     - name:                            Get Deployer Keyvault name from keyvault
@@ -44,40 +43,46 @@
     var:                               deployer_kv_name
     verbosity:                         2
 
-- name:                                Extract SAP Binaries Storage Account information
-  ansible.builtin.command: >-
+- name:                                Extract SAP Binaries Storage Account secrets
+  block:
+    - name:                            Extract SAP Binaries Storage Account information
+      ansible.builtin.command: >-
                                        az keyvault secret show
                                          --vault-name {{ deployer_kv_name }}
                                          --name {{ sapbits_location_secret }}
-  changed_when:                        false
-  register:                            sapbits_location_base_path_secret
-  no_log:                              false
-
-- name:                                Save SAP Binaries Storage Account information
-  ansible.builtin.set_fact:
-    sapbits_location_base_path: >-
+      changed_when:                    false
+      register:                        sapbits_location_base_path_secret
+      no_log:                          false
+    
+    - name:                            Save SAP Binaries Storage Account information
+      ansible.builtin.set_fact:
+        sapbits_location_base_path: >-
                                        {{ (sapbits_location_base_path_secret.stdout | from_json).value }}
+  when:                                sapbits_location_base_path is not defined  
 
 - name:                                Debug, storage account
   ansible.builtin.debug:
     var:                               sapbits_location_base_path
     verbosity:                         2
 
+- name:                                Extract SAP Binaries Storage Account SAS secret
+  block:
 
-- name:                                Extract SAP Binaries Storage Account SAS
-  ansible.builtin.command: >-
+    - name:                            Extract SAP Binaries Storage Account SAS
+      ansible.builtin.command: >-
                                        az keyvault secret show
                                          --vault-name {{ deployer_kv_name }}
                                          --name {{ sapbits_sas_token_secret }}
-  changed_when:                        false
-  register:                            sapbits_sas_token_secret
-
-- name:                                Extract SAP Binaries Storage Account SAS
-  ansible.builtin.set_fact:
-    sapbits_sas_token: >-
+      changed_when:                    false
+      register:                        sapbits_sas_token_secret
+    
+    - name:                            Extract SAP Binaries Storage Account SAS
+      ansible.builtin.set_fact:
+        sapbits_sas_token: >-
                                        {{ (sapbits_sas_token_secret.stdout | from_json).value }}
-  no_log:                              false
-
+      no_log:                          false
+  when:                                sapbits_sas_token is not defined
+    
 - name:                                Debug, SAS Token
   ansible.builtin.debug:
     var:                               sapbits_sas_token
