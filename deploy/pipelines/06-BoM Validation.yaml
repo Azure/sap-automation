@@ -43,7 +43,7 @@ steps:
   - checkout: self
     clean: true
 
-  - ${{ each bom in ["S41909SPS03_v0006ms","BW4HANA2021SPS01_v0001ms", "HANA_2_00_055_v0005ms", "NW750SPS20_v0002ms"] }}:
+  - ${{each bom in ["S41909SPS03_v0006ms","BW4HANA2021SPS01_v0001ms", "HANA_2_00_055_v0005ms", "NW750SPS20_v0002ms"] }}:
     - task: Ansible@0
       displayName: 'Run the BOM downloader for $(BOM)'
       inputs:
