@@ -38,8 +38,6 @@ trigger:
 pool:
   name: PERM-WEEU-POOL
 
-name: "Check BOMs"
-
 steps:
 
   - checkout: self
