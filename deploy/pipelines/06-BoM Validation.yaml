@@ -3,16 +3,15 @@ name: BOM Download
 
 parameters:
 
-- name: bom_base_name
-  displayName: BOM Base Name
-  type: string
-  default: S41909SPS03_v0006ms
-  values:
-   - S41909SPS03_v0006ms
-   - BW4HANA2021SPS01_v0001ms
-   - HANA_2_00_055_v0005ms
-   - NW750SPS20_v0002ms
-
+# - name: bom_base_name
+#   displayName: BOM Base Name
+#   type: string
+#   default: S41909SPS03_v0006ms
+#   values:
+#    - S41909SPS03_v0006ms
+#    - BW4HANA2021SPS01_v0001ms
+#    - HANA_2_00_055_v0005ms
+#    - NW750SPS20_v0002ms
 
 - name: deployer_kvname
   displayName: Deployer KeyVault
@@ -22,8 +21,8 @@ parameters:
 variables:
 - group: 'BOM Validation'
   
-- name: bom
-  value: ${{ parameters.bom_base_name }}
+- name: boms
+  value: ["S41909SPS03_v0006ms","BW4HANA2021SPS01_v0001ms", "HANA_2_00_055_v0005ms", "NW750SPS20_v0002ms"]
 
 - name: kv
   value: ${{ parameters.deployer_kvname }}
@@ -46,12 +45,13 @@ steps:
   - checkout: self
     clean: true
 
-  - task: Ansible@0
-    displayName: 'Run the BOM downloader for $(BOM)'
-    inputs:
-      ansibleInterface: 'agentMachine'
-      playbookPathOnAgentMachine: $(Pipeline.Workspace)'/s/deploy/ansible/playbook_bom_downloader.yaml'
-      inventoriesAgentMachine: 'noInventory'
-      failOnStdErr: false
-      args: '-e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv)" -e "kv_name=$(kv)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" -e "sapbits_access_key=$(sapbits-access-key)" -e "sapbits_location_base_path=$(sapbits-location-base-path)" -e "sapbits_sas_token=$(sapbits-sas-token)"'
+  - ${{ each bom in variables.boms }}:
+    - task: Ansible@0
+      displayName: 'Run the BOM downloader for $(BOM)'
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: $(Pipeline.Workspace)'/s/deploy/ansible/playbook_bom_downloader.yaml'
+        inventoriesAgentMachine: 'noInventory'
+        failOnStdErr: false
+        args: '-e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv)" -e "kv_name=$(kv)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" -e "sapbits_access_key=$(sapbits-access-key)" -e "sapbits_location_base_path=$(sapbits-location-base-path)" -e "sapbits_sas_token=$(sapbits-sas-token)"'
 
