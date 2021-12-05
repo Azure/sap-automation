@@ -8,7 +8,7 @@ locals {
   spn_key_vault_arm_id = coalesce(local.key_vault.kv_spn_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""))
   
 spn =  {
-    subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
+    subscription_id = var.use_deployer ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
     client_id       = var.use_deployer ? data.azurerm_key_vault_secret.client_id[0].value : null,
     client_secret   = var.use_deployer ? data.azurerm_key_vault_secret.client_secret[0].value : null,
     tenant_id       = var.use_deployer ? data.azurerm_key_vault_secret.tenant_id[0].value : null
@@ -21,7 +21,7 @@ spn =  {
   }
 
   account = {
-    subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
+    subscription_id = local.spn.subscription_id,
     tenant_id       = data.azurerm_client_config.current.tenant_id,
     object_id       = data.azurerm_client_config.current.object_id
   }

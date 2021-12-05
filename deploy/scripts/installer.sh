@@ -641,8 +641,11 @@ if [ 0 == $return_value ] ; then
     then
         deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
         keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+        sshsecret=$(terraform -chdir="${terraform_module_directory}"  output deployer_private_key_secret_name | tr -d \")
+
         save_config_var "keyvault" "${system_config_information}"
         save_config_var "deployer_public_ip_address" "${system_config_information}" 
+        save_config_var "sshsecret" "${system_config_information}"
         
     fi
 
@@ -909,9 +912,11 @@ if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+    sshsecret=$(terraform -chdir="${terraform_module_directory}"  output deployer_private_key_secret_name | tr -d \")
 
     save_config_var "keyvault" "${system_config_information}"
     save_config_var "deployer_public_ip_address" "${system_config_information}" 
+    save_config_var "sshsecret" "${system_config_information}"
 fi
 
 
