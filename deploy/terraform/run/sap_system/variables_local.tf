@@ -116,7 +116,7 @@ locals {
   deployer_subscription_id = length(local.spn_key_vault_arm_id) > 0 ? split("/", local.spn_key_vault_arm_id)[2] : ""
 
   spn = {
-    subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
+    subscription_id = var.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
     client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
     client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
     tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
@@ -129,7 +129,7 @@ locals {
   }
 
   account = {
-    subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
+    subscription_id = local.spn.subscription_id,
     tenant_id       = data.azurerm_client_config.current.tenant_id,
     object_id       = data.azurerm_client_config.current.object_id
   }
