@@ -38,12 +38,19 @@ trigger:
 pool:
   name: PERM-WEEU-POOL
 
-steps:
 
-  - checkout: self
-    clean: true
-
-  - ${{each bom in ["S41909SPS03_v0006ms","BW4HANA2021SPS01_v0001ms", "HANA_2_00_055_v0005ms", "NW750SPS20_v0002ms"] }}:
+stages:
+- stage: Prepare
+  jobs:
+  - job: Prepare
+    steps:
+    - checkout: self
+      clean: true
+- stage: Check S41909SPS03_v0006ms
+  jobs:
+  - job: S41909SPS03_v0006ms
+    steps:
+    - checkout: none
     - task: Ansible@0
       displayName: 'Run the BOM downloader for $(BOM)'
       inputs:
@@ -51,5 +58,5 @@ steps:
         playbookPathOnAgentMachine: $(Pipeline.Workspace)'/s/deploy/ansible/playbook_bom_downloader.yaml'
         inventoriesAgentMachine: 'noInventory'
         failOnStdErr: false
-        args: '-e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv)" -e "kv_name=$(kv)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" -e "sapbits_access_key=$(sapbits-access-key)" -e "sapbits_location_base_path=$(sapbits-location-base-path)" -e "sapbits_sas_token=$(sapbits-sas-token)"'
+        args: '-e "bom_base_name=S41909SPS03_v0006ms" -e "deployer_kv_name=$(kv)" -e "kv_name=$(kv)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" -e "sapbits_access_key=$(sapbits-access-key)" -e "sapbits_location_base_path=$(sapbits-location-base-path)" -e "sapbits_sas_token=$(sapbits-sas-token)"'
 
