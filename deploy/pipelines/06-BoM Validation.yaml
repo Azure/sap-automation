@@ -27,7 +27,7 @@ trigger:
 
 
 pool:
-  name: PERM-WEEU
+  name: PERM-WEEU-POOL
 
 steps:
 
