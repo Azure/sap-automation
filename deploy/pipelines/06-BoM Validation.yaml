@@ -12,7 +12,6 @@ parameters:
   displayName: Deployer KeyVault
   type: string
   default: PERMWEEUDEP00user56F 
-  
 
 variables:
 - group: 'BOM Validation'
@@ -40,5 +39,5 @@ steps:
       ansibleInterface: 'agentMachine'
       playbookPathOnAgentMachine: $(Pipeline.Workspace)'/s/deploy/ansible/playbook_bom_downloader.yaml'
       inventoriesAgentMachine: 'noInventory'
-      args: '--extra-vars "bom_base_name=$(bom_base_name) deployer_kv_name:=$(kv) s_user=$(S-Username) s_password=$(S-Password) sapbits_access_key=$(sapbits-access-key) sapbits_location_base_path=$(sapbits-location-base-path) sapbits_sas_token=$(sapbits-sas-token)"'
+      args: '--extra-vars "bom_base_name=$(bom_base_name) deployer_kv_name=$(kv) s_user=$(S-Username) s_password=$(S-Password) sapbits_access_key=$(sapbits-access-key) sapbits_location_base_path=$(sapbits-location-base-path) sapbits_sas_token=$(sapbits-sas-token)"'
 
