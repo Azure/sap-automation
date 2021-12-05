@@ -46,9 +46,9 @@ stages:
     steps:
     - checkout: self
       clean: true
-- stage: Check S41909SPS03_v0006ms
+- stage: Check S41909SPS03
   jobs:
-  - job: S41909SPS03_v0006ms
+  - job: S41909SPS03
     steps:
     - checkout: none
     - task: Ansible@0
