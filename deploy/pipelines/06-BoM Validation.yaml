@@ -46,7 +46,7 @@ stages:
     steps:
     - checkout: self
       clean: true
-- stage: Check S41909SPS03
+- stage: Check_S41909SPS03
   jobs:
   - job: S41909SPS03
     steps:
