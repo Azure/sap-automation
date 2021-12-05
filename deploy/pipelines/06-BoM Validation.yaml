@@ -15,8 +15,12 @@ parameters:
 
 variables:
 - group: 'BOM Validation'
-  bom: ${{ parameters.bom_base_name }}
-  kv: ${{ parameters.deployer_kvname }}
+  
+- name: bom
+  value: ${{ parameters.bom_base_name }}
+
+- name: kv
+  value: ${{ parameters.deployer_kvname }}
 
 trigger:
   branches:
