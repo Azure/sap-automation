@@ -86,7 +86,7 @@ stages:
 - stage: Cleanup
   condition: eq(${{ parameters.cleanup }}, true)
   jobs:
-  - job: Remove_Deployer
+  - job: Remove_System
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
       displayName: 'Remove Resource Group $(sapsystemfolder)'
