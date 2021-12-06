@@ -1,19 +1,16 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# This Pipeline prepares the region with a deployer and a SAP library
 
 parameters:
 
 - name: deployer_parameter
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+  default: MGMT-NOEU-DEP00-INFRASTRUCTURE
 
 - name: library_parameter
   displayName: ENV-LOCA-SAP_LIBRARY
   type: string
-  default: MGMT-WEEU-SAP_LIBRARY
+  default: MGMT-NOEU-SAP_LIBRARY
 
 - name: cleanup
   displayName: Remove the relevant Resource Groups instead of deploying
@@ -33,7 +30,7 @@ variables:
   libraryconfig: ${{ parameters.library_parameter }}.tfvars
   log: logfile_$(Build.BuildId)
 
-name: $(deployerfolder)_$(libraryfolder)__Cleanup_${{ parameters.cleanup }}_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+name: $(deployerfolder)_$(libraryfolder)_Cleanup_${{ parameters.cleanup }}_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
 - stage: Prepare_the_Region_with_Deployer_and_SAP_Library
@@ -53,9 +50,9 @@ stages:
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
-          mkdir -p .sap_deployment_automation
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-          export HOME=$(Build.Repository.LocalPath)
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
         echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
@@ -63,22 +60,21 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Convert config files to UX format ---$reset"
           sudo apt-get -qq install dos2unix
-          dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
-          dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
+          dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig) 2> /dev/null
+          dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)    2> /dev/null
         echo -e "$green--- Running the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve   &>> /tmp/$(log)1
-          cat /tmp/$(log)1
-          # currently error log piped to file to avoid pipeline failure due to bash error messages
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve 2> /dev/null
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+          cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)"
-          git add .sap_deployment_automation                     &>> /tmp/$(log)2
-          git add DEPLOYER/$(deployerfolder)/.terraform          &>> /tmp/$(log)2
-          git add LIBRARY/$(libraryfolder)/.terraform            &>> /tmp/$(log)2
-          git add LIBRARY/$(libraryfolder)/backend-config.tfvars &>> /tmp/$(log)2
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" &>> /tmp/$(log)2
-          git push -f origin HEAD:main                           &>> /tmp/$(log)2
-          cat /tmp/$(log)2
+          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                                &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"             &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                                       &>> /tmp/$(log)
+          cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
       displayName: Prepare_the_Region_with_Deployer_and_SAP_Library
       env:
@@ -91,21 +87,48 @@ stages:
   - job: Remove_Deployer
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group $(deployerfolder)'
+      displayName: 'Remove Resource Group ${{ parameters.deployer_parameter }}'
       inputs:
         deploymentScope: 'Resource Group'
         azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
         subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
         action: 'DeleteRG'
-        resourceGroupName: '$(deployerfolder)'
+        resourceGroupName: '${{ parameters.deployer_parameter }}'
 
   - job: Remove_SAP_Library
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group $(libraryfolder)'
+      displayName: 'Remove Resource Group ${{ parameters.library_parameter }}'
       inputs:
         deploymentScope: 'Resource Group'
         azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
         subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
         action: 'DeleteRG'
-        resourceGroupName: '$(libraryfolder)'
+        resourceGroupName: '${{ parameters.library_parameter }}'
+
+  - job: Remove_files_in_WORKSPACES
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+          export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export region=$(cat $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/$(deployerconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/$ENV$region          &>> /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform           &>> /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform             &>> /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars  &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove_files_in_WORKSPACES
+      env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true
