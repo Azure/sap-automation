@@ -16,6 +16,9 @@ function save_config_var() {
 
 function save_config_vars() {
     local var_file="${1}" var_name
+    if [[ ! -f "${var_file}" ]]; then
+        return
+    fi
 
     shift # shift params 1 place to remove var_file value from front of list
 

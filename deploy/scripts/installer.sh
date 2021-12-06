@@ -30,7 +30,7 @@ function showhelp {
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: installer.sh                                                                 #"
-    echo "#    -p or --parameterfile                parameter file                                #"
+    echo "#    -p or --parameterfile           parameter file                                     #"
     echo "#    -t or --type                         type of system to remove                      #"
     echo "#                                         valid options:                                #"
     echo "#                                           sap_deployer                                #"
@@ -40,9 +40,10 @@ function showhelp {
     echo "#                                                                                       #"
     echo "#   Optional parameters                                                                 #"
     echo "#                                                                                       #"
-    echo "#    -o or --storageaccountname           Storage account name for state file           #"
-    echo "#    -i or --auto-approve                 Silent install                                #"
-    echo "#    -h or --help                         Show help                                     #"
+    echo "#    -o or --storageaccountname      Storage account name for state file                #"
+    echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
+    echo "#    -i or --auto-approve            Silent install                                     #"
+    echo "#    -h or --help                    Show help                                          #"
     echo "#                                                                                       #"
     echo "#   Example:                                                                            #"
     echo "#                                                                                       #"
@@ -334,7 +335,6 @@ fi
 
 #setting the user environment variables
 set_executing_user_environment_variables "none"
-
 
 if [ ! -z "${STATE_SUBSCRIPTION}" ]
 then
