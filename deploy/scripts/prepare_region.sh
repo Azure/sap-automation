@@ -689,7 +689,7 @@ if [ 5 == $step ]; then
 
     end=`date -u -d "180 days" '+%Y-%m-%dT%H:%MZ'`
 
-    sas=?$(az storage account generate-sas --permissions r --account-name "${REMOTE_STATE_SA}" --https-only --services b --resource-types o --expiry $end -o tsv)
+    sas=?$(az storage container generate-sas --permissions r --account-name ${REMOTE_STATE_SA} --name sapbits --https-only  --expiry $end -o tsv)
 
     az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
 
@@ -729,16 +729,16 @@ if [ 6 == $step ]; then
             remote_config_dir="/home/azureadm/.sap_deployment_automation"
             
             ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate        
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate        
+            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.
+            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate        
+            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate        
             
             ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform
-            scp -i "${temp_file}"  -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/.
+            scp -i "${temp_file}"  -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.
+            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/.
             
             ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/.
+            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/.
             
             rm "${temp_file}"
         else

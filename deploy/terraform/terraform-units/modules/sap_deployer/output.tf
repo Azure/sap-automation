@@ -6,10 +6,7 @@ Description:
 
 // Deployer resource group name
 output "deployer_rg_name" {
-  value = local.enable_deployers ? (
-    local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name) : (
-    ""
-  )
+  value = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
 }
 
 // Unique ID for deployer
@@ -42,12 +39,6 @@ output "deployer_pip" {
   value = azurerm_public_ip.deployer
 }
 
-// Details of deployer(s)
-output "deployers" {
-  sensitive = true
-  value     = local.deployers_updated
-}
-
 output "random_id" {
   value = random_id.deployer.hex
 }
@@ -63,20 +54,20 @@ output "user_vault_name" {
 
 // output the secret name of private key
 output "ppk_secret_name" {
-  value = local.enable_deployers && local.enable_key ? local.ppk_secret_name : ""
+  value = local.enable_key ? local.ppk_secret_name : ""
 }
 
 // output the secret name of public key
 output "pk_secret_name" {
-  value = local.enable_deployers && local.enable_key ? local.pk_secret_name : ""
+  value = local.enable_key ? local.pk_secret_name : ""
 }
 
 output "username_secret_name" {
-  value = local.enable_deployers ? local.username : ""
+  value = local.username
 }
 
 output "pwd_secret_name" {
-  value = local.enable_deployers && local.enable_password ? local.pwd_secret_name : ""
+  value = local.enable_password ? local.pwd_secret_name : ""
 }
 
 // Comment out code with users.object_id for the time being.
@@ -87,15 +78,15 @@ output "deployer_user" {
 */
 
 output "deployer_kv_user_arm_id" {
-  value = local.enable_deployers ? (local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id) : ""
+  value = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 output "deployer_public_ip_address" {
-  value = local.enable_deployers ? local.deployer_public_ip_address : ""
+  value = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[0].ip_address : ""
 }
 
 output "deployer_private_ip_address" {
-  value = local.enable_deployers ? azurerm_network_interface.deployer[*].private_ip_address : []
+  value = azurerm_network_interface.deployer[*].private_ip_address
 }
 
 output "firewall_ip" {

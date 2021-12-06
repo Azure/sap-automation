@@ -2,7 +2,7 @@
 # Create observer VM
 resource "azurerm_network_interface" "observer" {
   provider                      = azurerm.main
-  count                         = local.deploy_observer ? length(local.zones) : 0
+  count                         = local.deploy_observer ? 1 : 0
   name                          = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.nic)
   resource_group_name           = var.resource_group[0].name
   location                      = var.resource_group[0].location
@@ -26,7 +26,7 @@ resource "azurerm_network_interface" "observer" {
 resource "azurerm_linux_virtual_machine" "observer" {
   provider            = azurerm.main
   depends_on          = [var.anchor_vm]
-  count               = local.deploy_observer && upper(local.anydb_ostype) == "LINUX" ? length(local.zones) : 0
+  count               = local.deploy_observer && upper(local.anydb_ostype) == "LINUX" ? 1 : 0
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.vm)
@@ -44,18 +44,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
     }
   }
 
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count, 1)].id : var.ppg[0].id
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-    azurerm_availability_set.anydb[0].id
-  )
-
-  zone = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null) : (
-    null
-  )
+  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = [
     azurerm_network_interface.observer[count.index].id
@@ -95,24 +84,13 @@ resource "azurerm_linux_virtual_machine" "observer" {
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "observer" {
   provider            = azurerm.main
-  count               = local.deploy_observer && upper(local.anydb_ostype) == "WINDOWS" ? length(local.zones) : 0
+  count               = local.deploy_observer && upper(local.anydb_ostype) == "WINDOWS" ? 1 : 0
   name                = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.vm)
   computer_name       = var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME[count.index]
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  proximity_placement_group_id = local.zonal_deployment ? var.ppg[count.index % max(local.db_zone_count, 1)].id : var.ppg[0].id
-  //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? null : azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-    azurerm_availability_set.anydb[0].id
-  )
 
-  zone = local.zonal_deployment ? (
-    var.database_server_count == local.db_zone_count ? local.zones[count.index % max(local.db_zone_count, 1)] : null) : (
-    null
-  )
-
+  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
   network_interface_ids = [
     azurerm_network_interface.observer[count.index].id
   ]

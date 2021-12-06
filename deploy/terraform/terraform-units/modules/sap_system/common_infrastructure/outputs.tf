@@ -30,7 +30,11 @@ output "admin_subnet" {
 }
 
 output "db_subnet" {
-  value = local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
+  value = local.enable_db_deployment ? (
+    local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
+    null
+  ) 
+  #local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 
 output "network_location" {
@@ -85,7 +89,7 @@ output "route_table_id" {
 }
 
 output "firewall_id" {
-  value =  try(var.deployer_tfstate.firewall_id, "")
+  value = try(var.deployer_tfstate.firewall_id, "")
 }
 
 output "db_asg_id" {
@@ -108,6 +112,6 @@ output "saptransport_path" {
   value = local.ANF_pool_settings.use_ANF ? format("%s:/%s", azurerm_netapp_volume.transport[0].mount_ip_addresses[0], azurerm_netapp_volume.transport[0].volume_path) : ""
 }
 
-# output "shared_path" {
-#   value = local.ANF_pool_settings.use_ANF ? format("%s:/%s",azurerm_netapp_volume.shared[0].mount_ip_addresses[0]) : ""
-# }
+output "install_path" {
+  value = "" #format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install.url, "https://", ""))[0], azurerm_storage_account.install.name, azurerm_storage_share.install.name)
+}

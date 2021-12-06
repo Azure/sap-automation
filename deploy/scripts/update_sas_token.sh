@@ -16,6 +16,6 @@ fi
 
 end=`date -u -d "90 days" '+%Y-%m-%dT%H:%MZ'`
 
-sas=?$(az storage account generate-sas --permissions r --account-name $saplib --https-only --services b --resource-types o --expiry $end -o tsv)
+sas=?$(az storage container generate-sas --permissions r --account-name $saplib --name sapbits --https-only  --expiry $end -o tsv)
 
 az keyvault secret set --vault-name $kv_name --name "sapbits-sas-token" --value  "${sas}"

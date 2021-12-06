@@ -9,9 +9,21 @@
   name:                                Get SAP Password from KeyVault
   gather_facts:                        true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml
+    # API Input template with defaults
 
   tasks:
+
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+        mode:                          0755
+
+    - name:                            Remove db-load-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-load-done"
+        state:                          absent
 
     - name:                            Include 0.1-passwords Role
       ansible.builtin.include_role:
@@ -19,11 +31,6 @@
         public:                        true
       tags:
         - 0.1-passwords
-
-    - name:                            Remove .step501 flag
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step501"
-        state:                          absent
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -57,20 +64,12 @@
           tags:
             - always
 
-        - block:
-            - name:                    Include 2.6-sap-mounts role
-              ansible.builtin.include_role:
-                name:                  roles-sap-os/2.6-sap-mounts
-          tags:
-            - 2.6-sap-mounts
-    
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
       when:                            node_tier=='hana'
 
-
-- hosts:                               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+- hosts:                               "{{ sap_sid|upper }}_DB | first"
 
   name:                                DB Installation - ORACLE
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -95,24 +94,14 @@
           tags:
             - always
 
-        - block:
-            - name:                    Include 2.6-sap-mounts role
-              ansible.builtin.include_role:
-                name:                  roles-sap-os/2.6-sap-mounts
-          tags:
-            - 2.6-sap-mounts
-    
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
       when:                            node_tier=='oracle'
 
-
-
-
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                         PLAYBOOK FOR HANA DB LOGGING                       |
+# |                         DB LOAD LOGGING                                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -123,12 +112,11 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                           Create .step501 flag
+    - name:                           Create db-load-done flag
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.step501"
+        path:                         "{{ _workspace_directory }}/.progress/db-load-done"
         state:                        touch
         mode:                         0755
-
 
 ...
 # /*----------------------------------------------------------------------------8

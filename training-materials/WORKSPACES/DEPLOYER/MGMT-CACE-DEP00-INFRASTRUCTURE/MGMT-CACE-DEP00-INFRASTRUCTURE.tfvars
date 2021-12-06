@@ -9,10 +9,10 @@ location="canadacentral"
 
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
-# The resource_group_name value is optional, it can be used to override the name of the resource group that will be provisioned
-# The resource_group_name arm_id is optional, it can be used to provide an existing resource group for the deployment
-#resource_group_name=""
-#resource_group_arm_id=""
+# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
+# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+#resourcegroup_name=""
+#resourcegroup_arm_id=""
 
 
 #resourcegroup_tags = {
@@ -23,9 +23,9 @@ location="canadacentral"
 #
 
 #management_network_name=""
+management_network_logical_name="DEP00"
 #management_network_arm_id=""
 management_network_address_space="10.17.20.0/25"
-
 
 # management subnet
 # If defined these parameters control the subnet name and the subnet prefix

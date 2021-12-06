@@ -38,19 +38,19 @@ nwUsers.sidadmPassword                                               = {{ main_p
 NW_ABAP_Import_Dialog.migmonJobNum                                   = 10
 NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast
 NW_getDBInfoGeneric.dbhost                                         = {{ sap_db_hostname }}
-NW_getDBInfoGeneric.dbsid                                            = {{ anydb_sid|upper }}
+NW_getDBInfoGeneric.dbsid                                            = {{ db_sid|upper }}
 NW_getLoadType.loadType                                              = SAP
 ora.SysPassword                                                      = {{ main_password }}
 ora.SystemPassword                                                   = {{ main_password }}
 ora.createStatisticsCodeABAP                                         = CREATE
-ora.dbhome                                                           = /oracle/{{ anydb_sid|upper }}/{{ ora_release }}
+ora.dbhome                                                           = /oracle/{{ db_sid|upper }}/{{ ora_release }}
 #ora.oraclePassword                                                  = {{ main_password }}
 # ora.orasidPassword                                                 = {{ main_password }}
 storageBasedCopy.abapSchemaPassword                                  = {{ main_password }}
 storageBasedCopy.javaSchemaPassword                                  = {{ main_password }}
 # ora.hasTDE                                                         = false
 ora.multitenant.installMT                                            = FALSE
-ora.multitenant.pdbsid                                               = {{ anydb_sid|upper }}
+ora.multitenant.pdbsid                                               = {{ db_sid|upper }}
 storageBasedCopy.ora.ABAPSchema                                     = SAPSR3
 
 # Path to 'ORACLE_HOME' directory of GRID software

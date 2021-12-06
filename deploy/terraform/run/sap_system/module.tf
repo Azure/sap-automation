@@ -41,7 +41,7 @@ module "common_infrastructure" {
   options                            = local.options
   key_vault                          = local.key_vault
   naming                             = module.sap_namegenerator.naming
-  service_principal                  = local.use_spn ? local.service_principal : local.account
+  service_principal                  = var.use_spn ? local.service_principal : local.account
   deployer_tfstate                   = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
   custom_disk_sizes_filename         = var.db_disk_sizes_filename
@@ -64,8 +64,10 @@ module "hdb_node" {
     azurerm.deployer = azurerm.deployer
   }
   depends_on = [module.common_infrastructure]
-  order_deployment = local.db_zonal_deployment ? (
-    module.app_tier.scs_vm_ids[0]
+  order_deployment = local.enable_db_deployment ? (
+    local.db_zonal_deployment ? (
+      module.app_tier.scs_vm_ids[0]
+    ) : (null)
   ) : (null)
   databases                                    = local.databases
   infrastructure                               = local.infrastructure
@@ -108,11 +110,12 @@ module "app_tier" {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
   }
-  order_deployment = local.db_zonal_deployment ? (
-    "") : (
-    coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
-  )
-
+  order_deployment= local.enable_db_deployment ? (
+		local.db_zonal_deployment ? (
+      "") : (
+          coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
+      )
+  ): (null)
   application                                  = local.application
   infrastructure                               = local.infrastructure
   options                                      = local.options
@@ -147,8 +150,10 @@ module "anydb_node" {
     azurerm.deployer = azurerm.deployer
   }
   depends_on = [module.common_infrastructure]
-  order_deployment = local.db_zonal_deployment ? (
-    module.app_tier.scs_vm_ids[0]
+  order_deployment = local.enable_db_deployment ? (
+    local.db_zonal_deployment ? (
+      module.app_tier.scs_vm_ids[0]
+    ) : (null)
   ) : (null)
   databases                                    = local.databases
   infrastructure                               = local.infrastructure
@@ -229,5 +234,6 @@ module "output_files" {
   platform              = upper(try(local.databases[0].platform, "HANA"))
   db_auth_type          = try(local.databases[0].authentication.type, "key")
   tfstate_resource_id   = var.tfstate_resource_id
+  install_path          = module.common_infrastructure.install_path
 
 }
