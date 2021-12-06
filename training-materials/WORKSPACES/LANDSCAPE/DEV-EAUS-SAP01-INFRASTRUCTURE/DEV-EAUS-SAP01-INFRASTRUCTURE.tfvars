@@ -30,10 +30,10 @@ location="eastus"
 
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
-# The resource_group_name value is optional, it can be used to override the name of the resource group that will be provisioned
-# The resource_group_name arm_id is optional, it can be used to provide an existing resource group for the deployment
-#resource_group_name=""
-#resource_group_arm_id=""
+# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
+# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+#resourcegroup_name=""
+#resourcegroup_arm_id=""
 
 #########################################################################################
 #                                                                                       #
@@ -224,7 +224,7 @@ enable_purge_control_for_keyvaults=false
 #dns_label="sap.contoso.net"
 
 # If defined provides the name of the resource group hosting the Private DNS zone
-#dns_resource_group_name=""
+#dns_resourcegroup_name=""
 
 #########################################################################################
 #                                                                                       #

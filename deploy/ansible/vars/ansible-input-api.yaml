@@ -15,12 +15,8 @@ chrony_pool:                  ""
 chrony_servers:               []
 
 # BoM Processing variables
-sapbits_location_base_path:   ""                                                        # REQUIRED
 sapbits_bom_files:            "sapfiles"                                                # Default
-bom_base_name:                ""                                                        # REQUIRED
 target_media_location:        "/usr/sap/install"                                        # Default
-sapbits_sas_token:            ""                                                        # Optional
-sapbits_access_key:           ""                                                        # Optional
 s_user:                       ""
 s_password:                   ""
 download_directory:           "/mnt/downloads"
@@ -37,7 +33,7 @@ hdb_instance_number:          "00"                                              
 pas_hostname:                 ""
 pas_instance_number:          "00"
 password_hana_system:         ""
-main_password:                "Demo12345"                                                        # SAP Install
+main_password:                ""                                                        # SAP Install
 sap_fqdn:                     ""                                                        # SAP Install
 sapadm_uid:                   2100
 sapinst_gid:                  2001
@@ -79,7 +75,7 @@ download_templates:           false
 prometheus:                   false                                                      # Install Prometheus Monitoring Agent
 
 # Keyvault
-deployer_kv_name:             "deployer-kv-name"                                         # Name of secret containing the deployer keyvault name in the workload zone keyvault
+deployer_kv_name_secret:      "deployer-kv-name"                                         # Name of secret containing the deployer keyvault name in the workload zone keyvault
 sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
 sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
 

@@ -57,12 +57,6 @@ stages:
           sudo apt-get -qq install dos2unix
           dos2unix -q BOMS/sap-parameters.yaml
           kv_name=$(cat .sap_deployment_automation/$(env)$(loc) | grep keyvault |awk -F'=' '{print $2}')
-          sapbits_sa_url=$(az keyvault secret show --vault-name $kv_name --name sapbits-location-base-path --query value |xargs)
-          sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
-          sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
-          sed -i 's|kv_name:.*|kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
-        echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
-          cat BOMS/sap-parameters.yaml
         echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
           export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
           echo $SUsername
@@ -89,6 +83,6 @@ stages:
       timeoutInMinutes: 0
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_03_bom_processing.yaml'
-        args: ' -e "HOME=$(Build.Repository.LocalPath)" -e "@BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/BOMS/" -e "bom_processing=true" '
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
+        args: ' -e "HOME=$(Build.Repository.LocalPath)" -e "_workspace_directory=$(Build.Repository.LocalPath)/BOMS/" -e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv_name)"  -e "s_user=$(S-Username)"  -e "s_password=$(S-Password)"'
         failOnStderr: false

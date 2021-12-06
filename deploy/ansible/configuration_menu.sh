@@ -131,7 +131,7 @@ all_playbooks=(
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
-        ${cmd_dir}/playbook_04_00_01_hana_hsr.yaml
+        ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_bom_downloader.yaml
 )
 

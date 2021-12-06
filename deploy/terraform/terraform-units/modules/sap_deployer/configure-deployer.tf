@@ -8,20 +8,20 @@ Description:
 // Prepare deployer with pre-installed softwares if pip is created
 resource "null_resource" "prepare-deployer" {
   depends_on = [azurerm_linux_virtual_machine.deployer]
-  count      = local.enable_deployer_public_ip && var.configure ? length(local.deployers) : 0
+  count      = local.enable_deployer_public_ip && var.configure ? 1 : 0
 
   connection {
     type        = "ssh"
     host        = azurerm_public_ip.deployer[count.index].ip_address
-    user        = local.deployers[count.index].authentication.username
-    private_key = local.deployers[count.index].authentication.type == "key" ? local.deployers[count.index].authentication.sshkey.private_key : null
-    password    = lookup(local.deployers[count.index].authentication, "password", null)
+    user        = local.username
+    private_key = var.deployer.authentication.type == "key" ? local.private_key : null
+    password    = lookup(var.deployer.authentication, "password", null)
     timeout     = var.ssh-timeout
   }
 
   provisioner "file" {
     content = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
-      tfversion       = "1.0.8",
+      tfversion       = var.tf_version
       rg_name         = local.rg_name,
       client_id       = azurerm_user_assigned_identity.deployer.client_id,
       subscription_id = data.azurerm_subscription.primary.subscription_id,
@@ -33,7 +33,7 @@ resource "null_resource" "prepare-deployer" {
   }
 
   provisioner "remote-exec" {
-    inline = local.deployers[count.index].os.source_image_id != "" ? [] : [
+    inline = var.deployer.os.source_image_id != "" ? [] : [
       //
       // Set useful shell options
       //
@@ -52,7 +52,7 @@ resource "null_resource" "prepare-deployer" {
 }
 
 resource "local_file" "configure_deployer" {
-  count = local.enable_deployer_public_ip ? 0 : length(local.deployers)
+  count = local.enable_deployer_public_ip ? 0 : 1
   content = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
     tfversion       = "1.0.8",
     rg_name         = local.rg_name,

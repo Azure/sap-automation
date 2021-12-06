@@ -98,7 +98,7 @@ variable "database_server_count" {
   default = 1
 }
 
-variable   "order_deployment" {
+variable "order_deployment" {
   description = "psuedo condition for ordering deployment"
   default     = ""
 }
@@ -178,13 +178,11 @@ locals {
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).storage : []
   db_size   = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).compute : {}
 
-  anydb_sku = try(local.db_size.vm_size, "Standard_E4s_v3")
+  anydb_sku = try(local.db_size.vm_size, "Standard_E16_v3")
 
-  anydb_fs = try(local.anydb.filesystem, "xfs")
-  anydb_ha = try(local.anydb.high_availability, false)
-
-  db_sid       = lower(substr(local.anydb_platform, 0, 3))
-  loadbalancer = try(local.anydb.loadbalancer, {})
+  anydb_ha                = try(local.anydb.high_availability, false)
+  db_sid                  = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
+  loadbalancer            = try(local.anydb.loadbalancer, {})
   enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1)
 
   anydb_cred = try(local.anydb.credentials, {})
@@ -395,7 +393,10 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = var.database_server_count > 0 && try(!local.anydb.no_avset, false) ? !local.zonal_deployment || (var.database_server_count != local.db_zone_count) : false
+  use_avset = local.zonal_deployment ? (
+    false) : (
+    var.database_server_count > 0 && try(!local.anydb.no_avset, false)
+  )
 
   full_observer_names = flatten([for vm in var.naming.virtualmachine_names.OBSERVER_VMNAME :
     format("%s%s%s%s", local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]

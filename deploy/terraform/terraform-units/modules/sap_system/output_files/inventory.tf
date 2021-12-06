@@ -90,6 +90,7 @@ resource "local_file" "sap-parameters_yml" {
     platform            = var.platform
     scs_instance_number = var.scs_instance_number
     ers_instance_number = var.ers_instance_number
+    install_path        = var.install_path
 
     }
   )

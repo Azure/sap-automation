@@ -5,7 +5,7 @@ Description:
 */
 
 variable "infrastructure" {}
-variable "deployers" {}
+variable "deployer" {}
 variable "options" {}
 variable "ssh-timeout" {}
 variable "authentication" {}

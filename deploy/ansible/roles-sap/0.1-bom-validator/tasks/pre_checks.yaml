@@ -20,7 +20,6 @@
 - name:                                Check required variables are present and not empty (bom)
   ansible.builtin.assert:
     that:
-
       - "bom_base_name is defined"                                              # Has the variable been defined
       - "bom_base_name | type_debug != 'NoneType'"    # and given a value                                          # Has the variable been defined
       - "bom_base_name | trim | length > 1"                                     #   and given a value

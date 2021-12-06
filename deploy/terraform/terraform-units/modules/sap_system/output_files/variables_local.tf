@@ -170,6 +170,9 @@ variable "db_auth_type" {
 }
 
 
+variable "install_path" {
+  default = ""
+}
 
 locals {
 
