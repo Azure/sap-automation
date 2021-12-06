@@ -1,14 +1,11 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# This pipeline deploys the SAP workload zone with required resources
 
 parameters:
 
 - name: workloadzone
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  default: DEV-NOEU-SAP02-INFRASTRUCTURE
 
 - name: environment
   displayName: Deployer Environment (MGMT, DEV, QUA, PRD, ...)
@@ -24,7 +21,6 @@ trigger:
   none
 
 pool:
-#  name: MIMERGEL-Selfhosted
   vmImage: ubuntu-latest
 
 variables:
@@ -54,9 +50,10 @@ stages:
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-        echo -e "$green--- Set local build repo path as new home ---$reset"
-          export HOME=$(Build.Repository.LocalPath)
         echo -e "$green--- az login ---$reset"
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
@@ -66,19 +63,23 @@ stages:
         echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
           organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-        echo -e "$green--- Run the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
-          cd LANDSCAPE/$(zonefolder)
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --auto-approve 
-          cd $HOME
+        echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
+          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+          export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+          export ARM_TENANT_ID=$(ARM_TENANT_ID)
+          cd $HOME/LANDSCAPE/$(zonefolder)
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --auto-approve
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+          cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)" 
-          git add .sap_deployment_automation           &>> /tmp/$(log)2
-          git add LANDSCAPE/$(zonefolder)/.terraform   &>> /tmp/$(log)2
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" &>> /tmp/$(log)2
-          git push -f origin HEAD:main                 &>> /tmp/$(log)2
+          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                               &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"            &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                                      &>> /tmp/$(log)
         echo "output the log ---$reset"
-          cat /tmp/$(log)2
+          cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
       displayName: Deploy_SAP_Workloadzone
       env:
@@ -98,3 +99,28 @@ stages:
         subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
         action: 'DeleteRG'
         resourceGroupName: '$(zonefolder)'
+
+  - job: Remove_files_in_WORKSPACES
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+          export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export region=$(cat $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/$(zoneconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/$ENV$region          &>> /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove_files_in_WORKSPACES
+      env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true
