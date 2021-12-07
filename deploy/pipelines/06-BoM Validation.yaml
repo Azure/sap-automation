@@ -55,6 +55,7 @@ stages:
 - stage: Check_S41909SPS03
   jobs:
   - job: S41909SPS03
+    timeoutInMinutes: 0
     steps:
     - checkout: none
     - task: Ansible@0
@@ -64,11 +65,12 @@ stages:
         playbookPathOnAgentMachine: $(Pipeline.Workspace)'/s/deploy/ansible/playbook_bom_downloader.yaml'
         inventoriesAgentMachine: 'noInventory'
         failOnStdErr: false
-        args: '-e "bom_base_name=S41909SPS03_v0007ms" -e "deployer_kv_name=$(kv)" -e "kv_name=$(kv)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" -e "sapbits_access_key=$(sapbits-access-key)" -e "sapbits_location_base_path=$(sapbits-location-base-path)" -e "sapbits_sas_token=$(sapbits-sas-token)" -e "check_storage_account=false" '
+        args: '-e "bom_base_name=S41909SPS03_v0007ms" -e "deployer_kv_name=$(kv)" -e "kv_name=$(kv)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" -e "sapbits_access_key=$(sapbits-access-key)" -e "sapbits_location_base_path=$(sapbits-location-base-path)" -e "sapbits_sas_token=$(sapbits-sas-token)" -e "check_storage_account=true" '
 
 - stage: Check_BW4HANA2021SPS01_v0001ms
   jobs:
   - job: BW4HANA2021SPS01_v0001ms
+    timeoutInMinutes: 0
     steps:
     - checkout: none
     - task: Ansible@0
@@ -83,6 +85,7 @@ stages:
 - stage: Check_NW750SPS20_v0002ms
   jobs:
   - job: NW750SPS20_v0002ms
+    timeoutInMinutes: 0
     steps:
     - checkout: none
     - task: Ansible@0
