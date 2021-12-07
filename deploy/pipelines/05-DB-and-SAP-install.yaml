@@ -1,14 +1,11 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# This pipeline configures the OS, installs the database and SAP
 
 parameters:
 
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
-  default: DEV-NOEU-SAP01-X00
+  default: DEV-NOEU-SAP02-X01
 
 - name: bom_base_name
   displayName: BOM Base Name
@@ -18,7 +15,7 @@ parameters:
 - name: sap_fqdn
   displayName: SAP Domain Name
   type: string
-  default: sap.contoso.net
+  default: sap.artemis.net
 
 - name: baseosconfig
   displayName: Base OS Configuration
@@ -36,7 +33,7 @@ parameters:
   default: true
 
 - name: dbinstall
-  displayName: Database Install 
+  displayName: Database Installation
   type: boolean
   default: true
 
@@ -198,18 +195,18 @@ stages:
         failOnStderr: false
 
 
-- stage: DB_Install
-  condition: eq(${{ parameters.hanadbinstall }}, true)
+- stage: DB_Installation
+  condition: eq(${{ parameters.dbinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
   jobs:
-  - job: DB_Install
+  - job: DB_Installation
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: DB_Install
+      displayName: DB_Installation
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_00_db_install.yaml'
@@ -224,7 +221,7 @@ stages:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
-  - DB_Install
+  - DB_Installation
   jobs:
   - job: SCS_Install
     steps:
@@ -245,7 +242,7 @@ stages:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
-  - DB_Install
+  - DB_Installation
   - SCS_Install
   jobs:
   - job: DB_Load
@@ -267,7 +264,7 @@ stages:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
-  - DB_Install
+  - DB_Installation
   - SCS_Install
   - DB_Load
   jobs:
@@ -290,7 +287,7 @@ stages:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
-  - DB_Install
+  - DB_Installation
   - SCS_Install
   - DB_Load
   - PAS_Install
@@ -314,7 +311,7 @@ stages:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
-  - DB_Install
+  - DB_Installation
   - SCS_Install
   - DB_Load
   - PAS_Install
@@ -339,7 +336,7 @@ stages:
   - Prepare_DB_SAP_Installation
   - SAP_OS_Config
   - BOM_Processing
-  - DB_Install
+  - DB_Installation
   - SCS_Install
   - DB_Load
   - PAS_Install
@@ -352,7 +349,7 @@ stages:
       displayName: HA_Setup
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_01_db_ha.yaml'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_01_db_ha'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/SYSTEM/$(sapsystemfolder)/"'
