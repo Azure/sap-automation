@@ -107,7 +107,7 @@ options=(
         "PAS Install"
         "APP Install"
         "WebDisp Install"
-        "HANA HA Setup"
+        "Database HA Setup"
 
         # Special menu entries
         "BOM Download"

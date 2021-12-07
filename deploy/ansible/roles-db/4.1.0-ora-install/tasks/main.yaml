@@ -119,6 +119,12 @@
 # | Step 4 SBP Patching for Oracle                                             |
 # +------------------------------------4--------------------------------------*/
 
+- name:                                Remove SAPSBP
+  ansible.builtin.find:
+    paths:                             /usr/sap/install/SBP/SAPSBP
+    patterns:                          ["MOPatch"]
+    file_type:                         directory
+  register:                            mopatch_directory
 
 - name:                                "Oracle Post Processing - SBP Patching"
   become:                              true
@@ -127,20 +133,26 @@
                                        set -o errexit
                                        mv  $ORACLE_HOME/OPatch   $ORACLE_HOME/OPatch.bck
                                        cp -R OPATCH/OPatch $ORACLE_HOME/.
-                                       cp -R SAPSBP/SBP_191200210720_202108/MOPatch $ORACLE_HOME/.
-                                       $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SAP19P_2108-70004508.ZIP | tee /oracle/SBP.txt
+                                       cp -R {{ mopatch_directory }} $ORACLE_HOME/.
+                                       $ORACLE_HOME/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SAP19P_2108-70004508.ZIP
+
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
-    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/19.0.0"
+    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/19.0"
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/19.0.0"
-    RDBMS:                             "/oracle/{{ db_sid | upper  }}/19"
+    RDBMS:                             "/oracle/{{ db_sid | upper }}/19"
   register:                            sbpscript_results
   failed_when:                         sbpscript_results.rc >= 2
   args:
     executable:                        /bin/csh
     chdir:                             "/usr/sap/install/SBP/"
     creates:                           /oracle/sap_deployment_automation/sbpinstalled.txt
+
+- name:                                Remove SAPSBP
+  ansible.builtin.file:
+    path:                              mopatch_directory
+    state:                             absent
 
 - name:                                Create sbpinstalled.txt
   ansible.builtin.file:
