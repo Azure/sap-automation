@@ -26,7 +26,8 @@ trigger:
   none
 
 pool:
-  vmImage: ubuntu-latest
+#  vmImage: ubuntu-latest
+  name: WestEurope
 
 variables:
   bom: ${{ parameters.bom_base_name }}
@@ -89,6 +90,6 @@ stages:
       timeoutInMinutes: 0
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: '$(Build.Repository.LocalPath)/sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
         args: '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
         failOnStderr: false
