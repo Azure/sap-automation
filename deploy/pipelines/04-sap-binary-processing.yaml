@@ -26,8 +26,7 @@ trigger:
   none
 
 pool:
-#  vmImage: ubuntu-latest
-  name: MIMERGEL-selfhosted
+  vmImage: ubuntu-latest
 
 variables:
   bom: ${{ parameters.bom_base_name }}
