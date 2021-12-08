@@ -1,7 +1,4 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# This pipeline performs the software download
 
 parameters:
 
@@ -9,6 +6,11 @@ parameters:
   displayName: BOM Base Name
   type: string
   default: S41909SPS03_v0006ms
+  values:
+   - S41909SPS03_v0006ms
+   - BW4HANA2021SPS01_v0001ms
+   - HANA_2_00_055_v0005ms
+   - NW750SPS20_v0002ms
 
 - name: environment
   displayName: Deployer Environment
@@ -18,15 +20,14 @@ parameters:
 - name: region
   displayName: SAP Binary Storage Account Location
   type: string
-  default: germanywestcentral
+  default: northeurope
 
 trigger:
   none
 
-# This pipeline must run on a self hosted devops agent running as the download from SAP is around 80GB and a large temp drive is required (e.g. on D4ds_v4)
 pool:
-  name: $(agent)
 #  vmImage: ubuntu-latest
+  name: MIMERGEL-selfhosted
 
 variables:
   bom: ${{ parameters.bom_base_name }}
@@ -47,16 +48,22 @@ stages:
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-hana
-          mkdir -p .sap_deployment_automation
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-          export HOME=$(Build.Repository.LocalPath)
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
         echo -e "$green--- Convert config files to UX format ---$reset"
           sudo apt-get -qq install dos2unix
-          dos2unix -q BOMS/sap-parameters.yaml
+          dos2unix -q $HOME/BOMS/sap-parameters.yaml
           kv_name=$(cat .sap_deployment_automation/$(env)$(loc) | grep keyvault |awk -F'=' '{print $2}')
+          sapbits_sa_url=$(az keyvault secret show --vault-name $kv_name --name sapbits-location-base-path --query value |xargs)
+          sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
+          sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
+          sed -i 's|kv_name:.*|deployer_kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
+        echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
+          cat $HOME/BOMS/sap-parameters.yaml
         echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
           export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
           echo $SUsername
@@ -83,6 +90,6 @@ stages:
       timeoutInMinutes: 0
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
-        args: ' -e "HOME=$(Build.Repository.LocalPath)" -e "_workspace_directory=$(Build.Repository.LocalPath)/BOMS/" -e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv_name)"  -e "s_user=$(S-Username)"  -e "s_password=$(S-Password)"'
+        playbookPathOnAgentMachine: '$(Build.Repository.LocalPath)/sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
+        args: '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
         failOnStderr: false
