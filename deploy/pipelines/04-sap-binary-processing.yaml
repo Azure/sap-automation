@@ -20,7 +20,7 @@ parameters:
 - name: region
   displayName: SAP Binary Storage Account Location
   type: string
-  default: northeurope
+  default: westeurope
 
 trigger:
   none
@@ -90,5 +90,5 @@ stages:
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: '$(Build.Repository.LocalPath)/sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
-        args: '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
+        args: '-f1 -e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
         failOnStderr: false
