@@ -36,6 +36,22 @@
     fail_msg:                          "Please ensure that the key vault details are provided"
 
 
+- name:                                Check S User are present and not empty
+  ansible.builtin.assert:
+    that:
+      - "s_user is defined"                    # Has the variable been defined
+      - "s_user | type_debug != 'NoneType'"    # and given a value
+      - "s_user | string | length != 0 "       # Detect null values
+    fail_msg:                          "Please define the s_user either as a parameter or in the deployer key vault"
+
+- name:                                Check S User password is present and not empty
+  ansible.builtin.assert:
+    that:
+      - "s_password is defined"                    # Has the variable been defined
+      - "s_password | type_debug != 'NoneType'"    # and given a value
+      - "s_password | string | length != 0 "       # Detect null values
+    fail_msg:                          "Please define the s_password either as a parameter or in the deployer key vault"
+
 # -------------------------------------+---------------------------------------8
 
 ...

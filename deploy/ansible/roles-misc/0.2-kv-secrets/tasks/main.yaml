@@ -71,7 +71,8 @@
    - tier == "bom"
    - s_password is not defined    
     
-   
+
+
 - name:                                Construct SPN Client ID secret name
   ansible.builtin.import_tasks:        "fencing.yaml"
   when:
