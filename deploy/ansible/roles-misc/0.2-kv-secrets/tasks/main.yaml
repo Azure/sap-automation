@@ -69,7 +69,7 @@
       no_log:                          true
 
   when:                                
-   - s_user | string | length != 0 
+   - s_user is defined
 
 - name:                                Show S User
   ansible.builtin.debug:
@@ -96,7 +96,7 @@
       no_log:                          true
 
   when:
-   - s_password | string | length != 0 
+   - s_password is defined
     
 
 
