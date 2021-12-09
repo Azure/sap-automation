@@ -110,11 +110,11 @@ while [ -z "${region}" ]; do
     read -r -p "Region name: " region
 done
 
-if ! valid_environment "${environment}"; then
-    echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
-    showhelp
-    exit 65	#/* data format error */
-fi
+# if ! valid_environment "${environment}"; then
+#     echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
+#     showhelp
+#     exit 65	#/* data format error */
+# fi
 
 if ! valid_region_name "${region}"; then
     echo "The 'region' must be a non-empty string composed of lowercase letters followed by numbers!"
