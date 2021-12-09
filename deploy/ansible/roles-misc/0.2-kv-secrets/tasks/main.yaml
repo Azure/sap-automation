@@ -30,7 +30,7 @@
     - name:                            "BoM Secrets: Retrieve S User detail secret"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ deployer_kv_name }}
           --name "S-Username"
       changed_when:                    false
       register:                        keyvault_secret_show_s_user
@@ -49,13 +49,15 @@
   ansible.builtin.debug:
     var:                               s_user
     verbosity:                         2
+  when:                                
+   - tier == "bom"
 
 - name:                                "BoM Secrets: Retrieve S Password details"  
   block:
     - name:                            "BoM Secrets: Retrieve S Password detail secret"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ deployer_kv_name }}
           --name "S-Password"
       changed_when:                    false
       register:                        keyvault_secret_show_s_password
