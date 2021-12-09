@@ -11,31 +11,31 @@
     var:                               bom_processing
     verbosity:                         2
 
-- name:                                Workload Keyvault name
-  ansible.builtin.set_fact:
-    workload_kv_name:                  "{{ kv_name }}"
 
 - name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
   block:
+
+    - name:                            Check required variables are present and not empty
+      ansible.builtin.assert:
+        that:
+          - "kv_name is defined"                    # Has the variable been defined
+          - "kv_name | type_debug != 'NoneType'"    # and given a value
+          - "kv_name | string | length != 0 "       # Detect null values
+        fail_msg:                          "Please define the kv_name parameter"
+
     - name:                            Get Deployer Keyvault name from keyvault
       ansible.builtin.command: >-
                                        az keyvault secret show
-                                         --vault-name {{ workload_kv_name }}
+                                         --vault-name {{ kv_name }}
                                          --name {{ deployer_kv_name_secret }}
       changed_when:                    false
       register:                        deployer_kv_name_secret
       when:                            bom_processing is not defined
-    
-    - name:                            Save Deployer Keyvault name
-      ansible.builtin.set_fact:
-        deployer_kv_name:              "{{ kv_name }}"
-      when:                            bom_processing is defined
-    
+
     - name:                            Save Deployer Keyvault name
       ansible.builtin.set_fact:
         deployer_kv_name: >-
                                        {{ (deployer_kv_name_secret.stdout | from_json).value }}
-      when:                            bom_processing is not defined
   when: deployer_kv_name is not defined 
 
 - name:                                Debug, Deployer Keyvault
