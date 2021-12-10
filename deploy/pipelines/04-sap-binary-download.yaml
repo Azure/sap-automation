@@ -8,6 +8,7 @@ parameters:
   default: S41909SPS03_v0007ms
   values:
    - S41909SPS03_v0007ms
+   - S41909SPS03_v0006ms
    - BW4HANA2021SPS01_v0001ms
    - HANA_2_00_055_v0005ms
    - NW750SPS20_v0002ms
@@ -26,8 +27,7 @@ trigger:
   none
 
 pool:
-#  vmImage: ubuntu-latest
-  name: WestEurope
+  name: $(agent)
 
 variables:
   bom: ${{ parameters.bom_base_name }}
@@ -62,6 +62,7 @@ stages:
           sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
           sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
           sed -i 's|kv_name:.*|deployer_kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
+          # sed -i 's|kv_name:.*|kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
         echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
           cat $HOME/BOMS/sap-parameters.yaml
         echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
