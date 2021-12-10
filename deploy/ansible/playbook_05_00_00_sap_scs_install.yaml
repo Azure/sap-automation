@@ -91,6 +91,7 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             scs_high_availability:     "{{ scs_high_availability }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -153,6 +154,7 @@
             sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
             sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
         - block:
