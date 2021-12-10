@@ -45,7 +45,7 @@
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -64,10 +64,22 @@
           tags:
             - always
 
+        - name:                        Run the sap-installation-media-storage-details role
+          include_role:
+            name:                      roles-misc/0.3.sap-installation-media-storage-details
+          tags:
+            - kv-sap-installation-media-storage-details
+
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
       when:                            node_tier=='hana'
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Oracle DB Load                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_DB | first"
 
@@ -75,7 +87,7 @@
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
