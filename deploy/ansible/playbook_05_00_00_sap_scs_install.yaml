@@ -90,6 +90,7 @@
             tier:                      scs
             main_password:             "{{ hostvars.localhost.sap_password }}"
             scs_high_availability:     "{{ scs_high_availability }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
           tags:
             - always
 
@@ -144,13 +145,14 @@
         - name:                        Initialize facts
           set_fact:
             tier:                      ha
-            password_ha_db_cluster:        "{{ hostvars.localhost.db_cluster_password }}"
-            main_password:                 "{{ hostvars.localhost.sap_password }}"
-            primary_instance_name:         "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:       "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
             sap_hana_fencing_spn_client_id:  "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
             sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
             sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
           tags:
             - always
         - block:
