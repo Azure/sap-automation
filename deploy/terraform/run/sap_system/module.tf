@@ -53,7 +53,7 @@ module "common_infrastructure" {
   anf_transport_volume_size          = var.anf_transport_volume_size
   anf_sapmnt_volume_size             = var.anf_sapmnt_volume_size
   use_ANF                            = var.use_ANF
-  custom_prefix                      = var.custom_prefix
+  custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
 }
 
 # // Create HANA database nodes
