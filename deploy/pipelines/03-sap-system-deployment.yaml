@@ -27,7 +27,6 @@ name: $(sapsystemfolder)_Cleanup_${{ parameters.cleanup }}_$(SourceBranchName)_$
 
 stages:
 - stage: Deploy_SAP_Infrastructure
-  condition: eq(${{ parameters.cleanup }}, false)
   jobs:
   - job: Deploy_SAP_Infrastructure
     steps:
@@ -81,42 +80,4 @@ stages:
       displayName: Deploy_SAP_Infrastructure
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      failOnStderr: true
-
-- stage: Cleanup
-  condition: eq(${{ parameters.cleanup }}, true)
-  jobs:
-  - job: Remove_System
-    steps:
-    - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group $(sapsystemfolder)'
-      inputs:
-        deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
-        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
-        action: 'DeleteRG'
-        resourceGroupName: '$(sapsystemfolder)'
-
-  - job: Remove_files_in_WORKSPACES
-    steps:
-    - script: |
-        #!/bin/bash
-        green="\e[1;32m"
-        reset="\e[0m"
-        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-          git config --global user.email "$(Build.RequestedForEmail)"
-          git config --global user.name "$(Build.RequestedFor)"
-          git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform            &>> /tmp/$(log)
-          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
-          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
-          cat /tmp/$(log)
-        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Remove_files_in_WORKSPACES
-      env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true

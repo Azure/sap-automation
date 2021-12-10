@@ -1,7 +1,6 @@
 # This pipeline performs the software download
 
 parameters:
-
 - name: bom_base_name
   displayName: BOM Base Name
   type: string
@@ -37,9 +36,9 @@ variables:
 name: $(bom)_$(env)_$(loc)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
-- stage: Prepare_Download_Configuration
+- stage: Prepare_download
   jobs:
-  - job: Prepare_Download_Configuration
+  - job: Prepare_download
     steps:
     - script: |
         #!/bin/bash
@@ -75,19 +74,19 @@ stages:
           if [ -z "$SPassword" ]; then 
             az keyvault secret set --name S-Password --vault-name $kv_name --value $(S-Password)
           fi
-      displayName: Prepare_Download_Configuration
+      displayName: Prepare download
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
 
-- stage: Process_Binaries
+- stage: Download_binaries
   jobs:
-  - job: Process_Binaries
+  - job: Download_binaries
     timeoutInMinutes: 0
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: Process_Binaries
+      displayName: Download binaries
       timeoutInMinutes: 0
       inputs:
         ansibleInterface: 'agentMachine'
