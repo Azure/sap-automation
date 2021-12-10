@@ -9,7 +9,7 @@ parameters:
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
-  default: DEV-NOEU-SAP02-X02
+  default: DEV-WEEU-SAP01-X00
 
 - name: cleanupzone
   displayName: Remove the SAP workload zone provided in below parameter
@@ -19,7 +19,7 @@ parameters:
 - name: workloadzone
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: DEV-NOEU-SAP02-INFRASTRUCTURE
+  default: DEV-WEEU-SAP01-INFRASTRUCTURE
 
 - name: cleanupregion
   displayName: Remove the region as listed in below parameters for the deployer and library
@@ -29,12 +29,12 @@ parameters:
 - name: deployer
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: MGMT-NOEU-DEP00-INFRASTRUCTURE
+  default: MGMT-WEEU-DEP00-INFRASTRUCTURE
 
 - name: library
   displayName: ENV-LOCA-SAP_LIBRARY
   type: string
-  default: MGMT-NOEU-SAP_LIBRARY
+  default: MGMT-WEEU-SAP_LIBRARY
 
 trigger:
   none
@@ -149,7 +149,7 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
           cd $HOME/LANDSCAPE/$(zonefolder)
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(zoneconfig) --type sap_landscape
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(zoneconfig) --type sap_landscape --auto-approve
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
@@ -198,7 +198,7 @@ stages:
           dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig) 2> /dev/null
           dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)    2> /dev/null
         echo -e "$green--- Running the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --auto-approve
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
