@@ -1,0 +1,217 @@
+# This Pipeline removes the SAP Systems, the Workload Zone and the Region
+
+parameters:
+- name: cleanupsap
+  displayName: Remove the SAP systems provided in below parameter
+  type: boolean
+  default: False
+
+- name: sap_system
+  displayName: ENV-LOCA-VNET-SID
+  type: string
+  default: DEV-NOEU-SAP02-X02
+
+- name: cleanupzone
+  displayName: Remove the SAP workload zone provided in below parameter
+  type: boolean
+  default: False
+
+- name: workloadzone
+  displayName: ENV-LOCA-VNET-INFRASTRUCTURE
+  type: string
+  default: DEV-NOEU-SAP02-INFRASTRUCTURE
+
+- name: cleanupregion
+  displayName: Remove the region as listed in below parameters for the deployer and library
+  type: boolean
+  default: False
+
+- name: deployer
+  displayName: ENV-LOCA-VNET-INFRASTRUCTURE
+  type: string
+  default: MGMT-NOEU-DEP00-INFRASTRUCTURE
+
+- name: library
+  displayName: ENV-LOCA-SAP_LIBRARY
+  type: string
+  default: MGMT-NOEU-SAP_LIBRARY
+
+trigger:
+  none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  deployerfolder: ${{ parameters.deployer }}
+  deployerconfig: ${{ parameters.deployer }}.tfvars
+  libraryfolder: ${{ parameters.library }}
+  libraryconfig: ${{ parameters.library }}.tfvars
+  zonefolder: ${{ parameters.workloadzone }}
+  zoneconfig: ${{ parameters.workloadzone }}.tfvars
+  sapsystemfolder: ${{ parameters.sap_system }}
+  sapsystemconfig: ${{ parameters.sap_system }}.tfvars
+  log: logfile_$(Build.BuildId)
+
+name: $(deployerfolder)_$(libraryfolder)_${{ parameters.cleanupregion }}_$(zonefolder)_${{ parameters.cleanupzone }}_$(sapsystemfolder)__${{ parameters.cleanupsap }}_$(Date:yyyyMMdd)$(Rev:.r)
+
+stages:
+- stage: Remove_SAP_systems
+  condition: eq(${{ parameters.cleanupsap }}, true)
+  jobs:
+  - job: Remove_SAP_systems
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs) 
+        echo -e "$green--- Install Terraform ---$reset"
+          wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
+          unzip -qq terraform_1.0.8_linux_amd64.zip
+          sudo mv terraform /bin/ ; rm terraform_1.0.8_linux_amd64.zip
+        echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
+          git clone --quiet --single-branch --branch $(Branch) $(Repository)
+        echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
+        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
+          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+        echo -e "$green--- az login ---$reset"
+          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+          export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+          export ARM_TENANT_ID=$(ARM_TENANT_ID)
+          az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+          az account set --subscription $(ARM_SUBSCRIPTION_ID)
+        echo -e "$green--- --- Convert config file to UX format ---$reset"
+          sudo apt-get -qq install dos2unix
+          dos2unix -q SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
+          cd $HOME/SYSTEM/$(sapsystemfolder)
+          ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sapsystemconfig) --type sap_system --auto-approve
+        echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+          cd $(Build.Repository.LocalPath)
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)" 
+          git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform            &>  /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+        echo "output the log ---$reset"
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove SAP systems
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true
+
+- stage: Remove_SAP_workloadzone
+  condition: eq(${{ parameters.cleanupzone }}, true)
+  jobs:
+  - job: Remove_SAP_workloadzone
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Install Terraform ---$reset"
+          wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
+          unzip -qq terraform_1.0.8_linux_amd64.zip
+          sudo mv terraform /bin/ ; rm terraform_1.0.8_linux_amd64.zip
+        echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
+          git clone --quiet --single-branch --branch $(Branch) $(Repository)
+        echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
+        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
+          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+        echo -e "$green--- az login ---$reset"
+          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+          export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+          export ARM_TENANT_ID=$(ARM_TENANT_ID)
+          az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+          az account set --subscription $(ARM_SUBSCRIPTION_ID)
+        echo -e "$green--- --- Convert config file to UX format ---$reset"
+          sudo apt-get -qq install dos2unix
+          dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
+          cd $HOME/LANDSCAPE/$(zonefolder)
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(zoneconfig) --type sap_landscape
+        echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+          cd $(Build.Repository.LocalPath)
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)" 
+          export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export region=$(cat $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/$(zoneconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/$ENV$region          &>  /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+        echo "output the log ---$reset"
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove SAP workloadzone
+      env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true
+
+- stage: Remove_region
+  condition: eq(${{ parameters.cleanupregion }}, true)
+  jobs:
+  - job: Remove_region
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Install Terraform ---$reset"
+          wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
+          unzip -qq terraform_1.0.8_linux_amd64.zip
+          sudo mv terraform /bin/ ; rm terraform_1.0.8_linux_amd64.zip
+        echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
+          git clone --quiet --single-branch --branch $(Branch) $(Repository)
+        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
+          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+          az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+          az account set --subscription $(ARM_SUBSCRIPTION_ID)
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Convert config files to UX format ---$reset"
+          sudo apt-get -qq install dos2unix
+          dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig) 2> /dev/null
+          dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)    2> /dev/null
+        echo -e "$green--- Running the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  
+        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+          cd $(Build.Repository.LocalPath)
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                                &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"             &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                                       &>> /tmp/$(log)
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove region
+      env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true

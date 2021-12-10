@@ -1,0 +1,186 @@
+# This Pipeline removes the SAP Systems, the Workload Zone and the Region
+
+parameters:
+- name: cleanupsap
+  displayName: Remove the SAP systems provided in below parameter
+  type: boolean
+  default: False
+
+- name: sap_system
+  displayName: ENV-LOCA-VNET-SID
+  type: string
+  default: DEV-NOEU-SAP02-X02
+
+- name: cleanupzone
+  displayName: Remove the SAP workload zone provided in below parameter
+  type: boolean
+  default: False
+
+- name: workloadzone
+  displayName: ENV-LOCA-VNET-INFRASTRUCTURE
+  type: string
+  default: DEV-NOEU-SAP02-INFRASTRUCTURE
+
+- name: cleanupregion
+  displayName: Remove the region as listed in below parameters for the deployer and library
+  type: boolean
+  default: False
+
+- name: deployer
+  displayName: ENV-LOCA-VNET-INFRASTRUCTURE
+  type: string
+  default: MGMT-NOEU-DEP00-INFRASTRUCTURE
+
+- name: library
+  displayName: ENV-LOCA-SAP_LIBRARY
+  type: string
+  default: MGMT-NOEU-SAP_LIBRARY
+
+trigger:
+  none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  deployerfolder: ${{ parameters.deployer }}
+  deployerconfig: ${{ parameters.deployer }}.tfvars
+  libraryfolder: ${{ parameters.library }}
+  libraryconfig: ${{ parameters.library }}.tfvars
+  zonefolder: ${{ parameters.workloadzone }}
+  zoneconfig: ${{ parameters.workloadzone }}.tfvars
+  sapsystemfolder: ${{ parameters.sap_system }}
+  sapsystemconfig: ${{ parameters.sap_system }}.tfvars
+  log: logfile_$(Build.BuildId)
+
+name: $(deployerfolder)_$(libraryfolder)_${{ parameters.cleanupregion }}_$(zonefolder)_${{ parameters.cleanupzone }}_$(sapsystemfolder)__${{ parameters.cleanupsap }}_$(Date:yyyyMMdd)$(Rev:.r)
+
+stages:
+- stage: Remove_SAP_systems
+  condition: eq(${{ parameters.cleanupsap }}, true)
+  jobs:
+  - job: Remove_SAP_system_RG
+    steps:
+    - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Remove Resource Group $(sapsystemfolder)'
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
+        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
+        action: 'DeleteRG'
+        resourceGroupName: '$(sapsystemfolder)'
+
+  - job: Remove_sap_deployment_artefacts_in_WORKSPACES
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+          git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform            &>> /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove_sap_deployment_artefacts_in_WORKSPACES
+      env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true
+
+- stage: Remove_SAP_workloadzone
+  condition: eq(${{ parameters.cleanupzone }}, true)
+  jobs:
+  - job: Remove_SAP_workloadzone
+    steps:
+    - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Remove Resource Group $(zonefolder)'
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
+        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
+        action: 'DeleteRG'
+        resourceGroupName: '$(zonefolder)'
+
+  - job: Remove_zone_deployment_artefacts_in_WORKSPACES
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+          export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export region=$(cat $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/$(zoneconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/$ENV$region          &>> /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove_zone_deployment_artefacts_in_WORKSPACES
+      env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true
+
+- stage: Remove_region
+  condition: eq(${{ parameters.cleanupregion }}, true)
+  jobs:
+  - job: Remove_Deployer
+    steps:
+    - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Remove Resource Group ${{ parameters.deployer }}'
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
+        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
+        action: 'DeleteRG'
+        resourceGroupName: '${{ parameters.deployer }}'
+
+  - job: Remove_SAP_Library
+    steps:
+    - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Remove Resource Group ${{ parameters.library }}'
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
+        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
+        action: 'DeleteRG'
+        resourceGroupName: '${{ parameters.library }}'
+
+  - job: Remove_region_deployment_artefacts_in_WORKSPACES
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
+          export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export region=$(cat $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/$(deployerconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/$ENV$region          &>> /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform           &>> /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform             &>> /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars  &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Remove_region_deployment_artefacts_in_WORKSPACES
+      env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true

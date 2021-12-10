@@ -5,12 +5,17 @@ parameters:
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
-  default: DEV-WEEU-SAP01-X00
+  default: DEV-WEEU-SAP01-X03
 
 - name: bom_base_name
   displayName: BOM Base Name
   type: string
-  default: S41909SPS03_v0006ms
+  default: S41909SPS03_v0007ms
+  values:
+  - S41909SPS03_v0007ms
+  - BW4HANA2021SPS01_v0001ms
+  - HANA_2_00_055_v0005ms
+  - NW750SPS20_v0002ms
 
 - name: sap_fqdn
   displayName: SAP Domain Name
@@ -333,7 +338,7 @@ stages:
         failOnStderr: false
 
 - stage: HighAvailability_Setup
-  condition: eq(${{ parameters.webdispinstall }}, true)
+  condition: eq(${{ parameters.highavailability }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
   - SAP_Operating_System_Configuration
