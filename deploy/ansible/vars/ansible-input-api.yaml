@@ -17,8 +17,6 @@ chrony_servers:               []
 # BoM Processing variables
 sapbits_bom_files:            "sapfiles"                                                # Default
 target_media_location:        "/usr/sap/install"                                        # Default
-s_user:                       ""
-s_password:                   ""
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
 

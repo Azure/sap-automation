@@ -19,6 +19,33 @@
 # -------------------------------------+---------------------------------------8
 #
 
+- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
+  block:
+
+    - name:                            Check required variables are present and not empty
+      ansible.builtin.assert:
+        that:
+          - "kv_name is defined"                    # Has the variable been defined
+          - "kv_name | type_debug != 'NoneType'"    # and given a value
+          - "kv_name | string | length != 0 "       # Detect null values
+        fail_msg:                          "Please define the kv_name parameter"
+
+    - name:                            Get Deployer Keyvault name from keyvault
+      ansible.builtin.command: >-
+                                       az keyvault secret show
+                                         --vault-name {{ kv_name }}
+                                         --name {{ deployer_kv_name_secret }}
+      changed_when:                    false
+      register:                        deployer_kv_name_secret
+      when:                            bom_processing is not defined
+
+    - name:                            Save Deployer Keyvault name
+      ansible.builtin.set_fact:
+        deployer_kv_name: >-
+                                       {{ (deployer_kv_name_secret.stdout | from_json).value }}
+  when: deployer_kv_name is not defined 
+
+
 - name:                                Show Key Vault
   ansible.builtin.debug:
     var:                               kv_name
@@ -30,7 +57,7 @@
     - name:                            "BoM Secrets: Retrieve S User detail secret"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ deployer_kv_name }}
           --name "S-Username"
       changed_when:                    false
       register:                        keyvault_secret_show_s_user
@@ -43,19 +70,20 @@
 
   when:                                
    - s_user is not defined
-   - tier == "bom"
 
 - name:                                Show S User
   ansible.builtin.debug:
     var:                               s_user
     verbosity:                         2
+  when:                                
+   - tier == "bom"
 
 - name:                                "BoM Secrets: Retrieve S Password details"  
   block:
     - name:                            "BoM Secrets: Retrieve S Password detail secret"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ deployer_kv_name }}
           --name "S-Password"
       changed_when:                    false
       register:                        keyvault_secret_show_s_password
@@ -68,10 +96,10 @@
       no_log:                          true
 
   when:
-   - tier == "bom"
-   - s_password is not defined    
+   - s_password is not defined
     
-   
+
+
 - name:                                Construct SPN Client ID secret name
   ansible.builtin.import_tasks:        "fencing.yaml"
   when:

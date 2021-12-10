@@ -174,7 +174,7 @@
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         "oracle"
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -199,11 +199,13 @@
         - name:                        Check for file system mounts
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
+          when:                        platform == 'ORACLE'
 
         - name:                        Installing Oracle
           ansible.builtin.include_role:
             name:                      roles-db/4.1.0-ora-install
-      when:                            node_tier == 'oracle'
+          when:                        platform == 'ORACLE'
+      when:                            platform == 'ORACLE'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
