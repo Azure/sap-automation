@@ -19,7 +19,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:         HANA_2_00_055_v0004ms
+    - name:         HANA_2_00_055_v0005ms
 
   media:
     # SAPCAR 7.22
@@ -436,46 +436,55 @@ materials:
 
     - name:         "BW4CONTB 200: SP 0006"
       archive:      K-20006INBW4CONTB.SAR
+      checksum:     edf85bed69cbaa0d34ae99bf78085f5ca95471343cd362d4566096d89663af00
       url:          https://softwaredownloads.sap.com/file/0010000001982712020
       download:     false
 
     - name:         "BW4CONT 200: SP 0007"
       archive:      K-20007INBW4CONT.SAR
+      checksum:     f0b1f3ee2e19926b2dbb77bca3f2875438e1498250a2d2285fe2ca7e106d2787
       url:          https://softwaredownloads.sap.com/file/0010000000470272021
       download:     false
 
     - name:         "BW4CONTB 200: SP 0007"
       archive:      K-20007INBW4CONTB.SAR
+      checksum:     9d491a4628f21a6b47333520d355d0d537ad41fafa317db7b6bab669153350bb
       url:          https://softwaredownloads.sap.com/file/0010000000470292021
       download:     false
 
     - name:         "BW4CONT 200: SP 0008"
       archive:      K-20008INBW4CONT.SAR
+      checksum:     ee8ffda50b4f3b404468d5b257380089ad95647f347a81b58043b8d4ac9492fd
       url:          https://softwaredownloads.sap.com/file/0010000001071462021
       download:     false
 
     - name:         "BW4CONTB 200: SP 0008"
       archive:      K-20008INBW4CONTB.SAR
+      checksum:     2e51a6a51e4bd7a47c0ce5787a9c1faa87dc4b32c0b784b777638287afa7dbba
       url:          https://softwaredownloads.sap.com/file/0010000001071492021
       download:     false
 
     - name:         "BW4CONT 200 Installation: Meta-Commandfile"
       archive:      K-200AHINBW4CONT.SAR
+      checksum:     aa58699016a68c0a0cefba942ce2267d5f2a1ce7d1e02dc2086352e0f1397b39
       url:          https://softwaredownloads.sap.com/file/0010000000670422019
       download:     false
 
     - name:         "BW4CONTB 200 Installation: Meta-Commandfile"
       archive:      K-200AHINBW4CONTB.SAR
+      checksum:     3c4012ad56742a9d12128e3987c1e995828524eb4753e437bb70570bb1b99a07
       url:          https://softwaredownloads.sap.com/file/0010000000670362019
       download:     false
 
     - name:         "ST-PI 740: SP 0016"
       archive:      K-74016INSTPI.SAR
+      checksum:     0d5a3c74f813dad48345023c7acd146dc9ef84c121c6d854292cb534006c40a5
       url:          https://softwaredownloads.sap.com/file/0010000001454472021
       download:     false
 
     - name:         SPAM/SAINT Update - Version 756/0079"
       archive:      KD75679.SAR
+      checksum:     57a884c93377a126281051f02c2b40a0c1aa73fe4ea5755a11fd0e5bcf8f259d
       url:          https://softwaredownloads.sap.com/file/0010000001277492021
       download:     false
 
