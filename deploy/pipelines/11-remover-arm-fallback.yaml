@@ -2,39 +2,39 @@
 
 parameters:
 - name: cleanupsap
-  displayName: Remove the SAP systems provided in below parameter
+  displayName: "Remove the SAP systems provided in below configuration (Note: VMs must be in running state)"
   type: boolean
   default: False
 
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
-  default: DEV-NOEU-SAP02-X02
+  default: DEV-WEEU-SAP01-X00
 
 - name: cleanupzone
-  displayName: Remove the SAP workload zone provided in below parameter
+  displayName: "Remove the SAP workload zone provided in below configuration:"
   type: boolean
   default: False
 
 - name: workloadzone
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: DEV-NOEU-SAP02-INFRASTRUCTURE
+  default: DEV-WEEU-SAP01-INFRASTRUCTURE
 
 - name: cleanupregion
-  displayName: Remove the region as listed in below parameters for the deployer and library
+  displayName: "Remove the region as listed in below configurations for the deployer and library:"
   type: boolean
   default: False
 
 - name: deployer
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: MGMT-NOEU-DEP00-INFRASTRUCTURE
+  default: MGMT-WEEU-DEP00-INFRASTRUCTURE
 
 - name: library
   displayName: ENV-LOCA-SAP_LIBRARY
   type: string
-  default: MGMT-NOEU-SAP_LIBRARY
+  default: MGMT-WEEU-SAP_LIBRARY
 
 trigger:
   none
