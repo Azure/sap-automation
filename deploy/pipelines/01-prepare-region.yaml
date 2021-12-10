@@ -1,7 +1,6 @@
 # This Pipeline prepares the region with a deployer and a SAP library
 
 parameters:
-
 - name: deployer
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string

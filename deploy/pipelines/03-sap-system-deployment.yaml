@@ -1,7 +1,6 @@
 # This pipeline performs the SAP system and storage deployments
 
 parameters:
-
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string

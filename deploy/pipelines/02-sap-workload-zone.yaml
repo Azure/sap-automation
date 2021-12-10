@@ -1,7 +1,6 @@
 # This pipeline deploys the SAP workload zone with required resources
 
 parameters:
-
 - name: workloadzone
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
