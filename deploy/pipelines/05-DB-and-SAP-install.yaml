@@ -298,7 +298,7 @@ stages:
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: APP_Install
+      displayName: App Installation
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_03_sap_app_install.yaml'
@@ -348,7 +348,7 @@ stages:
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: HighAvailability Setup
+      displayName: High Availability Setup
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_01_db_ha.yaml'

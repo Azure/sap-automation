@@ -382,7 +382,7 @@ function print_script_name_and_function() {
 # long, made up of uppercase letters and numbers, and must start with
 # an uppercase letter.
 function valid_environment() {
-    [[ "${environment}" =~ ^[[:upper:]][[:upper:][:digit:]]{1,4}$ ]]
+    [[ "${environment}" =~ ^[[:upper:]][[:upper:][:digit:]{1,10}$ ]]
 }
 
 # A region name must be a valid Azure lowercase region name, made
