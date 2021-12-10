@@ -697,7 +697,6 @@ materials:
     - name:         "SAP_UI 754: SP 0004"
       archive:      K-75404INSAPUI.SAR
       checksum:     260318324bf29dff72a59cac8ce4d607803ba27abfcfd30e999b9b0bc373bb9c
-      checksum:     260318324bf29dff72a59cac8ce4d607803ba27abfcfd30e999b9b0bc373bb9c
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000000876572020
 
