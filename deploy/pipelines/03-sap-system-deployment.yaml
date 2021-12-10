@@ -5,7 +5,7 @@ parameters:
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
-  default: DEV-NOEU-SAP02-X02
+  default: DEV-WEEU-SAP01-X00
 
 - name: cleanup
   displayName: Remove the relevant Resource Groups instead of deploying
@@ -50,6 +50,10 @@ stages:
           cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
         echo -e "$green--- az login ---$reset"
+          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+          export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+          export ARM_TENANT_ID=$(ARM_TENANT_ID)
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
         echo -e "$green--- --- Convert config file to UX format ---$reset"
@@ -59,10 +63,6 @@ stages:
           organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
-          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-          export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-          export ARM_TENANT_ID=$(ARM_TENANT_ID)
           cd $HOME/SYSTEM/$(sapsystemfolder)
           ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"

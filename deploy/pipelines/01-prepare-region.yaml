@@ -1,15 +1,16 @@
 # This Pipeline prepares the region with a deployer and a SAP library
+
 parameters:
 
-- name: deployer_parameter
+- name: deployer
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: MGMT-NOEU-DEP00-INFRASTRUCTURE
+  default: MGMT-WEEU-DEP00-INFRASTRUCTURE
 
-- name: library_parameter
+- name: library
   displayName: ENV-LOCA-SAP_LIBRARY
   type: string
-  default: MGMT-NOEU-SAP_LIBRARY
+  default: MGMT-WEEU-SAP_LIBRARY
 
 - name: cleanup
   displayName: Remove the relevant Resource Groups instead of deploying
@@ -23,10 +24,10 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  deployerfolder: ${{ parameters.deployer_parameter }}
-  deployerconfig: ${{ parameters.deployer_parameter }}.tfvars
-  libraryfolder: ${{ parameters.library_parameter }}
-  libraryconfig: ${{ parameters.library_parameter }}.tfvars
+  deployerfolder: ${{ parameters.deployer }}
+  deployerconfig: ${{ parameters.deployer }}.tfvars
+  libraryfolder: ${{ parameters.library }}
+  libraryconfig: ${{ parameters.library }}.tfvars
   log: logfile_$(Build.BuildId)
 
 name: $(deployerfolder)_$(libraryfolder)_Cleanup_${{ parameters.cleanup }}_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
@@ -51,9 +52,6 @@ stages:
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
           cd $HOME; mkdir -p .sap_deployment_automation
-          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-          export ARM_TENANT_ID=$(ARM_TENANT_ID)
-          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
@@ -62,10 +60,10 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Convert config files to UX format ---$reset"
           sudo apt-get -qq install dos2unix
-          dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig) 
-          dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)    
+          dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
+          dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig) 
         echo -e "$green--- Running the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve 2> /dev/null
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve  2> /dev/null
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
@@ -89,24 +87,24 @@ stages:
   - job: Remove_Deployer
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group ${{ parameters.deployer_parameter }}'
+      displayName: 'Remove Resource Group ${{ parameters.deployer }}'
       inputs:
         deploymentScope: 'Resource Group'
         azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
         subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
         action: 'DeleteRG'
-        resourceGroupName: '${{ parameters.deployer_parameter }}'
+        resourceGroupName: '${{ parameters.deployer }}'
 
   - job: Remove_SAP_Library
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group ${{ parameters.library_parameter }}'
+      displayName: 'Remove Resource Group ${{ parameters.library }}'
       inputs:
         deploymentScope: 'Resource Group'
         azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
         subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
         action: 'DeleteRG'
-        resourceGroupName: '${{ parameters.library_parameter }}'
+        resourceGroupName: '${{ parameters.library }}'
 
   - job: Remove_files_in_WORKSPACES
     steps:
