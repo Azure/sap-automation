@@ -1,4 +1,6 @@
 # This pipeline performs the software download
+# and need to run on a self hosted deployment agent 
+# due to long run time
 
 parameters:
 - name: bom_base_name
@@ -68,11 +70,11 @@ stages:
           export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
           echo $SUsername
           if [ -z "$SUsername" ]; then 
-            az keyvault secret set --name S-Username --vault-name $kv_name --value $(S-Username)
+            az keyvault secret set --name S-Username --vault-name $kv_name --value $(S-Username) >/dev/null 2>&1
           fi
           export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
           if [ -z "$SPassword" ]; then 
-            az keyvault secret set --name S-Password --vault-name $kv_name --value $(S-Password)
+            az keyvault secret set --name S-Password --vault-name $kv_name --value $(S-Password) >/dev/null 2>&1
           fi
       displayName: Prepare download
       env:
