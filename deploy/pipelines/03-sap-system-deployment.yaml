@@ -6,11 +6,6 @@ parameters:
   type: string
   default: DEV-WEEU-SAP01-X00
 
-- name: cleanup
-  displayName: Remove the relevant Resource Groups instead of deploying
-  type: boolean
-  default: False
-
 trigger:
   none
 
