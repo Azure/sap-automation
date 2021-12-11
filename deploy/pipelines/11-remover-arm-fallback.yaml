@@ -139,17 +139,6 @@ stages:
 - stage: Remove_region
   condition: eq(${{ parameters.cleanupregion }}, true)
   jobs:
-  - job: Remove_Deployer
-    steps:
-    - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group ${{ parameters.deployer }}'
-      inputs:
-        deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
-        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
-        action: 'DeleteRG'
-        resourceGroupName: '${{ parameters.deployer }}'
-
   - job: Remove_SAP_Library
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
@@ -161,10 +150,23 @@ stages:
         action: 'DeleteRG'
         resourceGroupName: '${{ parameters.library }}'
 
+  - job: Remove_Deployer
+    dependsOn: 
+      - Remove_SAP_Library
+    steps:
+    - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Remove Resource Group ${{ parameters.deployer }}'
+      inputs:
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
+        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
+        action: 'DeleteRG'
+        resourceGroupName: '${{ parameters.deployer }}'
+
   - job: Remove_region_deployment_artefacts_in_WORKSPACES
     dependsOn: 
-      - Remove_Deployer
       - Remove_SAP_Library
+      - Remove_Deployer
     steps:
     - script: |
         #!/bin/bash

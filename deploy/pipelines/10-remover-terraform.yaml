@@ -2,7 +2,7 @@
 
 parameters:
 - name: cleanupsap
-  displayName: Remove the SAP systems provided in below parameter
+  displayName: "Remove the SAP systems provided in below configuration (Note: VMs must be in running state)"
   type: boolean
   default: False
 
@@ -12,7 +12,7 @@ parameters:
   default: DEV-WEEU-SAP01-X00
 
 - name: cleanupzone
-  displayName: Remove the SAP workload zone provided in below parameter
+  displayName: "Remove the SAP workload zone provided in below configuration:"
   type: boolean
   default: False
 
@@ -22,7 +22,7 @@ parameters:
   default: DEV-WEEU-SAP01-INFRASTRUCTURE
 
 - name: cleanupregion
-  displayName: Remove the region as listed in below parameters for the deployer and library
+  displayName: "Remove the region as listed in below configurations for the deployer and library:"
   type: boolean
   default: False
 

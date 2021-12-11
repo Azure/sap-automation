@@ -4,7 +4,7 @@ parameters:
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
-  default: DEV-WEEU-SAP01-X03
+  default: DEV-WEEU-SAP01-X00
 
 - name: bom_base_name
   displayName: BOM Base Name
@@ -261,7 +261,7 @@ stages:
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_01_sap_dbload.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
-        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        args: '-vvvv --private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
         failOnStderr: false
 
 - stage: PAS_Installation
