@@ -1,15 +1,15 @@
-# This pipeline deploys the SAP workload zone (landscape) with required resources
+# This pipeline prepares the region with a deployer and a SAP library
 
 parameters:
-- name: workloadzone
+- name: deployer
   displayName: ENV-LOCA-VNET-INFRASTRUCTURE
   type: string
-  default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  default: MGMT-WEEU-DEP00-INFRASTRUCTURE
 
-- name: environment
-  displayName: Deployer Environment (MGMT, DEV, QUA, PRD, ...)
+- name: library
+  displayName: ENV-LOCA-SAP_LIBRARY
   type: string
-  default: MGMT
+  default: MGMT-WEEU-SAP_LIBRARY
 
 trigger:
   none
@@ -18,17 +18,18 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  zonefolder: ${{ parameters.workloadzone }}
-  zoneconfig: ${{ parameters.workloadzone }}.tfvars
-  env: ${{ parameters.environment }}
+  deployerfolder: ${{ parameters.deployer }}
+  deployerconfig: ${{ parameters.deployer }}.tfvars
+  libraryfolder: ${{ parameters.library }}
+  libraryconfig: ${{ parameters.library }}.tfvars
   log: logfile_$(Build.BuildId)
 
-name: $(zonefolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
+name: $(deployerfolder)_$(libraryfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
 
 stages:
-- stage: Deploy_SAP_workloadzone
+- stage: Prepare_the_Region_with_Deployer_and_SAP_Library
   jobs:
-  - job: Deploy_SAP_workloadzone
+  - job: Prepare_the_Region_with_Deployer_and_SAP_Library
     steps:
     - script: |
         #!/bin/bash
@@ -40,10 +41,8 @@ stages:
           sudo mv terraform /bin/ ; rm terraform_1.0.8_linux_amd64.zip
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
-        echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
-        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
           cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
@@ -54,27 +53,28 @@ stages:
           export ARM_TENANT_ID=$(ARM_TENANT_ID)
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
-        echo -e "$green--- --- Convert config file to UX format ---$reset"
-          sudo apt-get -qq install dos2unix
-          dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
         echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
           organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-        echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
-          cd $HOME/LANDSCAPE/$(zonefolder)
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --auto-approve
-        echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+        echo -e "$green--- Convert config files to UX format ---$reset"
+          sudo apt-get -qq install dos2unix
+          dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
+          dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig) 
+        echo -e "$green--- Running the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve  2> /dev/null
+        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
-          git config --global user.name "$(Build.RequestedFor)" 
-          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                               &>> /tmp/$(log)
-          git add $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"            &>> /tmp/$(log)
-          git push -f origin HEAD:main                                                                      &>> /tmp/$(log)
-        echo "output the log ---$reset"
+          git config --global user.name "$(Build.RequestedFor)"
+          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                                &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"             &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                                       &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Deploy_SAP_workloadzone
+      displayName: Prepare_the_Region_with_Deployer_and_SAP_Library
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
