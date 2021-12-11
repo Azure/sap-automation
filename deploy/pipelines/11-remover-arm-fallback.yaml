@@ -71,7 +71,7 @@ stages:
         action: 'DeleteRG'
         resourceGroupName: '$(sapsystemfolder)'
 
-  - job: Remove_sap_deployment_artefacts_in_WORKSPACES
+  - job: Remove_sap_deployment_artifacts_in_WORKSPACES
     dependsOn: Remove_SAP_system_RG
     steps:
     - script: |
@@ -91,7 +91,7 @@ stages:
           git push -f origin HEAD:main                                                               &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Remove_sap_deployment_artefacts_in_WORKSPACES
+      displayName: Remove_sap_deployment_artifacts_in_WORKSPACES
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
@@ -110,7 +110,7 @@ stages:
         action: 'DeleteRG'
         resourceGroupName: '$(zonefolder)'
 
-  - job: Remove_zone_deployment_artefacts_in_WORKSPACES
+  - job: Remove_zone_deployment_artifacts_in_WORKSPACES
     dependsOn: Remove_SAP_workloadzone
     steps:
     - script: |
@@ -131,7 +131,7 @@ stages:
           git push -f origin HEAD:main                                                               &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Remove_zone_deployment_artefacts_in_WORKSPACES
+      displayName: Remove_zone_deployment_artifacts_in_WORKSPACES
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
@@ -163,7 +163,7 @@ stages:
         action: 'DeleteRG'
         resourceGroupName: '${{ parameters.deployer }}'
 
-  - job: Remove_region_deployment_artefacts_in_WORKSPACES
+  - job: Remove_region_deployment_artifacts_in_WORKSPACES
     dependsOn: 
       - Remove_SAP_Library
       - Remove_Deployer
@@ -188,7 +188,7 @@ stages:
           git push -f origin HEAD:main                                                               &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Remove_region_deployment_artefacts_in_WORKSPACES
+      displayName: Remove_region_deployment_artifacts_in_WORKSPACES
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
