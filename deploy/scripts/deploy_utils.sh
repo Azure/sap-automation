@@ -390,8 +390,69 @@ function valid_region_name() {
     [[ "${region}" =~ ^[[:lower:]]+[[:digit:]]?$ ]]
 }
 
+# A region code must be a valid , made
+# up of 4 uppercase latters
+# NOTE: If we have the list of possible regions in a file somewhere
+# we can validate it is one of the entries in that list.
+function valid_region_code() {
+    [[ "${region_code}" =~ ^[[:upper:]][[:upper:]]{1,3}$ ]]
+}
+
+
 #print the function name being executed
 #printf maybe instead of echo
 #printf "%s\n" "${FUNCNAME[@]}"
 #check the AZURE_HTTP_USER_AGENT=cloud-shell/1.0 to identify the cloud shell
 #update template to user the following user http://localhost:50342/oauth2/token
+
+function get_region_code() {
+    region_lower=$(echo "${region}" | tr [:upper:] [:lower:] )
+    case "${region_lower}" in
+        "australiacentral")   export region_code="AUCE" ;;
+        "australiacentral2")  export region_code="AUC2" ;;
+        "australiaeast")      export region_code="AUEA" ;;
+        "australiasoutheast") export region_code="AUSE" ;;
+        "australiacentral2")  export region_code="AUC2" ;;
+        "brazilsouth")        export region_code="BRSO" ;;
+        "brazilsoutheast")    export region_code="BRSE" ;;
+        "brazilus")           export region_code="BRUS" ;;
+        "canadacentral")      export region_code="CACE" ;;
+        "canadaeast")         export region_code="CAEA" ;;
+        "centralindia")       export region_code="CEIN" ;;
+        "centralus")          export region_code="CEUS" ;;
+        "eastasia")           export region_code="EAAS" ;;
+        "eastus")             export region_code="EAUS" ;;
+        "eastus2")            export region_code="EUS2" ;;
+        "francecentral")      export region_code="FRCE" ;;
+        "francesouth")        export region_code="FRSO" ;;
+        "germanynorth")       export region_code="GENO" ;;
+        "germanywestcentral") export region_code="GEWC" ;;
+        "japaneast")          export region_code="JAEA" ;;
+        "japanwest")          export region_code="JAWE" ;;
+        "koreacentral")       export region_code="KOCE" ;;
+        "koreasouth")         export region_code="KOSO" ;;
+        "northcentralus")     export region_code="NCUS" ;;
+        "northeurope")        export region_code="NOEU" ;;
+        "norwayeast")         export region_code="NOEA" ;;
+        "norwaywest")         export region_code="NOWE" ;;
+        "southafricanorth")   export region_code="SANO" ;;
+        "southafricawest")    export region_code="SAWE" ;;
+        "southcentralus")     export region_code="SCUS" ;;
+        "southeastasia")      export region_code="SOEA" ;;
+        "southindia")         export region_code="SOIN" ;;
+        "swedencentral")      export region_code="SECE" ;;
+        "switzerlandnorth")   export region_code="SWNO" ;;
+        "switzerlandwest")    export region_code="SWWE" ;;
+        "uaecentral")         export region_code="UACE" ;;
+        "uaenorth")           export region_code="UANO" ;;
+        "uksouth")            export region_code="UKSO" ;;
+        "ukwest")             export region_code="UKWE" ;;
+        "westcentralus")      export region_code="WCUS" ;;
+        "westeurope")         export region_code="WEEU" ;;
+        "westindia")          export region_code="WEIN" ;;
+        "westus")             export region_code="WEUS" ;;
+        "westus2")            export region_code="WUS2" ;;
+        *)                    export region_code="UNKN" ;;
+    
+esac
+}

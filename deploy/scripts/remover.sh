@@ -181,10 +181,12 @@ if [ ! -f "${parameterfile}" ]; then
     exit 2 #No such file or directory
 fi
 
-#Persisting the parameters across executions
-automation_config_directory="$HOME/.sap_deployment_automation/"
-generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}""${environment}""${region}"
+# Convert the region to the correct code
+get_region_code $region
+
+automation_config_directory=~/.sap_deployment_automation
+generic_config_information="${automation_config_directory}"/config
+system_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
@@ -193,9 +195,6 @@ if [ ! -d "$HOME/.terraform.d/plugin-cache" ]; then
     mkdir -p "$HOME/.terraform.d/plugin-cache"
 fi
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-
-#root_dirname=$(pwd)
-#parameterfile_dirname=$(pwd) <- this would not be necessary we validate this above
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 var_file="${parameterfile_dirname}"/"${parameterfile}"
@@ -375,7 +374,7 @@ if [ "${deployment_system}" == sap_deployer ]; then
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
-    sed -i /landscape_tfstate_key/d "${system_config_information}"
+    rm "${system_config_information}"
 fi
 
 if [ "${deployment_system}" == sap_library ]; then

@@ -195,8 +195,8 @@ else
     load_config_vars "${root_dirname}"/"${deployer_parameter_file}" "environment"
     load_config_vars "${root_dirname}"/"${deployer_parameter_file}" "location"
     region=$(echo ${location} | xargs)
+    
 fi
-
 
 if [ ! -n "${environment}" ]; then
     echo "#########################################################################################"
@@ -222,9 +222,12 @@ if [ ! -n "${region}" ]; then
     exit 64                                                                                           #script usage wrong
 fi
 
+# Convert the region to the correct code
+get_region_code $region
+
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
-deployer_config_information="${automation_config_directory}"/"${environment}""${region}"
+deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 #Plugins
 if [ ! -d "$HOME/.terraform.d/plugin-cache" ]; then
@@ -302,7 +305,6 @@ then
 fi
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
-
 temp=$(grep "az login" stdout.az)
 if [ -n "${temp}" ]; then
     echo ""
@@ -354,6 +356,8 @@ fi
 set_executing_user_environment_variables "${spn_secret}"
 
 load_config_vars "${deployer_config_information}" "step"
+
+load_config_vars "${deployer_config_information}" "keyvault"
 
 if [ $recover == 1 ]; then
     if [ -n "$REMOTE_STATE_SA" ]; then
@@ -409,7 +413,6 @@ if [ 0 == $step ]; then
 
     step=1
     save_config_var "step" "${deployer_config_information}"
-
 
     cd "$root_dirname" || exit
     
@@ -527,7 +530,7 @@ if [ 1 == $step ]; then
         save_config_var "tenant_id" "${deployer_config_information}"
 
         if [ -n "$spn_secret" ]; then
-            allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region}" "${keyvault}" "${spn_secret}")
+            allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
             
             "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
             if (($? > 0)); then
@@ -537,7 +540,7 @@ if [ 1 == $step ]; then
             read -p "Do you want to specify the SPN Details Y/N?" ans
             answer=${ans^^}
             if [ "$answer" == 'Y' ]; then
-                allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region}" "${keyvault}" )
+                allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}" )
 
                 #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
                 #"${allParams[@]}" - quotes all elements of the array
@@ -614,7 +617,9 @@ else
 fi
 
 unset TF_DATA_DIR
-cd $root_dirname
+cd "$root_dirname" || exit
+
+load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 if [ 3 == $step ]; then
     echo ""
@@ -631,7 +636,7 @@ if [ 3 == $step ]; then
     if [ -f post_deployment.sh ]; then
         rm post_deployment.sh
     fi
-    allParams=$(printf " -p %s -t sap_deployer %s" "${deployer_file_parametername}" "${approveparam}")
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s" "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}")
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     if (($? > 0)); then
@@ -645,10 +650,13 @@ fi
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
 
+load_config_vars "${deployer_config_information}" "keyvault"
+load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
+load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+
 if [ 4 == $step ]; then
-    
     echo ""
-    
+   
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                          $cyan Migrating the library state $resetformatting                                #"
@@ -657,20 +665,18 @@ if [ 4 == $step ]; then
     echo ""
     
     cd "${library_dirname}" || exit
-    allParams=$(printf " -p %s -t sap_library %s" "${library_file_parametername}" "${approveparam}")
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}")
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     if (($? > 0)); then
         exit $?
     fi
-    cd "${curdir}" || exit
+
+    cd "$root_dirname" || exit
+
     step=5
     save_config_var "step" "${deployer_config_information}"
 fi
-
-load_config_vars "${deployer_config_information}" "keyvault"
-load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 printf -v kvname '%-40s' "${keyvault}"
 printf -v dep_ip '%-40s' "${deployer_public_ip_address}"

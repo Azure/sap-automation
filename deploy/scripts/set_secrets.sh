@@ -63,7 +63,7 @@ while :; do
         shift 2
         ;;
     -r | --region)
-        region="$2"
+        region_code="$2"
         shift 2
         ;;
     -v | --vault)
@@ -106,9 +106,14 @@ while [ -z "${environment}" ]; do
     read -r -p "Environment name: " environment
 done
 
-while [ -z "${region}" ]; do
+while [ -z "${region_code}" ]; do
     read -r -p "Region name: " region
 done
+
+if [ -z "${region_code}" ]; then
+  # Convert the region to the correct code
+  get_region_code $region
+fi
 
 if ! valid_environment "${environment}"; then
     echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
@@ -116,14 +121,14 @@ if ! valid_environment "${environment}"; then
     exit 65	#/* data format error */
 fi
 
-if ! valid_region_name "${region}"; then
-    echo "The 'region' must be a non-empty string composed of lowercase letters followed by numbers!"
+if ! valid_region_code "${region_code}"; then
+    echo "The 'region' must be a non-empty string composed of 4 uppercase letters!"
     showhelp
     exit 65	#/* data format error */
 fi
 
 automation_config_directory=~/.sap_deployment_automation
-environment_config_information="${automation_config_directory}"/"${environment}""${region}"
+environment_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 if [ ! -d "${automation_config_directory}" ]; then
     # No configuration directory exists
