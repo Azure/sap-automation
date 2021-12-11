@@ -22,12 +22,12 @@ variables:
   sapsystemconfig: ${{ parameters.sap_system }}.tfvars
   log: logfile_$(Build.BuildId)
 
-name: $(sapsystemfolder)_Cleanup_${{ parameters.cleanup }}_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+name: $(sapsystemfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
 
 stages:
-- stage: Deploy_SAP_Infrastructure
+- stage: Deploy_SAP_infrastructure
   jobs:
-  - job: Deploy_SAP_Infrastructure
+  - job: Deploy_SAP_infrastructure
     steps:
     - script: |
         #!/bin/bash
@@ -76,7 +76,7 @@ stages:
         echo "output the log ---$reset"
           cat /tmp/$(log)2
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Deploy_SAP_Infrastructure
+      displayName: Deploy_SAP_infrastructure
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true

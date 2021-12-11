@@ -23,7 +23,7 @@ variables:
   env: ${{ parameters.environment }}
   log: logfile_$(Build.BuildId)
 
-name: $(zonefolder)_Cleanup_${{ parameters.cleanup }}_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+name: $(zonefolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
 
 stages:
 - stage: Deploy_SAP_Workloadzone
