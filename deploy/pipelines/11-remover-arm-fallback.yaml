@@ -72,6 +72,7 @@ stages:
         resourceGroupName: '$(sapsystemfolder)'
 
   - job: Remove_sap_deployment_artefacts_in_WORKSPACES
+    dependsOn: Remove_SAP_system_RG
     steps:
     - script: |
         #!/bin/bash
@@ -110,6 +111,7 @@ stages:
         resourceGroupName: '$(zonefolder)'
 
   - job: Remove_zone_deployment_artefacts_in_WORKSPACES
+    dependsOn: Remove_SAP_workloadzone
     steps:
     - script: |
         #!/bin/bash
@@ -160,6 +162,9 @@ stages:
         resourceGroupName: '${{ parameters.library }}'
 
   - job: Remove_region_deployment_artefacts_in_WORKSPACES
+    dependsOn: 
+      - Remove_Deployer
+      - Remove_SAP_Library
     steps:
     - script: |
         #!/bin/bash
