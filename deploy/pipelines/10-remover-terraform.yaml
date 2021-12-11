@@ -1,4 +1,4 @@
-# This Pipeline removes the SAP Systems, the Workload Zone and the Region
+# This pipeline removes the SAP systems, the workload zone (landscape) and the region via terraform destroy
 
 parameters:
 - name: cleanupsap
