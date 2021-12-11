@@ -26,9 +26,9 @@ variables:
 name: $(zonefolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
 
 stages:
-- stage: Deploy_SAP_Workloadzone
+- stage: Deploy_SAP_workloadzone
   jobs:
-  - job: Deploy_SAP_Workloadzone
+  - job: Deploy_SAP_workloadzone
     steps:
     - script: |
         #!/bin/bash
@@ -74,7 +74,7 @@ stages:
         echo "output the log ---$reset"
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Deploy_SAP_Workloadzone
+      displayName: Deploy SAP workloadzone
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
