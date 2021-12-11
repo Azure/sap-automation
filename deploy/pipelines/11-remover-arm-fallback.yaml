@@ -1,4 +1,5 @@
 # This pipeline removes the SAP systems, the workload zone (landscape) and the region via ARM resource group deletion
+# The pipeline can be used as fallback in case the terreform destroy doesn't remove everything 
 
 parameters:
 - name: cleanupsap

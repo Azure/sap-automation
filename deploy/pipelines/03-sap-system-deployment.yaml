@@ -1,4 +1,4 @@
-# This pipeline performs the SAP system and storage deployments
+# This pipeline performs the SAP systems and storage deployments
 
 parameters:
 - name: sap_system

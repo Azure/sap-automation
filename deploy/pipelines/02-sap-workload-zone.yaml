@@ -1,4 +1,4 @@
-# This pipeline deploys the SAP workload zone with required resources
+# This pipeline deploys the SAP workload zone (landscape) with required resources
 
 parameters:
 - name: workloadzone

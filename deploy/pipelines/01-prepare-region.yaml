@@ -1,4 +1,4 @@
-# This Pipeline prepares the region with a deployer and a SAP library
+# This pipeline prepares the region with a deployer and a SAP library
 
 parameters:
 - name: deployer
