@@ -108,6 +108,10 @@ else
     region=$(echo ${location} | xargs)
 fi
 
+# Convert the region to the correct code
+get_region_code $region
+
+
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
 if [ ! -n "${environment}" ]
@@ -139,7 +143,7 @@ fi
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-deployer_config_information="${automation_config_directory}""${environment}""${region}"
+deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 arm_config_stored=false
 config_stored=false

@@ -209,12 +209,16 @@ then
     exit 65 #data format error
 fi
 
+
+# Convert the region to the correct code
+get_region_code $region
+
 #Persisting the parameters across executions
 
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-workload_config_information="${automation_config_directory}"/"${environment}""${region}"
+workload_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 if [ ! -f "${workload_config_information}" ]
     then
@@ -224,7 +228,7 @@ if [ ! -f "${workload_config_information}" ]
         read -p "Deployer environment name: " deployer_environment
     fi
     
-    deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region}"
+    deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
     if [ -f $deployer_config_information ]
     then
         load_config_vars "${deployer_config_information}" "keyvault"
@@ -463,7 +467,7 @@ then
 
         if [ ! -z "$spn_secret" ]
         then
-            allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s " "${environment}" "${region}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" )
+            allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" )
                 
             "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams 
             if [ $? -eq 255 ]
@@ -474,7 +478,7 @@ then
             read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
             answer=${ans^^}
             if [ $answer == 'Y' ]; then
-                allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region}" "${keyvault}" "${subscription}" "${client_id}" )
+                allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
                 
                 "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
                 if [ $? -eq 255 ]
