@@ -3,7 +3,7 @@
 
 parameters:
 - name: cleanupsap
-  displayName: "Remove the SAP systems provided in below configuration (Note: VMs must be in running state)"
+  displayName: "Remove the SAP systems provided in below configuration"
   type: boolean
   default: False
 
