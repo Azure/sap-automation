@@ -17,7 +17,7 @@ variables:
   sapsystemconfig: ${{ parameters.sap_system }}.tfvars
   log: logfile_$(Build.BuildId)
 
-name: $(sapsystemfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
+name: $(sapsystemfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
 - stage: Deploy_SAP_infrastructure

@@ -24,7 +24,7 @@ variables:
   libraryconfig: ${{ parameters.library }}.tfvars
   log: logfile_$(Build.BuildId)
 
-name: $(deployerfolder)_$(libraryfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
+name: $(deployerfolder)_$(libraryfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
 - stage: Prepare_region
