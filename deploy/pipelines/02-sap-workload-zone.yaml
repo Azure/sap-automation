@@ -63,6 +63,10 @@ stages:
         echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
           cd $HOME/LANDSCAPE/$(zonefolder)
           $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --auto-approve
+          if (($? > 0)); then
+            exit $?
+          fi
+
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
           rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config

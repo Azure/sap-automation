@@ -62,6 +62,9 @@ stages:
           dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig) 
         echo -e "$green--- Running the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
           $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve  2> /dev/null
+          if (($? > 0)); then
+            exit $?
+          fi
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           cd $(Build.Repository.LocalPath)
           rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
