@@ -83,7 +83,7 @@ database_vm_image={
   source_image_id=""
   publisher="SUSE"
   offer="sles-sap-12-sp5"
-  sku="gen1"
+  sku="gen2"
   version="latest"
 }
 
@@ -193,7 +193,8 @@ application_server_image= {
   source_image_id=""
   publisher="SUSE"
   offer="sles-sap-12-sp5"
-  sku="gen1"
+  sku="gen2"
+  version="latest"
 }
 
 # SCS Servers
@@ -246,7 +247,7 @@ ers_instance_number="02"
 # source_image_id=""
 # publisher="SUSE"
 # offer="sles-sap-12-sp5"
-# sku="gen1"
+# sku="gen2"
 #}
 
 # Web Dispatchers
@@ -289,7 +290,7 @@ webdispatcher_server_count=0
 # source_image_id=""
 # publisher="SUSE"
 # offer="sles-sap-12-sp5"
-# sku="gen1"
+# sku="gen2"
 #}
 
 #########################################################################################
@@ -442,7 +443,7 @@ network_logical_name="SAP01"
 #source_image_id=""
 #publisher="SUSE"
 #offer="sles-sap-12-sp5"
-#sku="gen1"
+#sku="gen2"
 #version="latest"
 #}
 

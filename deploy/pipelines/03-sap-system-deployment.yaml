@@ -1,16 +1,10 @@
-# This pipeline performs the SAP system and storage deployments
+# This pipeline performs the SAP systems and storage deployments
 
 parameters:
-
 - name: sap_system
   displayName: ENV-LOCA-VNET-SID
   type: string
   default: DEV-WEEU-SAP01-X00
-
-- name: cleanup
-  displayName: Remove the relevant Resource Groups instead of deploying
-  type: boolean
-  default: False
 
 trigger:
   none
@@ -23,13 +17,12 @@ variables:
   sapsystemconfig: ${{ parameters.sap_system }}.tfvars
   log: logfile_$(Build.BuildId)
 
-name: $(sapsystemfolder)_Cleanup_${{ parameters.cleanup }}_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+name: $(sapsystemfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
-- stage: Deploy_SAP_Infrastructure
-  condition: eq(${{ parameters.cleanup }}, false)
+- stage: Deploy_SAP_infrastructure
   jobs:
-  - job: Deploy_SAP_Infrastructure
+  - job: Deploy_SAP_infrastructure
     steps:
     - script: |
         #!/bin/bash
@@ -67,6 +60,7 @@ stages:
           ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
+          rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)" 
           git add $(Deployment_Configuration_Path)/.sap_deployment_automation                               &>> /tmp/$(log)2
@@ -78,45 +72,7 @@ stages:
         echo "output the log ---$reset"
           cat /tmp/$(log)2
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Deploy_SAP_Infrastructure
+      displayName: Deploy_SAP_infrastructure
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      failOnStderr: true
-
-- stage: Cleanup
-  condition: eq(${{ parameters.cleanup }}, true)
-  jobs:
-  - job: Remove_System
-    steps:
-    - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group $(sapsystemfolder)'
-      inputs:
-        deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'
-        subscriptionId: '$(ARM_SUBSCRIPTION_ID)'
-        action: 'DeleteRG'
-        resourceGroupName: '$(sapsystemfolder)'
-
-  - job: Remove_files_in_WORKSPACES
-    steps:
-    - script: |
-        #!/bin/bash
-        green="\e[1;32m"
-        reset="\e[0m"
-        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-        echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-          git config --global user.email "$(Build.RequestedForEmail)"
-          git config --global user.name "$(Build.RequestedFor)"
-          git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform            &>> /tmp/$(log)
-          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
-          git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
-          cat /tmp/$(log)
-        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-      displayName: Remove_files_in_WORKSPACES
-      env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true

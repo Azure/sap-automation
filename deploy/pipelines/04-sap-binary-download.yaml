@@ -1,13 +1,15 @@
 # This pipeline performs the software download
+# and need to run on a self hosted deployment agent 
+# due to long run time
 
 parameters:
-
 - name: bom_base_name
   displayName: BOM Base Name
   type: string
   default: S41909SPS03_v0007ms
   values:
    - S41909SPS03_v0007ms
+   - S41909SPS03_v0006ms
    - BW4HANA2021SPS01_v0001ms
    - HANA_2_00_055_v0005ms
    - NW750SPS20_v0002ms
@@ -26,8 +28,7 @@ trigger:
   none
 
 pool:
-#  vmImage: ubuntu-latest
-  name: WestEurope
+  name: $(agent)
 
 variables:
   bom: ${{ parameters.bom_base_name }}
@@ -37,9 +38,9 @@ variables:
 name: $(bom)_$(env)_$(loc)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
-- stage: Prepare_Download_Configuration
+- stage: Prepare_download
   jobs:
-  - job: Prepare_Download_Configuration
+  - job: Prepare_download
     steps:
     - script: |
         #!/bin/bash
@@ -62,31 +63,32 @@ stages:
           sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
           sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
           sed -i 's|kv_name:.*|deployer_kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
+          # sed -i 's|kv_name:.*|kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
         echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
           cat $HOME/BOMS/sap-parameters.yaml
         echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
           export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
           echo $SUsername
           if [ -z "$SUsername" ]; then 
-            az keyvault secret set --name S-Username --vault-name $kv_name --value $(S-Username)
+            az keyvault secret set --name S-Username --vault-name $kv_name --value $(S-Username) >/dev/null 2>&1
           fi
           export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
           if [ -z "$SPassword" ]; then 
-            az keyvault secret set --name S-Password --vault-name $kv_name --value $(S-Password)
+            az keyvault secret set --name S-Password --vault-name $kv_name --value $(S-Password) >/dev/null 2>&1
           fi
-      displayName: Prepare_Download_Configuration
+      displayName: Prepare download
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
 
-- stage: Process_Binaries
+- stage: Download_binaries
   jobs:
-  - job: Process_Binaries
+  - job: Download_binaries
     timeoutInMinutes: 0
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: Process_Binaries
+      displayName: Download binaries
       timeoutInMinutes: 0
       inputs:
         ansibleInterface: 'agentMachine'
