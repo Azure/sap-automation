@@ -72,7 +72,6 @@ stages:
         resourceGroupName: '$(sapsystemfolder)'
 
   - job: Remove_sap_deployment_artefacts_in_WORKSPACES
-    dependsOn: Remove_SAP_system_RG
     steps:
     - script: |
         #!/bin/bash
@@ -111,7 +110,6 @@ stages:
         resourceGroupName: '$(zonefolder)'
 
   - job: Remove_zone_deployment_artefacts_in_WORKSPACES
-    dependsOn: Remove_SAP_workloadzone
     steps:
     - script: |
         #!/bin/bash
@@ -122,10 +120,10 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-          export region=$(cat $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/$(zoneconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
+          export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)"
-          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${region}      &>  /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}        &>  /tmp/$(log)
           git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
           git push -f origin HEAD:main                                                               &>> /tmp/$(log)
@@ -151,8 +149,6 @@ stages:
         resourceGroupName: '${{ parameters.library }}'
 
   - job: Remove_Deployer
-    dependsOn: 
-      - Remove_SAP_Library
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
       displayName: 'Remove Resource Group ${{ parameters.deployer }}'
@@ -164,9 +160,6 @@ stages:
         resourceGroupName: '${{ parameters.deployer }}'
 
   - job: Remove_region_deployment_artefacts_in_WORKSPACES
-    dependsOn: 
-      - Remove_SAP_Library
-      - Remove_Deployer
     steps:
     - script: |
         #!/bin/bash
@@ -177,15 +170,15 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-          export region=$(cat $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/$(deployerconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
+          export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)"
-          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${region}      &>  /tmp/$(log)
-          git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform           &>> /tmp/$(log)
-          git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform             &>> /tmp/$(log)
-          git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars  &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}          &>  /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform             &>> /tmp/$(log)
+          git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform               &>> /tmp/$(log)
+          git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars    &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"       &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                                 &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
       displayName: Remove_region_deployment_artefacts_in_WORKSPACES

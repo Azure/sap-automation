@@ -154,9 +154,9 @@ stages:
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)" 
-          export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-          export region=$(cat $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/$(zoneconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
-          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/$ENV$region          &>  /tmp/$(log)
+          export  ENV=$(echo $(zonefolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}        &>  /tmp/$(log)
           git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
           git push -f origin HEAD:main                                                               &>> /tmp/$(log)
@@ -208,9 +208,9 @@ stages:
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)"
-          export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-          export region=$(cat $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/$(deployerconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Region $region
-          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/$ENV$region            &>  /tmp/$(log)
+          export  ENV=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
+          git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}          &>  /tmp/$(log)
           git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(libraryfolder)/.terraform              &>> /tmp/$(log)
           git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform               &>> /tmp/$(log)
           git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars    &>> /tmp/$(log)

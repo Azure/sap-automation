@@ -124,16 +124,15 @@ stages:
           export ENV=$(echo $(sapsystemfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
           export LOCA=$(echo $(sapsystemfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location $LOCA
           export VNET=$(echo $(sapsystemfolder) | awk -F'-' '{print $3}' | xargs) ; echo VNET $VNET
-          export location=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep location'=' | awk -F'=' '{print $2}' | xargs) ; echo Location $location
-          export kv_name=$(cat .sap_deployment_automation/$ENV$location      | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
+          export kv_name=$(cat .sap_deployment_automation/${ENV}${LOCA}  | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
           az keyvault secret show --name ${ENV}-${LOCA}-${VNET}-sid-sshkey --vault-name $kv_name --query value -o tsv > $(Build.Repository.LocalPath)/sshkey
           chmod 600 $(Build.Repository.LocalPath)/sshkey
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+          cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)" 
-          git add .sap_deployment_automation                      &>> /tmp/$(log)
-          git add SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" &>> /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"   &>> /tmp/$(log)
           git push -f origin HEAD:main                            &>> /tmp/$(log)
         echo "output the log ---$reset"
           cat /tmp/$(log)
