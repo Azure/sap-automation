@@ -409,8 +409,8 @@ network_name="SAP02"
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 #anchor_vm_use_DHCP=true
 
-# This is an optional parameter providing the SAP BOM Name
-bom_name="S41909SPS03_v0007ms"
+
+
 
 #########################################################################################
 #                                                                                       #
