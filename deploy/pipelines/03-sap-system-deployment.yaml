@@ -57,7 +57,8 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
           cd $HOME/SYSTEM/$(sapsystemfolder)
-          return_code=${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
+          ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
+          return_value=$?
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
           rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
@@ -68,7 +69,7 @@ stages:
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml            &>> /tmp/$(log)2
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml              &>> /tmp/$(log)2
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"            &>> /tmp/$(log)2
-          git push -f origin HEAD:main                                                                      &>> /tmp/$(log)2
+          git push
         echo "output the log ---$reset"
           cat /tmp/$(log)2
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
