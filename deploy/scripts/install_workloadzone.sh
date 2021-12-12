@@ -256,6 +256,7 @@ fi
 if [ -z $tfstate_resource_id ]
 then
   if [ -z $deployer_environment ]
+    then
     deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
     if [ -f $deployer_config_information ]
     then
