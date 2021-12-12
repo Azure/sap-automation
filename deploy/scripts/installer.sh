@@ -199,13 +199,17 @@ then
     exit 65 #data format error
 fi
 
+
+# Convert the region to the correct code
+get_region_code $region
+
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 #Persisting the parameters across executions
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}""${environment}""${region}"
+system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 deployer_tfstate_key_parameter=''
 landscape_tfstate_key_parameter=''

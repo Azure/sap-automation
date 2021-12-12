@@ -20,6 +20,10 @@ variable "custom_prefix" {
   default = ""
 }
 
+variable "use_prefix" {
+  default = true
+}
+
 
 variable "location" {
   type    = string
@@ -45,15 +49,6 @@ variable "proximityplacementgroup_names" {
 variable "proximityplacementgroup_arm_ids" {
   default = []
 }
-
-
-
-
-/*
-
-This block describes the variables for the VNet block in the json file
-
-*/
 
 variable "network_logical_name" {
   default = ""

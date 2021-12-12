@@ -188,9 +188,12 @@ then
     exit 64 #script usage wrong
 fi
 
-automation_config_directory=~/.sap_deployment_automation/
-generic_config_information="${automation_config_directory}"config
-deployer_config_information="${automation_config_directory}""${environment}""${region}"
+# Convert the region to the correct code
+get_region_code $region
+
+automation_config_directory=~/.sap_deployment_automation
+generic_config_information="${automation_config_directory}"/config
+deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 if [ -z "$deployer_config_information" ]; then
     rm $deployer_config_information

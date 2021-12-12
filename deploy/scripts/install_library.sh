@@ -100,12 +100,14 @@ ext=$(echo ${parameterfile} | cut -d. -f2)
 # Helper variables
 if [ "${ext}" == json ]; then
     environment=$(jq --raw-output .infrastructure.environment "${parameterfile}")
-    location=$(jq --raw-output .infrastructure.region "${parameterfile}")
+    region=$(jq --raw-output .infrastructure.region "${parameterfile}")
     use_deployer=$(jq --raw-output .deployer.use "${parameterfile}")
 else
     
     load_config_vars "${param_dirname}"/"${parameterfile}" "environment"
     load_config_vars "${param_dirname}"/"${parameterfile}" "location"
+    region=$(echo ${location} | xargs)
+
 fi
 
 key=$(echo "${parameterfile}" | cut -d. -f1)
@@ -123,18 +125,22 @@ then
     exit 64
 fi
 
-if [ ! -n "${location}" ]
+if [ ! -n "${region}" ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo "#                           Incorrect parameter file.                                   #"
     echo "#                                                                                       #"
-    echo "#               The file needs to contain the location attribute!!                      #"
+    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     exit 64
 fi
+
+# Convert the region to the correct code
+get_region_code $region
+
 
 if [ true == "$use_deployer" ]
 then
@@ -154,7 +160,7 @@ fi
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}""${environment}""${location}"
+library_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 #Plugins
 if [ ! -d "$HOME/.terraform.d/plugin-cache" ]

@@ -184,6 +184,7 @@ variable "region_mapping" {
     "southcentralus"     = "scus"
     "southeastasia"      = "soea"
     "southindia"         = "soin"
+    "swedencentral"      = "sece"
     "switzerlandnorth"   = "swno"
     "switzerlandwest"    = "swwe"
     "uaecentral"         = "uace"

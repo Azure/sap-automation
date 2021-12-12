@@ -1,0 +1,52 @@
+################################################################################################################################################################################################################
+#                                                                                                                                                                                                              #
+# Installation service 'SAP S/4HANA Server 1909 > SAP HANA Database > Installation > Application Server ABAP > High-Availability System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAPHA' #
+#                                                                                                                                                                                                              #
+################################################################################################################################################################################################################
+archives.downloadBasket = /usr/sap/install/download_basket
+
+# Master password
+NW_GetMasterPassword.masterPwd = 
+
+# Unix only: The SAP mount directory path. Default value is '/sapmnt'.
+# NW_GetSidNoProfiles.sapmnt = /sapmnt
+
+# The SAP system ID <SAPSID> of the system to be installed
+NW_GetSidNoProfiles.sid =
+
+# Add gateway process in the (A)SCS instance
+NW_SCS_Instance.ascsInstallGateway = true
+
+# Add Web Dispatcher process in the (A)SCS instance
+NW_SCS_Instance.ascsInstallWebDispatcher = false
+
+# The instance number of the (A)SCS instance.  Leave this value empty if you want to use the default instance number or if you want to specify two different numbers for ASCS and SCS instance.
+NW_SCS_Instance.instanceNumber = 
+
+# You can specify a virtual host name for the ASCS instance. Leave empty for default.
+NW_SCS_Instance.scsVirtualHostname = 
+
+# SAP INTERNAL USE ONLY
+# NW_System.installSAPHostAgent = true
+
+# SAP offers the option to skip setting of security profile parameters (NOT recommended) only for compatibility reasons. Set to true and the file with recommended security settings will not be taken into consideration. See SAP Note 2714839 for security recommendations.
+NW_adaptProfile.skipSecurityProfileSettings = true
+
+
+# The FQDN of the system
+NW_getFQDN.FQDN = 
+
+# The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
+archives.downloadBasket = 
+
+# UNIX only: The user ID of the 'sapadm' user, leave empty for default. The ID is ignored if the user already exists.
+# nwUsers.sapadmUID =
+
+# UNIX only: The group id of the 'sapsys' group, leave empty for default. The ID is ignored if the group already exists.
+nwUsers.sapsysGID = 2000
+
+# UNIX only: The user id of the <sapsid>adm user, leave empty for default. The ID is ignored if the user already exists.
+# nwUsers.sidAdmUID =
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword = 
