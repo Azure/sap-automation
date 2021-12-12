@@ -115,11 +115,11 @@ if [ -z "${region_code}" ]; then
   get_region_code $region
 fi
 
-if ! valid_environment "${environment}"; then
-    echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
-    showhelp
-    exit 65	#/* data format error */
-fi
+# if ! valid_environment "${environment}"; then
+#     echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
+#     showhelp
+#     exit 65	#/* data format error */
+# fi
 
 if ! valid_region_code "${region_code}"; then
     echo "The 'region' must be a non-empty string composed of 4 uppercase letters!"
