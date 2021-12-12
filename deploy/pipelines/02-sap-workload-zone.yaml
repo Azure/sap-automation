@@ -62,10 +62,7 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
           cd $HOME/LANDSCAPE/$(zonefolder)
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --auto-approve
-          if (($? > 0)); then
-            exit $?
-          fi
+          return_value=$DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --auto-approve
 
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
@@ -79,6 +76,9 @@ stages:
         echo "output the log ---$reset"
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+        if ($return_value > 0); then
+          exit $return_value
+        fi
       displayName: Deploy SAP workloadzone
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)

@@ -61,10 +61,7 @@ stages:
           dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
           dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig) 
         echo -e "$green--- Running the prepare region script that deploys the subscription hub with the Deployer VM and SAP Library ---$reset"
-          return_code=$($DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve)
-          if ($return_code > 0); then
-            exit $return_code
-          fi
+          return_code=$DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           cd $(Build.Repository.LocalPath)
           rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
@@ -78,6 +75,9 @@ stages:
           git push -f origin HEAD:main                                                                       &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+        if ($return_code > 0); then
+          exit $return_code
+        fi
       displayName: Prepare region
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
