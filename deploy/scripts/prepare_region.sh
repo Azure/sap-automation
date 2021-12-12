@@ -139,7 +139,7 @@ do
     esac
 done
 
-this_ip=$(curl ipinfo.io/ip)
+this_ip=$(curl -s ipinfo.io/ip )
 
 root_dirname=$(pwd)
 

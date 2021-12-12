@@ -75,10 +75,8 @@ stages:
           git push -f origin HEAD:main                                                                       &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-        if ($return_code > 0); then
-          exit $return_code
-        fi
+        exit $return_code
       displayName: Prepare region
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      failOnStderr: true
+      failOnStderr: false
