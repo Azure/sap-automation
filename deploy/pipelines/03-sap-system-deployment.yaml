@@ -69,6 +69,7 @@ stages:
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml            &>> /tmp/$(log)2
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml              &>> /tmp/$(log)2
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"            &>> /tmp/$(log)2
+          git pull
           git push origin HEAD:$(Branch)
         echo "output the log ---$reset"
           cat /tmp/$(log)2
