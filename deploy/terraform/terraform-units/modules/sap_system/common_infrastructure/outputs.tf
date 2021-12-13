@@ -1,5 +1,8 @@
 output "anchor_vm" {
-  value = local.anchor_ostype == "LINUX" ? azurerm_linux_virtual_machine.anchor : azurerm_windows_virtual_machine.anchor
+  value = local.deploy_anchor ? (
+    local.anchor_ostype == "LINUX" ? (azurerm_linux_virtual_machine.anchor[0].id) : (azurerm_windows_virtual_machine.anchor[0].id)) : (
+    ""
+  )
 }
 
 output "resource_group" {
@@ -33,7 +36,7 @@ output "db_subnet" {
   value = local.enable_db_deployment ? (
     local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
     null
-  ) 
+  )
   #local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 

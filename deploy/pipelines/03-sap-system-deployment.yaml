@@ -57,8 +57,9 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
           cd $HOME/SYSTEM/$(sapsystemfolder)
-          ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve 2> /dev/null
+          ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve 2> err.log
           return_value=$?
+          cat err.log
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
           if [ 0 == $return_value ] ; then
@@ -70,8 +71,8 @@ stages:
             git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml            &>> /tmp/$(log)2
             git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml              &>> /tmp/$(log)2
             git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"            &>> /tmp/$(log)2
-            git pull
-            git push -f origin HEAD:$(Branch)                                                                      &>> /tmp/$(log)2
+            git pull origin $(Branch)                                                                         &>> /tmp/$(log)2
+            git push -f origin HEAD:$(Branch)                                                                 &>> /tmp/$(log)2
             echo "output the log ---$reset"
             cat /tmp/$(log)2
           fi

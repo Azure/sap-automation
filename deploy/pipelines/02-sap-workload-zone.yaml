@@ -74,8 +74,8 @@ stages:
             git add $(Deployment_Configuration_Path)/.sap_deployment_automation                               &>> /tmp/$(log)
             git add $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
             git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"            &>> /tmp/$(log)
-            git pull
-            git push -f origin HEAD:$(Branch)                                                                      &>> /tmp/$(log)
+            git pull -f origin $(Branch)                                                                      &>> /tmp/$(log)
+            git push -f origin HEAD:$(Branch)                                                                 &>> /tmp/$(log)
             echo "output the log ---$reset"
             cat /tmp/$(log)
           fi
