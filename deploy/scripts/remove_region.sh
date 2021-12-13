@@ -323,11 +323,7 @@ if [ -z "${storage_account}" ]; then
     if [ ! -z "${STATE_SUBSCRIPTION}" ]
     then
         subscription="${STATE_SUBSCRIPTION}"
-        if [ $account_set==0 ]
-        then
-            $(az account set --sub "${STATE_SUBSCRIPTION}")
-            account_set=1
-        fi
+        $(az account set --sub "${STATE_SUBSCRIPTION}")
         
     fi
 
