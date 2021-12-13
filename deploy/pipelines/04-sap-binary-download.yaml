@@ -9,7 +9,6 @@ parameters:
   default: S41909SPS03_v0007ms
   values:
    - S41909SPS03_v0007ms
-   - S41909SPS03_v0006ms
    - BW4HANA2021SPS01_v0001ms
    - HANA_2_00_055_v0005ms
    - NW750SPS20_v0002ms
@@ -44,8 +43,7 @@ stages:
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m"
-        reset="\e[0m"
+        green="\e[1;32m" ; reset="\e[0m"
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"

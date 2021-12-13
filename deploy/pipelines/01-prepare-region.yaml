@@ -33,8 +33,7 @@ stages:
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m"
-        reset="\e[0m"
+        green="\e[1;32m" ; reset="\e[0m"
         echo -e "$green--- Install Terraform ---$reset"
           wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
           unzip -qq terraform_1.0.8_linux_amd64.zip

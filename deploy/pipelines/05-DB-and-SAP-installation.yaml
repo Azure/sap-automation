@@ -93,8 +93,7 @@ stages:
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m"
-        reset="\e[0m"
+        green="\e[1;32m" ; reset="\e[0m"
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
@@ -133,7 +132,7 @@ stages:
           git config --global user.name "$(Build.RequestedFor)" 
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"   &>> /tmp/$(log)
-          git push -f origin HEAD:main                            &>> /tmp/$(log)
+          git push -f origin HEAD:main                                                             &>> /tmp/$(log)
         echo "output the log ---$reset"
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
