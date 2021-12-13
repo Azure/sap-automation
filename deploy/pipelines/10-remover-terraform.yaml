@@ -103,7 +103,8 @@ stages:
           git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
           git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          git pull origin                                                                            &>> /tmp/$(log)
+          git push origin HEAD:$(Branch)                                                             &>> /tmp/$(log)
         echo "output the log ---$reset"
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
@@ -159,7 +160,8 @@ stages:
           git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}        &>  /tmp/$(log)
           git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-          git push -f origin HEAD:main                                                               &>> /tmp/$(log)
+          git pull origin                                                                            &>> /tmp/$(log)
+          git push origin HEAD:$(Branch)                                                             &>> /tmp/$(log)
         echo "output the log ---$reset"
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
@@ -203,7 +205,7 @@ stages:
           dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig) 2> /dev/null
           dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)    2> /dev/null
         echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig) --auto-approve
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
@@ -215,7 +217,8 @@ stages:
           git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform               &>> /tmp/$(log)
           git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars    &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"       &>> /tmp/$(log)
-          git push -f origin HEAD:main                                                                 &>> /tmp/$(log)
+          git pull origin                                                                              &>> /tmp/$(log)
+          git push origin HEAD:$(Branch)                                                               &>> /tmp/$(log)
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
       displayName: Remove region

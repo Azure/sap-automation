@@ -11,21 +11,8 @@ product_ids:
   web:   
 
 materials:
-#   templates:
-    # - name:     X
-    #   file:     HANA_2_00_055_v1.params
-    #   override_target_location: "{{ target_media_location }}/config"
-
-    # - name:     X
-    #   file:     HANA_2_00_055_v1.params.xml
-    #   override_target_location: "{{ target_media_location }}/config"
-
-#   stackfiles:
-    # # Download Basket permalinks
-    # - name: Download Basket permalinks
-    #   file: myDownloadBasketFiles.txt
-    #   override_target_location: "{{ target_media_location }}/config"
-
+  dependencies:
+    - name:     Oracle19_v0001ms
   media:
     # SAPCAR 7.22
     - name:         SAPCAR
@@ -34,101 +21,6 @@ materials:
       permissions:  '0755'
       download:     true
       url:          https://softwaredownloads.sap.com/file/0020000002208852020               #Note update the links
-
-    - name:         Oracle Client
-      archive:      51054541.zip
-      extract:      true
-      extractDir:   oraclient
-      path:         download_basket
-      download:     true
-      url:         https://softwaredownloads.sap.com/file/0030000001432222020
-
-    - name:         Oracle Software Server
-      archive:      51053828.zip
-      extract:      true
-      download:     true
-      extractDir:   oraserver
-      path:         download_basket
-      #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0030000002299742019          #Not all S-users have permissions to download the oracle software.
-
-
-#SBP Patches are downloaded based on SAP Note 2799920 - Patches 19c: Database
-
-    - name:         "Oracle SBP - Bundle patches for 19c: GIRU"
-      archive:      GIRU19P_2108-70004508.ZIP
-      extract:      false
-      download:     true
-      extractDir:   SBP/GIRU19P
-      path:         SBP
-      #creates:     SIGNATURE.SMF
-      url:         https://softwaredownloads.sap.com/file/0020000001214732021
-
-    - name:         "Oracle SBP - Bundle patches for 19c: SAP19P"
-      archive:      SAP19P_2108-70004508.ZIP
-      extract:      true
-      download:     true
-      extractDir:   SBP/SAPSBP
-      path:         SBP
-      #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000001213832021
-
-    - name:         "Oracle SBP - Bundle patches for 19c: SBPJDK19P"
-      archive:      SBPJDK19P_2108-70004508.ZIP
-      extract:      false
-      download:     true
-      extractDir:   SBP/SBPJDK
-      path:         SBP
-      #creates:     SIGNATURE.SMF
-      url:         https://softwaredownloads.sap.com/file/0020000001213892021
-
-    - name:         "Oracle SBP - Bundle patches for 19c: OPatch"
-      archive:      OPATCH19P_2105-70004508.ZIP
-      extract:      true
-      download:     true
-      extractDir:   SBP/OPATCH
-      path:         SBP
-      #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000751692021
-
-#GRID SBP Patching
-
-    - name:         "Oracle SBP - Bundle patches for 19c: GRID Infra"
-      archive:      SGR19P_2108-70004550.ZIP
-      extract:      true
-      download:     true
-      extractDir:   SBP/SAPGSBP
-      path:         SBP
-      url:          https://softwaredownloads.sap.com/file/0020000001217972021
-
-    - name:         "Oracle SBP - Bundle patches for 19c: GRID Infra - GIRU"
-      archive:      GIRU19P_2108-70004550.ZIP
-      extract:      false
-      download:     true
-      #extractDir:   SBP
-      path:         SBP
-      url:          https://softwaredownloads.sap.com/file/0020000001218252021
-
-
-    
-    - name:         "Oracle SBP - Bundle patches for 19c: GRID Infra - SBPJDK"
-      archive:      SBPJDK19P_2108-70004550.ZIP
-      extract:      false
-      download:     true
-      #extractDir:   SBP
-      path:         SBP
-      url:          https://softwaredownloads.sap.com/file/0020000001218012021
-
-
-
-    - name:         "Oracle SBP - Bundle patches for 19c: Readme Patch File"
-      archive:      README19P_2108-70004508.HTM
-      extract:      false
-      download:     false
-      extractDir:   SBP
-      path:         SBP
-      #creates:     SIGNATURE.SMF
-      url:         https://softwaredownloads.sap.com/file/0020000001213422021
 
 #SAP Oracle executables, SWMP and Installation exports 
     

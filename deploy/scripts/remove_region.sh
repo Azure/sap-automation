@@ -97,6 +97,7 @@ do
     -s | --subscription)                       subscription="$2"                ; shift 2 ;;
     -b | --storage_account)                    storage_account="$2"             ; shift 2 ;;
     -r | --resource_group)                     resource_group="$2"              ; shift 2 ;;
+    -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
     -h | --help)                               showhelp 
                                                exit 3                           ; shift ;;
     --) shift; break ;;
@@ -405,7 +406,6 @@ then
     echo "#########################################################################################"
     echo ""
 
-
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
     --backend-config "subscription_id=${subscription}" \
     --backend-config "resource_group_name=${resource_group}" \
@@ -447,7 +447,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy $allParams
+terraform -chdir="${terraform_module_directory}" destroy $allParams ${approve}
 
 cd "${curdir}" || exit
 
@@ -475,10 +475,9 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy $allParams
+terraform -chdir="${terraform_module_directory}" destroy $allParams ${approve}
 
 cd "${curdir}" || exit
-
 
 unset TF_DATA_DIR
 
