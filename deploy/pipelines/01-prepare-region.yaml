@@ -69,7 +69,7 @@ stages:
             rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
             git config --global user.email "$(Build.RequestedForEmail)"
             git config --global user.name "$(Build.RequestedFor)"
-            git add $(Deployment_Configuration_Path)/.sap_deployment_automation                                &>> /tmp/$(log)
+            git add $(Deployment_Configuration_Path)/.sap_deployment_automation                                &>  /tmp/$(log)
             git add $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
             git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
             git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)

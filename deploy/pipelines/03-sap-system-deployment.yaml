@@ -59,9 +59,10 @@ stages:
           ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
+          rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)" 
-          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                               &>> /tmp/$(log)2
+          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                               &>  /tmp/$(log)2
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)2
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml            &>> /tmp/$(log)2
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml              &>> /tmp/$(log)2
