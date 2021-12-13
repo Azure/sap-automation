@@ -445,7 +445,7 @@ echo ""
 terraform -chdir="${terraform_module_directory}" destroy  $allParams
 return_value=$?
 
-if [ 0 != == $return_value ]
+if [ 0 != $return_value ]
 then
   exit $return_value
 fi
