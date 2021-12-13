@@ -81,7 +81,7 @@ function missing {
 
 force=0
 
-INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:h --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:ih --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
