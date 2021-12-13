@@ -105,8 +105,9 @@ do
   esac
 done
 
-if [ ! -z "$approve" ]; then
-    approveparam=" -i"
+approveparam=""
+if [ 1 == ado ]; then
+    approveparam=" --auto-approve"
 fi
 
 if [ -z "$deployer_parameter_file" ]; then
@@ -447,11 +448,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ ado == 1 ]; then
-  terraform -chdir="${terraform_module_directory}" destroy --auto-approve $allParams
-else
-  terraform -chdir="${terraform_module_directory}" destroy $allParams
-fi
+terraform -chdir="${terraform_module_directory}" destroy "${approveparam}" $allParams
 return_value=$?
 
 if [ 0 != == $return_value ]
