@@ -436,9 +436,7 @@ fi
 
 var_file="${param_dirname}"/"${library_file_parametername}" 
  
-allParams=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s" "${var_file}" "${relative_path}" "${extra_vars}"  )
-
-echo $allParams
+allParams=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s %s " "${var_file}" "${relative_path}" "${extra_vars}" "${approveparam}" )
 
 echo ""
 echo "#########################################################################################"
@@ -448,7 +446,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy "${approveparam}" $allParams
+terraform -chdir="${terraform_module_directory}" destroy  $allParams
 return_value=$?
 
 if [ 0 != == $return_value ]
@@ -472,7 +470,7 @@ if [ -f terraform.tfvars ]; then
 fi
 
 var_file="${param_dirname}"/"${deployer_file_parametername}" 
-allParams=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}"  )
+allParams=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${approveparam}"  )
 
 echo ""
 echo "#########################################################################################"
@@ -482,11 +480,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ ado == 1 ]; then
-  terraform -chdir="${terraform_module_directory}" destroy --auto-approve $allParams
-else
-  terraform -chdir="${terraform_module_directory}" destroy $allParams
-fi
+terraform -chdir="${terraform_module_directory}" destroy $allParams
 return_value=$?
 
 cd "${curdir}" || exit
