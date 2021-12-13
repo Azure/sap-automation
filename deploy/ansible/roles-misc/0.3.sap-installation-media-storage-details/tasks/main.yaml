@@ -93,7 +93,7 @@
     - name:                            "BoM Secrets: Retrieve Access Key details"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ deployer_kv_name }}
           --name "sapbits-access-key"
       changed_when:                    false
       register:                        keyvault_secret_show_accesskey
