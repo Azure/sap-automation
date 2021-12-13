@@ -220,6 +220,10 @@ generic_config_information="${automation_config_directory}"/config
 
 workload_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
+echo "Workload configuration file: $workload_config_information"
+
+load_config_vars "${workload_config_information}" "tfstate_resource_id"
+
 if [ ! -f "${workload_config_information}" ]
     then
     # Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
@@ -248,6 +252,32 @@ if [ ! -f "${workload_config_information}" ]
     fi
 
 fi
+
+if [ -z $tfstate_resource_id ]
+then
+  if [ -z $deployer_environment ]
+    then
+    deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
+    if [ -f $deployer_config_information ]
+    then
+        load_config_vars "${deployer_config_information}" "keyvault"
+        load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
+        load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+        load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+        load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
+        load_config_vars "${deployer_config_information}" "subscription"
+
+        save_config_vars "${workload_config_information}" \
+        keyvault \
+        subscription \
+        deployer_tfstate_key \
+        tfstate_resource_id \
+        REMOTE_STATE_SA \
+        REMOTE_STATE_RG
+    fi
+  fi
+fi
+
 
 if [ "${force}" == 1 ]
 then

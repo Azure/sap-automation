@@ -39,7 +39,8 @@ stages:
           unzip -qq terraform_1.0.8_linux_amd64.zip
           sudo mv terraform /bin/ ; rm terraform_1.0.8_linux_amd64.zip
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
-          git clone --quiet --single-branch --branch $(Branch) $(Repository)
+          git clone --quiet $(Repository)
+          git checkout $(Branch)
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
@@ -63,17 +64,20 @@ stages:
           $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve 2> /dev/null
           return_code=$?
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-          cd $(Build.Repository.LocalPath)
-          rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
-          git config --global user.email "$(Build.RequestedForEmail)"
-          git config --global user.name "$(Build.RequestedFor)"
-          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                                &>> /tmp/$(log)
-          git add $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
-          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
-          git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"             &>> /tmp/$(log)
-          git push 
-          cat /tmp/$(log)
+          if [ 0 == $return_value ] ; then
+            cd $(Build.Repository.LocalPath)
+            rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
+            git config --global user.email "$(Build.RequestedForEmail)"
+            git config --global user.name "$(Build.RequestedFor)"
+            git add $(Deployment_Configuration_Path)/.sap_deployment_automation                                &>> /tmp/$(log)
+            git add $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
+            git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
+            git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
+            git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"             &>> /tmp/$(log)
+            git pull
+            git push                                                                                           &>> /tmp/$(log)
+            cat /tmp/$(log)
+          fi
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
         exit $return_code
       displayName: Prepare region
