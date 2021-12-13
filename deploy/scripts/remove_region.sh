@@ -81,7 +81,7 @@ function missing {
 
 force=0
 
-INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:ih --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:iha --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account,auto-approve,ado,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -97,13 +97,13 @@ do
     -s | --subscription)                       subscription="$2"                ; shift 2 ;;
     -b | --storage_account)                    storage_account="$2"             ; shift 2 ;;
     -r | --resource_group)                     resource_group="$2"              ; shift 2 ;;
+    -a | --ado)                                ado=1                            ; shift ;;
     -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
     -h | --help)                               showhelp 
                                                exit 3                           ; shift ;;
     --) shift; break ;;
   esac
 done
-
 
 if [ ! -z "$approve" ]; then
     approveparam=" -i"
@@ -224,7 +224,7 @@ if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
     echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -289,7 +289,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
+    echo "#       Please login using your credentials or service principal credentials!           #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -447,7 +447,17 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy $allParams ${approve}
+if [ ado == 1 ]; then
+  terraform -chdir="${terraform_module_directory}" destroy --auto-approve $allParams
+else
+  terraform -chdir="${terraform_module_directory}" destroy $allParams
+fi
+return_value=$?
+
+if [ 0 != == $return_value ]
+then
+  exit $return_value
+fi
 
 cd "${curdir}" || exit
 
@@ -475,7 +485,12 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy $allParams ${approve}
+if [ ado == 1 ]; then
+  terraform -chdir="${terraform_module_directory}" destroy --auto-approve $allParams
+else
+  terraform -chdir="${terraform_module_directory}" destroy $allParams
+fi
+return_value=$?
 
 cd "${curdir}" || exit
 
@@ -486,4 +501,4 @@ save_config_var "step" "${deployer_config_information}"
 
 rm "${deployer_config_information}"
 
-exit 0
+exit $return_value
