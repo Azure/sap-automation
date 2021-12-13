@@ -208,3 +208,37 @@ packages:
   # ------------------------ End - packages required for Clustering --------------------------------------8
   suse15.1:
   suse15.2:
+  suse15.3:
+  sles_sap15.2:
+  sles_sap15.3:
+
+    #Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL. 
+    #Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
+  oraclelinux8:
+    - { tier: 'os',    package: oracle-database-preinstall-19c, state: 'present' }
+    - { tier: 'os',    package: 'sudo',                         state: 'present' }
+    - { tier: 'os',    package: 'tcsh',                         state: 'present' }
+    - { tier: 'os',    package: 'nfs-utils',                    state: 'present' }
+    - { tier: 'os',    package: 'rsyslog',                      state: 'present' }
+    - { tier: 'os',    package: 'openssl',                      state: 'present' }
+    - { tier: 'os',    package: 'xorg-x11-xauth',               state: 'present' }
+    - { tier: 'os',    package: 'net-tools',                    state: 'present' }
+    - { tier: 'os',    package: 'bind-utils',                   state: 'present' }
+    - { tier: 'os',    package: 'xfsprogs',                     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                        state: 'present' }
+    - { tier: 'os',    package: 'lvm2',                         state: 'present' }
+    - { tier: 'os',    package: 'cifs-utils',                   state: 'present' }
+    - { tier: 'os',    package: 'uuidd',                        state: 'present' }
+    - { tier: 'os',    package: 'csh',                          state: 'present' }    
+    - { tier: 'ha',    package: 'jq',                           state: 'present' }
+    - { tier: 'os',    package: 'unzip',                        state: 'present' }
+  #  - { tier: 'os',    package: 'oracleasm',                    state: 'present' }
+  
+  oraclelinux8.1:
+  
+  oraclelinux8.2:
+  
+  oraclelinux8.3:
+  
+  oraclelinux8.4:
+  
