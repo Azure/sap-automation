@@ -93,8 +93,7 @@ stages:
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m"
-        reset="\e[0m"
+        green="\e[1;32m" ; reset="\e[0m"
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
