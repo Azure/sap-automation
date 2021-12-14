@@ -32,6 +32,13 @@
       tags:
         - 0.1-passwords
 
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        
+      tags:
+        - kv-sap-installation-media-storage-details
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for SAP DB Load                              |
@@ -69,14 +76,9 @@
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            bom_processing:            true 
           tags:
             - always
-
-        - name:                        Run the sap-installation-media-storage-details role
-          include_role:
-            name:                      roles-misc/0.3.sap-installation-media-storage-details
-          tags:
-            - kv-sap-installation-media-storage-details
 
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
