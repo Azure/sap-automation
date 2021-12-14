@@ -54,7 +54,7 @@
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -99,7 +99,7 @@
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
