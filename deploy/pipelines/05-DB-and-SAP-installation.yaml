@@ -88,6 +88,7 @@ name: $(sapsystemfolder)_$(bom)_$(fqdn)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Re
 
 stages:
 - stage: Prepare_DB_SAP_Installation
+  displayName: Preparation steps
   jobs:
   - job: Prepare_DB_SAP_Installation
     steps:
@@ -161,6 +162,7 @@ stages:
         failOnStderr: false
 
 - stage: SAP_Operating_System_Configuration
+  displayName: SAP Operating System Configuration
   condition: eq(${{ parameters.saposconfig }}, true)
   dependsOn:
     - Prepare_DB_SAP_Installation
@@ -181,6 +183,7 @@ stages:
         failOnStderr: false
 
 - stage: Software_Acquisition
+  displayName: Software Acquisition
   condition: eq(${{ parameters.bomprocessing }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -202,6 +205,7 @@ stages:
 
 
 - stage: Database_Installation
+  displayName: Database Installation
   condition: eq(${{ parameters.dbinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -223,6 +227,7 @@ stages:
         failOnStderr: false
 
 - stage: SCS_Installation
+  displayName: SCS Installation
   condition: eq(${{ parameters.scsinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -245,6 +250,7 @@ stages:
         failOnStderr: false
 
 - stage: Database_Load
+  displayName: Database Load
   condition: eq(${{ parameters.dbload }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -268,6 +274,7 @@ stages:
         failOnStderr: false
 
 - stage: PAS_Installation
+  displayName: PAS Installation
   condition: eq(${{ parameters.pasinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -292,6 +299,7 @@ stages:
         failOnStderr: false
 
 - stage: APP_Install
+  displayName: Application Server Install
   condition: eq(${{ parameters.appinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -317,6 +325,7 @@ stages:
         failOnStderr: false
 
 - stage: WebDispatcher_Installation
+  displayName: WebDispatcher Installation
   condition: eq(${{ parameters.webdispinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
