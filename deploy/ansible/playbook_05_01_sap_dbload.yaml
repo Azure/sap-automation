@@ -48,6 +48,7 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - sap-parameters.yaml
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -73,7 +74,7 @@
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-      when:                            node.tier =='hana'
+      when:                            platform == 'HANA'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -90,6 +91,7 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - sap-parameters.yaml
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -109,7 +111,7 @@
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-      when:                            platform == 'oracle'
+      when:                            platform == 'ORACLE'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
