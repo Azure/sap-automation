@@ -17,7 +17,7 @@ variables:
   sapsystemconfig: ${{ parameters.sap_system }}.tfvars
   log: logfile_$(Build.BuildId)
 
-name: $(sapsystemfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)
+name: $(sapsystemfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
 - stage: Deploy_SAP_infrastructure
@@ -31,7 +31,7 @@ stages:
         echo -e "$green--- Install Terraform ---$reset"
           wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
           unzip -qq terraform_1.0.8_linux_amd64.zip
-          sudo mv terraform /bin/ ; rm terraform_1.0.8_linux_amd64.zip
+          sudo mv terraform /bin/
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
@@ -57,20 +57,21 @@ stages:
         echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
           cd $HOME/SYSTEM/$(sapsystemfolder)
           ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
+          return_code=$?
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
-          rm $(Deployment_Configuration_Path)/.sap_deployment_automation/config
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)" 
-          git add $(Deployment_Configuration_Path)/.sap_deployment_automation                               &>  /tmp/$(log)2
-          git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)2
-          git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml            &>> /tmp/$(log)2
-          git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml              &>> /tmp/$(log)2
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"            &>> /tmp/$(log)2
-          git push -f origin HEAD:main                                                                      &>> /tmp/$(log)2
+          git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate  &>  /tmp/$(log)
+          git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml           &>> /tmp/$(log)
+          git add    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml             &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"              &>> /tmp/$(log)
+          git pull -f origin $(Branch)                                                                        &>> /tmp/$(log)
+          git push -f origin HEAD:$(Branch)                                                                   &>> /tmp/$(log)
         echo "output the log ---$reset"
-          cat /tmp/$(log)2
-        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+          cat /tmp/$(log)
+          git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+          exit $return_code
       displayName: Deploy_SAP_infrastructure
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
