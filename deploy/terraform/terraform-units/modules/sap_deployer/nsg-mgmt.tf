@@ -48,7 +48,7 @@ resource "azurerm_network_security_rule" "nsr_ssh" {
   source_port_range            = "*"
   destination_port_range       = 22
   source_address_prefixes      = local.sub_mgmt_nsg_allowed_ips
-  destination_address_prefixes = local.sub_mgmt_deployed.address_prefixes
+  destination_address_prefixes = local.sub_mgmt_deployed_prefixes
 }
 
 // Add RDP network security rule
@@ -68,7 +68,7 @@ resource "azurerm_network_security_rule" "nsr_rdp" {
   source_port_range            = "*"
   destination_port_range       = 3389
   source_address_prefixes      = local.sub_mgmt_nsg_allowed_ips
-  destination_address_prefixes = local.sub_mgmt_deployed.address_prefixes
+  destination_address_prefixes = local.sub_mgmt_deployed_prefixes
 }
 
 // Add WinRM network security rule
@@ -88,5 +88,5 @@ resource "azurerm_network_security_rule" "nsr_winrm" {
   source_port_range            = "*"
   destination_port_ranges      = [5985, 5986]
   source_address_prefixes      = local.sub_mgmt_nsg_allowed_ips
-  destination_address_prefixes = local.sub_mgmt_deployed.address_prefixes
+  destination_address_prefixes = local.sub_mgmt_deployed_prefixes
 }

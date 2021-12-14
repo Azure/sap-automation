@@ -88,13 +88,13 @@ name: $(sapsystemfolder)_$(bom)_$(fqdn)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Re
 
 stages:
 - stage: Prepare_DB_SAP_Installation
-  displayName: Preparation steps
   jobs:
   - job: Prepare_DB_SAP_Installation
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m" ; reset="\e[0m"
+        green="\e[1;32m"
+        reset="\e[0m"
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
@@ -131,10 +131,9 @@ stages:
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)" 
-          git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>  /tmp/$(log)
+          git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"   &>> /tmp/$(log)
-          git pull origin $(Branch)                                                                &>> /tmp/$(log)
-          git push origin HEAD:$(Branch)                                                           &>> /tmp/$(log)
+          git push -f origin HEAD:main                            &>> /tmp/$(log)
         echo "output the log ---$reset"
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
@@ -162,7 +161,6 @@ stages:
         failOnStderr: false
 
 - stage: SAP_Operating_System_Configuration
-  displayName: SAP Operating System Configuration
   condition: eq(${{ parameters.saposconfig }}, true)
   dependsOn:
     - Prepare_DB_SAP_Installation
@@ -183,7 +181,6 @@ stages:
         failOnStderr: false
 
 - stage: Software_Acquisition
-  displayName: Software Acquisition
   condition: eq(${{ parameters.bomprocessing }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -205,7 +202,6 @@ stages:
 
 
 - stage: Database_Installation
-  displayName: Database Installation
   condition: eq(${{ parameters.dbinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -227,7 +223,6 @@ stages:
         failOnStderr: false
 
 - stage: SCS_Installation
-  displayName: SCS Installation
   condition: eq(${{ parameters.scsinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -250,7 +245,6 @@ stages:
         failOnStderr: false
 
 - stage: Database_Load
-  displayName: Database Load
   condition: eq(${{ parameters.dbload }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -274,7 +268,6 @@ stages:
         failOnStderr: false
 
 - stage: PAS_Installation
-  displayName: PAS Installation
   condition: eq(${{ parameters.pasinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -299,7 +292,6 @@ stages:
         failOnStderr: false
 
 - stage: APP_Install
-  displayName: Application Server Install
   condition: eq(${{ parameters.appinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -325,7 +317,6 @@ stages:
         failOnStderr: false
 
 - stage: WebDispatcher_Installation
-  displayName: WebDispatcher Installation
   condition: eq(${{ parameters.webdispinstall }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation

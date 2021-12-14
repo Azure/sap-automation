@@ -73,8 +73,8 @@ stages:
           git add -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
           git add    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"                &>> /tmp/$(log)
-          git pull -f origin $(Branch)                                                                          &>> /tmp/$(log)
-          git push -f origin HEAD:$(Branch)                                                                     &>> /tmp/$(log)
+          git pull origin $(Branch)                                                                             &>> /tmp/$(log)
+          git push origin HEAD:$(Branch)                                                                        &>> /tmp/$(log)
         echo "output the log ---$reset"
           cat /tmp/$(log)
           git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader

@@ -694,9 +694,9 @@ if [ 5 == $step ]; then
 
     end=`date -u -d "180 days" '+%Y-%m-%dT%H:%MZ'`
 
-    sas=?$(az storage container generate-sas --permissions r --account-name ${REMOTE_STATE_SA} --name sapbits --https-only  --expiry $end -o tsv)
+    sas=?$(az storage container generate-sas --permissions rl --account-name "${REMOTE_STATE_SA}" --name 'sapbits' --https-only  --expiry $end -o tsv)
 
-    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
+    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  '${sas}'
 
     step=6
     save_config_var "step" "${deployer_config_information}"

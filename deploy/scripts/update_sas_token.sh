@@ -1,6 +1,6 @@
 # This is the SAP library’s storage account for sap binaries
 if [ ! -n "${SAP_LIBRARY_TF}" ] ;then
-  read -p "Please provide the terraform state storage account from SAP_LIBRARY? "  saplib
+  read -p "Please provide the SAP Library storage account from SAP_LIBRARY? "  saplib
 else
   saplib="${SAP_LIBRARY_TF}"
 fi
@@ -16,6 +16,6 @@ fi
 
 end=`date -u -d "90 days" '+%Y-%m-%dT%H:%MZ'`
 
-sas=?$(az storage container generate-sas --permissions r --account-name $saplib --name sapbits --https-only  --expiry $end -o tsv)
+sas=?$(az storage container generate-sas --permissions rl --account-name $saplib --name sapbits --https-only  --expiry $end -o tsv)
 
 az keyvault secret set --vault-name $kv_name --name "sapbits-sas-token" --value  "${sas}"
