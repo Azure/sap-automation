@@ -1,0 +1,371 @@
+# This pipeline configures the OS, installs the database and SAP
+
+parameters:
+- name: sap_system
+  displayName: ENV-LOCA-VNET-SID
+  type: string
+  default: DEV-WEEU-SAP01-X00
+
+- name: bom_base_name
+  displayName: BOM Base Name
+  type: string
+  default: S41909SPS03_v0007ms
+  values:
+  - S41909SPS03_v0007ms
+  - BW4HANA2021SPS01_v0001ms
+  - HANA_2_00_055_v0005ms
+  - NW750SPS20_v0002ms
+
+- name: sap_fqdn
+  displayName: SAP Domain Name
+  type: string
+  default: sap.contoso.net
+
+- name: baseosconfig
+  displayName: Core Operating System Configuration
+  type: boolean
+  default: true
+
+- name: saposconfig
+  displayName: SAP Operating System Configuration
+  type: boolean
+  default: true
+
+- name: bomprocessing
+  displayName: Software Acquisition
+  type: boolean
+  default: true
+
+- name: dbinstall
+  displayName: Database Installation
+  type: boolean
+  default: true
+
+- name: scsinstall
+  displayName: SCS Installation
+  type: boolean
+  default: true
+
+- name: dbload
+  displayName: Database Load
+  type: boolean
+  default: true
+
+- name: pasinstall
+  displayName: PAS Installation
+  type: boolean
+  default: true
+
+- name: appinstall
+  displayName: APP Installation
+  type: boolean
+  default: true
+
+- name: webdispinstall
+  displayName: WebDispatcher Installation
+  type: boolean
+  default: false
+
+- name: highavailability
+  displayName: SAP & DB High Availability Setup
+  type: boolean
+  default: false
+
+trigger:
+  none
+
+pool:
+  name: $(agent)
+
+variables:
+  sapsystemfolder: ${{ parameters.sap_system }}
+  sapsystemconfig: ${{ parameters.sap_system }}.tfvars
+  bom: ${{ parameters.bom_base_name }}
+  fqdn: ${{ parameters.sap_fqdn }}
+  log: logfile_$(Build.BuildId)
+
+name: $(sapsystemfolder)_$(bom)_$(fqdn)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+stages:
+- stage: Prepare_DB_SAP_Installation
+  jobs:
+  - job: Prepare_DB_SAP_Installation
+    steps:
+    - script: |
+        #!/bin/bash
+        green="\e[1;32m"
+        reset="\e[0m"
+        echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
+          git clone --quiet --single-branch --branch $(Branch) $(Repository)
+        echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
+        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
+          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+        echo -e "$green--- --- Convert config file to UX format ---$reset"
+          sudo apt-get -qq install dos2unix
+          dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+          dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
+        echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
+          sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+          sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(fqdn)"'|'      SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+        echo -e "$green--- Get SID and copy hosts file over for ansible runs ---$reset"
+          export SID=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep sid'=' | awk -F'=' '{print $2}' | xargs) ; echo SID $SID
+          cp -p $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml $(Build.Repository.LocalPath)/sap_hosts.yaml
+        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+        echo -e "$green--- az login ---$reset"
+          az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+          az account set --subscription $(ARM_SUBSCRIPTION_ID)
+        echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
+          export ENV=$(echo $(sapsystemfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+          export LOCA=$(echo $(sapsystemfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location $LOCA
+          export VNET=$(echo $(sapsystemfolder) | awk -F'-' '{print $3}' | xargs) ; echo VNET $VNET
+          export kv_name=$(cat .sap_deployment_automation/${ENV}${LOCA}  | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
+          az keyvault secret show --name ${ENV}-${LOCA}-${VNET}-sid-sshkey --vault-name $kv_name --query value -o tsv > $(Build.Repository.LocalPath)/sshkey
+          chmod 600 $(Build.Repository.LocalPath)/sshkey
+        echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+          cd $(Build.Repository.LocalPath)
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)" 
+          git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"   &>> /tmp/$(log)
+          git push -f origin HEAD:main                            &>> /tmp/$(log)
+        echo "output the log ---$reset"
+          cat /tmp/$(log)
+        git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+      displayName: Prepare_DB_SAP_Installation
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      failOnStderr: true
+- stage: Core_Operating_System_Configuration
+  condition: eq(${{ parameters.baseosconfig }}, true)
+  dependsOn:
+    - Prepare_DB_SAP_Installation
+  jobs:
+  - job: Core_Operating_System_Configuration
+    displayName: Core Operating System Configuration
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: Core Operating System Configuration
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_01_os_base_config.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: SAP_Operating_System_Configuration
+  condition: eq(${{ parameters.saposconfig }}, true)
+  dependsOn:
+    - Prepare_DB_SAP_Installation
+    - Core_Operating_System_Configuration
+  jobs:
+  - job: SAP_Operating_System_Configuration
+    displayName: SAP Operating System Configuration
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: SAP Operating System Configuration
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_02_os_sap_specific_config.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: Software_Acquisition
+  condition: eq(${{ parameters.bomprocessing }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - Core_Operating_System_Configuration
+  - SAP_Operating_System_Configuration
+  jobs:
+  - job: Software_Acquisition
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: Software Acquisition
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_03_bom_processing.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+
+- stage: Database_Installation
+  condition: eq(${{ parameters.dbinstall }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - SAP_Operating_System_Configuration
+  - Software_Acquisition
+  jobs:
+  - job: Database_Installation
+    displayName: Database Installation
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: Database Installation
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_00_db_install.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: SCS_Installation
+  condition: eq(${{ parameters.scsinstall }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - SAP_Operating_System_Configuration
+  - Software_Acquisition
+  - Database_Installation
+  jobs:
+  - job: SCS_Installation
+    displayName: SCS Installation
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: SCS Installation
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: Database_Load
+  condition: eq(${{ parameters.dbload }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - SAP_Operating_System_Configuration
+  - Software_Acquisition
+  - Database_Installation
+  - SCS_Installation
+  jobs:
+  - job: Database_Load
+    displayName: Database Load
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: Database Load
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_01_sap_dbload.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '-vvvv --private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: PAS_Installation
+  condition: eq(${{ parameters.pasinstall }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - SAP_Operating_System_Configuration
+  - Software_Acquisition
+  - Database_Installation
+  - SCS_Installation
+  - Database_Load
+  jobs:
+  - job: PAS_Installation
+    displayName: PAS Installation
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: PAS Installation
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_02_sap_pas_install.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: APP_Install
+  condition: eq(${{ parameters.appinstall }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - SAP_Operating_System_Configuration
+  - Software_Acquisition
+  - Database_Installation
+  - SCS_Installation
+  - Database_Load
+  - PAS_Installation
+  jobs:
+  - job: APP_Install
+    displayName: Application Server Install
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: Application Server Install
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_03_sap_app_install.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: WebDispatcher_Installation
+  condition: eq(${{ parameters.webdispinstall }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - SAP_Operating_System_Configuration
+  - Software_Acquisition
+  - Database_Installation
+  - SCS_Installation
+  - Database_Load
+  - PAS_Installation
+  - APP_Install
+  jobs:
+  - job: WebDispatcher_Installation
+    displayName: WebDispatcher Installation
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: WebDispatcher Installation
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_04_sap_web_install.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
+
+- stage: HighAvailability_Setup
+  displayName: High Availability Setup
+  condition: eq(${{ parameters.highavailability }}, true)
+  dependsOn:
+  - Prepare_DB_SAP_Installation
+  - SAP_Operating_System_Configuration
+  - Software_Acquisition
+  - Database_Installation
+  - SCS_Installation
+  - Database_Load
+  - PAS_Installation
+  - APP_Install
+  - WebDispatcher_Installation
+  jobs:
+  - job: HighAvailability_Setup
+    displayName: High Availability Setup
+    steps:
+    - checkout: none
+    - task: Ansible@0
+      displayName: High Availability Setup
+      inputs:
+        ansibleInterface: 'agentMachine'
+        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_01_db_ha.yaml'
+        inventoriesAgentMachine: 'file'
+        inventoryFileOnAgentMachine: 'sap_hosts.yaml'
+        args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
+        failOnStderr: false
