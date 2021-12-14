@@ -9,7 +9,6 @@ parameters:
   default: S41909SPS03_v0007ms
   values:
    - S41909SPS03_v0007ms
-   - S41909SPS03_v0006ms
    - BW4HANA2021SPS01_v0001ms
    - HANA_2_00_055_v0005ms
    - NW750SPS20_v0002ms
@@ -44,8 +43,7 @@ stages:
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m"
-        reset="\e[0m"
+        green="\e[1;32m" ; reset="\e[0m"
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
           git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
@@ -63,7 +61,6 @@ stages:
           sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
           sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
           sed -i 's|kv_name:.*|deployer_kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
-          # sed -i 's|kv_name:.*|kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
         echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
           cat $HOME/BOMS/sap-parameters.yaml
         echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"

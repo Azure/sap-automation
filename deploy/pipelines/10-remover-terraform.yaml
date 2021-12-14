@@ -94,7 +94,7 @@ stages:
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
           cd $HOME/SYSTEM/$(sapsystemfolder)
-          ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sapsystemconfig) --type sap_system --auto-approve
+          ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sapsystemconfig) --type sap_system --auto-approve 
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
@@ -205,7 +205,7 @@ stages:
           dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig) 2> /dev/null
           dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)    2> /dev/null
         echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig) --auto-approve
+          $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig) --auto-approve --ado 
         echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
           cd $(Build.Repository.LocalPath)
           git config --global user.email "$(Build.RequestedForEmail)"
