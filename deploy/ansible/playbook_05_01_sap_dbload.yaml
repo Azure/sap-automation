@@ -58,6 +58,11 @@
     - name:                            Load the SAP parameters
       include_vars:                    "{{ _workspace_directory }}/sap-parameters.yaml"
 
+    - name:                            Load the SAP parameters
+      ansible.builtin.debug:          
+        var:                           platform
+
+
     - name:                            "Perform DB Load on HANA"
       block:
         - name:                        Setting the dbload facts
