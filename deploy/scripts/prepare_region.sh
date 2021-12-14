@@ -697,7 +697,7 @@ if [ 5 == $step ]; then
 
     sas=?$(az storage container generate-sas --permissions r --account-name ${REMOTE_STATE_SA} --name sapbits --https-only  --expiry $end -o tsv)
 
-    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
+    # az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
 
     step=6
     save_config_var "step" "${deployer_config_information}"
