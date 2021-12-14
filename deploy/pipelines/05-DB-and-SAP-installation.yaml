@@ -96,8 +96,7 @@ stages:
         green="\e[1;32m"
         reset="\e[0m"
         echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
-          git clone --quiet $(Repository)
-          git checkout $(Branch)
+          git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
@@ -134,8 +133,7 @@ stages:
           git config --global user.name "$(Build.RequestedFor)" 
           git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
           git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"   &>> /tmp/$(log)
-          git pull                                                &>> /tmp/$(log)
-          git push                                                &>> /tmp/$(log)
+          git push -f origin HEAD:main                            &>> /tmp/$(log)
         echo "output the log ---$reset"
           cat /tmp/$(log)
         git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
@@ -143,13 +141,13 @@ stages:
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
-
 - stage: Core_Operating_System_Configuration
   condition: eq(${{ parameters.baseosconfig }}, true)
   dependsOn:
     - Prepare_DB_SAP_Installation
   jobs:
   - job: Core_Operating_System_Configuration
+    displayName: Core Operating System Configuration
     steps:
     - checkout: none
     - task: Ansible@0
@@ -169,6 +167,7 @@ stages:
     - Core_Operating_System_Configuration
   jobs:
   - job: SAP_Operating_System_Configuration
+    displayName: SAP Operating System Configuration
     steps:
     - checkout: none
     - task: Ansible@0
@@ -210,6 +209,7 @@ stages:
   - Software_Acquisition
   jobs:
   - job: Database_Installation
+    displayName: Database Installation
     steps:
     - checkout: none
     - task: Ansible@0
@@ -231,6 +231,7 @@ stages:
   - Database_Installation
   jobs:
   - job: SCS_Installation
+    displayName: SCS Installation
     steps:
     - checkout: none
     - task: Ansible@0
@@ -253,6 +254,7 @@ stages:
   - SCS_Installation
   jobs:
   - job: Database_Load
+    displayName: Database Load
     steps:
     - checkout: none
     - task: Ansible@0
@@ -276,6 +278,7 @@ stages:
   - Database_Load
   jobs:
   - job: PAS_Installation
+    displayName: PAS Installation
     steps:
     - checkout: none
     - task: Ansible@0
@@ -300,10 +303,11 @@ stages:
   - PAS_Installation
   jobs:
   - job: APP_Install
+    displayName: Application Server Install
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: APP_Install
+      displayName: Application Server Install
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_03_sap_app_install.yaml'
@@ -325,6 +329,7 @@ stages:
   - APP_Install
   jobs:
   - job: WebDispatcher_Installation
+    displayName: WebDispatcher Installation
     steps:
     - checkout: none
     - task: Ansible@0
@@ -338,6 +343,7 @@ stages:
         failOnStderr: false
 
 - stage: HighAvailability_Setup
+  displayName: High Availability Setup
   condition: eq(${{ parameters.highavailability }}, true)
   dependsOn:
   - Prepare_DB_SAP_Installation
@@ -351,10 +357,11 @@ stages:
   - WebDispatcher_Installation
   jobs:
   - job: HighAvailability_Setup
+    displayName: High Availability Setup
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: HighAvailability Setup
+      displayName: High Availability Setup
       inputs:
         ansibleInterface: 'agentMachine'
         playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_01_db_ha.yaml'
