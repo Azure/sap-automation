@@ -48,7 +48,6 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-    - sap-parameters.yaml
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -56,6 +55,9 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
+    - name:                            Load the SAP parameters
+      include_vars:                    "{{ _workspace_directory }}/sap-parameters.yaml"
+
     - name:                            "Perform DB Load on HANA"
       block:
         - name:                        Setting the dbload facts
@@ -91,7 +93,6 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-    - sap-parameters.yaml
 
   tasks:
 # -------------------------------------+---------------------------------------8
