@@ -73,7 +73,7 @@
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-      when:                            platform =='hana'
+      when:                            node.tier =='hana'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
