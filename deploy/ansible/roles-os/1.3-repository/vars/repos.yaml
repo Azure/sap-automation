@@ -27,6 +27,9 @@ repos:
   sles_sap15.3:
   sles_sap15.2:
   sles_sap15.1:
+  suse12.5:
+  suse12.4:
+  suse12.3:
   suse15.3:
   suse15.2:
   suse15.1:
