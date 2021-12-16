@@ -22,20 +22,50 @@ variables:
   zoneconfig: ${{ parameters.workloadzone }}.tfvars
   env: ${{ parameters.environment }}
   log: logfile_$(Build.BuildId)
+  tf_version: '1.011'
+  tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 name: $(zonefolder)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
 - stage: Deploy_SAP_workloadzone
+  displayName: Deploy SAP workload zone
   jobs:
   - job: Deploy_SAP_workloadzone
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m" ; reset="\e[0m"
+        green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+        echo -e "$green--- Validations ---$reset"
+          if [ ! -f $(zoneconfig) ]; then
+            echo -e "$boldred--- $(zoneconfig) was not found ---$reset"
+            echo "##vso[task.logissue type=error]File $(zoneconfig) was not found."
+            exit 2
+          fi
+          if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+            echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+            exit 2
+          fi
+          if [ ! -n $(ARM_CLIENT_ID) ]; then
+            echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+            exit 2
+          fi
+          if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+            echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+            exit 2
+          fi
+          if [ ! -n $(ARM_TENANT_ID) ]; then
+            echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+            exit 2
+          fi
         echo -e "$green--- Install Terraform ---$reset"
-          wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
-          unzip -qq terraform_1.0.8_linux_amd64.zip ; sudo mv terraform /bin/
+          wget -q $(tf_url)
+          return_code=$?
+          if [ 0 != $return_code ]; then
+            echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+            exit 2
+          fi
+          unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
@@ -49,6 +79,12 @@ stages:
           export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
           export ARM_TENANT_ID=$(ARM_TENANT_ID)
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+          return_code=$?
+          if [ 0 != $return_code ]; then
+            echo -e "$boldred--- Login failed ---$reset"
+            echo "##vso[task.logissue type=error]az login failed."
+            exit $return_code
+          fi
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
         echo -e "$green--- --- Convert config file to UX format ---$reset"
           sudo apt-get -qq install dos2unix
