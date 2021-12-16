@@ -354,10 +354,8 @@ if [ ! -n "${REMOTE_STATE_SA}" ]; then
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
     
-    if [ ! -z "${STATE_SUBSCRIPTION}" ]
-    then
-        if [ $account_set == 0 ]
-        then
+    if [ ! -z "${STATE_SUBSCRIPTION}" ]; then
+        if [ $account_set == 0 ];  then
             $(az account set --sub "${STATE_SUBSCRIPTION}")
             account_set=1
         fi
