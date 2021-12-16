@@ -9,6 +9,7 @@ ${sid}_DB:
 %{~ endfor }
   vars:
     node_tier             : ${platform}
+    supported_tiers       : [${db_supported_tiers}]
 
 ${sid}_SCS:
   hosts:
@@ -21,6 +22,7 @@ ${sid}_SCS:
 %{~ endfor }
   vars:
     node_tier             : scs
+    supported_tiers       : [${scs_supported_tiers}]
 
 ${sid}_ERS:
   hosts:
@@ -33,6 +35,7 @@ ${sid}_ERS:
 %{~ endfor }
   vars:
     node_tier             : ers
+    supported_tiers       : [ers]
 
 
 ${sid}_PAS:
@@ -47,6 +50,7 @@ ${sid}_PAS:
 %{~ endfor }
   vars:
     node_tier             : pas
+    supported_tiers       : [pas]
 
 ${sid}_APP:
   hosts:
@@ -60,6 +64,7 @@ ${sid}_APP:
 %{~ endfor }
   vars:
     node_tier             : app
+    supported_tiers       : [app]
 
 ${sid}_WEB:
   hosts:
@@ -73,3 +78,4 @@ ${sid}_WEB:
 %{~ endfor }
   vars:
     node_tier             : web
+    supported_tiers       : [web]

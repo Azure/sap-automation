@@ -43,21 +43,23 @@ resource "local_file" "ansible_inventory_new_yml" {
       )) : (
       []
     ),
-    webservers        = length(local.ips_web) > 0 ? var.naming.virtualmachine_names.WEB_COMPUTERNAME : [],
-    prefix            = var.naming.prefix.SDU,
-    separator         = var.naming.separator,
-    platform          = lower(var.platform)
-    dbconnection      = var.platform == "SQLSERVER" ? "winrm" : "ssh"
-    scsconnection     = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
-    ersconnection     = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
-    appconnection     = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
-    webconnection     = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
-    appconnectiontype = try(var.authentication_type, "key")
-    webconnectiontype = try(var.authentication_type, "key")
-    scsconnectiontype = try(var.authentication_type, "key")
-    ersconnectiontype = try(var.authentication_type, "key")
-    dbconnectiontype  = try(var.db_auth_type, "key")
-    ansible_user      = var.ansible_user
+    webservers          = length(local.ips_web) > 0 ? var.naming.virtualmachine_names.WEB_COMPUTERNAME : [],
+    prefix              = var.naming.prefix.SDU,
+    separator           = var.naming.separator,
+    platform            = lower(var.platform)
+    dbconnection        = var.platform == "SQLSERVER" ? "winrm" : "ssh"
+    scsconnection       = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    ersconnection       = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    appconnection       = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
+    webconnection       = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
+    appconnectiontype   = try(var.authentication_type, "key")
+    webconnectiontype   = try(var.authentication_type, "key")
+    scsconnectiontype   = try(var.authentication_type, "key")
+    ersconnectiontype   = try(var.authentication_type, "key")
+    dbconnectiontype    = try(var.db_auth_type, "key")
+    ansible_user        = var.ansible_user
+    db_supported_tiers  = local.db_supported_tiers
+    scs_supported_tiers = local.scs_supported_tiers
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)

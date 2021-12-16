@@ -111,6 +111,7 @@ options=(
 
         # Special menu entries
         "BOM Download"
+        "Tester"
         "Install SAP (1-7)"
         "Post SAP Install (8-10)"
         "All Playbooks"
@@ -132,7 +133,8 @@ all_playbooks=(
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
         ${cmd_dir}/playbook_04_00_01_db_ha.yaml
-        ${cmd_dir}/playbook_bom_downloader.yaml
+        ${cmd_dir}/playbook_bom_downloader
+        ${cmd_dir}/playbook_tester.yaml
 )
 
 # Set of options that will be passed to the ansible-playbook command

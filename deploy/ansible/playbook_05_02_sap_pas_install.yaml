@@ -38,7 +38,9 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_PAS"
+- hosts:                               "{{ sap_sid|upper }}_DB  :
+                                        {{ sap_sid|upper }}_SCS :
+                                        {{ sap_sid|upper }}_PAS"
 
   name:                                SAP Installation - PAS
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -70,23 +72,28 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - block:
-        - name:                        Include 2.6-sap-mounts role
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-      tags:
-        - 2.6-sap-mounts
+    - name:                            Run PAS Installation 
+      block:
 
-    - block:
-        - name:                        Include 5.2-pas-install
-          ansible.builtin.include_role:
-            name:     roles-sap/5.2-pas-install
-      tags:
-        - 5.2-pas-install
+        - block:
+            - name:                        Include 2.6-sap-mounts role
+              ansible.builtin.include_role:
+                name:                      roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
+
+        - block:
+            - name:                        Include 5.2-pas-install
+              ansible.builtin.include_role:
+                name:     roles-sap/5.2-pas-install
+          tags:
+            - 5.2-pas-install
+      when:                            
+        - "'pas' in supported_tiers"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                       Playbook for SAP SCS Logging                         |
+# |                       Playbook for SAP PAS Logging                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
