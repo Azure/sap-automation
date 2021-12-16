@@ -23,7 +23,7 @@ variables:
   libraryfolder: ${{ parameters.library }}
   libraryconfig: ${{ parameters.library }}.tfvars
   log: logfile_$(Build.BuildId)
-  tf_version: '1.011'
+  tf_version: '1.0.11'
   tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 name: $(deployerfolder)_$(libraryfolder)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
