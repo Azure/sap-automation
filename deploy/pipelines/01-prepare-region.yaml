@@ -69,7 +69,7 @@ stages:
           git add -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
           git add -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
           git add    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"                &>> /tmp/$(log)                                                                                       &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"                &>> /tmp/$(log)
           git pull origin $(Branch)                                                                             &>> /tmp/$(log)
           git push origin HEAD:$(Branch)                                                                        &>> /tmp/$(log)
           cat /tmp/$(log)
