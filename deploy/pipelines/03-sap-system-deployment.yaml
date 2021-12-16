@@ -30,6 +30,11 @@ stages:
     - script: |
         #!/bin/bash
         green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
+          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
         echo -e "$green--- Validations ---$reset"
         if [ ! -f $(sapsystemfolder) ]; then
           echo -e "$boldred--- $(sapsystemfolder) was not found ---$reset"
@@ -68,10 +73,6 @@ stages:
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
-          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-          cd $HOME; mkdir -p .sap_deployment_automation
-          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
         echo -e "$green--- az login ---$reset"
           export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
           export ARM_CLIENT_ID=$(ARM_CLIENT_ID)

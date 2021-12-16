@@ -38,6 +38,11 @@ stages:
     - script: |
         #!/bin/bash
         green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+          cd $HOME; mkdir -p .sap_deployment_automation
+          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
         echo -e "$green--- Validations ---$reset"
         echo LIBRARY/$(libraryfolder)/$(libraryconfig)
         echo DEPLOYER/$(deployerfolder)/$(deployerconfig)
@@ -75,11 +80,6 @@ stages:
             exit 2
           fi
           unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-          cd $HOME; mkdir -p .sap_deployment_automation
-          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
         echo -e "$green--- az login ---$reset"
           export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
           export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
