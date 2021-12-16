@@ -32,6 +32,7 @@ stages:
   displayName: Deploy SAP workload zone
   jobs:
   - job: Deploy_SAP_workloadzone
+    displayName: Deploy SAP workload zone
     steps:
     - script: |
         #!/bin/bash
