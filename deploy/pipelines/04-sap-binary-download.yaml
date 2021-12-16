@@ -44,10 +44,8 @@ stages:
     - script: |
         #!/bin/bash
         green="\e[1;32m" ; reset="\e[0m"
-        echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
-          git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
           cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
@@ -67,11 +65,11 @@ stages:
           export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
           echo $SUsername
           if [ -z "$SUsername" ]; then 
-            az keyvault secret set --name S-Username --vault-name $kv_name --value $(S-Username) >/dev/null 2>&1
+            az keyvault secret set --output none --name S-Username --vault-name $kv_name --value $(S-Username)
           fi
           export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
           if [ -z "$SPassword" ]; then 
-            az keyvault secret set --name S-Password --vault-name $kv_name --value $(S-Password) >/dev/null 2>&1
+            az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
           fi
       displayName: Prepare download
       env:

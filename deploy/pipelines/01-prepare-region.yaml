@@ -36,12 +36,9 @@ stages:
         green="\e[1;32m" ; reset="\e[0m"
         echo -e "$green--- Install Terraform ---$reset"
           wget -q https://releases.hashicorp.com/terraform/1.0.8/terraform_1.0.8_linux_amd64.zip
-          unzip -qq terraform_1.0.8_linux_amd64.zip
-          sudo mv terraform /bin/
-        echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
-          git clone --quiet --single-branch --branch $(Branch) $(Repository)
+          unzip -qq terraform_1.0.8_linux_amd64.zip ; sudo mv terraform /bin/
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
           cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
@@ -72,10 +69,9 @@ stages:
           git add -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate   &>> /tmp/$(log)
           git add -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate     &>> /tmp/$(log)
           git add    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars            &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"                &>> /tmp/$(log)
+          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"                &>> /tmp/$(log)                                                                                       &>> /tmp/$(log)
           git pull origin $(Branch)                                                                             &>> /tmp/$(log)
           git push origin HEAD:$(Branch)                                                                        &>> /tmp/$(log)
-        echo "output the log ---$reset"
           cat /tmp/$(log)
           git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
           exit $return_code

@@ -95,11 +95,9 @@ stages:
     - script: |
         #!/bin/bash
         green="\e[1;32m" ; reset="\e[0m"
-        echo -e "$green--- Clone the $(Branch) branch of repository $(Repository) ---$reset"
-          git clone --quiet --single-branch --branch $(Branch) $(Repository)
         echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)/sap-automation
+          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
         echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
           cd $HOME; mkdir -p .sap_deployment_automation
@@ -155,7 +153,7 @@ stages:
       displayName: Core Operating System Configuration
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_01_os_base_config.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_01_os_base_config.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -176,7 +174,7 @@ stages:
       displayName: SAP Operating System Configuration
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_02_os_sap_specific_config.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_02_os_sap_specific_config.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -197,7 +195,7 @@ stages:
       displayName: Software Acquisition
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_03_bom_processing.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_03_bom_processing.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -220,7 +218,7 @@ stages:
       displayName: Database Installation
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_00_db_install.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_04_00_00_db_install.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -243,7 +241,7 @@ stages:
       displayName: SCS Installation
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_05_00_00_sap_scs_install.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -267,7 +265,7 @@ stages:
       displayName: Database Load
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_01_sap_dbload.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_05_01_sap_dbload.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '-vvvv --private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -292,7 +290,7 @@ stages:
       displayName: PAS Installation
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_02_sap_pas_install.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_05_02_sap_pas_install.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -318,7 +316,7 @@ stages:
       displayName: Application Server Install
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_03_sap_app_install.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_05_03_sap_app_install.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -345,7 +343,7 @@ stages:
       displayName: WebDispatcher Installation
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_05_04_sap_web_install.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_05_04_sap_web_install.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
@@ -373,7 +371,7 @@ stages:
       displayName: High Availability Setup
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_04_00_01_db_ha.yaml'
+        playbookPathOnAgentMachine: 'deploy/ansible/playbook_04_00_01_db_ha.yaml'
         inventoriesAgentMachine: 'file'
         inventoryFileOnAgentMachine: 'sap_hosts.yaml'
         args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
