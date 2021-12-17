@@ -77,13 +77,15 @@ stages:
       failOnStderr: true
 
 - stage: Download_binaries
+  displayName: Download software
   jobs:
   - job: Download_binaries
+    displayName: Download software
     timeoutInMinutes: 0
     steps:
     - checkout: none
     - task: Ansible@0
-      displayName: Download binaries
+      displayName: Download software
       timeoutInMinutes: 0
       inputs:
         ansibleInterface: 'agentMachine'
