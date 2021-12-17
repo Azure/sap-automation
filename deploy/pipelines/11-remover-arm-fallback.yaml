@@ -3,7 +3,7 @@
 
 parameters:
 - name: cleanupsap
-  displayName: "Remove the SAP systems provided in below configuration"
+  displayName: "Remove the SAP system defined in configuration below"
   type: boolean
   default: False
 
@@ -13,7 +13,7 @@ parameters:
   default: DEV-WEEU-SAP01-X00
 
 - name: cleanupzone
-  displayName: "Remove the SAP workload zone provided in below configuration:"
+  displayName: "Remove the SAP workload defined in configuration below"
   type: boolean
   default: False
 
@@ -23,7 +23,7 @@ parameters:
   default: DEV-WEEU-SAP01-INFRASTRUCTURE
 
 - name: cleanupregion
-  displayName: "Remove the region as listed in below configurations for the deployer and library:"
+  displayName: "Remove the control plane defined in configuration below below configurations for the deployer and library:"
   type: boolean
   default: False
 
@@ -58,9 +58,11 @@ name: $(deployerfolder)_$(libraryfolder)_${{ parameters.cleanupregion }}_$(zonef
 
 stages:
 - stage: Remove_SAP_systems
+  displayName: 'Remove SAP System $(sapsystemfolder)'
   condition: eq(${{ parameters.cleanupsap }}, true)
   jobs:
   - job: Remove_SAP_system_RG
+    displayName: 'Remove SAP System $(sapsystemfolder)'
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
       displayName: 'Remove Resource Group $(sapsystemfolder)'
@@ -96,9 +98,11 @@ stages:
       failOnStderr: true
 
 - stage: Remove_SAP_workloadzone
+  displayName: 'Remove SAP workload zone $(zonefolder)'
   condition: eq(${{ parameters.cleanupzone }}, true)
   jobs:
   - job: Remove_SAP_workloadzone
+    displayName: 'Remove SAP workload zone $(zonefolder)'  
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
       displayName: 'Remove Resource Group $(zonefolder)'
@@ -134,10 +138,12 @@ stages:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
 
-- stage: Remove_region
+- stage: Remove_Control_plane
+  displayName: Reemove Control Plane
   condition: eq(${{ parameters.cleanupregion }}, true)
   jobs:
-  - job: Remove_SAP_Library
+  - job: Remove_SAP_library
+    displayName: 'Remove SAP Library ${{ parameters.library }}'
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
       displayName: 'Remove Resource Group ${{ parameters.library }}'
@@ -149,9 +155,10 @@ stages:
         resourceGroupName: '${{ parameters.library }}'
 
   - job: Remove_Deployer
+    displayName: 'Remove Deployer ${{ parameters.deployer }}'
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Remove Resource Group ${{ parameters.deployer }}'
+      displayName: 'Remove Deployer ${{ parameters.deployer }}'
       inputs:
         deploymentScope: 'Resource Group'
         azureResourceManagerConnection: '$(AZURECONNECTIONNAME)'

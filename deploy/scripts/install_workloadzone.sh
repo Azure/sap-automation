@@ -220,9 +220,16 @@ generic_config_information="${automation_config_directory}"/config
 
 workload_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
-echo "Workload configuration file: $workload_config_information"
+if [ "${force}" == 1 ]
+then
+    if [ -f "${workload_config_information}" ]
+    then
+        rm "${workload_config_information}"
+    fi
+    rm -Rf .terraform terraform.tfstate*
+fi
 
-load_config_vars "${workload_config_information}" "tfstate_resource_id"
+echo "Workload configuration file: $workload_config_information"
 
 if [ ! -f "${workload_config_information}" ]
     then
@@ -249,13 +256,15 @@ if [ ! -f "${workload_config_information}" ]
         tfstate_resource_id \
         REMOTE_STATE_SA \
         REMOTE_STATE_RG
+
     fi
 
 fi
 
+
 if [ -z $tfstate_resource_id ]
 then
-  if [ -z $deployer_environment ]
+  if [ ! -z $deployer_environment ]
     then
     deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
     if [ -f $deployer_config_information ]
@@ -278,7 +287,6 @@ then
   fi
 fi
 
-
 if [ "${force}" == 1 ]
 then
     if [ -f "${workload_config_information}" ]
@@ -296,7 +304,6 @@ fi
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
 init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
-
 
 param_dirname=$(pwd)
 export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -572,7 +579,7 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
 fi
 
 if [ -z "${REMOTE_STATE_RG}" ]; then
-    if [  -n "${REMOTE_STATE_SA}" ]; then
+    if [ ! -z "${REMOTE_STATE_SA}" ]; then
         get_and_store_sa_details ${REMOTE_STATE_SA} "${workload_config_information}"
         load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
         load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
@@ -580,7 +587,6 @@ if [ -z "${REMOTE_STATE_RG}" ]; then
         
         tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     else
-        
         option="REMOTE_STATE_RG"
         read -p "Remote state resource group name:"  REMOTE_STATE_RG
         save_config_vars "${workload_config_information}" REMOTE_STATE_RG
@@ -594,7 +600,6 @@ else
     get_and_store_sa_details ${REMOTE_STATE_SA} "${workload_config_information}"
     load_config_vars "${workload_config_information}" "tfstate_resource_id"
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-
 fi
 
 terraform_module_directory="$(realpath "${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/"${deployment_system}" )"
