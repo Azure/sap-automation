@@ -383,6 +383,10 @@ variable "application_server_no_avset" {
   default = false
 }
 
+variable "application_server_vm_avset_arm_ids" {
+  default = []
+}
+
 variable "application_server_no_ppg" {
   default = false
 }
