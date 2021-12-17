@@ -1,5 +1,6 @@
 ---
-
+# This is still work in progress at the moment and needs the UDB BOM
+# to be created.
 name: "EHP8_FOR_SAP_ERP_6_0"
 target: "SAP NETWEAVER 7.5"
 
