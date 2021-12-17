@@ -398,7 +398,7 @@ function valid_region_name() {
 # NOTE: If we have the list of possible regions in a file somewhere
 # we can validate it is one of the entries in that list.
 function valid_region_code() {
-    [[ "${region_code}" =~ ^[[:upper:]][[:upper:]]{1,3}$ ]]
+    [[ "${region_code}" =~ ^[[:upper:]][[:upper:][:digit:]{1,3}$ ]]
 }
 
 
