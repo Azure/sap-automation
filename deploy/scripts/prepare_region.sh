@@ -690,6 +690,11 @@ echo "#     - Storage Account: "${REMOTE_STATE_SA}"                             
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
+export deployer_keyvault="${keyvault}"
+export deployer_ip="${deployer_public_ip_address}"
+export terraform_state_storage_account="${REMOTE_STATE_SA}"
+
+
 if [ 5 == $step ]; then
 
     end=`date -u -d "180 days" '+%Y-%m-%dT%H:%MZ'`
@@ -757,6 +762,9 @@ if [ 6 == $step ]; then
         save_config_var "step" ${deployer_config_information}
     fi
 fi
+
+step=3
+save_config_var "step" ${deployer_config_information}
 
 unset TF_DATA_DIR
 

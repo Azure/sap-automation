@@ -4,7 +4,7 @@
 
 parameters:
 - name: bom_base_name
-  displayName: BOM Base Name
+  displayName: Name of Bill of Materials (BoM)
   type: string
   default: S41909SPS03_v0007ms
   values:
@@ -14,14 +14,14 @@ parameters:
    - NW750SPS20_v0002ms
 
 - name: environment
-  displayName: Deployer Environment
+  displayName: Control Plane Environment
   type: string
   default: MGMT
 
 - name: region
-  displayName: SAP Binary Storage Account Location
+  displayName: Control Plane (SAP Library) Locationcode
   type: string
-  default: westeurope
+  default: WEEU
 
 trigger:
   none
@@ -38,17 +38,44 @@ name: $(bom)_$(env)_$(loc)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
 - stage: Prepare_download
+  displayName: Preparation
   jobs:
   - job: Prepare_download
+    displayName: Preparation
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m" ; reset="\e[0m"
+        green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
           cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+        echo -e "$green--- Validations ---$reset"
+        if [ ! -f .sap_deployment_automation/$(env)$(loc) ]; then
+          echo -e "$boldred--- .sap_deployment_automation/$(env)$(loc) was not found ---$reset"
+          echo "##vso[task.logissue type=error]File .sap_deployment_automation/$(env)$(loc) was not found."
+          exit 2
+        fi
+        if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+          echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+          exit 2
+        fi
+        if [ ! -n $(ARM_CLIENT_ID) ]; then
+          echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+          exit 2
+        fi
+        if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+          echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+          exit 2
+        fi
+        if [ ! -n $(ARM_TENANT_ID) ]; then
+          echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+          exit 2
+        fi
+        ls $(Build.Repository.LocalPath)
+        cat $(Build.Repository.LocalPath)/deploy/ansible/playbook_bom_downloader.yaml
+        echo -e "$green--- az login ---$reset"
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
         echo -e "$green--- Convert config files to UX format ---$reset"
@@ -58,7 +85,7 @@ stages:
           sapbits_sa_url=$(az keyvault secret show --vault-name $kv_name --name sapbits-location-base-path --query value |xargs)
           sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
           sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
-          sed -i 's|kv_name:.*|deployer_kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
+          sed -i 's|kv_name:.*|kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
         echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
           cat $HOME/BOMS/sap-parameters.yaml
         echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
@@ -76,10 +103,10 @@ stages:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
 
-- stage: Download_binaries
+- stage: Software_download
   displayName: Download software
   jobs:
-  - job: Download_binaries
+  - job: Software_download
     displayName: Download software
     timeoutInMinutes: 0
     steps:
@@ -89,6 +116,9 @@ stages:
       timeoutInMinutes: 0
       inputs:
         ansibleInterface: 'agentMachine'
-        playbookPathOnAgentMachine: 'sap-automation/deploy/ansible/playbook_bom_downloader.yaml'
+        playbookPathOnAgentMachine:  $(Build.Repository.LocalPath)/deploy/ansible/playbook_bom_downloader.yaml
         args: '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
-        failOnStderr: false
+        failOnStderr: true
+        
+
+        

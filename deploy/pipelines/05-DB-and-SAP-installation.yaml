@@ -94,14 +94,28 @@ stages:
     steps:
     - script: |
         #!/bin/bash
-        green="\e[1;32m" ; reset="\e[0m"
-        echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
+        green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
         echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
           export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
           export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
           cd $HOME; mkdir -p .sap_deployment_automation
           echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+        echo -e "$green--- Validations ---$reset"
+          export SID=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep sid'=' | awk -F'=' '{print $2}' | xargs) ; echo SID $SID
+          if [ ! -n $(SID) ]; then
+            echo "##vso[task.logissue type=error]SID was found in folder name."
+            exit 2
+          fi
+          if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml ]; then
+            echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml was not found ---$reset"
+            echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml was not found."
+            exit 2
+          fi
+          if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
+            echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found ---$reset"
+            echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found."
+            exit 2
+          fi
         echo -e "$green--- --- Convert config file to UX format ---$reset"
           sudo apt-get -qq install dos2unix
           dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
@@ -110,13 +124,18 @@ stages:
           sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
           sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(fqdn)"'|'      SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
         echo -e "$green--- Get SID and copy hosts file over for ansible runs ---$reset"
-          export SID=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep sid'=' | awk -F'=' '{print $2}' | xargs) ; echo SID $SID
           cp -p $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml $(Build.Repository.LocalPath)/sap_hosts.yaml
         echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
           organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
           git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
         echo -e "$green--- az login ---$reset"
           az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+          return_code=$?
+          if [ 0 != $return_code ]; then
+            echo -e "$boldred--- Login failed ---$reset"
+            echo "##vso[task.logissue type=error]az login failed."
+            exit $return_code
+          fi
           az account set --subscription $(ARM_SUBSCRIPTION_ID)
         echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
           export ENV=$(echo $(sapsystemfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV

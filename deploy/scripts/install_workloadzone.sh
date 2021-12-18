@@ -795,6 +795,9 @@ if [ 0 == $return_value ] ; then
         az storage account network-rule add -g $REMOTE_STATE_RG --account-name $REMOTE_STATE_SA   --subnet $app_subnet_id  --only-show-errors  --output none
 
     fi
+
+    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
+    save_config_var "workloadkeyvault" "${workload_config_information}"
     
     unset TF_DATA_DIR
     exit $return_value
