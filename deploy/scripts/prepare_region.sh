@@ -201,7 +201,7 @@ if [ 0 == $step ]; then
     echo ""
     
     allParams=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${approveparam}")
-
+    
     echo $allParams
     
     cd "${deployer_dirname}" || exit
@@ -520,11 +520,23 @@ echo "#     - Storage Account: ${storage_account}                       #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
-cat <<EOF > "${deployer_config_information}".md
 
-**Keyvault Name**:           ${kvname}
-**Deployer IP**:             ${dep_ip}
-**Terraform state storage**: ${REMOTE_STATE_SA}
+now=$(date)
+cat <<EOF > "${deployer_config_information}".md
+# Control Plane Deployment #
+
+Date : "${now}"
+
+## Configuration details ##
+
+| Item                    | Name                 |
+| ----------------------- | -------------------- |
+| Environment             | $environment         |
+| Location                | $region              |
+| Keyvault Name           | ${kvname}            |
+| Deployer IP             | ${dep_ip}            |
+| Terraform state         | ${storage_account}   |
+
 EOF
 
 cat "${deployer_config_information}".md
