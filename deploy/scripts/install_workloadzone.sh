@@ -234,6 +234,8 @@ fi
 if [ -n "$client_id" ]
 then
     if is_valid_guid "$client_id" ; then
+        echo "Valid spn id format"
+    else
         printf -v val %-40.40s "$client_id"
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -247,6 +249,8 @@ fi
 if [ -n "$tenant_id" ]
 then
     if is_valid_guid "$tenant_id" ; then
+        echo "Valid spn id format"
+    else
         printf -v val %-40.40s "$tenant_id"
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -616,6 +620,8 @@ then
     unset TF_DATA_DIR
     exit $return_value
 fi
+
+ok_to_proceed=0
 if [ 0 == $return_value ] ; then
     echo ""
     echo "#########################################################################################"
@@ -644,13 +650,7 @@ if [ 0 == $return_value ] ; then
     
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
     save_config_var "workloadkeyvault" "${workload_config_information}"
-    
-    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
-    save_config_var "workloadkeyvault" "${workload_config_information}"
-    
-    
-    unset TF_DATA_DIR
-    exit $return_value
+    ok_to_proceed=0
 fi
 
 if [ 2 == $return_value ] ; then
@@ -675,21 +675,18 @@ if [ 2 == $return_value ] ; then
         read -p "Do you want to continue with the deployment Y/N?"  ans
         answer=${ans^^}
         if [ $answer == 'Y' ]; then
-            ok_to_proceed=true
+            ok_to_proceed=1
         else
             unset TF_DATA_DIR
             
             exit 0
         fi
     else
-        ok_to_proceed=true
+        ok_to_proceed=1
     fi
 fi
 
-if [ $ok_to_proceed ]; then
-    
-    rm plan_output.log
-    
+if [ 1 == $ok_to_proceed ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -699,18 +696,14 @@ if [ $ok_to_proceed ]; then
     echo ""
     
     terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+    return_value=$?
 fi
 
-return_value=0
-landscape_tfstate_key=${key}.terraform.tfstate
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
-
 if [ 0 == $return_value ] ; then
-    
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
     
-    return_value=-1
     temp=$(echo "${workloadkeyvault}" | grep "Warning")
     if [ -z "${temp}" ]
     then
@@ -729,14 +722,9 @@ if [ 0 == $return_value ] ; then
             echo ""
             
             save_config_var "workloadkeyvault" "${workload_config_information}"
-            return_value=0
-        else
-            return_value=-1
         fi
     fi
     unset TF_DATA_DIR
-    exit $return_value
-    
     
     if [ "$private_link_used" == "true" ]; then
         echo "#########################################################################################"
@@ -752,6 +740,22 @@ if [ 0 == $return_value ] ; then
     fi
     
 fi
+
+now=$(date)
+cat <<EOF > "${workload_config_information}".md
+# Workload Zone Deployment #
+
+Date : "${now}"
+
+## Configuration details ##
+
+| Item                    | Name                 |
+| ----------------------- | -------------------- |
+| Environment             | $environment         |
+| Location                | $region              |
+| Keyvault Name           | ${workloadkeyvault}  |
+
+EOF
 
 unset TF_DATA_DIR
 

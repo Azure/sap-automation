@@ -24,7 +24,7 @@ variables:
   log: logfile_$(Build.BuildId)
   tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
-name: $(zonefolder)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+name: Deploy Workload zone $(zonefolder) [$(Date:yyyyMMdd) $(SourceBranchName)_$(Rev:.r)]
 
 stages:
 - stage: Deploy_SAP_workloadzone
@@ -110,18 +110,36 @@ stages:
           return_code=$?
         echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
           cd $(Build.Repository.LocalPath)
+          
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name  "$(Build.RequestedFor)"
-          git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}                  &>  /tmp/$(log)
-          git add -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate      &>> /tmp/$(log)
-          git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"                &>> /tmp/$(log)
           git pull origin $(Branch)                                                                             &>> /tmp/$(log)
-          git push origin HEAD:$(Branch)                                                                        &>> /tmp/$(log)
+          added=0
+          if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
+            git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}                &>>  /tmp/$(log)
+            added=1
+          fi
+          if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
+            git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md             &>>  /tmp/$(log)
+            added=1
+          fi
+          if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate ]; then
+            git add -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate    &>> /tmp/$(log)
+            added=1
+          fi
+          if [ 1 == $added ]; then
+            git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"              &>> /tmp/$(log)
+          
+            git push origin HEAD:$(Branch)                                                                      &>> /tmp/$(log)
+          fi
         echo "output the log ---$reset"
           cat /tmp/$(log)
+          if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
+            echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
+          fi
           git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
           exit $return_code
-      displayName: Deploy_SAP_workloadzone
+      displayName: Deploy SAP Workload Zone
       env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       failOnStderr: true
