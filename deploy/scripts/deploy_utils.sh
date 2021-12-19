@@ -117,6 +117,8 @@ function get_and_store_sa_details {
     local REMOTE_STATE_SA="${1}"
     local config_file_name="${2}"
 
+    echo "Trying to find the storage account ${REMOTE_STATE_SA}"
+
     save_config_vars "${config_file_name}" REMOTE_STATE_SA
     tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
     fail_if_null tfstate_resource_id
@@ -127,7 +129,7 @@ function get_and_store_sa_details {
         REMOTE_STATE_RG \
         tfstate_resource_id \
         STATE_SUBSCRIPTION
-
+    echo "Found the storage account ${REMOTE_STATE_SA}"
 }
 
 # /*---------------------------------------------------------------------------8
@@ -399,6 +401,12 @@ function valid_region_name() {
 # we can validate it is one of the entries in that list.
 function valid_region_code() {
     [[ "${region_code}" =~ ^[[:upper:]][[:upper:][:digit:]{1,3}$ ]]
+}
+
+# An Keyvault name value must be made up of letters and numbers
+# an uppercase letter.
+function valid_kv_name() {
+    [[ "${keyvault}" =~ ^[a-zA-Z0-9]$ ]]
 }
 
 

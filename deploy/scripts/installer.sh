@@ -14,64 +14,8 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
-function showhelp {
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                                                                                       #"
-    echo "#   This file contains the logic to deploy the different systems                        #"
-    echo "#   The script experts the following exports:                                           #"
-    echo "#                                                                                       #"
-    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
-    echo "#                                                                                       #"
-    echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder                                                 #"
-    echo "#                                                                                       #"
-    echo "#                                                                                       #"
-    echo "#   Usage: installer.sh                                                                 #"
-    echo "#    -p or --parameterfile           parameter file                                     #"
-    echo "#    -t or --type                         type of system to remove                      #"
-    echo "#                                         valid options:                                #"
-    echo "#                                           sap_deployer                                #"
-    echo "#                                           sap_library                                 #"
-    echo "#                                           sap_landscape                               #"
-    echo "#                                           sap_system                                  #"
-    echo "#                                                                                       #"
-    echo "#   Optional parameters                                                                 #"
-    echo "#                                                                                       #"
-    echo "#    -o or --storageaccountname      Storage account name for state file                #"
-    echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
-    echo "#    -i or --auto-approve            Silent install                                     #"
-    echo "#    -h or --help                    Show help                                          #"
-    echo "#                                                                                       #"
-    echo "#   Example:                                                                            #"
-    echo "#                                                                                       #"
-    echo "#   [REPO-ROOT]deploy/scripts/installer.sh \                                            #"
-    echo "#      --parameterfile DEV-WEEU-SAP01-X00 \                                             #"
-    echo "#      --type sap_system                                                                #"
-    echo "#      --auto-approve                                                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-}
-
-function missing {
-    printf -v val %-.40s "$option"
-    echo ""
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing environment variables: ${option}!!!              #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
-    echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-}
-
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
 
@@ -113,11 +57,6 @@ landscape_tfstate_key_exists=false
 parameterfile_name=$(basename "${parameterfile}")
 param_dirname=$(dirname "${parameterfile}")
 
-echo $STATE_SUBSCRIPTION
-echo $deployer_tfstate_key
-echo $landscape_tfstate_key
-
-
 if [ "${param_dirname}" != '.' ]; then
     echo ""
     echo "#########################################################################################"
@@ -140,7 +79,7 @@ then
     exit 2 #No such file or directory
 fi
 
-if [ ! -n "${deployment_system}" ]
+if [ -z "${deployment_system}" ]
 then
     printf -v val %-40.40s "$deployment_system"
     echo "#########################################################################################"
@@ -158,47 +97,25 @@ then
     exit 64 #script usage wrong
 fi
 
-
-
-
-ext=$(echo ${parameterfile_name} | cut -d. -f2)
-
-# Helper variables
-if [ "${ext}" == json ]; then
-    environment=$(jq --raw-output .infrastructure.environment "${parameterfile}")
-    region=$(jq --raw-output .infrastructure.region "${parameterfile}")
-else
-    load_config_vars "${param_dirname}"/"${parameterfile}" "environment"
-    load_config_vars "${param_dirname}"/"${parameterfile}" "location"
-    region=$(echo ${location} | xargs)
+# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+validate_exports
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
-if [ ! -n "${environment}" ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                         $boldred  Incorrect parameter file. $resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 65 #data format error
+# Check that Terraform and Azure CLI is installed
+validate_dependencies
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
-if [ ! -n "${region}" ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 65 #data format error
+# Check that parameter files have environment and location defined
+validate_key_parameters "$parameterfile_name"
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
-
 
 # Convert the region to the correct code
 get_region_code $region
@@ -222,13 +139,6 @@ if [ -n "${TF_PARALLELLISM}" ]; then
 fi
 
 echo "Parallelism count $parallelism"
-
-#Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
-then
-    mkdir -p "$HOME/.terraform.d/plugin-cache"
-fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
 param_dirname=$(pwd)
 
@@ -277,7 +187,7 @@ then
 else
     echo "Saving the state subscription"
     if is_valid_guid "STATE_SUBSCRIPTION" ; then
-        save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
+        save_config_var "STATE_SUBSCRIPTION" "${system_config_information}"
     else
         printf -v val %-40.40s "$STATE_SUBSCRIPTION"
         echo "#########################################################################################"
@@ -292,74 +202,45 @@ fi
 
 echo "Terraform storage " "${REMOTE_STATE_SA}"
 
-if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
-    option="DEPLOYMENT_REPO_PATH"
-    missing
-    exit 1
-fi
-
-# Checking for valid az session
-az account show > stdout.az 2>&1
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Please login using az login $resetformatting                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-    exit 67                                                                                             #addressee unknown
-else
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-    
-fi
-
 account_set=0
-
-cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ ! -z "${cloudIDUsed}" ];
-then 
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 67                                                                                             #addressee unknown
-fi
 
 #setting the user environment variables
 set_executing_user_environment_variables "none"
 
-if [ ! -z "${STATE_SUBSCRIPTION}" ]
-then
-    $(az account set --sub "${STATE_SUBSCRIPTION}")
-    account_set=1
+if [ -n "${subscription}" ]; then
+    if is_valid_guid "subscription" ; then
+        echo "Valid subscription format"
+    else
+        printf -v val %-40.40s "$subscription"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
+    export ARM_SUBSCRIPTION_ID="${subscription}"
 fi
 
-if [ ! -n "${REMOTE_STATE_SA}" ]; then
+if [ -n "$STATE_SUBSCRIPTION" ];
+then 
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $resetformatting            #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    az account set --sub "${STATE_SUBSCRIPTION}"
+fi
+
+if [ -z "${REMOTE_STATE_SA}" ]; then
     read -p "Terraform state storage account name:"  REMOTE_STATE_SA
     
-    get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
+    get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
-    
-    if [ ! -z "${STATE_SUBSCRIPTION}" ]; then
-        if [ $account_set == 0 ];  then
-            $(az account set --sub "${STATE_SUBSCRIPTION}")
-            account_set=1
-        fi
-    fi
 fi
 
 
@@ -370,27 +251,16 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
 fi
 
 if [ -z "${REMOTE_STATE_RG}" ]; then
-    get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
+    get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
-    
-    if [ ! -z "${STATE_SUBSCRIPTION}" ]
-    then
-        if [ $account_set == 0 ]
-        then
-            $(az account set --sub "${STATE_SUBSCRIPTION}")
-            account_set=1
-        fi
-        
-    fi
-    
 fi
 
 if [ "${deployment_system}" != sap_deployer ]
 then
-    if [ ! -n "${tfstate_resource_id}" ]; then
-        get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
+    if [ -z "${tfstate_resource_id}" ]; then
+        get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
         load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
         load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
         load_config_vars "${system_config_information}" "tfstate_resource_id"
@@ -455,12 +325,6 @@ new_deployment=false
 
 check_output=0
 
-if [ $account_set == 0 ]
-then
-    $(az account set --sub "${STATE_SUBSCRIPTION}")
-    account_set=1
-fi
-
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
 # This is used to tell Terraform the version information from the state file
@@ -479,7 +343,7 @@ then
 
 else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
-    if [ ! -z "${temp}" ]
+    if [ -n "${temp}" ]
     then
         terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
         --backend-config "subscription_id=${STATE_SUBSCRIPTION}"                        \
@@ -520,15 +384,16 @@ then
     echo ""
     exit $return_value        
 fi
-
+# Print shell input lines as they are read in
 if [ 1 == $check_output ]
 then
-    terraform -chdir=$terraform_module_directory refresh -var-file=${var_file} ${tfstate_parameter} ${landscape_tfstate_key_parameter} ${deployer_tfstate_key_parameter} ${extra_vars}
-    
+    allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
+
+    terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams > plan_output.log
+    return_value=$?
     outputs=$(terraform -chdir="${terraform_module_directory}" output )
     if echo "${outputs}" | grep "No outputs"; then
         ok_to_proceed=true
-        new_deployment=true
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                                 $cyan  New deployment $resetformatting                                      #"
@@ -545,12 +410,13 @@ then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
+        terraform -chdir="${terraform_module_directory}" refresh $allParams
         
         deployment_parameter=" "
         
         deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output automation_version | tr -d \")
         
-        if [ ! -n "${deployed_using_version}" ]; then
+        if [ -z "${deployed_using_version}" ]; then
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"
@@ -613,7 +479,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                             $boldreduscoreErrors during the plan phase$resetformatting                              #"
+    echo -e "#                            $boldreduscore Errors during the plan phase$resetformatting                              #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -661,13 +527,13 @@ if [ 0 == $return_value ] ; then
     then
         
         tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
-        STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+        STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
-        az account set --sub $STATE_SUBSCRIPTION
+        az account set --sub "${STATE_SUBSCRIPTION}"
 
         REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
         
-        get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
+        get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
         
     fi
 
@@ -678,7 +544,7 @@ if [ 2 == $return_value ] ; then
     fatal_errors=0
     # HANA VM
     test=$(grep vm_dbnode plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -693,7 +559,7 @@ if [ 2 == $return_value ] ; then
     fi
     # HANA VM disks
     test=$(grep azurerm_managed_disk.data_disk plan_output.log | grep  -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -709,7 +575,7 @@ if [ 2 == $return_value ] ; then
 
     # AnyDB server
     test=$(grep dbserver plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -724,7 +590,7 @@ if [ 2 == $return_value ] ; then
     fi
     # AnyDB disks
     test=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -740,7 +606,7 @@ if [ 2 == $return_value ] ; then
 
     # App server
     test=$(grep virtual_machine.app plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -755,7 +621,7 @@ if [ 2 == $return_value ] ; then
     fi
     # App server disks
     test=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -771,7 +637,7 @@ if [ 2 == $return_value ] ; then
 
     # SCS server
     test=$(grep virtual_machine.scs plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -787,7 +653,7 @@ if [ 2 == $return_value ] ; then
 
     # SCS server disks
     test=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -803,7 +669,7 @@ if [ 2 == $return_value ] ; then
 
     # Web server
     test=$(grep virtual_machine.web plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -818,7 +684,7 @@ if [ 2 == $return_value ] ; then
     fi
     # Web dispatcher server disks
     test=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 replaced)
-    if [ ! -z "${test}" ] ; then
+    if [ -n "${test}" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -885,9 +751,9 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
     
-    allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
+    allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}  "${approve}"" )
     
-    terraform -chdir="${terraform_module_directory}" apply -parallelism=$parallelism ${approve} $allParams  2>error.log
+    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
     return_value=$?
     
     if [ 0 != $return_value ] ; then
@@ -909,8 +775,8 @@ fi
 
 if [ "${deployment_system}" == sap_deployer ]
 then
-    deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-    keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+    export deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
+    export keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
     save_config_var "keyvault" "${system_config_information}"
     save_config_var "deployer_public_ip_address" "${system_config_information}" 
@@ -926,14 +792,14 @@ fi
 if [ "${deployment_system}" == sap_library ]
 then
     
-    tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
-    STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
+    export tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
+    export STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
 
     az account set --sub $STATE_SUBSCRIPTION
 
-    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
+    export REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
     
-    get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
+    get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     
 fi
 

@@ -420,11 +420,9 @@ then
     temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
     if [ -z "${temp}" ]
     then
-        echo "save"
         save_config_var "REMOTE_STATE_RG" "${library_config_information}"
         return_value=0
     fi
 fi
-
 
 exit $return_value

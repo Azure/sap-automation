@@ -15,6 +15,9 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source 
 source "${script_directory}/deploy_utils.sh"
 
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
 #Internal helper functions
 function showhelp {
     echo ""
@@ -72,6 +75,8 @@ deployment_system=sap_deployer
 
 param_dirname=$(dirname "${parameterfile}")
 
+echo "Parameter file: "${parameterfile}""
+
 if [ ! -f "${parameterfile}" ]
 then
     printf -v val %-40.40s "$parameterfile"
@@ -84,7 +89,7 @@ then
     exit 2 #No such file or directory
 fi
 
-if [ $param_dirname != '.' ]; then
+if [ "$param_dirname" != '.' ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -95,17 +100,11 @@ if [ $param_dirname != '.' ]; then
 fi
 
 
-ext=$(echo ${parameterfile} | cut -d. -f2)
-
-# Helper variables
-if [ "${ext}" == json ]; then
-    environment=$(jq --raw-output .infrastructure.environment "${parameterfile}")
-    region=$(jq --raw-output .infrastructure.region "${parameterfile}")
-else
-
-    load_config_vars "${param_dirname}"/"${parameterfile}" "environment"
-    load_config_vars "${param_dirname}"/"${parameterfile}" "location"
-    region=$(echo ${location} | xargs)
+# Check that parameter files have environment and location defined
+validate_key_parameters "$parameterfile"
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
 # Convert the region to the correct code
@@ -113,32 +112,6 @@ get_region_code $region
 
 
 key=$(echo "${parameterfile}" | cut -d. -f1)
-
-if [ ! -n "${environment}" ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Incorrect parameter file.                                   #"
-    echo "#                                                                                       #"
-    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 64
-fi
-
-if [ ! -n "${region}" ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Incorrect parameter file.                                   #"
-    echo "#                                                                                       #"
-    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 64
-fi
 
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
@@ -153,53 +126,11 @@ param_dirname=$(pwd)
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 var_file="${param_dirname}"/"${parameterfile}" 
-
-if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 4
-else
-    if [ $config_stored == false ]
-    then
-        save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
-    fi
-fi
-
-templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
-# Subscription length is 37
-if [ 37 != $templen ]
-then
-    arm_config_stored=false
-fi
-
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 3
-else
-    if [  $arm_config_stored  == false ]
-    then
-        echo "Storing the configuration"
-        save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
-        STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
-        save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
-    fi
+# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+validate_exports
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
@@ -208,13 +139,12 @@ export TF_DATA_DIR="${param_dirname}"/.terraform
 ok_to_proceed=false
 new_deployment=false
 
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
-then
-    mkdir -p "$HOME/.terraform.d/plugin-cache"
+# Check that Terraform and Azure CLI is installed
+validate_dependencies
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-
-
 
 if [ ! -d ./.terraform/ ]; then
     echo "#########################################################################################"
