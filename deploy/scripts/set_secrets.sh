@@ -154,7 +154,7 @@ if [ -z "$keyvault" ]; then
     if valid_kv_name "$keyvault" ; then
         echo "Valid keyvault name format specified"
     else
-        printf -v val %-40.40s "$subscription"
+        printf -v val %-40.40s "$keyvault"
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"

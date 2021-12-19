@@ -201,7 +201,7 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ -n "$subscription" ]
 then
-    if is_valid_guid "subscription" ; then
+    if is_valid_guid "$subscription"  ; then
         echo "Valid subscription format"
     else
         printf -v val %-40.40s "$subscription"
@@ -217,7 +217,7 @@ fi
 if [ -n "$STATE_SUBSCRIPTION" ]
 then
     echo "Saving the state subscription"
-    if is_valid_guid "STATE_SUBSCRIPTION" ; then
+    if is_valid_guid "$STATE_SUBSCRIPTION" ; then
         echo "Valid subscription format"
     else
         printf -v val %-40.40s "$STATE_SUBSCRIPTION"
@@ -233,7 +233,7 @@ fi
 
 if [ -n "$client_id" ]
 then
-    if is_valid_guid "client_id" ; then
+    if is_valid_guid "$client_id" ; then
         printf -v val %-40.40s "$client_id"
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -246,7 +246,7 @@ fi
 
 if [ -n "$tenant_id" ]
 then
-    if is_valid_guid "tenant_id" ; then
+    if is_valid_guid "$tenant_id" ; then
         printf -v val %-40.40s "$tenant_id"
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -260,7 +260,18 @@ fi
 
 if [ -n "$keyvault" ]
 then
-    save_config_var "keyvault" "${workload_config_information}"
+    if valid_kv_name "$keyvault" ; then
+        save_config_var "keyvault" "${workload_config_information}"
+    else
+        printf -v val %-40.40s "$keyvault"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
+    
 fi
 
 

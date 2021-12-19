@@ -373,6 +373,8 @@ locals {
     { use_ANF = false }
   )
 
+  deploy_afs = false
+
 }
 
 locals {

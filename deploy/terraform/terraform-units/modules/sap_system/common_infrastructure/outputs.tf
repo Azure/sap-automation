@@ -116,5 +116,5 @@ output "saptransport_path" {
 }
 
 output "install_path" {
-  value = format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install[0].url, "https://", ""))[0], azurerm_storage_account.install[0].name, azurerm_storage_share.install[0].name)
+  value = local.deploy_afs ? try(format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install[0].url, "https://", ""))[0], azurerm_storage_account.install[0].name, azurerm_storage_share.install[0].name), "") : ""
 }
