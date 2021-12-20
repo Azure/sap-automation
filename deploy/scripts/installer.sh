@@ -50,7 +50,6 @@ tfstate_resource_id=""
 tfstate_parameter=""
 
 deployer_tfstate_key_parameter=""
-deployer_tfstate_key_exists=false
 landscape_tfstate_key_parameter=""
 landscape_tfstate_key_exists=false
 
@@ -78,6 +77,8 @@ then
     echo "#########################################################################################"
     exit 2 #No such file or directory
 fi
+
+dos2unix -q "${parameterfile}"
 
 if [ -z "${deployment_system}" ]
 then
@@ -117,8 +118,13 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-# Convert the region to the correct code
-get_region_code $region
+if valid_region_name ${region} ; then
+    # Convert the region to the correct code
+    get_region_code ${region}
+else
+    echo "Invalid region: $region"
+    exit 2
+fi
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
@@ -127,6 +133,10 @@ key=$(echo "${parameterfile_name}" | cut -d. -f1)
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}"
+
+echo "Configuration file: $system_config_information"
+echo "Deployment region: $region"
+echo "Deployment region code: $region_code"
 
 deployer_tfstate_key_parameter=''
 landscape_tfstate_key_parameter=''
@@ -159,13 +169,17 @@ fi
 
 if [ -z "$REMOTE_STATE_SA" ];
 then
+    echo "Loading the State file information"
     load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
+    load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
+    load_config_vars "${system_config_information}" "tfstate_resource_id"
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-load_config_vars "${system_config_information}" "tfstate_resource_id"
+echo "Terraform state file storage: $REMOTE_STATE_SA"
+echo "Terraform state subscription: $STATE_SUBSCRIPTION"
 
 if [ -z "$deployer_tfstate_key" ];
 then
@@ -186,7 +200,7 @@ then
   load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
     echo "Saving the state subscription"
-    if is_valid_guid "STATE_SUBSCRIPTION" ; then
+    if is_valid_guid "$STATE_SUBSCRIPTION" ; then
         save_config_var "STATE_SUBSCRIPTION" "${system_config_information}"
     else
         printf -v val %-40.40s "$STATE_SUBSCRIPTION"
@@ -199,8 +213,6 @@ else
     fi
 
 fi
-
-echo "Terraform storage " "${REMOTE_STATE_SA}"
 
 account_set=0
 
@@ -242,6 +254,8 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
 fi
+
+echo "Terraform state storage " "${REMOTE_STATE_SA}"
 
 
 if [ -z "${REMOTE_STATE_SA}" ]; then

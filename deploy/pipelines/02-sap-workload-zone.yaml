@@ -1,18 +1,17 @@
 # This pipeline deploys the SAP workload zone (landscape) with required resources
 
 parameters:
-- name: workloadzone
-  displayName: ENV-LOCA-VNET-INFRASTRUCTURE
-  type: string
-  default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name: workloadzone
+    displayName: ENV-LOCA-VNET-INFRASTRUCTURE
+    type: string
+    default: DEV-WEEU-SAP01-INFRASTRUCTURE
 
-- name: environment
-  displayName: Deployer Environment (MGMT, DEV, QUA, PRD, ...)
-  type: string
-  default: MGMT
+  - name: environment
+    displayName: Deployer Environment (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: MGMT
 
-trigger:
-  none
+trigger: none
 
 pool:
   vmImage: ubuntu-latest
@@ -24,122 +23,122 @@ variables:
   log: logfile_$(Build.BuildId)
   tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
-name: Deploy Workload zone $(zonefolder) [$(Date:yyyyMMdd) $(SourceBranchName)_$(Rev:.r)]
+name: Deploy Workload zone $(zonefolder) [$(Date:yyyyMMdd) $(SourceBranchName)]
 
 stages:
-- stage: Deploy_SAP_workloadzone
-  displayName: Deploy SAP workload zone
-  jobs:
-  - job: Deploy_SAP_workloadzone
+  - stage: Deploy_SAP_workloadzone
     displayName: Deploy SAP workload zone
-    steps:
-    - script: |
-        #!/bin/bash
-        green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-        echo -e "$green--- Install Terraform ---$reset"
-          wget -q $(tf_url)
-          return_code=$?
-          if [ 0 != $return_code ]; then
-            echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-            exit 2
-          fi
-          unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-        echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
-          export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-          cd $HOME; mkdir -p .sap_deployment_automation
-          echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-          export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-          export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-          export deployer_tfstate_key=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-          export keyvault=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep keyvault | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' $keyvault
-          export REMOTE_STATE_SA=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile storage account' $REMOTE_STATE_SA
-          export STATE_SUBSCRIPTION=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep STATE_SUBSCRIPTION | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile subscription' $STATE_SUBSCRIPTION
-       
-        echo -e "$green--- Validations ---$reset"
-          if [ ! -f $HOME/.sap_deployment_automation/$(env)$LOCA ]; then
-            echo -e "$boldred--- $(env)$LOCA was not found ---$reset"
-            echo "##vso[task.logissue type=error]Control plane configuration file $(env)$LOC was not found."
-            exit 2
-          fi
-          if [ ! -f $HOME/LANDSCAPE/$(zonefolder)/$(zoneconfig) ]; then
-            echo -e "$boldred--- $(zoneconfig) was not found ---$reset"
-            echo "##vso[task.logissue type=error]File $(zoneconfig) was not found."
-            exit 2
-          fi
-          if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
-            echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-            exit 2
-          fi
-          if [ ! -n $(ARM_CLIENT_ID) ]; then
-            echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-            exit 2
-          fi
-          if [ ! -n $(ARM_CLIENT_SECRET) ]; then
-            echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-            exit 2
-          fi
-          if [ ! -n $(ARM_TENANT_ID) ]; then
-            echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-            exit 2
-          fi
-        echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
-        echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-          export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-        echo -e "$green--- az login ---$reset"
-          export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-          export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-          export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-          export ARM_TENANT_ID=$(ARM_TENANT_ID)
-          az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
-          return_code=$?
-          if [ 0 != $return_code ]; then
-            echo -e "$boldred--- Login failed ---$reset"
-            echo "##vso[task.logissue type=error]az login failed."
-            exit $return_code
-          fi
-          az account set --subscription $(ARM_SUBSCRIPTION_ID)
-        echo -e "$green--- --- Convert config file to UX format ---$reset"
-          sudo apt-get -qq install dos2unix
-          dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
-        echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-          organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-          git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-        echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
-          cd $HOME/LANDSCAPE/$(zonefolder)
-          $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
-          return_code=$?
-        echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-          cd $(Build.Repository.LocalPath)
-          
-          git config --global user.email "$(Build.RequestedForEmail)"
-          git config --global user.name  "$(Build.RequestedFor)"
-          git pull origin $(Branch)                                                                             &>> /tmp/$(log)
-          added=0
-          if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
-            git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}                &>>  /tmp/$(log)
-            added=1
-          fi
-          if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-            git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md             &>>  /tmp/$(log)
-            added=1
-          fi
-          if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate ]; then
-            git add -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate    &>> /tmp/$(log)
-            added=1
-          fi
-          if [ 1 == $added ]; then
-            git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"              &>> /tmp/$(log)
-          
-            git push origin HEAD:$(Branch)                                                                      &>> /tmp/$(log)
-          fi
-        echo "output the log ---$reset"
-          cat /tmp/$(log)
-          if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-            echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
-          fi
-          git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-          exit $return_code
-      displayName: Deploy SAP Workload Zone
-      env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      failOnStderr: true
+    jobs:
+      - job: Deploy_SAP_workloadzone
+        displayName: Deploy SAP workload zone
+        steps:
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Install Terraform ---$reset"
+                wget -q $(tf_url)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                  exit 2
+                fi
+                unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+              echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                cd $HOME; mkdir -p .sap_deployment_automation
+                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+                export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
+                export deployer_tfstate_key=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                export keyvault=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep keyvault | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' $keyvault
+                export REMOTE_STATE_SA=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile storage account' $REMOTE_STATE_SA
+                export STATE_SUBSCRIPTION=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep STATE_SUBSCRIPTION | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile subscription' $STATE_SUBSCRIPTION
+
+              echo -e "$green--- Validations ---$reset"
+                if [ ! -f $HOME/.sap_deployment_automation/$(env)$LOCA ]; then
+                  echo -e "$boldred--- $(env)$LOCA was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Control plane configuration file $(env)$LOC was not found."
+                  exit 2
+                fi
+                if [ ! -f $HOME/LANDSCAPE/$(zonefolder)/$(zoneconfig) ]; then
+                  echo -e "$boldred--- $(zoneconfig) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(zoneconfig) was not found."
+                  exit 2
+                fi
+                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+                if [ ! -n $(ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+              echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+              echo -e "$green--- az login ---$reset"
+                export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+                export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+                export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+                export ARM_TENANT_ID=$(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+              echo -e "$green--- --- Convert config file to UX format ---$reset"
+                sudo apt-get -qq install dos2unix
+                dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
+              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
+                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
+                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
+              echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
+                cd $HOME/LANDSCAPE/$(zonefolder)
+                $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
+                return_code=$?
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                cd $(Build.Repository.LocalPath)
+
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name  "$(Build.RequestedFor)"
+                git pull origin $(Branch)                                                                             &>> /tmp/$(log)
+                added=0
+                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
+                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}                &>>  /tmp/$(log)
+                  added=1
+                fi
+                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
+                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md             &>>  /tmp/$(log)
+                  added=1
+                fi
+                if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate ]; then
+                  git add -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate    &>> /tmp/$(log)
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"              &>> /tmp/$(log)
+
+                  git push origin HEAD:$(Branch)                                                                      &>> /tmp/$(log)
+                fi
+              echo "output the log ---$reset"
+                cat /tmp/$(log)
+                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
+                fi
+                git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+                exit $return_code
+            displayName: Deploy SAP Workload Zone
+            env:
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+            failOnStderr: true

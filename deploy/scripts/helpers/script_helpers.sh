@@ -389,8 +389,10 @@ function validate_key_parameters {
         export region=$(jq --raw-output .infrastructure.region $1)
     else
         load_config_vars $1 "environment"
+        environment=$(echo ${environment} | xargs)
         load_config_vars $1 "location"
-        export region=$(echo ${location} | xargs)
+        region=$(echo ${location} | xargs)
+        region=westeurope
     fi
     
     if [ ! -n "${environment}" ]; then
