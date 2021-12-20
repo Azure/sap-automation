@@ -1,4 +1,11 @@
-# This pipeline prepares the region with a deployer and a SAP library
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline prepares the control plane                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name: Control Plane Deployment $(deployerfolder)_$(libraryfolder) $(Date:yyyyMMdd) $(SourceBranchName)
 
 parameters:
   - name: deployer
@@ -23,8 +30,6 @@ variables:
   libraryconfig: ${{ parameters.library }}.tfvars
   log: logfile_$(Build.BuildId)
   tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-name: Control Plane Deployment $(deployerfolder)_$(libraryfolder) $(Date:yyyyMMdd) $(SourceBranchName)
 
 stages:
   - stage: Prepare_region
@@ -155,3 +160,4 @@ stages:
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
             failOnStderr: false
+...

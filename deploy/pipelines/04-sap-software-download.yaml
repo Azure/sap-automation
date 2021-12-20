@@ -1,13 +1,19 @@
-# This pipeline performs the software download
-# and need to run on a self hosted deployment agent
-# due to long run time
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline performs the software download                 |
+# |              and must run on a self hosted deployment agent                |
+# |                      due to long run time                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 parameters:
   - name: bom_base_name
     displayName: Name of Bill of Materials (BoM)
     type: string
-    default: S41909SPS03_v0007ms
+    default: S41909SPS03_v0008ms
     values:
+      - S41909SPS03_v0008ms
       - S41909SPS03_v0007ms
       - BW4HANA2021SPS01_v0001ms
       - HANA_2_00_055_v0005ms
@@ -118,3 +124,4 @@ stages:
               playbookPathOnAgentMachine: $(Build.Repository.LocalPath)/deploy/ansible/playbook_bom_downloader.yaml
               args: '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
               failOnStderr: true
+...

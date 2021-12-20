@@ -1,4 +1,13 @@
-# This pipeline configures the OS, installs the database and SAP
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline performs the software installation             |
+# |              and must run on a self hosted deployment agent                |
+# |                      due to long run time                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name: OS Configuration and SAP Installation $(sapsystemfolder) $(bom) [$(Date:yyyyMMdd)]
 
 parameters:
   - name: sap_system
@@ -9,10 +18,11 @@ parameters:
   - name: bom_base_name
     displayName: BOM Base Name
     type: string
-    default: S41909SPS03_v0007ms
+    default: S41909SPS03_v0008ms
     values:
+      - S41909SPS03_v0008ms
       - S41909SPS03_v0007ms
-      - BW4HANA2021SPS01_v0001ms
+      - BW4HANA2021SPS01_v0002ms
       - HANA_2_00_055_v0005ms
       - NW750SPS20_v0002ms
 
@@ -82,8 +92,6 @@ variables:
   bom: ${{ parameters.bom_base_name }}
   fqdn: ${{ parameters.sap_fqdn }}
   log: logfile_$(Build.BuildId)
-
-name: $(sapsystemfolder)_$(bom)_$(fqdn)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 stages:
   - stage: Prepare_DB_SAP_Installation
@@ -393,3 +401,5 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+...
+

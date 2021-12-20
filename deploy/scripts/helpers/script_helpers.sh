@@ -318,7 +318,7 @@ function missing {
 function validate_dependencies {
     # Check terraform
     tf=$(terraform -version | grep Terraform)
-    if [ ! -n "$tf" ]; then
+    if [ -z "$tf" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -338,7 +338,7 @@ function validate_dependencies {
     
     az --version >stdout.az 2>&1
     az=$(grep "azure-cli" stdout.az)
-    if [ ! -n "${az}" ]; then
+    if [ -z "${az}" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -392,10 +392,9 @@ function validate_key_parameters {
         environment=$(echo ${environment} | xargs)
         load_config_vars $1 "location"
         region=$(echo ${location} | xargs)
-        region=westeurope
     fi
     
-    if [ ! -n "${environment}" ]; then
+    if [ -z "${environment}" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                         $boldred  Incorrect parameter file. $resetformatting                                  #"
@@ -407,7 +406,7 @@ function validate_key_parameters {
         return 64 #script usage wrong
     fi
     
-    if [ ! -n "${region}" ]; then
+    if [ -z "${region}" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"

@@ -220,7 +220,7 @@ account_set=0
 set_executing_user_environment_variables "none"
 
 if [ -n "${subscription}" ]; then
-    if is_valid_guid "subscription" ; then
+    if is_valid_guid "${subscription}" ; then
         echo "Valid subscription format"
     else
         printf -v val %-40.40s "$subscription"
@@ -235,7 +235,7 @@ if [ -n "${subscription}" ]; then
 fi
 
 if [ -n "$STATE_SUBSCRIPTION" ];
-then 
+then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -246,10 +246,15 @@ then
     az account set --sub "${STATE_SUBSCRIPTION}"
 fi
 
+load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
+load_config_vars "${system_config_information}" "tfstate_resource_id"
+
+
 if [ -z "${REMOTE_STATE_SA}" ]; then
     if [ 1 != $ado ]; then
         read -pr "Terraform state storage account name:"  REMOTE_STATE_SA
-    
+        
         get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
         load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
         load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
@@ -258,7 +263,6 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
 fi
 
 echo "Terraform state storage " "${REMOTE_STATE_SA}"
-
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
     option="REMOTE_STATE_SA"
@@ -311,6 +315,17 @@ then
             landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
             save_config_var "landscape_tfstate_key" "${system_config_information}"
             landscape_tfstate_key_exists=true
+        else 
+            export last_error="Workload terraform statefile name is missing"
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#                       $boldred Workload terraform statefile name is missing $resetformatting                  #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+            unset TF_DATA_DIR
+            exit 1
+
         fi
     fi
 else
@@ -339,18 +354,21 @@ then
 fi
 
 ok_to_proceed=false
-new_deployment=false
 
-check_output=0
+echo "subscription_id=${STATE_SUBSCRIPTION}"
+echo "resource_group_name=${REMOTE_STATE_RG}"
+echo "storage_account_name=${REMOTE_STATE_SA}"
 
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
 # This is used to tell Terraform the version information from the state file
 version_parameter=""
+
+check_output=0
 if [ ! -d ./.terraform/ ];
 then
     deployment_parameter=" -var deployment=new "
-
+    
     terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
     --backend-config "subscription_id=${STATE_SUBSCRIPTION}"                \
     --backend-config "resource_group_name=${REMOTE_STATE_RG}"               \
@@ -358,7 +376,7 @@ then
     --backend-config "container_name=tfstate"                               \
     --backend-config "key=${key}.terraform.tfstate"
     return_value=$?
-
+    
 else
     temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
     if [ -n "${temp}" ]
@@ -391,7 +409,6 @@ else
         
     fi
 fi
-
 if [ 0 != $return_value ]
 then
     echo "#########################################################################################"
@@ -400,15 +417,10 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    exit $return_value        
+    exit $return_value
 fi
-# Print shell input lines as they are read in
 if [ 1 == $check_output ]
 then
-    allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
-
-    terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams > plan_output.log
-    return_value=$?
     outputs=$(terraform -chdir="${terraform_module_directory}" output )
     if echo "${outputs}" | grep "No outputs"; then
         ok_to_proceed=true
@@ -445,20 +457,15 @@ then
             echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
             echo "#                                                                                       #"
             echo "#########################################################################################"
-
+            
             if [ 1 == $ado ] ; then
-              unset TF_DATA_DIR
-              exit 1
+                unset TF_DATA_DIR
+                exit 1
             fi
-            if [ 1 != $ado ]; then
-                read -pr "Do you want to continue Y/N?"  ans
-                answer=${ans^^}
-                if [ $answer == 'Y' ]; then
-                    ok_to_proceed=true
-                else
-                    unset TF_DATA_DIR
-                    exit 1
-                fi
+            read -pr "Do you want to continue Y/N?"  ans
+            answer=${ans^^}
+            if [ $answer == 'Y' ]; then
+                ok_to_proceed=true
             else
                 unset TF_DATA_DIR
                 exit 1
@@ -466,7 +473,7 @@ then
         else
             version_parameter=" -var terraform_template_version=${deployed_using_version} "
             
-            printf -v val %-.20s "$deployed_using_version"            
+            printf -v val %-.20s "$deployed_using_version"
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"
@@ -526,16 +533,16 @@ if [ 0 == $return_value ] ; then
     then
         rm plan_output.log
     fi
-
+    
     if [ "${deployment_system}" == sap_deployer ]
     then
         deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
         keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
         save_config_var "keyvault" "${system_config_information}"
-        save_config_var "deployer_public_ip_address" "${system_config_information}" 
+        save_config_var "deployer_public_ip_address" "${system_config_information}"
         
     fi
-
+    
     if [ "${deployment_system}" == sap_landscape ]
     then
         if [ $landscape_tfstate_key_exists == false ]
@@ -544,21 +551,21 @@ if [ 0 == $return_value ] ; then
             landscape_tfstate_key
         fi
     fi
-
+    
     if [ "${deployment_system}" == sap_library ]
     then
         
         tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
         STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
-
+        
         az account set --sub "${STATE_SUBSCRIPTION}"
-
+        
         REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
         
         get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
         
     fi
-
+    
     unset TF_DATA_DIR
     exit $return_value
 fi
@@ -594,7 +601,7 @@ if [ 2 == $return_value ] ; then
         echo ""
         fatal_errors=1
     fi
-
+    
     # AnyDB server
     test=$(grep dbserver plan_output.log | grep -m1 replaced)
     if [ -n "${test}" ] ; then
@@ -625,7 +632,7 @@ if [ 2 == $return_value ] ; then
         echo ""
         fatal_errors=1
     fi
-
+    
     # App server
     test=$(grep virtual_machine.app plan_output.log | grep -m1 replaced)
     if [ -n "${test}" ] ; then
@@ -656,7 +663,7 @@ if [ 2 == $return_value ] ; then
         echo ""
         fatal_errors=1
     fi
-
+    
     # SCS server
     test=$(grep virtual_machine.scs plan_output.log | grep -m1 replaced)
     if [ -n "${test}" ] ; then
@@ -672,7 +679,7 @@ if [ 2 == $return_value ] ; then
         echo ""
         fatal_errors=1
     fi
-
+    
     # SCS server disks
     test=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 replaced)
     if [ -n "${test}" ] ; then
@@ -688,7 +695,7 @@ if [ 2 == $return_value ] ; then
         echo ""
         fatal_errors=1
     fi
-
+    
     # Web server
     test=$(grep virtual_machine.web plan_output.log | grep -m1 replaced)
     if [ -n "${test}" ] ; then
@@ -719,9 +726,9 @@ if [ 2 == $return_value ] ; then
         echo ""
         fatal_errors=1
     fi
-
+    
     if [ $fatal_errors == 1 ] ; then
-
+        
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -735,9 +742,9 @@ if [ 2 == $return_value ] ; then
             unset TF_DATA_DIR
             exit 1
         fi
-
+        
         if [ 1 == $force ]; then
-          ok_to_proceed=true
+            ok_to_proceed=true
         else
             read -pr "Do you want to continue with the deployment Y/N?"  ans
             answer=${ans^^}
@@ -748,7 +755,7 @@ if [ 2 == $return_value ] ; then
                 exit 1
             fi
         fi
-
+        
     fi
 else
     ok_to_proceed=true
@@ -762,7 +769,7 @@ if [ $ok_to_proceed ]; then
     fi
     if [ -f plan_output.log ]
     then
-      rm plan_output.log
+        rm plan_output.log
     fi
     
     echo ""
@@ -799,9 +806,9 @@ if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
-
+    
     save_config_var "keyvault" "${system_config_information}"
-    save_config_var "deployer_public_ip_address" "${system_config_information}" 
+    save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
 
 

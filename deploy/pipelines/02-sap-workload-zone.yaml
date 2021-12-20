@@ -1,4 +1,11 @@
-# This pipeline deploys the SAP workload zone (landscape) with required resources
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline deploys the Workload Zone                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name: Deploy Workload zone $(zonefolder) [$(Date:yyyyMMdd) $(SourceBranchName)]
 
 parameters:
   - name: workloadzone
@@ -22,8 +29,6 @@ variables:
   env: ${{ parameters.environment }}
   log: logfile_$(Build.BuildId)
   tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-name: Deploy Workload zone $(zonefolder) [$(Date:yyyyMMdd) $(SourceBranchName)]
 
 stages:
   - stage: Deploy_SAP_workloadzone
@@ -112,7 +117,7 @@ stages:
 
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name  "$(Build.RequestedFor)"
-                git pull origin $(Branch)                                                                             &>> /tmp/$(log)
+                git pull --append origin $(Branch)                                                                             &>> /tmp/$(log)
                 added=0
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
                   git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}                &>>  /tmp/$(log)
@@ -142,3 +147,4 @@ stages:
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
             failOnStderr: true
+...
