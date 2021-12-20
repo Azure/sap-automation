@@ -38,7 +38,7 @@ source "${script_directory}/helpers/script_helpers.sh"
 force=0
 recover=0
 
-INPUT_ARGUMENTS=$(getopt -n prepare_region -o d:l:s:c:p:t:a:ifohr --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover -- "$@")
+INPUT_ARGUMENTS=$(getopt -n prepare_region -o d:l:s:c:p:t:a:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -56,6 +56,7 @@ do
         -p | --spn_secret)                         spn_secret="$2"                  ; shift 2 ;;
         -t | --tenant_id)                          tenant_id="$2"                   ; shift 2 ;;
         -a | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+        -v | --ado)                                ado_flag="--ado"                 ; shift ;;        
         -f | --force)                              force=1                          ; shift ;;
         -o | --only_deployer)                      only_deployer=1                  ; shift ;;
         -r | --recover)                            recover=1                        ; shift ;;
@@ -294,7 +295,8 @@ if [ 0 == $step ]; then
     fi
 fi
 
-
+cd "$root_dirname" || exit
+    
 if [ 1 = "${only_deployer:-}" ]; then
     load_config_vars "${deployer_config_information}" deployer_public_ip_address
     echo ""
@@ -462,7 +464,7 @@ if [ 3 == $step ]; then
     if [ -f post_deployment.sh ]; then
         rm post_deployment.sh
     fi
-    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s" "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}")
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
@@ -493,7 +495,7 @@ if [ 4 == $step ]; then
     echo ""
     
     cd "${library_dirname}" || exit
-    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}")
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}"  "${ado_flag}")
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?

@@ -102,20 +102,29 @@ stages:
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- --- Convert config file to UX format ---$reset"
+                sudo apt-get -qq install dos2unix
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
               echo -e "$green--- Validations ---$reset"
-                export SID=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep sid'=' | awk -F'=' '{print $2}' | xargs) ; echo SID $SID
-                if [ ! -n $(SID) ]; then
-                  echo "##vso[task.logissue type=error]SID was found in folder name."
+                if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) ]; then
+                  echo -e "$boldred--- $(sapsystemconfig) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(sapsystemconfig) was not found."
                   exit 2
                 fi
+                dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
                 if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml ]; then
                   echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml was not found."
+                  exit 2
+                fi
+                dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+                export SID=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep sid'=' | awk -F'=' '{print $2}' | xargs) ; echo SID $SID
+                if [ ! -n ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not found in $(sapsystemconfig)."
                   exit 2
                 fi
                 if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
@@ -123,10 +132,6 @@ stages:
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found."
                   exit 2
                 fi
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
-                dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
-                dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
                 sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
                 sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(fqdn)"'|'      SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
@@ -167,6 +172,7 @@ stages:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
             failOnStderr: true
   - stage: Core_Operating_System_Configuration
+    displayName: Core Operating System Configuration
     condition: eq(${{ parameters.baseosconfig }}, true)
     dependsOn:
       - Prepare_DB_SAP_Installation

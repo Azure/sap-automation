@@ -78,8 +78,6 @@ then
     exit 2 #No such file or directory
 fi
 
-dos2unix -q "${parameterfile}"
-
 if [ -z "${deployment_system}" ]
 then
     printf -v val %-40.40s "$deployment_system"
@@ -277,16 +275,18 @@ if [ -z "${REMOTE_STATE_RG}" ]; then
     load_config_vars "${system_config_information}" "tfstate_resource_id"
 fi
 
+if [ -z "${tfstate_resource_id}" ]; then
+    get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+    load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
+    load_config_vars "${system_config_information}" "tfstate_resource_id"
+    
+fi
+
+tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+
 if [ "${deployment_system}" != sap_deployer ]
 then
-    if [ -z "${tfstate_resource_id}" ]; then
-        get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
-        load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-        load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-        load_config_vars "${system_config_information}" "tfstate_resource_id"
-        
-    fi
-    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
     
     if [ -z "${deployer_tfstate_key}" ]; then
         deployer_tfstate_key_parameter=" "
@@ -440,6 +440,7 @@ then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
+        allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
         terraform -chdir="${terraform_module_directory}" refresh $allParams
         
         deployment_parameter=" "
@@ -501,7 +502,9 @@ fi
 
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
 
-terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams > plan_output.log
+echo $allParams
+
+terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams
 return_value=$?
 if [ 1 == $return_value ]
 then
@@ -512,11 +515,6 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    if [ -f plan_output.log ]
-    then
-        cat plan_output.log
-        rm plan_output.log
-    fi
     unset TF_DATA_DIR
     exit $return_value
 fi
