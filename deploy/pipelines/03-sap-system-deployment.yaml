@@ -15,7 +15,6 @@ variables:
   sapsystemfolder: ${{ parameters.sap_system }}
   sapsystemconfig: ${{ parameters.sap_system }}.tfvars
   log: logfile_$(Build.BuildId)
-  tf_version: "1.0.11"
   tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)
@@ -34,10 +33,11 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                
               echo -e "$green--- Validations ---$reset"
-              if [ ! -f $(sapsystemfolder) ]; then
-                echo -e "$boldred--- $(sapsystemfolder) was not found ---$reset"
-                echo "##vso[task.logissue type=error]File $(sapsystemfolder) was not found."
+              if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) ]; then
+                echo -e "$boldred--- $(sapsystemconfig) was not found ---$reset"
+                echo "##vso[task.logissue type=error]File $(sapsystemconfig) was not found."
                 exit 2
               fi
               if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then

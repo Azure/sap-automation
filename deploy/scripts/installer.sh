@@ -183,21 +183,21 @@ echo "Terraform state subscription: $STATE_SUBSCRIPTION"
 
 if [ -z "$deployer_tfstate_key" ];
 then
-  load_config_vars "${system_config_information}" "deployer_tfstate_key"
+    load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
-  save_config_vars "${system_config_information}" deployer_tfstate_key
+    save_config_vars "${system_config_information}" deployer_tfstate_key
 fi
 
 if [ -z "$landscape_tfstate_key" ];
 then
-  load_config_vars "${system_config_information}" "landscape_tfstate_key"
+    load_config_vars "${system_config_information}" "landscape_tfstate_key"
 else
-  save_config_vars "${system_config_information}" landscape_tfstate_key
+    save_config_vars "${system_config_information}" landscape_tfstate_key
 fi
 
 if [ -z "$STATE_SUBSCRIPTION" ];
 then
-  load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
     echo "Saving the state subscription"
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
@@ -206,12 +206,12 @@ else
         printf -v val %-40.40s "$STATE_SUBSCRIPTION"
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#The provided state_subscription is not valid:$boldred ${val} $resetformatting#"
+        echo -e "# The provided state_subscription is not valid:$boldred ${val}$resetformatting#"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         exit 65
     fi
-
+    
 fi
 
 account_set=0
@@ -247,12 +247,14 @@ then
 fi
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
-    read -p "Terraform state storage account name:"  REMOTE_STATE_SA
+    if [ 1 != $ado ]; then
+        read -pr "Terraform state storage account name:"  REMOTE_STATE_SA
     
-    get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
-    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-    load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-    load_config_vars "${system_config_information}" "tfstate_resource_id"
+        get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+        load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+        load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
+        load_config_vars "${system_config_information}" "tfstate_resource_id"
+    fi
 fi
 
 echo "Terraform state storage " "${REMOTE_STATE_SA}"
@@ -304,10 +306,12 @@ then
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
         landscape_tfstate_key_exists=true
     else
-        read -p "Workload terraform statefile name :" landscape_tfstate_key
-        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-        save_config_var "landscape_tfstate_key" "${system_config_information}"
-        landscape_tfstate_key_exists=true
+        if [ 1 != $ado ]; then
+            read -pr "Workload terraform statefile name :" landscape_tfstate_key
+            landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+            save_config_var "landscape_tfstate_key" "${system_config_information}"
+            landscape_tfstate_key_exists=true
+        fi
     fi
 else
     landscape_tfstate_key_parameter=""
@@ -446,11 +450,15 @@ then
               unset TF_DATA_DIR
               exit 1
             fi
-            
-            read -p "Do you want to continue Y/N?"  ans
-            answer=${ans^^}
-            if [ $answer == 'Y' ]; then
-                ok_to_proceed=true
+            if [ 1 != $ado ]; then
+                read -pr "Do you want to continue Y/N?"  ans
+                answer=${ans^^}
+                if [ $answer == 'Y' ]; then
+                    ok_to_proceed=true
+                else
+                    unset TF_DATA_DIR
+                    exit 1
+                fi
             else
                 unset TF_DATA_DIR
                 exit 1
@@ -731,7 +739,7 @@ if [ 2 == $return_value ] ; then
         if [ 1 == $force ]; then
           ok_to_proceed=true
         else
-            read -p "Do you want to continue with the deployment Y/N?"  ans
+            read -pr "Do you want to continue with the deployment Y/N?"  ans
             answer=${ans^^}
             if [ $answer == 'Y' ]; then
                 ok_to_proceed=true
@@ -789,8 +797,8 @@ fi
 
 if [ "${deployment_system}" == sap_deployer ]
 then
-    export deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-    export keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+    deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
+    keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
     save_config_var "keyvault" "${system_config_information}"
     save_config_var "deployer_public_ip_address" "${system_config_information}" 
@@ -805,13 +813,7 @@ fi
 
 if [ "${deployment_system}" == sap_library ]
 then
-    
-    export tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
-    export STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-
-    az account set --sub $STATE_SUBSCRIPTION
-
-    export REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
+    REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
     
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     
