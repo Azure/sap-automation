@@ -123,7 +123,8 @@ stages:
                 return_code=$?
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
                 git pull --append origin $(Branch)
                 added=0
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then

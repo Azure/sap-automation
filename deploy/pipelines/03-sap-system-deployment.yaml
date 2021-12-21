@@ -111,6 +111,8 @@ stages:
                 return_code=$?
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 git pull --append origin $(Branch)
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
                 added=0
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate ]; then

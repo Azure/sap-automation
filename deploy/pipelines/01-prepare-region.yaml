@@ -132,6 +132,8 @@ stages:
                 git pull --append origin $(Branch)
                 export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
                 added=0
                 if [ -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA} ]; then
                   git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
