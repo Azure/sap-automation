@@ -19,10 +19,16 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  sapsystemfolder: ${{ parameters.sap_system }}
-  sapsystemconfig: ${{ parameters.sap_system }}.tfvars
-  log: logfile_$(Build.BuildId)
-  tf_url: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group: "SAP-deployment-variables-general"
+  - group: "SAP-deployment-variables-specific"
+  - name: sapsystemfolder
+    value: ${{ parameters.sap_system }}
+  - name: sapsystemconfig
+    value: ${{ parameters.sap_system }}.tfvars
+  - name: log
+    value: logfile_$(Build.BuildId)
+  - name: tf_url
+    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage: Deploy_SAP_infrastructure
@@ -30,6 +36,8 @@ stages:
     jobs:
       - job: Deploy_SAP_infrastructure
         steps:
+          - checkout: self
+            persistCredentials: true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -102,27 +110,25 @@ stages:
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
                 return_code=$?
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git pull --append origin $(Branch)                                                                           &>> /tmp/$(log)
+                git pull --append origin $(Branch)
                 cd $(Build.Repository.LocalPath)
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)" 
                 added=0
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate  &>  /tmp/$(log)
+                  git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate
                   added=1
                 fi
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml ]; then
-                  git add  $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml           &>> /tmp/$(log)
+                  git add  $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
                   added=1
                 fi
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
-                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml           &>> /tmp/$(log)
+                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"              &>> /tmp/$(log)
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
-                  git push origin HEAD:$(Branch)                                                                      &>> /tmp/$(log)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -f origin HEAD:$(Branch)
                 fi
               echo "output the log ---$reset"
                 cat /tmp/$(log)
