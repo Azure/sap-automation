@@ -109,6 +109,9 @@ get_region_code "$region"
 private_link_used=$(grep  "use_private_endpoint=" "${param_dirname}"/"${parameterfile}" |  cut -d'=' -f2 | tr -d '"')
 
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
+landscape_tfstate_key=${key}.terraform.tfstate
+
+
 
 #Persisting the parameters across executions
 
@@ -650,6 +653,7 @@ if [ 0 == $return_value ] ; then
     
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
     save_config_var "workloadkeyvault" "${workload_config_information}"
+    save_config_vars "landscape_tfstate_key" "${workload_config_information}"
     ok_to_proceed=0
 fi
 
@@ -702,6 +706,7 @@ fi
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 if [ 0 == $return_value ] ; then
+    save_config_vars "landscape_tfstate_key" "${workload_config_information}"
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
     
     temp=$(echo "${workloadkeyvault}" | grep "Warning")
