@@ -75,7 +75,7 @@ function missing {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:hi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:hi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
