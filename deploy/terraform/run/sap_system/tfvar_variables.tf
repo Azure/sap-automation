@@ -189,6 +189,11 @@ variable "anchor_vm_nic_ips" {
 variable "anchor_vm_accelerated_networking" {
   default = true
 }
+
+
+variable "use_observer" {
+  default = true
+}
 /*
 This block describes the variables for the key_vault section block in the json file
 */

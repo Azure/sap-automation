@@ -64,7 +64,11 @@ variable "terraform_template_version" {
 variable "license_type" {
   description = "Specifies the license type for the OS"
   default     = ""
+}
 
+variable "use_zonal_markers" {
+ type = bool
+ default = true
 }
 
 locals {

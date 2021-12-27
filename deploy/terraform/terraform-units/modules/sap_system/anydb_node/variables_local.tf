@@ -103,6 +103,12 @@ variable "order_deployment" {
   default     = ""
 }
 
+variable "use_observer" {
+}
+
+
+
+
 locals {
   // Imports database sizing information
 
@@ -246,7 +252,9 @@ locals {
 
   //Observer VM
   observer                 = try(local.anydb.observer, {})
-  deploy_observer          = upper(local.anydb_platform) == "ORACLE" && local.anydb_ha
+  
+  #If using an existing VM for observer set use_observer to false in .tfvars
+  deploy_observer          = var.use_observer ? upper(local.anydb_platform) == "ORACLE" && local.anydb_ha : false
   observer_size            = "Standard_D4s_v3"
   observer_authentication  = local.authentication
   observer_custom_image    = local.anydb_custom_image

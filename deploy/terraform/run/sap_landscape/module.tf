@@ -16,8 +16,8 @@ module "sap_landscape" {
   service_principal                  = var.use_spn ? local.service_principal : local.account
   key_vault                          = local.key_vault
   deployer_tfstate                   = try(data.terraform_remote_state.deployer[0].outputs, [])
-  diagnostics_storage_account        = var.diagnostics_storage_account
-  witness_storage_account            = var.witness_storage_account
+  diagnostics_storage_account        = local.diagnostics_storage_account
+  witness_storage_account            = local.witness_storage_account
   use_deployer                       = length(var.deployer_tfstate_key) > 0
   ANF_settings                       = local.ANF_settings
   create_spn                         = local.options.create_fencing_spn

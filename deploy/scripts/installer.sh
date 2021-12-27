@@ -251,7 +251,7 @@ load_config_vars "${system_config_information}" "tfstate_resource_id"
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
     if [ 1 != $ado ]; then
-        read -pr "Terraform state storage account name:"  REMOTE_STATE_SA
+        read -p "Terraform state storage account name:"  REMOTE_STATE_SA
         
         get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
         load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
@@ -311,7 +311,7 @@ then
         landscape_tfstate_key_exists=true
     else
         if [ 1 != $ado ]; then
-            read -pr "Workload terraform statefile name :" landscape_tfstate_key
+            read -p "Workload terraform statefile name :" landscape_tfstate_key
             landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
             save_config_var "landscape_tfstate_key" "${system_config_information}"
             landscape_tfstate_key_exists=true
@@ -463,7 +463,7 @@ then
                 unset TF_DATA_DIR
                 exit 1
             fi
-            read -pr "Do you want to continue Y/N?"  ans
+            read -p "Do you want to continue Y/N?"  ans
             answer=${ans^^}
             if [ $answer == 'Y' ]; then
                 ok_to_proceed=true
@@ -742,7 +742,7 @@ if [ 2 == $return_value ] ; then
         if [ 1 == $force ]; then
             ok_to_proceed=true
         else
-            read -pr "Do you want to continue with the deployment Y/N?"  ans
+            read -p "Do you want to continue with the deployment Y/N?"  ans
             answer=${ans^^}
             if [ $answer == 'Y' ]; then
                 ok_to_proceed=true

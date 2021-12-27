@@ -13,6 +13,10 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source 
 source "${script_directory}/deploy_utils.sh"
 
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
+
 function showhelp {
     echo ""
     echo "##################################################################################################################"
@@ -125,7 +129,7 @@ if [ -z "$parameterfile" ]; then
     exit 2 #No such file or directory
 fi
 
-if [ ! -n "${type}" ]
+if [ -z "${type}" ]
 then
     printf -v val %-40.40s "$type"
     echo "#########################################################################################"
@@ -143,45 +147,38 @@ then
     exit 64 #script usage wrong
 fi
 
-
-# Checking for valid az session
-az account show > stdout.az 2>&1
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Please login using az login $resetformatting                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-    exit 67                                                                                             #addressee unknown
-else
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-    
+# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+validate_exports
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
+# Check that Terraform and Azure CLI is installed
+validate_dependencies
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
+
+# Check that parameter files have environment and location defined
+validate_key_parameters "$parameterfile_name"
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
+
+if valid_region_name ${region} ; then
+    # Convert the region to the correct code
+    get_region_code ${region}
+else
+    echo "Invalid region: $region"
+    exit 2
+fi
 account_set=0
 
-cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ ! -z "${cloudIDUsed}" ];
-then 
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 67                                                                                             #addressee unknown
-fi
+automation_config_directory=~/.sap_deployment_automation/
+generic_config_information="${automation_config_directory}"config
+system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 
 az_res=$(az resource show --ids "${resourceID}")
@@ -199,15 +196,28 @@ if [ 0 != $return_value ] ; then
     exit $return_value
 fi
 
-if [ ! -z "${subscription_id}" ]
+if [ -n "${subscription_id}" ]
 then
-    $(az account set --sub "${subscription_id}")
-    account_set=1
+    az account set --sub "${subscription_id}"
+else
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+
+    subscription_id=$STATE_SUBSCRIPTION
+
+    if [ -n "${subscription_id}" ]
+    then
+        read -p "Subscription ID containing Terraform state storage account:"  subscription_id
+    fi
+    az account set --sub "${subscription_id}"
 fi
 
+load_config_vars "${system_config_information}" "tfstate_resource_id"
 
-tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
-fail_if_null tfstate_resource_id
+if [ -z "${tfstate_resource_id}" ]
+then
+    tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
+    fail_if_null tfstate_resource_id
+fi
 resource_group_name=$(echo $tfstate_resource_id | cut -d/ -f5 | tr -d \" | xargs)
 
 directory=$(pwd)/.terraform
@@ -242,9 +252,7 @@ fi
 
 
 terraform  -chdir=${module_dir} state list > resources.lst
-shorter_name=$(echo ${moduleID} | cut -d[ -f1)
-tf_resource=$(grep ${shorter_name} resources.lst)
-echo $tf_resource
+tf_resource=$(grep ${moduleID} resources.lst)
 if [ -n "${tf_resource}" ]; then
   
   echo "#########################################################################################"
