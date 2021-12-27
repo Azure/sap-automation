@@ -138,5 +138,5 @@ stages:
             displayName: Deploy_SAP_infrastructure
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+            failOnStderr: false
 ...

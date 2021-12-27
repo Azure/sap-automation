@@ -1,5 +1,5 @@
 resource "local_file" "ansible_inventory_new_yml" {
-  content = templatefile(format("%s%s", path.module, "/ansible_inventory_new.yml.tmpl"), {
+  content = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
     ips_dbnodes = var.database_admin_ips,
     dbnodes     = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
     ips_scs = length(local.ips_scs) > 0 ? (
@@ -101,8 +101,24 @@ resource "local_file" "sap-parameters_yml" {
   directory_permission = "0770"
 }
 
+resource "local_file" "sap_inventory_md" {
+  content = templatefile(format("%s/sap_application.tmpl", path.module), {
+    sid           = var.sap_sid,
+    db_sid        = var.db_sid
+    kv_name       = local.kv_name,
+    scs_lb_ip     = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
+    platform      = lower(var.platform)
+    kv_pwd_secret = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+    }
+  )
+  filename             = format("%s/%s.md", path.cwd, var.sap_sid)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
+
 
 resource "azurerm_storage_blob" "hosts_yaml" {
+  count                  = 0
   provider               = azurerm.deployer
   name                   = format("%s_hosts.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
   storage_account_name   = local.tfstate_storage_account_name
@@ -115,6 +131,7 @@ resource "azurerm_storage_blob" "sap_parameters_yaml" {
   depends_on = [
     local_file.sap-parameters_yml
   ]
+  count                  = 0
   provider               = azurerm.deployer
   name                   = format("%s_sap-parameters.yaml", length(trimspace(var.naming.prefix.SDU)) > 0 ? trimspace(var.naming.prefix.SDU) : var.sap_sid)
   storage_account_name   = local.tfstate_storage_account_name
