@@ -55,6 +55,31 @@
     - path: "{{ download_directory }}/bom"
     - path: "{{ download_directory }}/files"
 
+- name:                                "BoM Initial file"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/readme.md
+    content: |
+        This is the container with the SAP media
+
+- name:                                "BOM: Check storage account container"
+  ansible.builtin.command: >-
+                                       az storage blob upload
+                                         --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
+                                         --account-key {{ sapbits_access_key }}
+                                         --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives
+                                         --name readme.md
+                                         --file /etc/sap_deployment_automation/readme.md
+                                         --if-none-match "*"
+                                         --no-progress
+  creates:                             /etc/sap_deployment_automation/BoM.txt
+
+- name:                                "BoM Initial file"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/BoM.txt
+    state:                             touch
+    mode:                              0755
+
+
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing BOM name.
@@ -65,7 +90,6 @@
 - include_tasks:                       "bom_validator.yaml"
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    check_storage_account:             true
 # -------------------------------------+---------------------------------------8
 
 
@@ -76,7 +100,6 @@
 - include_tasks:                       "bom_validator.yaml"
   vars:
     bom_name:                          "{{ bom_dependency.name }}"
-    check_storage_account:             true
   loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
