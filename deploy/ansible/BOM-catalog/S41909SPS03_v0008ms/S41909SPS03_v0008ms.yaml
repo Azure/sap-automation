@@ -21,6 +21,7 @@ product_ids:
 materials:
   dependencies:
     - name:     HANA_2_00_055_v0005ms
+    - name:     SWPM20SP10_latest
 
   media:
     # SAPCAR 7.22
@@ -63,15 +64,6 @@ materials:
       checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000000703122018
-
-   # SWPM
-    - name:         "SWPM20SP10; OS: Linux on x86_64 64bit"
-      archive:      SWPM20SP10_3-80003424.SAR
-      checksum:     1d8cf46f4ad43aea7eca0174fb1b6d9fb1e01bde5d9882388064dc10d61a0495
-      extract:      true
-      extractDir:   SWPM
-      creates:      SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000001808612021
 
     # DB Export
     - name:         "File on DVD"
