@@ -46,7 +46,6 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-
               echo -e "$green--- Validations ---$reset"
               if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) ]; then
                 echo -e "$boldred--- $(sapsystemconfig) was not found ---$reset"
@@ -82,6 +81,7 @@ stages:
                   exit 2
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                rm -f terraform_$(tf_version)_linux_amd64.zip
               echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
@@ -129,16 +129,15 @@ stages:
                 fi
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md ]; then
                   git add    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md
-                  echo "##vso[task.uploadsummary]$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md"
                   added=1
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -f origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
                 fi
               echo "output the log ---$reset"
-                git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
                 exit $return_code
             displayName: Deploy_SAP_infrastructure
             env:

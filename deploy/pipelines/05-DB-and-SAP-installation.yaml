@@ -158,14 +158,20 @@ stages:
                 chmod 600 $(Build.Repository.LocalPath)/sshkey
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
+                git pull --append origin $(Branch)
                 git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)" 
-                git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>  /tmp/$(log)
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"   &>> /tmp/$(log)
-                git pull origin $(Branch)                                                                &>> /tmp/$(log)
-                git push origin HEAD:$(Branch)                                                           &>> /tmp/$(log)
-              echo "output the log ---$reset"
-                cat /tmp/$(log)
+                git config --global user.name "$(Build.RequestedFor)"
+                added=0
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml ]; then
+                  git add  $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
+                fi
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Prepare_DB_SAP_Installation
             env:
@@ -232,6 +238,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: Database_Installation
     displayName: Database Installation
