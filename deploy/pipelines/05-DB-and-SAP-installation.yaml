@@ -176,7 +176,7 @@ stages:
             displayName: Prepare_DB_SAP_Installation
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+            failOnStderr: false
   - stage: Core_Operating_System_Configuration
     displayName: Core Operating System Configuration
     condition: eq(${{ parameters.baseosconfig }}, true)
@@ -196,6 +196,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: SAP_Operating_System_Configuration
     displayName: SAP Operating System Configuration
@@ -217,6 +219,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: Software_Acquisition
     displayName: Software Acquisition
@@ -262,6 +266,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: SCS_Installation
     displayName: SCS Installation
@@ -285,6 +291,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: Database_Load
     displayName: Database Load
@@ -309,6 +317,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '-vvvv --private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: PAS_Installation
     displayName: PAS Installation
@@ -334,6 +344,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: APP_Install
     displayName: Application Server Install
@@ -360,6 +372,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: WebDispatcher_Installation
     displayName: WebDispatcher Installation
@@ -387,6 +401,8 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
   - stage: HighAvailability_Setup
     displayName: High Availability Setup
@@ -415,5 +431,6 @@ stages:
               inventoryFileOnAgentMachine: "sap_hosts.yaml"
               args: '--private-key sshkey -e "@$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/"'
               failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 ...
-
