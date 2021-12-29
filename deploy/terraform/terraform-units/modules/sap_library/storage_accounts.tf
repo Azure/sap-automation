@@ -22,7 +22,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   account_tier              = local.sa_tfstate_account_tier
   account_kind              = local.sa_tfstate_account_kind
   enable_https_traffic_only = local.sa_tfstate_enable_secure_transfer
-  allow_blob_public_access  = true
+  allow_blob_public_access  = false
   blob_properties {
     delete_retention_policy {
       days = 7
@@ -111,7 +111,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
   account_kind              = local.sa_sapbits_account_kind
   enable_https_traffic_only = local.sa_sapbits_enable_secure_transfer
   // To support all access levels 'Blob' 'Private' and 'Container'
-  allow_blob_public_access = true
+  allow_blob_public_access = false
   // TODO: soft delete for file share
 
   network_rules {
@@ -186,31 +186,6 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
     data.azurerm_storage_container.storagecontainer_sapbits[0].id) : (
     azurerm_storage_container.storagecontainer_sapbits[0].id
   )
-  key_vault_id = local.deployer_kv_user_arm_id
-}
-
-data "azurerm_storage_account_blob_container_sas" "saplib" {
-  connection_string = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_sapbits[0].primary_connection_string : azurerm_storage_account.storage_sapbits[0].primary_connection_string
-  container_name    = local.resource_suffixes.sapbits
-  https_only        = true
-  start             = format("%s-01-01", formatdate("YYYY", timestamp()))
-  expiry            = format("%s-12-31", formatdate("YYYY", timeadd(timestamp(), "8760h")))
-  permissions {
-    read   = true
-    add    = false
-    create = false
-    write  = false
-    delete = false
-    list   = true
-  }
-
-}
-
-resource "azurerm_key_vault_secret" "saplibrary_sas_token" {
-  provider     = azurerm.deployer
-  count        = length(local.deployer_kv_user_arm_id) > 0 ? 1 : 0
-  name         = "sapbits-sas-token"
-  value        = format("%s", data.azurerm_storage_account_blob_container_sas.saplib.sas)
   key_vault_id = local.deployer_kv_user_arm_id
 }
 

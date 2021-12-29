@@ -1,5 +1,5 @@
 output "vnet_sap_arm_id" {
-  value = try(module.sap_landscape.vnet_sap[0].id, "")
+  value = module.sap_landscape.vnet_sap_id
 }
 
 output "landscape_key_vault_user_arm_id" {
@@ -118,7 +118,10 @@ output "dns_resource_group_name" {
   value = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
 }
 
-
 output "spn_kv_id" {
   value = local.spn_key_vault_arm_id
+}
+
+output "subnet_mgmt_id" {
+  value = module.sap_landscape.subnet_mgmt_id
 }

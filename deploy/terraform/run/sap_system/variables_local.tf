@@ -64,7 +64,11 @@ variable "terraform_template_version" {
 variable "license_type" {
   description = "Specifies the license type for the OS"
   default     = ""
+}
 
+variable "use_zonal_markers" {
+ type = bool
+ default = true
 }
 
 locals {
@@ -98,6 +102,12 @@ locals {
   anydb_sid           = (length(local.anydb-databases) > 0) ? try(local.anydb-databases[0].instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
   db_sid              = length(local.hana-databases) > 0 ? local.hanadb_sid : local.anydb_sid
   sap_sid             = upper(try(local.application.sid, local.db_sid))
+
+  enable_db_deployment = (
+    length(local.hana-databases) > 0
+    || length(local.anydb-databases) > 0
+  )
+  
   db_zonal_deployment = length(try(local.databases[0].zones, [])) > 0
 
   // Locate the tfstate storage account
@@ -116,7 +126,7 @@ locals {
   deployer_subscription_id = length(local.spn_key_vault_arm_id) > 0 ? split("/", local.spn_key_vault_arm_id)[2] : ""
 
   spn = {
-    subscription_id = var.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
+    subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
     client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
     client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
     tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
@@ -129,7 +139,7 @@ locals {
   }
 
   account = {
-    subscription_id = local.spn.subscription_id,
+    subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
     tenant_id       = data.azurerm_client_config.current.tenant_id,
     object_id       = data.azurerm_client_config.current.object_id
   }

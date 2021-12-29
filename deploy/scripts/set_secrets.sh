@@ -121,11 +121,11 @@ fi
 #     exit 65	#/* data format error */
 # fi
 
-if ! valid_region_code "${region_code}"; then
-    echo "The 'region' must be a non-empty string composed of 4 uppercase letters!"
-    showhelp
-    exit 65	#/* data format error */
-fi
+# if ! valid_region_code "${region_code}"; then
+#    echo "The 'region' must be a non-empty string composed of 4 uppercase letters!"
+#    showhelp
+#    exit 65	#/* data format error */
+# fi
 
 automation_config_directory=~/.sap_deployment_automation
 environment_config_information="${automation_config_directory}"/"${environment}""${region_code}"
@@ -148,15 +148,39 @@ fi
 
 if [ -z "$keyvault" ]; then
     load_config_vars "${environment_config_information}" "keyvault"
-    if [ ! -n "$keyvault" ]; then
+    if [ -z "$keyvault" ]; then
         read -r -p "Keyvault name: " keyvault
     fi
+    if valid_kv_name "$keyvault" ; then
+        echo "Valid keyvault name format specified"
+    else
+        printf -v val %-40.40s "$keyvault"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
+
 fi
 
-if [ -z "$client_id" ]; then
+if [ -z "${client_id}" ]; then
     load_config_vars "${environment_config_information}" "client_id"
     if [ -z "$client_id" ]; then
         read -r -p "SPN App ID: " client_id
+    fi
+else
+    if is_valid_guid "${client_id}" ; then
+        echo "Valid client_id specified"
+    else
+        printf -v val %-40.40s "$client_id"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided client_id is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
     fi
 fi
 
@@ -171,10 +195,34 @@ if [ -z "${tenant_id}" ]; then
     if [ ! -n "${tenant_id}" ]; then
         read -r -p "SPN Tenant ID: " tenant_id
     fi
+else
+    if is_valid_guid "${tenant_id}" ; then
+        echo "Valid tenant_id specified"
+    else
+        printf -v val %-40.40s "$tenant_id"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
 fi
 
-if [ -z "$subscription" ]; then
+if [ -z "${subscription}" ]; then
     read -r -p "SPN Subscription: " subscription
+else
+    if is_valid_guid "${subscription}" ; then
+        echo "Valid subscription specified"
+    else
+        printf -v val %-40.40s "$subscription"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#     The provided subscription is not valid:$boldred ${val} $resetformatting #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
 fi
 
 if [ -z "${keyvault}" ]; then

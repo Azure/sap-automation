@@ -32,7 +32,7 @@ resource "azurerm_network_interface" "deployer" {
       "") : (
       length(var.deployer.private_ip_address) > 0 ? (
         var.deployer.private_ip_address) : (
-        cidrhost(local.sub_mgmt_deployed.address_prefixes[0],  4)
+        cidrhost(local.sub_mgmt_deployed_prefixes[0],  4)
       )
     )
     private_ip_address_allocation = var.deployer.use_DHCP ? "Dynamic" : "Static"

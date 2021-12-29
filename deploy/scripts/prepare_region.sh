@@ -1,21 +1,5 @@
 #!/bin/bash
 
-#error codes include those from /usr/include/sysexits.h
-
-#colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
-cyan="\e[1;36m"
-resetformatting="\e[0m"
-
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
-
-#call stack has full scriptname when using source
-source "${script_directory}/deploy_utils.sh"
-
 ################################################################################################
 #                                                                                              #
 #   This file contains the logic to deploy the environment to support SAP workloads.           #
@@ -32,90 +16,33 @@ source "${script_directory}/deploy_utils.sh"
 #                                                                                              #
 ################################################################################################
 
-function showhelp {
-    echo ""
-    echo "#################################################################################################################"
-    echo "#                                                                                                               #"
-    echo "#                                                                                                               #"
-    echo "#   This file contains the logic to prepare an Azure region to support the SAP Deployment Automation by         #"
-    echo "#    preparing the deployer and the library.                                                                    #"
-    echo "#   The script experts the following exports:                                                                   #"
-    echo "#                                                                                                               #"
-    echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                                            #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                          #"
-    echo "#                                                                                                               #"
-    echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for         #"
-    echo "#    the deployer and the library and the environment.                                                          #"
-    echo "#                                                                                                               #"
-    echo "#   The script will persist the parameters needed between the executions in the                                 #"
-    echo "#   ~/.sap_deployment_automation folder                                                                         #"
-    echo "#                                                                                                               #"
-    echo "#                                                                                                               #"
-    echo "#   Usage: prepare_region.sh                                                                                    #"
-    echo "#      -d or --deployer_parameter_file       deployer parameter file                                            #"
-    echo "#      -l or --library_parameter_file        library parameter file                                             #"
-    echo "#                                                                                                               #"
-    echo "#   Optional parameters                                                                                         #"
-    echo "#      -s or --subscription                  subscription                                                       #"
-    echo "#      -c or --spn_id                        SPN application id                                                 #"
-    echo "#      -p or --spn_secret                    SPN password                                                       #"
-    echo "#      -t or --tenant_id                     SPN Tenant id                                                      #"
-    echo "#      -f or --force                         Clean up the local Terraform files.                                #"
-    echo "#      -i or --auto-approve                  Silent install                                                     #"
-    echo "#      -h or --help                          Help                                                               #"
-    echo "#                                                                                                               #"
-    echo "#   Example:                                                                                                    #"
-    echo "#                                                                                                               #"
-    echo "#   DEPLOYMENT_REPO_PATH/scripts/prepare_region.sh \                                                            #"
-    echo "#      --deployer_parameter_file DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json \  #"
-    echo "#      --library_parameter_file LIBRARY/MGMT-WEEU-SAP_LIBRARY/MGMT-WEEU-SAP_LIBRARY.json \                      #"
-    echo "#                                                                                                               #"
-    echo "#   Example:                                                                                                    #"
-    echo "#                                                                                                               #"
-    echo "#   DEPLOYMENT_REPO_PATH/scripts/prepare_region.sh \                                                            #"
-    echo "#      --deployer_parameter_file DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json  \ #"
-    echo "#      --library_parameter_file LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json \                      #"
-    echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                                                    #"
-    echo "#      --spn_id yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                                          #"
-    echo "#      --spn_secret ************************ \                                                                  #"
-    echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz \                                                       #"
-    echo "#      --auto-approve                                                                                           #"
-    echo "#                                                                                                               #"
-    echo "#################################################################################################################"
-}
+#error codes include those from /usr/include/sysexits.h
 
-function missing {
-    printf -v val '%-40s' "$missing_value"
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing : ${val}                                  #"
-    echo "#                                                                                       #"
-    echo "#   Usage: prepare_region.sh                                                            #"
-    echo "#      -d or --deployer_parameter_file       deployer parameter file                    #"
-    echo "#      -l or --library_parameter_file        library parameter file                     #"
-    echo "#                                                                                       #"
-    echo "#   Optional parameters                                                                 #"
-    echo "#      -s or --subscription                  subscription                               #"
-    echo "#      -c or --spn_id                        SPN application id                         #"
-    echo "#      -p or --spn_secret                    SPN password                               #"
-    echo "#      -t or --tenant_id                     SPN Tenant id                              #"
-    echo "#      -f or --force                         Clean up the local Terraform files.        #"
-    echo "#      -i or --auto-approve                  Silent install                             #"
-    echo "#      -h or --help                          Help                                       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    
-}
+#colors for terminal
+boldreduscore="\e[1;4;31m"
+boldred="\e[1;31m"
+cyan="\e[1;36m"
+resetformatting="\e[0m"
+
+#External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source
+source "${script_directory}/deploy_utils.sh"
+
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
 recover=0
 
-INPUT_ARGUMENTS=$(getopt -n prepare_region -o d:l:s:c:p:t:a:ifohr --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover -- "$@")
+INPUT_ARGUMENTS=$(getopt -n prepare_region -o d:l:s:c:p:t:a:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
-    showhelp
+    control_plane_showhelp
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
@@ -129,111 +56,59 @@ do
         -p | --spn_secret)                         spn_secret="$2"                  ; shift 2 ;;
         -t | --tenant_id)                          tenant_id="$2"                   ; shift 2 ;;
         -a | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+        -v | --ado)                                ado_flag="--ado"                 ; shift ;;        
         -f | --force)                              force=1                          ; shift ;;
         -o | --only_deployer)                      only_deployer=1                  ; shift ;;
         -r | --recover)                            recover=1                        ; shift ;;
         -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
-        -h | --help)                               showhelp                         
+        -h | --help)                               control_plane_showhelp
         exit 3                           ; shift ;;
         --) shift; break ;;
     esac
 done
 
-this_ip=$(curl ipinfo.io/ip)
-
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
 
-if [ ! -z "$approve" ]; then
+if [ -n "$approve" ]; then
     approveparam=" -i"
 fi
 
-if [ -z "$deployer_parameter_file" ]; then
-    missing_value='deployer parameter file'
-    missing
+if [ ! -f "$deployer_parameter_file" ]; then
+    export missing_value='deployer parameter file'
+    control_plane_missing
     exit 2 #No such file or directory
 fi
 
-if [ -z "$library_parameter_file" ]; then
-    missing_value='library parameter file'
-    missing
+if [ ! -f "$library_parameter_file" ]; then
+    export missing_value='library parameter file'
+    control_plane_missing
     exit 2 #No such file or directory
 fi
 
-# Check terraform
-tf=$(terraform -version | grep Terraform)
-if [ ! -n "$tf" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore  Please install Terraform $resetformatting                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 2 #No such file or directory
+# Check that Terraform and Azure CLI is installed
+validate_dependencies
+return_code=$?
+if [ 0 != $return_code ]; then
+    echo "validate_dependencies returned $return_code"
+    exit $return_code
 fi
 
-az --version >stdout.az 2>&1
-az=$(grep "azure-cli" stdout.az)
-if [ ! -n "${az}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore Please install the Azure CLI $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 2 #No such file or directory
-fi
-
-ext=$(echo ${deployer_parameter_file} | cut -d. -f2)
-
-# Helper variables
-if [ "${ext}" == json ]; then
-    environment=$(jq --raw-output .infrastructure.environment "${deployer_parameter_file}")
-    region=$(jq --raw-output .infrastructure.region "${deployer_parameter_file}")
-else
-    load_config_vars "${root_dirname}"/"${deployer_parameter_file}" "environment"
-    load_config_vars "${root_dirname}"/"${deployer_parameter_file}" "location"
-    region=$(echo ${location} | xargs)
-    
-fi
-
-if [ ! -n "${environment}" ]; then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                         $boldred  Incorrect parameter file. $resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#                The file must contain the environment attribute!!                      #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 64 #script usage wrong
-fi
-
-if [ ! -n "${region}" ]; then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#              The file must contain the region/location attribute!!                    #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 64                                                                                           #script usage wrong
+# Check that parameter files have environment and location defined
+validate_key_parameters "$deployer_parameter_file"
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
 # Convert the region to the correct code
-get_region_code $region
+get_region_code "$region"
+
+echo "Region code for deployment:  $region_code"
 
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
-#Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]; then
-    mkdir -p "$HOME/.terraform.d/plugin-cache"
-fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
 if [ $force == 1 ]; then
     if [ -f "${deployer_config_information}" ]; then
@@ -244,49 +119,15 @@ fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-if [ ! -z "${subscription}" ]; then
+if [ -n "${subscription}" ]; then
     ARM_SUBSCRIPTION_ID="${subscription}"
     export ARM_SUBSCRIPTION_ID=$subscription
 fi
-
-if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
-    echo ""
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#  $boldred Missing environment variables (DEPLOYMENT_REPO_PATH)!!! $resetformatting                            #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 65                                                                                           #data format error
-fi
-
-templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
-# Subscription length is 37
-if [ 37 != $templen ]; then
-    arm_config_stored=0
-fi
-
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#  $boldred Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $resetformatting                             #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 65                                                                                           #data format error
-else
-    if [ "${arm_config_stored}" != 0 ]; then
-        echo "Storing the configuration"
-        save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
-    fi
+# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+validate_exports
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")
@@ -297,60 +138,41 @@ library_file_parametername=$(basename "${library_parameter_file}")
 
 relative_path="${root_dirname}"/"${deployer_dirname}"
 export TF_DATA_DIR="${relative_path}"/.terraform
-# Checking for valid az session
-
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
-then
-    mkdir -p "$HOME/.terraform.d/plugin-cache"
-fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Please login using az login! $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f stdout.az ]; then
-        rm stdout.az
-    fi
-    exit 67                                                                                             #addressee unknown
-else
-    if [ -f stdout.az ]; then
-        rm stdout.az
-    fi
-    
-    if [ ! -z "${subscription}" ]; then
-        echo "Setting the subscription"
-        az account set --sub "${subscription}"
-        export ARM_SUBSCRIPTION_ID="${subscription}"
-    fi
-    
-fi
 
 step=0
 
-
-cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ ! -z "${cloudIDUsed}" ];
-then 
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 67                                                                                             #addressee unknown
-fi
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "#                   $cyan Starting the control plane deployment $resetformatting                             #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
 
 #setting the user environment variables
+if [ -n "${subscription}" ]; then
+    if is_valid_guid "$subscription"; then
+        echo ""
+    else
+        printf -v val %-40.40s "$subscription"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#       $cyan Changing the subscription to: $subscription $resetformatting            #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    az account set --sub "${subscription}"
+    export ARM_SUBSCRIPTION_ID="${subscription}"
+fi
 
 if [ 3 == $step ]; then
-  spn_secret="none"
+    spn_secret="none"
 fi
 
 set_executing_user_environment_variables "${spn_secret}"
@@ -379,41 +201,40 @@ if [ 0 == $step ]; then
     echo "#########################################################################################"
     echo ""
     
-    allParams=$(printf " -p %s %s" "${deployer_file_parametername}" "${approveparam}")
+    allParams=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${approveparam}")
+    
+    echo $allParams
     
     cd "${deployer_dirname}" || exit
-
+    
     if [ $force == 1 ]; then
         rm -Rf .terraform terraform.tfstate*
     fi
-
+    
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_deployer.sh $allParams
-    if (($? > 0)); then
-        exit $?
-    fi
-
-    #Persist the parameters
-    if [ ! -z "$subscription" ]; then
-        save_config_var "subscription" "${deployer_config_information}"
-        kvsubscription=$subscription
-        save_config_var "kvsubscription" "${deployer_config_information}"
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        exit $return_code
     fi
     
-    if [ ! -z "$client_id" ]; then
+    #Persist the parameters
+    if [ -n "$subscription" ]; then
+        save_config_var "subscription" "${deployer_config_information}"
+        export STATE_SUBSCRIPTION=$subscription
+        save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
+    fi
+    
+    if [ -n "$client_id" ]; then
         save_config_var "client_id" "${deployer_config_information}"
     fi
     
-    if [ ! -z "$tenant_id" ]; then
+    if [ -n "$tenant_id" ]; then
         save_config_var "tenant_id" "${deployer_config_information}"
     fi
     
-    if [ $force == 1 ]; then
-        rm -Rf .terraform terraform.tfstate*
-    fi
-
-    step=1
+    export step=1
     save_config_var "step" "${deployer_config_information}"
-
+    
     cd "$root_dirname" || exit
     
     echo "#########################################################################################"
@@ -423,57 +244,59 @@ if [ 0 == $step ]; then
     echo "#########################################################################################"
     echo ""
     
-    ssh_timeout_s=10
-    
     load_config_vars "${deployer_config_information}" "sshsecret"
     load_config_vars "${deployer_config_information}" "keyvault"
     load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-
-    if [ "$this_ip" != "$deployer_public_ip_address" ] ; then
-        # Only run this when not on deployer
-        if [ ! -z ${sshsecret} ]
-        then
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                            $cyan Collecting secrets from KV $resetformatting                               #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-
-            temp_file=$(mktemp)
-            ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
-            echo "${ppk}" > "${temp_file}"
-            chmod 600 "${temp_file}"
-            
-            remote_deployer_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
-            remote_library_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-            remote_config_dir="$HOME/.sap_deployment_automation"
-            
-            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate        
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate        
-            
-            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/.
-            
-            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
-            scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/.
-            
-            rm "${temp_file}"
-        fi
-    fi
     
-else
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Deployer is bootstrapped $resetformatting                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
+    if [ -n "${deployer_public_ip_address}" ]; then
+        if [ "$this_ip" != "$deployer_public_ip_address" ]; then
+            # Only run this when not on deployer
+            if [ -n "${sshsecret}" ]
+            then
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                            $cyan Collecting secrets from KV $resetformatting                               #"
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+                
+                temp_file=$(mktemp)
+                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
+                echo "${ppk}" > "${temp_file}"
+                chmod 600 "${temp_file}"
+                
+                remote_deployer_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
+                remote_library_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
+                remote_config_dir="$HOME/.sap_deployment_automation"
+                
+                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate 2> /dev/null
+                
+                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/. 2> /dev/null
+                
+                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}" 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/. 2> /dev/null
+                
+                rm "${temp_file}"
+            fi
+        fi
+        
+    else
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $cyan Deployer is bootstrapped $resetformatting                                   #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+    fi
 fi
 
+cd "$root_dirname" || exit
+    
 if [ 1 = "${only_deployer:-}" ]; then
     load_config_vars "${deployer_config_information}" deployer_public_ip_address
     echo ""
@@ -485,7 +308,7 @@ if [ 1 = "${only_deployer:-}" ]; then
     printf -v secretname4 '%-40s' "${environment}"-tenant-id
     printf -v deployerpara '%-40s' "-d ${deployer_parameter_file}"
     printf -v librarypara '%-40s' "-l ${library_parameter_file}"
-
+    
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -504,7 +327,7 @@ if [ 1 = "${only_deployer:-}" ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-
+    
     step=6
     save_config_var "step" "${deployer_config_information}"
     exit 0
@@ -519,43 +342,46 @@ if [ 1 == $step ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-
-    if [ ! -n "$keyvault" ]; then
+    
+    if [ -z "$keyvault" ]; then
         read -r -p "Deployer keyvault name: " keyvault
     fi
     
     access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
-    if [ ! -n "${access_error}" ]; then
+    if [ -z "${access_error}" ]; then
         save_config_var "client_id" "${deployer_config_information}"
         save_config_var "tenant_id" "${deployer_config_information}"
-
+        
         if [ -n "$spn_secret" ]; then
             allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
             
             "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-            if (($? > 0)); then
-                exit $?
+            return_code=$?
+            if [ 0 != $return_code ]; then
+                exit $return_code
             fi
         else
             read -p "Do you want to specify the SPN Details Y/N?" ans
             answer=${ans^^}
             if [ "$answer" == 'Y' ]; then
                 allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}" )
-
+                
                 #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
                 #"${allParams[@]}" - quotes all elements of the array
-
+                
                 "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-                if (($? > 0)); then
-                    exit $?
+                return_code=$?
+                if [ 0 == $return_code ]; then
+                    exit $return_code
                 fi
             fi
         fi
         
         if [ -f post_deployment.sh ]; then
             ./post_deployment.sh
-            if (($? > 0)); then
-                exit $?
+            return_code=$?
+            if [ 0 != $return_code ]; then
+                exit $return_code
             fi
         fi
         cd "${curdir}" || exit
@@ -570,7 +396,7 @@ if [ 1 == $step ]; then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         exit 65
-
+        
     fi
 fi
 unset TF_DATA_DIR
@@ -599,11 +425,13 @@ if [ 2 == $step ]; then
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
-    if (($? > 0)); then
-        exit $?
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        exit $return_code
     fi
+    
     cd "${curdir}" || exit
-    step=3
+    export step=3
     save_config_var "step" "${deployer_config_information}"
 else
     echo ""
@@ -636,14 +464,16 @@ if [ 3 == $step ]; then
     if [ -f post_deployment.sh ]; then
         rm post_deployment.sh
     fi
-    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s" "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}")
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
-    if (($? > 0)); then
-        exit $?
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        exit $return_code
     fi
+    
     cd "${curdir}" || exit
-    step=4
+    export step=4
     save_config_var "step" "${deployer_config_information}"
 fi
 
@@ -656,7 +486,7 @@ load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 if [ 4 == $step ]; then
     echo ""
-   
+    
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                          $cyan Migrating the library state $resetformatting                                #"
@@ -665,15 +495,16 @@ if [ 4 == $step ]; then
     echo ""
     
     cd "${library_dirname}" || exit
-    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}")
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}"  "${ado_flag}")
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
-    if (($? > 0)); then
-        exit $?
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        exit $return_code
     fi
-
+    
     cd "$root_dirname" || exit
-
+    
     step=5
     save_config_var "step" "${deployer_config_information}"
 fi
@@ -685,20 +516,45 @@ echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
 echo -e "# $cyan Please save these values: $resetformatting                                                           #"
-echo "#     - Key Vault: "${kvname}"                                                #"
-echo "#     - Deployer IP: "${dep_ip}"                                                       #"
-echo "#     - Storage Account: "${REMOTE_STATE_SA}"                                             #"
+echo "#     - Key Vault: ${kvname}                             #"
+echo "#     - Deployer IP: ${dep_ip}                           #"
+echo "#     - Storage Account: ${storage_account}                       #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
+
+now=$(date)
+cat <<EOF > "${deployer_config_information}".md
+# Control Plane Deployment #
+
+Date : "${now}"
+
+## Configuration details ##
+
+| Item                    | Name                 |
+| ----------------------- | -------------------- |
+| Environment             | $environment         |
+| Location                | $region              |
+| Keyvault Name           | ${kvname}            |
+| Deployer IP             | ${dep_ip}            |
+| Terraform state         | ${storage_account}   |
+
+EOF
+
+cat "${deployer_config_information}".md
+export deployer_keyvault="${keyvault}"
+export deployer_ip="${deployer_public_ip_address}"
+export terraform_state_storage_account="${REMOTE_STATE_SA}"
+
 if [ 5 == $step ]; then
-
-    end=`date -u -d "180 days" '+%Y-%m-%dT%H:%MZ'`
-
-    sas=?$(az storage container generate-sas --permissions r --account-name ${REMOTE_STATE_SA} --name sapbits --https-only  --expiry $end -o tsv)
-
-    # az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
-
+    
+    key=$(az keyvault secret show --vault-name "${keyvault}" --name "sapbits-access-key" | jq -r .value)
+    end=$(date -u -d "180 days" '+%Y-%m-%dT%H:%MZ')
+    
+    sas=$(az storage container generate-sas --permissions rl --account-name ${REMOTE_STATE_SA} --name 'sapbits' --https-only  --expiry $end -o tsv --account-key "${key}")
+    
+    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "?${sas}"
+    
     step=6
     save_config_var "step" "${deployer_config_information}"
 fi
@@ -706,45 +562,49 @@ fi
 if [ 6 == $step ]; then
     cd "${curdir}" || exit
     
-    ssh_timeout_s=10
-    
     load_config_vars "${deployer_config_information}" "sshsecret"
     load_config_vars "${deployer_config_information}" "keyvault"
-    if [ "$this_ip" != "${dep_ip}" ] ; then
+    load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
+    if [ "$this_ip" != "$deployer_public_ip_address" ] ; then
         # Only run this when not on deployer
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
-    
-      printf "%s\n" "Collecting secrets from KV"
-      temp_file=$(mktemp)
-      ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
-      echo "${ppk}" > "${temp_file}"
-      chmod 600 "${temp_file}"
-      remote_deployer_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
-      remote_library_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-      remote_config_dir="/home/azureadm/.sap_deployment_automation"
-      
-      ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform
-      scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.
-      scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate        
-      scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate        
-      
-      ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform
-      scp -i "${temp_file}"  -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.
-      scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/.
-      
-      ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
-      scp -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=120 "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/.
-      
-      rm "${temp_file}"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        
+        if [ -n "${sshsecret}" ]; then
+            step=3
+            save_config_var "step" "${deployer_config_information}"
+            printf "%s\n" "Collecting secrets from KV"
+            temp_file=$(mktemp)
+            ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
+            echo "${ppk}" > "${temp_file}"
+            chmod 600 "${temp_file}"
+            
+            remote_deployer_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
+            remote_library_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
+            remote_config_dir="/home/azureadm/.sap_deployment_automation"
+            
+            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2> /dev/null
+            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
+            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate 2> /dev/null
+            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate 2> /dev/null
+            
+            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform 2> /dev/null
+            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
+            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/. 2> /dev/null
+            
+            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}" 2> /dev/null
+            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/. 2> /dev/null
+            rm "${temp_file}"
+        fi
     fi
-    step=3
-    save_config_var "step" ${deployer_config_information}
 fi
+
+step=3
+save_config_var "step" ${deployer_config_information}
 
 unset TF_DATA_DIR
 

@@ -7,7 +7,6 @@ This block describes the variable for the infrastructure block in the json file
 variable "environment" {
   type        = string
   description = "This is the environment name of the deployer"
-  default     = ""
 }
 
 variable "codename" {
@@ -17,7 +16,6 @@ variable "codename" {
 
 variable "location" {
   type    = string
-  default = ""
 }
 
 variable "resourcegroup_name" {
