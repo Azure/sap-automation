@@ -432,7 +432,7 @@ fi
 
 var_file="${param_dirname}"/"${library_file_parametername}" 
  
-allParams=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s %s " "${var_file}" "${relative_path}" "${extra_vars}" "${approveparam}" )
+allParams=$(printf " -var-file=%s -var use_deployer=false -var deployer_statefile_foldername=%s %s %s " "${var_file}" "${relative_path}" "${extra_vars}" "${approveparam}" )
 
 echo ""
 echo "#########################################################################################"
