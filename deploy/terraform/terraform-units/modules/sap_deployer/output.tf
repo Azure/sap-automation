@@ -15,13 +15,13 @@ output "deployer_id" {
 }
 
 // Details of management vnet that is deployed/imported
-output "vnet_mgmt" {
-  value = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0] : azurerm_virtual_network.vnet_mgmt[0]
+output "vnet_mgmt_id" {
+  value = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].id : azurerm_virtual_network.vnet_mgmt[0].id
 }
 
 // Details of management subnet that is deployed/imported
-output "subnet_mgmt" {
-  value = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0] : azurerm_subnet.subnet_mgmt[0]
+output "subnet_mgmt_id" {
+  value = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 }
 
 // Details of the management vnet NSG that is deployed/imported
@@ -95,8 +95,4 @@ output "firewall_ip" {
 
 output "firewall_id" {
   value = var.firewall_deployment ? azurerm_firewall.firewall[0].id : ""
-}
-
-output "subnet_mgmt_id" {
-  value = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 }

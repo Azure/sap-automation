@@ -81,7 +81,7 @@ function missing {
 
 force=0
 
-INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:h --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:iha --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account,auto-approve,ado,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -97,15 +97,17 @@ do
     -s | --subscription)                       subscription="$2"                ; shift 2 ;;
     -b | --storage_account)                    storage_account="$2"             ; shift 2 ;;
     -r | --resource_group)                     resource_group="$2"              ; shift 2 ;;
+    -a | --ado)                                ado=1                            ; shift ;;
+    -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
     -h | --help)                               showhelp 
                                                exit 3                           ; shift ;;
     --) shift; break ;;
   esac
 done
 
-
-if [ ! -z "$approve" ]; then
-    approveparam=" -i"
+approveparam=""
+if [ 1 == ado ]; then
+    approveparam=" --auto-approve"
 fi
 
 if [ -z "$deployer_parameter_file" ]; then
@@ -223,7 +225,7 @@ if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
     echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -288,7 +290,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
+    echo "#       Please login using your credentials or service principal credentials!           #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -299,7 +301,7 @@ fi
 curdir=$(pwd)
 
 #we know that we have a valid az session so let us set the environment variables
-set_executing_user_environment_variables
+set_executing_user_environment_variables "none"
 
 # Deployer
 
@@ -321,11 +323,7 @@ if [ -z "${storage_account}" ]; then
     if [ ! -z "${STATE_SUBSCRIPTION}" ]
     then
         subscription="${STATE_SUBSCRIPTION}"
-        if [ $account_set==0 ]
-        then
-            $(az account set --sub "${STATE_SUBSCRIPTION}")
-            account_set=1
-        fi
+        $(az account set --sub "${STATE_SUBSCRIPTION}")
         
     fi
 
@@ -405,7 +403,6 @@ then
     echo "#########################################################################################"
     echo ""
 
-
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
     --backend-config "subscription_id=${subscription}" \
     --backend-config "resource_group_name=${resource_group}" \
@@ -435,9 +432,7 @@ fi
 
 var_file="${param_dirname}"/"${library_file_parametername}" 
  
-allParams=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s" "${var_file}" "${relative_path}" "${extra_vars}"  )
-
-echo $allParams
+allParams=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s %s " "${var_file}" "${relative_path}" "${extra_vars}" "${approveparam}" )
 
 echo ""
 echo "#########################################################################################"
@@ -447,7 +442,13 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy $allParams
+terraform -chdir="${terraform_module_directory}" destroy  $allParams
+return_value=$?
+
+if [ 0 != $return_value ]
+then
+  exit $return_value
+fi
 
 cd "${curdir}" || exit
 
@@ -465,7 +466,7 @@ if [ -f terraform.tfvars ]; then
 fi
 
 var_file="${param_dirname}"/"${deployer_file_parametername}" 
-allParams=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}"  )
+allParams=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${approveparam}"  )
 
 echo ""
 echo "#########################################################################################"
@@ -476,9 +477,9 @@ echo "##########################################################################
 echo ""
 
 terraform -chdir="${terraform_module_directory}" destroy $allParams
+return_value=$?
 
 cd "${curdir}" || exit
-
 
 unset TF_DATA_DIR
 
@@ -487,4 +488,4 @@ save_config_var "step" "${deployer_config_information}"
 
 rm "${deployer_config_information}"
 
-exit 0
+exit $return_value

@@ -1,9 +1,5 @@
-output "resource_group" {
-  value = local.rg_exists ? data.azurerm_resource_group.resource_group : azurerm_resource_group.resource_group
-}
-
-output "vnet_sap" {
-  value = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap : azurerm_virtual_network.vnet_sap
+output "vnet_sap_id" {
+  value = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
 }
 
 output "random_id" {
@@ -179,4 +175,8 @@ output "ANF_pool_settings" {
     } : {
     use_ANF = false
   }
+}
+
+output "subnet_mgmt_id" {
+  value = try(var.deployer_tfstate.subnet_mgmt.id, "")
 }

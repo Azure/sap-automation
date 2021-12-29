@@ -76,8 +76,8 @@ locals {
     high_availability = var.database_high_availability || try(var.databases[0].high_availability, false)
     use_DHCP          = var.database_vm_use_DHCP || try(var.databases[0].use_DHCP, false)
 
-    platform = try(coalesce(var.database_platform, try(var.databases[0].platform, "HANA")), "")
-    size     = try(coalesce(var.database_size, try(var.databases[0].size, "")), "")
+    platform = coalesce(var.database_platform, try(var.databases[0].platform, ""))
+    size     = coalesce(var.database_size, try(var.databases[0].size, ""))
 
     use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
     dual_nics = var.database_dual_nics || try(var.databases[0].dual_nics, false)
@@ -121,6 +121,7 @@ locals {
     app_sku                  = try(coalesce(var.application_server_sku, var.application.app_sku), "")
     app_no_ppg               = var.application_server_no_ppg || try(var.application.app_no_ppg, false)
     app_no_avset             = var.application_server_no_avset || try(var.application.app_no_avset, false)
+    avset_arm_ids            = var.application_server_vm_avset_arm_ids
 
     scs_server_count      = max(var.scs_server_count, try(var.application.scs_server_count, 1))
     scs_high_availability = var.scs_high_availability || try(var.application.scs_high_availability, false)

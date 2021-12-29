@@ -5,27 +5,30 @@
 
 
 module "sap_namegenerator" {
-  source           = "../../terraform-units/modules/sap_namegenerator"
-  environment      = local.infrastructure.environment
-  location         = local.infrastructure.region
-  codename         = lower(try(local.infrastructure.codename, ""))
-  random_id        = module.common_infrastructure.random_id
-  sap_vnet_name    = local.vnet_logical_name
-  sap_sid          = local.sap_sid
-  db_sid           = local.db_sid
-  app_ostype       = try(local.application.os.os_type, "LINUX")
-  anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = try(local.databases[0].os.os_type, "LINUX")
-  db_server_count  = var.database_server_count
-  app_server_count = try(local.application.application_server_count, 0)
-  web_server_count = try(local.application.webdispatcher_count, 0)
-  scs_server_count = local.application.scs_high_availability ? 2 * local.application.scs_server_count : local.application.scs_server_count
-  app_zones        = []
-  scs_zones        = try(local.application.scs_zones, [])
-  web_zones        = try(local.application.web_zones, [])
-  db_zones         = try(local.databases[0].zones, [])
-  resource_offset  = try(var.options.resource_offset, 0)
-  custom_prefix    = var.custom_prefix
+  source                     = "../../terraform-units/modules/sap_namegenerator"
+  environment                = local.infrastructure.environment
+  location                   = local.infrastructure.region
+  codename                   = lower(try(local.infrastructure.codename, ""))
+  random_id                  = module.common_infrastructure.random_id
+  sap_vnet_name              = local.vnet_logical_name
+  sap_sid                    = local.sap_sid
+  db_sid                     = local.db_sid
+  app_ostype                 = try(local.application.os.os_type, "LINUX")
+  anchor_ostype              = upper(try(local.anchor_vms.os.os_type, "LINUX"))
+  db_ostype                  = try(local.databases[0].os.os_type, "LINUX")
+  db_server_count            = var.database_server_count
+  app_server_count           = try(local.application.application_server_count, 0)
+  web_server_count           = try(local.application.webdispatcher_count, 0)
+  scs_server_count           = local.application.scs_high_availability ? 2 * local.application.scs_server_count : local.application.scs_server_count
+  app_zones                  = []
+  scs_zones                  = try(local.application.scs_zones, [])
+  web_zones                  = try(local.application.web_zones, [])
+  db_zones                   = try(local.databases[0].zones, [])
+  resource_offset            = try(var.options.resource_offset, 0)
+  custom_prefix              = var.custom_prefix
+  database_high_availability = local.databases[0].high_availability
+  scs_high_availability      = local.application.scs_high_availability
+  use_zonal_markers          = var.use_zonal_markers
 }
 
 module "common_infrastructure" {
@@ -53,7 +56,7 @@ module "common_infrastructure" {
   anf_transport_volume_size          = var.anf_transport_volume_size
   anf_sapmnt_volume_size             = var.anf_sapmnt_volume_size
   use_ANF                            = var.use_ANF
-  custom_prefix                      = var.custom_prefix
+  custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
 }
 
 # // Create HANA database nodes
@@ -64,8 +67,10 @@ module "hdb_node" {
     azurerm.deployer = azurerm.deployer
   }
   depends_on = [module.common_infrastructure]
-  order_deployment = local.db_zonal_deployment ? (
-    module.app_tier.scs_vm_ids[0]
+  order_deployment = local.enable_db_deployment ? (
+    local.db_zonal_deployment ? (
+      module.app_tier.scs_vm_ids[0]
+    ) : (null)
   ) : (null)
   databases                                    = local.databases
   infrastructure                               = local.infrastructure
@@ -108,11 +113,12 @@ module "app_tier" {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
   }
-  order_deployment = local.db_zonal_deployment ? (
-    "") : (
-    coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
-  )
-
+  order_deployment = local.enable_db_deployment ? (
+    local.db_zonal_deployment ? (
+      "") : (
+      coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
+    )
+  ) : (null)
   application                                  = local.application
   infrastructure                               = local.infrastructure
   options                                      = local.options
@@ -147,8 +153,10 @@ module "anydb_node" {
     azurerm.deployer = azurerm.deployer
   }
   depends_on = [module.common_infrastructure]
-  order_deployment = local.db_zonal_deployment ? (
-    module.app_tier.scs_vm_ids[0]
+  order_deployment = local.enable_db_deployment ? (
+    local.db_zonal_deployment ? (
+      module.app_tier.scs_vm_ids[0]
+    ) : (null)
   ) : (null)
   databases                                    = local.databases
   infrastructure                               = local.infrastructure
@@ -180,6 +188,7 @@ module "anydb_node" {
     0) : (
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count
   )
+  use_observer = var.use_observer
 }
 # // Generate output files
 module "output_files" {
@@ -229,5 +238,6 @@ module "output_files" {
   platform              = upper(try(local.databases[0].platform, "HANA"))
   db_auth_type          = try(local.databases[0].authentication.type, "key")
   tfstate_resource_id   = var.tfstate_resource_id
+  install_path          = module.common_infrastructure.install_path
 
 }

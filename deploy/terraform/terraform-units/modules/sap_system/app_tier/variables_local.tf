@@ -402,14 +402,14 @@ locals {
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
       subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP || ! local.enable_scs_lb_deployment ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 2 + local.ip_offsets.scs_lb)))
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 2 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
 
     },
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
       subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP || ! local.enable_scs_lb_deployment ?  (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 3 + local.ip_offsets.scs_lb)))
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 3 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     }
   ]
@@ -419,13 +419,13 @@ locals {
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
       subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP || ! local.enable_scs_lb_deployment ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb)))
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     },
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
       subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP || ! local.enable_scs_lb_deployment ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb)))
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     },
   ]

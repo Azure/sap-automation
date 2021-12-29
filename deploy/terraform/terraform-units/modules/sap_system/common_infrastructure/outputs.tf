@@ -1,5 +1,8 @@
 output "anchor_vm" {
-  value = local.anchor_ostype == "LINUX" ? azurerm_linux_virtual_machine.anchor : azurerm_windows_virtual_machine.anchor
+  value = local.deploy_anchor ? (
+    local.anchor_ostype == "LINUX" ? (azurerm_linux_virtual_machine.anchor[0].id) : (azurerm_windows_virtual_machine.anchor[0].id)) : (
+    ""
+  )
 }
 
 output "resource_group" {
@@ -30,7 +33,11 @@ output "admin_subnet" {
 }
 
 output "db_subnet" {
-  value = local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
+  value = local.enable_db_deployment ? (
+    local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
+    null
+  )
+  #local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 
 output "network_location" {
@@ -85,7 +92,7 @@ output "route_table_id" {
 }
 
 output "firewall_id" {
-  value =  try(var.deployer_tfstate.firewall_id, "")
+  value = try(var.deployer_tfstate.firewall_id, "")
 }
 
 output "db_asg_id" {
@@ -108,6 +115,6 @@ output "saptransport_path" {
   value = local.ANF_pool_settings.use_ANF ? format("%s:/%s", azurerm_netapp_volume.transport[0].mount_ip_addresses[0], azurerm_netapp_volume.transport[0].volume_path) : ""
 }
 
-# output "shared_path" {
-#   value = local.ANF_pool_settings.use_ANF ? format("%s:/%s",azurerm_netapp_volume.shared[0].mount_ip_addresses[0]) : ""
-# }
+output "install_path" {
+  value = local.deploy_afs ? try(format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install[0].url, "https://", ""))[0], azurerm_storage_account.install[0].name, azurerm_storage_share.install[0].name), "") : ""
+}

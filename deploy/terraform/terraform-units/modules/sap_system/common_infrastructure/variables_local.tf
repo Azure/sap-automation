@@ -205,7 +205,7 @@ locals {
   //If the db uses ultra disks ensure that the anchore sets the ultradisk flag but only for the zones that will contain db servers
   enable_anchor_ultra = [
     for zone in local.zones :
-    contains(local.db_list[0].zones, zone) ? local.enable_ultradisk : false
+    try(contains(local.db_list[0].zones, zone) ? local.enable_ultradisk : false, false)
   ]
 
   anchor_custom_image = length(try(var.infrastructure.anchor_vms.os.source_image_id, "")) > 0
@@ -350,7 +350,7 @@ locals {
 
   sid_auth_password = coalesce(
     try(var.authentication.password, ""),
-    try(data.azurerm_key_vault_secret.sid_password[0].value, local.use_local_credentials ? random_password.password[0].result : "")
+    try(data.azurerm_key_vault_secret.sid_password[0].value, random_password.password[0].result)
   )
 
   sid_public_key = local.use_local_credentials ? (
@@ -372,6 +372,8 @@ locals {
     ) : (
     { use_ANF = false }
   )
+
+  deploy_afs = false
 
 }
 

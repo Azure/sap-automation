@@ -112,7 +112,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
       azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
     )
   ) : null
-  zone = local.use_avset ? null : local.zones[count.index % max(local.db_zone_count, 1)]
+
+  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -198,7 +199,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
       azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
     )
   ) : null
-  zone = local.use_avset ? null : local.zones[count.index % max(local.db_zone_count, 1)]
+  
+  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -258,8 +260,7 @@ resource "azurerm_managed_disk" "disks" {
   disk_iops_read_write   = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? local.anydb_disks[count.index].disk_iops_read_write : null
   disk_mbps_read_write   = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? local.anydb_disks[count.index].disk_mbps_read_write : null
 
-
-  zones = !local.use_avset ? (
+  zones = local.zonal_deployment ? (
     upper(local.anydb_ostype) == "LINUX" ? (
       [azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone]) : (
       [azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone]

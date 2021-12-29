@@ -108,6 +108,21 @@ variable "resource_offset" {
   default = 0
 }
 
+variable "database_high_availability" {
+ type = bool
+ default = false
+}
+
+variable "scs_high_availability" {
+ type = bool
+ default = false
+}
+
+variable "use_zonal_markers" {
+ type = bool
+ default = true
+}
+
 //Todo: Add to documentation
 variable "sapautomation_name_limits" {
   description = "Name length for automation resources"
@@ -287,6 +302,7 @@ variable "resource_suffixes" {
     "sdu_rg"                       = ""
     "tfstate"                      = "tfstate"
     "transport_volume"             = "transport"
+    "install_volume"               = "install"
     "vm"                           = ""
     "vnet"                         = "-vnet"
     "vnet_rg"                      = "-INFRASTRUCTURE"

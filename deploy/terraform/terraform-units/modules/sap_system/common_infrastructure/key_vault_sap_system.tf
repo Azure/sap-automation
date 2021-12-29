@@ -148,7 +148,7 @@ resource "azurerm_key_vault_secret" "auth_password" {
   provider     = azurerm.main
   count        = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
   name         = format("%s-password", local.prefix)
-  value        = var.authentication.password
+  value        = local.sid_auth_password
   key_vault_id = azurerm_key_vault.sid_kv_user[0].id
 }
 
