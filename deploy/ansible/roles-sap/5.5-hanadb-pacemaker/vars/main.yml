@@ -26,6 +26,9 @@ cluster_status_cmd:
   Suse: "crm status full"
 
 cluster_status_report_wait_in_s: 60
+hsr_status_report_wait_in_s: 60
+rescue_hsr_status_report_wait_in_s: 120
+
 
 # The following values should be same as iSCSI configuration
 # run 'sudo targetcli ls' on iSCSI target virtual machines to get all iSCSI configuration
