@@ -94,7 +94,7 @@ function missing {
 }    
 
 
-INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:h --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:l:h --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,landscape_tfstate_key:,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -105,15 +105,16 @@ eval set -- "$INPUT_ARGUMENTS"
 while :
 do
   case "$1" in
-    -p | --parameterfile)                      parameterfile="$2"        ; shift 2 ;;
-    -s | --subscription)                       subscription_id="$2"      ; shift 2 ;;
-    -a | --storage_account_name)               storage_account_name="$2" ; shift 2 ;;
-    -k | --terraform_keyfile)                  key="$2"                  ; shift 2 ;;
-    -t | --type)                               type="$2"                 ; shift 2 ;;
-    -n | --tf_resource_name)                   moduleID="$2"             ; shift 2 ;;
-    -i | --azure_resource_id)                  resourceID="$2"           ; shift 2 ;;
+    -p | --parameterfile)                      parameterfile="$2"         ; shift 2 ;;
+    -s | --subscription)                       subscription_id="$2"       ; shift 2 ;;
+    -a | --storage_account_name)               storage_account_name="$2"  ; shift 2 ;;
+    -l | --landscape_tfstate_key)              landscape_tfstate_key="$2" ; shift 2 ;;
+    -k | --terraform_keyfile)                  key="$2"                   ; shift 2 ;;
+    -t | --type)                               type="$2"                  ; shift 2 ;;
+    -n | --tf_resource_name)                   moduleID="$2"              ; shift 2 ;;
+    -i | --azure_resource_id)                  resourceID="$2"            ; shift 2 ;;
     -h | --help)                               showhelp
-    exit 3                                                               ; shift ;;
+    exit 3                                                                ; shift ;;
     --) shift; break ;;
   esac
 done
@@ -162,7 +163,7 @@ if [ 0 != $return_code ]; then
 fi
 
 # Check that parameter files have environment and location defined
-validate_key_parameters "$parameterfile_name"
+validate_key_parameters "$parameterfile"
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
@@ -174,10 +175,8 @@ else
     echo "Invalid region: $region"
     exit 2
 fi
-account_set=0
 
 automation_config_directory=~/.sap_deployment_automation/
-generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 
@@ -250,9 +249,34 @@ if [ 0 != $return_value ] ; then
     exit $return_value
 fi
 
+if [ -z "$landscape_tfstate_key" ];
+then
+    load_config_vars "${system_config_information}" "landscape_tfstate_key"
+else
+    save_config_vars "${system_config_information}" landscape_tfstate_key
+fi
+
+
+if [ "${type}" == sap_system ]
+then
+    if [ -n "${landscape_tfstate_key}" ]; then
+        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+        landscape_tfstate_key_exists=true
+    else
+        read -p "Workload terraform statefile name :" landscape_tfstate_key
+        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+        save_config_var "landscape_tfstate_key" "${system_config_information}"
+    fi
+else
+    landscape_tfstate_key_parameter=""
+fi
+
+echo "Looking for resource: ${moduleID}"
 
 terraform  -chdir=${module_dir} state list > resources.lst
-tf_resource=$(grep ${moduleID} resources.lst)
+shorter_name=$(echo ${moduleID} | cut -d[ -f1)
+tf_resource=$(grep ${shorter_name} resources.lst)
+echo "Result after grep: $tf_resource"
 if [ -n "${tf_resource}" ]; then
   
   echo "#########################################################################################"
@@ -279,7 +303,7 @@ fi
 
 tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
-terraform -chdir=${module_dir} import -var-file $(pwd)/"${parameterfile}"  ${tfstate_parameter} "${moduleID}" "${resourceID}"
+terraform -chdir=${module_dir} import -var-file $(pwd)/"${parameterfile}"  ${tfstate_parameter} ${landscape_tfstate_key_parameter} "${moduleID}" "${resourceID}"
 
 return_value=$?
 if [ 0 != $return_value ] ; then
