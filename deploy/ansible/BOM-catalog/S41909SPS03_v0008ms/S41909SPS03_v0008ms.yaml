@@ -65,8 +65,6 @@ materials:
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000000703122018
 
-<<<<<<< HEAD
-=======
    # SWPM
     - name:         "SWPM20SP10; OS: Linux on x86_64 64bit"
       archive:      SWPM20SP10_3-80003424.SAR
@@ -76,7 +74,6 @@ materials:
       creates:      SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000001808612021
 
->>>>>>> 7951cd6357d3fd76a4e55a6dbcd6788849e1c7c6
     # DB Export
     - name:         "File on DVD"
       archive:      S4CORE104_INST_EXPORT_1.zip
