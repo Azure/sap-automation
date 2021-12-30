@@ -46,6 +46,8 @@
     dest:                              "{{ download_directory }}/readme.md"
     content:                           "This is the container with the SAP media"
   register:                            readme_file
+  become:                              true
+  become_user:                         root
 
 - name:                                "BOM: Check storage account container"
   ansible.builtin.command: >-
