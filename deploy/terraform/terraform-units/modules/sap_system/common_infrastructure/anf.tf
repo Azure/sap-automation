@@ -1,7 +1,7 @@
 resource "azurerm_netapp_volume" "transport" {
 
-  count = local.ANF_pool_settings.use_ANF ? 1 : 0
-  name  = format("%s%s%s", local.prefix, var.naming.separator,local.resource_suffixes.transport_volume)
+  count = var.NFS_provider == "ANF" ? 1 : 0
+  name  = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.transport_volume)
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
   location            = local.ANF_pool_settings.location
@@ -19,13 +19,13 @@ resource "azurerm_netapp_volume" "transport" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.anf_transport_volume_size
+  storage_quota_in_gb = var.transport_volume_size
 
 }
 
 resource "azurerm_netapp_volume" "sapmnt" {
 
-  count = local.ANF_pool_settings.use_ANF ? 1 : 0
+  count = var.NFS_provider == "ANF" ? 1 : 0
   name  = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.sapmnt)
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
@@ -44,6 +44,6 @@ resource "azurerm_netapp_volume" "sapmnt" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.anf_sapmnt_volume_size
+  storage_quota_in_gb = var.sapmnt_volume_size
 
 }

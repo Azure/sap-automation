@@ -180,3 +180,7 @@ output "ANF_pool_settings" {
 output "subnet_mgmt_id" {
   value = try(var.deployer_tfstate.subnet_mgmt.id, "")
 }
+
+output "storage_account_shared_id" {
+  value = azurerm_storage_account.shared.id
+}

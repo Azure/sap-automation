@@ -56,12 +56,13 @@ variable "use_private_endpoint" {
 
 locals {
   // Resources naming
-  storageaccount_name         = var.naming.storageaccount_names.VNET.landscape_storageaccount_name
-  witness_storageaccount_name = var.naming.storageaccount_names.VNET.witness_storageaccount_name
-  landscape_keyvault_names    = var.naming.keyvault_names.VNET
-  sid_keyvault_names          = var.naming.keyvault_names.SDU
-  virtualmachine_names        = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
-  resource_suffixes           = var.naming.resource_suffixes
+  storageaccount_name                  = var.naming.storageaccount_names.VNET.landscape_storageaccount_name
+  witness_storageaccount_name          = var.naming.storageaccount_names.VNET.witness_storageaccount_name
+  landscape_shared_storageaccount_name = var.naming.storageaccount_names.VNET.landscape_shared_storageaccount_name
+  landscape_keyvault_names             = var.naming.keyvault_names.VNET
+  sid_keyvault_names                   = var.naming.keyvault_names.SDU
+  virtualmachine_names                 = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
+  resource_suffixes                    = var.naming.resource_suffixes
 }
 
 locals {

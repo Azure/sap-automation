@@ -53,10 +53,11 @@ module "common_infrastructure" {
   deployment                         = var.deployment
   license_type                       = var.license_type
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
-  anf_transport_volume_size          = var.anf_transport_volume_size
-  anf_sapmnt_volume_size             = var.anf_sapmnt_volume_size
-  use_ANF                            = var.use_ANF
+  transport_volume_size              = var.transport_volume_size
+  sapmnt_volume_size                 = var.sapmnt_volume_size
+  NFS_provider                       = var.NFS_provider
   custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
+  ha_validator                       = format("%s-%s-%s", local.application.scs_high_availability, local.databases[0].high_availability, var.NFS_provider)
 }
 
 # // Create HANA database nodes
@@ -239,5 +240,6 @@ module "output_files" {
   db_auth_type          = try(local.databases[0].authentication.type, "key")
   tfstate_resource_id   = var.tfstate_resource_id
   install_path          = module.common_infrastructure.install_path
+  NFS_provider          = var.NFS_provider
 
 }

@@ -127,6 +127,14 @@ variable "key_vault" {
     )
     error_message = "If specified, the kv_prvt_id needs to be a correctly formed Azure resource ID."
   }
-
-
 }
+
+
+variable "ha_validator" {
+  validation {
+    condition = (
+      (split("-",var.ha_validator)[0]=="true" || split("-",var.ha_validator)[1]=="true") && upper(split("-",var.ha_validator)[1])!="NONE")
+    error_message = "An NFS provider must be specified using the NFS_provider variable."
+  }
+}
+

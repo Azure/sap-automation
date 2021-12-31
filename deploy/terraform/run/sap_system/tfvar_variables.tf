@@ -569,3 +569,17 @@ variable "bom_name" {
 variable "use_spn" {
   default = true
 }
+
+variable "NFS_provider" {
+  type = string
+  default = "NONE"
+}
+
+variable "sapmnt_volume_size" {
+  default = 512
+}
+
+variable "transport_volume_size" {
+  default = 512
+}
+
