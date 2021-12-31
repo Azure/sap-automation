@@ -1,0 +1,47 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |         Post Installation activities                                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+
+- name:                                Find the log files
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/sapinst_instdir"
+    file_type:                         file
+    patterns:                          '*.log,*.html'
+    recurse:                           true
+  register:                            log_files
+
+- name:                                Debug (var)
+  ansible.builtin.debug:
+    var:                               log_files
+    verbosity:                         2
+
+- name:                                Create List
+  ansible.builtin.set_fact:
+    list_of_files:                     "{{ log_files.files | map(attribute='path')| list}}"
+
+- name:                                Debug (msg)
+  ansible.builtin.debug:
+    var:                               list_of_files
+    verbosity:                         2
+
+- name:                                "Compress the installation log files"
+  ansible.builtin.archive:
+    path:                              "{{ list_of_files }}"
+    dest:                              "{{ target_media_location }}/sapinst_instdir/{{ sap_sid }}.zip"
+    format:                            zip 
+
+- name:                                "Copy installation logs"
+  ansible.builtin.fetch:
+    src:                              "{{ target_media_location }}/sapinst_instdir/{{ sap_sid }}.zip"
+    dest:                             "{{ _workspace_directory }}/{{ sap_sid }}.zip"
+    flat:                             true
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
