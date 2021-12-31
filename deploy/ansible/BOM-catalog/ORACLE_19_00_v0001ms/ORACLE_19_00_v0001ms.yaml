@@ -18,6 +18,7 @@ materials:
     # SAPCAR 7.22
     - name:         SAPCAR
       archive:      SAPCAR_1010-70006178.EXE
+      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
       filename:     SAPCAR
       permissions:  '0755'
       download:     true
@@ -27,6 +28,7 @@ materials:
     
     - name:         "DB Independent Kernel Files"
       archive:      SAPEXE_801-80002573.SAR
+      checksum:     c1efbbd12cb16134720b251fd18cab4fdbc8a0a3ee93b54c2ee41671bc3048fc
       extract:      false
       #download:     true
       path:         download_basket
@@ -36,6 +38,7 @@ materials:
     
     - name:         "Oracle DB specific kernel files"
       archive:      SAPEXEDB_801-80002605.SAR
+      checksum:     3682acc6bbc9b5a122af422835217875e01cecd372b04649ef0659fcade3163e
       extract:      false
       #download:     true
       path:         download_basket
@@ -45,6 +48,7 @@ materials:
     
     - name:         "Oracle DBATOOLS"
       archive:      DBATL740O11_46-80002605.SAR
+      checksum:     31a4aed609605084dc711bb6d42fe7c5f08b68c88a221b06c754c33c4d9b00b3
       extract:      false
       #download:     true
       path:         download_basket
@@ -55,6 +59,7 @@ materials:
       # SWPM
     - name:         "SWPM20SP09 OS: Linux on x86_64 64bit"
       archive:      SWPM10SP32_5-20009701.SAR
+      checksum:     48c479550d76354ba28f8765c1171d4795d82fea185e150ec1035a7fcfb90f29
       extract:      true
       extractDir:   SWPM
       creates:      SIGNATURE.SMF
@@ -63,6 +68,7 @@ materials:
 
     - name:       "Oracle installation dump"
       archive:     51050829_3.ZIP
+      checksum:    06c3a3cd5d1ad266f61ca202552468501d94cfdc7641ffdadf0a9abad82b648a
       extract:     true
       download:    true
       extractDir:  EXPORT
@@ -73,6 +79,7 @@ materials:
 
     - name:         "SAP Host Agent"
       archive:      SAPHOSTAGENT53_53-80004822.SAR
+      checksum:     a8d8df83417bf15b4d822ccce5aef7f19917cafc0784457a0aa5946a4252aadf
       extract:      false
       download:     true
       path:         download_basket
@@ -80,6 +87,7 @@ materials:
 
     - name:         "SAP IGS"
       archive:      igsexe_13-80003187.sar
+      checksum:     b508b1ff97ec0e3b7f4dd8f57e3840eb547b6326434df677927b8cfd6b4faa12
       extract:      false
       download:     true
       path:         download_basket
@@ -88,6 +96,7 @@ materials:
 
     - name:         "SAP IGSHELPER"
       archive:      igshelper_17-10010245.sar
+      checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
       extract:      false
       download:     true
       path:         download_basket
