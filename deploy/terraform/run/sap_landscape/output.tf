@@ -125,3 +125,16 @@ output "spn_kv_id" {
 output "subnet_mgmt_id" {
   value = module.sap_landscape.subnet_mgmt_id
 }
+
+output "transport_storage_account_id" {
+  value = module.sap_landscape.transport_storage_account_id
+}
+
+output "saptransport_path" {
+  value = module.sap_landscape.saptransport_path
+}
+
+output "azure_files_transport_storage_account_id" {
+  value = var.azure_files_transport_storage_account_id
+}
+

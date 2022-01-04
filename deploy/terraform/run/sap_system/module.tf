@@ -53,11 +53,11 @@ module "common_infrastructure" {
   deployment                         = var.deployment
   license_type                       = var.license_type
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
-  transport_volume_size              = var.transport_volume_size
   sapmnt_volume_size                 = var.sapmnt_volume_size
   NFS_provider                       = var.NFS_provider
   custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
   ha_validator                       = format("%s-%s-%s", local.application.scs_high_availability, local.databases[0].high_availability, var.NFS_provider)
+  azure_files_storage_account_id     = var.azure_files_storage_account_id
 }
 
 # // Create HANA database nodes
@@ -231,7 +231,7 @@ module "output_files" {
   db_lb_ip              = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_ip : module.anydb_node.db_lb_ip
   database_admin_ips    = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_ip : module.anydb_node.anydb_db_ip #TODO Change to use Admin IP
   sap_mnt               = module.common_infrastructure.sapmnt_path
-  sap_transport         = module.common_infrastructure.saptransport_path
+  sap_transport         = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
   ers_lb_ip             = module.app_tier.ers_lb_ip
   bom_name              = var.bom_name
   scs_instance_number   = var.scs_instance_number

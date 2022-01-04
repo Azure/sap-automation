@@ -12,7 +12,7 @@ output "naming" {
       VNET = {
         landscape_storageaccount_name        = local.landscape_storageaccount_name
         witness_storageaccount_name          = local.witness_storageaccount_name
-        landscape_shared_storageaccount_name = local.landscape_shared_storageaccount_name
+        landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
       }
 
       LIBRARY = {

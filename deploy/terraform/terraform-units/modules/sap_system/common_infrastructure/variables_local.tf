@@ -60,10 +60,6 @@ variable "enable_purge_control_for_keyvaults" {
   description = "Allow the deployment to control the purge protection"
 }
 
-variable "transport_volume_size" {
-  description = "The volume size in GB for shared"
-}
-
 variable "sapmnt_volume_size" {
   description = "The volume size in GB for sapmnt"
 }
@@ -73,6 +69,10 @@ variable "NFS_provider" {
   default = "AFS"
 }
 
+variable "azure_files_storage_account_id" {
+  type    = string
+  default = ""
+}
 
 locals {
   // Resources naming
