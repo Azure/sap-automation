@@ -122,6 +122,12 @@ packages:
     - { tier: 'os',    package: 'libblockdev-lvm',                                          state: 'present' }
     - { tier: 'os',    package: 'libblockdev-mdraid',                                       state: 'present' }
     - { tier: 'os',    package: 'libblockdev-swap',                                         state: 'present' }
+    # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
+    - { tier: 'os',    package: 'libaio',                                                   state: 'present' }
+    - { tier: 'os',    package: 'ksh',                                                      state: 'present' }
+    - { tier: 'os',    package: 'libstdc++.so.6',                                           state: 'present' }
+    - { tier: 'os',    package: 'unzip',                                                    state: 'present' }
+    - { tier: 'os',    package: 'libpam.so.0',                                              state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
