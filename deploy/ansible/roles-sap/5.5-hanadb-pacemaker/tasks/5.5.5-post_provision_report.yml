@@ -37,11 +37,11 @@
 - name:                                Pause to give HANA replication time to stabilize
   ansible.builtin.pause:
     seconds:                           "{{ hsr_status_report_wait_in_s }}"
+
 - name:                                "Verify that the hook script is working as expected"
   block:
     - name:                            "Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
-      when:                            inventory_hostname == primary_instance_name
       ansible.builtin.shell: |
                                        set -o pipefail
                                        IFS=' '
@@ -53,6 +53,7 @@
       args:
         chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ primary_instance_name }}/trace
       register:                        saphanasr
+      when:                            inventory_hostname == primary_instance_name
   rescue:
     - name:                            "[Rescue] - Pause to give HANA replication time to stabilize"
       ansible.builtin.pause:
@@ -60,7 +61,6 @@
 
     - name:                            "[Rescue] - Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
-      when:                            inventory_hostname == primary_instance_name
       ansible.builtin.shell: |
                                        set -o pipefail
                                        IFS=' '
@@ -72,14 +72,33 @@
       args:
         chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ primary_instance_name }}/trace
       register:                        saphanasr
+      when:                            inventory_hostname == primary_instance_name
 
-- name:                                "Assert HSR Hook verification is successful"
-  ansible.builtin.assert:
-    that:
-      - "'SOK' in saphanasr.stdout"
-    fail_msg:                          "Unable to determine HSR Hook is working"
-  tags:
-    - 5.5.5-HSRHookValidation
+- name:                                "Log that the hook script is working as expected"
+  block:
+
+    - name:                            "Debug (saphanasr)"
+      ansible.builtin.debug:
+        var:                           saphanasr
+        verbosity:                     2
+
+    - name:                            "set_fact (saphanasr)"
+      ansible.builtin.set_fact:
+        hsr_result:                    saphanasr.stdout
+
+    - name:                            "Debug (hsr_result)"
+      ansible.builtin.debug:
+        var:                           hsr_result
+        verbosity:                     2
+
+    - name:                            "Assert HSR Hook verification is successful"
+      ansible.builtin.assert:
+        that:
+          - "'SFAIL' != hsr_result"
+        fail_msg:                      "Unable to determine if HSR Hook is working"
+  when:                                inventory_hostname == primary_instance_name
+
+
 
 - name:                                Verify the hook Installation
   ansible.builtin.debug:
