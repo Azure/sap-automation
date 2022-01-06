@@ -14,18 +14,25 @@ volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
-  data:   '{{ node_tier | lower }}_data'
-  log:    '{{ node_tier | lower }}_log'
-  backup: '{{ node_tier | lower }}_backup'
-  sapdata1: '{{ node_tier | lower }}_sapdata1'
-  sapdata2: '{{ node_tier | lower }}_sapdata2'
-  sapdata3: '{{ node_tier | lower }}_sapdata3'
-  sapdata4: '{{ node_tier | lower }}_sapdata4'
-  origloga: '{{ node_tier | lower }}_origlogA'
-  origlogb: '{{ node_tier | lower }}_origlogB'
-  mirrloga:  '{{ node_tier | lower }}_mirrlogA'
-  mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
-  oraarch: '{{ node_tier | lower }}_oraarch'
+  data:            '{{ node_tier | lower }}_data'
+  log:             '{{ node_tier | lower }}_log'
+  backup:          '{{ node_tier | lower }}_backup'
+  sapdata1:        '{{ node_tier | lower }}_sapdata1'
+  sapdata2:        '{{ node_tier | lower }}_sapdata2'
+  sapdata3:        '{{ node_tier | lower }}_sapdata3'
+  sapdata4:        '{{ node_tier | lower }}_sapdata4'
+  origloga:        '{{ node_tier | lower }}_origlogA'
+  origlogb:        '{{ node_tier | lower }}_origlogB'
+  mirrloga:        '{{ node_tier | lower }}_mirrlogA'
+  mirrlogb:        '{{ node_tier | lower }}_mirrlogB'
+  oraarch:         '{{ node_tier | lower }}_oraarch'
+  # ------------------- Begin - disktypes required for DB2 -------------------8
+  sapdata:         '{{ node_tier | lower }}_sapdata'
+  log_dir:         '{{ node_tier | lower }}_logdir'
+  offline_log_dir: '{{ node_tier | lower }}_offline_logdir'
+  saptmp:          '{{ node_tier | lower }}_saptmp'
+  # ------------------- End - disktypes required for DB2 ---------------------8
+
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -57,13 +64,41 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 logical_volumes:
+ # --------------------- Begin - disks required for usrsap -------------------8
   - tier:       'sapos'
     node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
     size:       '64g'
     fstype:     'xfs'
+ # ---------------------- End - disks required for usrsap --------------------8
 
+ # ---------------------- Begin - disks required for WD  ---------------------8
+  - tier:       'sapos'
+    node_tier:  'web'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       '1g'
+    fstype:     'xfs'
+ # ----------------------- End - disks required for WD  ----------------------8
+
+ # ---------------------- Begin - disks required for SCS ---------------------8
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       '128g'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_usrsapinstall'
+    size:       '100%FREE'
+    fstype:     'xfs'
+ # ----------------------- End - disks required for SCS ----------------------8
+
+ # --------------------- Begin - disks required for HANA ---------------------8
   - tier:       'sapos'
     node_tier:  'hana'
     vg:         'vg_sap'
@@ -93,29 +128,9 @@ logical_volumes:
     lv:         'lv_hana_backup'
     size:       '100%FREE'
     fstype:     'xfs'
+  # ---------------------- End - disks required for HANA ---------------------8
 
-  - tier:       'sapos'
-    node_tier:  'web'
-    vg:         'vg_sap'
-    lv:         'lv_sapmnt'
-    size:       '1g'
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_sapmnt'
-    size:       '128g'
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_usrsapinstall'
-    size:       '100%FREE'
-    fstype:     'xfs'
-  
-# Adding Tier and disk types for Oracle installation non-ASM.
+  # --------------- Begin - disks required for Oracle(non-ASM) ---------------8
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_oracle_sapdata1'
@@ -131,7 +146,6 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 256
     fstype:     'xfs'
-
 
   - tier:       'sapos'
     node_tier:  'oracle'
@@ -194,7 +208,40 @@ logical_volumes:
     lv:         'lv_oracle'
     size:       '64g'
     fstype:     'xfs'
+ # ---------------- End - disks required for Oracle(non-ASM) ----------------8
 
+ # --------------------- Begin - disks required for DB2 ---------------------8
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_sapdata'
+    lv:         'lv_db2_sapdata'
+    size:       '100%FREE'
+    stripesize: 256
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_logdir'
+    lv:         'lv_db2_logdir'
+    size:       '100%FREE'
+    stripesize: 64
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_offline_logdir'
+    lv:         'lv_db2_offline_logdir'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_saptmp'
+    lv:         'lv_db2_saptmp'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+ # ---------------------- End - disks required for DB2 ----------------------8
 
 
 # Define a dynamic expression based upon the 'item' fact that can
