@@ -88,6 +88,7 @@ sap_swap:
   - { tier: 'app',             swap_size_mb: '20480' }
   - { tier: 'web',             swap_size_mb: '4096'  }
   - { tier: 'hana',            swap_size_mb: '2048'  }
+  - { tier: 'db2',             swap_size_mb: '2048'  }
   - { tier: 'oracle',          swap_size_mb: '20480' }
   - { tier: 'oracle-asm',      swap_size_mb: '20480' }
 # --------------------- End - SAP SWAP settings variables --------------------8
