@@ -1,41 +1,51 @@
-# This pipeline removes the SAP systems, the workload zone (landscape) and the region via ARM resource group deletion
-# The pipeline can be used as fallback in case the terreform destroy doesn't remove everything
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      This pipeline removes the SAP systems, the workload zone (landscape)  |
+# |      and the region via ARM resource group deletion.                       |
+# |                                                                            |
+# |      The pipeline can be used as fallback in case the terraform            |
+# |      destroy doesn't remove everything                                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name: ${{ sap_system }} ${{ workloadzone }}  ${{ deployer }} ${{ library }} $(Date:yyyyMMdd)
 
 parameters:
-  - name: cleanupsap
-    displayName: "Remove the SAP system defined in configuration below"
-    type: boolean
-    default: False
-
-  - name: sap_system
-    displayName: ENV-LOCA-VNET-SID
-    type: string
-    default: DEV-WEEU-SAP01-X00
-
-  - name: cleanupzone
-    displayName: "Remove the SAP workload defined in configuration below"
-    type: boolean
+  - name:                              cleanupsap
+    displayName:                       Remove the SAP system
+    type:                              boolean
     default: false
 
-  - name: workloadzone
-    displayName: ENV-LOCA-VNET-INFRASTRUCTURE
-    type: string
-    default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                              sap_system
+    displayName:                       "Use this format: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
 
-  - name: cleanupregion
-    displayName: "Remove the control plane defined in configuration below below configurations for the deployer and library:"
-    type: boolean
-    default: false
+  - name:                              cleanupzone
+    displayName:                       Remove the SAP workload zone
+    type:                              boolean
+    default:                           false
 
-  - name: deployer
-    displayName: ENV-LOCA-VNET-INFRASTRUCTURE
-    type: string
-    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name:                              workloadzone
+    displayName:                       "Use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name: library
-    displayName: ENV-LOCA-SAP_LIBRARY
-    type: string
-    default: MGMT-WEEU-SAP_LIBRARY
+  - name:                              cleanupregion
+    displayName:                       Remove the control plane
+    type:                              boolean
+    default:                           false
+
+  - name:                              deployer
+    displayName:                       "Use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
+
+  - name:                              library
+    displayName:                       "Use this format: ENV-LOCA-SAP_LIBRARY"
+    type:                              string
+    default:                           MGMT-WEEU-SAP_LIBRARY
 
 trigger: none
 
@@ -64,9 +74,9 @@ variables:
   - name:  log
     value: logfile_$(Build.BuildId)
 
-name: $(deployerfolder)_$(libraryfolder)_${{ parameters.cleanupregion }}_$(zonefolder)_${{ parameters.cleanupzone }}_$(sapsystemfolder)__${{ parameters.cleanupsap }}_$(Date:yyyyMMdd)$(Rev:.r)
-
 stages:
+  - checkout: self
+    persistCredentials: true
   - stage: Remove_SAP_systems
     displayName: "Remove SAP System $(sapsystemfolder)"
     condition: eq(${{ parameters.cleanupsap }}, true)
@@ -94,13 +104,14 @@ stages:
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull  origin $(Branch)                                                                 &>  /tmp/$(log)
-                git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform            &>> /tmp/$(log)
-                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
-                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-                git push  origin HEAD:$(Branch)                                                            &>> /tmp/$(log)
-                cat /tmp/$(log)
+                git pull  origin $(Branch)
+                git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform
+                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.md
+                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.zip
+                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml
+                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Remove_sap_deployment_artefacts_in_WORKSPACES
             env:
@@ -136,12 +147,12 @@ stages:
                 export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull  origin $(Branch)                                                                 &>  /tmp/$(log)
-                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}        &>> /tmp/$(log)
-                git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-                git push  origin HEAD:$(Branch)                                                            &>> /tmp/$(log)
-                cat /tmp/$(log)
+                git pull origin $(Branch)
+                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
+                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md                
+                git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
+                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Remove_zone_deployment_artefacts_in_WORKSPACES
             env:
@@ -189,16 +200,17 @@ stages:
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull  origin $(Branch)                                                                 &>  /tmp/$(log)
-                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}        &>> /tmp/$(log)
-                git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform           &>> /tmp/$(log)
-                git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform             &>> /tmp/$(log)
-                git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars  &>> /tmp/$(log)
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
-                git push  origin HEAD:$(Branch)                                                            &>> /tmp/$(log)
-                cat /tmp/$(log)
+                git pull  origin $(Branch)
+                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
+                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
+                git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform
+                git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform
+                git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars
+                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Remove_region_deployment_artefacts_in_WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
             failOnStderr: true
+...
