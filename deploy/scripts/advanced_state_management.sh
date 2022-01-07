@@ -295,8 +295,8 @@ if [ -n "${tf_resource}" ]; then
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
-      unset TF_DATA_DIR
-      exit $return_value
+#      unset TF_DATA_DIR
+#      exit $return_value
   fi
 fi
 
