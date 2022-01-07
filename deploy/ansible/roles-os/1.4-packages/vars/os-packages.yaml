@@ -45,11 +45,6 @@ packages:
     - { tier: 'os',    package: 'numad',                                                    state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                               state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
-    - { tier: 'os',    package: 'libblockdev-crypto',                 node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-dm',                     node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-lvm',                    node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-mdraid',                 node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-swap',                   node_tier: 'db2',     state: 'present' }
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                             node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'ksh',                                node_tier: 'db2',     state: 'present' }
@@ -123,11 +118,6 @@ packages:
     - { tier: 'os',    package: 'numad',                                                    state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                               state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
-    - { tier: 'os',    package: 'libblockdev-crypto',                 node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-dm',                     node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-lvm',                    node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-mdraid',                 node_tier: 'db2',     state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-swap',                   node_tier: 'db2',     state: 'present' }
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                             node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'ksh',                                node_tier: 'db2',     state: 'present' }
