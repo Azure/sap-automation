@@ -107,9 +107,17 @@
                 name:                  roles-sap/5.0.0-scs-install
           tags:
             - 5.0.0-scs-install
-      when:                            
-       - not scs_high_availability
-       - "'scs' in supported_tiers"
+
+        - block:
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+          tags:
+            - 7.0.0-post-install
+
+      when:
+        - not scs_high_availability
+        - "'scs' in supported_tiers"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -211,11 +219,33 @@
             - 2.6-sap-mounts
 
         - block:
+            - name:                    Include 5.0.1-scs-ha-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.0.1-scs-ha-install
+          tags:
+            - 5.0.1-scs-ha-install
+
+        - block:
+            - name:                    Include 5.0.2-ers-ha-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.0.2-ers-ha-install
+          tags:
+            - 5.0.2-ers-ha-install
+
+        - block:
             - name:                    Run the pacemaker role
               include_role:
                 name:                  roles-sap/5.6-scsers-pacemaker
           tags:
             - 5.6-scsers-pacemaker
+
+        - block:
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+          tags:
+            - 7.0.0-post-install
+
       when:                            
        - scs_high_availability
        - "'scs' in supported_tiers or 'ers' in supported_tiers "

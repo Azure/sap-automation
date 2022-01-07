@@ -75,6 +75,12 @@
       tags:
         - 5.3-app-install
 
+    - block:
+        - name:                    Include 7.0.0-post-install role
+          ansible.builtin.include_role:
+            name:                  roles-sap/7.0.0-post-install
+      tags:
+        - 7.0.0-post-install
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
