@@ -133,8 +133,9 @@ variable "key_vault" {
 variable "ha_validator" {
   validation {
     condition = (
-      (split("-",var.ha_validator)[0]=="true" || split("-",var.ha_validator)[1]=="true") && upper(split("-",var.ha_validator)[1])!="NONE")
-    error_message = "An NFS provider must be specified using the NFS_provider variable."
+      parseint(split("-", var.ha_validator)[0], 10) != 0 ? upper(split("-", var.ha_validator)[1]) != "NONE" : true
+    )
+    error_message = "An NFS provider must be specified using the NFS_provider variable in a HA scenario."
   }
 }
 

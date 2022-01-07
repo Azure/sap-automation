@@ -56,7 +56,7 @@ module "common_infrastructure" {
   sapmnt_volume_size                 = var.sapmnt_volume_size
   NFS_provider                       = var.NFS_provider
   custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
-  ha_validator                       = format("%s-%s-%s", local.application.scs_high_availability, local.databases[0].high_availability, var.NFS_provider)
+  ha_validator                       = format("%d%d-%s", local.application.scs_high_availability ? 1 : 0, local.databases[0].high_availability ? 1 : 0, var.NFS_provider)
   azure_files_storage_account_id     = var.azure_files_storage_account_id
 }
 
