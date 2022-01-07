@@ -62,7 +62,7 @@ database_vm_image={
   source_image_id=""
   publisher="SUSE"
   offer="sles-sap-12-sp5"
-  sku="gen1"
+  sku="gen2"
   version="latest"
 }
 
@@ -138,7 +138,7 @@ app_tier_use_DHCP=true
 # Application Servers
 
 # application_server_count defines how many application servers to deploy
-application_server_count=2
+application_server_count=1
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
 #application_server_zones=["1","2","3"]
@@ -165,7 +165,7 @@ application_server_image= {
   source_image_id=""
   publisher="SUSE"
   offer="sles-sap-12-sp5"
-  sku="gen1"
+  sku="gen2"
 }
 
 # SCS Servers
@@ -211,7 +211,7 @@ ers_instance_number="02"
 # source_image_id=""
 # publisher="SUSE"
 # offer="sles-sap-12-sp5"
-# sku="gen1"
+# sku="gen2"
 #}
 
 # Web Dispatchers
@@ -248,7 +248,7 @@ webdispatcher_server_count=0
 # source_image_id=""
 # publisher="SUSE"
 # offer="sles-sap-12-sp5"
-# sku="gen1"
+# sku="gen2"
 #}
 
 #########################################################################################
@@ -298,7 +298,7 @@ resource_offset=1
 # for the brownfield scenario the Azure resource identifier for the subnet must be specified
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-network_name="SAP02"
+network_logical_name="SAP02"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix
@@ -400,7 +400,7 @@ network_name="SAP02"
 #source_image_id=""
 #publisher="SUSE"
 #offer="sles-sap-12-sp5"
-#sku="gen1"
+#sku="gen2"
 #version="latest"
 #}
 
