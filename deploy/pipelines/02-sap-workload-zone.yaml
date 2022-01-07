@@ -8,15 +8,15 @@
 name: Deploy Workload zone $(zonefolder) [$(Date:yyyyMMdd) $(SourceBranchName)]
 
 parameters:
-  - name: workloadzone
-    displayName: ENV-LOCA-VNET-INFRASTRUCTURE
-    type: string
-    default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                              workloadzone
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name: environment
-    displayName: Deployer Environment (MGMT, DEV, QA, PRD, ...)
-    type: string
-    default: MGMT
+  - name:                              environment
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
 
 trigger: none
 
@@ -38,14 +38,14 @@ variables:
     value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Deploy_SAP_workloadzone
-    displayName: Deploy SAP workload zone
+  - stage:                             Deploy_SAP_workloadzone
+    displayName:                       Deploy SAP workload zone
     jobs:
-      - job: Deploy_SAP_workloadzone
-        displayName: Deploy SAP workload zone
+      - job:                           Deploy_SAP_workloadzone
+        displayName:                   Deploy SAP workload zone
         steps:
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -150,8 +150,13 @@ stages:
                 fi
                 git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
                 exit $return_code
-            displayName: Deploy SAP Workload Zone
+            displayName:               Deploy SAP Workload Zone
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              REMOTE_STATE_SA:         ${REMOTE_STATE_SA}
+            failOnStderr:              false
 ...

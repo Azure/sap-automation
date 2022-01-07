@@ -88,7 +88,14 @@
                 name:     roles-sap/5.2-pas-install
           tags:
             - 5.2-pas-install
-      when:                            
+
+        - block:
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+          tags:
+            - 7.0.0-post-install
+      when:
         - "'pas' in supported_tiers"
 
 # /*---------------------------------------------------------------------------8
