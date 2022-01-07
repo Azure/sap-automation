@@ -8,10 +8,10 @@
 name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)
 
 parameters:
-  - name: sap_system
-    displayName: ENV-LOCA-VNET-SID
-    type: string
-    default: DEV-WEEU-SAP01-X00
+  - name:                              sap_system
+    displayName:                       "Use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
 
 trigger: none
 
@@ -31,13 +31,13 @@ variables:
     value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Deploy_SAP_infrastructure
-    displayName: Deploy SAP infrastructure
+  - stage:                             Deploy_SAP_infrastructure
+    displayName:                       Deploy SAP infrastructure
     jobs:
-      - job: Deploy_SAP_infrastructure
+      - job:                           Deploy_SAP_infrastructure
         steps:
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -141,6 +141,11 @@ stages:
                 exit $return_code
             displayName: Deploy_SAP_infrastructure
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              REMOTE_STATE_SA:         ${REMOTE_STATE_SA}
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              false
 ...

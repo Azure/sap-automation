@@ -446,7 +446,7 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 
-  - stage: Post Installation Steps
+  - stage: Post_Installation_Steps
     displayName: Post Installation Steps
     condition: eq(${{ parameters.postinstallation }}, true)
     dependsOn:
@@ -485,6 +485,11 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs) 
+                if [ ! -n ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
+                  exit 2
+                fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 git pull --append origin $(Branch)
                 git config --global user.email "$(Build.RequestedForEmail)"
@@ -500,7 +505,7 @@ stages:
 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.zip ]; then
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
                 fi
             displayName: Copy Log files
