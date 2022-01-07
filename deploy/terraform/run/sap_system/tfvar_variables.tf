@@ -539,20 +539,6 @@ variable "enable_purge_control_for_keyvaults" {
   default = true
 }
 
-#ANF Settings
-
-variable "anf_sapmnt_volume_size" {
-  default = 512
-}
-
-variable "anf_transport_volume_size" {
-  default = 512
-}
-
-variable "use_ANF" {
-  default = false
-}
-
 
 variable "use_loadbalancers_for_standalone_deployments" {
   default = true
@@ -568,4 +554,19 @@ variable "bom_name" {
 
 variable "use_spn" {
   default = true
+}
+
+variable "NFS_provider" {
+  type = string
+  default = "NONE"
+}
+
+#NFS Settings
+
+variable "sapmnt_volume_size" {
+  default = 512
+}
+
+variable "azure_files_storage_account_id" {
+  default = ""
 }

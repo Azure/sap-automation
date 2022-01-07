@@ -50,18 +50,32 @@ variable "dns_resource_group_name" {
 }
 
 variable "use_private_endpoint" {
+  type        = bool
   description = "Private endpoint"
   default     = false
 }
 
+variable "transport_volume_size" {
+  description = "The volume size in GB for shared"
+}
+
+variable "azure_files_transport_storage_account_id" {
+  type = string
+}
+
+variable "NFS_provider" {
+  type = string
+}
+
 locals {
   // Resources naming
-  storageaccount_name         = var.naming.storageaccount_names.VNET.landscape_storageaccount_name
-  witness_storageaccount_name = var.naming.storageaccount_names.VNET.witness_storageaccount_name
-  landscape_keyvault_names    = var.naming.keyvault_names.VNET
-  sid_keyvault_names          = var.naming.keyvault_names.SDU
-  virtualmachine_names        = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
-  resource_suffixes           = var.naming.resource_suffixes
+  storageaccount_name                             = var.naming.storageaccount_names.VNET.landscape_storageaccount_name
+  witness_storageaccount_name                     = var.naming.storageaccount_names.VNET.witness_storageaccount_name
+  landscape_shared_transport_storage_account_name = var.naming.storageaccount_names.VNET.landscape_shared_transport_storage_account_name
+  landscape_keyvault_names                        = var.naming.keyvault_names.VNET
+  sid_keyvault_names                              = var.naming.keyvault_names.SDU
+  virtualmachine_names                            = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
+  resource_suffixes                               = var.naming.resource_suffixes
 }
 
 locals {
@@ -273,17 +287,17 @@ locals {
   )
   sub_web_prefix = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
 
-  sub_anf_defined  = (length(try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_anf.prefix, ""))) > 0
-  sub_anf_arm_id   = local.sub_anf_defined ? try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "") : ""
-  sub_anf_existing = length(local.sub_anf_arm_id) > 0
-  sub_anf_name = local.sub_anf_existing ? (
-    try(split("/", local.sub_anf_arm_id)[10], "")) : (
+  sub_ANF_defined  = (length(try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_anf.prefix, ""))) > 0
+  sub_ANF_arm_id   = local.sub_ANF_defined ? try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "") : ""
+  sub_ANF_existing = length(local.sub_ANF_arm_id) > 0
+  sub_ANF_name = local.sub_ANF_existing ? (
+    try(split("/", local.sub_ANF_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_anf.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_anf.name) : (
       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.anf_subnet)
     )
   )
-  sub_anf_prefix = local.sub_anf_defined ? try(var.infrastructure.vnets.sap.subnet_anf.prefix, "") : ""
+  sub_ANF_prefix = local.sub_ANF_defined ? try(var.infrastructure.vnets.sap.subnet_anf.prefix, "") : ""
 
 
   //NSGs
