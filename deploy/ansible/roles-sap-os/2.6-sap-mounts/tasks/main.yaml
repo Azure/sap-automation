@@ -120,7 +120,7 @@
     - NFS_provider == 'ANF'
 
 # Import this task only if the tier is ora.
-- import_tasks:                        "oracle.yaml"
+- import_tasks:                        "2.6.2-oracle-mounts.yaml"
   when: 
     - node_tier == "oracle"
     - node_tier != "oracle-asm"
