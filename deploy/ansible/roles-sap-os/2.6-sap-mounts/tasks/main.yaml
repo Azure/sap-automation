@@ -108,7 +108,7 @@
     - sap_mnt is defined or sap_trans is defined
     - sap_mnt | trim | length != 0
     - tier == 'sapos'
-    - NFS_provider == 'AFS'
+    - NFS_provider == 'AFS' and NFS_Provider != 'NONE'
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                Import ANF tasks
@@ -117,7 +117,7 @@
     - sap_mnt is defined or sap_trans is defined
     - sap_mnt | trim | length != 0
     - tier == 'sapos'
-    - NFS_provider == 'ANF'
+    - NFS_provider == 'ANF' and NFS_Provider != 'NONE'
 
 # Import this task only if the tier is ora.
 - import_tasks:                        "2.6.2-oracle-mounts.yaml"
