@@ -215,7 +215,7 @@ logical_volumes:
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata1'
-    size:       '25%FREE'
+    size:       '25%VG'
     stripesize: 256
     fstype:     'xfs'
 
@@ -223,7 +223,7 @@ logical_volumes:
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata2'
-    size:       '25%FREE'
+    size:       '25%VG'
     stripesize: 256
     fstype:     'xfs'
 
@@ -231,15 +231,15 @@ logical_volumes:
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata3'
-    size:       '25%FREE'
+    size:       '25%VG'
     stripesize: 256
     fstype:     'xfs'
-
+  
   - tier:       'sapos'
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata4'
-    size:       '25%FREE'
+    size:       '25%VG'
     stripesize: 256
     fstype:     'xfs'
 
