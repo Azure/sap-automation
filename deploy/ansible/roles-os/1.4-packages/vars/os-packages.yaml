@@ -45,11 +45,17 @@ packages:
     - { tier: 'os',    package: 'numad',                                                    state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                               state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
-    - { tier: 'os',    package: 'libblockdev-crypto',                                       state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-dm',                                           state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-lvm',                                          state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-mdraid',                                       state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-swap',                                         state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-crypto',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-dm',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-lvm',                    node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-mdraid',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-swap',                   node_tier: 'db2',     state: 'present' }
+    # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
+    - { tier: 'os',    package: 'libaio',                             node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'ksh',                                node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libstdc++.so.6',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'unzip',                              node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libpam.so.0',                        node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
@@ -117,17 +123,17 @@ packages:
     - { tier: 'os',    package: 'numad',                                                    state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                               state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
-    - { tier: 'os',    package: 'libblockdev-crypto',                                       state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-dm',                                           state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-lvm',                                          state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-mdraid',                                       state: 'present' }
-    - { tier: 'os',    package: 'libblockdev-swap',                                         state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-crypto',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-dm',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-lvm',                    node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-mdraid',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-swap',                   node_tier: 'db2',     state: 'present' }
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
-    - { tier: 'os',    package: 'libaio',                                                   state: 'present' }
-    - { tier: 'os',    package: 'ksh',                                                      state: 'present' }
-    - { tier: 'os',    package: 'libstdc++.so.6',                                           state: 'present' }
-    - { tier: 'os',    package: 'unzip',                                                    state: 'present' }
-    - { tier: 'os',    package: 'libpam.so.0',                                              state: 'present' }
+    - { tier: 'os',    package: 'libaio',                             node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'ksh',                                node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libstdc++.so.6',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'unzip',                              node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libpam.so.0',                        node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
@@ -159,6 +165,19 @@ packages:
     - { tier: 'os',    package: 'ntp',                                                      state: 'absent'  }
     - { tier: 'os',    package: 'systemd',                                                  state: 'present' }
     - { tier: 'os',    package: 'tuned',                                                    state: 'present' }
+    # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
+    - { tier: 'os',    package: 'libblockdev-crypto',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-dm',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-lvm',                    node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-mdraid',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-swap',                   node_tier: 'db2',     state: 'present' }
+    # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
+    - { tier: 'os',    package: 'libaio',                             node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'ksh',                                node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libstdc++.so.6',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'unzip',                              node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libpam.so.0',                        node_tier: 'db2',     state: 'present' }
+    # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs-utils',                                                state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
@@ -181,17 +200,30 @@ packages:
   sles_sap12.5:
   sles_sap15:
     - { tier: 'os',    package: 'chrony',                                                   state: 'present' }
-#    - { tier: 'os',    package: 'libyui-qt-pkg11',                                          state: 'present' }
+#   - { tier: 'os',    package: 'libyui-qt-pkg11',                                          state: 'present' }
     - { tier: 'os',    package: 'glibc',                                                    state: 'present' }
     - { tier: 'os',    package: 'python-xml',                                               state: 'present' }
     - { tier: 'os',    package: 'systemd',                                                  state: 'present' }
     - { tier: 'os',    package: 'tuned',                                                    state: 'present' }
     - { tier: 'os',    package: 'numad',                                                    state: 'present' }
-    - { tier: 'os',    package: 'ntp',                                                      state: 'absent' }
+    - { tier: 'os',    package: 'ntp',                                                      state: 'absent'  }
     # TODO(rtamalin): Ensure SLE 15 SP2 uses /usr/bin/python3 rather
     # than /usr/bin/python.
     # Required to enable ansible to use /usr/bin/python on SLE 15 SP2
     - { tier: 'os',    package: 'python2-rpm',                                              state: 'present' }
+    # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
+    - { tier: 'os',    package: 'libblockdev-crypto',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-dm',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-lvm',                    node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-mdraid',                 node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-swap',                   node_tier: 'db2',     state: 'present' }
+    # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
+    - { tier: 'os',    package: 'libaio',                             node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'ksh',                                node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libstdc++.so.6',                     node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'unzip',                              node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'libpam.so.0',                        node_tier: 'db2',     state: 'present' }
+    # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs-utils',                                                state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
