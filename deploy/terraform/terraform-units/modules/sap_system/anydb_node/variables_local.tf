@@ -359,8 +359,16 @@ locals {
     ]
   ) : []
 
-  all_data_disk_per_dbnode = distinct(concat(local.data_disk_per_dbnode, local.append_data_disk_per_dbnode))
+  all_data_disk_per_dbnode = distinct(
+                                concat(
+                                  local.data_disk_per_dbnode, 
+                                  local.append_data_disk_per_dbnode
+                                )
+                              )
 
+  //we don't need to specify writeaccelerator settings for disks as that should
+  //be availble in all_data_disk_per_dbnode because we set this explicity (if
+  // not available) in data_disk_per_dbnode and append_data_disk_per_dbnode.
   anydb_disks = flatten([
     for vm_counter in range(var.database_server_count) : [
       for datadisk in local.all_data_disk_per_dbnode : {

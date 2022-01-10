@@ -213,6 +213,13 @@ logical_volumes:
  # --------------------- Begin - disks required for DB2 ---------------------8
   - tier:       'sapos'
     node_tier:  'db2'
+    vg:         'vg_db2'
+    lv:         'lv_db2'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
     vg:         'vg_db2_sapdata'
     lv:         'lv_db2_sapdata1'
     size:       '25%VG'
@@ -234,7 +241,7 @@ logical_volumes:
     size:       '25%VG'
     stripesize: 256
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'

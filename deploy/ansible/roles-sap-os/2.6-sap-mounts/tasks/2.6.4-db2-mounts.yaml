@@ -33,7 +33,10 @@
 - name:                                "DB2: Show lvexists"
   ansible.builtin.debug:
     var:                               lvexists
-    verbosity:                         2
+#    verbosity:                         2
+- name:                                "DB2: fail here"
+  ansible.builtin.fail:
+    msg:                               "Fail after printing lv details"
 
 # Mount Filesystems
 - name:                                "DB2: Mount Filesystems for DB2"
@@ -88,7 +91,7 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/db2',       group: 'oinstall',   owner: 'oracle'}
+    - { path: '/db2',       group: 'db2install',   owner: 'db2sid'}
   when:
     - not db2_permissions_set.stat.exists
 
