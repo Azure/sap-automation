@@ -27,6 +27,7 @@ disk_type_to_name_map:
   mirrlogb:        '{{ node_tier | lower }}_mirrlogB'
   oraarch:         '{{ node_tier | lower }}_oraarch'
   # ------------------- Begin - disktypes required for DB2 -------------------8
+  sapdata:         '{{ node_tier | lower }}_sapdata'
   log_dir:         '{{ node_tier | lower }}_logdir'
   offline_log_dir: '{{ node_tier | lower }}_offline_logdir'
   saptmp:          '{{ node_tier | lower }}_saptmp'
@@ -137,7 +138,7 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 256
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_oracle_sapdata2'
@@ -193,7 +194,7 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 128
     fstype:     'xfs'
- 
+
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_oracle_oraarch'
@@ -217,7 +218,7 @@ logical_volumes:
     size:       '25%FREE'
     stripesize: 256
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'
@@ -225,7 +226,7 @@ logical_volumes:
     size:       '25%FREE'
     stripesize: 256
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'
@@ -233,7 +234,7 @@ logical_volumes:
     size:       '25%FREE'
     stripesize: 256
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'
