@@ -10,29 +10,32 @@
 #           --extra-vars="@sap-parameters.yaml"                                                                           \
 #           ~/Azure_SAP_Automated_Deployment/centiq-sap-hana/deploy/ansible/${playbook}
 
-# OS Config Settings variables
+# ------------------- Begin - OS Config Settings variables -------------------8
 chrony_pool:                  ""
 chrony_servers:               []
+# -------------------- End - OS Config Settings variables --------------------8
 
+# --------------------- Begin - BOM Processing variables ---------------------8
 # BoM Processing variables
-sapbits_bom_files:            "sapfiles"                                                # Default
-target_media_location:        "/usr/sap/install"                                        # Default
+sapbits_bom_files:            "sapfiles"                              # Default
+target_media_location:        "/usr/sap/install"                      # Default
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
+# ---------------------- End - BOM Processing variables ----------------------8
 
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""
-sap_sid:                      "BPC"                                                        # REQUIRED - SAP Install
+sap_sid:                      "BPC"                    # REQUIRED - SAP Install
 download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
-db_sid:                       "XDB"                                                     # Default
-hdb_instance_number:          "00"                                                      # Default
+db_sid:                       "XDB"                                   # Default
+hdb_instance_number:          "00"                                    # Default
 pas_hostname:                 ""
 pas_instance_number:          "00"
 password_hana_system:         ""
-main_password:                ""                                                        # SAP Install
-sap_fqdn:                     ""                                                        # SAP Install
+main_password:                ""                                  # SAP Install
+sap_fqdn:                     ""                                  # SAP Install
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
@@ -77,15 +80,16 @@ deployer_kv_name_secret:      "deployer-kv-name"                                
 sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
 sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
 
+# ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
-  - { tier: 'scs',  swap_size_mb: '4096' }
-  - { tier: 'ers',  swap_size_mb: '4096' }
-  - { tier: 'pas',  swap_size_mb: '20480' }
-  - { tier: 'app',  swap_size_mb: '20480' }
-  - { tier: 'web',  swap_size_mb: '4096' }
-  - { tier: 'hana', swap_size_mb: '2048' }
-  - { tier: 'oracle', swap_size_mb: '20480' }
-  - { tier: 'oracle-asm', swap_size_mb: '20480' }
-
+  - { tier: 'scs',             swap_size_mb: '4096'  }
+  - { tier: 'ers',             swap_size_mb: '4096'  }
+  - { tier: 'pas',             swap_size_mb: '20480' }
+  - { tier: 'app',             swap_size_mb: '20480' }
+  - { tier: 'web',             swap_size_mb: '4096'  }
+  - { tier: 'hana',            swap_size_mb: '2048'  }
+  - { tier: 'oracle',          swap_size_mb: '20480' }
+  - { tier: 'oracle-asm',      swap_size_mb: '20480' }
+# --------------------- End - SAP SWAP settings variables --------------------8
 
 ...
