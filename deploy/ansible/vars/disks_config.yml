@@ -208,9 +208,9 @@ logical_volumes:
     lv:         'lv_oracle'
     size:       '64g'
     fstype:     'xfs'
- # ---------------- End - disks required for Oracle(non-ASM) ----------------8
+  # ---------------- End - disks required for Oracle(non-ASM) ----------------8
 
- # --------------------- Begin - disks required for DB2 ---------------------8
+  # --------------------- Begin - disks required for DB2 ---------------------8
   - tier:       'sapos'
     node_tier:  'db2'
     vg:         'vg_db2'
@@ -272,7 +272,7 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 128
     fstype:     'xfs'
- # ---------------------- End - disks required for DB2 ----------------------8
+  # ---------------------- End - disks required for DB2 ----------------------8
 
 
 # Define a dynamic expression based upon the 'item' fact that can
