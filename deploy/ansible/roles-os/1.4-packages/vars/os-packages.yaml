@@ -44,6 +44,13 @@ packages:
     - { tier: 'os',    package: 'lvm2',                                                     state: 'present' }
     - { tier: 'os',    package: 'numad',                                                    state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                               state: 'present' }
+    # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
+    - { tier: 'os',    package: 'libblockdev-crypto',                                       state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-dm',                                           state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-lvm',                                          state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-mdraid',                                       state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-swap',                                         state: 'present' }
+    # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
     - { tier: 'sapos', package: 'tuned-profiles-sap*',                                      state: 'present' }
@@ -109,6 +116,13 @@ packages:
     - { tier: 'os',    package: 'lvm2',                                                     state: 'present' }
     - { tier: 'os',    package: 'numad',                                                    state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                               state: 'present' }
+    # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
+    - { tier: 'os',    package: 'libblockdev-crypto',                                       state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-dm',                                           state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-lvm',                                          state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-mdraid',                                       state: 'present' }
+    - { tier: 'os',    package: 'libblockdev-swap',                                         state: 'present' }
+    # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
     - { tier: 'sapos', package: 'tuned-profiles-sap*',                                      state: 'present' }
