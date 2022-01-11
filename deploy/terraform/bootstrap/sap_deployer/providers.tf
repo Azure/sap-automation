@@ -21,8 +21,6 @@ provider "azurerm" {
   features {}
 }
 
-provider "azuread" {}
-
 terraform {
   required_version = ">= 0.14"
   required_providers {
@@ -40,9 +38,6 @@ terraform {
     }
     tls = {
       source = "hashicorp/tls"
-    }
-    azuread = {
-      source = "hashicorp/azuread"
     }
     azurerm = {
       source = "hashicorp/azurerm"

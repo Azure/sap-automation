@@ -1,11 +1,3 @@
-# data "azuread_application" "app_registration" {
-#     application_id = var.app_registration_app_id
-# }
-
-# # For use with Azure AD
-# resource "azuread_application_password" "clientsecret" {
-#     application_object_id = data.azuread_application.app_registration.object_id
-# }
 
 # Create the Linux App Service Plan
 resource "azurerm_app_service_plan" "appserviceplan" {
