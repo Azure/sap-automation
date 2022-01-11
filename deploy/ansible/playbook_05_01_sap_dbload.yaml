@@ -9,7 +9,7 @@
   name:                                Get SAP Password from KeyVault
   gather_facts:                        true
   vars_files:
-    - vars/ansible-input-api.yaml                               
+    - vars/ansible-input-api.yaml
     # API Input template with defaults
 
   tasks:
@@ -18,6 +18,7 @@
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                          directory
+        mode:                          0755
 
     - name:                            Remove db-load-done flag
       ansible.builtin.file:
@@ -31,6 +32,15 @@
       tags:
         - 0.1-passwords
 
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+      vars:
+        tier:                          dbload
+        
+      tags:
+        - kv-sap-installation-media-storage-details
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for SAP DB Load                              |
@@ -38,7 +48,9 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_PAS"
+- hosts:                               "{{ sap_sid|upper }}_DB  :
+                                        {{ sap_sid|upper }}_SCS :
+                                        {{ sap_sid|upper }}_PAS"
 
   name:                                DB Installation - HANA
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -54,22 +66,38 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
+    - name:                            Load the SAP parameters
+      include_vars:                    "{{ _workspace_directory }}/sap-parameters.yaml"
+
+    - name:                            Load the SAP parameters
+      ansible.builtin.debug:          
+        var:                           platform
+
+
     - name:                            "Perform DB Load on HANA"
       block:
         - name:                        Setting the dbload facts
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            bom_processing:            true 
           tags:
             - always
- 
+
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-      when:                            node_tier=='hana'
+      when:                            
+        - platform == 'HANA'
+        - "'pas' in supported_tiers"
 
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Oracle DB Load                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+- hosts:                               "{{ sap_sid|upper }}_DB"
 
   name:                                DB Installation - ORACLE
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -94,24 +122,14 @@
           tags:
             - always
 
-        # - block:
-        #     - name:                    Include 2.6-sap-mounts role
-        #       ansible.builtin.include_role:
-        #         name:                  roles-sap-os/2.6-sap-mounts
-        #   tags:
-        #     - 2.6-sap-mounts
-    
         - name:                        Include 5.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-      when:                            node_tier=='oracle'
-
-
-
+      when:                            platform == 'ORACLE'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                         PLAYBOOK FOR HANA DB LOGGING                       |
+# |                         DB LOAD LOGGING                                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -127,7 +145,6 @@
         path:                         "{{ _workspace_directory }}/.progress/db-load-done"
         state:                        touch
         mode:                         0755
-
 
 ...
 # /*----------------------------------------------------------------------------8

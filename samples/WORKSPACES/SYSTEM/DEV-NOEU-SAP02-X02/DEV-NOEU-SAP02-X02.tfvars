@@ -4,22 +4,6 @@
 
 #########################################################################################
 #                                                                                       #
-#  Terraform deploy parameters                                                          #
-#                                                                                       #
-#########################################################################################
-
-# - tfstate_resource_id is the Azure resource identifier for the Storage account in the SAP Library
-#   that will contain the Terraform state files
-# - deployer_tfstate_key is the state file name for the deployer
-# - landscape_tfstate_key is the state file name for the workload deployment
-# These are required parameters, if using the deployment scripts they will be auto populated otherwise they need to be entered
-
-#tfstate_resource_id   = null
-#deployer_tfstate_key  = null
-#landscape_tfstate_key = null
-
-#########################################################################################
-#                                                                                       #
 #  Infrastructure definitioms                                                          #
 #                                                                                       #
 #########################################################################################
@@ -37,12 +21,266 @@ location="northeurope"
 #resourcegroup_name=""
 #resourcegroup_arm_id=""
 
+# custom_prefix defines the prefix that will be added to the resource names
+#custom_prefix=""
+
+# use_prefix defines if a prefix will be added to the resource names
+#use_prefix=true
+
 # PPG
 # The proximity placement group names and arm_ids are optional can be used to control the naming and the creation of the proximity placement groups
 # The proximityplacementgroup_names list value is optional, it can be used to override the name of the proximity placement groups that will be provisioned
 # The proximityplacementgroup_arm_ids list value is optional, it can be used to provide an existing proximity placement groups for the deployment
 #proximityplacementgroup_names=[]
 #proximityplacementgroup_arm_ids=[]
+
+
+#########################################################################################
+#                                                                                       #
+#  Database tier                                                                        #                                                                                       #
+#                                                                                       #
+#########################################################################################
+
+# The vm_image defines the Virtual machine image to use, 
+# if source_image_id is specified the deployment will use the custom image provided, 
+# in this case os_type must also be specified
+
+# Sample Images for different database backends
+
+# Oracle
+#database_vm_image={
+#  source_image_id=""
+#  publisher="Oracle"
+#  offer= "Oracle-Linux",
+#  sku= "81-gen2",
+#  version="latest"
+#}
+
+#SUSE 12 SP5
+database_vm_image={
+  os_type=""
+  source_image_id=""
+  publisher="SUSE"
+  offer="sles-sap-12-sp5"
+  sku="gen2"
+  version="latest"
+}
+
+#RedHat
+# database_vm_image={
+#   os_type="linux"
+#   source_image_id=""
+#   publisher="RedHat"
+#   offer="RHEL-SAP-HA"
+#   sku="82sapha-gen2"
+#   version="8.2.2021040902"
+# }
+
+# database_platform defines the database backend, supported values are
+# - HANA
+# - DB2
+# - ORACLE
+# - ASE
+# - SQLSERVER
+# - NONE (in this case no database tier is deployed)
+database_platform="HANA"
+
+# database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
+#database_high_availability=false
+
+# If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
+# For M series VMs use the SKU name for instance "M32ts"
+database_size="S4Demo"
+
+#If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
+#db_disk_sizes_filename="custom-sizing.json"
+
+# database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
+database_vm_use_DHCP=true
+
+# database_vm_zones is an optional list defining the availability zones to deploy the database servers
+#database_vm_zones=["1"]
+
+# Optional, Defines the default authentication model for the Database VMs (key/password)
+#database_vm_authentication_type="key"
+
+# Optional, Defines the list of availability sets to deployt the Database VMs in
+#database_vm_avsest_arm_ids=[/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-X00/providers/Microsoft.Compute/availabilitySets/DEV-WEEU-X00_db_avset"
+
+#########################################################################################
+#                                                                                       #
+#  Application tier                                                                     #                                                                                       #
+#                                                                                       #
+#########################################################################################
+# sid is a mandatory field that defines the SAP Application SID
+sid="X02"
+
+app_tier_vm_sizing="Production"
+
+
+# app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
+app_tier_use_DHCP=true
+# Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
+#app_tier_authentication_type="key"
+
+# enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
+#enable_app_tier_deployment=true
+
+# app_tier_dual_nics is a boolean flag controlling if the application tier servers should have two network cards
+#app_tier_dual_nics=false
+
+#If you want to customise the disk sizes for application tier use the following parameter.
+#app_disk_sizes_filename="custom-sizing.json"
+
+# use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
+#use_loadbalancers_for_standalone_deployments=false
+
+# Application Servers
+
+# application_server_count defines how many application servers to deploy
+application_server_count=1
+
+# application_server_zones is an optional list defining the availability zones to which deploy the application servers
+#application_server_zones=["1","2","3"]
+
+# application_server_app_nic_ips, if provided provides the static IP addresses 
+# for the network interface cars connected to the application subnet
+#application_server_app_nic_ips=[]
+
+# application_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# for the network interface cars connected to the admin subnet
+#application_server_app_admin_nic_ips=[]
+
+# application_server_sku, if defined provides the SKU to use for the application servers
+#application_server_sku="Standard_D4s_v3"
+
+# application_server_tags, if defined provides the tags to be associated to the application servers
+#application_server_tags={},
+
+# The vm_image defines the Virtual machine image to use for the application servers, 
+# if source_image_id is specified the deployment will use the custom image provided, 
+# in this case os_type must also be specified
+application_server_image= {
+  os_type=""
+  source_image_id=""
+  publisher="SUSE"
+  offer="sles-sap-12-sp5"
+  sku="gen2"
+}
+
+# SCS Servers
+
+# scs_server_count defines how many SCS servers to deploy
+scs_server_count=1
+
+# scs_high_availability is a boolean flag controlling if SCS should be highly available
+scs_high_availability=false
+
+# scs_instance_number
+scs_instance_number="00"
+
+# ers_instance_number
+ers_instance_number="02"
+
+# scs_server_app_nic_ips, if provided provides the static IP addresses 
+# for the network interface cars connected to the application subnet
+#scs_server_app_nic_ips=[]
+
+# scs_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# for the network interface cars connected to the application subnet
+#scs_server_app_admin_nic_ips=[]
+
+# scs_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
+# for the network interface cars connected to the application subnet
+#scs_server_loadbalancer_ips=[]
+
+# scs_server_sku, if defined provides the SKU to use for the SCS servers
+#scs_server_sku="Standard_D4s_v3"
+
+# scs_server_tags, if defined provides the tags to be associated to the application servers
+#scs_server_tags={},
+
+# scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
+#scs_server_zones=["1","2","3"]
+
+# The vm_image defines the Virtual machine image to use for the application servers, 
+# if source_image_id is specified the deployment will use the custom image provided, 
+# in this case os_type must also be specified
+#scs_server_image= {
+# os_type=""
+# source_image_id=""
+# publisher="SUSE"
+# offer="sles-sap-12-sp5"
+# sku="gen2"
+#}
+
+# Web Dispatchers
+
+# webdispatcher_server_count defines how many web dispatchers to deploy
+webdispatcher_server_count=0
+
+# webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
+# for the network interface cars connected to the application subnet
+#webdispatcher_server_app_nic_ips=[]
+
+# webdispatcher_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# for the network interface cars connected to the application subnet
+#webdispatcher_server_app_admin_nic_ips=[]
+
+# webdispatcher_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
+# for the network interface cars connected to the application subnet
+#webdispatcher_server_loadbalancer_ips=[]
+
+# webdispatcher_server_sku, if defined provides the SKU to use for the web dispatchers
+#webdispatcher_server_sku="Standard_D4s_v3"
+
+# webdispatcher_server_tags, if defined provides the tags to be associated to the web dispatchers
+#webdispatcher_server_tags={},
+
+# webdispatcher_server_zones is an optional list defining the availability zones to which deploy the web dispatchers
+#webdispatcher_server_zones=["1","2","3"]
+
+# The vm_image defines the Virtual machine image to use for the web dispatchers, 
+# if source_image_id is specified the deployment will use the custom image provided, 
+# in this case os_type must also be specified
+#webdispatcher_server_image= {
+# os_type=""
+# source_image_id=""
+# publisher="SUSE"
+# offer="sles-sap-12-sp5"
+# sku="gen2"
+#}
+
+#########################################################################################
+#                                                                                       #
+#  Credentials                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# The automation_username defines the user account used by the automation
+#automation_username="azureadm"
+
+# The automation_password is an optional parameter that can be used to provide a password for the automation user
+# If empty Terraform will create a password and persist it in keyvault
+#automation_password=""
+
+# The automation_path_to_public_key is an optional parameter that can be used to provide a path to an existing ssh public key file
+# If empty Terraform will create the ssh key and persist it in keyvault
+#automation_path_to_public_key=""
+
+# The automation_path_to_private_key is an optional parameter that can be used to provide a path to an existing ssh private key file
+# If empty Terraform will create the ssh key and persist it in keyvault
+#automation_path_to_private_key=""
+
+# resource_offset can be used to provide an offset for resource naming
+# server#, disk# 
+resource_offset=1
+
+# vm_disk_encryption_set_id if defined defines the custom encryption key 
+#vm_disk_encryption_set_id=""
+
+# nsg_asg_with_vnet if set controls where the Application Security Groups are created
+#nsg_asg_with_vnet=false
 
 #########################################################################################
 #                                                                                       #
@@ -60,7 +298,7 @@ location="northeurope"
 # for the brownfield scenario the Azure resource identifier for the subnet must be specified
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-network_name="SAP02"
+network_logical_name="SAP02"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix
@@ -129,271 +367,6 @@ network_name="SAP02"
 # web_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 #web_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/DEV-WEEU-SAP01_webSubnet-nsg"
 
-#########################################################################################
-#                                                                                       #
-#  Database tier                                                                        #                                                                                       #
-#                                                                                       #
-#########################################################################################
-
-# The vm_image defines the Virtual machine image to use, 
-# if source_image_id is specified the deployment will use the custom image provided, 
-# in this case os_type must also be specified
-
-# Sample Images for different database backends
-
-# Oracle
-#database_vm_image={
-#  source_image_id=""
-#  publisher="Oracle"
-#  offer= "Oracle-Linux",
-#  sku= "81-gen2",
-#  version="latest"
-#}
-
-#SUSE 12 SP5
-database_vm_image={
-  os_type=""
-  source_image_id=""
-  publisher="SUSE"
-  offer="sles-sap-12-sp5"
-  sku="gen1"
-  version="latest"
-}
-
-#RedHat
-# database_vm_image={
-#   os_type="linux"
-#   source_image_id=""
-#   publisher="RedHat"
-#   offer="RHEL-SAP-HA"
-#   sku="82sapha-gen2"
-#   version="8.2.2021040902"
-# }
-
-# database_platform defines the database backend, supported values are
-# - HANA
-# - DB2
-# - ORACLE
-# - ASE
-# - SQLSERVER
-# - NONE (in this case no database tier is deployed)
-database_platform="HANA"
-
-# database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
-#database_high_availability=false
-
-# If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
-# For M series VMs use the SKU name for instance "M32ts"
-database_size="S4Demo"
-
-#If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
-#db_disk_sizes_filename="custom-sizing.json"
-
-# database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-database_vm_use_DHCP=true
-
-# database_vm_zones is an optional list defining the availability zones to deploy the database servers
-#database_vm_zones=["1"]
-
-# database_nodes provides a way to specify more than one database node, i.e. a scaleout scenario
-
-#database_nodes=[
-# {
-# name=  "hdb1"
-# admin_nic_ips= ["",""]
-# db_nic_ips= ["",""]
-# storage_nic_ips= ["",""]
-# },
-# {
-# name="hdb2"
-# admin_nic_ips= ["",""]
-# db_nic_ips= ["",""]
-# storage_nic_ips= ["",""]
-# }
-# ]
-
-# Optional, Defines the default authentication model for the Database VMs (key/password)
-#database_vm_authentication_type="key"
-
-# Optional, Defines the list of availability sets to deployt the Database VMs in
-#database_vm_avsest_arm_ids=[/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-X00/providers/Microsoft.Compute/availabilitySets/DEV-WEEU-X00_db_avset"
-
-#########################################################################################
-#                                                                                       #
-#  Database tier                                                                        #                                                                                       #
-#                                                                                       #
-#########################################################################################
-# sid is a mandatory field that defines the SAP Application SID
-sid="X02"
-
-app_tier_vm_sizing="Production"
-
-
-# app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-app_tier_use_DHCP=true
-# Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
-#app_tier_authentication_type="key"
-
-# enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
-#enable_app_tier_deployment=true
-
-# app_tier_dual_nics is a boolean flag controlling if the application tier servers should have two network cards
-#app_tier_dual_nics=false
-
-#If you want to customise the disk sizes for application tier use the following parameter.
-#app_disk_sizes_filename="custom-sizing.json"
-
-# use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
-#use_loadbalancers_for_standalone_deployments=false
-
-# Application Servers
-
-# application_server_count defines how many application servers to deploy
-application_server_count=2
-
-# application_server_zones is an optional list defining the availability zones to which deploy the application servers
-#application_server_zones=["1","2","3"]
-
-# application_server_app_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#application_server_app_nic_ips=[]
-
-# application_server_app_admin_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the admin subnet
-#application_server_app_admin_nic_ips=[]
-
-# application_server_sku, if defined provides the SKU to use for the application servers
-#application_server_sku="Standard_D4s_v3"
-
-# application_server_tags, if defined provides the tags to be associated to the application servers
-#application_server_tags={},
-
-# The vm_image defines the Virtual machine image to use for the application servers, 
-# if source_image_id is specified the deployment will use the custom image provided, 
-# in this case os_type must also be specified
-application_server_image= {
-  os_type=""
-  source_image_id=""
-  publisher="SUSE"
-  offer="sles-sap-12-sp5"
-  sku="gen1"
-}
-
-# SCS Servers
-
-# scs_server_count defines how many SCS servers to deploy
-scs_server_count=1
-
-# scs_high_availability is a boolean flag controlling if SCS should be highly available
-scs_high_availability=false
-
-# scs_instance_number
-scs_instance_number="00"
-
-# ers_instance_number
-ers_instance_number="02"
-
-# scs_server_app_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#scs_server_app_nic_ips=[]
-
-# scs_server_app_admin_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#scs_server_app_admin_nic_ips=[]
-
-# scs_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
-# for the network interface cars connected to the application subnet
-#scs_server_loadbalancer_ips=[]
-
-# scs_server_sku, if defined provides the SKU to use for the SCS servers
-#scs_server_sku="Standard_D4s_v3"
-
-# scs_server_tags, if defined provides the tags to be associated to the application servers
-#scs_server_tags={},
-
-# scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-#scs_server_zones=["1","2","3"]
-
-# The vm_image defines the Virtual machine image to use for the application servers, 
-# if source_image_id is specified the deployment will use the custom image provided, 
-# in this case os_type must also be specified
-#scs_server_image= {
-# os_type=""
-# source_image_id=""
-# publisher="SUSE"
-# offer="sles-sap-12-sp5"
-# sku="gen1"
-#}
-
-# Web Dispatchers
-
-# webdispatcher_server_count defines how many web dispatchers to deploy
-webdispatcher_server_count=0
-
-# webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#webdispatcher_server_app_nic_ips=[]
-
-# webdispatcher_server_app_admin_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#webdispatcher_server_app_admin_nic_ips=[]
-
-# webdispatcher_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
-# for the network interface cars connected to the application subnet
-#webdispatcher_server_loadbalancer_ips=[]
-
-# webdispatcher_server_sku, if defined provides the SKU to use for the web dispatchers
-#webdispatcher_server_sku="Standard_D4s_v3"
-
-# webdispatcher_server_tags, if defined provides the tags to be associated to the web dispatchers
-#webdispatcher_server_tags={},
-
-# webdispatcher_server_zones is an optional list defining the availability zones to which deploy the web dispatchers
-#webdispatcher_server_zones=["1","2","3"]
-
-# The vm_image defines the Virtual machine image to use for the web dispatchers, 
-# if source_image_id is specified the deployment will use the custom image provided, 
-# in this case os_type must also be specified
-#webdispatcher_server_image= {
-# os_type=""
-# source_image_id=""
-# publisher="SUSE"
-# offer="sles-sap-12-sp5"
-# sku="gen1"
-#}
-
-#########################################################################################
-#                                                                                       #
-#  Credentials                                                                          #
-#                                                                                       #
-#########################################################################################
-
-# The automation_username defines the user account used by the automation
-#automation_username="azureadm"
-
-# The automation_password is an optional parameter that can be used to provide a password for the automation user
-# If empty Terraform will create a password and persist it in keyvault
-#automation_password=""
-
-# The automation_path_to_public_key is an optional parameter that can be used to provide a path to an existing ssh public key file
-# If empty Terraform will create the ssh key and persist it in keyvault
-#automation_path_to_public_key=""
-
-# The automation_path_to_private_key is an optional parameter that can be used to provide a path to an existing ssh private key file
-# If empty Terraform will create the ssh key and persist it in keyvault
-#automation_path_to_private_key=""
-
-# resource_offset can be used to provide an offset for resource naming
-# server#, disk# 
-resource_offset=1
-
-# vm_disk_encryption_set_id if defined defines the custom encryption key 
-#vm_disk_encryption_set_id=""
-
-# nsg_asg_with_vnet if set controls where the Application Security Groups are created
-#nsg_asg_with_vnet=false
-
-
 
 #########################################################################################
 #                                                                                       #
@@ -427,7 +400,7 @@ resource_offset=1
 #source_image_id=""
 #publisher="SUSE"
 #offer="sles-sap-12-sp5"
-#sku="gen1"
+#sku="gen2"
 #version="latest"
 #}
 
@@ -436,7 +409,21 @@ resource_offset=1
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 #anchor_vm_use_DHCP=true
 
-bom_base="S41909SPS03_v0006ms"
 
-# This is an optional parameter providing the SAP BOM Name
-bom_name="S41909SPS03_v0006ms"
+
+
+#########################################################################################
+#                                                                                       #
+#  Terraform deploy parameters                                                          #
+#                                                                                       #
+#########################################################################################
+
+# - tfstate_resource_id is the Azure resource identifier for the Storage account in the SAP Library
+#   that will contain the Terraform state files
+# - deployer_tfstate_key is the state file name for the deployer
+# - landscape_tfstate_key is the state file name for the workload deployment
+# These are required parameters, if using the deployment scripts they will be auto populated otherwise they need to be entered
+
+#tfstate_resource_id   = null
+#deployer_tfstate_key  = null
+#landscape_tfstate_key = null

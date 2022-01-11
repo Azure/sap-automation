@@ -108,6 +108,21 @@ variable "resource_offset" {
   default = 0
 }
 
+variable "database_high_availability" {
+ type = bool
+ default = false
+}
+
+variable "scs_high_availability" {
+ type = bool
+ default = false
+}
+
+variable "use_zonal_markers" {
+ type = bool
+ default = true
+}
+
 //Todo: Add to documentation
 variable "sapautomation_name_limits" {
   description = "Name length for automation resources"
@@ -184,6 +199,7 @@ variable "region_mapping" {
     "southcentralus"     = "scus"
     "southeastasia"      = "soea"
     "southindia"         = "soin"
+    "swedencentral"      = "sece"
     "switzerlandnorth"   = "swno"
     "switzerlandwest"    = "swwe"
     "uaecentral"         = "uace"

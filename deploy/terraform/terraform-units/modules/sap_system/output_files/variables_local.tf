@@ -174,6 +174,10 @@ variable "install_path" {
   default = ""
 }
 
+variable "NFS_provider" {
+  type    = string
+}
+
 locals {
 
   tfstate_resource_id          = try(var.tfstate_resource_id, "")
@@ -209,6 +213,11 @@ locals {
   secret_prefix = var.use_local_credentials ? var.naming.prefix.SDU : var.naming.prefix.VNET
   dns_label     = try(var.landscape_tfstate.dns_label, "")
 
+  app_server_count = length(var.nics_app)
+  scs_server_count = length(var.nics_scs)
 
+  app_tier = (local.app_server_count + local.scs_server_count) > 0
 
+  db_supported_tiers  = local.app_tier ? lower(var.platform) : format("%s, scs, pas",lower(var.platform))
+  scs_supported_tiers = local.app_server_count > 0 ? "scs" : "scs, pas"
 }

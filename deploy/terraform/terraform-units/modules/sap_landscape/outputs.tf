@@ -1,9 +1,5 @@
-output "resource_group" {
-  value = local.rg_exists ? data.azurerm_resource_group.resource_group : azurerm_resource_group.resource_group
-}
-
-output "vnet_sap" {
-  value = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap : azurerm_virtual_network.vnet_sap
+output "vnet_sap_id" {
+  value = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
 }
 
 output "random_id" {
@@ -21,7 +17,7 @@ output "kv_user" {
   value = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
-  # TODO Add this back when we separate the usage
+# TODO Add this back when we separate the usage
 # output "kv_prvt" {
 #   value = local.prvt_kv_exist ? data.azurerm_key_vault.kv_prvt[0].id : azurerm_key_vault.kv_prvt[0].id
 # }
@@ -125,8 +121,8 @@ output "web_subnet_id" {
 
 
 output "anf_subnet_id" {
-  value = local.sub_anf_defined ? (
-    local.sub_anf_existing ? local.sub_anf_arm_id : azurerm_subnet.anf[0].id) : (
+  value = var.NFS_provider == "ANF" && local.sub_ANF_defined ? (
+    local.sub_ANF_existing ? local.sub_ANF_arm_id : azurerm_subnet.anf[0].id) : (
     ""
   )
 }
@@ -170,8 +166,8 @@ output "ANF_pool_settings" {
     pool_name     = azurerm_netapp_pool.workload_netapp_pool[0].name
     service_level = azurerm_netapp_pool.workload_netapp_pool[0].service_level
     size_in_tb    = azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
-    subnet_id = local.sub_anf_defined ? (
-      local.sub_anf_existing ? local.sub_anf_arm_id : azurerm_subnet.anf[0].id) : (
+    subnet_id = local.sub_ANF_defined ? (
+      local.sub_ANF_existing ? local.sub_ANF_arm_id : azurerm_subnet.anf[0].id) : (
       ""
     )
     resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
@@ -182,5 +178,27 @@ output "ANF_pool_settings" {
 }
 
 output "subnet_mgmt_id" {
-  value = try(var.deployer_tfstate.subnet_mgmt.id, "")
+  value = local.deployer_subnet_mgmt_id
+}
+
+output "transport_storage_account_id" {
+  value = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_transport_storage_account_id) > 0 ? (
+      var.azure_files_transport_storage_account_id) : (
+      azurerm_storage_account.transport[0].id
+    )) : (
+    ""
+  )
+}
+
+output "saptransport_path" {
+  value = var.NFS_provider == "AFS" ? (
+    format("%s:/%s/%s", split("/", replace(azurerm_storage_share.transport[0].url, "https://", ""))[0], azurerm_storage_account.transport[0].name, azurerm_storage_share.transport[0].name)
+    ) : (
+    var.NFS_provider == "ANF" ? (
+      format("%s:/%s", azurerm_netapp_volume.transport[0].mount_ip_addresses[0], azurerm_netapp_volume.transport[0].volume_path)
+      ) : (
+      ""
+    )
+  )
 }

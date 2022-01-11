@@ -425,10 +425,13 @@ if [ 2 == $step ]; then
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
+<<<<<<< HEAD
 
     terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
     export TF_VAR_cmdb_connection_string=$(terraform -chdir="${terraform_module_directory}" output cmdb_connection_string | tr -d \")
     
+=======
+>>>>>>> 11e3927193f5a26f2ff6a8fec5c51e9dc67d8801
     return_code=$?
     if [ 0 != $return_code ]; then
         exit $return_code

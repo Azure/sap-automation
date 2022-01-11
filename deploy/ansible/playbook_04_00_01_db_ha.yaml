@@ -17,7 +17,8 @@
         - name:                        Create Progress folder
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress"
-            state:                      directory
+            state:                     directory
+            mode:                      0755
 
         - name:                        Remove db-ha-done flag
           ansible.builtin.file:
@@ -43,12 +44,6 @@
 
       when:                            db_high_availability
 
-
-
-
-# Steps:
-#   01) Hana DB system replication
-#
 
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
@@ -89,7 +84,7 @@
                 name:                  roles-db/4.0.1-hdb-hsr
           tags:
             - 4.0.1-hdb-hsr
-      when:                            
+      when:
         - db_high_availability
         - node_tier == 'hana'
 

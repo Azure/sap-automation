@@ -206,6 +206,12 @@ locals {
   enable_auth_password = try(var.databases[0].authentication.type, "key") == "password"
   enable_auth_key      = try(var.databases[0].authentication.type, "key") == "key"
 
+  authentication = {
+    "type"     = local.sid_auth_type
+    "username" = var.sid_username
+    "password" = var.sid_password
+  }
+  
   enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1)
 
 

@@ -43,11 +43,11 @@ services:
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'enabled'   }
 
   sles_sap12:
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'restarted' }
+    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'started' }
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
 
   sles_sap15:
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'restarted' }
+    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'started' }
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
 
   oraclelinux8:

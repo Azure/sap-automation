@@ -479,5 +479,3 @@ use_loadbalancers_for_standalone_deployments=false
 #anchor_vm_nic_ips=["","",""]
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 #anchor_vm_use_DHCP=true
-
-bom_base="S41909SPS03_v0006ms"

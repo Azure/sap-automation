@@ -96,7 +96,7 @@ locals {
 
   sub_mgmt_prefix = local.sub_mgmt_exists ? "" : try(local.sub_mgmt.prefix, "")
 
-  sub_mgmt_deployed = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0] : azurerm_subnet.subnet_mgmt[0]
+  sub_mgmt_deployed_prefixes = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
 
   // Management NSG
   sub_mgmt_nsg        = try(local.sub_mgmt.nsg, {})

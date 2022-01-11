@@ -10,8 +10,9 @@ output "naming" {
       DEPLOYER = local.deployer_storageaccount_name
       SDU      = local.sdu_storageaccount_name
       VNET = {
-        landscape_storageaccount_name = local.landscape_storageaccount_name
-        witness_storageaccount_name   = local.witness_storageaccount_name
+        landscape_storageaccount_name        = local.landscape_storageaccount_name
+        witness_storageaccount_name          = local.witness_storageaccount_name
+        landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
       }
 
       LIBRARY = {
@@ -44,13 +45,13 @@ output "naming" {
       ANCHOR_COMPUTERNAME      = local.anchor_computer_names
       ANCHOR_SECONDARY_DNSNAME = local.anchor_secondary_dnsnames
       ANCHOR_VMNAME            = local.anchor_vm_names
-      ANYDB_COMPUTERNAME       = concat(local.anydb_computer_names, local.anydb_computer_names_ha)
+      ANYDB_COMPUTERNAME       = var.database_high_availability ? concat(local.anydb_computer_names, local.anydb_computer_names_ha) : local.anydb_computer_names
       ANYDB_SECONDARY_DNSNAME  = concat(local.anydb_secondary_dnsnames, local.anydb_secondary_dnsnames_ha)
-      ANYDB_VMNAME             = concat(local.anydb_vm_names, local.anydb_vm_names_ha)
+      ANYDB_VMNAME             = var.database_high_availability ? concat(local.anydb_vm_names, local.anydb_vm_names_ha) : local.anydb_vm_names
       DEPLOYER                 = local.deployer_vm_names
-      HANA_COMPUTERNAME        = concat(local.hana_computer_names, local.hana_computer_names_ha)
-      HANA_SECONDARY_DNSNAME   = concat(local.hana_secondary_dnsnames, local.hana_secondary_dnsnames_ha)
-      HANA_VMNAME              = concat(local.hana_server_vm_names, local.hana_server_vm_names_ha)
+      HANA_COMPUTERNAME        = var.database_high_availability ? concat(local.hana_computer_names, local.hana_computer_names_ha) : local.hana_computer_names
+      HANA_SECONDARY_DNSNAME   = var.database_high_availability ? concat(local.hana_secondary_dnsnames, local.hana_secondary_dnsnames_ha) : local.hana_secondary_dnsnames
+      HANA_VMNAME              = var.database_high_availability ? concat(local.hana_server_vm_names, local.hana_server_vm_names_ha) : local.hana_server_vm_names
       ISCSI_COMPUTERNAME       = local.iscsi_server_names
       OBSERVER_COMPUTERNAME    = local.observer_computer_names
       OBSERVER_VMNAME          = local.observer_vm_names
@@ -63,7 +64,7 @@ output "naming" {
     }
 
     ppg_names = local.ppg_names
-    
+
     app_avset_names = local.app_avset_names
     scs_avset_names = local.scs_avset_names
     web_avset_names = local.web_avset_names

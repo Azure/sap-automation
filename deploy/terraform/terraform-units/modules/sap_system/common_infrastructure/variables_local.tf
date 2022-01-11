@@ -60,16 +60,18 @@ variable "enable_purge_control_for_keyvaults" {
   description = "Allow the deployment to control the purge protection"
 }
 
-variable "anf_transport_volume_size" {
-  description = "The volume size in GB for shared"
-}
-
-variable "anf_sapmnt_volume_size" {
+variable "sapmnt_volume_size" {
   description = "The volume size in GB for sapmnt"
 }
 
-variable "use_ANF" {
-  default = false
+variable "NFS_provider" {
+  type    = string
+  default = "AFS"
+}
+
+variable "azure_files_storage_account_id" {
+  type    = string
+  default = ""
 }
 
 locals {
@@ -350,7 +352,7 @@ locals {
 
   sid_auth_password = coalesce(
     try(var.authentication.password, ""),
-    try(data.azurerm_key_vault_secret.sid_password[0].value, local.use_local_credentials ? random_password.password[0].result : "")
+    try(data.azurerm_key_vault_secret.sid_password[0].value, random_password.password[0].result)
   )
 
   sid_public_key = local.use_local_credentials ? (
@@ -367,10 +369,10 @@ locals {
   // Current service principal
   service_principal = try(var.service_principal, {})
 
-  ANF_pool_settings = var.use_ANF ? (
-    try(var.landscape_tfstate.ANF_pool_settings, { use_ANF = false })
+  ANF_pool_settings = var.NFS_provider == "ANF" ? (
+    try(var.landscape_tfstate.ANF_pool_settings, null)
     ) : (
-    { use_ANF = false }
+    null
   )
 
 }
