@@ -212,3 +212,16 @@ variable "use_private_endpoint" {
 variable "tf_version" {
   default = "1.0.8"
 }
+
+variable "app_registration_app_id" {
+  default = ""
+}
+
+variable "random_int" {
+  default = 0
+}
+
+variable "cmdb_connection_string" {
+  type = string
+  default = ""
+}

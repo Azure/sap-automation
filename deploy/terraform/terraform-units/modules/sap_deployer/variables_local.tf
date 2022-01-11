@@ -60,7 +60,8 @@ locals {
       format("%s%s", local.prefix, local.resource_suffixes.deployer_rg)
     )
   )
-
+  rg_appservice_location = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  
   // Post fix for all deployed resources
   postfix = random_id.deployer.hex
 

@@ -54,3 +54,8 @@ output "tfstate_resource_id" {
 output "automation_version" {
   value = local.version_label
 }
+
+output "cmdb_connection_string" {
+  sensitive = true
+  value = module.sap_library.cmdb_connection_string
+}

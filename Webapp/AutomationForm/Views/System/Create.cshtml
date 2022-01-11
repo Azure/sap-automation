@@ -1,0 +1,152 @@
+﻿@model AutomationForm.Models.SystemViewModel;
+@using AutomationForm.Models
+@{
+    ViewData["Title"] = "Automation Form";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        var retainedValues = {
+            workloadzone: '@Model.System.workload_zone',
+            environment: '@Model.System.environment',
+            location: '@Model.System.location',
+            rg: '@Model.System.resource_group_arm_id'
+        }
+        setModelData(retainedValues);
+        initializeDropdowns();
+        initializeWorkloadZones();
+    });
+
+    window.onload = function () {
+        $('[data-toggle="tooltip"]').tooltip();
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+        $(".js-example-placeholder-multiple").select2({
+            placeholder: "Add items...",
+            tags: true
+        });
+        var PivotElements = document.querySelectorAll(".ms-Pivot");
+        for (var i = 0; i < PivotElements.length; i++) {
+          new fabric['Pivot'](PivotElements[i]);
+        }
+        $("#Basic-pivot").addClass("is-selected");
+    }
+
+</script>
+
+<div>
+    <h2 style="text-align: center">System Parameters </h2>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+            <div class="notificationInner">
+                <span class="notificationText">
+                    @Html.ValidationSummary(false)
+                </span>
+            </div>
+        </div>
+    }
+
+
+    <form class="wrapper" asp-controller="system" asp-action="create">
+        @Html.AntiForgeryToken()
+
+        <div class="ms-Pivot ms-Pivot--large">
+
+            <ul class="ms-Pivot-links" style="text-align: center">
+                @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
+                {
+                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="1">
+                        @pg.Tab
+                    </li>
+                }
+            </ul>
+
+            @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
+            {
+                <div class="ms-Pivot-content" data-content="@pg.Tab">
+                    <fieldset id="@pg.Tab">
+
+                        @foreach (Grouping g in pg.Groupings)
+                        {
+                            <h2 class="ms-fontSize-20 grouping"> @g.Section</h2>
+                            <div class="parameters">
+
+                                @foreach (ParameterModel p in g.Parameters)
+                                {
+                                    var required = (@p.Required) ? "required" : "";
+
+                                    <div class="ms-TextField">
+                                        @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
+                                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true" data-toggle="tooltip" title="@p.Description"></i>
+
+                                        @if (@p.Type == "field")
+                                        {
+                                            @Html.TextBox(p.Name, "", new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                        }
+                                        else if (@p.Type == "lookup")
+                                        {
+                                            @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                        }
+                                        else if (@p.Type == "list")
+                                        {
+                                            @Html.ListBox(p.Name, p.Options, new { @class = "js-example-placeholder-multiple", @style = "width: 100%;", @multiple = "multiple" })
+                                        }
+                                        else if (@p.Type == "image")
+                                        {
+                                            <div class="image-container">
+                                                <span>
+                                                    @Html.Label("os_type", "os_type", new { @class = $"ms-Label image-label" })
+                                                    @Html.TextBox(p.Name + ".os_type", "", new { @class = "ms-TextField-field image-input" })
+                                                </span>
+
+                                                <span>
+                                                    @Html.Label("source_image_id", "source_image_id", new { @class = $"ms-Label image-label" })
+                                                    @Html.TextBox(p.Name + ".source_image_id", "", new { @class = "ms-TextField-field image-input" })
+                                                </span>
+
+                                                <span>
+                                                    @Html.Label("publisher", "publisher", new { @class = $"ms-Label image-label" })
+                                                    @Html.TextBox(p.Name + ".publisher", "", new { @class = "ms-TextField-field image-input" })
+                                                </span>
+
+                                                <span>
+                                                    @Html.Label("offer", "offer", new { @class = $"ms-Label image-label" })
+                                                    @Html.TextBox(p.Name + ".offer", "", new { @class = "ms-TextField-field image-input" })
+                                                </span>
+
+                                                <span>
+                                                    @Html.Label("sku", "sku", new { @class = $"ms-Label image-label" })
+                                                    @Html.TextBox(p.Name + ".sku", "", new { @class = "ms-TextField-field image-input" })
+                                                </span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p>Invalid parameter</p>
+                                        }
+
+                                        @Html.ValidationMessage(p.Name)
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </fieldset>
+                </div>
+            }
+        </div>
+
+        <fluent-button appearance="accent" style="margin-top: 15px" type="submit">
+            Submit
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "System")">
+            Cancel
+        </fluent-anchor>
+    </form>
+</div>

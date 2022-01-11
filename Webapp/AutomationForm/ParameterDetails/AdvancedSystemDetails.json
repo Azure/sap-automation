@@ -1,0 +1,47 @@
+{
+  "Tab": "Advanced",
+  "Groupings": [
+    {
+      "Section": "Existing Subnets",
+      "Parameters": [
+        {
+          "Name": "admin_subnet_address_prefix",
+          "Required": true,
+          "Description": "Mandatory if the subnets are not defined in the workload, or if existing subnets are not used",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "db_subnet_address_prefix",
+          "Required": true,
+          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "app_subnet_address_prefix",
+          "Required": true,
+          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Credentials",
+      "Parameters": [
+        {
+          "Name": "automation_username",
+          "Required": false,
+          "Description": "Defines the user account used by the automation",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    }
+  ]
+}

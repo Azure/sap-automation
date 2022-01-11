@@ -1,0 +1,40 @@
+# This pipeline publishes and deploys the control plane UI
+
+trigger:
+- none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - group: "sap-deployment-variables-keyvault"
+  - name: solution
+    value: '**/*.sln'
+  - name: buildPlatform
+    value: Any CPU
+  - name: buildConfiguration
+    value: Release
+  - name: webappName
+    value: wshe-test-webapp
+
+steps:
+- script: dotnet build --configuration $(buildConfiguration)
+  displayName: 'dotnet build $(buildConfiguration)'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'SAP on Azure(64d4c625-dc09-4748-b65a-677a6836b66c)'
+    appType: 'webAppLinux'
+    appName: $(webappName)
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    appSettings: '-AZURE_CLIENT_ID c3ac9ca7-db1d-482b-9754-83aa6d70aeda 
+    -AZURE_CLIENT_SECRET YL4RDR_SWKomkttKOkueypd-r19ODABTkQ 
+    -AZURE_TENANT_ID 72f988bf-86f1-41af-91ab-2d7cd011db47 
+    -CollectionUri $(System.CollectionUri)
+    -Project $(System.TeamProject)
+    -RepositoryId $(Build.Repository.ID)
+    -PAT $(value-from-keyvault-variable-group)'

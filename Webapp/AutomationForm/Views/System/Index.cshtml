@@ -1,0 +1,83 @@
+﻿@model IEnumerable<AutomationForm.Models.SystemModel>
+
+@{
+    ViewBag.Title = "Existing Systems";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(3000).fadeOut();
+    }
+</script>
+
+<h2>Existing Systems</h2>
+
+<div class="notificationContainer" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Id)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.workload_zone)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.environment)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.location)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.resource_group_name)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var system in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => system.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => system.workload_zone)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => system.environment)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => system.location)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => system.resource_group_name)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=system.Id }) |
+                @Html.ActionLink("Details", "Details", new { id=system.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id=system.Id }) |
+                @Html.ActionLink("Deploy", "Deploy", new { id=system.Id })
+            </td>
+        </tr>
+    }
+
+</table>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", "System")">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create New
+    </fluent-anchor>
+</p>

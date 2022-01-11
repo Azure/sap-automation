@@ -1,0 +1,241 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+    color: #0366d6;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px; /* Vertically center the text there */
+}
+
+/*Form*/
+.wrapper {
+    padding: 5px 20px;
+}
+
+    .wrapper fieldset {
+        margin: 20px 0;
+    }
+
+.grouping {
+    color: #007bff;
+}
+
+.parameters {
+    width: 90%;
+    margin: 10px auto;
+    padding-bottom: 10px;
+}
+
+label.required:after {
+    content: " *";
+    color: red;
+}
+
+.ms-Icon--Info {
+    cursor: pointer;
+    padding: 0px 10px;
+}
+
+.ms-Label {
+    display: inline-block;
+}
+
+.ms-TextField-field {
+    height: 28px;
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 0px 20px 0px 8px;
+}
+
+.hidden {
+    display: none;
+}
+
+.notificationContainer {
+    font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    font-weight: 400;
+    color: rgb(50, 49, 48);
+    min-height: 32px;
+    width: 100%;
+    display: flex;
+    word-break: break-word;
+}
+
+.notificationInner {
+    min-width: 0px;
+    display: flex;
+    flex-grow: 1;
+    margin: 8px 12px 8px 8px;
+    font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.notificationText {
+    line-height: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: auto;
+}
+
+.select2-selection--multiple {
+    padding-left: 3px;
+}
+
+.select2-search textarea::placeholder {
+    color: #999 !important;
+    font-family: 'Segoe UI Web (West European)' !important;
+}
+
+.image-container span {
+    display: block;
+    width: 90%;
+    margin: auto;
+}
+
+.image-label {
+    margin-right: 10px;
+    font-weight: normal !important;
+}
+
+.image-input {
+    width: 85%;
+    margin: auto;
+    float: right;
+}
+
+
+/* Model validation errors */
+.field-validation-error {
+    color: #ff0000;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+.input-validation-error {
+    border: 1px solid #ff0000;
+    background-color: #ffeeee;
+}
+
+.validation-summary-errors {
+    font-weight: bold;
+}
+
+    .validation-summary-errors ul {
+        list-style-type: none;
+        margin: auto;
+    }
+
+.validation-summary-valid {
+    display: none;
+}
+
+.display-label,
+.editor-label {
+    margin: 1em 0 0 0;
+}
+
+.display-field,
+.editor-field {
+    margin: 0.5em 0 0 0;
+}
+
+.text-box {
+    width: 30em;
+}
+
+    .text-box.multi-line {
+        height: 6.5em;
+    }
+
+.tri-state {
+    width: 6em;
+}
+
+/* Tooltip */
+
+.tooltip-inner {
+    background-color: white;
+    color: rgb( 33, 32, 31);
+    font-weight: 400;
+    border-radius: 0 !important;
+    margin: 0px 4px;
+    opacity: 1;
+    box-shadow: 5px 4px 10px #808080;
+}
+
+.bs-tooltip-top .arrow::before {
+    border-top-color: white !important;
+}

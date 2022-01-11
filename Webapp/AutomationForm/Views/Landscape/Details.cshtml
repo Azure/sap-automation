@@ -1,0 +1,32 @@
+﻿@model AutomationForm.Models.LandscapeModel
+
+<h2>Workload Zone Details</h2>
+
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        @foreach (var prop in ViewData.ModelMetadata.Properties)
+        {
+            string value = Html.DisplayText(prop.PropertyName);
+
+            if (value.Length != 0)
+            {
+                <dt>
+                    @Html.DisplayName(prop.GetDisplayName())
+                </dt>
+
+                <dd>
+                    @value
+                </dd>
+            }
+        }
+    </dl>
+</div>
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "Landscape", new { id = Model.Id })">
+        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
+    </fluent-anchor>
+    <fluent-anchor href="@Url.Action("Index", "Landscape")">
+        Back to List
+    </fluent-anchor>
+</p>

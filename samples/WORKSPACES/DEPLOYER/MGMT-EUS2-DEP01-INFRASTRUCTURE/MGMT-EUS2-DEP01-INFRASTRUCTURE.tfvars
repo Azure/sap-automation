@@ -41,7 +41,7 @@ management_subnet_arm_id="<azure_resource_id>"
 #management_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/MGMT-WEEU-MGMT01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/MGMT-WEEU-SAP01_managementSubnet-nsg"
 
 # management_subnet_nsg_allowed_ips is an optional parameter that if provided specifies a list of allowed IP ranges for the NSG
-management_firewall_subnet_arm_id= ="<azure_resource_id>"
+management_firewall_subnet_arm_id="<azure_resource_id>"
 
 # management_firewall_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 #management_firewall_subnet_address_prefix="10.10.20.0/26"

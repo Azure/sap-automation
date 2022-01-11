@@ -1,0 +1,44 @@
+﻿@model AutomationForm.Models.LandscapeModel
+
+@{
+    ViewBag.Title = "Deploy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Deploy a Workload Zone</h2>
+
+<h4>Are you sure you want to deploy this?</h4>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+
+        @foreach (var prop in ViewData.ModelMetadata.Properties)
+        {
+            string value = Html.DisplayText(prop.PropertyName);
+
+            if (value.Length != 0)
+            {
+                <dt>
+                    @Html.DisplayName(prop.GetDisplayName())
+                </dt>
+
+                <dd>
+                    @value
+                </dd>
+            }
+        }
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <fluent-button appearance="accent" value="Deploy" type="submit">
+            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Deploy
+        </fluent-button>
+        <fluent-anchor href="@Url.Action("Index", "Landscape")">
+            Cancel
+        </fluent-anchor>
+
+    }
+</div>

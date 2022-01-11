@@ -1,0 +1,83 @@
+﻿@model IEnumerable<AutomationForm.Models.LandscapeModel>
+
+@{
+    ViewBag.Title = "Exisiting Workload Zones";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(3000).fadeOut();
+    }
+</script>
+
+<h2>Existing Workload Zones</h2>
+
+<div class="notificationContainer" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Id)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.environment)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.location)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.logical_network_name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.network_address_space)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var landscape in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => landscape.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => landscape.environment)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => landscape.location)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => landscape.logical_network_name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => landscape.network_address_space)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=landscape.Id }) |
+                @Html.ActionLink("Details", "Details", new { id=landscape.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id=landscape.Id }) |
+                @Html.ActionLink("Deploy", "Deploy", new { id=landscape.Id })
+            </td>
+        </tr>
+    }
+
+</table>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", "Landscape")">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create New
+    </fluent-anchor>
+</p>

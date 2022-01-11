@@ -1,0 +1,578 @@
+{
+  "Tab": "Expert",
+  "Groupings": [
+    {
+      "Section": "Terraform System Parameters",
+      "Parameters": [
+        {
+          "Name": "deployer_tfstate_key",
+          "Required": true,
+          "Description": "The state file name for the deployer",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "tfstate_resource_id",
+          "Required": true,
+          "Description": "Azure resource identifier for the Storage account in the SAP Library that will contain the Terraform state files",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Common Infrastructure",
+      "Parameters": [
+        {
+          "Name": "resource_group_arm_id",
+          "Required": false,
+          "Description": "Provide an existing resource group for the deployment",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "resource_group_name"
+        },
+        {
+          "Name": "resource_group_name",
+          "Required": false,
+          "Description": "Override the name of the resource group that will be provisioned",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "proximityplacementgroup_names",
+          "Required": false,
+          "Description": "A list of proximity placement groups to create",
+          "Type": "list",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "proximityplacementgroup_arm_ids",
+          "Required": false,
+          "Description": "A list of Azure resource identifiers specifying existing proximity placement groups",
+          "Type": "list",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Admin Subnet",
+      "Parameters": [
+        {
+          "Name": "admin_subnet_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing subnet to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "admin_subnet_address_prefix"
+        },
+        {
+          "Name": "admin_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Admin Subnet Network Security Group",
+      "Parameters": [
+        {
+          "Name": "admin_subnet_nsg_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing network security group to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "admin_subnet_nsg_name"
+        },
+        {
+          "Name": "admin_subnet_nsg_name",
+          "Required": false,
+          "Description": "Should only be used if the default admin network security group name is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Database Subnet",
+      "Parameters": [
+        {
+          "Name": "db_subnet_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing subnet to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "db_subnet_address_prefix"
+        },
+        {
+          "Name": "db_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Database Subnet Network Security Group",
+      "Parameters": [
+        {
+          "Name": "db_subnet_nsg_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing network security group to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "db_subnet_nsg_name"
+        },
+        {
+          "Name": "db_subnet_nsg_name",
+          "Required": false,
+          "Description": "Should only be used if the default database network security group name is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Application Subnet",
+      "Parameters": [
+        {
+          "Name": "app_subnet_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing subnet to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "app_subnet_address_prefix"
+        },
+        {
+          "Name": "app_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Application Subnet Network Security Group",
+      "Parameters": [
+        {
+          "Name": "app_subnet_nsg_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing network security group to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "app_subnet_nsg_name"
+        },
+        {
+          "Name": "app_subnet_nsg_name",
+          "Required": false,
+          "Description": "Should only be used if the default application network security group name is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Web Subnet",
+      "Parameters": [
+        {
+          "Name": "web_subnet_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing subnet to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "web_subnet_address_prefix"
+        },
+        {
+          "Name": "web_subnet_address_prefix",
+          "Required": true,
+          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "web_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Web Subnet Network Security Group",
+      "Parameters": [
+        {
+          "Name": "web_subnet_nsg_arm_id",
+          "Required": false,
+          "Description": "Specifies Azure resource identifier for the existing network security group to use",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": "web_subnet_nsg_name"
+        },
+        {
+          "Name": "web_subnet_nsg_name",
+          "Required": false,
+          "Description": "Should only be used if the default web network security group name is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Database Tier",
+      "Parameters": [
+        {
+          "Name": "database_platform",
+          "Required": false,
+          "Description": "The type of database backend",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "HANA",
+              "Value": "HANA"
+            },
+            {
+              "Text": "DB2",
+              "Value": "DB2"
+            },
+            {
+              "Text": "ORACLE",
+              "Value": "ORACLE"
+            },
+            {
+              "Text": "ASE",
+              "Value": "ASE"
+            },
+            {
+              "Text": "SQL SERVER",
+              "Value": "SQL SERVER"
+            },
+            {
+              "Text": "NONE",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_high_availability",
+          "Required": false,
+          "Description": "Defines if the database tier is deployed highly available",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_size",
+          "Required": false,
+          "Description": "Lookup value defining the VM SKU and the disk layout",
+          "Type": "field",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_sid",
+          "Required": false,
+          "Description": "Defines the database SID",
+          "Type": "field",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_instance_number",
+          "Required": false,
+          "Description": "Defines the database instance number",
+          "Type": "field",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "db_disk_sizes_filename",
+          "Required": false,
+          "Description": "Defines the custom disk size file",
+          "Type": "field",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_use_DHCP",
+          "Required": false,
+          "Description": "Controls if Azure subnet provided IP addresses should be used (dynamic)",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_image",
+          "Required": false,
+          "Description": "Defines the Virtual machine image to use",
+          "Type": "image",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_zones",
+          "Required": false,
+          "Description": "Defines the availability zones to which the database servers are deployed",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "1",
+              "Value": "1"
+            },
+            {
+              "Text": "2",
+              "Value": "2"
+            },
+            {
+              "Text": "3",
+              "Value": "3"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_authentication_type",
+          "Required": false,
+          "Description": "Defines the default authentication for the Database Virtual Machines",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "Key",
+              "Value": "key"
+            },
+            {
+              "Text": "Password",
+              "Value": "password"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_avset_arm_ids",
+          "Required": false,
+          "Description": "Defines a list of availability sets in which to place the database virtual machines",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_no_ppg",
+          "Required": false,
+          "Description": "Defines the that the database virtual machines will not be placed in a proximity placement group",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_no_avset",
+          "Required": false,
+          "Description": "Defines the that the database virtual machines will not be placed in an availability set",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_tags",
+          "Required": false,
+          "Description": "Defines a list of tags to be applied to the database server",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_HANA_use_ANF_scaleout_scenario",
+          "Required": false,
+          "Description": "Defines if ANF will be used for HANA scaleout scenarios",
+          "Type": "field",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "dual_nics",
+          "Required": false,
+          "Description": "Defines if the database server will have two network interfaces",
+          "Type": "field",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    }
+  ]
+}
