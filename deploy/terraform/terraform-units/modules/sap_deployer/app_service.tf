@@ -1,11 +1,11 @@
-data "azuread_application" "app_registration" {
-    application_id = var.app_registration_app_id
-}
+# data "azuread_application" "app_registration" {
+#     application_id = var.app_registration_app_id
+# }
 
-# For use with Azure AD
-resource "azuread_application_password" "clientsecret" {
-    application_object_id = data.azuread_application.app_registration.object_id
-}
+# # For use with Azure AD
+# resource "azuread_application_password" "clientsecret" {
+#     application_object_id = data.azuread_application.app_registration.object_id
+# }
 
 # Create the Linux App Service Plan
 resource "azurerm_app_service_plan" "appserviceplan" {
@@ -43,8 +43,8 @@ resource "azurerm_app_service" "webapp" {
         enabled = true
         issuer = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
         active_directory {
-            client_id = data.azuread_application.app_registration.application_id
-            client_secret = azuread_application_password.clientsecret.value
+            client_id = var.app_registration_app_id
+            client_secret = var.webapp_client_secret
         }
     }
 

@@ -21,3 +21,4 @@ variable "arm_client_id" {
 variable "app_registration_app_id" {}
 variable "random_int" {}
 variable "cmdb_connection_string" {}
+variable "webapp_client_secret" {}
