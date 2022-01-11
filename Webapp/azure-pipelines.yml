@@ -6,6 +6,11 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+parameters:
+  - name: webappName
+    displayName: Web App Name
+    type: string
+
 variables:
   - group: "sap-deployment-variables-keyvault"
   - name: solution
@@ -15,7 +20,7 @@ variables:
   - name: buildConfiguration
     value: Release
   - name: webappName
-    value: wshe-test-webapp
+    value: ${{ parameters.webappName }}
 
 steps:
 - script: dotnet build --configuration $(buildConfiguration)
@@ -31,10 +36,10 @@ steps:
     appType: 'webAppLinux'
     appName: $(webappName)
     package: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    appSettings: '-AZURE_CLIENT_ID c3ac9ca7-db1d-482b-9754-83aa6d70aeda 
-    -AZURE_CLIENT_SECRET YL4RDR_SWKomkttKOkueypd-r19ODABTkQ 
-    -AZURE_TENANT_ID 72f988bf-86f1-41af-91ab-2d7cd011db47 
+    appSettings: '-AZURE_CLIENT_ID $(ARM_CLIENT_ID) 
+    -AZURE_CLIENT_SECRET $(ARM_CLIENT_SECRET) 
+    -AZURE_TENANT_ID ($ARM_TENANT_ID)
     -CollectionUri $(System.CollectionUri)
     -Project $(System.TeamProject)
     -RepositoryId $(Build.Repository.ID)
-    -PAT $(value-from-keyvault-variable-group)'
+    -PAT $(PAT)'

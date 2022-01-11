@@ -23,6 +23,7 @@ module "sap_deployer" {
   app_registration_app_id            = var.app_registration_app_id
   random_int                         = var.random_int
   cmdb_connection_string             = var.cmdb_connection_string
+  webapp_client_secret               = var.webapp_client_secret
 }
 
 module "sap_namegenerator" {

@@ -228,3 +228,8 @@ variable "cmdb_connection_string" {
   type = string
   default = ""
 }
+
+variable "webapp_client_secret" {
+  type = string
+  default = ""
+}
