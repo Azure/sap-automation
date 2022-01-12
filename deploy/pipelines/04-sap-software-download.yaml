@@ -32,14 +32,19 @@ parameters:
 trigger: none
 
 pool:
-  name: $(agent)
+  name: $(Agent)
 
 variables:
-  bom: ${{ parameters.bom_base_name }}
-  env: ${{ parameters.environment }}
-  loc: ${{ parameters.region }}
+  - group: "SAP-deployment-variables-general"
+  - group: "SAP-deployment-variables-specific"
+  - name: bom
+    value: ${{ parameters.bom_base_name }}
+  - name: env
+    value:  ${{ parameters.environment }}
+  - name: loc
+    value:  ${{ parameters.region }}
 
-name: SAP Software download $(bom) $(env)_$(loc) [$(Date:yyyyMMdd)
+name: SAP Software download $(bom) $(env) $(loc) [$(Date:yyyyMMdd)
 
 stages:
   - stage: Prepare_download

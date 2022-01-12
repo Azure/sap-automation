@@ -98,6 +98,7 @@ stages:
                 git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform            &>> /tmp/$(log)
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
+                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.md                  &>> /tmp/$(log)
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
                 git push  origin HEAD:$(Branch)                                                            &>> /tmp/$(log)
                 cat /tmp/$(log)
@@ -138,6 +139,7 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 git pull  origin $(Branch)                                                                 &>  /tmp/$(log)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}        &>> /tmp/$(log)
+                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md     &>> /tmp/$(log)
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform              &>> /tmp/$(log)
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
                 git push  origin HEAD:$(Branch)                                                            &>> /tmp/$(log)
@@ -191,6 +193,7 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 git pull  origin $(Branch)                                                                 &>  /tmp/$(log)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}        &>> /tmp/$(log)
+                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md     &>> /tmp/$(log)
                 git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform           &>> /tmp/$(log)
                 git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform             &>> /tmp/$(log)
                 git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars  &>> /tmp/$(log)
