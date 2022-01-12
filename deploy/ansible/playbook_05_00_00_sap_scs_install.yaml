@@ -106,7 +106,8 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
           always:
-            - ansible.builtin.set_fact:
+            - name:                    Get the error lines
+              ansible.builtin.set_fact:
                 error_lines:           "{{ error_lines | default([]) + [item] }}"
               with_items:              "{{ scs_installation.stdout_lines }}"
               when:
