@@ -33,7 +33,7 @@
 - name:                                "DB2: Show lvexists"
   ansible.builtin.debug:
     var:                               lvexists
-#    verbosity:                         2
+    verbosity:                         2
 
 # Mount Filesystems
 - name:                                "DB2: Mount Filesystems for DB2"
@@ -46,7 +46,8 @@
                                         {%- elif ('offline' in lv_parts) and
                                             (lv_parts| length == 4 ) -%}
                                         {%- set _path = ['/' ~ lv_parts[-3],
-                                          db_sid | upper, lv_parts[-2:]] |
+                                          db_sid | upper,
+                                          lv_parts[-2:] | join('_') ] |
                                           join('/') -%}
                                         {%- else -%}
                                         {%- set _path = ['/' ~ lv_parts[-2],
