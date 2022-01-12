@@ -98,6 +98,7 @@ stages:
                 git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform            &>> /tmp/$(log)
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml   &>> /tmp/$(log)
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml          &>> /tmp/$(log)
+                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.md                  &>> /tmp/$(log)
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"     &>> /tmp/$(log)
                 git push  origin HEAD:$(Branch)                                                            &>> /tmp/$(log)
                 cat /tmp/$(log)
