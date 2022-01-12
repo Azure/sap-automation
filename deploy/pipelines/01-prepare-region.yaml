@@ -94,6 +94,18 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
+                if [ ! -n $(TF_VAR_random_int) ]; then
+                  echo "##vso[task.logissue type=error]Variable TF_VAR_random_int was not defined."
+                  exit 2
+                fi
+                if [ ! -n $(TF_VAR_app_registration_app_id) ]; then
+                  echo "##vso[task.logissue type=error]Variable TF_VAR_app_registration_app_id was not defined."
+                  exit 2
+                fi
+                if [ ! -n $(TF_VAR_webapp_client_secret) ]; then
+                  echo "##vso[task.logissue type=error]Variable TF_VAR_webapp_client_secret was not defined."
+                  exit 2
+                fi
 
               echo -e "$green--- az login ---$reset"
                 export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
@@ -110,6 +122,9 @@ stages:
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
+                az extension add --name azure-devops
+                az devops configure -d organization=$(System.CollectionUri)
+                az devops configure -d project=$(System.TeamProject)
 
               echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
                 organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
