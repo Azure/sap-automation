@@ -112,11 +112,12 @@ fi
 
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile_name"
+return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-if valid_region_name ${region} ; then
+if valid_region_name "${region}" ; then
     # Convert the region to the correct code
     get_region_code ${region}
 else

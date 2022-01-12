@@ -56,7 +56,7 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:               /sapmnt/{{ sap_sid|upper }}/profile
-        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+        sap_scs_hostname:              "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}{% endif %}"
         sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
@@ -90,6 +90,7 @@
         TMPDIR:                        /usr/sap/install
       register:                        dbload
       failed_when:                     dbload.rc > 0
+      no_log:                          true
       tags:
         - skip_ansible_lint
 

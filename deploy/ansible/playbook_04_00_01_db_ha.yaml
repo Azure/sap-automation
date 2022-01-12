@@ -84,6 +84,16 @@
                 name:                  roles-db/4.0.1-hdb-hsr
           tags:
             - 4.0.1-hdb-hsr
+
+        - block:
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_HA"
+          tags:
+            - 7.0.0-post-install
+
       when:
         - db_high_availability
         - node_tier == 'hana'
