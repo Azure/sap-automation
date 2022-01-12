@@ -1,5 +1,21 @@
-resource "azurerm_storage_account" "install" {
-  count                     = local.deploy_afs ? 1 : 0
+data "azurerm_storage_account" "shared" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_storage_account_id) > 0 ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+  name                = split("/", var.azure_files_storage_account_id)[8]
+  resource_group_name = split("/", var.azure_files_storage_account_id)[4]
+}
+
+
+resource "azurerm_storage_account" "shared" {
+  count = length(var.azure_files_storage_account_id) > 0 ? (
+    0) : (
+    1
+  )
   name                      = replace(lower(format("%s%s", local.prefix, local.resource_suffixes.install_volume)), "/[^a-z0-9]/", "")
   resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                  = var.infrastructure.region
@@ -17,10 +33,33 @@ resource "azurerm_storage_account" "install" {
 }
 
 resource "azurerm_storage_share" "install" {
-  count                = local.deploy_afs ? 1 : 0
+  count = length(var.azure_files_storage_account_id) > 0 ? (
+    0) : (
+    1
+  )
+  depends_on = [azurerm_storage_account.shared]
+
   name                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name = azurerm_storage_account.install[0].name
+  storage_account_name = azurerm_storage_account.shared[0].name
   enabled_protocol     = "NFS"
 
   quota = 128
 }
+
+resource "azurerm_storage_share" "sapmnt" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+  depends_on           = [azurerm_storage_account.shared]
+  name                 = format("%s", local.resource_suffixes.sapmnt)
+  storage_account_name = azurerm_storage_account.shared[0].name
+  enabled_protocol     = "NFS"
+
+  quota = var.sapmnt_volume_size
+}
+
+

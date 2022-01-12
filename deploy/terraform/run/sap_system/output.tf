@@ -84,13 +84,3 @@ output "automation_version" {
 output "sapmnt_path" {
   value = module.common_infrastructure.sapmnt_path
 }
-
-output "saptransport_path" {
-  value = module.common_infrastructure.saptransport_path
-}
-
-
-# output "shared_path" {
-#   value = module.common_infrastructure.shared_path
-# }
-

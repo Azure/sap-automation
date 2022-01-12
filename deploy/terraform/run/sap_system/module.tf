@@ -53,10 +53,11 @@ module "common_infrastructure" {
   deployment                         = var.deployment
   license_type                       = var.license_type
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
-  anf_transport_volume_size          = var.anf_transport_volume_size
-  anf_sapmnt_volume_size             = var.anf_sapmnt_volume_size
-  use_ANF                            = var.use_ANF
+  sapmnt_volume_size                 = var.sapmnt_volume_size
+  NFS_provider                       = var.NFS_provider
   custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
+  ha_validator                       = format("%d%d-%s", local.application.scs_high_availability ? 1 : 0, local.databases[0].high_availability ? 1 : 0, var.NFS_provider)
+  azure_files_storage_account_id     = var.azure_files_storage_account_id
 }
 
 # // Create HANA database nodes
@@ -230,7 +231,7 @@ module "output_files" {
   db_lb_ip              = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_ip : module.anydb_node.db_lb_ip
   database_admin_ips    = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_ip : module.anydb_node.anydb_db_ip #TODO Change to use Admin IP
   sap_mnt               = module.common_infrastructure.sapmnt_path
-  sap_transport         = module.common_infrastructure.saptransport_path
+  sap_transport         = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
   ers_lb_ip             = module.app_tier.ers_lb_ip
   bom_name              = var.bom_name
   scs_instance_number   = var.scs_instance_number
@@ -239,5 +240,6 @@ module "output_files" {
   db_auth_type          = try(local.databases[0].authentication.type, "key")
   tfstate_resource_id   = var.tfstate_resource_id
   install_path          = module.common_infrastructure.install_path
+  NFS_provider          = var.NFS_provider
 
 }

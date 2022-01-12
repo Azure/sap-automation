@@ -19,7 +19,7 @@
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop:
     - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
-    - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
+#    - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_sap/lv_hana_shared',            path: '/hana/shared'     }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_data/lv_hana_data',        path: '/hana/data'       }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_log/lv_hana_log',          path: '/hana/log'        }
@@ -29,6 +29,7 @@
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  when:                                NFS_provider != "AFS" or NFS_provider != "ANF"
 
 # Mount Filesystems
 - name:                                Mount local sapmnt (scs)
@@ -48,7 +49,7 @@
 # Mount Filesystems
 - name:                                Mount Filesystems block
   block:
-    - name:                            Mount Filesystems when not using ANF (all app tier)
+    - name:                            Mount Filesystems when not using external NFS (all app tier)
       ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -62,10 +63,10 @@
         - node_tier in ['pas', 'app', 'ers']
         - sap_mnt is undefined
   rescue:
-    - name:                            Re-mount Filesystems when not using ANF (app & pas)
+    - name:                            Re-mount Filesystems when not using external NFS (app & pas)
       ansible.builtin.debug:
         msg:                           "Trying to remount"
-    - name:                            Re-mount Filesystems when not using ANF (app & pas)
+    - name:                            Re-mount Filesystems when not using external NFS (app & pas)
       ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -81,18 +82,6 @@
 
 
 # Mount Filesystems
-- name:                                Mount Install folder
-  ansible.builtin.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
-    opts:                              defaults
-    state:                             mounted
-  loop:
-    - { type: 'nfs4',  src: '{{ usr_sap_install_path }}',   path: '/usr/sap/install'  }
-  when:
-    - tier == 'sapos'
-    - node_tier != 'scs'
 
 - name:                                Mount Install folder
   ansible.builtin.mount:
@@ -105,23 +94,30 @@
     - { type: 'nfs4',  src: '{{ usr_sap_install_path }}',   path: '/usr/sap/install'  }
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
     - usr_sap_install_mountpoint is defined
 
 
-# Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                Show sap_mnt
   ansible.builtin.debug:
-    msg:
-      - "{{ sap_mnt is defined }}"
-    verbosity:                         2
+    var:                               NFS_provider
 
+# Import this task only if the sap_mnt is defined, i.e. AFS is used
+- name:                                Import AFS tasks
+  ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined
+    - sap_mnt | trim | length != 0
+    - tier == 'sapos'
+    - NFS_provider == 'AFS'
+
+# Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                Import ANF tasks
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined
     - sap_mnt | trim | length != 0
     - tier == 'sapos'
+    - NFS_provider == 'ANF'
 
 # Import this task only if the tier is ora.
 - import_tasks:                        "oracle.yaml"
