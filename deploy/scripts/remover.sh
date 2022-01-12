@@ -15,6 +15,9 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source 
 source "${script_directory}/deploy_utils.sh"
 
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
 #Internal helper functions
 function showhelp {
 
@@ -141,42 +144,12 @@ if [ ! -n "${deployment_system}" ]; then
     exit 64 #script usage wrong
 fi
 
-ext=$(echo ${parameterfile_name} | cut -d. -f2)
-
-# Helper variables
-if [ "${ext}" == json ]; then
-    environment=$(jq --raw-output .infrastructure.environment "${parameterfile_dirname}"/"${parameterfile_name}")
-    region=$(jq --raw-output .infrastructure.region "${parameterfile_dirname}"/"${parameterfile_name}")
-else
-    load_config_vars "${parameterfile_dirname}"/"${parameterfile_name}" "environment"
-    load_config_vars "${parameterfile_dirname}"/"${parameterfile_name}" "location"
-    region=$(echo "${location}" | xargs)
+# Check that parameter files have environment and location defined
+validate_key_parameters "$parameterfile_name"
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
-
-if [ ! -n "${environment}" ]; then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 65 #data format error
-fi
-
-if [ ! -n "${region}" ]; then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 65 #data format error
-fi
-
 
 if [ ! -f "${parameterfile}" ]; then
     printf -v val %-40.40s "$parameterfile"
@@ -190,7 +163,7 @@ if [ ! -f "${parameterfile}" ]; then
 fi
 
 # Convert the region to the correct code
-get_region_code $region
+get_region_code "${region}"
 
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config

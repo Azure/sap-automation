@@ -50,9 +50,8 @@
     block: |
       {{ scs_lb_ip }} {{ scs_virtual_hostname }}.{{ sap_fqdn }} {{ scs_virtual_hostname }}
       {{ ers_lb_ip }} {{ ers_virtual_hostname }}.{{ sap_fqdn }} {{ ers_virtual_hostname }}
-    marker:                           "# {mark} ASCS/ERS Entries {{ scs_virtual_hostname }}"
+    marker:                            "# {mark} ASCS/ERS Entries {{ scs_virtual_hostname }}"
   when:
     - scs_high_availability
-    - node_tier in ['hana', 'pas', 'app', 'web']
 
 ...
