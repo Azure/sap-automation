@@ -65,10 +65,6 @@
     - item.node_tier == "db2"
     - item.lv in  lvexists
 
-- name:                                "DB2: fail here"
-  ansible.builtin.fail:
-    msg:                               "Fail after printing lv details"
-
 - name:                                "DB2: Create sap_deployment_automation
                                         folder"
   ansible.builtin.file:
@@ -82,6 +78,11 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/filepermission.txt
     state:                             touch
+
+#Debug - Fail
+- name:                                "DB2: fail here"
+  ansible.builtin.fail:
+    msg:                               "Fail after printing lv details"
 
 - name:                                "DB2: Make db2sid:dba as owners for DB2
                                         directories - check flag file"
