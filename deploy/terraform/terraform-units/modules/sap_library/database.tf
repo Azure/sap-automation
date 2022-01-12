@@ -1,5 +1,5 @@
 resource "azurerm_cosmosdb_account" "cmdb" {
-    name = "webapp-cmdb-${var.random_int}" # Could be a variable
+    name = "webapp-cmdb-${var.random_int}"
     location = local.rg_library_location
     resource_group_name = local.rg_name
     offer_type = "standard"
