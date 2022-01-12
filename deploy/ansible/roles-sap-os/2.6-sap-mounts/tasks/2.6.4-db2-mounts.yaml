@@ -34,9 +34,6 @@
   ansible.builtin.debug:
     var:                               lvexists
 #    verbosity:                         2
-- name:                                "DB2: fail here"
-  ansible.builtin.fail:
-    msg:                               "Fail after printing lv details"
 
 # Mount Filesystems
 - name:                                "DB2: Mount Filesystems for DB2"
@@ -46,6 +43,11 @@
                                         {%- set lv_parts = item.lv.split('_') -%}
                                         {%- if lv_parts| length == 2 -%}
                                         {%- set _path = '/' ~ lv_parts[-1] -%}
+                                        {%- elif ('offline' in lv_parts) and
+                                            (lv_parts| length == 4 ) -%}
+                                        {%- set _path = ['/' ~ lv_parts[-3],
+                                          db_sid | upper, lv_parts[-2:]] |
+                                          join('/') -%}
                                         {%- else -%}
                                         {%- set _path = ['/' ~ lv_parts[-2],
                                           db_sid | upper, lv_parts[-1]] |
@@ -61,6 +63,10 @@
   when:
     - item.node_tier == "db2"
     - item.lv in  lvexists
+
+- name:                                "DB2: fail here"
+  ansible.builtin.fail:
+    msg:                               "Fail after printing lv details"
 
 - name:                                "DB2: Create sap_deployment_automation
                                         folder"
