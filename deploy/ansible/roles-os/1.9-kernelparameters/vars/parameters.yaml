@@ -69,6 +69,14 @@ parameters:
     - { tier: 'sapos', node_tier: 'all', name: 'fs.nfs.idmap_cache_timer',                   value: '60',                   state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+#    This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+#    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_bytes',                             value: '629145600',            state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
@@ -83,6 +91,14 @@ parameters:
     - { tier: 'sapos', node_tier: 'all', name: 'fs.nfs.idmap_cache_timer',                   value: '60',                   state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+#    This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+#    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_bytes',                             value: '629145600',            state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'vm.dirty_background_bytes',                  value: '314572800',            state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
@@ -93,6 +109,15 @@ parameters:
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+#    This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+#    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
+    - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
 
   redhat8:
     - { tier: 'os',    node_tier: 'all', name: 'fs.protected_fifos',                         value: '2',                    state: 'present' }
@@ -101,6 +126,14 @@ parameters:
     - { tier: 'os',    node_tier: 'all', name: 'net.core.bpf_jit_harden',                    value: '2',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmni',                              value: '32768',                state: 'present' }
+#    This needs to be a calculated parameter: https://help.sap.com/viewer/2c1988d620e04368aa4103bf26f17727/2.0.04/en-US/82e4575eec664846a9918e9ed1d90d41.html
+#    - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmall',                              value: '32768',                state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.file-max',                                value: '20000000',             state: 'present' }
+    - { tier: 'sapos', node_tier: 'hana',name: 'fs.aio-max-nr',                              value: '18446744073709551615', state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
 
   oracle-linux8:
