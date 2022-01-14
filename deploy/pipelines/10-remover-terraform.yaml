@@ -7,7 +7,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-name: ${{ sap_system }} ${{ workloadzone }}  ${{ deployer }} ${{ library }} $(Date:yyyyMMdd)
+name: "Removal $(Date:yyyyMMdd)"
 
 parameters:
   - name:                              cleanupsap
@@ -76,12 +76,15 @@ variables:
 
 stages:
   - stage: Remove_SAP_systems
+    displayName: "Removing the SAP System"
     condition: eq(${{ parameters.cleanupsap }}, true)
     jobs:
       - job: Remove_SAP_systems
+        displayName: "Removing the SAP System"
         steps:
           - script: |
               #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sapsystemfolder) $(Date:yyyyMMdd)"
               green="\e[1;32m" ; reset="\e[0m"
               SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs)
               echo -e "$green--- Install Terraform ---$reset"
@@ -117,10 +120,6 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-                export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-                export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-                export ARM_TENANT_ID=$(ARM_TENANT_ID)
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -138,6 +137,10 @@ stages:
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
                 cd $HOME/SYSTEM/$(sapsystemfolder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sapsystemconfig) --type sap_system --auto-approve
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
@@ -151,18 +154,25 @@ stages:
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-            displayName: Remove SAP systems
+            displayName:               Remove SAP systems
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+            failOnStderr: false
 
   - stage: Remove_SAP_workloadzone
+    displayName: "Removing the SAP workload zone"
     condition: eq(${{ parameters.cleanupzone }}, true)
     jobs:
       - job: Remove_SAP_workloadzone
+        displayName: Remove the SAP Workload Zone
         steps:
           - script: |
               #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -218,6 +228,10 @@ stages:
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
                 cd $HOME/LANDSCAPE/$(zonefolder)
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(zoneconfig) --type sap_landscape --auto-approve
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
@@ -230,19 +244,27 @@ stages:
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-            displayName: Remove SAP workloadzone
+                exit $return_code
+
+            displayName:               Remove SAP workloadzone
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr: true
 
   - stage: Remove_region
+    displayName: "Remove the control plane"
     condition: eq(${{ parameters.cleanupregion }}, true)
     jobs:
       - job: Remove_region
+        displayName: "Remove the control plane"
         steps:
           - script: |
               #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -296,6 +318,10 @@ stages:
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)    2> /dev/null
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from remove_region $return_code."
+                fi
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
@@ -310,9 +336,13 @@ stages:
                 git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+                exit $return_code
             displayName: Remove region
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr: true
 ...
