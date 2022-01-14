@@ -119,12 +119,16 @@
         </div>
 
         <fluent-button appearance="accent" style="margin-top: 15px" type="submit">
-            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
+            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
         </fluent-button>
 
         <fluent-anchor href="@Url.Action("Index", "Landscape")">
             Cancel
         </fluent-anchor>
+        
+        <fluent-button appearance="accent" style="margin-top: 15px; float: right" type="submit" formaction="/Landscape/SubmitNew">
+            Save as new Landscape
+        </fluent-button>
 
     </form>
 </div>

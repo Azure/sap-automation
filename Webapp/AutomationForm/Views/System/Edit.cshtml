@@ -12,7 +12,13 @@
             workloadzone: '@Model.System.workload_zone',
             environment: '@Model.System.environment',
             location: '@Model.System.location',
-            rg: '@Model.System.resource_group_arm_id'
+            subscription: '@Model.System.subscription',
+            rg: '@Model.System.resource_group_arm_id',
+            network: '@Model.System.network_address_arm_id',
+            adminsubnetarmid: '@Model.System.admin_subnet_arm_id',
+            dbsubnetarmid: '@Model.System.db_subnet_arm_id',
+            appsubnetarmid: '@Model.System.app_subnet_arm_id',
+            websubnetarmid: '@Model.System.web_subnet_arm_id',
         }
         setModelData(retainedValues);
         initializeDropdowns();
@@ -26,6 +32,70 @@
             {
                 id: 'proximityplacementgroup_arm_ids',
                 data: @Json.Serialize(@Model.System.proximityplacementgroup_arm_ids)
+            },
+            {
+                id: 'database_vm_avset_arm_ids',
+                data: @Json.Serialize(@Model.System.database_vm_avset_arm_ids)
+            },
+            {
+                id: 'database_tags',
+                data: @Json.Serialize(@Model.System.database_tags)
+            },
+            {
+                id: 'application_server_zones',
+                data: @Json.Serialize(@Model.System.application_server_zones)
+            },
+            {
+                id: 'application_server_app_nic_ips',
+                data: @Json.Serialize(@Model.System.application_server_app_nic_ips)
+            },
+            {
+                id: 'application_server_app_admin_nic_ips',
+                data: @Json.Serialize(@Model.System.application_server_app_admin_nic_ips)
+            },
+            {
+                id: 'application_server_tags',
+                data: @Json.Serialize(@Model.System.application_server_tags)
+            },
+            {
+                id: 'scs_server_zones',
+                data: @Json.Serialize(@Model.System.scs_server_zones)
+            },
+            {
+                id: 'scs_server_app_nic_ips',
+                data: @Json.Serialize(@Model.System.scs_server_app_nic_ips)
+            },
+            {
+                id: 'scs_server_app_admin_nic_ips',
+                data: @Json.Serialize(@Model.System.scs_server_app_admin_nic_ips)
+            },
+            {
+                id: 'scs_server_loadbalancer_ips',
+                data: @Json.Serialize(@Model.System.scs_server_loadbalancer_ips)
+            },
+            {
+                id: 'scs_server_tags',
+                data: @Json.Serialize(@Model.System.scs_server_tags)
+            },
+            {
+                id: 'webdispatcher_server_zones',
+                data: @Json.Serialize(@Model.System.webdispatcher_server_zones)
+            },
+            {
+                id: 'webdispatcher_server_app_nic_ips',
+                data: @Json.Serialize(@Model.System.webdispatcher_server_app_nic_ips)
+            },
+            {
+                id: 'webdispatcher_server_app_admin_nic_ips',
+                data: @Json.Serialize(@Model.System.webdispatcher_server_app_admin_nic_ips)
+            },
+            {
+                id: 'webdispatcher_server_loadbalancer_ips',
+                data: @Json.Serialize(@Model.System.webdispatcher_server_loadbalancer_ips)
+            },
+            {
+                id: 'webdispatcher_server_tags',
+                data: @Json.Serialize(@Model.System.webdispatcher_server_tags)
             }
         ]
         initializeLists(retainedListValues);
@@ -157,12 +227,16 @@
         </div>
 
         <fluent-button appearance="accent" style="margin-top: 15px" type="submit">
-            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
+            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
         </fluent-button>
 
         <fluent-anchor href="@Url.Action("Index", "System")">
             Cancel
         </fluent-anchor>
+
+        <fluent-button appearance="accent" style="margin-top: 15px; float: right" type="submit" formaction="/System/SubmitNew">
+            Save as new System
+        </fluent-button>
 
     </form>
 </div>

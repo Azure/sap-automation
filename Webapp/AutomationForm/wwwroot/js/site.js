@@ -44,6 +44,7 @@ function initializeDropdowns() {
     ];
     updateDropdownData(dropdowns, true);
     successFunc(["environment"], [model.environment], []);
+    successFunc(["network_logical_name"], [model.networkname], []);
 }
 
 function initializeLists(lists) {
@@ -94,6 +95,7 @@ $("#workload_zone").on("change", function () {
                     location: data.location,
                     rg: data.resource_group_arm_id,
                     network: data.network_address_arm_id,
+                    networkname: data.network_logical_name,
                     adminsubnetarmid: data.admin_subnet_arm_id,
                     dbsubnetarmid: data.db_subnet_arm_id,
                     appsubnetarmid: data.app_subnet_arm_id,

@@ -12,32 +12,34 @@ namespace AutomationForm.Models
         [DisplayName("System ID")]
         public string Id { get; set; }
 
+        // BASIC
+
         //[Required]
         [BsonIgnoreIfNull]
         [DisplayName("Workload Zone")]
         public string workload_zone { get; set; }
         
-        //[Required]
-        [BsonIgnoreIfNull]
-        [DisplayName("System ID")]
-        public string sid { get; set; }
-        
-        //[Required]
-        [BsonIgnoreIfNull]
+        [Required]
         [DisplayName("Environment")]
         public string environment { get; set; }
 
-        //[Required]
-        [BsonIgnoreIfNull]
+        [Required]
         [DisplayName("Location")]
         public string location { get; set; }
         
-        //[Required]
-        [BsonIgnoreIfNull]
+        [Required]
         [DisplayName("Network Name")]
-        public string network_name { get; set; }
+        public string network_logical_name { get; set; }
+
+        [Required]
+        [DisplayName("System ID")]
+        public string sid { get; set; }
 
         // ADVANCED
+
+        //[Required]
+        [BsonIgnoreIfNull]
+        public string tfstate_resource_id { get; set; }
 
         //[Required]
         [BsonIgnoreIfNull]
@@ -45,7 +47,7 @@ namespace AutomationForm.Models
 
         //[Required]
         [BsonIgnoreIfNull]
-        public string tfstate_resource_id { get; set; }
+        public string landscape_tfstate_key { get; set; }
 
         //[Required]
         [BsonIgnoreIfNull]
@@ -65,7 +67,13 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string automation_username { get; set; }
 
-        // EXPERT
+        // ======= EXPERT =======
+
+        // Common Infrastructure
+
+        [BsonIgnoreIfNull]
+        [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$", ErrorMessage = "Invalid subscription")]
+        public string subscription { get; set; }
 
         [BsonIgnoreIfNull]
         [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid resource group arm id")]
@@ -73,12 +81,26 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public string resource_group_name { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string custom_prefix { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? use_prefix { get; set; }
         
         [BsonIgnoreIfNull]
         public string[] proximityplacementgroup_names { get; set; }
         
         [BsonIgnoreIfNull]
         public string[] proximityplacementgroup_arm_ids { get; set; }
+
+        // Network
+
+        [BsonIgnoreIfNull]
+        [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/virtualNetworks\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid network address arm id")]
+        public string network_address_arm_id { get; set; }
+
+        // Admin Subnet
 
         [BsonIgnoreIfNull]
         [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/virtualNetworks\/[a-zA-Z0-9-_]+\/subnets\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid admin subnet arm id")]
@@ -94,6 +116,7 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string admin_subnet_nsg_name { get; set; }
 
+        // Database subnet
 
         [BsonIgnoreIfNull]
         [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/virtualNetworks\/[a-zA-Z0-9-_]+\/subnets\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid db subnet arm id")]
@@ -108,6 +131,7 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string db_subnet_nsg_name { get; set; }
 
+        // Application Subnet
 
         [BsonIgnoreIfNull]
         [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/virtualNetworks\/[a-zA-Z0-9-_]+\/subnets\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid app subnet arm id")]
@@ -123,6 +147,7 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string app_subnet_nsg_name { get; set; }
 
+        // Web subnet
 
         [BsonIgnoreIfNull]
         [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/virtualNetworks\/[a-zA-Z0-9-_]+\/subnets\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid web subnet arm id")]
@@ -143,12 +168,13 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string web_subnet_nsg_name { get; set; }
 
+        // Database Tier 
 
         [BsonIgnoreIfNull]
         public string database_platform { get; set; }
 
         [BsonIgnoreIfNull]
-        public string database_high_availability { get; set; }
+        public bool? database_high_availability { get; set; }
 
         [BsonIgnoreIfNull]
         public string database_size { get; set; }
@@ -192,14 +218,147 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string dual_nics { get; set; }
 
+        // Application Tier
+
+        [BsonIgnoreIfNull]
+        public bool? enable_app_tier_deployment { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string app_tier_authentication_type { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? app_tier_use_DHCP { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? app_tier_dual_nics { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string app_tier_vm_sizing { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string app_disk_sizes_filename { get; set; }
+
+        // Application Servers
+
+        [BsonIgnoreIfNull]
+        public int? application_server_count { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string application_server_sku { get; set; }
+
+        [BsonIgnoreIfNull]
+        public Image application_server_image { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] application_server_zones { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] application_server_app_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] application_server_app_admin_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] application_server_tags { get; set; } // change data structure
+
+        // SAP Central Services
+
+        [BsonIgnoreIfNull]
+        public int? scs_server_count { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string scs_server_sku { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? scs_high_availability { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string scs_instance_number { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ers_instance_number { get; set; }
+
+        [BsonIgnoreIfNull]
+        public Image scs_server_image { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] scs_server_zones { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] scs_server_app_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] scs_server_app_admin_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] scs_server_loadbalancer_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] scs_server_tags { get; set; } // change data structure
+
+        // Web Dispatchers
+
+        [BsonIgnoreIfNull]
+        public int? webdispatcher_server_count { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string webdispatcher_server_sku { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] webdispatcher_server_app_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] webdispatcher_server_app_admin_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] webdispatcher_server_loadbalancer_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] webdispatcher_server_tags { get; set; } // change data structure
+
+        [BsonIgnoreIfNull]
+        public string[] webdispatcher_server_zones { get; set; }
+
+        [BsonIgnoreIfNull]
+        public Image webdispatcher_server_image { get; set; }
+
+        // Authentication
+
+        [BsonIgnoreIfNull]
+        public string automation_password { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string automation_path_to_public_key { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string automation_path_to_private_key { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? resource_offset { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string vm_disk_encryption_set_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? nsg_asg_with_vnet { get; set; }
+
     }
 
     public class Image
     {
+        [BsonIgnoreIfNull]
         public string os_type { get; set; }
+
+        [BsonIgnoreIfNull]
         public string source_image_id { get; set; }
+
+        [BsonIgnoreIfNull]
         public string publisher { get; set; }
+
+        [BsonIgnoreIfNull]
         public string offer { get; set; }
+
+        [BsonIgnoreIfNull]
         public string sku { get; set; }
     }
 }

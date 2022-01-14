@@ -51,7 +51,7 @@
           "Overrules": ""
         },
         {
-          "Name": "logical_network_name",
+          "Name": "network_logical_name",
           "Required": true,
           "Description": "Used in the naming convention and should map to the workload virtual network logical name",
           "Type": "field",

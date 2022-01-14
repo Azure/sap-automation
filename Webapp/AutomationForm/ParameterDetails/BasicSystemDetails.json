@@ -6,7 +6,7 @@
       "Parameters": [
         {
           "Name": "workload_zone",
-          "Required": true,
+          "Required": false,
           "Description": "An existing workload zone for which the system will be deployed in",
           "Type": "lookup",
           "Options": [
@@ -82,7 +82,7 @@
       "Section": "Network",
       "Parameters": [
         {
-          "Name": "network_name",
+          "Name": "network_logical_name",
           "Required": true,
           "Description": "Used in the naming convention and should map to the workload virtual network logical name",
           "Type": "field",

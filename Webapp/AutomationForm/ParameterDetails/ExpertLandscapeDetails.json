@@ -6,7 +6,7 @@
       "Parameters": [
         {
           "Name": "deployer_tfstate_key",
-          "Required": true,
+          "Required": false,
           "Description": "The state file name for the deployer",
           "Type": "field",
           "Options": [],
@@ -14,7 +14,7 @@
         },
         {
           "Name": "tfstate_resource_id",
-          "Required": true,
+          "Required": false,
           "Description": "Azure resource identifier for the Storage account in the SAP Library that will contain the Terraform state files",
           "Type": "lookup",
           "Options": [
@@ -258,7 +258,7 @@
         },
         {
           "Name": "web_subnet_address_prefix",
-          "Required": true,
+          "Required": false,
           "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
           "Type": "field",
           "Options": [],
@@ -318,7 +318,7 @@
         },
         {
           "Name": "iscsi_subnet_address_prefix",
-          "Required": true,
+          "Required": false,
           "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
           "Type": "field",
           "Options": [],
@@ -378,7 +378,7 @@
         },
         {
           "Name": "anf_subnet_address_prefix",
-          "Required": true,
+          "Required": false,
           "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
           "Type": "field",
           "Options": [],

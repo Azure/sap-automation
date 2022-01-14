@@ -3,6 +3,7 @@ using AutomationForm.Models;
 using AutomationForm.Services;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace AutomationForm.Controllers
 {
@@ -71,7 +72,7 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    system.Id = (system.environment + "-" + helper.mapRegion(system.location) + "-" + system.resource_group_name + "-" + system.sid).ToUpper();
+                    system.Id = (system.environment + "-" + helper.mapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
                     await _systemService.CreateAsync(system);
                     return RedirectToAction("Index");
                 }
@@ -182,14 +183,48 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _systemService.UpdateAsync(system);
-                TempData["success"] = "Successfully updated system " + system.Id;
-                return RedirectToAction("Index");
+                string newId = (system.environment + "-" + helper.mapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                if (system.Id == null) system.Id = newId;
+                if (newId != system.Id)
+                {
+                    return SubmitNewAsync(system).Result;
+                }
+                else
+                {
+                    await _systemService.UpdateAsync(system);
+                    TempData["success"] = "Successfully updated system " + system.Id;
+                    return RedirectToAction("Index");
+                }
             }
 
             systemView.System = system;
 
             return View(systemView);
+        }
+
+        [HttpPost]
+        [ActionName("SubmitNew")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitNewAsync(SystemModel system)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    system.Id = (system.environment + "-" + helper.mapRegion(system.location) + "-" + system.resource_group_name + "-" + system.sid).ToUpper();
+                    await _systemService.CreateAsync(system);
+                    TempData["success"] = "Successfully created system " + system.Id;
+                    return RedirectToAction("Index");
+                }
+                catch
+                {
+                    ModelState.AddModelError("SystemId", "Error creating system (most likely it already exists)");
+                }
+            }
+
+            systemView.System = system;
+
+            return View("Edit", systemView);
         }
 
         [ActionName("Details")]

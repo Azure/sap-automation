@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 
 namespace AutomationForm.Controllers
 {
@@ -99,8 +100,9 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    landscape.Id = (landscape.environment + "-" + helper.mapRegion(landscape.location) + "-" + landscape.logical_network_name + "-infrastructure").ToUpper();
+                    landscape.Id = (landscape.environment + "-" + helper.mapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
                     await _landscapeService.CreateAsync(landscape);
+                    TempData["success"] = "Successfully created landscape " + landscape.Id;
                     return RedirectToAction("Index");
                 }
                 catch
@@ -209,14 +211,48 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _landscapeService.UpdateAsync(landscape);
-                TempData["success"] = "Successfully updated landscape " + landscape.Id;
-                return RedirectToAction("Index");
+                string newId = (landscape.environment + "-" + helper.mapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                if (landscape.Id == null) landscape.Id = newId;
+                if (newId != landscape.Id)
+                {
+                    return SubmitNewAsync(landscape).Result;
+                }
+                else
+                {
+                    await _landscapeService.UpdateAsync(landscape);
+                    TempData["success"] = "Successfully updated landscape " + landscape.Id;
+                    return RedirectToAction("Index");
+                }
             }
 
             landscapeView.Landscape = landscape;
 
             return View(landscapeView);
+        }
+
+        [HttpPost]
+        [ActionName("SubmitNew")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitNewAsync(LandscapeModel landscape)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    landscape.Id = (landscape.environment + "-" + helper.mapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                    await _landscapeService.CreateAsync(landscape);
+                    TempData["success"] = "Successfully created landscape " + landscape.Id;
+                    return RedirectToAction("Index");
+                }
+                catch
+                {
+                    ModelState.AddModelError("LandscapeId", "Error creating landscape (most likely it already exists)");
+                }
+            }
+
+            landscapeView.Landscape = landscape;
+
+            return View("Edit", landscapeView);
         }
 
         [ActionName("Details")]

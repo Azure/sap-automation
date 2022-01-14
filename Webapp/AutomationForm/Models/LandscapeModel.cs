@@ -14,21 +14,18 @@ namespace AutomationForm.Models
 
         // BASIC
 
-        //[Required]
-        [BsonIgnoreIfNull]
+        [Required]
         [DisplayName("Environment")]
         public string environment { get; set; }
 
-        //[Required]
-        [BsonIgnoreIfNull]
+        [Required]
         [DisplayName("Location")]
         public string location { get; set; }
 
-        //[Required]
-        [BsonIgnoreIfNull]
+        [Required]
         [DisplayName("Logical Network Name")]
         [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
-        public string logical_network_name { get; set; }
+        public string network_logical_name { get; set; }
 
         //[Required]
         [BsonIgnoreIfNull]
@@ -58,11 +55,9 @@ namespace AutomationForm.Models
 
         // EXPERT 
 
-        //[Required]
         [BsonIgnoreIfNull]
         public string deployer_tfstate_key { get; set; }
 
-        //[Required]
         [BsonIgnoreIfNull]
         public string tfstate_resource_id { get; set; }
 
