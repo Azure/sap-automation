@@ -92,6 +92,7 @@
 
 - name:                                "BOM: {{ bom_name }} Check and Download Files"
   include_tasks:                       bom_download.yaml
+
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   no_log:                              false
 
@@ -103,7 +104,7 @@
                                          --account-name {{ account }}
                                          --account-key {{ sapbits_access_key }}
                                          --destination {{ bom_container_name }}/{{ bom_name }}
-                                         --source {{playbook_dir }}/{{ bom_file.rpartition('/')[0] }}
+                                         --source {{ playbook_dir }}/{{ bom_file.rpartition('/')[0] }}
                                          --if-none-match "*"
                                          --no-progress 
   delegate_to:                         localhost
