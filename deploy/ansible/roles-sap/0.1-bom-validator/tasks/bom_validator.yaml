@@ -67,7 +67,7 @@
     - azresult.stderr is defined
     - azresult.stderr.find("BlobAlreadyExists") == -1
 
-#------------------<DEBUGGING>-------------------
+# ------------------<DEBUGGING>-------------------
 # - name:                                "Show BOM Info"
 #   ansible.builtin.debug:
 #     msg:
@@ -92,9 +92,6 @@
 
 - name:                                "BOM: {{ bom_name }} Check and Download Files"
   include_tasks:                       bom_download.yaml
-  vars:
-     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
-     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   no_log:                              false
 
@@ -129,4 +126,3 @@
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
-
