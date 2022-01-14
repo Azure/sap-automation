@@ -124,6 +124,13 @@
         path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
         state:                         absent
 
+    - name:                            "Create backup folder"
+      ansible.builtin.file:
+        path:                          "/hana/backup"
+        state:                         directory
+        group:                         sapsys
+        owner:                         "{{ db_sid | lower}}adm"
+
     - name:                            "HANA Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_hdb.txt
