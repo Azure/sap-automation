@@ -432,8 +432,7 @@ if [ 2 == $step ]; then
 
     terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
     export TF_VAR_cmdb_connection_string=$(terraform -chdir="${terraform_module_directory}" output cmdb_connection_string | tr -d \")
-    groupId=$(az pipelines variable-group list --query "[?name=='sap-deployment-variables-specific'].id | [0]")
-    az pipelines variable-group variable create --group-id $groupId --name cmdb_conn_str --value $TF_VAR_cmdb_connection_string
+    az pipelines variable-group variable create --group-id $specificGroupId --name TF_VAR_cmdb_connection_string --value $TF_VAR_cmdb_connection_string
     
     cd "${curdir}" || exit
     export step=3
@@ -470,7 +469,8 @@ if [ 3 == $step ]; then
         rm post_deployment.sh
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
-    export TF_VAR_cmdb_connection_string=$(az pipelines variable-group variable list --group-id $groupId --query "cmdb_conn_str.value" | tr -d '"')
+    
+    export TF_VAR_cmdb_connection_string=$(az pipelines variable-group variable list --group-id $specificGroupId --query "TF_VAR_cmdb_connection_string.value" | tr -d '"')
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?

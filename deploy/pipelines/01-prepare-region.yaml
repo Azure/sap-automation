@@ -122,9 +122,13 @@ stages:
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
+
+              echo -e "$green--- Configure devops CLI extension ---reset$"
                 az extension add --name azure-devops
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
+                generalGroupId=$(az pipelines variable-group list --query "[?name=='SAP-deployment-variables-general'].id | [0]")
+                specificGroupId=$(az pipelines variable-group list --query "[?name=='SAP-deployment-variables-specific'].id | [0]")
 
               echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
                 organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
