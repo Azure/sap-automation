@@ -449,18 +449,6 @@ stages:
 
   - stage: Post_Installation_Steps
     displayName: Post Installation Steps
-    condition: eq(${{ parameters.postinstallation }}, true)
-    dependsOn:
-      - Prepare_DB_SAP_Installation
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - SCS_Installation
-      - Database_Load
-      - PAS_Installation
-      - APP_Install
-      - WebDispatcher_Installation
-      - HighAvailability_Setup
     jobs:
       - job: Post_Installation_Steps
         displayName: Post Installation Steps
