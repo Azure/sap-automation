@@ -67,6 +67,11 @@ variable "NFS_provider" {
   type = string
 }
 
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}
+
 locals {
   // Resources naming
   storageaccount_name                             = var.naming.storageaccount_names.VNET.landscape_storageaccount_name

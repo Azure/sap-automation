@@ -24,20 +24,37 @@ resource "azurerm_storage_account" "shared" {
   account_kind              = "FileStorage"
   enable_https_traffic_only = false
 
-
-  network_rules {
-    default_action             = "Deny"
-    virtual_network_subnet_ids = compact([var.landscape_tfstate.app_subnet_id, var.landscape_tfstate.db_subnet_id, try(var.landscape_tfstate.web_subnet_id, ""), try(var.landscape_tfstate.subnet_mgmt_id, "")])
-    bypass                     = ["AzureServices", "Logging", "Metrics"]
-  }
 }
+
+resource "azurerm_storage_account_network_rules" "shared" {
+  count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
+    1) : (
+    0
+  )
+  provider           = azurerm.main
+  storage_account_id = azurerm_storage_account.shared[0].id
+
+  default_action = "Deny"
+  ip_rules       = [var.Agent_IP]
+  virtual_network_subnet_ids = compact(
+    [
+      try(var.landscape_tfstate.admin_subnet_id, ""),
+      try(var.landscape_tfstate.app_subnet_id, ""),
+      try(var.landscape_tfstate.db_subnet_id, ""),
+      try(var.landscape_tfstate.web_subnet_id, ""),
+      try(var.landscape_tfstate.subnet_mgmt_id, "")
+    ]
+  )
+  bypass = ["AzureServices", "Logging", "Metrics"]
+
+}
+
 
 resource "azurerm_storage_share" "install" {
   count = length(var.azure_files_storage_account_id) > 0 ? (
     0) : (
     1
   )
-  depends_on = [azurerm_storage_account.shared]
 
   name                 = format("%s", local.resource_suffixes.install_volume)
   storage_account_name = azurerm_storage_account.shared[0].name
