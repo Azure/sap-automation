@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Control Plane Deployment $(deployerfolder)_$(libraryfolder) $(Date:yyyyMMdd) $(SourceBranchName)
+name: Control Plane Deployment $(deployerfolder) $(libraryfolder) $(Date:yyyyMMdd) $(SourceBranchName)
 
 parameters:
   - name: deployer
@@ -111,10 +111,6 @@ stages:
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
 
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
@@ -157,14 +153,8 @@ stages:
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(Branch)
                 fi
-                cat /tmp/$(log)
-                git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
-                fi
-
                 exit $return_code
             displayName: Prepare region
             env:
