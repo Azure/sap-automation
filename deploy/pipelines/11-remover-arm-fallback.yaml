@@ -74,21 +74,21 @@ variables:
     value: logfile_$(Build.BuildId)
 
 stages:
-  - stage: Remove_SAP_systems
-    displayName: "Remove SAP System $(sapsystemfolder)"
-    condition: eq(${{ parameters.cleanupsap }}, true)
+  - stage:                             Remove_SAP_systems
+    displayName:                       "Remove SAP System"
+    condition:                         eq(${{ parameters.cleanupsap }}, true)
     jobs:
-      - job: Remove_SAP_system_RG
-        displayName: "Remove SAP System $(sapsystemfolder)"
+      - job:                           Remove_SAP_system_RG
+        displayName:                   "Remove SAP System $(sapsystemfolder)"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Resource Group $(sapsystemfolder)"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Resource Group $(sapsystemfolder)"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "$(sapsystemfolder)"
+              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "$(sapsystemfolder)"
 
       - job: Remove_sap_deployment_artefacts_in_WORKSPACES
         steps:
@@ -112,26 +112,26 @@ stages:
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Remove_sap_deployment_artefacts_in_WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              false
 
-  - stage: Remove_SAP_workloadzone
-    displayName: "Remove SAP workload zone $(zonefolder)"
-    condition: eq(${{ parameters.cleanupzone }}, true)
+  - stage:                             Remove_SAP_workloadzone
+    displayName:                       "Remove SAP workload zone"
+    condition:                         eq(${{ parameters.cleanupzone }}, true)
     jobs:
-      - job: Remove_SAP_workloadzone
-        displayName: "Remove SAP workload zone $(zonefolder)"
+      - job:                           Remove_SAP_workloadzone
+        displayName:                   "Remove SAP workload zone $(zonefolder)"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Resource Group $(zonefolder)"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Resource Group $(zonefolder)"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "$(zonefolder)"
+              subscriptionId:           "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "$(zonefolder)"
 
-      - job: Remove_zone_deployment_artefacts_in_WORKSPACES
+      - job:                           Remove_zone_deployment_artefacts_in_WORKSPACES
         steps:
           - script: |
               #!/bin/bash
@@ -153,38 +153,38 @@ stages:
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Remove_zone_deployment_artefacts_in_WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              true
 
-  - stage: Remove_Control_plane
-    displayName: Remove Control Plane
-    condition: eq(${{ parameters.cleanupregion }}, true)
+  - stage:                             Remove_Control_plane
+    displayName:                       Remove Control Plane
+    condition:                         eq(${{ parameters.cleanupregion }}, true)
     jobs:
-      - job: Remove_SAP_library
-        displayName: "Remove SAP Library ${{ parameters.library }}"
+      - job:                           Remove_SAP_library
+        displayName:                   "Remove SAP Library ${{ parameters.library }}"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Resource Group ${{ parameters.library }}"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Resource Group ${{ parameters.library }}"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "${{ parameters.library }}"
+              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "${{ parameters.library }}"
 
-      - job: Remove_Deployer
-        displayName: "Remove Deployer ${{ parameters.deployer }}"
+      - job:                           Remove_Deployer
+        displayName:                   "Remove Deployer ${{ parameters.deployer }}"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Deployer ${{ parameters.deployer }}"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Deployer ${{ parameters.deployer }}"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "${{ parameters.deployer }}"
+              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "${{ parameters.deployer }}"
 
-      - job: Remove_region_deployment_artefacts_in_WORKSPACES
+      - job:                           Remove_region_deployment_artefacts_in_WORKSPACES
         steps:
           - script: |
               #!/bin/bash
@@ -206,8 +206,8 @@ stages:
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
               git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-            displayName: Remove_region_deployment_artefacts_in_WORKSPACES
+            displayName:               Remove_region_deployment_artefacts_in_WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              true
 ...
