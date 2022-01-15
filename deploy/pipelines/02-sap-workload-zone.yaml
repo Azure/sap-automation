@@ -114,9 +114,6 @@ stages:
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
                 cd $HOME/LANDSCAPE/$(zonefolder)
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
@@ -144,12 +141,10 @@ stages:
 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
                 fi
-              echo "output the log ---$reset"
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
                 fi
-                git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-                exit $return_code
+              exit $return_code
             displayName: Deploy SAP Workload Zone
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
