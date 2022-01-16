@@ -36,6 +36,20 @@ location="westeurope"
 
 #########################################################################################
 #                                                                                       #
+#  NFS support                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+NFS_provider       = "AFS"
+sapmnt_volume_size = 128
+
+
+#########################################################################################
+#                                                                                       #
 #  Database tier                                                                        #                                                                                       #
 #                                                                                       #
 #########################################################################################
