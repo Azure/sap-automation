@@ -59,7 +59,7 @@ resource "azurerm_storage_share" "install" {
   )
 
   name                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name = azurerm_storage_account.shared[0].name
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.shared[0].name : ""
   enabled_protocol     = "NFS"
 
   quota = 128
@@ -98,7 +98,7 @@ resource "azurerm_storage_share" "sapmnt" {
   )
 
   name                 = format("%s", local.resource_suffixes.sapmnt)
-  storage_account_name = azurerm_storage_account.shared[0].name
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.shared[0].name : ""
   enabled_protocol     = "NFS"
 
   quota = var.sapmnt_volume_size
