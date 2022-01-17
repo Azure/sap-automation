@@ -334,7 +334,7 @@ webdispatcher_server_count = 0
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider       = "AFS"
+NFS_provider       = "NONE"
 sapmnt_volume_size = 128
 
 
