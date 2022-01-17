@@ -223,7 +223,7 @@ enable_purge_control_for_keyvaults = false
 #########################################################################################
 
 # If defined provides the DNS label for the Virtual Network
-#dns_label="sap.contoso.net"
+dns_label="sap.contoso.net"
 
 # If defined provides the name of the resource group hosting the Private DNS zone
 #dns_resourcegroup_name=""
