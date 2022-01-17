@@ -12,9 +12,12 @@ data "azurerm_storage_account" "shared" {
 
 
 resource "azurerm_storage_account" "shared" {
-  count = length(var.azure_files_storage_account_id) > 0 ? (
-    0) : (
-    1
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
   )
   name                      = replace(lower(format("%s%s", local.prefix, local.resource_suffixes.install_volume)), "/[^a-z0-9]/", "")
   resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
