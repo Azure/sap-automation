@@ -18,6 +18,8 @@ source "${script_directory}/deploy_utils.sh"
 source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
+called_from_ado=0
+
 INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifh --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help -- "$@")
 VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -56,6 +58,11 @@ landscape_tfstate_key_parameter=""
 deployment_system="sap_landscape"
 
 echo "Deployer environment: $deployer_environment"
+if [ 1 == $called_from_ado ] ; then
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    export TF_VAR_Agent_IP=$this_ip
+    echo "Agent IP: $this_ip"
+fi
 
 workload_file_parametername=$(basename "${parameterfile}")
 

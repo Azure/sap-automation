@@ -74,6 +74,15 @@ variable "azure_files_storage_account_id" {
   default = ""
 }
 
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}
+
+variable "use_private_endpoint" {
+  default = false
+}
+
 locals {
   // Resources naming
   vnet_prefix                 = trimspace(var.naming.prefix.VNET)

@@ -9,10 +9,10 @@
 #########################################################################################
 
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment="DEV"
+environment = "DEV"
 
 # The location valus is a mandatory field, it is used to control where the resources are deployed
-location="westeurope"
+location = "westeurope"
 
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
@@ -61,20 +61,20 @@ sapmnt_volume_size = 128
 # - ASE
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
-database_platform="HANA"
+database_platform = "HANA"
 
 # database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
 #database_high_availability=false
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
-database_size="S4Demo"
+database_size = "S4Demo"
 
 #If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
 #db_disk_sizes_filename="custom-sizing.json"
 
 # database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-database_vm_use_DHCP=true
+database_vm_use_DHCP = true
 
 # The vm_image defines the Virtual machine image to use, 
 # if source_image_id is specified the deployment will use the custom image provided, 
@@ -92,13 +92,13 @@ database_vm_use_DHCP=true
 #}
 
 #SUSE 12 SP5
-database_vm_image={
-  os_type=""
-  source_image_id=""
-  publisher="SUSE"
-  offer="sles-sap-12-sp5"
-  sku="gen2"
-  version="latest"
+database_vm_image = {
+  os_type         = ""
+  source_image_id = ""
+  publisher       = "SUSE"
+  offer           = "sles-sap-12-sp5"
+  sku             = "gen2"
+  version         = "latest"
 }
 
 #RedHat
@@ -149,13 +149,13 @@ database_vm_image={
 #                                                                                       #
 #########################################################################################
 # sid is a mandatory field that defines the SAP Application SID
-sid="X00"
+sid = "X00"
 
-app_tier_vm_sizing="Production"
+app_tier_vm_sizing = "Production"
 
 
 # app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-app_tier_use_DHCP=true
+app_tier_use_DHCP = true
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
 #app_tier_authentication_type="key"
 
@@ -174,7 +174,7 @@ app_tier_use_DHCP=true
 # Application Servers
 
 # application_server_count defines how many application servers to deploy
-application_server_count=3
+application_server_count = 3
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
 #application_server_zones=["1","2","3"]
@@ -202,19 +202,19 @@ application_server_count=3
 # The vm_image defines the Virtual machine image to use for the application servers, 
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
-application_server_image= {
-  os_type=""
-  source_image_id=""
-  publisher="SUSE"
-  offer="sles-sap-12-sp5"
-  sku="gen2"
-  version="latest"
+application_server_image = {
+  os_type         = ""
+  source_image_id = ""
+  publisher       = "SUSE"
+  offer           = "sles-sap-12-sp5"
+  sku             = "gen2"
+  version         = "latest"
 }
 
 # SCS Servers
 
 # scs_server_count defines how many SCS servers to deploy
-scs_server_count=1
+scs_server_count = 1
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku="Standard_D4s_v3"
@@ -226,13 +226,13 @@ scs_server_count=1
 #scs_server_no_avset=false
 
 # scs_high_availability is a boolean flag controlling if SCS should be highly available
-scs_high_availability=false
+scs_high_availability = false
 
 # scs_instance_number
-scs_instance_number="00"
+scs_instance_number = "00"
 
 # ers_instance_number
-ers_instance_number="02"
+ers_instance_number = "02"
 
 # scs_server_app_nic_ips, if provided provides the static IP addresses 
 # for the network interface cars connected to the application subnet
@@ -267,7 +267,7 @@ ers_instance_number="02"
 # Web Dispatchers
 
 # webdispatcher_server_count defines how many web dispatchers to deploy
-webdispatcher_server_count=0
+webdispatcher_server_count = 0
 
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
 # for the network interface cars connected to the application subnet
@@ -340,6 +340,20 @@ webdispatcher_server_count=0
 
 #########################################################################################
 #                                                                                       #
+#  NFS support                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+NFS_provider       = "NONE"
+sapmnt_volume_size = 128
+
+
+#########################################################################################
+#                                                                                       #
 #  Networking                                                                           #
 #                                                                                       #
 #########################################################################################
@@ -355,7 +369,7 @@ webdispatcher_server_count=0
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
 ##network_name ="SAP01"
-network_logical_name="SAP01"
+network_logical_name = "SAP01"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix

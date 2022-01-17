@@ -94,14 +94,10 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
                 cd $HOME/SYSTEM/$(sapsystemfolder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
@@ -134,8 +130,7 @@ stages:
 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
                 fi
-              echo "output the log ---$reset"
-                exit $return_code
+              exit $return_code
             displayName: Deploy_SAP_infrastructure
             env:
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
