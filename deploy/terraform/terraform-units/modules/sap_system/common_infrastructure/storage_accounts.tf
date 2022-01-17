@@ -53,7 +53,7 @@ resource "azurerm_storage_account_network_rules" "shared" {
 
 
 resource "azurerm_storage_share" "install" {
-  count = length(var.azure_files_storage_account_id) > 0 ? (
+  count = var.NFS_provider == "AFS" && length(var.azure_files_storage_account_id) > 0 ? (
     0) : (
     1
   )
