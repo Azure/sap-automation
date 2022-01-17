@@ -38,10 +38,18 @@ resource "azurerm_storage_account_network_rules" "shared" {
   ip_rules       = [var.Agent_IP]
   virtual_network_subnet_ids = compact(
     [
-      try(var.landscape_tfstate.admin_subnet_id, ""),
-      try(var.landscape_tfstate.app_subnet_id, ""),
-      try(var.landscape_tfstate.db_subnet_id, ""),
-      try(var.landscape_tfstate.web_subnet_id, ""),
+      (!local.sub_admin_exists && local.enable_admin_subnet) ? (
+        azurerm_subnet.admin[0].id) : (
+        try(var.landscape_tfstate.admin_subnet_id, "")
+      ),
+      (!local.sub_app_exists && local.enable_app_subnet) ? (
+        azurerm_subnet.app[0].id) : (
+        try(var.landscape_tfstate.app_subnet_id, "")
+      ),
+      (!local.sub_db_exists && local.enable_db_subnet) ? (
+        azurerm_subnet.db[0].id) : (
+        try(var.landscape_tfstate.db_subnet_id, "")
+      ),
       try(var.landscape_tfstate.subnet_mgmt_id, "")
     ]
   )
@@ -77,6 +85,34 @@ resource "azurerm_storage_share" "sapmnt" {
   enabled_protocol     = "NFS"
 
   quota = var.sapmnt_volume_size
+}
+
+resource "azurerm_private_endpoint" "shared" {
+  provider = azurerm.main
+  count = var.NFS_provider == "AFS"  ? (
+    length(var.azure_files_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+  name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_install)
+  resource_group_name = local.rg_name
+  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+  subnet_id = (!local.sub_app_exists && local.enable_app_subnet) ? (
+    azurerm_subnet.app[0].id) : (
+    try(var.landscape_tfstate.app_subnet_id, "")
+  )
+
+
+  private_service_connection {
+    name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_install)
+    is_manual_connection           = false
+    private_connection_resource_id = length(var.azure_files_storage_account_id) > 0 ? data.azurerm_storage_account.shared[0].id : azurerm_storage_account.shared[0].id
+    subresource_names = [
+      "File"
+    ]
+  }
 }
 
 

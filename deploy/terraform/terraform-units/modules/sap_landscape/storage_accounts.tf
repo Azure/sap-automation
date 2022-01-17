@@ -17,12 +17,12 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 }
 
 resource "azurerm_storage_account_network_rules" "storage_bootdiag" {
-  count = var.use_private_endpoint && length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
+  count              = var.use_private_endpoint && length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
   provider           = azurerm.main
   storage_account_id = azurerm_storage_account.storage_bootdiag[0].id
 
   default_action = "Deny"
-  ip_rules                   = [var.Agent_IP]
+  ip_rules       = [var.Agent_IP]
   virtual_network_subnet_ids = compact(
     [
       local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
@@ -83,12 +83,12 @@ resource "azurerm_storage_account" "witness_storage" {
 }
 
 resource "azurerm_storage_account_network_rules" "witness_storage" {
-  count = var.use_private_endpoint && length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
+  count              = var.use_private_endpoint && length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
   provider           = azurerm.main
   storage_account_id = azurerm_storage_account.witness_storage[0].id
 
   default_action = "Deny"
-  ip_rules                   = [var.Agent_IP]
+  ip_rules       = [var.Agent_IP]
   virtual_network_subnet_ids = compact(
     [
       local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
@@ -179,7 +179,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
   storage_account_id = azurerm_storage_account.transport[0].id
 
   default_action = "Deny"
-  ip_rules                   = [var.Agent_IP]
+  ip_rules       = [var.Agent_IP]
   virtual_network_subnet_ids = compact(
     [
       local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
@@ -208,4 +208,31 @@ resource "azurerm_storage_share" "transport" {
   enabled_protocol     = "NFS"
 
   quota = var.transport_volume_size
+}
+
+resource "azurerm_private_endpoint" "transport" {
+  provider = azurerm.main
+  count = var.NFS_provider == "AFS"  ? (
+    length(var.azure_files_transport_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+  name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_transport)
+  resource_group_name = local.rg_name
+  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+  subnet_id = local.sub_app_defined ? (
+    local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id) : (
+    ""
+  )
+
+  private_service_connection {
+    name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_transport)
+    is_manual_connection           = false
+    private_connection_resource_id = length(var.azure_files_transport_storage_account_id) > 0 ? data.azurerm_storage_account.transport[0].id : azurerm_storage_account.transport[0].id
+    subresource_names = [
+      "File"
+    ]
+  }
 }
