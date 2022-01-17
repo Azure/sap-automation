@@ -99,10 +99,7 @@ resource "azurerm_private_endpoint" "shared" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_install)
   resource_group_name = local.rg_name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  subnet_id = (!local.sub_app_exists && local.enable_app_subnet) ? (
-    azurerm_subnet.app[0].id) : (
-    try(var.landscape_tfstate.app_subnet_id, "")
-  )
+  subnet_id =  try(var.landscape_tfstate.app_subnet_id, "")
 
 
   private_service_connection {
