@@ -67,8 +67,9 @@
 # -------------------------------------+---------------------------------------8
 
 - name: Bom folder path
-  debug:
-    msg: "{{ sapbits_location_base_path }}/boms/{{ bom_base_name }}"
+  ansible.builtin.debug:
+    msg:                               "{{ sapbits_location_base_path }}/boms/{{ bom_base_name }}"
+
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing dependent BOM names.
