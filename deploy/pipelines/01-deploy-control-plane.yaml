@@ -5,18 +5,18 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Control Plane Deployment $(deployerfolder) $(libraryfolder) $(Date:yyyyMMdd) $(SourceBranchName)
+name: "Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
 
 parameters:
-  - name: deployer
-    displayName: ENV-LOCA-VNET-INFRASTRUCTURE
-    type: string
-    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name:                              deployer
+    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
 
-  - name: library
-    displayName: ENV-LOCA-SAP_LIBRARY
-    type: string
-    default: MGMT-WEEU-SAP_LIBRARY
+  - name:                              library
+    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
+    type:                              string
+    default:                           MGMT-WEEU-SAP_LIBRARY
 
 trigger: none
 
@@ -40,16 +40,17 @@ variables:
     value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Prepare_region
-    displayName: Deploy the control plane
+  - stage:                             Deploy_controlplane
+    displayName:                       Deploy the control plane
     jobs:
-      - job: Prepare_region
-        displayName: Deploy the control plane
+      - job:                           Deploy_controlplane
+        displayName:                   Deploy the control plane
         steps:
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Install Terraform ---$reset"
@@ -96,10 +97,6 @@ stages:
                 fi
 
               echo -e "$green--- az login ---$reset"
-                export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-                export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-                export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-                export ARM_TENANT_ID=$(ARM_TENANT_ID)
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -153,11 +150,18 @@ stages:
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                fi
+                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
                 fi
                 exit $return_code
-            displayName: Prepare region
+            displayName:               Deploy control plane
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+            failOnStderr:              false
 ...
