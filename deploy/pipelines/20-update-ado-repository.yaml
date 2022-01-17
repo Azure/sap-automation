@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Update Azure DevOps repository from GitHub source and branch $(branch) [$(Date:yyyyMMdd)]
+name: Update Azure DevOps repository from GitHub $(branch) branch [$(Date:yyyyMMdd)]
 
 parameters:
   - name: repository
