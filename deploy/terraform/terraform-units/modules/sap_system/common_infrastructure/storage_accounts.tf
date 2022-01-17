@@ -62,6 +62,29 @@ resource "azurerm_storage_share" "install" {
   quota = 128
 }
 
+resource "azurerm_storage_account_network_rules" "install" {
+  count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
+    length(var.azure_files_storage_account_id) > 0 ? (
+      0) : (
+      0
+    )) : (
+    0
+  )
+
+  storage_account_id = azurerm_storage_account.shared[0].id
+
+  default_action = "Deny"
+  ip_rules       = [var.Agent_IP]
+  virtual_network_subnet_ids = compact([
+    try(var.landscape_tfstate.app_subnet_id, ""),
+    try(var.landscape_tfstate.db_subnet_id, ""),
+    try(var.landscape_tfstate.web_subnet_id, ""),
+    try(var.landscape_tfstate.subnet_mgmt_id, "")]
+  )
+  bypass = ["AzureServices", "Logging", "Metrics"]
+
+}
+
 resource "azurerm_storage_share" "sapmnt" {
   count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_storage_account_id) > 0 ? (
@@ -70,7 +93,7 @@ resource "azurerm_storage_share" "sapmnt" {
     )) : (
     0
   )
-  depends_on           = [azurerm_storage_account.shared]
+
   name                 = format("%s", local.resource_suffixes.sapmnt)
   storage_account_name = azurerm_storage_account.shared[0].name
   enabled_protocol     = "NFS"
