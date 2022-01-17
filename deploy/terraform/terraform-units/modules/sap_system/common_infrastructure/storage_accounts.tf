@@ -38,16 +38,9 @@ resource "azurerm_storage_account_network_rules" "shared" {
   ip_rules       = [var.Agent_IP]
   virtual_network_subnet_ids = compact(
     [
-      (!local.sub_admin_exists && local.enable_admin_subnet) ? (
-        azurerm_subnet.admin[0].id) : (
-        try(var.landscape_tfstate.admin_subnet_id, "")
-      ),
-      try(var.landscape_tfstate.app_subnet_id, "")
-      ,
-      (!local.sub_db_exists && local.enable_db_subnet) ? (
-        azurerm_subnet.db[0].id) : (
-        try(var.landscape_tfstate.db_subnet_id, "")
-      ),
+      try(var.landscape_tfstate.admin_subnet_id, ""),
+      try(var.landscape_tfstate.app_subnet_id, ""),
+      try(var.landscape_tfstate.db_subnet_id, ""),
       try(var.landscape_tfstate.subnet_mgmt_id, "")
     ]
   )
