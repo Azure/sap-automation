@@ -90,11 +90,11 @@
 #   02) Validate media from SAP
 #   Loop through BOM media URLs
 
-#- name:                                "BOM: {{ bom_name }} Check and Download Files"
-#  include_tasks:                       bom_download.yaml
+- name:                                "BOM: {{ bom_name }} Check and Download Files"
+  include_tasks:                       bom_download.yaml
 
-#  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
-#  no_log:                              false
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  no_log:                              false
 
 - name:                                "BOM: {{ bom_name }} Upload Folder"
   vars:
