@@ -137,6 +137,7 @@ stages:
         displayName: Download software
         timeoutInMinutes: 0
         steps:
+          - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
           - task: Ansible@0

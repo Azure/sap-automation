@@ -5,25 +5,25 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Update Azure DevOps repository from GitHub $(branch) branch [$(Date:yyyyMMdd)]
+name:                                  Update Azure DevOps repository from GitHub $(branch) branch [$(Date:yyyyMMdd)]
 
 parameters:
-  - name: repository
-    displayName: Source repository
-    type: string
-    default: https://github.com/Azure/sap-automation.git
+  - name:                              repository
+    displayName:                       Source repository
+    type:                              string
+    default:                           https://github.com/Azure/sap-automation.git
 
-  - name: branch
-    displayName: Source branch to update from
-    type: string
-    default: private-preview
+  - name:                              branch
+    displayName:                       Source branch to update from
+    type:                              string
+    default:                           private-preview
 
-  - name: force
-    displayName: Force the update
-    type: boolean
-    default: False
+  - name:                              force
+    displayName:                       Force the update
+    type:                              boolean
+    default:                           False
 
-trigger: none
+trigger:                               none
 
 pool:
   vmImage: ubuntu-latest
@@ -69,7 +69,7 @@ stages:
                 echo "running git push to ADO" >> /tmp/$(log) 2>&1
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(branch) >> /tmp/$(log) 2>&1
               fi
-              cat /tmp/$(log) 
+              cat /tmp/$(log)
             displayName: Update ADO repository
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)

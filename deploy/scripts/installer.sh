@@ -112,11 +112,12 @@ fi
 
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile_name"
+return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-if valid_region_name ${region} ; then
+if valid_region_name "${region}" ; then
     # Convert the region to the correct code
     get_region_code ${region}
 else
@@ -171,7 +172,7 @@ then
     deployer_tfstate_key=${key}.terraform.tfstate
 fi
 
-if [ -z "$REMOTE_STATE_SA" ];
+if [ -n "${REMOTE_STATE_SA}" ];
 then
     echo "Loading the State file information"
     load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
@@ -182,10 +183,10 @@ else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-echo "Terraform state file storage: $REMOTE_STATE_SA"
-echo "Terraform state subscription: $STATE_SUBSCRIPTION"
+echo "Terraform state file storage:" "${REMOTE_STATE_SA}"
+echo "Terraform state subscription:" "${STATE_SUBSCRIPTION}"
 
-if [ -z "$deployer_tfstate_key" ];
+if [ -z $deployer_tfstate_key ];
 then
     load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else

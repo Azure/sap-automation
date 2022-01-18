@@ -563,6 +563,7 @@ stages:
           key_path:                    $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSHKEY'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         steps:
+          - task:                      PostBuildCleanup@3
           - checkout:                  none
             persistCredentials:        true
           - script: |
@@ -579,7 +580,8 @@ stages:
                   exit 2
                 fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
@@ -590,8 +592,7 @@ stages:
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
