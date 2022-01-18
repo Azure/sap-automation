@@ -103,7 +103,8 @@ stages:
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
                 return_code=$?
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
@@ -128,7 +129,7 @@ stages:
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
               exit $return_code
             displayName: Deploy_SAP_infrastructure
