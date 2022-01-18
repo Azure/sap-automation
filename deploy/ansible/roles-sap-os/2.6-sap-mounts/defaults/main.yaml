@@ -7,4 +7,8 @@ distro_name:                           "{{ ansible_os_family|upper }}-{{ ansible
 distro_id:                             "{{ ansible_os_family|lower ~ ansible_distribution_major_version }}"
 
 nfs_server:                            "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-usr_sap_install_path:                  "{% if usr_sap_install_mountpoint is defined %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:/usr/sap/install{% endif %}"
+
+use_AFS:                               "{{ NFS_provider == 'AFS' }}"
+usr_sap_install_path:                  "{% if use_AFS %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:/usr/sap/install{% endif %}"
+
+...

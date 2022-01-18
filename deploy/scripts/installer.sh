@@ -36,7 +36,7 @@ do
         -s | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
         -d | --deployer_tfstate_key)               deployer_tfstate_key="$2"        ; shift 2 ;;
         -l | --landscape_tfstate_key)              landscape_tfstate_key="$2"       ; shift 2 ;;
-        -a | --ado)                                ado=1                            ; shift ;;
+        -a | --ado)                                called_from_ado=1                ; shift ;;
         -f | --force)                              force=1                          ; shift ;;
         -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
         -h | --help)                               showhelp
@@ -136,6 +136,12 @@ system_config_information="${automation_config_directory}""${environment}""${reg
 echo "Configuration file: $system_config_information"
 echo "Deployment region: $region"
 echo "Deployment region code: $region_code"
+if [ 1 == $called_from_ado ] ; then
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    export TF_VAR_Agent_IP=$this_ip
+    echo "Agent IP: $this_ip"
+fi
+
 
 deployer_tfstate_key_parameter=''
 landscape_tfstate_key_parameter=''
@@ -166,7 +172,7 @@ then
     deployer_tfstate_key=${key}.terraform.tfstate
 fi
 
-if [ -z "$REMOTE_STATE_SA" ];
+if [ -n "${REMOTE_STATE_SA}" ];
 then
     echo "Loading the State file information"
     load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
@@ -177,10 +183,10 @@ else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-echo "Terraform state file storage: $REMOTE_STATE_SA"
-echo "Terraform state subscription: $STATE_SUBSCRIPTION"
+echo "Terraform state file storage:" "${REMOTE_STATE_SA}"
+echo "Terraform state subscription:" "${STATE_SUBSCRIPTION}"
 
-if [ -z "$deployer_tfstate_key" ];
+if [ -z $deployer_tfstate_key ];
 then
     load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
@@ -251,7 +257,7 @@ load_config_vars "${system_config_information}" "tfstate_resource_id"
 
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
-    if [ 1 != $ado ]; then
+    if [ 1 != $called_from_ado ]; then
         read -p "Terraform state storage account name:"  REMOTE_STATE_SA
         
         get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
@@ -311,7 +317,7 @@ then
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
         landscape_tfstate_key_exists=true
     else
-        if [ 1 != $ado ]; then
+        if [ 1 != $called_from_ado ]; then
             read -p "Workload terraform statefile name :" landscape_tfstate_key
             landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
             save_config_var "landscape_tfstate_key" "${system_config_information}"
@@ -460,7 +466,7 @@ then
             echo "#                                                                                       #"
             echo "#########################################################################################"
             
-            if [ 1 == $ado ] ; then
+            if [ 1 == $called_from_ado ] ; then
                 unset TF_DATA_DIR
                 exit 1
             fi
@@ -735,7 +741,7 @@ if [ 2 == $return_value ] ; then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        if [ 1 == "$ado" ]; then
+        if [ 1 == "$called_from_ado" ]; then
             unset TF_DATA_DIR
             exit 1
         fi

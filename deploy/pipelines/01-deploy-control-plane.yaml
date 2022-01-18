@@ -108,10 +108,6 @@ stages:
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
 
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
@@ -126,7 +122,8 @@ stages:
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
                 git config --global user.email "$(Build.RequestedForEmail)"
@@ -154,13 +151,11 @@ stages:
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
-                git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
                 fi
-
                 exit $return_code
             displayName:               Deploy control plane
             env:

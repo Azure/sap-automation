@@ -28,6 +28,7 @@ module "sap_landscape" {
   transport_volume_size                    = var.transport_volume_size
   azure_files_transport_storage_account_id = var.azure_files_transport_storage_account_id
   NFS_provider                             = var.NFS_provider
+  Agent_IP                                 = var.Agent_IP
 
 }
 

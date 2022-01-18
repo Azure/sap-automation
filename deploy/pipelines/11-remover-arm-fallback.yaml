@@ -9,41 +9,40 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: ${{ sap_system }} ${{ workloadzone }}  ${{ deployer }} ${{ library }} $(Date:yyyyMMdd)
-
+name: Remove deployment [$(Date:yyyyMMdd)]
 parameters:
   - name:                              cleanupsap
     displayName:                       Remove the SAP system
     type:                              boolean
-    default: false
+    default:                           true
 
   - name:                              sap_system
-    displayName:                       "Use this format: ENV-LOCA-VNET-SID"
+    displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
   - name:                              cleanupzone
     displayName:                       Remove the SAP workload zone
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              workloadzone
-    displayName:                       "Use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
   - name:                              cleanupregion
     displayName:                       Remove the control plane
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              deployer
-    displayName:                       "Use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
     default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
 
   - name:                              library
-    displayName:                       "Use this format: ENV-LOCA-SAP_LIBRARY"
+    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
@@ -75,32 +74,27 @@ variables:
     value: logfile_$(Build.BuildId)
 
 stages:
-  - checkout: self
-    persistCredentials: true
-  - stage: Remove_SAP_systems
-    displayName: "Remove SAP System $(sapsystemfolder)"
-    condition: eq(${{ parameters.cleanupsap }}, true)
+  - stage:                             Remove_SAP_systems
+    displayName:                       "Remove SAP System"
+    condition:                         eq(${{ parameters.cleanupsap }}, true)
     jobs:
-      - job: Remove_SAP_system_RG
-        displayName: "Remove SAP System $(sapsystemfolder)"
+      - job:                           Remove_SAP_system_RG
+        displayName:                   "Remove SAP System $(sapsystemfolder)"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Resource Group $(sapsystemfolder)"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Resource Group $(sapsystemfolder)"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "$(sapsystemfolder)"
+              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "$(sapsystemfolder)"
 
       - job: Remove_sap_deployment_artefacts_in_WORKSPACES
         steps:
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
@@ -112,36 +106,32 @@ stages:
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Remove_sap_deployment_artefacts_in_WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              false
 
-  - stage: Remove_SAP_workloadzone
-    displayName: "Remove SAP workload zone $(zonefolder)"
-    condition: eq(${{ parameters.cleanupzone }}, true)
+  - stage:                             Remove_SAP_workloadzone
+    displayName:                       "Remove SAP workload zone"
+    condition:                         eq(${{ parameters.cleanupzone }}, true)
     jobs:
-      - job: Remove_SAP_workloadzone
-        displayName: "Remove SAP workload zone $(zonefolder)"
+      - job:                           Remove_SAP_workloadzone
+        displayName:                   "Remove SAP workload zone $(zonefolder)"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Resource Group $(zonefolder)"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Resource Group $(zonefolder)"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "$(zonefolder)"
+              subscriptionId:           "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "$(zonefolder)"
 
-      - job: Remove_zone_deployment_artefacts_in_WORKSPACES
+      - job:                           Remove_zone_deployment_artefacts_in_WORKSPACES
         steps:
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
@@ -153,48 +143,44 @@ stages:
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
             displayName: Remove_zone_deployment_artefacts_in_WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              true
 
-  - stage: Remove_Control_plane
-    displayName: Reemove Control Plane
-    condition: eq(${{ parameters.cleanupregion }}, true)
+  - stage:                             Remove_Control_plane
+    displayName:                       Remove Control Plane
+    condition:                         eq(${{ parameters.cleanupregion }}, true)
     jobs:
-      - job: Remove_SAP_library
-        displayName: "Remove SAP Library ${{ parameters.library }}"
+      - job:                           Remove_SAP_library
+        displayName:                   "Remove SAP Library ${{ parameters.library }}"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Resource Group ${{ parameters.library }}"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Resource Group ${{ parameters.library }}"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "${{ parameters.library }}"
+              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "${{ parameters.library }}"
 
-      - job: Remove_Deployer
-        displayName: "Remove Deployer ${{ parameters.deployer }}"
+      - job:                           Remove_Deployer
+        displayName:                   "Remove Deployer ${{ parameters.deployer }}"
         steps:
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: "Remove Deployer ${{ parameters.deployer }}"
+          - task:                      AzureResourceManagerTemplateDeployment@3
+            displayName:               "Remove Deployer ${{ parameters.deployer }}"
             inputs:
-              deploymentScope: "Resource Group"
+              deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
-              action: "DeleteRG"
-              resourceGroupName: "${{ parameters.deployer }}"
+              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
+              action:                  "DeleteRG"
+              resourceGroupName:       "${{ parameters.deployer }}"
 
-      - job: Remove_region_deployment_artefacts_in_WORKSPACES
+      - job:                           Remove_region_deployment_artefacts_in_WORKSPACES
         steps:
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
@@ -208,9 +194,8 @@ stages:
                 git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-            displayName: Remove_region_deployment_artefacts_in_WORKSPACES
+            displayName:               Remove_region_deployment_artefacts_in_WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              true
 ...

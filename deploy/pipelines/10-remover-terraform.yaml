@@ -11,12 +11,12 @@ name: "Removal $(Date:yyyyMMdd)"
 
 parameters:
   - name:                              cleanupsap
-    displayName:                       "Remove the SAP system (Note: VMs must be in running state)"
+    displayName:                       Remove the SAP system
     type:                              boolean
-    default:                           false
+    default: false
 
   - name:                              sap_system
-    displayName:                       "Use this format: ENV-LOCA-VNET-SID"
+    displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
@@ -26,7 +26,7 @@ parameters:
     default:                           false
 
   - name:                              workloadzone
-    displayName:                       "Use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
@@ -36,12 +36,12 @@ parameters:
     default:                           false
 
   - name:                              deployer
-    displayName:                       "Use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
     default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
 
   - name:                              library
-    displayName:                       "Use this format: ENV-LOCA-SAP_LIBRARY"
+    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
@@ -75,12 +75,12 @@ variables:
     value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Remove_SAP_systems
-    displayName: "Removing the SAP System"
-    condition: eq(${{ parameters.cleanupsap }}, true)
+  - stage:                             Remove_SAP_systems
+    displayName:                       "Removing the SAP System"
+    condition:                         eq(${{ parameters.cleanupsap }}, true)
     jobs:
-      - job: Remove_SAP_systems
-        displayName: "Removing the SAP System"
+      - job:                           Remove_SAP_systems
+        displayName:                   "Removing the SAP System"
         steps:
           - script: |
               #!/bin/bash
@@ -163,12 +163,12 @@ stages:
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr: false
 
-  - stage: Remove_SAP_workloadzone
-    displayName: "Removing the SAP workload zone"
-    condition: eq(${{ parameters.cleanupzone }}, true)
+  - stage:                             Remove_SAP_workloadzone
+    displayName:                       "Removing the SAP workload zone"
+    condition:                         eq(${{ parameters.cleanupzone }}, true)
     jobs:
-      - job: Remove_SAP_workloadzone
-        displayName: Remove the SAP Workload Zone
+      - job:                           Remove_SAP_workloadzone
+        displayName:                   Remove the SAP Workload Zone
         steps:
           - script: |
               #!/bin/bash
@@ -251,12 +251,12 @@ stages:
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr: true
 
-  - stage: Remove_region
-    displayName: "Remove the control plane"
-    condition: eq(${{ parameters.cleanupregion }}, true)
+  - stage:                             Remove_region
+    displayName:                       "Remove the control plane"
+    condition:                         eq(${{ parameters.cleanupregion }}, true)
     jobs:
-      - job: Remove_region
-        displayName: "Remove the control plane"
+      - job:                           Remove_region
+        displayName:                   "Remove the control plane"
         steps:
           - script: |
               #!/bin/bash
@@ -329,9 +329,9 @@ stages:
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
                 exit $return_code
-            displayName: Remove region
+            displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
