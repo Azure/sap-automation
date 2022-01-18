@@ -39,11 +39,20 @@
     - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
   when:         
     - item.node_tier == node_tier
-    - usr_sap_install_mountpoint is not defined
+    - not use_AFS
 
 - name:                                Show NFS_provider
   ansible.builtin.debug:
     var:                               NFS_provider
+
+- name:                                Show usr_sap_install_path
+  ansible.builtin.debug:
+    var:                               usr_sap_install_path
+
+- name:                                Show usr_sap_install_path
+  ansible.builtin.debug:
+    var:                               use_AFS
+
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
@@ -107,13 +116,13 @@
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
-    opts:                              defaults
+    opts:                              "vers=4,minorversion=1,sec=sys"
     state:                             mounted
   loop:
     - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
   when:
     - tier == 'sapos'
-    - usr_sap_install_mountpoint is defined
+    - use_AFS
 
 - name:                                Mount Install folder when not using AFS
   ansible.builtin.mount:
@@ -123,10 +132,11 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'nfs4', src: '{{ nfs_server }}:/usr/sap/install', path: '/usr/sap/install' }
+    - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
   when:
     - tier == 'sapos'
-    - usr_sap_install_mountpoint is not defined
+    - node_tier != 'scs'
+    - not use_AFS
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                Import AFS tasks
