@@ -7,7 +7,7 @@
 # +------------------------------------4--------------------------------------*/
 
 # Mount Filesystems
-- name:                                Mount Filesystems
+- name:                                Mount local filesystems
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -19,17 +19,36 @@
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop:
     - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
-#    - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_sap/lv_hana_shared',            path: '/hana/shared'     }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_data/lv_hana_data',        path: '/hana/data'       }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_log/lv_hana_log',          path: '/hana/log'        }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'     }
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
 
+- name:                                Mount local filesystems (when not using AFS)
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop:
+    - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
+  when:         
+    - item.node_tier == node_tier
+    - usr_sap_install_mountpoint is not defined
+
+- name:                                Show NFS_provider
+  ansible.builtin.debug:
+    var:                               NFS_provider
+
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-  when:                                NFS_provider != "AFS" or NFS_provider != "ANF"
+  when:                                NFS_provider == "NONE"
 
 # Mount Filesystems
 - name:                                Mount local sapmnt (scs)
@@ -83,7 +102,7 @@
 
 # Mount Filesystems
 
-- name:                                Mount Install folder
+- name:                                Mount Install folder when using AFS
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -91,15 +110,23 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'nfs4',  src: '{{ usr_sap_install_path }}',   path: '/usr/sap/install'  }
+    - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
   when:
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
 
-
-- name:                                Show sap_mnt
-  ansible.builtin.debug:
-    var:                               NFS_provider
+- name:                                Mount Install folder when not using AFS
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
+    - { type: 'nfs4', src: '{{ nfs_server }}:/usr/sap/install', path: '/usr/sap/install' }
+  when:
+    - tier == 'sapos'
+    - usr_sap_install_mountpoint is not defined
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                Import AFS tasks
@@ -121,7 +148,7 @@
 
 # Import this task only if the tier is ora.
 - import_tasks:                        "oracle.yaml"
-  when: 
+  when:
     - node_tier == "oracle"
     - node_tier != "oracle-asm"
 
