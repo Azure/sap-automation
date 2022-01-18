@@ -120,5 +120,5 @@ output "sapmnt_path" {
 }
 
 output "install_path" {
-  value = try(format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install[0].url, "https://", ""))[0], azurerm_storage_account.shared[0].name, azurerm_storage_share.install[0].name), "") 
+  value = var.NFS_provider == "AFS" ? try(format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install[0].url, "https://", ""))[0], azurerm_storage_account.shared[0].name, azurerm_storage_share.install[0].name), "") : ""
 }

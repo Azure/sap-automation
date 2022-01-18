@@ -570,3 +570,12 @@ variable "sapmnt_volume_size" {
 variable "azure_files_storage_account_id" {
   default = ""
 }
+
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}
+
+variable "use_private_endpoint" {
+  default = false
+}

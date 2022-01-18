@@ -18,6 +18,8 @@ source "${script_directory}/deploy_utils.sh"
 source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
+called_from_ado=0
+
 INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifh --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help -- "$@")
 VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -56,6 +58,18 @@ landscape_tfstate_key_parameter=""
 deployment_system="sap_landscape"
 
 echo "Deployer environment: $deployer_environment"
+if [ 1 == $called_from_ado ] ; then
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    export TF_VAR_Agent_IP=$this_ip
+    echo "Agent IP: $this_ip"
+fi
+
+if [ 1 == $called_from_ado ] ; then
+    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+    export TF_VAR_Agent_IP=$this_ip
+    echo "Agent IP: $this_ip"
+fi
+
 
 workload_file_parametername=$(basename "${parameterfile}")
 
@@ -156,17 +170,16 @@ then
         tfstate_resource_id \
         REMOTE_STATE_SA \
         REMOTE_STATE_RG
-        
     fi
-    
 fi
-
 
 if [ -z "$tfstate_resource_id" ]
 then
+    echo "No tfstate_resource_id"
     if [ -n "$deployer_environment" ]
     then
         deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
+        echo "Deployer config file $deployer_config_information"
         if [ -f "$deployer_config_information" ]
         then
             load_config_vars "${deployer_config_information}" "keyvault"
@@ -175,16 +188,22 @@ then
             load_config_vars "${deployer_config_information}" "tfstate_resource_id"
             load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
             load_config_vars "${deployer_config_information}" "subscription"
+            echo "tfstate_id $tfstate_resource_id"
+            save_config_vars "${workload_config_information}" \
+                tfstate_resource_id
             
             save_config_vars "${workload_config_information}" \
             keyvault \
             subscription \
             deployer_tfstate_key \
-            tfstate_resource_id \
             REMOTE_STATE_SA \
             REMOTE_STATE_RG
         fi
     fi
+else
+    echo "tfstate_id $tfstate_resource_id"
+    save_config_vars "${workload_config_information}" \
+            tfstate_resource_id
 fi
 
 if [ "${force}" == 1 ]
@@ -222,6 +241,8 @@ then
     echo "Saving the state subscription"
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
         echo "Valid subscription format"
+        save_config_vars "${workload_config_information}" \
+            STATE_SUBSCRIPTION
     else
         printf -v val %-40.40s "$STATE_SUBSCRIPTION"
         echo "#########################################################################################"
@@ -298,11 +319,13 @@ then
     REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
     REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
     STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
+
     save_config_vars "${workload_config_information}" \
-    tfstate_resource_id \
     REMOTE_STATE_SA \
     REMOTE_STATE_RG \
     STATE_SUBSCRIPTION
+else
+    get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
 fi
 
 if [ -n "$STATE_SUBSCRIPTION" ]
@@ -318,11 +341,8 @@ then
     account_set=1
 fi
 
-
-
 if [ -z "$REMOTE_STATE_SA" ]
 then
-    
     if [ -z "$REMOTE_STATE_RG" ]
     then
         load_config_vars "${workload_config_information}" "tfstate_resource_id"
@@ -336,7 +356,6 @@ then
             load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
             load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
         fi
-        
     fi
     
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
@@ -348,9 +367,9 @@ else
         load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
         load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
         load_config_vars "${workload_config_information}" "tfstate_resource_id"
-        
     fi
 fi
+
 if [ -n "$keyvault" ]
 then
     secretname="${environment}"-client-id
@@ -406,9 +425,7 @@ then
 else
     deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
     save_config_vars "${workload_config_information}" deployer_tfstate_key
-    
 fi
-
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
     read -p "Terraform state storage account name:"  REMOTE_STATE_SA
@@ -427,8 +444,6 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
             account_set=1
         fi
     fi
-    
-    
 fi
 
 if [ -z "${REMOTE_STATE_RG}" ]; then
@@ -537,7 +552,7 @@ fi
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
 save_config_var "subscription" "${workload_config_information}"
 save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
-
+save_config_var "tfstate_resource_id" "${workload_config_information}"
 
 if [ 1 == $check_output ]
 then
