@@ -68,7 +68,7 @@
 
 - name: Bom folder path
   ansible.builtin.debug:
-    msg:                               "{{ sapbits_location_base_path }}/boms/{{ bom_base_name }}"
+    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
 
 # -------------------------------------+---------------------------------------8
 #
