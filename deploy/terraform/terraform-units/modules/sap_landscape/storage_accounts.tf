@@ -22,7 +22,7 @@ resource "azurerm_storage_account_network_rules" "storage_bootdiag" {
   storage_account_id = azurerm_storage_account.storage_bootdiag[0].id
 
   default_action = "Deny"
-  ip_rules       = [var.Agent_IP]
+  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
       local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
@@ -88,7 +88,7 @@ resource "azurerm_storage_account_network_rules" "witness_storage" {
   storage_account_id = azurerm_storage_account.witness_storage[0].id
 
   default_action = "Deny"
-  ip_rules       = [var.Agent_IP]
+  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
       local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
@@ -179,7 +179,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
   storage_account_id = azurerm_storage_account.transport[0].id
 
   default_action = "Deny"
-  ip_rules       = [var.Agent_IP]
+  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
       local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
@@ -212,7 +212,7 @@ resource "azurerm_storage_share" "transport" {
 
 resource "azurerm_private_endpoint" "transport" {
   provider = azurerm.main
-  count = var.NFS_provider == "AFS"  ? (
+  count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_transport_storage_account_id) > 0 ? (
       0) : (
       1

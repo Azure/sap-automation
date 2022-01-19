@@ -25,7 +25,7 @@ VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
     showhelp
 fi
-
+called_from_ado=0
 eval set -- "$INPUT_ARGUMENTS"
 while :
 do
@@ -255,8 +255,7 @@ load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
 load_config_vars "${system_config_information}" "tfstate_resource_id"
 
-
-if [ -z "${REMOTE_STATE_SA}" ]; then
+if [ -n "${REMOTE_STATE_SA}" ]; then
     if [ 1 != $called_from_ado ]; then
         read -p "Terraform state storage account name:"  REMOTE_STATE_SA
         
@@ -275,14 +274,14 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
     exit 1
 fi
 
-if [ -z "${REMOTE_STATE_RG}" ]; then
+if [ -n "${REMOTE_STATE_RG}" ]; then
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
 fi
 
-if [ -z "${tfstate_resource_id}" ]; then
+if [ -n "${tfstate_resource_id}" ]; then
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
@@ -295,7 +294,7 @@ tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 if [ "${deployment_system}" != sap_deployer ]
 then
     
-    if [ -z "${deployer_tfstate_key}" ]; then
+    if [ -n "${deployer_tfstate_key}" ]; then
         deployer_tfstate_key_parameter=" "
     else
         if [ "${deployment_system}" != sap_system ] ; then
