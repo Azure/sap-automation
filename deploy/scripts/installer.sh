@@ -149,7 +149,7 @@ landscape_tfstate_key_parameter=''
 parallelism=10
 
 #Provide a way to limit the number of parallell tasks for Terraform
-if [ -n "${TF_PARALLELLISM}" ]; then
+if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
@@ -172,7 +172,7 @@ then
     deployer_tfstate_key=${key}.terraform.tfstate
 fi
 
-if [ -n "${REMOTE_STATE_SA}" ];
+if [[ -z ${REMOTE_STATE_SA} ]];
 then
     echo "Loading the State file information"
     load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
@@ -186,21 +186,21 @@ fi
 echo "Terraform state file storage:" "${REMOTE_STATE_SA}"
 echo "Terraform state subscription:" "${STATE_SUBSCRIPTION}"
 
-if [ -z $deployer_tfstate_key ];
+if [[ -z $deployer_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
     save_config_vars "${system_config_information}" deployer_tfstate_key
 fi
 
-if [ -z "$landscape_tfstate_key" ];
+if [[ -z $landscape_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "landscape_tfstate_key"
 else
     save_config_vars "${system_config_information}" landscape_tfstate_key
 fi
 
-if [ -z "$STATE_SUBSCRIPTION" ];
+if [[ -z $STATE_SUBSCRIPTION ]];
 then
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
@@ -224,7 +224,7 @@ account_set=0
 #setting the user environment variables
 set_executing_user_environment_variables "none"
 
-if [ -n "${subscription}" ]; then
+if [[ -n ${subscription} ]]; then
     if is_valid_guid "${subscription}" ; then
         echo "Valid subscription format"
     else
@@ -239,7 +239,7 @@ if [ -n "${subscription}" ]; then
     export ARM_SUBSCRIPTION_ID="${subscription}"
 fi
 
-if [ -n "$STATE_SUBSCRIPTION" ];
+if [[ -n $STATE_SUBSCRIPTION ]];
 then
     echo ""
     echo "#########################################################################################"
@@ -255,7 +255,7 @@ load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
 load_config_vars "${system_config_information}" "tfstate_resource_id"
 
-if [ -n "${REMOTE_STATE_SA}" ]; then
+if [[ -z ${REMOTE_STATE_SA} ]]; then
     if [ 1 != $called_from_ado ]; then
         read -p "Terraform state storage account name:"  REMOTE_STATE_SA
         
@@ -268,20 +268,20 @@ fi
 
 echo "Terraform state storage " "${REMOTE_STATE_SA}"
 
-if [ -z "${REMOTE_STATE_SA}" ]; then
+if [ -z ${REMOTE_STATE_SA} ]; then
     option="REMOTE_STATE_SA"
     missing
     exit 1
 fi
 
-if [ -n "${REMOTE_STATE_RG}" ]; then
+if [[ -z ${REMOTE_STATE_RG} ]]; then
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
 fi
 
-if [ -n "${tfstate_resource_id}" ]; then
+if [[ -z ${tfstate_resource_id} ]]; then
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
@@ -294,7 +294,7 @@ tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 if [ "${deployment_system}" != sap_deployer ]
 then
     
-    if [ -n "${deployer_tfstate_key}" ]; then
+    if [ -z ${deployer_tfstate_key} ]; then
         deployer_tfstate_key_parameter=" "
     else
         if [ "${deployment_system}" != sap_system ] ; then
@@ -312,7 +312,7 @@ fi
 
 if [ "${deployment_system}" == sap_system ]
 then
-    if [ -n "${landscape_tfstate_key}" ]; then
+    if [[ -n ${landscape_tfstate_key} ]]; then
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
         landscape_tfstate_key_exists=true
     else

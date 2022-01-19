@@ -145,6 +145,15 @@ fi
 
 echo "Workload configuration file: $workload_config_information"
 
+if [ "${force}" == 1 ]
+then
+    if [ -f "${workload_config_information}" ]
+    then
+        rm "${workload_config_information}"
+    fi
+    rm -Rf .terraform terraform.tfstate*
+fi
+
 if [ ! -f "${workload_config_information}" ]
 then
     # Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
@@ -188,7 +197,7 @@ then
             load_config_vars "${deployer_config_information}" "tfstate_resource_id"
             load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
             load_config_vars "${deployer_config_information}" "subscription"
-            echo "tfstate_id $tfstate_resource_id"
+            echo "tfstate_resource_id $tfstate_resource_id"
             save_config_vars "${workload_config_information}" \
                 tfstate_resource_id
             
@@ -201,19 +210,11 @@ then
         fi
     fi
 else
-    echo "tfstate_id $tfstate_resource_id"
+    echo "tfstate_resource_id $tfstate_resource_id"
     save_config_vars "${workload_config_information}" \
             tfstate_resource_id
 fi
 
-if [ "${force}" == 1 ]
-then
-    if [ -f "${workload_config_information}" ]
-    then
-        rm "${workload_config_information}"
-    fi
-    rm -Rf .terraform terraform.tfstate*
-fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
 
@@ -325,7 +326,7 @@ then
     REMOTE_STATE_RG \
     STATE_SUBSCRIPTION
 else
-    get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+    get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
 fi
 
 if [ -n "$STATE_SUBSCRIPTION" ]
@@ -351,10 +352,6 @@ then
             REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
             REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
             STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
-        else
-            get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
-            load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
-            load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
         fi
     fi
     
@@ -362,7 +359,6 @@ then
 else
     if [ -z "$REMOTE_STATE_RG" ]
     then
-        
         get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
         load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
         load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
@@ -412,8 +408,8 @@ then
     then
         rm kv.log
     fi
-    
 fi
+
 if [ -z "${deployer_tfstate_key}" ]
 then
     load_config_vars "${workload_config_information}" "deployer_tfstate_key"
@@ -440,7 +436,7 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
     then
         if [ $account_set == 0 ]
         then
-            $(az account set --sub "${STATE_SUBSCRIPTION}")
+            az account set --sub "${STATE_SUBSCRIPTION}"
             account_set=1
         fi
     fi
@@ -502,7 +498,7 @@ check_output=0
 
 if [ $account_set == 0 ]
 then
-    $(az account set --sub "${STATE_SUBSCRIPTION}")
+    az account set --sub "${STATE_SUBSCRIPTION}"
     account_set=1
 fi
 
@@ -575,7 +571,7 @@ then
         echo ""
         
         deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output automation_version)
-        if [ ! -n "${deployed_using_version}" ]; then
+        if [ -z "${deployed_using_version}" ]; then
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"

@@ -110,20 +110,20 @@ do
 done
 
 approveparam=""
-if [ 1 == ado ]; then
+if [ 1 == $ado ]; then
     approveparam=" --auto-approve"
 fi
 
 if [ -z "$deployer_parameter_file" ]; then
     missing_value='deployer parameter file'
     missing
-    exit -1
+    exit 2
 fi
 
 if [ -z "$library_parameter_file" ]; then
     missing_value='library parameter file'
     missing
-    exit -1
+    exit 2
 fi
 
 
@@ -210,7 +210,7 @@ else
         rm stdout.az
     fi
 
-    if [ ! -z "${subscription}" ]
+    if [ -n "${subscription}" ]
     then
         az account set --sub "${subscription}"
     fi
@@ -218,7 +218,7 @@ else
 fi
 
 cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ ! -z "${cloudIDUsed}" ];
+if [ -n "${cloudIDUsed}" ];
 then 
     echo ""
     echo "#########################################################################################"
@@ -253,19 +253,19 @@ if [ -z "${storage_account}" ]; then
     load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${deployer_config_information}" "tfstate_resource_id"
     
-    if [ -z "${STATE_SUBSCRIPTION}" ]
+    if [ -n "${STATE_SUBSCRIPTION}" ]
     then
         subscription="${STATE_SUBSCRIPTION}"
         az account set --sub "${STATE_SUBSCRIPTION}"
         
     fi
 
-    if [ -z "${REMOTE_STATE_SA}" ]
+    if [ -n "${REMOTE_STATE_SA}" ]
     then
         storage_account="${REMOTE_STATE_SA}"
     fi
 
-    if [ -z "${REMOTE_STATE_RG}" ]
+    if [ -n "${REMOTE_STATE_RG}" ]
     then
         resource_group="${REMOTE_STATE_RG}"
     fi
