@@ -5,7 +5,7 @@ environment="MGMT"
 
 
 # The location/region value is a mandatory field, it is used to control where the resources are deployed
-location="westeurope"
+location="northeurope"
 
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
@@ -46,9 +46,6 @@ management_subnet_address_prefix="10.10.20.64/28"
 
 # management_firewall_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 management_firewall_subnet_address_prefix="10.10.20.0/26"
-
-# bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
-bastion_subnet_address_prefix="10.10.20.128/26"
 
 ########################################################
 #

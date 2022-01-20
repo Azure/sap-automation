@@ -23,7 +23,7 @@ deployer_tfstate_key = null
 #########################################################################################
 
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment = "DEV"
+environment = "QA"
 
 # The location valus is a mandatory field, it is used to control where the resources are deployed
 location = "westeurope"
@@ -51,7 +51,7 @@ location = "westeurope"
 # for the brownfield scenario the Azure resource identifier for the subnet must be specified
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-network_logical_name = "SAP01"
+network_logical_name = "SAP05"
 
 # The name is optional - it can be used to override the default naming
 #network_name=""
@@ -60,7 +60,7 @@ network_logical_name = "SAP01"
 #network_arm_id=""
 
 # network_address_space is a mandatory parameter when an existing Virtual network is not used
-network_address_space = "10.110.0.0/16"
+network_address_space = "10.150.0.0/16"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix
@@ -68,7 +68,7 @@ network_address_space = "10.110.0.0/16"
 #admin_subnet_name=""
 
 # admin_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-admin_subnet_address_prefix = "10.110.0.0/19"
+admin_subnet_address_prefix = "10.150.0.0/19"
 # admin_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 #admin_subnet_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/DEV-WEEU-SAP01-vnet/subnets/DEV-WEEU-SAP01-subnet_admin"
 
@@ -83,7 +83,7 @@ admin_subnet_address_prefix = "10.110.0.0/19"
 #db_subnet_name=""
 
 # db_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-db_subnet_address_prefix = "10.110.96.0/19"
+db_subnet_address_prefix = "10.150.96.0/19"
 
 # db_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 #db_subnet_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/DEV-WEEU-SAP01-vnet/subnets/DEV-WEEU-SAP01-subnet_db"
@@ -101,7 +101,7 @@ db_subnet_address_prefix = "10.110.96.0/19"
 #app_subnet_name=""
 
 # app_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-app_subnet_address_prefix = "10.110.32.0/19"
+app_subnet_address_prefix = "10.150.32.0/19"
 
 # app_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 #app_subnet_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/DEV-WEEU-SAP01-vnet/subnets/DEV-WEEU-SAP01-subnet_app"
@@ -118,7 +118,7 @@ app_subnet_address_prefix = "10.110.32.0/19"
 #web_subnet_name=""
 
 # web_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-web_subnet_address_prefix = "10.110.128.0/19"
+web_subnet_address_prefix = "10.150.128.0/19"
 
 # web_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 #web_subnet_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/DEV-WEEU-SAP01-vnet/subnets/DEV-WEEU-SAP01-subnet_web"
@@ -241,6 +241,7 @@ dns_label="sap.contoso.net"
 NFS_provider          = "AFS"
 transport_volume_size = 128
 
+
 #########################################################################################
 #                                                                                       #
 #  Azure NetApp files support                                                           #
@@ -274,4 +275,4 @@ transport_volume_size = 128
 #anf_subnet_address_prefix="10.110.64.0/27"
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
-use_private_endpoint = false
+use_private_endpoint = true

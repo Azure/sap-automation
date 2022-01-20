@@ -260,7 +260,7 @@ webdispatcher_server_count=0
 # source_image_id=""
 # publisher="SUSE"
 # offer="sles-sap-12-sp5"
-# sku="gen1"
+# sku="gen2"
 #}
 
 #########################################################################################
@@ -293,6 +293,20 @@ resource_offset=1
 
 # nsg_asg_with_vnet if set controls where the Application Security Groups are created
 #nsg_asg_with_vnet=false
+
+#########################################################################################
+#                                                                                       #
+#  NFS support                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+NFS_provider       = "NONE"
+sapmnt_volume_size = 128
+
 
 #########################################################################################
 #                                                                                       #
@@ -413,7 +427,7 @@ network_logical_name="SAP03"
 #source_image_id=""
 #publisher="SUSE"
 #offer="sles-sap-12-sp5"
-#sku="gen1"
+#sku="gen2"
 #version="latest"
 #}
 
