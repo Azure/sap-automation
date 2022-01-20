@@ -172,7 +172,7 @@ then
     deployer_tfstate_key=${key}.terraform.tfstate
 fi
 
-if [[ -n ${REMOTE_STATE_SA} ]];
+if [[ -z ${REMOTE_STATE_SA} ]];
 then
     echo "Loading the State file information"
     load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
