@@ -1,50 +1,10 @@
 [
   {
-    "Location": "eastus",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "eastus2",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "westus",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "centralus",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "northcentralus",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "southcentralus",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "northeurope",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "westeurope",
-    "MaximumFaultDomainCount": "3"
-  },
-  {
-    "Location": "eastasia",
+    "Location": "australiacentral",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "southeastasia",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "japaneast",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "japanwest",
+    "Location": "australiacentral2",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -56,39 +16,159 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "AustraliaCentral",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
     "Location": "brazilsouth",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "SouthIndia",
+    "Location": "brazilsoutheast",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "CentralIndia",
+    "Location": "canadacentral",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "WestIndia",
+    "Location": "canadaeast",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "CanadaCentral",
+    "Location": "centralindia",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "CanadaEast",
+    "Location": "centralus",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "centraluseuap",
+    "MaximumFaultDomainCount": "1"
+  },
+  {
+    "Location": "eastasia",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "westus2",
+    "Location": "eastus",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "westcentralus",
+    "Location": "eastus2",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "eastus2euap",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "eastusstg",
+    "MaximumFaultDomainCount": "1"
+  },
+  {
+    "Location": "francecentral",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "francesouth",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "germanynorth",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "germanywestcentral",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "japaneast",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "japanwest",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "jioindiacentral",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "jioindiawest",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "koreacentral",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "koreasouth",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "northcentralus",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "northeurope",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "norwayeast",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "norwaywest",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "qatarcentral",
+    "MaximumFaultDomainCount": "1"
+  },
+  {
+    "Location": "southafricanorth",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "southafricawest",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "southcentralus",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "southcentralusstg",
+    "MaximumFaultDomainCount": "1"
+  },
+  {
+    "Location": "southeastasia",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "southIndia",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "swedencentral",
+    "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "swedensouth",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "switzerlandnorth",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "switzerlandwest",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "uaecentral",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "uaenorth",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -100,75 +180,27 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "KoreaCentral",
+    "Location": "westcentralus",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "KoreaSouth",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "FranceCentral",
+    "Location": "westeurope",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "SouthAfricaNorth",
+    "Location": "westindia",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "UAENorth",
-    "MaximumFaultDomainCount": "2"
+    "Location": "westus",
+    "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "SwitzerlandNorth",
-    "MaximumFaultDomainCount": "2"
+    "Location": "westus2",
+    "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "GermanyWestCentral",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "NorwayEast",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "FranceSouth",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "AustraliaCentral2",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "SouthAfricaWest",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "UAECentral",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "SwitzerlandWest",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "GermanyNorth",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "NorwayWest",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "BrazilSoutheast",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "EastUS2EUAP",
-    "MaximumFaultDomainCount": "2"
-  },
-  {
-    "Location": "CentralUSEUAP",
-    "MaximumFaultDomainCount": "1"
+    "Location": "westus3",
+    "MaximumFaultDomainCount": "3"
   }
 ]

@@ -10,8 +10,8 @@ output "naming" {
       DEPLOYER = local.deployer_storageaccount_name
       SDU      = local.sdu_storageaccount_name
       VNET = {
-        landscape_storageaccount_name        = local.landscape_storageaccount_name
-        witness_storageaccount_name          = local.witness_storageaccount_name
+        landscape_storageaccount_name                   = local.landscape_storageaccount_name
+        witness_storageaccount_name                     = local.witness_storageaccount_name
         landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
       }
 
