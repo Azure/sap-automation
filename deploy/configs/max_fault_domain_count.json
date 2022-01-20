@@ -1,10 +1,10 @@
 [
   {
-    "Location": "AustraliaCentral",
+    "Location": "australiacentral",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "AustraliaCentral2",
+    "Location": "australiacentral2",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -20,19 +20,19 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "BrazilSoutheast",
+    "Location": "brazilsoutheast",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "CanadaCentral",
+    "Location": "canadacentral",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "CanadaEast",
+    "Location": "canadaeast",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "CentralIndia",
+    "Location": "centralindia",
     "MaximumFaultDomainCount": "3"
   },
   {
@@ -40,7 +40,7 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "CentralUSEUAP",
+    "Location": "centraluseuap",
     "MaximumFaultDomainCount": "1"
   },
   {
@@ -56,27 +56,27 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "EastUS2EUAP",
+    "Location": "eastus2euap",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "EastUSSTG",
+    "Location": "eastusstg",
     "MaximumFaultDomainCount": "1"
   },
   {
-    "Location": "FranceCentral",
+    "Location": "francecentral",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "FranceSouth",
+    "Location": "francesouth",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "GermanyNorth",
+    "Location": "germanynorth",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "GermanyWestCentral",
+    "Location": "germanywestcentral",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -88,19 +88,19 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "JioIndiaCentral",
+    "Location": "jioindiacentral",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "JioIndiaWest",
+    "Location": "jioindiawest",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "KoreaCentral",
+    "Location": "koreacentral",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "KoreaSouth",
+    "Location": "koreasouth",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -112,23 +112,23 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "NorwayEast",
+    "Location": "norwayeast",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "NorwayWest",
+    "Location": "norwaywest",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "QatarCentral",
+    "Location": "qatarcentral",
     "MaximumFaultDomainCount": "1"
   },
   {
-    "Location": "SouthAfricaNorth",
+    "Location": "southafricanorth",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "SouthAfricaWest",
+    "Location": "southafricawest",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -136,7 +136,7 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "SouthCentralUSSTG",
+    "Location": "southcentralusstg",
     "MaximumFaultDomainCount": "1"
   },
   {
@@ -144,31 +144,31 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "SouthIndia",
+    "Location": "southIndia",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "SwedenCentral",
+    "Location": "swedencentral",
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "SwedenSouth",
+    "Location": "swedensouth",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "SwitzerlandNorth",
+    "Location": "switzerlandnorth",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "SwitzerlandWest",
+    "Location": "switzerlandwest",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "UAECentral",
+    "Location": "uaecentral",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "UAENorth",
+    "Location": "uaenorth",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -188,7 +188,7 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "WestIndia",
+    "Location": "westindia",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -200,7 +200,7 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "WestUS3",
+    "Location": "westus3",
     "MaximumFaultDomainCount": "3"
   }
 ]
