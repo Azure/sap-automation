@@ -174,6 +174,10 @@ variable "install_path" {
   default = ""
 }
 
+variable "NFS_provider" {
+  type    = string
+}
+
 locals {
 
   tfstate_resource_id          = try(var.tfstate_resource_id, "")

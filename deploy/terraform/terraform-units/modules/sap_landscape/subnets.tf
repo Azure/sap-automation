@@ -24,7 +24,7 @@ resource "azurerm_subnet" "db" {
 
   enforce_private_link_endpoint_network_policies = true
   enforce_private_link_service_network_policies  = false
-  service_endpoints    = ["Microsoft.Storage", "Microsoft.KeyVault"]
+  service_endpoints                              = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }
 
 // Creates app subnet of SAP VNET
@@ -49,7 +49,7 @@ resource "azurerm_subnet" "web" {
   resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.sub_web_prefix]
-  
+
   enforce_private_link_endpoint_network_policies = true
   enforce_private_link_service_network_policies  = false
   service_endpoints                              = ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -57,12 +57,18 @@ resource "azurerm_subnet" "web" {
 
 // Creates anf subnet of SAP VNET
 resource "azurerm_subnet" "anf" {
-  provider             = azurerm.main
-  count                = local.sub_anf_defined && !local.sub_anf_existing ? 1 : 0
-  name                 = local.sub_anf_name
+  provider = azurerm.main
+  count = var.ANF_settings.use ? (
+    local.sub_ANF_existing ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+  name                 = local.sub_ANF_name
   resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
-  address_prefixes     = [local.sub_anf_prefix]
+  address_prefixes     = [local.sub_ANF_prefix]
 
   delegation {
     name = "delegation"

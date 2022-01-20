@@ -30,11 +30,6 @@ variable "deployer_tfstate_key" {
 
 }
 
-variable "use_ANF" {
-  description = "Boolean flag indicating if ANF will be used"
-  default     = false
-}
-
 variable "ANF_account_arm_id" {
   description = "The resource identifier (if any) for the NetApp account"
   default     = ""
@@ -55,7 +50,14 @@ variable "ANF_pool_size" {
   default     = 4
 }
 
-
+variable "azure_files_transport_storage_account_id" {
+  type    = string
+  default = ""
+}
+variable "NFS_provider" {
+  type    = string
+  default = "NONE"
+}
 
 locals {
 
@@ -99,7 +101,7 @@ locals {
   }
 
   ANF_settings = {
-    use           = var.use_ANF
+    use           = var.NFS_provider == "ANF"
     name          = var.ANF_account_name
     arm_id        = var.ANF_account_arm_id
     service_level = var.ANF_service_level

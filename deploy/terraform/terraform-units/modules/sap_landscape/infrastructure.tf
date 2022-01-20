@@ -69,56 +69,6 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
   allow_forwarded_traffic      = true
 }
 
-// Creates boot diagnostics storage account
-resource "azurerm_storage_account" "storage_bootdiag" {
-  provider                  = azurerm.main
-  count                     = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
-  name                      = local.storageaccount_name
-  resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-  location                  = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  account_replication_type  = "LRS"
-  account_tier              = "Standard"
-  enable_https_traffic_only = var.options.enable_secure_transfer == "" ? true : var.options.enable_secure_transfer
-
-  network_rules {
-    default_action = "Allow"
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.sub_admin_defined ? (
-      local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id) : (
-      ""
-    )] : []
-  }
-
-}
-
-data "azurerm_storage_account" "storage_bootdiag" {
-  provider            = azurerm.main
-  count               = length(var.diagnostics_storage_account.arm_id) > 0 ? 1 : 0
-  name                = split("/", var.diagnostics_storage_account.arm_id)[8]
-  resource_group_name = split("/", var.diagnostics_storage_account.arm_id)[4]
-}
-
-resource "azurerm_private_endpoint" "storage_bootdiag" {
-  provider            = azurerm.main
-  count               = var.use_private_endpoint && local.sub_admin_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 1 : 0
-  name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_diag)
-  resource_group_name = local.rg_name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  subnet_id = local.sub_admin_defined ? (
-    local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id) : (
-    ""
-  )
-
-  private_service_connection {
-    name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_diag)
-    is_manual_connection           = false
-    private_connection_resource_id = length(var.witness_storage_account.arm_id) > 0 ? data.azurerm_storage_account.storage_bootdiag[0].id : azurerm_storage_account.storage_bootdiag[0].id
-    subresource_names = [
-      "File"
-    ]
-  }
-}
-
-
 //Route table
 resource "azurerm_route_table" "rt" {
   provider                      = azurerm.main
@@ -141,57 +91,6 @@ resource "azurerm_route" "admin" {
   address_prefix         = "0.0.0.0/0"
   next_hop_type          = "VirtualAppliance"
   next_hop_in_ip_address = local.firewall_ip
-}
-
-
-
-// Creates witness storage account
-resource "azurerm_storage_account" "witness_storage" {
-  provider                  = azurerm.main
-  count                     = length(var.witness_storage_account.arm_id) > 0 ? 0 : 1
-  name                      = local.witness_storageaccount_name
-  resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-  location                  = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  account_replication_type  = "LRS"
-  account_tier              = "Standard"
-  enable_https_traffic_only = var.options.enable_secure_transfer == "" ? true : var.options.enable_secure_transfer
-
-  network_rules {
-    default_action = "Allow"
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.sub_admin_defined ? (
-      local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id) : (
-      ""
-    )] : []
-  }
-
-}
-
-data "azurerm_storage_account" "witness_storage" {
-  provider            = azurerm.main
-  count               = length(var.witness_storage_account.arm_id) > 0 ? 1 : 0
-  name                = split("/", var.witness_storage_account.arm_id)[8]
-  resource_group_name = split("/", var.witness_storage_account.arm_id)[4]
-}
-
-resource "azurerm_private_endpoint" "witness_storage" {
-  provider            = azurerm.main
-  count               = var.use_private_endpoint && local.sub_admin_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
-  name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_witness)
-  resource_group_name = local.rg_name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  subnet_id = local.sub_admin_defined ? (
-    local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id) : (
-    ""
-  )
-
-  private_service_connection {
-    name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_witness)
-    is_manual_connection           = false
-    private_connection_resource_id = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
-    subresource_names = [
-      "File"
-    ]
-  }
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {

@@ -9,30 +9,24 @@
 #########################################################################################
 
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment="DEV"
+environment = "QA"
 
 # The location valus is a mandatory field, it is used to control where the resources are deployed
-location="eastus"
+location="westeurope"
 
-# RESOURCEGROUP
-# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
-# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
-# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
-#resourcegroup_name="dev-weeu-sap-x00"
-#resourcegroup_arm_id=""
+#########################################################################################
+#                                                                                       #
+#  NFS support                                                                          #
+#                                                                                       #
+#########################################################################################
 
-# custom_prefix defines the prefix that will be added to the resource names
-#custom_prefix=""
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+NFS_provider       = "AFS"
+sapmnt_volume_size = 128
 
-# use_prefix defines if a prefix will be added to the resource names
-#use_prefix=true
-
-# PPG
-# The proximity placement group names and arm_ids are optional can be used to control the naming and the creation of the proximity placement groups
-# The proximityplacementgroup_names list value is optional, it can be used to override the name of the proximity placement groups that will be provisioned
-# The proximityplacementgroup_arm_ids list value is optional, it can be used to provide an existing proximity placement groups for the deployment
-#proximityplacementgroup_names=[]
-#proximityplacementgroup_arm_ids=[]
 
 #########################################################################################
 #                                                                                       #
@@ -47,20 +41,20 @@ location="eastus"
 # - ASE
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
-database_platform="HANA"
+database_platform = "HANA"
 
 # database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
 #database_high_availability=false
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
-database_size="S4Demo"
+database_size = "S4Demo"
 
 #If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
 #db_disk_sizes_filename="custom-sizing.json"
 
 # database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-database_vm_use_DHCP=true
+database_vm_use_DHCP = true
 
 # The vm_image defines the Virtual machine image to use, 
 # if source_image_id is specified the deployment will use the custom image provided, 
@@ -78,23 +72,15 @@ database_vm_use_DHCP=true
 #}
 
 #SUSE 12 SP5
-database_vm_image={
-  os_type=""
-  source_image_id=""
-  publisher="SUSE"
-  offer="sles-sap-12-sp5"
-  sku="gen1"
-  version="latest"
+database_vm_image = {
+  os_type         = ""
+  source_image_id = ""
+  publisher       = "SUSE"
+  offer           = "sles-sap-12-sp5"
+  sku             = "gen2"
+  version         = "latest"
 }
-#SUSE 15 SP1
-#database_vm_image={
-#  os_type=""
-#  source_image_id=""
-#  publisher="SUSE"
-#  offer="sles-sap-15-sp1"
-#  sku="gen2"
-#  version="latest"
-#}
+
 #RedHat
 # database_vm_image={
 #   os_type="linux"
@@ -106,7 +92,7 @@ database_vm_image={
 # }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
-#database_vm_zones=["1"]
+database_vm_zones=["1"]
 
 # database_nodes provides a way to specify more than one database node, i.e. a scaleout scenario
 
@@ -143,13 +129,13 @@ database_vm_image={
 #                                                                                       #
 #########################################################################################
 # sid is a mandatory field that defines the SAP Application SID
-sid="X00"
+sid = "Q00"
 
-app_tier_vm_sizing="Production"
+app_tier_vm_sizing = "Production"
 
 
 # app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-app_tier_use_DHCP=true
+app_tier_use_DHCP = true
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
 #app_tier_authentication_type="key"
 
@@ -168,7 +154,7 @@ app_tier_use_DHCP=true
 # Application Servers
 
 # application_server_count defines how many application servers to deploy
-application_server_count=1
+application_server_count=2
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
 #application_server_zones=["1","2","3"]
@@ -196,27 +182,19 @@ application_server_count=1
 # The vm_image defines the Virtual machine image to use for the application servers, 
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
-application_server_image= {
-  os_type=""
-  source_image_id=""
-  publisher="SUSE"
-  offer="sles-sap-12-sp5"
-  sku="gen1"
-  version="latest"
+application_server_image = {
+  os_type         = ""
+  source_image_id = ""
+  publisher       = "SUSE"
+  offer           = "sles-sap-12-sp5"
+  sku             = "gen2"
+  version         = "latest"
 }
-#SUSE 15 SP1
-#database_vm_image={
-#  os_type=""
-#  source_image_id=""
-#  publisher="SUSE"
-#  offer="sles-sap-15-sp1"
-#  sku="gen2"
-#  version="latest"
-#}
+
 # SCS Servers
 
 # scs_server_count defines how many SCS servers to deploy
-scs_server_count=1
+scs_server_count = 1
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku="Standard_D4s_v3"
@@ -228,13 +206,13 @@ scs_server_count=1
 #scs_server_no_avset=false
 
 # scs_high_availability is a boolean flag controlling if SCS should be highly available
-scs_high_availability=false
+scs_high_availability = false
 
 # scs_instance_number
-scs_instance_number="00"
+scs_instance_number = "00"
 
 # ers_instance_number
-ers_instance_number="02"
+ers_instance_number = "02"
 
 # scs_server_app_nic_ips, if provided provides the static IP addresses 
 # for the network interface cars connected to the application subnet
@@ -253,7 +231,7 @@ ers_instance_number="02"
 #scs_server_tags={},
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-#scs_server_zones=["1","2","3"]
+scs_server_zones=["1"]
 
 # The vm_image defines the Virtual machine image to use for the application servers, 
 # if source_image_id is specified the deployment will use the custom image provided, 
@@ -263,13 +241,13 @@ ers_instance_number="02"
 # source_image_id=""
 # publisher="SUSE"
 # offer="sles-sap-12-sp5"
-# sku="gen1"
+# sku="gen2"
 #}
 
 # Web Dispatchers
 
 # webdispatcher_server_count defines how many web dispatchers to deploy
-webdispatcher_server_count=0
+webdispatcher_server_count = 0
 
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
 # for the network interface cars connected to the application subnet
@@ -306,9 +284,9 @@ webdispatcher_server_count=0
 # source_image_id=""
 # publisher="SUSE"
 # offer="sles-sap-12-sp5"
-# sku="gen1"
+# sku="gen2"
 #}
-use_loadbalancers_for_standalone_deployments=false
+
 #########################################################################################
 #                                                                                       #
 #  Credentials                                                                          #
@@ -340,19 +318,25 @@ use_loadbalancers_for_standalone_deployments=false
 # nsg_asg_with_vnet if set controls where the Application Security Groups are created
 #nsg_asg_with_vnet=false
 
-#########################################################################################
-#                                                                                       #
-#  NFS support                                                                          #
-#                                                                                       #
-#########################################################################################
 
-# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
-# AFS indicates that Azure Files for NFS is used
-# ANF indicates that Azure NetApp Files is used
-# NFS indicates that a custom solution is used for NFS
-NFS_provider       = "NONE"
-sapmnt_volume_size = 128
+# RESOURCEGROUP
+# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
+# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
+# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+#resourcegroup_name=""
+#resourcegroup_arm_id=""
+# custom_prefix defines the prefix that will be added to the resource names
+#custom_prefix=""
+# use_prefix defines if a prefix will be added to the resource names
+#use_prefix=true
 
+
+# PPG
+# The proximity placement group names and arm_ids are optional can be used to control the naming and the creation of the proximity placement groups
+# The proximityplacementgroup_names list value is optional, it can be used to override the name of the proximity placement groups that will be provisioned
+# The proximityplacementgroup_arm_ids list value is optional, it can be used to provide an existing proximity placement groups for the deployment
+#proximityplacementgroup_names=[]
+#proximityplacementgroup_arm_ids=[]
 
 #########################################################################################
 #                                                                                       #
@@ -370,9 +354,8 @@ sapmnt_volume_size = 128
 # for the brownfield scenario the Azure resource identifier for the subnet must be specified
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-#network_name="dev-WEEU-sap-vnet"
-#network_name ="SAP01"
-network_logical_name ="SAP01"
+##network_name ="SAP01"
+network_logical_name = "SAP01"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix
@@ -442,7 +425,6 @@ network_logical_name ="SAP01"
 #web_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/DEV-WEEU-SAP01_webSubnet-nsg"
 
 
-
 #########################################################################################
 #                                                                                       #
 # Anchor VM                                                                             #
@@ -475,7 +457,7 @@ network_logical_name ="SAP01"
 #source_image_id=""
 #publisher="SUSE"
 #offer="sles-sap-12-sp5"
-#sku="gen1"
+#sku="gen2"
 #version="latest"
 #}
 
@@ -483,8 +465,6 @@ network_logical_name ="SAP01"
 #anchor_vm_nic_ips=["","",""]
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 #anchor_vm_use_DHCP=true
-
-
 
 #########################################################################################
 #                                                                                       #
@@ -498,7 +478,6 @@ network_logical_name ="SAP01"
 # - landscape_tfstate_key is the state file name for the workload deployment
 # These are required parameters, if using the deployment scripts they will be auto populated otherwise they need to be entered
 
-#tfstate_resource_id=null
-#deployer_tfstate_key=null
-#landscape_tfstate_key=null
-
+##tfstate_resource_id=null
+##deployer_tfstate_key=null
+##landscape_tfstate_key=null

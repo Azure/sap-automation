@@ -60,15 +60,26 @@ variable "enable_purge_control_for_keyvaults" {
   description = "Allow the deployment to control the purge protection"
 }
 
-variable "anf_transport_volume_size" {
-  description = "The volume size in GB for shared"
-}
-
-variable "anf_sapmnt_volume_size" {
+variable "sapmnt_volume_size" {
   description = "The volume size in GB for sapmnt"
 }
 
-variable "use_ANF" {
+variable "NFS_provider" {
+  type    = string
+  default = "AFS"
+}
+
+variable "azure_files_storage_account_id" {
+  type    = string
+  default = ""
+}
+
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}
+
+variable "use_private_endpoint" {
   default = false
 }
 
@@ -367,13 +378,11 @@ locals {
   // Current service principal
   service_principal = try(var.service_principal, {})
 
-  ANF_pool_settings = var.use_ANF ? (
-    try(var.landscape_tfstate.ANF_pool_settings, { use_ANF = false })
+  ANF_pool_settings = var.NFS_provider == "ANF" ? (
+    try(var.landscape_tfstate.ANF_pool_settings, null)
     ) : (
-    { use_ANF = false }
+    null
   )
-
-  deploy_afs = false
 
 }
 
