@@ -19,88 +19,44 @@
 # -------------------------------------+---------------------------------------8
 #
 
+- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
+  block:
+
+    - name:                            Check required variables are present and not empty
+      ansible.builtin.assert:
+        that:
+          - "kv_name is defined"                    # Has the variable been defined
+          - "kv_name | type_debug != 'NoneType'"    # and given a value
+          - "kv_name | string | length != 0 "       # Detect null values
+        fail_msg:                      "Please define the kv_name parameter"
+
+    - name:                            Get Deployer Keyvault name from keyvault
+      ansible.builtin.command: >-
+                                       az keyvault secret show
+                                         --vault-name {{ kv_name }}
+                                         --name {{ deployer_kv_name_secret }}
+      changed_when:                    false
+      register:                        deployer_kv_name_secret
+      when:                            bom_processing is not defined
+
+    - name:                            Save Deployer Keyvault name
+      ansible.builtin.set_fact:
+        deployer_kv_name: >-
+                                       {{ (deployer_kv_name_secret.stdout | from_json).value }}
+  when: deployer_kv_name is not defined
+
 - name:                                Show Key Vault
   ansible.builtin.debug:
     var:                               kv_name
   when:
     - tier == "bom"
 
-- name:                                "BoM Secrets: Retrieve S User details"
-  ansible.builtin.command: >-
-    az keyvault secret show
-      --vault-name {{ kv_name }}
-      --name "S-Username"
-  changed_when:                        false
-  register:                            keyvault_secret_show_s_user
+- name:                                Import S user tasks
+  ansible.builtin.import_tasks:        "s_user.yaml"
   when:
     - tier == "bom"
 
-- name:                                "BoM Secrets: Extract S User secret details"
-  ansible.builtin.set_fact:
-    s_user: >-
-      {{ (keyvault_secret_show_s_user.stdout | from_json).value }}
-  no_log:                              true
-  when:
-    - tier == "bom"
-
-- name:                                Show S User
-  ansible.builtin.debug:
-    var:                               s_user
-    verbosity:                         2
-  when:
-    - tier == "bom"
-
-
-- name:                                "BoM Secrets: Retrieve S Password details"
-  ansible.builtin.command: >-
-    az keyvault secret show
-      --vault-name {{ kv_name }}
-      --name "S-Password"
-  changed_when:                        false
-  register:                            keyvault_secret_show_s_password
-  no_log:                              true
-  when:
-    - tier == "bom"
-
-- name:                                "BoM Secrets: Extract S User Password secret details"
-  ansible.builtin.set_fact:
-    s_password: >-
-      {{ (keyvault_secret_show_s_password.stdout | from_json).value }}
-  no_log:                              true
-  when:
-    - tier == "bom"
-
-- name:                                "BoM Secrets: Retrieve Access Key details"
-  ansible.builtin.command: >-
-    az keyvault secret show
-      --vault-name {{ kv_name }}
-      --name "sapbits-access-key"
-  changed_when:                        false
-  register:                            keyvault_secret_show_accesskey
-  no_log:                              true
-  when:
-    - tier == "bom"
-
-- name:                                "BoM Secrets: Extract S User Password details"
-  ansible.builtin.set_fact:
-    sapbits_access_key: >-
-      {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
-  no_log:                              true
-  when:
-    - tier == "bom"
-
-- name:                                "BoM Secrets: Retrieve Access Key details"
-  ansible.builtin.command: >-
-    az keyvault secret show
-      --vault-name {{ kv_name }}
-      --name "sapbits-access-key"
-  changed_when:                        false
-  register:                            keyvault_secret_show_accesskey
-  no_log:                              true
-  when:
-    - tier == "bom"
-
-- name:                                Construct SPN Client ID secret name
+- name:                                Import Fencing secrets
   ansible.builtin.import_tasks:        "fencing.yaml"
   when:
     - tier == "fencing"

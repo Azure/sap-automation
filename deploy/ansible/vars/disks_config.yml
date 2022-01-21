@@ -1,6 +1,6 @@
 ---
 
-# Dynamicallu determine list of unique disk types associated with
+# Dynamically determine list of unique disk types associated with
 # current node.
 disktypes: >-
   {{ disks | selectattr('host', 'defined') |
@@ -14,10 +14,19 @@ volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
-  data:   '{{ node_tier | lower }}_data'
-  log:    '{{ node_tier | lower }}_log'
-  backup: '{{ node_tier | lower }}_backup'
-
+  data:      '{{ node_tier | lower }}_data'
+  log:       '{{ node_tier | lower }}_log'
+  backup:    '{{ node_tier | lower }}_backup'
+  shared:    '{{ node_tier | lower }}_shared'
+  sapdata1:  '{{ node_tier | lower }}_sapdata1'
+  sapdata2:  '{{ node_tier | lower }}_sapdata2'
+  sapdata3:  '{{ node_tier | lower }}_sapdata3'
+  sapdata4:  '{{ node_tier | lower }}_sapdata4'
+  origloga:  '{{ node_tier | lower }}_origlogA'
+  origlogb:  '{{ node_tier | lower }}_origlogB'
+  mirrloga:  '{{ node_tier | lower }}_mirrlogA'
+  mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
+  oraarch:   '{{ node_tier | lower }}_oraarch'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -48,17 +57,17 @@ disk_type_to_name_map:
 #       additional options, if any, that should be passed to the
 #       mkfs command when formatting the file system.
 #
-logical_volumes:
+logical_volumes_local:
   - tier:       'sapos'
     node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
-    size:       '128g'
+    size:       '64g'
     fstype:     'xfs'
 
   - tier:       'sapos'
     node_tier:  'hana'
-    vg:         'vg_sap'
+    vg:         "{% if shareddisk == 1 %}vg_hana_shared{% else %}vg_sap{% endif %}"
     lv:         'lv_hana_shared'
     size:       '100%FREE'
     fstype:     'xfs'
@@ -93,20 +102,21 @@ logical_volumes:
     size:       '1g'
     fstype:     'xfs'
 
+logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'
     vg:         'vg_sap'
     lv:         'lv_sapmnt'
-    size:       '128g'
+    size:       '32g'
     fstype:     'xfs'
 
+logical_volumes_install:
   - tier:       'sapos'
     node_tier:  'scs'
     vg:         'vg_sap'
     lv:         'lv_usrsapinstall'
     size:       '100%FREE'
     fstype:     'xfs'
-
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs
