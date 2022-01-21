@@ -19,7 +19,6 @@
                     "size_gb"                    : 512,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "mount_point"                  : "/hana/data",
                     "lun_start"                  : 0
                 },
                 {
@@ -29,7 +28,6 @@
                     "size_gb"                    : 512,
                     "caching"                    : "None",
                     "write_accelerator"          : false,
-                    "mount_point"                  : "/hana/log",
                     "lun_start"                  : 9
                 },
                 {
@@ -39,7 +37,6 @@
                     "size_gb"                    : 512,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
-                    "mount_point"                  : "/hana/shared",
                     "lun_start"                  : 13
                 },
                 {
@@ -49,7 +46,6 @@
                     "size_gb"                    : 512,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
-                    "mount_point"                  : "/usr/sap",
                     "lun_start"                  : 14
                 },
                 {
@@ -59,7 +55,6 @@
                     "size_gb"                    : 512,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
-                    "mount_point"                  : "/hana/backup",
                     "lun_start"                  : 15
                 }
             ]
