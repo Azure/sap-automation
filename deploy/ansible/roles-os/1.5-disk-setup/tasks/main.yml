@@ -40,14 +40,13 @@
 
 - name:                                Append sapmnt
   ansible.builtin.set_fact:
-    logical_volumes_temp:              "{{ logical_volumes_local + logical_volumes_sapmnt }}"
+    logical_volumes:                   "{{ logical_volumes + logical_volumes_sapmnt }}"
   when: sap_mnt is not defined
 
 - name:                                Append install
   ansible.builtin.set_fact:
-    logical_volumes:                   "{{ logical_volumes_temp + logical_volumes_install }}"
+    logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
   when: usr_sap_install_mountpoint is not defined
-
 
 - name:                                "Print unique disks"
   ansible.builtin.debug:
@@ -107,8 +106,8 @@
     opts:                              "{{ lvol_opts_from_lv_item }}"
     active:                            true
     state:                             present
-    shrink:                            true
-    resizefs:                          true
+    shrink:                            false
+    resizefs:                          false
   loop:                                "{{ logical_volumes }}"
   register:                            lvscreated
   when:

@@ -57,7 +57,7 @@ disk_type_to_name_map:
 #       additional options, if any, that should be passed to the
 #       mkfs command when formatting the file system.
 #
-logical_volumes_local:
+logical_volumes:
   - tier:       'sapos'
     node_tier:  'all'
     vg:         'vg_sap'
