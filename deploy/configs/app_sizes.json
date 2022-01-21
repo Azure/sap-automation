@@ -145,7 +145,7 @@
           "count": 1,
           "name": "sap",
           "disk_type": "Premium_LRS",
-          "size_gb": 128,
+          "size_gb": 256,
           "caching": "None",
           "write_accelerator": false,
           "lun_start": 0
