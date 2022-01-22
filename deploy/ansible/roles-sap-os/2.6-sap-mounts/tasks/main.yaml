@@ -6,6 +6,18 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+- name:                                Check if the shared disk exists
+  ansible.builtin.set_fact:
+    shareddisk:                        "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'shared') |
+      map(attribute='type') | sort | unique |
+      list | length }}"
+
+- name:                                Mount local filesystems (when not using AFS)
+  ansible.builtin.set_fact:
+    sharedpath:                       "{% if shareddisk == 1 %}/dev/vg_hana_shared/lv_hana_shared{% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
+
 # Mount Filesystems
 - name:                                Mount local filesystems
   ansible.builtin.mount:
@@ -19,7 +31,7 @@
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop:
     - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
-    - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_sap/lv_hana_shared',            path: '/hana/shared'     }
+    - { node_tier: 'hana', type: 'xfs',   src: "{{ sharedpath }}",                      path: '/hana/shared'     }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_data/lv_hana_data',        path: '/hana/data'       }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_log/lv_hana_log',          path: '/hana/log'        }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'     }
@@ -48,11 +60,7 @@
 - name:                                Show usr_sap_install_path
   ansible.builtin.debug:
     var:                               usr_sap_install_path
-
-- name:                                Show usr_sap_install_path
-  ansible.builtin.debug:
-    var:                               use_AFS
-
+    verbosity:                         2
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
@@ -155,7 +163,6 @@
     - sap_mnt | trim | length != 0
     - tier == 'sapos'
     - NFS_provider == 'ANF'
-
 # Import this task only if the tier is ora.
 - import_tasks:                        "oracle.yaml"
   when:

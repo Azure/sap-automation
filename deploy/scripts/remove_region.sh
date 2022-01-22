@@ -84,7 +84,7 @@ function missing {
 }
 
 force=0
-
+ado=0
 INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:iha --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account,auto-approve,ado,help -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -142,7 +142,7 @@ if [ 0 != $return_code ]; then
 fi
 
 # Check that parameter files have environment and location defined
-validate_key_parameters "$parameterfile_name"
+validate_key_parameters "$deployer_parameter_file"
 return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
