@@ -101,7 +101,7 @@ enable_app_tier_deployment = true
 sid = "PRD"
 #app_tier_use_DHCP=false
 #app_tier_dual_nics=false
-app_tier_vm_sizing = "Production"
+app_tier_vm_sizing = "Optimized"
 #app_disk_sizes_filename=""
 
 # Application Server
