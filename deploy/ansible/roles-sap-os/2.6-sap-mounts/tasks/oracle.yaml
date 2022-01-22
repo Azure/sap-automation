@@ -120,7 +120,7 @@
     state:  mounted
   vars:
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') + query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
   loop:
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
   

@@ -5,10 +5,6 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
-- name:                                "ANF Mount: Set the NFS Server name"
-  ansible.builtin.set_fact:
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-
 - name:                                "ANF Mount: Set the NFS Service name"
   ansible.builtin.set_fact:
     nfs_service:                       "{% if distro_id == 'redhat8' %}nfs-server{% else %}{% if distro_id == 'redhat7' %}nfs{% else %}nfsserver{% endif %}{% endif %}"
