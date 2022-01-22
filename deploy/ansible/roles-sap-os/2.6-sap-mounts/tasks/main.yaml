@@ -62,7 +62,6 @@
     var:                               usr_sap_install_path
     verbosity:                         2
 
-
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
@@ -164,5 +163,10 @@
     - sap_mnt | trim | length != 0
     - tier == 'sapos'
     - NFS_provider == 'ANF'
+# Import this task only if the tier is ora.
+- import_tasks:                        "oracle.yaml"
+  when:
+    - node_tier == "oracle"
+    - node_tier != "oracle-asm"
 
 ...

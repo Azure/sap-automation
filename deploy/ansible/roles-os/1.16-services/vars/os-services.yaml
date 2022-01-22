@@ -42,14 +42,22 @@ services:
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'enabled'   }
 
-  suse12:
-    - { tier: 'sapos',       service: 'autofs',       node_tier: 'all',     state: 'started'   }
-    - { tier: 'sapos',       service: 'autofs',       node_tier: 'all',     state: 'enabled'   }
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'restarted' }
+  sles_sap12:
+    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'started' }
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
 
-  suse15:
-    - { tier: 'sapos',       service: 'autofs',       node_tier: 'all',     state: 'started'   }
-    - { tier: 'sapos',       service: 'autofs',       node_tier: 'all',     state: 'enabled'   }
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'restarted' }
+  sles_sap15:
+    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'started' }
     - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
+
+  oraclelinux8:
+    - { tier: 'os',          service: 'auditd',       node_tier: 'all',     state: 'started'   }
+    - { tier: 'os',          service: 'oddjobd',      node_tier: 'all',     state: 'disabled'  }
+    - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
+    - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
+    - { tier: 'os',          service: 'waagent',      node_tier: 'all',     state: 'restarted' }  #Ensure the service is restarted and swap space is available in case the handler is not called in 1.1/swap.
+    - { tier: 'sapos',       service: 'rpcbind',      node_tier: 'scs',     state: 'restarted' }  
+    - { tier: 'sapos',       service: 'nfs-server',   node_tier: 'scs',     state: 'enabled'   }  
+    - { tier: 'sapos',       service: 'nfs-server',   node_tier: 'scs',     state: 'restarted' }  
+    - { tier: 'preparation', service: 'nfs-server',   node_tier: 'scs',     state: 'restarted' }
+

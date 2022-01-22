@@ -14,37 +14,40 @@
 
     - name:                            Initialization
       block:
-        - name:                            Initialize facts
-          set_fact:
-            tier:                          fencing
+        - name:                        Create Progress folder
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress"
+            state:                     directory
+            mode:                      0755
 
-        - name:                            Run the misc/password role
+        - name:                        Remove db-ha-done flag
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
+            state:                      absent
+
+        - name:                        Initialize facts
+          set_fact:
+            tier:                      fencing
+
+        - name:                        Run the misc/password role
           include_role:
-            name:                          roles-misc/0.1-passwords
-            public:                        true
+            name:                      roles-misc/0.1-passwords
+            public:                    true
           tags:
             - 0.1-passwords
 
-        - name:                            Run the keyvault role
+        - name:                        Run the keyvault role
           include_role:
-            name:                          roles-misc/0.2-kv-secrets
+            name:                      roles-misc/0.2-kv-secrets
           tags:
             - kv-secrets
 
-        - name:                            Ensure step file is removed
-          ansible.builtin.file:
-            path:                          "{{ _workspace_directory }}/.step401"
-            state:                         absent
       when:                            db_high_availability
 
 
-# Steps:
-#   01) Hana DB system replication
-#
-
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
-  name:                                HANA HA Configuration
+  name:                                DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
@@ -81,7 +84,9 @@
                 name:                  roles-db/4.0.1-hdb-hsr
           tags:
             - 4.0.1-hdb-hsr
-      when:                            db_high_availability
+      when:
+        - db_high_availability
+        - node_tier == 'hana'
 
     - name:                            "Install HANA Pacemaker resources"
       block:
@@ -115,16 +120,18 @@
           tags:
             - 5.5-hanadb-pacemaker
 
-      when:                            db_high_availability
+      when:
+        - db_high_availability
+        - node_tier == 'hana'
 
 - hosts:                               localhost
   name:                                Log results
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
-    - name:                            Ensure step file exists
+    - name:                            Ensure db-ha-done file exists
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step401"
+        path:                          "{{ _workspace_directory }}/.progress/db-ha-done"
         state:                         touch
         mode:                          0755
       when:                            db_high_availability

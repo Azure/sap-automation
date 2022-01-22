@@ -101,16 +101,17 @@ options=(
         "Base OS Config"
         "SAP specific OS Config"
         "BOM Processing"
-        "HANA DB Install"
+        "DB Install"
         "SCS Install"
         "DB Load"
         "PAS Install"
         "APP Install"
         "WebDisp Install"
-        "HANA HA Setup"
+        "Database HA Setup"
 
         # Special menu entries
         "BOM Download"
+        "Tester"
         "Install SAP (1-7)"
         "Post SAP Install (8-10)"
         "All Playbooks"
@@ -123,7 +124,7 @@ all_playbooks=(
         ${cmd_dir}/playbook_01_os_base_config.yaml
         ${cmd_dir}/playbook_02_os_sap_specific_config.yaml
         ${cmd_dir}/playbook_03_bom_processing.yaml
-        ${cmd_dir}/playbook_04_00_00_hana_db_install.yaml
+        ${cmd_dir}/playbook_04_00_00_db_install.yaml
         ${cmd_dir}/playbook_05_00_00_sap_scs_install.yaml
         ${cmd_dir}/playbook_05_01_sap_dbload.yaml
         ${cmd_dir}/playbook_05_02_sap_pas_install.yaml
@@ -131,8 +132,9 @@ all_playbooks=(
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
-        ${cmd_dir}/playbook_04_00_01_hana_hsr.yaml
-        ${cmd_dir}/playbook_bom_downloader.yaml
+        ${cmd_dir}/playbook_04_00_01_db_ha.yaml
+        ${cmd_dir}/playbook_bom_downloader
+        ${cmd_dir}/playbook_tester.yaml
 )
 
 # Set of options that will be passed to the ansible-playbook command

@@ -1,6 +1,6 @@
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                      Prepare for HANA DB Install                           |
+# |                      Prepare for DB Install                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
@@ -12,6 +12,19 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            Remove db-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-install-done"
+        state:                          absent
+
+
     - name:                            Set hdb fact
       ansible.builtin.set_fact:
         tier:                          hdb
@@ -31,11 +44,6 @@
         tier:                          fencing
       tags:
         - 0.2-kv-secrets
-
-    - name:                            Remove .step4 flag
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step4"
-        state:                          absent
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -82,6 +90,7 @@
                 name:                  roles-db/4.0.0-hdb-install
           tags:
             - 4.0.0-hdb-install
+      when: node_tier == 'hana'
 
     - name:                            "Install Pacemaker (base)"
       block:
@@ -148,12 +157,59 @@
           tags:
             - 1.17-generic-pacemaker
 
-      when:                            db_high_availability
+      when:
+        - db_high_availability
+        - node_tier == 'hana'
 
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                         PLAYBOOK FOR HANA DB LOGGING                       |
+# |                      Playbook for Oracle DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_DB"
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "oracle"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Install Oracle"
+      block:
+
+        - name:                        Setting the DB facts
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        platform == 'ORACLE'
+
+        - name:                        Installing Oracle
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.0-ora-install
+          when:                        platform == 'ORACLE'
+      when:                            platform == 'ORACLE'
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                         PLAYBOOK FOR DB LOGGING                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -164,9 +220,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                           Create .step4 flag
+    - name:                           Create db-install-done flag
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.step4"
+        path:                         "{{ _workspace_directory }}/.progress/db-install-done"
         state:                        touch
         mode:                         0755
 

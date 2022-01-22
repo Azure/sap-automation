@@ -37,6 +37,10 @@
 
 - name:                                Load the disk configuration settings
   ansible.builtin.include_vars:        disks_config.yml
+  
+
+
+
 
 - name:                                Append sapmnt
   ansible.builtin.set_fact:
@@ -71,6 +75,8 @@
   register:                            vgscreated
   when:
     - tier == "sapos"
+    
+  
 
 
 - name:                                "Filter the vg name from vgscreated results"

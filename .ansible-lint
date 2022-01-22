@@ -27,3 +27,4 @@ skip_list:
   - commas
   - braces
   - hyphens
+  - role-name

@@ -131,7 +131,7 @@ packages:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
   redhat8.4:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
-  suse12:
+  sles_sap12:
     - { tier: 'os',    package: 'chrony',                                                   state: 'present' }
     - { tier: 'os',    package: 'glibc',                                                    state: 'present' }
     - { tier: 'os',    package: 'libyui-qt-pkg7',                                           state: 'present' }
@@ -157,9 +157,9 @@ packages:
     - { tier: 'ha',    package: 'python-azure-mgmt-compute=4.6.2',                          state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'scs',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
-  suse12.4:
-  suse12.5:
-  suse15:
+  sles_sap12.4:
+  sles_sap12.5:
+  sles_sap15:
     - { tier: 'os',    package: 'chrony',                                                   state: 'present' }
 #    - { tier: 'os',    package: 'libyui-qt-pkg11',                                          state: 'present' }
     - { tier: 'os',    package: 'glibc',                                                    state: 'present' }
@@ -206,8 +206,5 @@ packages:
     - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8
-  suse15.1:
-  suse15.2:
-  suse15.3:
   sles_sap15.2:
   sles_sap15.3:
