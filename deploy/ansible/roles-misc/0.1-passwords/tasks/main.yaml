@@ -42,7 +42,7 @@
 
     - name:                            Construct SAP system password
       ansible.builtin.set_fact:
-        sap_password:                  "S{{ lookup('password', '/tmp/sappasswordfile length=11 chars=ascii_letters,digits') }}"
+        sap_password:                  "S3{{ lookup('password', '/tmp/sappasswordfile length=10 chars=ascii_letters,digits') }}"
       when:                            3 == keyvault_secret_show_sap_password_id.rc
 
     - name:                            "Debug: SAP Password"
