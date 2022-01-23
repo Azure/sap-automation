@@ -48,6 +48,11 @@
     logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
   when: usr_sap_install_mountpoint is not defined
 
+- name:                                "usr_sap_install_mountpoint is not defined"
+  ansible.builtin.debug:
+    var:                               logical_volumes
+    verbosity:                         2
+
 - name:                                "Print unique disks"
   ansible.builtin.debug:
     var:                               disktypes
@@ -111,7 +116,7 @@
   register:                            lvscreated
   when:
     - tier == "sapos"
-    - "item.node_tier in {{ [ 'all', supported_tiers] | flatten(levels=1) }}"
+    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.vg in vgcreatedlist
 
 # Debug for testing
@@ -160,7 +165,7 @@
   register :                           filesystemscreated
   when:
     - item.tier in ["all", tier ]
-    - item.node_tier in ["all", node_tier]
+    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.fstype is defined
     - item.lv in lvcreatedlist
 

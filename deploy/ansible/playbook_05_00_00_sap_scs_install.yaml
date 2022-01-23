@@ -66,8 +66,8 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB  :
-                                        {{ sap_sid|upper }}_SCS"
+- hosts:                               "{{ sap_sid|upper }}_SCS  :
+                                        {{ sap_sid|upper }}_DB"
 
   name:                                SAP Installation - SCS
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -105,11 +105,14 @@
             - name:                    Include 5.0.0-scs-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
+          vars:
+            selected_host:             "{{ ansible_play_hosts | first }}"
+            tier:                      "{{ tier }}"
           tags:
             - 5.0.0-scs-install
-      when:                            
-       - not scs_high_availability
-       - "'scs' in supported_tiers"
+      when:
+        - not scs_high_availability
+        - "'scs' in supported_tiers"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -216,9 +219,9 @@
                 name:                  roles-sap/5.6-scsers-pacemaker
           tags:
             - 5.6-scsers-pacemaker
-      when:                            
-       - scs_high_availability
-       - "'scs' in supported_tiers or 'ers' in supported_tiers "
+      when:
+        - scs_high_availability
+        - "'scs' in supported_tiers or 'ers' in supported_tiers "
 
 
 - hosts:                               localhost
