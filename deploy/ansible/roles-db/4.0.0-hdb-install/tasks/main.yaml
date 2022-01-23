@@ -53,7 +53,7 @@
     - name:                            "SAP HANA: debug hdblcm password file"
       ansible.builtin.debug:
         msg:
-          - "FILE: {{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ db_sid }}_passwords.xml"
+          - "FILE: {{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_passwords.xml"
           - "PWD:  {{ main_password }}"
         verbosity:                     2
 
@@ -61,7 +61,7 @@
     - name:                            "SAP HANA: deploy hdblcm password file"
       ansible.builtin.template:
         src:                           HANA_2_00_055_v1_install.rsp.xml.j2
-        dest:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ db_sid }}_passwords.xml"
+        dest:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_passwords.xml"
         mode:                          0644
         force:                         true
 
@@ -82,7 +82,7 @@
     - name:                            "SAP HANA: deploy hdblcm install response file"
       ansible.builtin.template:
         src:                           HANA_2_00_055_v1_install.rsp.j2
-        dest:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+        dest:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
         mode:                          0644
         force:                         true
   # Template parameter mapping
@@ -97,7 +97,7 @@
         main_password:                 " {{ main_password }}"
 
     - name:                            "SAP HANA: Execute hdblcm on {{ ansible_hostname }}"
-      ansible.builtin.command:         ./hdblcm --batch --action=install  --configfile='{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ db_sid }}_install.rsp'
+      ansible.builtin.command:         ./hdblcm --batch --action=install  --configfile='{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp'
       args:
         chdir:                         /usr/sap/install/CD_HDBSERVER/SAP_HANA_DATABASE
         creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
@@ -116,13 +116,20 @@
 
     - name:                            "REMOVE install password file "
       ansible.builtin.file:
-        path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ db_sid }}_passwords.xml"
+        path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_passwords.xml"
         state:                         absent
 
     - name:                            "REMOVE install response file"
       ansible.builtin.file:
-        path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+        path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
         state:                         absent
+
+    - name:                            "Create backup folder"
+      ansible.builtin.file:
+        path:                          "/hana/backup"
+        state:                         directory
+        group:                         sapsys
+        owner:                         "{{ db_sid | lower}}adm"
 
     - name:                            "HANA Install: flag"
       ansible.builtin.file:
