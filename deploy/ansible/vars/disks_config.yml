@@ -89,6 +89,13 @@ logical_volumes:
     fstype:     'xfs'
 
   - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         "{% if shareddisk == '1' %}'vg_hana_shared'{% else %}'vg_sap'{% endif %}"
+    lv:         'lv_hana_shared'
+    size:       "{% if shareddisk == '1' %}'100%FREE'{% else %}'32g'{% endif %}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
     node_tier:  'web'
     vg:         'vg_sap'
     lv:         'lv_sapmnt'
@@ -188,22 +195,6 @@ logical_volumes_install:
     node_tier:  'scs'
     vg:         'vg_sap'
     lv:         'lv_usrsapinstall'
-    size:       '100%FREE'
-    fstype:     'xfs'
-
-logical_volumes_shared_on_sap:
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         'vg_sap'
-    lv:         'lv_hana_shared'
-    size:       '32g'
-    fstype:     'xfs'
-
-logical_volumes_shared_on_shared:
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         'vg_hana_shared'
-    lv:         'lv_hana_shared'
     size:       '100%FREE'
     fstype:     'xfs'
 
