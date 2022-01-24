@@ -49,7 +49,7 @@
       ansible.builtin.fetch:
         src: "{{ item.path }}"
         dest: "{{ _workspace_directory }}/"
-        flat: yes
+        flat: true
         fail_on_missing: no
       with_items: "{{ file_2_fetch.files }}"
 
