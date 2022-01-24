@@ -100,6 +100,13 @@
 # sha1 algorithm is available on all platforms and python versions.
 # also, when we pass checksum if the file exists in destination it will be
 # deleted if the checksum does not match and will be downloaded from URL
+
+- name:                               "Creates temporary download directory"
+  file:
+    path:                             '/mnt/resource'
+    state:                            directory
+    mode:                             0775
+
 - name:                                "BOM: Download Files SUSE15"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\

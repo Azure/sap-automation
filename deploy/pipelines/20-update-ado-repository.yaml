@@ -11,7 +11,7 @@ parameters:
   - name:                              repository
     displayName:                       Source repository
     type:                              string
-    default:                           https://github.com/Azure/sap-automation.git
+    default:                           https://github.com/mimergel/sap-automation.git
 
   - name:                              branch
     displayName:                       Source branch to update from
