@@ -66,8 +66,8 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB  :
-                                        {{ sap_sid|upper }}_SCS"
+- hosts:                               "{{ sap_sid|upper }}_SCS  :
+                                        {{ sap_sid|upper }}_DB"
 
   name:                                SAP Installation - SCS
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -85,6 +85,19 @@
 # -------------------------------------+---------------------------------------8
     - name:                            Standalone SCS Setup
       block:
+
+        - block:
+            - ansible.builtin.debug:
+                msg:
+                  - "hdb_instance_number: {{ hdb_instance_number }}"
+                  - "scs_instance_number: {{ scs_instance_number }}"
+                verbosity:             2
+
+            - ansible.builtin.assert:
+                that:
+                  - "scs_instance_number != hdb_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the hdb_instance_number"
+          when:                        (ansible_play_hosts_all | length) == 1
 
         - name:                        Set 'scs' tier facts
           ansible.builtin.set_fact:
@@ -105,11 +118,13 @@
             - name:                    Include 5.0.0-scs-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
+          vars:
+            tier:                      "{{ tier }}"
           tags:
             - 5.0.0-scs-install
-      when:                            
-       - not scs_high_availability
-       - "'scs' in supported_tiers"
+      when:
+        - not scs_high_availability
+        - "'scs' in supported_tiers"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -216,9 +231,9 @@
                 name:                  roles-sap/5.6-scsers-pacemaker
           tags:
             - 5.6-scsers-pacemaker
-      when:                            
-       - scs_high_availability
-       - "'scs' in supported_tiers or 'ers' in supported_tiers "
+      when:
+        - scs_high_availability
+        - "'scs' in supported_tiers or 'ers' in supported_tiers "
 
 
 - hosts:                               localhost

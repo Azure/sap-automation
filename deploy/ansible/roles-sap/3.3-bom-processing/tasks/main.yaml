@@ -47,12 +47,10 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
 
-
 - name:                                Save the BOM
   ansible.builtin.set_fact:
     bom_base:                          "{{ bom }}"
     cacheable:                         true
-
 
 # -------------------------------------+---------------------------------------8
 #

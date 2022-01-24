@@ -64,48 +64,25 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 logical_volumes:
- # --------------------- Begin - disks required for usrsap -------------------8
+  # --------------------- Begin - disks required for usrsap -------------------8
   - tier:       'sapos'
     node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
     size:       '64g'
     fstype:     'xfs'
- # ---------------------- End - disks required for usrsap --------------------8
+  # ---------------------- End - disks required for usrsap --------------------8
 
- # ---------------------- Begin - disks required for WD  ---------------------8
+  # ---------------------- Begin - disks required for WD  ---------------------8
   - tier:       'sapos'
     node_tier:  'web'
     vg:         'vg_sap'
     lv:         'lv_sapmnt'
     size:       '1g'
     fstype:     'xfs'
- # ----------------------- End - disks required for WD  ----------------------8
+  # ----------------------- End - disks required for WD  ----------------------8
 
- # ---------------------- Begin - disks required for SCS ---------------------8
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_sapmnt'
-    size:       '128g'
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_usrsapinstall'
-    size:       '100%FREE'
-    fstype:     'xfs'
- # ----------------------- End - disks required for SCS ----------------------8
-
- # --------------------- Begin - disks required for HANA ---------------------8
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         "{% if shareddisk == 1 %}vg_hana_shared{% else %}vg_sap{% endif %}"
-    lv:         'lv_hana_shared'
-    size:       '100%FREE'
-    fstype:     'xfs'
-
+  # --------------------- Begin - disks required for HANA ---------------------8
   - tier:       'sapos'
     node_tier:  'hana'
     vg:         'vg_hana_data'
@@ -124,13 +101,21 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'hana'
+    vg:         "{% if shareddisk == 1 %}vg_hana_shared{% else %}vg_sap{% endif %}"
+    lv:         'lv_hana_shared'
+    size:       "{% if shareddisk == 1 %}100%FREE{% else %}32g{% endif %}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'hana'
     vg:         'vg_hana_backup'
     lv:         'lv_hana_backup'
     size:       '100%FREE'
     fstype:     'xfs'
   # ---------------------- End - disks required for HANA ---------------------8
 
-  # --------------- Begin - disks required for Oracle(non-ASM) ---------------8
+  # --------------- Begin - disks required for Oracle(non-ASM) ---------------8 
+  # Adding Tier and disk types for Oracle installation non-ASM.
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_oracle_sapdata1'
@@ -274,6 +259,24 @@ logical_volumes:
     stripesize: 128
     fstype:     'xfs'
   # ---------------------- End - disks required for DB2 ----------------------8
+  
+  # ---------------------- Begin - disks required for SCS ---------------------8
+logical_volumes_sapmnt:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       '32g'
+    fstype:     'xfs'
+
+logical_volumes_install:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_usrsapinstall'
+    size:       '100%FREE'
+    fstype:     'xfs'
+  # ----------------------- End - disks required for SCS ----------------------8
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs
