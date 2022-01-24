@@ -97,6 +97,11 @@
         msg:                           "{{ bom.product_ids.scs }}"
         verbosity:                     2
 
+    - name:                            "SCS Install: instance number"
+      debug:
+        msg:                           "{{ scs_instance_number }}"
+        verbosity:                     2
+
 # *====================================4=======================================8
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |

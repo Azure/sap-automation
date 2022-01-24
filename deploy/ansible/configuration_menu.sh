@@ -98,21 +98,21 @@ PS3='Please select playbook: '
 # all_playbooks array defined below
 options=(
         # Specific playbook entries
-        "Base OS Config"
-        "SAP specific OS Config"
+        "Base Operating System configuration"
+        "SAP specific Operating System configuration"
         "BOM Processing"
-        "HANA DB Install"
+        "Database Instance installation"
         "SCS Install"
-        "DB Load"
-        "PAS Install"
-        "APP Install"
-        "WebDisp Install"
-        "HANA HA Setup"
+        "Database Load"
+        "Primary Application Server installation"
+        "Application Server installations"
+        "Web Dispatcher installations"
+        "Database High Availability Setup"
 
         # Special menu entries
         "BOM Download"
-        "Install SAP (1-7)"
-        "Post SAP Install (8-10)"
+        "Configure and install SAP (1-7)"
+        "Post SAP Installation tasks (8-10)"
         "All Playbooks"
         "Quit"
 )

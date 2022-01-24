@@ -68,7 +68,7 @@
         sap_cd_package_cd3:
         sap_cd_package_cd4:
         sap_cd_package_cd5:
-        sap_ciInstanceNumber:          "{% if node_tier=='pas' %}00{% else %}01{% endif %}"
+        sap_ciInstanceNumber:          "{{ instance_number }}"
         app_instance_number:
         sap_ciDialogWPNumber:          12
         sap_ciBtcWPNumber:             8
