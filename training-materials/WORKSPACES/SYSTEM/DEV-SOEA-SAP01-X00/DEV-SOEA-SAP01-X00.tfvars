@@ -342,6 +342,18 @@ use_loadbalancers_for_standalone_deployments=false
 # nsg_asg_with_vnet if set controls where the Application Security Groups are created
 #nsg_asg_with_vnet=false
 
+#########################################################################################
+#                                                                                       #
+#  NFS support                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+NFS_provider       = "NONE"
+sapmnt_volume_size = 128
 
 #########################################################################################
 #                                                                                       #

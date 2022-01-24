@@ -290,3 +290,8 @@ variable "transport_volume_size" {
   description = "The volume size in GB for shared"
   default = 128
 }
+
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}

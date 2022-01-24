@@ -26,7 +26,7 @@ check_storage_account:        true
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""
-sap_sid:                      "BPC"                    # REQUIRED - SAP Install
+sap_sid:                      ""                                                        # REQUIRED - SAP Install
 download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
 db_sid:                       "XDB"                                   # Default

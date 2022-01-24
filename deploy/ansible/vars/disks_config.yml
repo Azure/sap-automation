@@ -1,6 +1,6 @@
 ---
 
-# Dynamicallu determine list of unique disk types associated with
+# Dynamically determine list of unique disk types associated with
 # current node.
 disktypes: >-
   {{ disks | selectattr('host', 'defined') |
@@ -101,7 +101,7 @@ logical_volumes:
  # --------------------- Begin - disks required for HANA ---------------------8
   - tier:       'sapos'
     node_tier:  'hana'
-    vg:         'vg_sap'
+    vg:         "{% if shareddisk == 1 %}vg_hana_shared{% else %}vg_sap{% endif %}"
     lv:         'lv_hana_shared'
     size:       '100%FREE'
     fstype:     'xfs'
@@ -274,7 +274,6 @@ logical_volumes:
     stripesize: 128
     fstype:     'xfs'
   # ---------------------- End - disks required for DB2 ----------------------8
-
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

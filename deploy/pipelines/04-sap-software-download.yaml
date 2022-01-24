@@ -8,31 +8,32 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name: bom_base_name
-    displayName: Name of Bill of Materials (BoM)
+  - name:                              bom_base_name
+    displayName:                       Name of Bill of Materials (BoM)
     type: string
-    default: S41909SPS03_v0008ms
+    default:                           S41909SPS03_v0009ms
     values:
+      - S41909SPS03_v0009ms
       - S41909SPS03_v0008ms
       - S41909SPS03_v0007ms
       - BW4HANA2021SPS01_v0001ms
       - HANA_2_00_055_v0005ms
       - NW750SPS20_v0002ms
 
-  - name: environment
-    displayName: Control Plane Environment
-    type: string
-    default: MGMT
+  - name:                              environment
+    displayName:                       Control Plane Environment name
+    type:                              string
+    default:                           MGMT
 
-  - name: region
-    displayName: Control Plane (SAP Library) Locationcode
-    type: string
-    default: WEEU
+  - name:                              region
+    displayName:                       Control Plane (SAP Library) Locationcode
+    type:                              string
+    default:                           WEEU
 
-trigger: none
+trigger:                               none
 
 pool:
-  name: $(Agent)
+  name:                                $(Agent)
 
 variables:
   - group: "SAP-deployment-variables-general"
@@ -84,7 +85,6 @@ stages:
                 exit 2
               fi
               ls $(Build.Repository.LocalPath)
-              cat $(Build.Repository.LocalPath)/deploy/ansible/playbook_bom_downloader.yaml
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
@@ -95,9 +95,27 @@ stages:
                 sapbits_sa_url=$(az keyvault secret show --vault-name $kv_name --name sapbits-location-base-path --query value |xargs)
                 sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
                 sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
-                sed -i 's|kv_name:.*|kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
+                sed -i 's|deployer_kv_name:.*|deployer_kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
               echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
                 cat $HOME/BOMS/sap-parameters.yaml
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                cd $HOME/BOMS
+                git checkout $(Branch)
+                git pull
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ -f $HOME/BOMS/sap-parameters.yaml ]; then
+                  git add $HOME/BOMS/sap-parameters.yaml
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
                 echo $SUsername
@@ -111,7 +129,7 @@ stages:
             displayName: Prepare download
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+            failOnStderr: false
 
   - stage: Software_download
     displayName: Download software
@@ -120,13 +138,17 @@ stages:
         displayName: Download software
         timeoutInMinutes: 0
         steps:
-          - checkout: none
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
           - task: Ansible@0
             displayName: Download software
             timeoutInMinutes: 0
             inputs:
               ansibleInterface: "agentMachine"
-              playbookPathOnAgentMachine: $(Build.Repository.LocalPath)/deploy/ansible/playbook_bom_downloader.yaml
+              playbookPathOnAgentMachine: $DEPLOYMENT_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
               args: '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
-              failOnStderr: true
+              failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 ...

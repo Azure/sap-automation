@@ -109,7 +109,7 @@ output "cloudinit_growpart_config" {
 
 output "sapmnt_path" {
   value = var.NFS_provider == "AFS" ? (
-    format("%s:/%s/%s", split("/", replace(azurerm_storage_share.sapmnt[0].url, "https://", ""))[0], azurerm_storage_account.shared[0].name, azurerm_storage_share.sapmnt[0].name)
+    format("%s:/%s/%s", azurerm_private_endpoint.shared[0].private_service_connection[0].private_ip_address, azurerm_storage_account.shared[0].name, azurerm_storage_share.sapmnt[0].name)
     ) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s", azurerm_netapp_volume.sapmnt[0].mount_ip_addresses[0], azurerm_netapp_volume.sapmnt[0].volume_path)
@@ -120,5 +120,5 @@ output "sapmnt_path" {
 }
 
 output "install_path" {
-  value = try(format("%s:/%s/%s", split("/", replace(azurerm_storage_share.install[0].url, "https://", ""))[0], azurerm_storage_account.shared[0].name, azurerm_storage_share.install[0].name), "") 
+  value = var.NFS_provider == "AFS" ? try(format("%s:/%s/%s", azurerm_private_endpoint.shared[0].private_service_connection[0].private_ip_address, azurerm_storage_account.shared[0].name, azurerm_storage_share.install[0].name), "") : ""
 }

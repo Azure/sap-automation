@@ -8,10 +8,10 @@
 name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)
 
 parameters:
-  - name: sap_system
-    displayName: ENV-LOCA-VNET-SID
-    type: string
-    default: DEV-WEEU-SAP01-X00
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
 
 trigger: none
 
@@ -31,15 +31,16 @@ variables:
     value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Deploy_SAP_infrastructure
-    displayName: Deploy SAP infrastructure
+  - stage:                             Deploy_SAP_infrastructure
+    displayName:                       Deploy SAP infrastructure
     jobs:
-      - job: Deploy_SAP_infrastructure
+      - job:                           Deploy_SAP_infrastructure
         steps:
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sapsystemfolder) $(Date:yyyyMMdd)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
@@ -86,10 +87,6 @@ stages:
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
               echo -e "$green--- az login ---$reset"
-                export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-                export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-                export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-                export ARM_TENANT_ID=$(ARM_TENANT_ID)
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -97,20 +94,17 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
                 cd $HOME/SYSTEM/$(sapsystemfolder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
                 return_code=$?
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
@@ -129,18 +123,21 @@ stages:
                 fi
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md ]; then
                   git add    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
                   added=1
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
-              echo "output the log ---$reset"
-                exit $return_code
+              exit $return_code
             displayName: Deploy_SAP_infrastructure
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              false
 ...

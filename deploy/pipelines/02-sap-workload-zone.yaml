@@ -5,18 +5,18 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Deploy Workload zone $(zonefolder) [$(Date:yyyyMMdd) $(SourceBranchName)]
+name: "Deploying the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
 
 parameters:
-  - name: workloadzone
-    displayName: ENV-LOCA-VNET-INFRASTRUCTURE
-    type: string
-    default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                              workloadzone
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name: environment
-    displayName: Deployer Environment (MGMT, DEV, QA, PRD, ...)
-    type: string
-    default: MGMT
+  - name:                              environment
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
 
 trigger: none
 
@@ -38,16 +38,17 @@ variables:
     value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Deploy_SAP_workloadzone
-    displayName: Deploy SAP workload zone
+  - stage:                             Deploy_SAP_workloadzone
+    displayName:                       Deploy SAP workload zone
     jobs:
-      - job: Deploy_SAP_workloadzone
-        displayName: Deploy SAP workload zone
+      - job:                           Deploy_SAP_workloadzone
+        displayName:                   Deploy SAP workload zone
         steps:
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -99,10 +100,6 @@ stages:
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
               echo -e "$green--- az login ---$reset"
-                export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-                export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-                export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-                export ARM_TENANT_ID=$(ARM_TENANT_ID)
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -114,9 +111,6 @@ stages:
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
                 cd $HOME/LANDSCAPE/$(zonefolder)
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
@@ -125,7 +119,8 @@ stages:
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 added=0
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
                   git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
@@ -142,16 +137,20 @@ stages:
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
-              echo "output the log ---$reset"
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
                 fi
-                git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-                exit $return_code
-            displayName: Deploy SAP Workload Zone
+              exit $return_code
+              
+            displayName:               Deploy SAP Workload Zone
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              REMOTE_STATE_SA:         ${REMOTE_STATE_SA}
+            failOnStderr:              false
 ...
