@@ -86,6 +86,19 @@
     - name:                            Standalone SCS Setup
       block:
 
+        - block:
+            - ansible.builtin.debug:
+                msg:
+                  - "hdb_instance_number: {{ hdb_instance_number }}"
+                  - "scs_instance_number: {{ scs_instance_number }}"
+                verbosity:             2
+
+            - ansible.builtin.assert:
+                that:
+                  - "scs_instance_number != hdb_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the hdb_instance_number"
+          when:                        (ansible_play_hosts_all | length) == 1
+
         - name:                        Set 'scs' tier facts
           ansible.builtin.set_fact:
             tier:                      scs
