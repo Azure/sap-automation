@@ -38,7 +38,6 @@
 #
 - name:                                Run pre-checks
   ansible.builtin.import_tasks:        pre_checks.yaml
-  when:                                selected_host == ansible_hostname
 # -------------------------------------+---------------------------------------8
 
 - name:                                Run the bom-register
@@ -47,15 +46,11 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-  when:                                selected_host == ansible_hostname
-
 
 - name:                                Save the BOM
   ansible.builtin.set_fact:
     bom_base:                          "{{ bom }}"
     cacheable:                         true
-  when:                                selected_host == ansible_hostname
-
 
 # -------------------------------------+---------------------------------------8
 #
@@ -69,7 +64,6 @@
   include_tasks:                       "bom_processor.yaml"
   vars:
     bom_name:                          "{{ bom_base_name }}"
-  when:                                selected_host == ansible_hostname
 # -------------------------------------+---------------------------------------8
 
 
@@ -88,7 +82,6 @@
   when:
     - bom_base.materials.dependencies is defined
     - bom_base.materials.dependencies|length>0
-    - selected_host == ansible_hostname
 # -------------------------------------+---------------------------------------8
 
 ...

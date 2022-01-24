@@ -56,27 +56,24 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-
-
-    - name:                            Show hosts
-      ansible.builtin.debug:
-        msg:                           "{{ ansible_play_hosts | first }}"
-
-    - name:                            Set facts
-      ansible.builtin.set_fact:
-        tier:                          preparation
-        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-
-    - name:                            3.3-bom-processing role
+    - name:                            "Perform BoM processing"
       block:
-        - name:                        Include the 3.3-bom-processing role
-          ansible.builtin.include_role:
-            name:                      roles-sap/3.3-bom-processing
-          vars:
-            selected_host:             "{{ ansible_play_hosts | first }}"
-          tags:
-            - 3.3-bom-processing
+
+        - name:                        Set facts
+          ansible.builtin.set_fact:
+            tier:                      preparation
+            sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+
+        - name:                        3.3-bom-processing role
+          block:
+            - name:                    Include the 3.3-bom-processing role
+              ansible.builtin.include_role:
+                name:                  roles-sap/3.3-bom-processing
+              tags:
+                - 3.3-bom-processing
+      when:
+        - "'scs' in supported_tiers"
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |

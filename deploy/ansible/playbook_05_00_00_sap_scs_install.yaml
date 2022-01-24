@@ -106,7 +106,6 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
           vars:
-            selected_host:             "{{ ansible_play_hosts | first }}"
             tier:                      "{{ tier }}"
           tags:
             - 5.0.0-scs-install
