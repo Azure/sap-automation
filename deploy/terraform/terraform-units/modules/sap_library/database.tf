@@ -1,5 +1,5 @@
 resource "azurerm_cosmosdb_account" "cmdb" {
-    name = "webapp-cmdb-${var.random_int}"
+    name = lower(format("%s%s%s", local.prefix, local.resource_suffixes.cosmos_account, substr(random_id.post_fix.hex, 0, 3)))
     location = local.rg_library_location
     resource_group_name = local.rg_name
     offer_type = "standard"
@@ -20,7 +20,7 @@ resource "azurerm_cosmosdb_account" "cmdb" {
 }
 
 resource "azurerm_cosmosdb_mongo_database" "mgdb" {
-    name = "Deployment-Objects"
+    name = format("%s%s", lower(local.prefix), local.resource_suffixes.deployment_objects)
     resource_group_name = local.rg_name
     account_name = azurerm_cosmosdb_account.cmdb.name
 }

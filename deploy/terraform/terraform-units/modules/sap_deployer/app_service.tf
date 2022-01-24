@@ -1,7 +1,7 @@
 
 # Create the Linux App Service Plan
 resource "azurerm_app_service_plan" "appserviceplan" {
-    name                = "service-plan-${var.random_int}"
+    name                = lower(format("%s%s%s", local.prefix, local.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
     resource_group_name = local.rg_name
     location            = local.rg_appservice_location
     kind = "Linux"
@@ -17,7 +17,7 @@ resource "azurerm_app_service_plan" "appserviceplan" {
 # Create the web app, pass in the App Service Plan ID, and deploy code from a public GitHub repo
 resource "azurerm_app_service" "webapp" {
     count               = var.configure ? 1 : 0
-    name                = "sapdeployment-${var.random_int}"
+    name                = lower(format("%s%s%s", local.prefix, local.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
     resource_group_name = local.rg_name
     location            = local.rg_appservice_location
     app_service_plan_id = azurerm_app_service_plan.appserviceplan.id

@@ -95,10 +95,6 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                if [ ! -n $(TF_VAR_random_int) ]; then
-                  echo "##vso[task.logissue type=error]Variable TF_VAR_random_int was not defined."
-                  exit 2
-                fi
                 if [ ! -n $(TF_VAR_app_registration_app_id) ]; then
                   echo "##vso[task.logissue type=error]Variable TF_VAR_app_registration_app_id was not defined."
                   exit 2
@@ -137,7 +133,6 @@ stages:
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
               
               echo -e "$green--- Exporting webapp variables ---$reset"
-                export TF_VAR_random_int=$(TF_VAR_random_int)
                 export TF_VAR_app_registration_app_id=$(TF_VAR_app_registration_app_id)
                 export TF_VAR_webapp_client_secret=$(TF_VAR_webapp_client_secret)
 

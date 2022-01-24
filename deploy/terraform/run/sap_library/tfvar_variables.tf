@@ -162,10 +162,3 @@ variable "library_ansible_blob_container_name" {
 variable "use_private_endpoint" {
   default = false
 }
-
-/*
-Random int for use with the cmdb account
-*/
-variable "random_int" {
-  default = 0
-}

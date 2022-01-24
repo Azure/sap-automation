@@ -166,10 +166,3 @@ variable "enable_purge_control_for_keyvaults" {
 variable "use_private_endpoint" {
   default = false
 }
-
-/*
-Random int for use with the cmdb account
-*/
-variable "random_int" {
-  default = 0
-}

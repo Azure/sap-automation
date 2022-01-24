@@ -83,4 +83,3 @@ variable "key_vault" {
 }
 
 variable "dns_label" {}
-variable "random_int" {}

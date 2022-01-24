@@ -220,10 +220,6 @@ variable "app_registration_app_id" {
   default = ""
 }
 
-variable "random_int" {
-  default = 0
-}
-
 variable "cmdb_connection_string" {
   type = string
   default = ""
