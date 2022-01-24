@@ -125,7 +125,7 @@
     - node_tier == "oracle"
     - node_tier != "oracle-asm"
 
-# Import this task only if the tier is ora.
+# Import this task only if the node_tier is db2.
 - import_tasks:                        "2.6.4-db2-mounts.yaml"
   when:
     - node_tier == "db2"
