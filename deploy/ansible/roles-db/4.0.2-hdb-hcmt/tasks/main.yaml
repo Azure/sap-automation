@@ -46,7 +46,7 @@
       register: file_2_fetch
 
     - name: Fetch the HCMT result
-      fetch:
+      ansible.builtin.fetch:
         src: "{{ item.path }}"
         dest: "{{ _workspace_directory }}/"
         flat: yes
