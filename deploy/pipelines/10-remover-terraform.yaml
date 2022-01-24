@@ -13,7 +13,7 @@ parameters:
   - name:                              cleanupsap
     displayName:                       Remove the SAP system
     type:                              boolean
-    default:                           true
+    default:                           false
 
   - name:                              sap_system
     displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
@@ -23,7 +23,7 @@ parameters:
   - name:                              cleanupzone
     displayName:                       Remove the SAP workload zone
     type:                              boolean
-    default:                           true
+    default:                           false
 
   - name:                              workloadzone
     displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -33,7 +33,7 @@ parameters:
   - name:                              cleanupregion
     displayName:                       Remove the control plane
     type:                              boolean
-    default:                           true
+    default:                           false
 
   - name:                              deployer
     displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -142,7 +142,7 @@ stages:
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)" 
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml
@@ -228,7 +228,7 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)" 
                 export  ENV=$(echo $(zonefolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
@@ -310,7 +310,7 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 export  ENV=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                 git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform
