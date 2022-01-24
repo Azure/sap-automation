@@ -16,7 +16,7 @@
 # +------------------------------------4--------------------------------------*/
 
     - name: Setup HCMT
-      command: ./hcmtsetup
+      ansible.builtin.command:          ./hcmtsetup
       args:
         chdir: "{{ target_media_location }}/hcmt/setup"
         creates: "{{ target_media_location }}/hcmt/setup/hcmt"
