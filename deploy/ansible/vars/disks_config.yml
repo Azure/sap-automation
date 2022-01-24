@@ -114,7 +114,7 @@ logical_volumes:
     fstype:     'xfs'
   # ---------------------- End - disks required for HANA ---------------------8
 
-  # --------------- Begin - disks required for Oracle(non-ASM) ---------------8 
+  # --------------- Begin - disks required for Oracle(non-ASM) ---------------8
   # Adding Tier and disk types for Oracle installation non-ASM.
   - tier:       'sapos'
     node_tier:  'oracle'
