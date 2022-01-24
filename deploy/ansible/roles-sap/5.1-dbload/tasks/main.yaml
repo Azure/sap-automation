@@ -31,6 +31,16 @@
 
 - name:                                "DBLOAD Install"
   block:
+    - name:                            Set the SCS Server name list
+      ansible.builtin.set_fact:
+        scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+    - name:                            Set the SCS Server name
+      ansible.builtin.set_fact:
+        scs_server:                    "{{ scs_server_temp | first }}"
 
     - name:                            Include 3.3.1-bom-utility role for registering the BoM
       ansible.builtin.include_role:
@@ -38,6 +48,7 @@
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
+        tier:                          "{{ tier }}"
 
     - name:                            Include 3.3.1-bom-utility role
       ansible.builtin.include_role:
@@ -50,16 +61,17 @@
         sap_cd_package_cd3:
         sap_cd_package_cd4:
         sap_cd_package_cd5:
-        sap_ciInstanceNumber:
+        sap_ciInstanceNumber:          
         app_instance_number:
         sap_ciDialogWPNumber:
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:               /sapmnt/{{ sap_sid|upper }}/profile
-        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+        sap_scs_hostname:              "{{ scs_server }}"
         sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
+        tier:                          "{{ tier }}"
       tags:
         - skip_ansible_lint
 

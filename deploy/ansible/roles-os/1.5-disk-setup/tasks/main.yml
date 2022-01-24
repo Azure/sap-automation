@@ -37,10 +37,6 @@
 
 - name:                                Load the disk configuration settings
   ansible.builtin.include_vars:        disks_config.yml
-  
-
-
-
 
 - name:                                Append sapmnt
   ansible.builtin.set_fact:
@@ -51,6 +47,11 @@
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
   when: usr_sap_install_mountpoint is not defined
+
+- name:                                "usr_sap_install_mountpoint is not defined"
+  ansible.builtin.debug:
+    var:                               logical_volumes
+    verbosity:                         2
 
 - name:                                "Print unique disks"
   ansible.builtin.debug:
@@ -75,9 +76,6 @@
   register:                            vgscreated
   when:
     - tier == "sapos"
-    
-  
-
 
 - name:                                "Filter the vg name from vgscreated results"
   ansible.builtin.set_fact:
@@ -118,7 +116,7 @@
   register:                            lvscreated
   when:
     - tier == "sapos"
-    - item.node_tier in ["all", node_tier]
+    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.vg in vgcreatedlist
 
 # Debug for testing
@@ -167,7 +165,7 @@
   register :                           filesystemscreated
   when:
     - item.tier in ["all", tier ]
-    - item.node_tier in ["all", node_tier]
+    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.fstype is defined
     - item.lv in lvcreatedlist
 
