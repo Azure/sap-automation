@@ -34,7 +34,7 @@
         replace: '"Value": "1"'
 
     - name: Execute HCMT
-      command: ./hcmt -v -p config/executionplan.json
+      ansible.builtin.command:              ./hcmt -v -p config/executionplan.json
       args:
         chdir: "{{ target_media_location }}/hcmt/setup"
 
