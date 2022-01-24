@@ -54,12 +54,12 @@
 - name:                                Append lv on vg_sap
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes + logical_volumes_shared_on_sap }}"
-  when: shareddisk == 0
+  when: shareddisk == '0'
 
 - name:                                Append lv on vg_hana_shared
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes + logical_volumes_shared_on_shared }}"
-  when: shareddisk == 1
+  when: shareddisk == '1'
 
 
 - name:                                Print logical_volumes
