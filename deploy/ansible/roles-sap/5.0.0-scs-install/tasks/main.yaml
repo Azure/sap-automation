@@ -24,7 +24,7 @@
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
   register:                            scs_installed
-  when:                                node_tier == 'scs'
+  when:                                "'scs' in supported_tiers"
 
 - name:                                "SCS Install: check if installed"
   ansible.builtin.debug:
@@ -33,6 +33,20 @@
 
 - name:                                "SCS Install"
   block:
+    - name:                            Set the SCS Server name list
+      ansible.builtin.set_fact:
+        scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+    - name:                            Show the tier
+      ansible.builtin.debug:
+        var:                           tier
+
+    - name:                            Set the SCS Server name
+      ansible.builtin.set_fact:
+        scs_server:                    "{{ scs_server_temp | first }}"
 
     - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
@@ -46,6 +60,7 @@
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
+        tier:                          "{{ tier }}"
 
     - name:                            "SCS Install: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
@@ -64,10 +79,11 @@
         sap_ciBtcWPNumber:
         sap_installSAPHostAgent:
         sap_profile_dir:
-        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+        sap_scs_hostname:              "{{ scs_server }}"
         sap_db_hostname:
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
+        tier:                          "{{ tier }}"
       tags:
         - skip_ansible_lint
 
@@ -81,6 +97,11 @@
         msg:                           "{{ bom.product_ids.scs }}"
         verbosity:                     2
 
+    - name:                            "SCS Install: instance number"
+      debug:
+        msg:                           "{{ scs_instance_number }}"
+        verbosity:                     2
+
 # *====================================4=======================================8
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
@@ -92,7 +113,6 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false
-
       args:
         chdir:                         /usr/sap/install/SWPM
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
@@ -102,7 +122,6 @@
       failed_when:                     scs_installation.rc > 0
       tags:
         - skip_ansible_lint
-      when:                            node_tier == 'scs'
 
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
@@ -111,10 +130,8 @@
         mode:                          0755
 
   when:
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - not scs_installed.stat.exists
-      # Skip when TRUE (test mode)
-      # when: not test_new_bom
 
 ...
 # /*---------------------------------------------------------------------------8

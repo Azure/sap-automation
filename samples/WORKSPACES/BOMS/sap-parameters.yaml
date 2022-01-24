@@ -9,7 +9,5 @@ deployer_kv_name:              MGMTWEEUDEP00user###
 # Not needed for the Microsoft provided BOMs
 #create_checksums:              true
 
-# Set this to false to force a re-download of the SAP software
-#check_storage_account:         false
 
 ...

@@ -1,3 +1,4 @@
+---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                Perform the AFS system mounts                              |
@@ -11,9 +12,9 @@
     state:                             directory
     group:                             sapsys
   when:
-    - node_tier == 'scs'
     - tier == 'sapos'
     - sap_mnt is defined
+    - "'scs' in supported_tiers"
   tags:
     - skip_ansible_lint
 
@@ -23,7 +24,7 @@
     state:                             directory
     group:                             sapsys
   when:
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - tier == 'sapos'
     - sap_trans is defined
   tags:
@@ -42,7 +43,7 @@
         state:                         mounted
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_mnt is defined
 
 - name:                                "AFS Mount: Create SAP Directories (AFS)"
@@ -57,11 +58,11 @@
     - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_mnt is defined
 
-  # Mount Filesystem on AFS
-  # This is needed so that we can create the correct directory
+# Mount Filesystem on AFS
+# This is needed so that we can create the correct directory
 - name:                                "AFS Mount: Filesystems on AFS (transport)"
   block:
     - name:                            "AFS Mount: Filesystems on AFS (transport)"
@@ -73,7 +74,7 @@
         state:                         mounted
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_trans is defined
 
 - name:                                "AFS Mount: Create SAP Directories (AFS) (transport)"
@@ -85,7 +86,7 @@
     - { path: '/saptrans/usrsaptrans' }
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_trans is defined
 
 - name:                                "AFS Mount: Unmount file systems (sapmnt)"
@@ -95,7 +96,7 @@
     state:                             unmounted
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_mnt is defined
 
 - name:                                "AFS Mount: Unmount file systems (transport)"
@@ -105,7 +106,7 @@
     state:                             unmounted
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_trans is defined
 
 
@@ -120,7 +121,7 @@
     - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_mnt is defined
 
 - name:                                "AFS Mount: Delete locally created SAP Directories (AFS) (transport)"
@@ -131,7 +132,7 @@
     - { path: '/saptrans/usrsaptrans'}
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_trans is defined
 
 
@@ -144,7 +145,7 @@
     state:                             absent
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_mnt is defined
 
 - name:                                "AFS Mount: Cleanup fstab and directory (AFS) (transport)"
@@ -156,7 +157,7 @@
     state:                             absent
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_trans is defined
 
 
@@ -234,7 +235,7 @@
     - { path: '/usr/sap/{{ sap_sid|upper }}/ERS{{ ers_instance_number }}' }
   when:
     - tier == 'sapos'
-    - node_tier in ['scs','ers']
+    - "'scs' in supported_tiers or 'ers' in supported_tiers "
     - sap_mnt is defined
   register: is_created_now3
 
@@ -309,3 +310,5 @@
     - tier in ['sapos']
     - node_tier in ['scs','ers']
     - sap_mnt is defined
+
+...

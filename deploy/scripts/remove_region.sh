@@ -16,6 +16,10 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source 
 source "${script_directory}/deploy_utils.sh"
 
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
+
 ################################################################################################
 #                                                                                              #
 #   This file contains the logic to deploy the environment to support SAP workloads.           #
@@ -80,7 +84,7 @@ function missing {
 }
 
 force=0
-
+ado=0
 INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:iha --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account,auto-approve,ado,help -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -106,92 +110,51 @@ do
 done
 
 approveparam=""
-if [ 1 == ado ]; then
+if [ 1 == $ado ]; then
     approveparam=" --auto-approve"
 fi
 
 if [ -z "$deployer_parameter_file" ]; then
     missing_value='deployer parameter file'
     missing
-    exit -1
+    exit 2
 fi
 
 if [ -z "$library_parameter_file" ]; then
     missing_value='library parameter file'
     missing
-    exit -1
+    exit 2
 fi
 
-# Check terraform
-tf=$(terraform -version | grep Terraform)
-if [ ! -n "$tf" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore  Please install Terraform $resetformatting                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit -1
+
+# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+validate_exports
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
-az --version > stdout.az 2>&1
-az=$(grep "azure-cli" stdout.az)
-if [ ! -n "${az}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore Please install the Azure CLI $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit -1
+# Check that Terraform and Azure CLI is installed
+validate_dependencies
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
 fi
 
-# Helper variables
-ext=$(echo ${deployer_parameter_file} | cut -d. -f2)
+# Check that parameter files have environment and location defined
+validate_key_parameters "$deployer_parameter_file"
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
 
-# Helper variables
-if [ "${ext}" == json ]; then
-    environment=$(jq --raw-output .infrastructure.environment "${deployer_parameter_file}")
-    region=$(jq --raw-output .infrastructure.region "${deployer_parameter_file}")
+if valid_region_name "${region}" ; then
+    # Convert the region to the correct code
+    get_region_code ${region}
 else
-
-    load_config_vars "${deployer_parameter_file}" "environment"
-    load_config_vars "${deployer_parameter_file}" "location"
-    region=$(echo ${location} | xargs)
+    echo "Invalid region: $region"
+    exit 2
 fi
-
-key=$(echo "${deployer_parameter_file}" | cut -d. -f1)
-
-if [ ! -n "${environment}" ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Incorrect parameter file.                                   #"
-    echo "#                                                                                       #"
-    echo "#     The file needs to contain the infrastructure.environment attribute!!              #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 64 #script usage wrong
-fi
-
-if [ ! -n "${region}" ]
-then
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Incorrect parameter file.                                   #"
-    echo "#                                                                                       #"
-    echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 64 #script usage wrong
-fi
-
-# Convert the region to the correct code
-get_region_code $region
 
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
@@ -212,39 +175,9 @@ root_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-if [ ! -z "${subscription}" ]
+if [ -z "${subscription}" ]
 then
     export ARM_SUBSCRIPTION_ID=$subscription
-fi
-
-if [ ! -n "$DEPLOYMENT_REPO_PATH" ]; then
-    echo ""
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 65 #data format error
-fi
-
-
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
-    echo "#                                                                                       #"
-    echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
-    echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 65 #data format error
 fi
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")
@@ -277,7 +210,7 @@ else
         rm stdout.az
     fi
 
-    if [ ! -z "${subscription}" ]
+    if [ -n "${subscription}" ]
     then
         az account set --sub "${subscription}"
     fi
@@ -285,7 +218,7 @@ else
 fi
 
 cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ ! -z "${cloudIDUsed}" ];
+if [ -n "${cloudIDUsed}" ];
 then 
     echo ""
     echo "#########################################################################################"
@@ -320,31 +253,28 @@ if [ -z "${storage_account}" ]; then
     load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${deployer_config_information}" "tfstate_resource_id"
     
-    if [ ! -z "${STATE_SUBSCRIPTION}" ]
+    if [ -n "${STATE_SUBSCRIPTION}" ]
     then
         subscription="${STATE_SUBSCRIPTION}"
-        $(az account set --sub "${STATE_SUBSCRIPTION}")
+        az account set --sub "${STATE_SUBSCRIPTION}"
         
     fi
 
-    if [ ! -z "${REMOTE_STATE_SA}" ]
+    if [ -n "${REMOTE_STATE_SA}" ]
     then
         storage_account="${REMOTE_STATE_SA}"
     fi
 
-    if [ ! -z "${REMOTE_STATE_RG}" ]
+    if [ -n "${REMOTE_STATE_RG}" ]
     then
         resource_group="${REMOTE_STATE_RG}"
     fi
-
-
 fi
 
 temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
 if [ -z "${temp}" ]
 then
     #Reinitialize
-
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"

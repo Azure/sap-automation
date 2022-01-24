@@ -127,7 +127,20 @@ if [ "${parameterfile_dirname}" != "${working_directory}" ]; then
     exit 3
 fi
 
-if [ ! -n "${deployment_system}" ]; then
+if [ ! -f "${parameterfile}" ]
+then
+    printf -v val %-35.35s "$parameterfile"
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                 $boldred  Parameter file does not exist: ${val} $resetformatting #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    exit 2 #No such file or directory
+fi
+
+
+if [ -z "${deployment_system}" ]; then
     printf -v val %-40.40s "$deployment_system"
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -144,6 +157,20 @@ if [ ! -n "${deployment_system}" ]; then
     exit 64 #script usage wrong
 fi
 
+# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+validate_exports
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
+
+# Check that Terraform and Azure CLI is installed
+validate_dependencies
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
+
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile_name"
 return_code=$?
@@ -151,23 +178,21 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-if [ ! -f "${parameterfile}" ]; then
-    printf -v val %-40.40s "$parameterfile"
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#              $boldred Parameter file does not exist: ${val} $resetformatting#"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    exit 2 #No such file or directory
+if valid_region_name "${region}" ; then
+    # Convert the region to the correct code
+    get_region_code ${region}
+else
+    echo "Invalid region: $region"
+    exit 2
 fi
-
-# Convert the region to the correct code
-get_region_code "${region}"
 
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 system_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+
+echo "Configuration file: $system_config_information"
+echo "Deployment region: $region"
+echo "Deployment region code: $region_code"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 

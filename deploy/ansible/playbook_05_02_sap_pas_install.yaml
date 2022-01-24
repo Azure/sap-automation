@@ -49,14 +49,13 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
-
-
-  tasks:
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
+
+  tasks:
 
     - name:                            Set 'pas' tier facts
       ansible.builtin.set_fact:
@@ -76,11 +75,18 @@
       block:
 
         - block:
-            - name:                        Include 2.6-sap-mounts role
-              ansible.builtin.include_role:
-                name:                      roles-sap-os/2.6-sap-mounts
-          tags:
-            - 2.6-sap-mounts
+            - ansible.builtin.debug:
+                msg:
+                  - "pas_instance_number: {{ pas_instance_number }}"
+                  - "scs_instance_number: {{ scs_instance_number }}"
+                verbosity:             2
+
+            - ansible.builtin.assert:
+                that:
+                  - "pas_instance_number is defined"
+                  - "scs_instance_number != pas_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the pas_instance_number"
+          when:                        (ansible_play_hosts_all | length) <= 2
 
         - block:
             - name:                    Include 5.2-pas-install
@@ -108,6 +114,8 @@
                 msg:                   "{{ error_lines }}"
               when:
                 - pas_installation.rc > 0
+              vars:
+                instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
           tags:
             - 5.2-pas-install
 
