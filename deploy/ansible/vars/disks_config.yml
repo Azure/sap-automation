@@ -67,13 +67,6 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'hana'
-    vg:         "{% if shareddisk == 1 %}vg_hana_shared{% else %}vg_sap{% endif %}"
-    lv:         'lv_hana_shared'
-    size:       '100%FREE'
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'hana'
     vg:         'vg_hana_data'
     lv:         'lv_hana_data'
     size:       '100%FREE'
@@ -100,6 +93,13 @@ logical_volumes:
     vg:         'vg_sap'
     lv:         'lv_sapmnt'
     size:       '1g'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         "{% if shareddisk == 1 %}vg_hana_shared{% else %}vg_sap{% endif %}"
+    lv:         'lv_hana_shared'
+    size:       "{% if shareddisk == 1 %}100%FREE{% else %}32g{% endif %}"
     fstype:     'xfs'
 
 logical_volumes_sapmnt:
