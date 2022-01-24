@@ -258,8 +258,8 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 128
     fstype:     'xfs'
-  # ---------------------- End - disks required for DB2 ----------------------8
-  
+  # ----------------------- End - disks required for DB2 ----------------------8
+
   # ---------------------- Begin - disks required for SCS ---------------------8
 logical_volumes_sapmnt:
   - tier:       'sapos'
