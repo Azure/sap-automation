@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)
+name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              sap_system
@@ -40,7 +40,7 @@ stages:
             persistCredentials:        true
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sapsystemfolder) $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sapsystemfolder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)

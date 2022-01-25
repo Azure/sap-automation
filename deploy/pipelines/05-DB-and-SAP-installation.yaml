@@ -82,10 +82,10 @@ parameters:
     type:                              boolean
     default:                           false
 
-  - name:                              postinstallation
-    displayName:                       Post Installation Steps
+  - name:                              hcmt
+    displayName:                       HANA Cloud Measurement Tool
     type:                              boolean
-    default:                           true
+    default:                           false
 
 trigger: none
 
@@ -112,6 +112,8 @@ stages:
     jobs:
       - job:                           Preparation_step
         displayName:                   Preparation steps
+        workspace:
+          clean: all
         steps:
           - script: |
               #!/bin/bash
@@ -155,9 +157,6 @@ stages:
                 sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(fqdn)"'|'      SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
               echo -e "$green--- Get SID and copy hosts file over for ansible runs ---$reset"
                 cp -p $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml $(Build.Repository.LocalPath)/sap_hosts.yaml
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
@@ -178,7 +177,7 @@ stages:
                 echo "##vso[task.setvariable variable=SSHKEY;isOutput=true]$(Build.Repository.LocalPath)/sshkey"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git pull --append origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull --append origin $(Branch)
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 added=0
@@ -192,8 +191,6 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
                 fi
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-
             name:                      Preparation
             displayName:               Preparation_for_Ansible
             env:
@@ -551,8 +548,40 @@ stages:
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false          
 
+  - stage: HCMT
+    displayName:                       HANA Cloud Measurement Tool
+    condition:                         eq(${{ parameters.hcmt }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+    jobs:
+      - job:                           HANA_Cloud_Measurement_Tool
+        displayName:                   HANA Cloud Measurement Tool
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          key_path:                    $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSHKEY'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - task:                      Ansible@0
+            displayName:               HANA Cloud Measurement Tool
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_02_db_hcmt.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(SID_hosts)
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false          
+
   - stage: Post_Installation_Steps
     displayName:                       Post Installation Steps
+    condition:                         always()
     jobs:
       - job:                           Post_Installation_Steps
         displayName:                   Post Installation Steps
@@ -581,13 +610,17 @@ stages:
                 fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 git checkout $(Branch)
-                git pull
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
                 added=0
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip ]; then
                   git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip
+                  added=1
+                fi
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip
                   added=1
                 fi
                 if [ 1 == $added ]; then
