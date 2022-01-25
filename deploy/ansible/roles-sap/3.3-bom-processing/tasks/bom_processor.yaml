@@ -56,6 +56,7 @@
     state:                             directory
     mode:                              0755
   loop:
+    - path: '/usr/sap/install/tmp'
     - path: '/usr/sap/install/downloads'
     - path: '/usr/sap/install/download_basket'
 
@@ -107,7 +108,7 @@
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    tmp_dest:                          '/mnt/resource'
+    tmp_dest:                          "{{ target_media_location }}/tmp"
     checksum:                          "sha256:{{ item.checksum | upper }}"
     validate_certs:                    true
   register:                            result
@@ -129,7 +130,7 @@
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     checksum:                          "sha256:{{ item.checksum | upper }}"
-    tmp_dest:                          '/mnt/resource'
+    tmp_dest:                          "{{ target_media_location }}/tmp"
     validate_certs:                    true
   register:                            result
   until:                               result is succeeded

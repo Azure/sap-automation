@@ -16,7 +16,7 @@
 
 - name:                                Mount local filesystems (when not using AFS)
   ansible.builtin.set_fact:
-    sharedpath:                       "{% if shareddisk == 1 %}/dev/vg_hana_shared/lv_hana_shared{% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
+    sharedpath:                       "{% if shareddisk == '1' %}/dev/vg_hana_shared/lv_hana_shared{% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
 
 - name:                                Show NFS_provider
   ansible.builtin.debug:
