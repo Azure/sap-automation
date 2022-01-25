@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: "Deploying the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
+name: Deploying the SAP Workload zone defined in $(zonefolder) [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              workloadzone
@@ -48,7 +48,7 @@ stages:
             persistCredentials:        true
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(zonefolder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
