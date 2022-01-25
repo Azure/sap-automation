@@ -124,6 +124,7 @@
                 error_lines:           "{{ error_lines | default([]) + [item] }}"
               with_items:              "{{ scs_installation.stdout_lines }}"
               when:
+                - scs_installation.stdout_lines is defined
                 - '"ERROR" in item'
                 - scs_installation.rc > 0
 
@@ -134,6 +135,7 @@
                 suffix:                "_SCS"
                 prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/ASCS'
+                tier:                  'scs'
 
             - name:                    Errors from HANA installation
               ansible.builtin.fail:
@@ -146,8 +148,6 @@
 
           vars:
             tier:                      "{{ tier }}"
-          tags:
-            - 5.0.0-scs-install
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
@@ -264,6 +264,7 @@
                 suffix:                "_SCS"
                 prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ASCS'
+                tier:                  'scs'
 
             - name:                    Include 7.0.0-post-install role
               ansible.builtin.include_role:
@@ -272,6 +273,7 @@
                 suffix:                "_ERS"
                 prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ERS'
+                tier:                  'ers'
 
             - name:                    Get the Error lines (SCS)
               ansible.builtin.set_fact:
@@ -306,10 +308,6 @@
 
           tags:
             - 5.6-scsers-pacemaker
-<<<<<<< HEAD
-
-=======
->>>>>>> f9fd13b918d580c43036612efd9da7dedcd5f750
       when:
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "

@@ -103,6 +103,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_DB"
+                tier:                  'hana'
 
             - name:                    Errors from HANA installation
               ansible.builtin.fail:

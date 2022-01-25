@@ -78,6 +78,7 @@
             error_lines:           "{{ error_lines | default([]) + [item] }}"
           with_items:              "{{ app_installation.stdout_lines }}"
           when:
+            - app_installation.stdout_lines is defined
             - '"ERROR" in item'
             - app_installation.rc > 0
 
@@ -87,13 +88,26 @@
           vars:
             suffix:                "_APP"
             prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            path:                  '/INSTALL/HA/ABAP/APPX'
+            tier:                  'app'
+          when:                    db_high_availability
+
+        - name:                    Include 7.0.0-post-install role
+          ansible.builtin.include_role:
+            name:                  roles-sap/7.0.0-post-install
+          vars:
+            suffix:                "_APP"
+            prefix:                "{{ bom.product_ids.dlb.replace('.','/').replace('/ABAP','').split(':')[1] }}"
             path:                  '/INSTALL/DISTRIBUTED/ABAP/APPX'
+            tier:                  'app'
+          when:                    not db_high_availability
+
 
         - name:                    Errors from APP installation
           ansible.builtin.fail:
             msg:                   "{{ error_lines }}"
           when:
-            - app_installation.rc > 0
+            - error_lines is defined
       tags:
         - 5.3-app-install
 

@@ -89,13 +89,6 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
           always:
-            - name:                    Get the error lines
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ dbload.stdout_lines }}"
-              when:
-                - '"ERROR" in item'
-                - dbload.rc > 0
 
             - name:                    Include 7.0.0-post-install role
               ansible.builtin.include_role:
@@ -104,6 +97,16 @@
                 suffix:                '_DBLOAD'
                 prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                tier:                  'dbload'
+
+            - name:                    Get the error lines
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ dbload.stdout_lines }}"
+              when:
+                - dbload is defined
+                - dbload.stdout_lines is defined
+                - '"ERROR" in item'
 
             - name:                    Errors from SAPInst
               ansible.builtin.fail:

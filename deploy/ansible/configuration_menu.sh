@@ -131,14 +131,9 @@ all_playbooks=(
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
-<<<<<<< HEAD
         ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_bom_downloader
         ${cmd_dir}/playbook_07_00_00_post_installation.yaml
-=======
-        ${cmd_dir}/playbook_04_00_01_hana_hsr.yaml
-        ${cmd_dir}/playbook_bom_downloader.yaml
->>>>>>> f9fd13b918d580c43036612efd9da7dedcd5f750
 )
 
 # Set of options that will be passed to the ansible-playbook command

@@ -10,17 +10,6 @@
 name: OS Configuration and SAP Installation $(sapsystemfolder) $(bom) [$(Date:yyyyMMdd)]
 
 parameters:
-<<<<<<< HEAD
-  - name: sap_system
-    displayName: ENV-LOCA-VNET-SID
-    type: string
-    default: DEV-WEEU-SAP01-X00
-
-  - name: bom_base_name
-    displayName: BOM Base Name
-    type: string
-    default: S41909SPS03_v0009ms
-=======
   - name:                              sap_system
     displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
     type:                              string
@@ -30,7 +19,6 @@ parameters:
     displayName:                       Bill of Materials name
     type:                              string
     default:                           S41909SPS03_v0009ms
->>>>>>> 607f5da09ffcc0fe608a19519a966732579aedfc
     values:
       - S41909SPS03_v0009ms
       - S41909SPS03_v0008ms
@@ -632,12 +620,12 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
                 added=0
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip ]; then
-                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip ]; then
-                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip
                   added=1
                 fi
                 if [ 1 == $added ]; then
