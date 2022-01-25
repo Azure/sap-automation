@@ -117,7 +117,6 @@ stages:
                 fi
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
-              echo $SUsername va
                 if [ -z "$SUsername" ]; then 
                   az keyvault secret set --output none --name S-Username --vault-name $kv_name --value $(S-Username)
                 else
