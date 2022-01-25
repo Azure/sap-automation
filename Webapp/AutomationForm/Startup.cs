@@ -44,6 +44,7 @@ namespace AutomationForm
 
             services.AddScoped<ILandscapeService<LandscapeModel>, LandscapeService>();
             services.AddScoped<ILandscapeService<SystemModel>, SystemService>();
+            services.AddScoped<ILandscapeService<AppFile>, AppFileService>();
 
             services.AddAzureClients(builder =>
             {

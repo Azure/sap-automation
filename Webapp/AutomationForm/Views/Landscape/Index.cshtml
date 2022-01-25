@@ -1,25 +1,31 @@
 ﻿@model IEnumerable<AutomationForm.Models.LandscapeModel>
 
 @{
-    ViewBag.Title = "Exisiting Workload Zones";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Landscapes";
 }
 <script>
     window.onload = function() {
-        $('.notificationContainer').delay(3000).fadeOut();
+        $('.notificationContainer').delay(6000).fadeOut();
     }
 </script>
 
-<h2>Existing Workload Zones</h2>
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Landscapes</fluent-breadcrumb-item>
+</fluent-breadcrumb>
 
-<div class="notificationContainer" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+<div class="text-center">
+    <h2>Existing workload zones</h2>
+</div>
+
+<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
     <div class="notificationInner">
         <span class="notificationText">
             @TempData["success"]
         </span>
     </div>
 </div>
-<div class="notificationContainer" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
     <div class="notificationInner">
         <span class="notificationText">
             @TempData["error"]
@@ -32,16 +38,16 @@
         <th>
             @Html.DisplayNameFor(model => model.Id)
         </th>
-        <th>
+        <th class="wideonly">
             @Html.DisplayNameFor(model => model.environment)
         </th>
-        <th>
+        <th class="wideonly">
             @Html.DisplayNameFor(model => model.location)
         </th>
-        <th>
+        <th class="wideonly">
             @Html.DisplayNameFor(model => model.network_logical_name)
         </th>
-        <th>
+        <th class="wideonly">
             @Html.DisplayNameFor(model => model.network_address_space)
         </th>
         <th></th>
@@ -53,16 +59,16 @@
             <td>
                 @Html.DisplayFor(modelItem => landscape.Id)
             </td>
-            <td>
+            <td class="wideonly">
                 @Html.DisplayFor(modelItem => landscape.environment)
             </td>
-            <td>
+            <td class="wideonly">
                 @Html.DisplayFor(modelItem => landscape.location)
             </td>
-            <td>
+            <td class="wideonly">
                 @Html.DisplayFor(modelItem => landscape.network_logical_name)
             </td>
-            <td>
+            <td class="wideonly">
                 @Html.DisplayFor(modelItem => landscape.network_address_space)
             </td>
             <td>
@@ -78,6 +84,6 @@
 
 <p>
     <fluent-anchor appearance="accent" href="@Url.Action("Create", "Landscape")">
-        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create New
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create new
     </fluent-anchor>
 </p>

@@ -1,7 +1,7 @@
 ﻿@model AutomationForm.Models.SystemViewModel;
-@using AutomationForm.Models
+
 @{
-    ViewData["Title"] = "Edit System";
+    ViewBag.Title = "Edit system";
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -13,7 +13,7 @@
             environment: '@Model.System.environment',
             location: '@Model.System.location',
             subscription: '@Model.System.subscription',
-            rg: '@Model.System.resource_group_arm_id',
+            rg: '@Model.System.resourcegroup_arm_id',
             network: '@Model.System.network_address_arm_id',
             adminsubnetarmid: '@Model.System.admin_subnet_arm_id',
             dbsubnetarmid: '@Model.System.db_subnet_arm_id',
@@ -102,8 +102,6 @@
     });
 
     window.onload = function () {
-        $('[data-toggle="tooltip"]').tooltip();
-
         $(".js-example-placeholder-single").select2({
             placeholder: "Search...",
             allowClear: true,
@@ -120,11 +118,28 @@
         }
         $("#Basic-pivot").addClass("is-selected");
     }
+    
+    var submitting = false;
+    window.onbeforeunload = function(){
+        if (!submitting) {
+            return "";
+        }
+    };
 
 </script>
 
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Edit</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
 <div>
-    <h2 style="text-align: center">Workload Zone Parameters </h2>
+
+    <div class="text-center">
+        <h2 style="text-align: center">System parameters </h2>
+    </div>
+
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
@@ -144,7 +159,7 @@
             <ul class="ms-Pivot-links" style="text-align: center">
                 @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
                 {
-                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="1">
+                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="2">
                         @pg.Tab
                     </li>
                 }
@@ -166,57 +181,69 @@
                                     var value = Model.System.GetType().GetProperty(p.Name).GetValue(Model.System);
 
                                     <div class="ms-TextField">
-                                        @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
-                                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true" data-toggle="tooltip" title="@p.Description"></i>
+                                        
+                                        <div class="left-input">
+                                            @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
+                                            <p>@p.Description</p>
+                                        </div>
 
-                                        @if (@p.Type == "field")
-                                        {
-                                            @Html.TextBox(p.Name, value, new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                        }
-                                        else if (@p.Type == "lookup")
-                                        {
-                                            @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                        }
-                                        else if (@p.Type == "list")
-                                        {
-                                            @Html.ListBox(p.Name, p.Options, new { @class = "js-example-placeholder-multiple", @style = "width: 100%;", @multiple = "multiple" })
-                                        }
-                                        else if (@p.Type == "image")
-                                        {
-                                            Image img = (Image)value;
-                                            <div class="image-container">
-                                                <span>
-                                                    @Html.Label("os_type", "os_type", new { @class = $"ms-Label image-label" })
-                                                    @Html.TextBox(p.Name + ".os_type", img.os_type, new { @class = "ms-TextField-field image-input" })
-                                                </span>
+                                        <div class="right-input">
+                                            @if (@p.Type == "field")
+                                            {
+                                                @Html.TextBox(p.Name, value, new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                            }
+                                            else if (@p.Type == "lookup")
+                                            {
+                                                @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                            }
+                                            else if (@p.Type == "list")
+                                            {
+                                                @Html.ListBox(p.Name, p.Options, new { @class = "js-example-placeholder-multiple", @style = "width: 100%;", @multiple = "multiple" })
+                                            }
+                                            else if (@p.Type == "image")
+                                            {
+                                                Image img = (Image)value;
+                                                if (img == null) img = new Image(); 
 
-                                                <span>
-                                                    @Html.Label("source_image_id", "source_image_id", new { @class = $"ms-Label image-label" })
-                                                    @Html.TextBox(p.Name + ".source_image_id", img.source_image_id, new { @class = "ms-TextField-field image-input" })
-                                                </span>
+                                                <div class="image-container">
+                                                    <span>
+                                                        @Html.Label("os_type", "os_type", new { @class = $"ms-Label image-label" })
+                                                        @Html.TextBox(p.Name + ".os_type", img.os_type, new { @class = "ms-TextField-field image-input" })
+                                                    </span>
 
-                                                <span>
-                                                    @Html.Label("publisher", "publisher", new { @class = $"ms-Label image-label" })
-                                                    @Html.TextBox(p.Name + ".publisher", img.publisher, new { @class = "ms-TextField-field image-input" })
-                                                </span>
+                                                    <span>
+                                                        @Html.Label("source_image_id", "source_image_id", new { @class = $"ms-Label image-label" })
+                                                        @Html.TextBox(p.Name + ".source_image_id", img.source_image_id, new { @class = "ms-TextField-field image-input" })
+                                                    </span>
 
-                                                <span>
-                                                    @Html.Label("offer", "offer", new { @class = $"ms-Label image-label" })
-                                                    @Html.TextBox(p.Name + ".offer", img.offer, new { @class = "ms-TextField-field image-input" })
-                                                </span>
+                                                    <span>
+                                                        @Html.Label("publisher", "publisher", new { @class = $"ms-Label image-label" })
+                                                        @Html.TextBox(p.Name + ".publisher", img.publisher, new { @class = "ms-TextField-field image-input" })
+                                                    </span>
 
-                                                <span>
-                                                    @Html.Label("sku", "sku", new { @class = $"ms-Label image-label" })
-                                                    @Html.TextBox(p.Name + ".sku", img.sku, new { @class = "ms-TextField-field image-input" })
-                                                </span>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <p>Invalid parameter</p>
-                                        }
+                                                    <span>
+                                                        @Html.Label("offer", "offer", new { @class = $"ms-Label image-label" })
+                                                        @Html.TextBox(p.Name + ".offer", img.offer, new { @class = "ms-TextField-field image-input" })
+                                                    </span>
 
-                                        @Html.ValidationMessage(p.Name)
+                                                    <span>
+                                                        @Html.Label("sku", "sku", new { @class = $"ms-Label image-label" })
+                                                        @Html.TextBox(p.Name + ".sku", img.sku, new { @class = "ms-TextField-field image-input" })
+                                                    </span>
+
+                                                    <span>
+                                                        @Html.Label("version", "version", new { @class = $"ms-Label image-label" })
+                                                        @Html.TextBox(p.Name + ".version", img.version, new { @class = "ms-TextField-field image-input" })
+                                                    </span>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <p>Invalid parameter</p>
+                                            }
+
+                                            @Html.ValidationMessage(p.Name)
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -226,16 +253,16 @@
             }
         </div>
 
-        <fluent-button appearance="accent" style="margin-top: 15px" type="submit">
-            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
+        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
         </fluent-button>
 
         <fluent-anchor href="@Url.Action("Index", "System")">
             Cancel
         </fluent-anchor>
 
-        <fluent-button appearance="accent" style="margin-top: 15px; float: right" type="submit" formaction="/System/SubmitNew">
-            Save as new System
+        <fluent-button appearance="accent" style="margin-top: 15px; float: right" type="submit" onclick="submitting=true" formaction="/System/SubmitNew">
+            Save as new system
         </fluent-button>
 
     </form>

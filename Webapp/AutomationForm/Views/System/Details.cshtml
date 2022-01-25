@@ -1,6 +1,18 @@
 ﻿@model AutomationForm.Models.SystemModel
 
-<h2>System Details</h2>
+@{
+    ViewBag.Title = "System details";
+}
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Details</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>System details</h2>
+</div>
 
 <div>
     <hr />
@@ -9,7 +21,33 @@
         {
             string value = Html.DisplayText(prop.PropertyName);
 
-            if (value.Length != 0)
+            if (prop.ModelType == typeof(Image))
+            {
+                Image img = (Image)Model.GetType().GetProperty(prop.PropertyName).GetValue(Model);
+                if (img != null && (img.os_type         != null || 
+                                    img.source_image_id != null || 
+                                    img.publisher       != null || 
+                                    img.offer           != null || 
+                                    img.sku             != null || 
+                                    img.version         != null))
+                {
+                    <dt>
+                        @Html.DisplayName(prop.GetDisplayName())
+                    </dt>
+
+                    <dd>
+                        <p>
+                            os_type:         @img.os_type <br>
+                            source_image_id: @img.source_image_id <br>
+                            publisher:       @img.publisher <br>
+                            offer:           @img.offer <br>
+                            sku:             @img.sku <br>
+                            version:         @img.version
+                        </p>
+                    </dd>
+                }
+            }
+            else if (value.Length != 0)
             {
                 <dt>
                     @Html.DisplayName(prop.GetDisplayName())
@@ -24,19 +62,10 @@
                              @t <br>
                         }
                     }
-                    else if (prop.ModelType == typeof(Image))
+                    else
                     {
-                        Image img = (Image)Model.GetType().GetProperty(prop.PropertyName).GetValue(Model);
-                        <p>
-                            os_type:         @img.os_type <br>
-                            source_image_id: @img.source_image_id <br>
-                            publisher:       @img.publisher <br>
-                            offer:           @img.offer <br>
-                            sku:             @img.sku
-                        </p>
+                        @value
                     }
-                    else 
-            @value
                 </dd>
             }
         }
@@ -47,6 +76,6 @@
         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
     </fluent-anchor>
     <fluent-anchor href="@Url.Action("Index", "System")">
-        Back to List
+        Back to list
     </fluent-anchor>
 </p>

@@ -1,0 +1,28 @@
+@model AutomationForm.Models.AppFile
+
+@{
+    ViewBag.Title = "File details";
+}
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "File")">Files</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Details</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>@Model.Id</h2>
+</div>
+
+<div>
+    <pre>
+        <code class="language-hcl">
+            @Html.Raw(ViewBag.Message)
+        </code>
+    </pre>
+</div>
+<p>
+    <fluent-anchor href="@Url.Action("Index", "File")">
+        Back to list
+    </fluent-anchor>
+</p>

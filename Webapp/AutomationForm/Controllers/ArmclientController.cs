@@ -19,7 +19,7 @@ namespace AutomationForm.Controllers
             _armClient = armClient;
         }
 
-        // #subscription
+        [HttpGet] // #subscription
         public ActionResult GetSubscriptionOptions()
         {
             List<SelectListItem> options = new List<SelectListItem>
@@ -46,7 +46,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        // #location
+        [HttpGet] // #location
         public ActionResult GetLocationOptions()
         {
             List<SelectListItem> options = new List<SelectListItem>
@@ -74,7 +74,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        // #resource_group_arm_id
+        [HttpGet] // #resource_group_arm_id
         public ActionResult GetResourceGroupOptions(string subscriptionId)
         {
             List<SelectListItem> options = new List<SelectListItem>
@@ -102,7 +102,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        // #network_address_arm_id
+        [HttpGet] // #network_address_arm_id
         public ActionResult GetVNetOptions(string subscriptionId)
         {
             List<SelectListItem> options = new List<SelectListItem>
@@ -129,7 +129,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        // #[various]_subnet_arm_id
+        [HttpGet] // #[various]_subnet_arm_id
         public ActionResult GetSubnetOptions(string vnetId)
         {
             List<SelectListItem> options = new List<SelectListItem>
@@ -160,7 +160,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        // #[various]_subnet_nsg_arm_id
+        [HttpGet] // #[various]_subnet_nsg_arm_id
         public ActionResult GetNsgOptions(string vnetId)
         {
             List<SelectListItem> options = new List<SelectListItem>

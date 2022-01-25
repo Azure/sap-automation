@@ -2,7 +2,7 @@
   "Tab": "Expert",
   "Groupings": [
     {
-      "Section": "Terraform System Parameters",
+      "Section": "Terraform system parameters",
       "Parameters": [
         {
           "Name": "deployer_tfstate_key",
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "Section": "Common Infrastructure",
+      "Section": "Common infrastructure",
       "Parameters": [
         {
           "Name": "subscription",
@@ -44,7 +44,7 @@
           "Overrules": ""
         },
         {
-          "Name": "resource_group_arm_id",
+          "Name": "resourcegroup_arm_id",
           "Required": false,
           "Description": "Provide an existing resource group for the deployment",
           "Type": "lookup",
@@ -54,10 +54,10 @@
               "Value": ""
             }
           ],
-          "Overrules": "resource_group_name"
+          "Overrules": "resourcegroup_name"
         },
         {
-          "Name": "resource_group_name",
+          "Name": "resourcegroup_name",
           "Required": false,
           "Description": "Override the name of the resource group that will be provisioned",
           "Type": "field",
@@ -85,7 +85,7 @@
       ]
     },
     {
-      "Section": "Admin Subnet",
+      "Section": "Admin subnet",
       "Parameters": [
         {
           "Name": "admin_subnet_arm_id",
@@ -111,7 +111,7 @@
       ]
     },
     {
-      "Section": "Admin Subnet Network Security Group",
+      "Section": "Admin subnet network security group",
       "Parameters": [
         {
           "Name": "admin_subnet_nsg_arm_id",
@@ -137,7 +137,7 @@
       ]
     },
     {
-      "Section": "Database Subnet",
+      "Section": "Database subnet",
       "Parameters": [
         {
           "Name": "db_subnet_arm_id",
@@ -163,7 +163,7 @@
       ]
     },
     {
-      "Section": "Database Subnet Network Security Group",
+      "Section": "Database subnet network security group",
       "Parameters": [
         {
           "Name": "db_subnet_nsg_arm_id",
@@ -189,7 +189,7 @@
       ]
     },
     {
-      "Section": "Application Subnet",
+      "Section": "Application subnet",
       "Parameters": [
         {
           "Name": "app_subnet_arm_id",
@@ -215,7 +215,7 @@
       ]
     },
     {
-      "Section": "Application Subnet Network Security Group",
+      "Section": "Application subnet network security group",
       "Parameters": [
         {
           "Name": "app_subnet_nsg_arm_id",
@@ -241,7 +241,7 @@
       ]
     },
     {
-      "Section": "Web Subnet",
+      "Section": "Web subnet",
       "Parameters": [
         {
           "Name": "web_subnet_arm_id",
@@ -275,7 +275,7 @@
       ]
     },
     {
-      "Section": "Web Subnet Network Security Group",
+      "Section": "Web subnet network security group",
       "Parameters": [
         {
           "Name": "web_subnet_nsg_arm_id",
@@ -301,7 +301,7 @@
       ]
     },
     {
-      "Section": "ISCSI Subnet",
+      "Section": "ISCSI subnet",
       "Parameters": [
         {
           "Name": "iscsi_subnet_arm_id",
@@ -335,7 +335,7 @@
       ]
     },
     {
-      "Section": "ISCSI Subnet Network Security Group",
+      "Section": "ISCSI subnet network security group",
       "Parameters": [
         {
           "Name": "iscsi_subnet_nsg_arm_id",
@@ -361,7 +361,7 @@
       ]
     },
     {
-      "Section": "ANF Subnet",
+      "Section": "ANF subnet",
       "Parameters": [
         {
           "Name": "anf_subnet_arm_id",
@@ -391,11 +391,85 @@
           "Type": "field",
           "Options": [],
           "Overrules": ""
+        },
+        {
+          "Name": "use_ANF",
+          "Required": false,
+          "Description": "Controlls if Azure NetApp files is used for storage",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_account_arm_id",
+          "Required": false,
+          "Description": "Azure resource identifier for an existing Netapp Account",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_account_name",
+          "Required": false,
+          "Description": "The name for the Netapp Account",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_service_level",
+          "Required": false,
+          "Description": "The service level for the NetApp pool",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_pool_size",
+          "Required": false,
+          "Description": "The pool size in TB for the NetApp pool",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "use_private_endpoint",
+          "Required": false,
+          "Description": "Controlls if the keyvaults and storage accounts have private endpoints",
+          "Type": "field",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
         }
       ]
     },
     {
-      "Section": "ANF Subnet Network Security Group",
+      "Section": "ANF subnet network security group",
       "Parameters": [
         {
           "Name": "anf_subnet_nsg_arm_id",
@@ -421,7 +495,7 @@
       ]
     },
     {
-      "Section": "Azure Keyvault Support",
+      "Section": "Azure keyvault support",
       "Parameters": [
         {
           "Name": "user_keyvault_id",
@@ -437,6 +511,27 @@
           "Description": "Designed to host secrets for the automation solution. Specifies the Azure resource identifier for an existing keyvault",
           "Type": "field",
           "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "enable_purge_control_for_keyvaults",
+          "Required": false,
+          "Description": "Used to disable the purge protection for Azure keyvaults",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
           "Overrules": ""
         },
         {

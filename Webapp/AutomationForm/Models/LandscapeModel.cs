@@ -9,7 +9,7 @@ namespace AutomationForm.Models
     public class LandscapeModel
     {
         [BsonId]
-        [DisplayName("Workload Zone ID")]
+        [DisplayName("Workload zone ID")]
         public string Id { get; set; }
 
         // BASIC
@@ -23,13 +23,13 @@ namespace AutomationForm.Models
         public string location { get; set; }
 
         [Required]
-        [DisplayName("Logical Network Name")]
+        [DisplayName("Network name")]
         [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
         public string network_logical_name { get; set; }
 
         //[Required]
         [BsonIgnoreIfNull]
-        [DisplayName("Network Address")]
+        [DisplayName("Network address")]
         [RegularExpression(@"^\d+\.\d+\.\d+\.\d+\/\d+$", ErrorMessage = "Network address space must be a valid RFC 1918 address")]
         public string network_address_space { get; set; }
 
@@ -67,10 +67,10 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid resource group arm id")]
-        public string resource_group_arm_id { get; set; }
+        public string resourcegroup_arm_id { get; set; }
 
         [BsonIgnoreIfNull]
-        public string resource_group_name { get; set; }
+        public string resourcegroup_name { get; set; }
 
         
         [BsonIgnoreIfNull]
@@ -181,12 +181,33 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string anf_subnet_nsg_name { get; set; }
 
+        [BsonIgnoreIfNull]
+        public bool? use_ANF { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ANF_account_arm_id { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public string ANF_account_name { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ANF_service_level { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_pool_size { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? use_private_endpoint { get; set; }
+
 
         [BsonIgnoreIfNull]
         public string user_keyvault_id { get; set; }
 
         [BsonIgnoreIfNull]
         public string automation_keyvault_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? enable_purge_control_for_keyvaults { get; set; }
 
         [BsonIgnoreIfNull]
         public string spn_keyvault_id { get; set; }

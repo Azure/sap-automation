@@ -16,7 +16,7 @@ namespace AutomationForm.Models
 
         //[Required]
         [BsonIgnoreIfNull]
-        [DisplayName("Workload Zone")]
+        [DisplayName("Workload zone")]
         public string workload_zone { get; set; }
         
         [Required]
@@ -28,7 +28,7 @@ namespace AutomationForm.Models
         public string location { get; set; }
         
         [Required]
-        [DisplayName("Network Name")]
+        [DisplayName("Network name")]
         public string network_logical_name { get; set; }
 
         [Required]
@@ -77,10 +77,10 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         [RegularExpression(@"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+$", ErrorMessage = "Invalid resource group arm id")]
-        public string resource_group_arm_id { get; set; }
+        public string resourcegroup_arm_id { get; set; }
 
         [BsonIgnoreIfNull]
-        public string resource_group_name { get; set; }
+        public string resourcegroup_name { get; set; }
 
         [BsonIgnoreIfNull]
         public string custom_prefix { get; set; }
@@ -189,7 +189,7 @@ namespace AutomationForm.Models
         public string db_disk_sizes_filename { get; set; }
 
         [BsonIgnoreIfNull]
-        public string database_vm_use_DHCP { get; set; }
+        public bool? database_vm_use_DHCP { get; set; }
 
         [BsonIgnoreIfNull]
         public Image database_vm_image { get; set; }
@@ -342,6 +342,39 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public bool? nsg_asg_with_vnet { get; set; }
 
+        // NFS Support
+
+        [BsonIgnoreIfNull]
+        public string NFS_provider { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? sapmnt_volume_size { get; set; }
+
+        // Anchor VM
+
+        [BsonIgnoreIfNull]
+        public bool? deploy_anchor_vm { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string anchor_vm_sku { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string anchor_vm_authentication_type { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? anchor_vm_accelerated_networking { get; set; }
+
+        [BsonIgnoreIfNull]
+        public Image anchor_vm_image { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] anchor_vm_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? anchor_vm_use_DHCP { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string bom_base { get; set; }
     }
 
     public class Image
@@ -360,5 +393,8 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public string sku { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public string version { get; set; }
     }
 }

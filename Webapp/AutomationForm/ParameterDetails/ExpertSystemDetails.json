@@ -2,7 +2,7 @@
   "Tab": "Expert",
   "Groupings": [
     {
-      "Section": "Terraform System Parameters",
+      "Section": "Terraform system parameters",
       "Parameters": [
         {
           "Name": "deployer_tfstate_key",
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "Section": "Common Infrastructure",
+      "Section": "Common infrastructure",
       "Parameters": [
         {
           "Name": "subscription",
@@ -44,7 +44,7 @@
           "Overrules": ""
         },
         {
-          "Name": "resource_group_arm_id",
+          "Name": "resourcegroup_arm_id",
           "Required": false,
           "Description": "Provide an existing resource group for the deployment",
           "Type": "lookup",
@@ -54,10 +54,10 @@
               "Value": ""
             }
           ],
-          "Overrules": "resource_group_name"
+          "Overrules": "resourcegroup_name"
         },
         {
-          "Name": "resource_group_name",
+          "Name": "resourcegroup_name",
           "Required": false,
           "Description": "Override the name of the resource group that will be provisioned",
           "Type": "field",
@@ -130,7 +130,7 @@
       ]
     },
     {
-      "Section": "Admin Subnet",
+      "Section": "Admin subnet",
       "Parameters": [
         {
           "Name": "admin_subnet_arm_id",
@@ -156,7 +156,7 @@
       ]
     },
     {
-      "Section": "Admin Subnet Network Security Group",
+      "Section": "Admin subnet network security group",
       "Parameters": [
         {
           "Name": "admin_subnet_nsg_arm_id",
@@ -182,7 +182,7 @@
       ]
     },
     {
-      "Section": "Database Subnet",
+      "Section": "Database subnet",
       "Parameters": [
         {
           "Name": "db_subnet_arm_id",
@@ -208,7 +208,7 @@
       ]
     },
     {
-      "Section": "Database Subnet Network Security Group",
+      "Section": "Database subnet network security group",
       "Parameters": [
         {
           "Name": "db_subnet_nsg_arm_id",
@@ -234,7 +234,7 @@
       ]
     },
     {
-      "Section": "Application Subnet",
+      "Section": "Application subnet",
       "Parameters": [
         {
           "Name": "app_subnet_arm_id",
@@ -260,7 +260,7 @@
       ]
     },
     {
-      "Section": "Application Subnet Network Security Group",
+      "Section": "Application subnet network security group",
       "Parameters": [
         {
           "Name": "app_subnet_nsg_arm_id",
@@ -286,7 +286,7 @@
       ]
     },
     {
-      "Section": "Web Subnet",
+      "Section": "Web subnet",
       "Parameters": [
         {
           "Name": "web_subnet_arm_id",
@@ -320,7 +320,7 @@
       ]
     },
     {
-      "Section": "Web Subnet Network Security Group",
+      "Section": "Web subnet network security group",
       "Parameters": [
         {
           "Name": "web_subnet_nsg_arm_id",
@@ -346,7 +346,7 @@
       ]
     },
     {
-      "Section": "Database Tier",
+      "Section": "Database tier",
       "Parameters": [
         {
           "Name": "database_platform",
@@ -589,7 +589,7 @@
       ]
     },
     {
-      "Section": "Application Tier",
+      "Section": "Application tier",
       "Parameters": [
         {
           "Name": "enable_app_tier_deployment",
@@ -694,7 +694,7 @@
       ]
     },
     {
-      "Section": "Application Servers",
+      "Section": "Application servers",
       "Parameters": [
         {
           "Name": "application_server_count",
@@ -780,7 +780,7 @@
       ]
     },
     {
-      "Section": "SAP Central Services",
+      "Section": "SAP central services",
       "Parameters": [
         {
           "Name": "scs_server_count",
@@ -916,7 +916,7 @@
       ]
     },
     {
-      "Section": "Web Dispatchers",
+      "Section": "Web dispatchers",
       "Parameters": [
         {
           "Name": "webdispatcher_server_count",
@@ -1010,6 +1010,175 @@
               "Value": ""
             }
           ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "NFS support",
+      "Parameters": [
+        {
+          "Name": "NFS_provider",
+          "Required": false,
+          "Description": "Defines how NFS services are provided to the SAP systems: AFS (Azure Files for NFS), ANF (Azure NetApp Files), NFS (custom solution)",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "AFS",
+              "Value": "AFS"
+            },
+            {
+              "Text": "ANF",
+              "Value": "ANF"
+            },
+            {
+              "Text": "NFS",
+              "Value": "NFS"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "sapmnt_volume_size",
+          "Required": false,
+          "Description": "",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Anchor VM",
+      "Parameters": [
+        {
+          "Name": "deploy_anchor_vm",
+          "Required": false,
+          "Description": "Controls if an anchor VM should be deployed",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "anchor_vm_sku",
+          "Required": false,
+          "Description": "Defines the virtual machine SKU",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "anchor_vm_authentication_type",
+          "Required": false,
+          "Description": "Defines the default authentication model for the Anchor VM",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "Key",
+              "Value": "key"
+            },
+            {
+              "Text": "Password",
+              "Value": "password"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "anchor_vm_accelerated_networking",
+          "Required": false,
+          "Description": "Defines if the anchor VM should use accelerated networking",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "anchor_vm_image",
+          "Required": false,
+          "Description": "Defines the virtual machine image to use",
+          "Type": "image",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "anchor_vm_nic_ips",
+          "Required": false,
+          "Description": "Provide the IP addresses for the the Anchor VMs",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "anchor_vm_use_DHCP",
+          "Required": false,
+          "Description": "Controlls if Azure subnet provided IP addresses should be used",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "bom_base",
+          "Required": false,
+          "Description": "",
+          "Type": "field",
+          "Options": [],
           "Overrules": ""
         }
       ]

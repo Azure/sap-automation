@@ -1,7 +1,8 @@
 ﻿@model AutomationForm.Models.LandscapeViewModel;
 @using AutomationForm.Models
+
 @{
-    ViewData["Title"] = "Edit Landscape";
+    ViewBag.Title = "Edit landscape";
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -12,7 +13,7 @@
             subscription: '@Model.Landscape.subscription',
             environment: '@Model.Landscape.environment',
             location: '@Model.Landscape.location',
-            rg: '@Model.Landscape.resource_group_arm_id',
+            rg: '@Model.Landscape.resourcegroup_arm_id',
             network: '@Model.Landscape.network_address_arm_id',
             adminsubnetarmid: '@Model.Landscape.admin_subnet_arm_id',
             dbsubnetarmid: '@Model.Landscape.db_subnet_arm_id',
@@ -32,8 +33,6 @@
     });
 
     window.onload = function () {
-        $('[data-toggle="tooltip"]').tooltip();
-
         $(".js-example-placeholder-single").select2({
             placeholder: "Search...",
             allowClear: true,
@@ -47,10 +46,27 @@
         $("#Basic-pivot").addClass("is-selected");
     }
 
+    var submitting = false;
+    window.onbeforeunload = function(){
+        if (!submitting) {
+            return "";
+        }
+    };
+
 </script>
 
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Landscapes</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Edit</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
 <div>
-    <h2 style="text-align: center">Workload Zone Parameters </h2>
+
+    <div class="text-center">
+        <h2 style="text-align: center">Workload zone parameters </h2>
+    </div>
+    
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
@@ -70,7 +86,7 @@
             <ul class="ms-Pivot-links" style="text-align: center">
                 @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
                 {
-                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="1">
+                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="2">
                         @pg.Tab
                     </li>
                 }
@@ -92,23 +108,28 @@
                                     var value = Model.Landscape.GetType().GetProperty(p.Name).GetValue(Model.Landscape);
                                     
                                     <div class="ms-TextField">
-                                        @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
-                                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true" data-toggle="tooltip" title="@p.Description"></i>
+                                        
+                                        <div class="left-input">
+                                            @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
+                                            <p>@p.Description</p>
+                                        </div>
 
-                                        @if (@p.Type == "field")
-                                        {
-                                            @Html.TextBox(p.Name, value, new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                        }
-                                        else if (@p.Type == "lookup")
-                                        {
-                                            @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                        }
-                                        else
-                                        {
-                                            <p>Invalid parameter</p>
-                                        }
+                                        <div class="right-input">
+                                            @if (@p.Type == "field")
+                                            {
+                                                @Html.TextBox(p.Name, value, new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                            }
+                                            else if (@p.Type == "lookup")
+                                            {
+                                                @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                            }
+                                            else
+                                            {
+                                                <p>Invalid parameter</p>
+                                            }
 
-                                        @Html.ValidationMessage(p.Name)
+                                            @Html.ValidationMessage(p.Name)
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -118,7 +139,7 @@
             }
         </div>
 
-        <fluent-button appearance="accent" style="margin-top: 15px" type="submit">
+        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
             <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
         </fluent-button>
 
@@ -126,8 +147,8 @@
             Cancel
         </fluent-anchor>
         
-        <fluent-button appearance="accent" style="margin-top: 15px; float: right" type="submit" formaction="/Landscape/SubmitNew">
-            Save as new Landscape
+        <fluent-button appearance="accent" style="margin-top: 15px; float: right" type="submit" onclick="submitting=true" formaction="/Landscape/SubmitNew">
+            Save as new landscape
         </fluent-button>
 
     </form>

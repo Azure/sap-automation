@@ -1,0 +1,64 @@
+@model IEnumerable<AutomationForm.Models.AppFile>
+
+@{
+    ViewBag.Title = "Existing Files";
+}
+
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Files</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Existing files</h2>
+</div>
+
+<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Id)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var file in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => file.Id)
+            </td>
+            <td>
+                @Html.ActionLink("Details", "Details", new { id=file.Id }) |
+                @Html.ActionLink("Delete", "Delete", new { id=file.Id })
+            </td>
+        </tr>
+    }
+
+</table>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Upload", "File")">
+        <i class="ms-Icon ms-Icon--Upload" aria-hidden="true"></i>Upload file
+    </fluent-anchor>
+</p>

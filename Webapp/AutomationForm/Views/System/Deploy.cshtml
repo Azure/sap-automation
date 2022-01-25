@@ -1,29 +1,72 @@
 ﻿@model AutomationForm.Models.SystemModel
 
 @{
-    ViewBag.Title = "Deploy";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Deploy system";
 }
 
-<h2>Deploy a Workload Zone</h2>
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Deploy</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Deploy a system</h2>
+</div>
 
 <h4>Are you sure you want to deploy this?</h4>
 <div>
     <hr />
     <dl class="dl-horizontal">
-
         @foreach (var prop in ViewData.ModelMetadata.Properties)
         {
             string value = Html.DisplayText(prop.PropertyName);
 
-            if (value.Length != 0)
+            if (prop.ModelType == typeof(Image))
+            {
+                Image img = (Image)Model.GetType().GetProperty(prop.PropertyName).GetValue(Model);
+                if (img != null && (img.os_type         != null || 
+                                    img.source_image_id != null || 
+                                    img.publisher       != null || 
+                                    img.offer           != null || 
+                                    img.sku             != null || 
+                                    img.version         != null))
+                {
+                    <dt>
+                        @Html.DisplayName(prop.GetDisplayName())
+                    </dt>
+
+                    <dd>
+                        <p>
+                            os_type:         @img.os_type <br>
+                            source_image_id: @img.source_image_id <br>
+                            publisher:       @img.publisher <br>
+                            offer:           @img.offer <br>
+                            sku:             @img.sku <br>
+                            version:         @img.version
+                        </p>
+                    </dd>
+                }
+            }
+            else if (value.Length != 0)
             {
                 <dt>
                     @Html.DisplayName(prop.GetDisplayName())
                 </dt>
 
                 <dd>
-                    @value
+                    @if (prop.IsEnumerableType)
+                    {
+                        var tmp = (string[])Model.GetType().GetProperty(prop.PropertyName).GetValue(Model);
+                        foreach (var t in tmp)
+                        {
+                             @t <br>
+                        }
+                    }
+                    else
+                    {
+                        @value
+                    }
                 </dd>
             }
         }
@@ -33,13 +76,15 @@
     {
         @Html.AntiForgeryToken()
 
-        <fluent-button appearance="accent" value="Deploy" type="submit">
+        <fluent-checkbox onchange="toggleDisable(this, 'deploy-system-button')">I confirm that I wish to deploy this system</fluent-checkbox><br />
+
+        <fluent-button id="deploy-system-button" appearance="accent" value="Deploy" type="submit" disabled>
             <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Deploy
         </fluent-button>
+
         <fluent-anchor href="@Url.Action("Index", "System")">
             Cancel
         </fluent-anchor>
 
     }
-</div>
 </div>

@@ -120,7 +120,7 @@ stages:
                 az extension add --name azure-devops
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                echo  $(System.AccessToken) | az devops login --organization $(System.CollectionUri)
+                echo $(System.AccessToken) | az devops login --organization $(System.CollectionUri)
 
               echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
                 organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)

@@ -1,25 +1,31 @@
 ﻿@model IEnumerable<AutomationForm.Models.SystemModel>
 
 @{
-    ViewBag.Title = "Existing Systems";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Systems";
 }
 <script>
     window.onload = function() {
-        $('.notificationContainer').delay(3000).fadeOut();
+        $('.notificationContainer').delay(6000).fadeOut();
     }
 </script>
 
-<h2>Existing Systems</h2>
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Systems</fluent-breadcrumb-item>
+</fluent-breadcrumb>
 
-<div class="notificationContainer" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+<div class="text-center">
+    <h2>Existing systems</h2>
+</div>
+
+<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
     <div class="notificationInner">
         <span class="notificationText">
             @TempData["success"]
         </span>
     </div>
 </div>
-<div class="notificationContainer" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
     <div class="notificationInner">
         <span class="notificationText">
             @TempData["error"]
@@ -32,17 +38,17 @@
         <th>
             @Html.DisplayNameFor(model => model.Id)
         </th>
-        <th>
+        <th class="wideonly">
             @Html.DisplayNameFor(model => model.workload_zone)
         </th>
-        <th>
+        <th class="wideonly">
             @Html.DisplayNameFor(model => model.environment)
         </th>
-        <th>
+        <th class="wideonly">
             @Html.DisplayNameFor(model => model.location)
         </th>
-        <th>
-            @Html.DisplayNameFor(model => model.resource_group_name)
+        <th class="wideonly">
+            @Html.DisplayNameFor(model => model.network_logical_name)
         </th>
         <th></th>
     </tr>
@@ -53,17 +59,17 @@
             <td>
                 @Html.DisplayFor(modelItem => system.Id)
             </td>
-            <td>
+            <td class="wideonly">
                 @Html.DisplayFor(modelItem => system.workload_zone)
             </td>
-            <td>
+            <td class="wideonly">
                 @Html.DisplayFor(modelItem => system.environment)
             </td>
-            <td>
+            <td class="wideonly">
                 @Html.DisplayFor(modelItem => system.location)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => system.resource_group_name)
+            <td class="wideonly">
+                @Html.DisplayFor(modelItem => system.network_logical_name)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id=system.Id }) |
@@ -78,6 +84,6 @@
 
 <p>
     <fluent-anchor appearance="accent" href="@Url.Action("Create", "System")">
-        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create New
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create new
     </fluent-anchor>
 </p>

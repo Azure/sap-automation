@@ -12,25 +12,23 @@ namespace AutomationForm.Controllers
 
         private readonly ILandscapeService<SystemModel> _systemService;
         private SystemViewModel systemView;
-        private readonly HelperController<SystemModel> helper;
         private readonly IConfiguration _configuration;
 
         public SystemController(ILandscapeService<SystemModel> systemService, IConfiguration configuration)
         {
             _systemService = systemService;
             _configuration = configuration;
-            helper = new HelperController<SystemModel>();
             systemView = SetViewData();
         }
-        public SystemViewModel SetViewData()
+        private SystemViewModel SetViewData()
         {
             systemView = new SystemViewModel();
             systemView.System = new SystemModel();
             try
             {
-                ParameterGroupingModel basicParameterArray = helper.ReadJson("ParameterDetails/BasicSystemDetails.json");
-                ParameterGroupingModel advancedParameterArray = helper.ReadJson("ParameterDetails/AdvancedSystemDetails.json");
-                ParameterGroupingModel expertParameterArray = helper.ReadJson("ParameterDetails/ExpertSystemDetails.json");
+                ParameterGroupingModel basicParameterArray = Helper.ReadJson("ParameterDetails/BasicSystemDetails.json");
+                ParameterGroupingModel advancedParameterArray = Helper.ReadJson("ParameterDetails/AdvancedSystemDetails.json");
+                ParameterGroupingModel expertParameterArray = Helper.ReadJson("ParameterDetails/ExpertSystemDetails.json");
 
                 systemView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
             }
@@ -72,8 +70,9 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    system.Id = (system.environment + "-" + helper.mapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                    system.Id = (system.environment + "-" + Helper.MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
                     await _systemService.CreateAsync(system);
+                    TempData["success"] = "Successfully created sytsem " + system.Id;
                     return RedirectToAction("Index");
                 }
                 catch
@@ -113,11 +112,11 @@ namespace AutomationForm.Controllers
                 SystemModel system = GetById(id).Result.Value;
 
                 string path = $"{id}.tfvars";
-                string content = helper.ConvertToTerraform(system);
+                string content = Helper.ConvertToTerraform(system);
                 string pipelineId = "3";
 
-                await helper.UpdateRepo(path, content, _configuration);
-                await helper.TriggerPipeline(pipelineId, _configuration);
+                await Helper.UpdateRepo(path, content, _configuration);
+                await Helper.TriggerPipeline(pipelineId, _configuration);
                 
                 TempData["success"] = "Successfully deployed system " + id;
             }
@@ -127,7 +126,6 @@ namespace AutomationForm.Controllers
             }
             return RedirectToAction("Index");
         }
-
 
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteAsync(string id)
@@ -145,7 +143,6 @@ namespace AutomationForm.Controllers
 
             return View(system);
         }
-
 
         [HttpPost]
         [ActionName("Delete")]
@@ -183,7 +180,7 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                string newId = (system.environment + "-" + helper.mapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                string newId = (system.environment + "-" + Helper.MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
                 if (system.Id == null) system.Id = newId;
                 if (newId != system.Id)
                 {
@@ -211,7 +208,7 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    system.Id = (system.environment + "-" + helper.mapRegion(system.location) + "-" + system.resource_group_name + "-" + system.sid).ToUpper();
+                    system.Id = (system.environment + "-" + Helper.MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
                     await _systemService.CreateAsync(system);
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");

@@ -6,6 +6,11 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Net;
 
 namespace AutomationForm.Controllers
 {
@@ -14,25 +19,23 @@ namespace AutomationForm.Controllers
 
         private readonly ILandscapeService<LandscapeModel> _landscapeService;
         private LandscapeViewModel landscapeView;
-        private readonly HelperController<LandscapeModel> helper;
         private readonly IConfiguration _configuration;
 
         public LandscapeController(ILandscapeService<LandscapeModel> landscapeService, IConfiguration configuration)
         {
             _landscapeService = landscapeService;
             _configuration = configuration;
-            helper = new HelperController<LandscapeModel>();
             landscapeView = SetViewData();
         }
-        public LandscapeViewModel SetViewData()
+        private LandscapeViewModel SetViewData()
         {
             landscapeView = new LandscapeViewModel();
             landscapeView.Landscape = new LandscapeModel();
             try
             {
-                ParameterGroupingModel basicParameterArray = helper.ReadJson("ParameterDetails/BasicLandscapeDetails.json");
-                ParameterGroupingModel advancedParameterArray = helper.ReadJson("ParameterDetails/AdvancedLandscapeDetails.json");
-                ParameterGroupingModel expertParameterArray = helper.ReadJson("ParameterDetails/ExpertLandscapeDetails.json");
+                ParameterGroupingModel basicParameterArray = Helper.ReadJson("ParameterDetails/BasicLandscapeDetails.json");
+                ParameterGroupingModel advancedParameterArray = Helper.ReadJson("ParameterDetails/AdvancedLandscapeDetails.json");
+                ParameterGroupingModel expertParameterArray = Helper.ReadJson("ParameterDetails/ExpertLandscapeDetails.json");
 
                 landscapeView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
             }
@@ -50,7 +53,7 @@ namespace AutomationForm.Controllers
             return View(await _landscapeService.GetNAsync(10));
         }
 
-        // workload_zone dropdown
+        [HttpGet]
         public async Task<ActionResult> GetWorkloadZones()
         {
             List<SelectListItem> options = new List<SelectListItem>
@@ -77,6 +80,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
+        [HttpGet]
         public async Task<ActionResult<LandscapeModel>> GetById(string id)
         {
             LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
@@ -100,7 +104,7 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    landscape.Id = (landscape.environment + "-" + helper.mapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                    landscape.Id = (landscape.environment + "-" + Helper.MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
                     await _landscapeService.CreateAsync(landscape);
                     TempData["success"] = "Successfully created landscape " + landscape.Id;
                     return RedirectToAction("Index");
@@ -142,11 +146,11 @@ namespace AutomationForm.Controllers
                 LandscapeModel landscape = GetById(id).Result.Value;
 
                 string path = $"{id}.tfvars";
-                string content = helper.ConvertToTerraform(landscape);
+                string content = Helper.ConvertToTerraform(landscape);
                 string pipelineId = "2";
 
-                await helper.UpdateRepo(path, content, _configuration);
-                await helper.TriggerPipeline(pipelineId, _configuration);
+                await Helper.UpdateRepo(path, content, _configuration);
+                await Helper.TriggerPipeline(pipelineId, _configuration);
                 
                 TempData["success"] = "Successfully deployed landscape " + id;
             }
@@ -156,7 +160,6 @@ namespace AutomationForm.Controllers
             }
             return RedirectToAction("Index");
         }
-
 
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteAsync(string id)
@@ -211,7 +214,7 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                string newId = (landscape.environment + "-" + helper.mapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                string newId = (landscape.environment + "-" + Helper.MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
                 if (landscape.Id == null) landscape.Id = newId;
                 if (newId != landscape.Id)
                 {
@@ -239,7 +242,7 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    landscape.Id = (landscape.environment + "-" + helper.mapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                    landscape.Id = (landscape.environment + "-" + Helper.MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
                     await _landscapeService.CreateAsync(landscape);
                     TempData["success"] = "Successfully created landscape " + landscape.Id;
                     return RedirectToAction("Index");
@@ -260,6 +263,6 @@ namespace AutomationForm.Controllers
         {
             return View(await _landscapeService.GetByIdAsync(id));
         }
-
+        
     }
 }

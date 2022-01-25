@@ -2,7 +2,7 @@
   "Tab": "Advanced",
   "Groupings": [
     {
-      "Section": "Existing Subnets",
+      "Section": "Existing subnets",
       "Parameters": [
         {
           "Name": "admin_subnet_address_prefix",

@@ -2,7 +2,7 @@
   "Tab": "Basic",
   "Groupings": [
     {
-      "Section": "Existing Workload Zone",
+      "Section": "Existing workload zone",
       "Parameters": [
         {
           "Name": "workload_zone",
@@ -20,7 +20,7 @@
       ]
     },
     {
-      "Section": "Common Infrastructure",
+      "Section": "Common infrastructure",
       "Parameters": [
         {
           "Name": "sid",

@@ -2,7 +2,7 @@
   "Tab": "Basic",
   "Groupings": [
     {
-      "Section": "Common Infrastructure",
+      "Section": "Common infrastructure",
       "Parameters": [
         {
           "Name": "environment",

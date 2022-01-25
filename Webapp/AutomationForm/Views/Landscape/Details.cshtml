@@ -1,6 +1,18 @@
 ﻿@model AutomationForm.Models.LandscapeModel
 
-<h2>Workload Zone Details</h2>
+@{
+    ViewBag.Title = "Landscape details";
+}
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Landscapes</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Details</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Workload zone details</h2>
+</div>
 
 <div>
     <hr />
@@ -27,6 +39,6 @@
         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
     </fluent-anchor>
     <fluent-anchor href="@Url.Action("Index", "Landscape")">
-        Back to List
+        Back to list
     </fluent-anchor>
 </p>

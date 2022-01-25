@@ -1,11 +1,18 @@
 ﻿@model AutomationForm.Models.LandscapeModel
 
 @{
-    ViewBag.Title = "Deploy";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Deploy landscape";
 }
 
-<h2>Deploy a Workload Zone</h2>
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Landscapes</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Deploy</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Deploy a workload zone</h2>
+</div>
 
 <h4>Are you sure you want to deploy this?</h4>
 <div>
@@ -33,9 +40,12 @@
     {
         @Html.AntiForgeryToken()
 
-        <fluent-button appearance="accent" value="Deploy" type="submit">
+        <fluent-checkbox onchange="toggleDisable(this, 'deploy-landscape-button')">I confirm that I wish to deploy this landscape</fluent-checkbox><br />
+
+        <fluent-button id="deploy-landscape-button" appearance="accent" value="Deploy" type="submit" disabled>
             <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Deploy
         </fluent-button>
+
         <fluent-anchor href="@Url.Action("Index", "Landscape")">
             Cancel
         </fluent-anchor>
