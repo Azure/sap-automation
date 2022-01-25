@@ -79,7 +79,7 @@ stages:
     condition:                         eq(${{ parameters.cleanupsap }}, true)
     jobs:
       - job:                           Remove_SAP_system_RG
-        displayName:                   Remove SAP System $(sapsystemfolder)
+        displayName:                   Remove SAP System ${{ parameters.cleanupsap }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
             displayName:               Remove Resource Group $(sapsystemfolder)
@@ -116,10 +116,10 @@ stages:
     condition:                         eq(${{ parameters.cleanupzone }}, true)
     jobs:
       - job:                           Remove_SAP_workloadzone
-        displayName:                   Remove SAP workload zone $(zonefolder)
+        displayName:                   Remove SAP workload zone ${{ parameters.cleanupzone }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group $(zonefolder)
+            displayName:               Remove Resource Group 
             inputs:
               deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
