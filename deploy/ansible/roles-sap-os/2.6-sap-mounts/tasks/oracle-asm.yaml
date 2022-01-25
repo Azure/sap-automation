@@ -3,8 +3,17 @@
 - name: Gather Logical volumes created in 1.5.1
   include_vars: disks_config_asm.yml
    
+- name:                                Set the NFS Server name list
+  ansible.builtin.set_fact:
+    nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
-
+- name:                                Set the NFS Server name
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ nfs_server_temp | first }}"
+  when:                                NFS_provider == "NONE"
 
 - name: Check if LVs exists.
   stat:
@@ -57,9 +66,6 @@
     fstype: "{{ item.type }}"
     opts:   defaults
     state:  mounted
-  vars:
-    # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') + query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
   loop:
     - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/usr/sap/install',               path: '/usr/sap/install' }                # Special Install Structure; Destroy on Completion

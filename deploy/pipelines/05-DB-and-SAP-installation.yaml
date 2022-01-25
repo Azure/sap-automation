@@ -87,6 +87,11 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name: postinstallation
+    displayName: Post Installation Steps
+    type: boolean
+    default: false
+
 trigger: none
 
 pool:
@@ -615,12 +620,12 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
                 added=0
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip ]; then
-                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip ]; then
-                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip
                   added=1
                 fi
                 if [ 1 == $added ]; then
