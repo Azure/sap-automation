@@ -116,7 +116,7 @@ stages:
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
 
-              echo -e "$green--- Configure devops CLI extension ---reset$"
+              echo -e "$green--- Configure devops CLI extension ---$reset"
                 az extension add --name azure-devops
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)

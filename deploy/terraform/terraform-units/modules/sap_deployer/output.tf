@@ -96,3 +96,7 @@ output "firewall_ip" {
 output "firewall_id" {
   value = var.firewall_deployment ? azurerm_firewall.firewall[0].id : ""
 }
+
+output "webapp_url_base" {
+  value = var.configure ? azurerm_app_service.webapp.name : ""
+}

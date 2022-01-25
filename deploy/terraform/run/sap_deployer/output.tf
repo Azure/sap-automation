@@ -102,3 +102,7 @@ output "automation_version" {
 output "tags" {
   value = local.infrastructure.tags
 }
+
+output "webapp_url_base" {
+  value = module.sap_deployer.webapp_url_base
+}

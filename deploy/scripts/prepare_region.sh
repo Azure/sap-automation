@@ -433,6 +433,7 @@ if [ 2 == $step ]; then
     terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
     export TF_VAR_cmdb_connection_string=$(terraform -chdir="${terraform_module_directory}" output cmdb_connection_string | tr -d \")
     az pipelines variable-group variable create --group-id $specificGroupId --name TF_VAR_cmdb_connection_string --value $TF_VAR_cmdb_connection_string
+    save_config_var "specificGroupId" "${deployer_config_information}"
     
     cd "${curdir}" || exit
     export step=3
@@ -469,7 +470,8 @@ if [ 3 == $step ]; then
         rm post_deployment.sh
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
-    
+
+    load_config_vars "${deployer_config_information}" "specificGroupId"
     export TF_VAR_cmdb_connection_string=$(az pipelines variable-group variable list --group-id $specificGroupId --query "TF_VAR_cmdb_connection_string.value" | tr -d '"')
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
@@ -477,6 +479,9 @@ if [ 3 == $step ]; then
     if [ 0 != $return_code ]; then
         exit $return_code
     fi
+
+    webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output webapp_url_base | tr -d \")
+    az pipelines variable-group variable create --group-id $specificGroupId --name WEBAPP_URL_BASE --value $webapp_url_base
     
     cd "${curdir}" || exit
     export step=4
@@ -492,7 +497,6 @@ load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 if [ 4 == $step ]; then
     echo ""
-    
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                          $cyan Migrating the library state $resetformatting                                #"
@@ -508,7 +512,7 @@ if [ 4 == $step ]; then
     if [ 0 != $return_code ]; then
         exit $return_code
     fi
-    
+
     cd "$root_dirname" || exit
     
     step=5
