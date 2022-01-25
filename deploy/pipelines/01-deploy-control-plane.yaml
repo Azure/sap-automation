@@ -120,8 +120,7 @@ stages:
                 az extension add --name azure-devops
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                generalGroupId=$(az pipelines variable-group list --query "[?name=='SAP-deployment-variables-general'].id | [0]")
-                specificGroupId=$(az pipelines variable-group list --query "[?name=='SAP-deployment-variables-specific'].id | [0]")
+                echo  $(System.AccessToken) | az devops login --organization $(System.CollectionUri)
 
               echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
                 organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
