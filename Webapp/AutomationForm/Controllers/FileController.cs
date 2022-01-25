@@ -104,7 +104,7 @@ namespace AutomationForm.Controllers
                 }
                 catch (Exception e)
                 {
-                    TempData["error"] = e.Message; //"Error uploading files. Common errors include duplicate file names, existing landscapes / systems, and invalid content";
+                    TempData["error"] = "Error uploading files: " + e.Message;
                 }
                 return RedirectToAction("Index");
             }

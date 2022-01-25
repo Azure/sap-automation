@@ -189,12 +189,10 @@ label.required:after {
     flex-grow: 1;
     -webkit-font-smoothing: antialiased;
     font-size: 12px;
+    margin: 5px;
 }
 
 .notificationText {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     margin: auto;
 }
 
