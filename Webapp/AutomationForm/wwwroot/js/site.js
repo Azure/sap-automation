@@ -5,6 +5,15 @@ function setModelData(data) {
     model = data;
 }
 
+function toggleDisable(checkbox, id) {
+    if (checkbox.checked) {
+        $("#" + id).prop('disabled', false);
+    }
+    else {
+        $("#" + id).prop('disabled', true);
+    }
+}
+
 // Hide input based on overriding parameter; erase pre-entered value if any
 function overrulesHandler(source, target) {
     if (target == null || target.Length == 0 || source == null || source.length == 0) {

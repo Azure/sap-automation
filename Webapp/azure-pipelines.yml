@@ -12,7 +12,9 @@ parameters:
     type: string
 
 variables:
-  - group: "sap-deployment-variables-keyvault"
+  - group: "SAP-deployment-variables-keyvault"
+  - group: "SAP-deployment-variables-specific"
+  - group: "SAP-deployment-variables-general"
   - name: solution
     value: '**/*.sln'
   - name: buildPlatform
@@ -23,8 +25,11 @@ variables:
     value: ${{ parameters.webappName }}
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '$(System.DefaultWorkingDirectory)/**/*.csproj'
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
@@ -32,13 +37,13 @@ steps:
 
 - task: AzureWebApp@1
   inputs:
-    azureSubscription: 'SAP on Azure(64d4c625-dc09-4748-b65a-677a6836b66c)'
+    azureSubscription: $(ARM_SUBSCRIPTION_ID)
     appType: 'webAppLinux'
     appName: $(webappName)
     package: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    appSettings: '-AZURE_CLIENT_ID $(ARM_CLIENT_ID) 
+    appSettings: '-AZURE_CLIENT_ID $(ARM_CLIENT_ID)
     -AZURE_CLIENT_SECRET $(ARM_CLIENT_SECRET) 
-    -AZURE_TENANT_ID ($ARM_TENANT_ID)
+    -AZURE_TENANT_ID $(ARM_TENANT_ID)
     -CollectionUri $(System.CollectionUri)
     -Project $(System.TeamProject)
     -RepositoryId $(Build.Repository.ID)

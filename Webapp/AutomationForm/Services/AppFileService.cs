@@ -17,12 +17,12 @@ namespace AutomationForm.Services
 
         public Task<List<AppFile>> GetNAsync(int n)
         {
-            return _files.Find(landscape => true).Limit(n).ToListAsync();
+            return _files.Find(file => true).Limit(n).ToListAsync();
         }
 
         public Task<List<AppFile>> GetAllAsync()
         {
-            return _files.Find(landscape => true).ToListAsync();
+            return _files.Find(file => true).ToListAsync();
         }
 
         public Task<AppFile> GetByIdAsync(string id)
@@ -30,9 +30,9 @@ namespace AutomationForm.Services
             return _files.Find(p => p.Id == id).FirstOrDefaultAsync();
         }
 
-        public Task CreateAsync(AppFile landscape)
+        public Task CreateAsync(AppFile file)
         {
-            return _files.InsertOneAsync(landscape);
+            return _files.InsertOneAsync(file);
         }
 
         public Task<AppFile> UpdateAsync(AppFile update)
