@@ -1,4 +1,4 @@
-name: BOM Download
+name: BOM Download [$(Date:yyyyMMdd)]
 
 schedules:
   - cron: "0 0 * * *"

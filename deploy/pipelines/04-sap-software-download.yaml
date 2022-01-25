@@ -7,6 +7,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+name: SAP Software download $(bom) $(env) $(loc) [$(Date:yyyyMMdd)]
+
 parameters:
   - name:                              bom_base_name
     displayName:                       Name of Bill of Materials (BoM)
@@ -14,8 +16,7 @@ parameters:
     default:                           S41909SPS03_v0009ms
     values:
       - S41909SPS03_v0009ms
-      - S41909SPS03_v0008ms
-      - S41909SPS03_v0007ms
+      - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
       - HANA_2_00_055_v0005ms
       - NW750SPS20_v0002ms
@@ -45,14 +46,14 @@ variables:
   - name: loc
     value:  ${{ parameters.region }}
 
-name: SAP Software download $(bom) $(env) $(loc) [$(Date:yyyyMMdd)
-
 stages:
   - stage: Prepare_download
     displayName: Preparation
     jobs:
       - job: Prepare_download
         displayName: Preparation
+        workspace:
+          clean: all
         steps:
           - script: |
               #!/bin/bash

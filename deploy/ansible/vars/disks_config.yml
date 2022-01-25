@@ -62,7 +62,7 @@ logical_volumes:
     node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
-    size:       '64g'
+    size:       '32g'
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -89,35 +89,19 @@ logical_volumes:
     fstype:     'xfs'
 
   - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         "{% if shareddisk == '1' %}'vg_hana_shared'{% else %}'vg_sap'{% endif %}"
+    lv:         'lv_hana_shared'
+    size:       "{% if shareddisk == '1' %}'100%FREE'{% else %}'32g'{% endif %}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
     node_tier:  'web'
     vg:         'vg_sap'
     lv:         'lv_sapmnt'
     size:       '1g'
     fstype:     'xfs'
 
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         "{% if shareddisk == 1 %}vg_hana_shared{% else %}vg_sap{% endif %}"
-    lv:         'lv_hana_shared'
-    size:       "{% if shareddisk == 1 %}100%FREE{% else %}32g{% endif %}"
-    fstype:     'xfs'
-
-logical_volumes_sapmnt:
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_sapmnt'
-    size:       '32g'
-    fstype:     'xfs'
-
-logical_volumes_install:
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_usrsapinstall'
-    size:       '100%FREE'
-    fstype:     'xfs'
-  
 # Adding Tier and disk types for Oracle installation non-ASM.
   - tier:       'sapos'
     node_tier:  'oracle'
@@ -196,6 +180,22 @@ logical_volumes_install:
     vg:         'vg_oracle'
     lv:         'lv_oracle'
     size:       '64g'
+    fstype:     'xfs'
+
+logical_volumes_sapmnt:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       '32g'
+    fstype:     'xfs'
+
+logical_volumes_install:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_usrsapinstall'
+    size:       '100%FREE'
     fstype:     'xfs'
 
 

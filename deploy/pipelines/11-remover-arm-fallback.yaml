@@ -98,7 +98,7 @@ stages:
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull  origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.md
@@ -137,7 +137,7 @@ stages:
                 export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md                
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
@@ -186,7 +186,7 @@ stages:
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull  origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                 git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform

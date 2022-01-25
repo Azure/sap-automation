@@ -27,6 +27,9 @@
 # -------------------------------------+---------------------------------------8
 #
 
+- name:                                Load the disk configuration settings
+  ansible.builtin.include_vars:        disks_config.yml
+
 - name:                                Check if the shared disk exists
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -48,7 +51,7 @@
     logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
   when: usr_sap_install_mountpoint is not defined
 
-- name:                                "usr_sap_install_mountpoint is not defined"
+- name:                                Print logical_volumes
   ansible.builtin.debug:
     var:                               logical_volumes
     verbosity:                         2
