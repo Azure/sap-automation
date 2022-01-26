@@ -45,34 +45,32 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-trigger: none
+trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage:                             ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name:  deployerfolder
-    value: ${{ parameters.deployer }}
-  - name:  deployerconfig
-    value: ${{ parameters.deployer }}.tfvars
-  - name:  libraryfolder
-    value: ${{ parameters.library }}
-  - name:  libraryconfig
-    value: ${{ parameters.library }}.tfvars
-  - name:  zonefolder
-    value: ${{ parameters.workloadzone }}
-  - name:  zoneconfig
-    value: ${{ parameters.workloadzone }}.tfvars
-  - name:  sapsystemfolder
-    value: ${{ parameters.sap_system }}
-  - name:  sapsystemconfig
-    value: ${{ parameters.sap_system }}.tfvars
-  - name:  log
-    value: logfile_$(Build.BuildId)
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             "SAP-deployment-variables-specific"
+  - name:                              deployerfolder
+    value:                             ${{ parameters.deployer }}
+  - name:                              deployerconfig
+    value:                             ${{ parameters.deployer }}.tfvars
+  - name:                              libraryfolder
+    value:                             ${{ parameters.library }}
+  - name:                              libraryconfig
+    value:                             ${{ parameters.library }}.tfvars
+  - name:                              zonefolder
+    value:                             ${{ parameters.workloadzone }}
+  - name:                              zoneconfig
+    value:                             ${{ parameters.workloadzone }}.tfvars
+  - name:                              sapsystemfolder
+    value:                             ${{ parameters.sap_system }}
+  - name:                              sapsystemconfig
+    value:                             ${{ parameters.sap_system }}.tfvars
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage:                             Remove_SAP_systems
@@ -151,6 +149,7 @@ stages:
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
               exit $return_code
+
             displayName:               Remove SAP systems
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
@@ -158,7 +157,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr: false
+            failOnStderr:              false
 
   - stage:                             Remove_SAP_workloadzone
     displayName:                       "Removing the SAP workload zone"
@@ -242,7 +241,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr: true
+            failOnStderr:              true
 
   - stage:                             Remove_region
     displayName:                       "Remove the control plane"
@@ -326,5 +325,5 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr: true
+            failOnStderr:              true
 ...

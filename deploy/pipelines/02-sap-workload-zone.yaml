@@ -24,18 +24,16 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name: zonefolder
-    value: ${{ parameters.workloadzone }}
-  - name: zoneconfig
-    value: ${{ parameters.workloadzone }}.tfvars
-  - name: env
-    value: ${{ parameters.environment }}
-  - name: log
-    value: logfile_$(Build.BuildId)
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             "SAP-deployment-variables-specific"
+  - name:                              zonefolder
+    value:                             ${{ parameters.workloadzone }}
+  - name:                              zoneconfig
+    value:                             ${{ parameters.workloadzone }}.tfvars
+  - name:                              env
+    value:                             ${{ parameters.environment }}
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage:                             Deploy_SAP_workloadzone

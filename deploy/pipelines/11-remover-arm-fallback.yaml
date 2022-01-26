@@ -9,7 +9,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Remove deployment [$(Date:yyyyMMdd)]
+name:                                  Remove deployment [$(Date:yyyyMMdd)]
 parameters:
   - name:                              cleanupsap
     displayName:                       Remove the SAP system
@@ -46,32 +46,30 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-trigger: none
+trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage:                             ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name:  deployerfolder
-    value: ${{ parameters.deployer }}
-  - name:  deployerconfig
-    value: ${{ parameters.deployer }}.tfvars
-  - name:  libraryfolder
-    value: ${{ parameters.library }}
-  - name:  libraryconfig
-    value: ${{ parameters.library }}.tfvars
-  - name:  zonefolder
-    value: ${{ parameters.workloadzone }}
-  - name:  zoneconfig
-    value: ${{ parameters.workloadzone }}.tfvars
-  - name:  sapsystemfolder
-    value: ${{ parameters.sap_system }}
-  - name:  sapsystemconfig
-    value: ${{ parameters.sap_system }}.tfvars
-  - name:  log
-    value: logfile_$(Build.BuildId)
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             "SAP-deployment-variables-specific"
+  - name:                              deployerfolder
+    value:                             ${{ parameters.deployer }}
+  - name:                              deployerconfig
+    value:                             ${{ parameters.deployer }}.tfvars
+  - name:                              libraryfolder
+    value:                             ${{ parameters.library }}
+  - name:                              libraryconfig
+    value:                             ${{ parameters.library }}.tfvars
+  - name:                              zonefolder
+    value:                             ${{ parameters.workloadzone }}
+  - name:                              zoneconfig
+    value:                             ${{ parameters.workloadzone }}.tfvars
+  - name:                              sapsystemfolder
+    value:                             ${{ parameters.sap_system }}
+  - name:                              sapsystemconfig
+    value:                             ${{ parameters.sap_system }}.tfvars
 
 stages:
   - stage:                             Remove_SAP_systems
@@ -90,7 +88,7 @@ stages:
               action:                  "DeleteRG"
               resourceGroupName:       "$(sapsystemfolder)"
 
-      - job: Remove_sap_deployment_artefacts_in_WORKSPACES
+      - job:                           Remove_sap_deployment_artefacts_in_WORKSPACES
         steps:
           - script: |
               #!/bin/bash
@@ -106,7 +104,8 @@ stages:
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-            displayName: Remove_sap_deployment_artefacts_in_WORKSPACES
+
+            displayName:               Remove_sap_deployment_artefacts_in_WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              false
@@ -143,7 +142,8 @@ stages:
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-            displayName: Remove_zone_deployment_artefacts_in_WORKSPACES
+
+            displayName:               Remove_zone_deployment_artefacts_in_WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              true
