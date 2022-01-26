@@ -429,7 +429,7 @@ if [ -f /tmp/requirements-azure.txt ]; then
   sudo ${ansible_venv_bin}/pip3 install  -r /tmp/requirements-azure.txt 
 fi
 
-curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq > vm.json
+curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq > . vm.json
 
 rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
 subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
@@ -469,7 +469,7 @@ export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}
 export ARM_USE_MSI=true
 
 # Ensure that the user's account is logged in to Azure with specified creds
-az login --identity --output none
+/usr/bin/az login --identity --output none
 'echo ${USER} account ready for use with Azure SAP Automated Deployment'
 
 #
@@ -490,10 +490,10 @@ echo export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} | sudo tee -a /etc/
 # Set env for MSI
 echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh
 
-az login --identity 2>error.log || :
+/usr/bin/az login --identity 2>error.log || :
 
 if [ ! -f error.log ]; then
-  az account show > az.json
+  /usr/bin/az account show > az.json
   client_id=$(jq --raw-output .id az.json)
   tenant_id=$(jq --raw-output .tenantId az.json)
   rm az.json
