@@ -7,7 +7,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: SAP Software download $(bom) $(env) $(loc) [$(Date:yyyyMMdd)]
+name:                                  SAP Software download $(bom) $(env) $(loc) [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              bom_base_name
@@ -37,23 +37,23 @@ pool:
   name:                                $(Agent)
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name: bom
-    value: ${{ parameters.bom_base_name }}
-  - name: env
-    value:  ${{ parameters.environment }}
-  - name: loc
-    value:  ${{ parameters.region }}
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             "SAP-deployment-variables-specific"
+  - name:                              bom
+    value:                             ${{ parameters.bom_base_name }}
+  - name:                              env
+    value:                             ${{ parameters.environment }}
+  - name:                              loc
+    value:                             ${{ parameters.region }}
 
 stages:
-  - stage: Prepare_download
-    displayName: Preparation
+  - stage:                             Prepare_download
+    displayName:                       Preparation
     jobs:
-      - job: Prepare_download
-        displayName: Preparation
+      - job:                           Prepare_download
+        displayName:                   Preparation
         workspace:
-          clean: all
+          clean:                       all
         steps:
           - script: |
               #!/bin/bash
@@ -126,29 +126,29 @@ stages:
                 if [ -z "$SPassword" ]; then 
                   az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
                 fi
-            displayName: Prepare download
+            displayName:               Prepare download
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              false
 
-  - stage: Software_download
-    displayName: Download software
+  - stage:                             Software_download
+    displayName:                       Download software
     jobs:
-      - job: Software_download
-        displayName: Download software
-        timeoutInMinutes: 0
+      - job:                           Software_download
+        displayName:                   Download software
+        timeoutInMinutes:              0
         steps:
           - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
-          - task: Ansible@0
-            displayName: Download software
-            timeoutInMinutes: 0
+          - task:                      Ansible@0
+            displayName:               Download software
+            timeoutInMinutes:          0
             inputs:
-              ansibleInterface: "agentMachine"
+              ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: $DEPLOYMENT_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
-              args: '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
-              failOnStderr: false
+              args:                    '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" '
+              failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
 ...

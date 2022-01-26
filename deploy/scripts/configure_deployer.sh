@@ -315,7 +315,7 @@ rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
 # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository. 
 # This package is outdated and not recommended. If this package is installed, remove the package
 if [ "$rel" == "20.04" ]; then
-  if [ -z /etc/az_removed ]; then
+  if [ ! -f /etc/az_removed ]; then
     echo "Removing Azure CLI"
     sudo apt remove azure-cli -y 
     sudo apt autoremove -y
@@ -429,7 +429,7 @@ if [ -f /tmp/requirements-azure.txt ]; then
   sudo ${ansible_venv_bin}/pip3 install  -r /tmp/requirements-azure.txt 
 fi
 
-curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq > vm.json
+curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
 
 rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
 subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
@@ -469,7 +469,7 @@ export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}
 export ARM_USE_MSI=true
 
 # Ensure that the user's account is logged in to Azure with specified creds
-az login --identity --output none
+/usr/bin/az login --identity --output none
 'echo ${USER} account ready for use with Azure SAP Automated Deployment'
 
 #
@@ -490,10 +490,10 @@ echo export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} | sudo tee -a /etc/
 # Set env for MSI
 echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh
 
-az login --identity 2>error.log || :
+/usr/bin/az login --identity 2>error.log || :
 
 if [ ! -f error.log ]; then
-  az account show > az.json
+  /usr/bin/az account show > az.json
   client_id=$(jq --raw-output .id az.json)
   tenant_id=$(jq --raw-output .tenantId az.json)
   rm az.json
@@ -503,12 +503,12 @@ else
 
 fi
 
-if [ ! -n "${client_id}" ]; then
+if [ -n "${client_id}" ]; then
   export ARM_CLIENT_ID=${client_id}
   echo export ARM_CLIENT_ID=${client_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 fi
 
-if [ ! -n "${tenant_id}" ]; then
+if [ -n "${tenant_id}" ]; then
   export ARM_TENANT_ID=${tenant_id}
   echo export ARM_TENANT_ID=${tenant_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 fi
