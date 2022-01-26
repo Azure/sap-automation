@@ -315,7 +315,7 @@ rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
 # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository. 
 # This package is outdated and not recommended. If this package is installed, remove the package
 if [ "$rel" == "20.04" ]; then
-  if [ -z /etc/az_removed ]; then
+  if [ ! -f /etc/az_removed ]; then
     echo "Removing Azure CLI"
     sudo apt remove azure-cli -y 
     sudo apt autoremove -y
@@ -503,12 +503,12 @@ else
 
 fi
 
-if [ ! -n "${client_id}" ]; then
+if [ -n "${client_id}" ]; then
   export ARM_CLIENT_ID=${client_id}
   echo export ARM_CLIENT_ID=${client_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 fi
 
-if [ ! -n "${tenant_id}" ]; then
+if [ -n "${tenant_id}" ]; then
   export ARM_TENANT_ID=${tenant_id}
   echo export ARM_TENANT_ID=${tenant_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 fi
