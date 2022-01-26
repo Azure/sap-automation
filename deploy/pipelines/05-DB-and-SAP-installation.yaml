@@ -20,6 +20,7 @@ parameters:
     type:                              string
     default:                           S41909SPS03_v0009ms
     values:
+      - S41909SPS03_v0010ms
       - S41909SPS03_v0009ms
       - S41909SPS03_v0008ms
       - S41909SPS03_v0007ms
