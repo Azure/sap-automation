@@ -12,7 +12,6 @@ parameters:
     type: string
 
 variables:
-  - group: "SAP-deployment-variables-keyvault"
   - group: "SAP-deployment-variables-specific"
   - group: "SAP-deployment-variables-general"
   - name: solution
@@ -34,6 +33,10 @@ steps:
     WORKLOADZONE_PIPELINE_ID=$(az pipelines list --query "[?name=='SAP workload zone deployment'].id | [0]")
     SYSTEM_PIPELINE_ID=$(az pipelines list --query "[?name=='SAP system deployment (infrastructure)'].id | [0]")
 
+    if [ -z $(PAT) ]; then 
+      echo "##vso[task.logissue type=error]Variable PAT was not defined"
+      exit 2
+    fi
     if [ -z $WORKLOADZONE_PIPELINE_ID ]; then 
       echo "##vso[task.logissue type=error]Pipeline 'SAP workload zone deployment' does not exist. Please create it or correct the name to continue"
       exit 2
@@ -43,9 +46,8 @@ steps:
       exit 2
     fi
 
-    specificGroupId=$(az pipelines variable-group list --query "[?name=='SAP-deployment-variables-specific'].id | [0]")
-    az pipelines variable-group variable create --group-id $specificGroupId --name WORKLOADZONE_PIPELINE_ID --value $WORKLOADZONE_PIPELINE_ID
-    az pipelines variable-group variable create --group-id $specificGroupId --name SYSTEM_PIPELINE_ID --value $SYSTEM_PIPELINE_ID
+    echo "##vso[task.setvariable variable=WORKLOADZONE_PIPELINE_ID]${WORKLOADZONE_PIPELINE_ID}"
+    echo "##vso[task.setvariable variable=SYSTEM_PIPELINE_ID]${SYSTEM_PIPELINE_ID}"
   displayName: 'Configure pipeline ids'
 - task: DotNetCoreCLI@2
   inputs:
