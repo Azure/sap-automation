@@ -13,9 +13,9 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Name of Bill of Materials (BoM)
     type: string
-    default:                           S41909SPS03_v0009ms
+    default:                           S41909SPS03_v0010ms
     values:
-      - S41909SPS03_v0009ms
+      - S41909SPS03_v0010ms
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
       - HANA_2_00_055_v0005ms
