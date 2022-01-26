@@ -25,6 +25,28 @@ variables:
     value: ${{ parameters.webappName }}
 
 steps:
+- script: |
+    #!/bin/bash
+    az extension add --name azure-devops
+    az devops configure --defaults organization=$(System.CollectionUri) project=$(System.TeamProject)
+    export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+
+    WORKLOADZONE_PIPELINE_ID=$(az pipelines list --query "[?name=='SAP workload zone deployment'].id | [0]")
+    SYSTEM_PIPELINE_ID=$(az pipelines list --query "[?name=='SAP system deployment (infrastructure)'].id | [0]")
+
+    if [ -z $WORKLOADZONE_PIPELINE_ID ]; then 
+      echo "##vso[task.logissue type=error]Pipeline 'SAP workload zone deployment' does not exist. Please create it or correct the name to continue"
+      exit 2
+    fi
+    if [ -z $SYSTEM_PIPELINE_ID ]; then
+      echo "##vso[task.logissue type=error]Pipeline 'SAP system deployment (infrastructure)' does not exist. Please create it or correct the name to continue"
+      exit 2
+    fi
+
+    specificGroupId=$(az pipelines variable-group list --query "[?name=='SAP-deployment-variables-specific'].id | [0]")
+    az pipelines variable-group variable create --group-id $specificGroupId --name WORKLOADZONE_PIPELINE_ID --value $WORKLOADZONE_PIPELINE_ID
+    az pipelines variable-group variable create --group-id $specificGroupId --name SYSTEM_PIPELINE_ID --value $SYSTEM_PIPELINE_ID
+  displayName: 'Configure pipeline ids'
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
@@ -47,4 +69,6 @@ steps:
     -CollectionUri $(System.CollectionUri)
     -Project $(System.TeamProject)
     -RepositoryId $(Build.Repository.ID)
-    -PAT $(PAT)'
+    -PAT $(PAT)
+    -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
+    -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)'

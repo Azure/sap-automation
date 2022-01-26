@@ -147,7 +147,7 @@ namespace AutomationForm.Controllers
 
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
-                string pipelineId = "2";
+                string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
 
                 await Helper.UpdateRepo(path, content, _configuration);
                 await Helper.TriggerPipeline(pipelineId, _configuration);

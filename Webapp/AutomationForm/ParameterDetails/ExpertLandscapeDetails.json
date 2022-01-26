@@ -449,7 +449,7 @@
           "Name": "use_private_endpoint",
           "Required": false,
           "Description": "Controlls if the keyvaults and storage accounts have private endpoints",
-          "Type": "field",
+          "Type": "lookup",
           "Options": [
             {
               "Text": "",
