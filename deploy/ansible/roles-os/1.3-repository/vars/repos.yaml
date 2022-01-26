@@ -11,6 +11,7 @@
 # creating an entry for a new distribution.
 # For example, XX.Y where XX is the major version and Y is the minor version
 repos:
+  redhat7.6:
   redhat7.7:
   redhat7.9:
   redhat8.2:

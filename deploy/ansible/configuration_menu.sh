@@ -108,6 +108,7 @@ options=(
         "Application Server installations"
         "Web Dispatcher installations"
         "Database High Availability Setup"
+        "HCMT"
 
         # Special menu entries
         "BOM Download"
@@ -131,8 +132,10 @@ all_playbooks=(
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
-        ${cmd_dir}/playbook_04_00_01_hana_hsr.yaml
+        ${cmd_dir}/playbook_04_00_01_db_ha.yaml
+        ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
         ${cmd_dir}/playbook_bom_downloader.yaml
+        ${cmd_dir}/playbook_07_00_00_post_installation.yaml
 )
 
 # Set of options that will be passed to the ansible-playbook command

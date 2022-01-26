@@ -18,8 +18,9 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
-    default:                           S41909SPS03_v0009ms
+    default:                           S41909SPS03_v0010ms
     values:
+      - S41909SPS03_v0010ms
       - S41909SPS03_v0009ms
       - S41909SPS03_v0008ms
       - S41909SPS03_v0007ms
@@ -86,6 +87,11 @@ parameters:
     displayName:                       HANA Cloud Measurement Tool
     type:                              boolean
     default:                           false
+
+  - name: postinstallation
+    displayName: Post Installation Steps
+    type: boolean
+    default: false
 
 trigger: none
 
@@ -615,12 +621,12 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
                 added=0
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip ]; then
-                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip ]; then
-                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/hcmtresult-*.zip
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip
                   added=1
                 fi
                 if [ 1 == $added ]; then

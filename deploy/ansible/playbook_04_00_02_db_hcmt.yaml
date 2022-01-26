@@ -1,6 +1,6 @@
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                      Playbook for HANA DB HSR                          |
+# |                      Playbook for HANA DB HSR                              |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
@@ -13,7 +13,7 @@
   become_user:                         root
   gather_facts:                        true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml      # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8

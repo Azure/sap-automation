@@ -80,6 +80,9 @@ deployer_kv_name_secret:      "deployer-kv-name"                                
 sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
 sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
 
+# NFS
+NFS_provider:                 "NONE"
+
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
   - { tier: 'scs',             swap_size_mb: '4096'  }
