@@ -429,7 +429,7 @@ if [ -f /tmp/requirements-azure.txt ]; then
   sudo ${ansible_venv_bin}/pip3 install  -r /tmp/requirements-azure.txt 
 fi
 
-curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq . > vm.json
+curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
 
 rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
 subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
