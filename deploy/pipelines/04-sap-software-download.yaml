@@ -22,7 +22,7 @@ parameters:
       - NW750SPS20_v0002ms
 
   - name:                              environment
-    displayName:                       Control Plane Environment name
+    displayName:                       Control Plane Environment
     type:                              string
     default:                           MGMT
 

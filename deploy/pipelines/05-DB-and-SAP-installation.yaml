@@ -16,7 +16,7 @@ parameters:
     default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
-    displayName:                       Environment name
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
 
@@ -141,14 +141,13 @@ stages:
                 fi
                 dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
                 export SID=$(echo $(sapsystemfolder)  | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
-
+                echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml"
+                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)"
+                echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sapsystemconfig)."
                   exit 2
                 fi
-                echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml"
-                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)"
-                echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
                 
                 if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
                   echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found ---$reset"
@@ -218,12 +217,6 @@ stages:
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         
         steps:
-          - script: |
-              echo $(SID_hosts)
-              echo $(SAP_parameters)
-              echo $(parameters_folder)
-              echo $(key_path)
-              echo $(DEPLOYMENT_REPO_PATH)
           - checkout:                  none
             persistCredentials:        true
           - task:                      Ansible@0

@@ -47,7 +47,7 @@ parameters:
     default:                           MGMT-WEEU-SAP_LIBRARY
 
   - name:                              environment
-    displayName:                       Environment name
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
 

@@ -12,10 +12,16 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
-    - name:                            Remove .step503 flag
+    - name:                            Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step503"
-        state:                         absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755 
+
+    - name:                            Remove app-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/app-install-done"
+        state:                          absent
 
     - name:                            Include 0.1 passwords role
       ansible.builtin.include_role:
@@ -66,9 +72,44 @@
         - name:                        Include 5.3-app-install
           ansible.builtin.include_role:
             name:                      roles-sap/5.3-app-install
+      always:
+        - name:                    Get the error lines
+          ansible.builtin.set_fact:
+            error_lines:           "{{ error_lines | default([]) + [item] }}"
+          with_items:              "{{ app_installation.stdout_lines }}"
+          when:
+            - app_installation.stdout_lines is defined
+            - '"ERROR" in item'
+            - app_installation.rc > 0
+
+        - name:                    Include 7.0.0-post-install role
+          ansible.builtin.include_role:
+            name:                  roles-sap/7.0.0-post-install
+          vars:
+            suffix:                "_APP"
+            prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            path:                  '/INSTALL/HA/ABAP/APPX'
+            tier:                  'app'
+          when:                    db_high_availability
+
+        - name:                    Include 7.0.0-post-install role
+          ansible.builtin.include_role:
+            name:                  roles-sap/7.0.0-post-install
+          vars:
+            suffix:                "_APP"
+            prefix:                "{{ bom.product_ids.dlb.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            path:                  '/INSTALL/DISTRIBUTED/ABAP/APPX'
+            tier:                  'app'
+          when:                    not db_high_availability
+
+
+        - name:                    Errors from APP installation
+          ansible.builtin.fail:
+            msg:                   "{{ error_lines }}"
+          when:
+            - error_lines is defined
       tags:
         - 5.3-app-install
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -84,9 +125,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Create .step503 flag
+    - name:                            Remove app-install-done flag
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step503"
+        path:                          "{{ _workspace_directory }}/.progress/app-install-done"
         state:                         touch
         mode:                          0755
 

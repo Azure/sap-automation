@@ -41,6 +41,32 @@
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
 
+- name:                                "BoM Initial file"
+  ansible.builtin.copy:
+    dest:                              "{{ download_directory }}/readme.md"
+    content:                           "This is the container with the SAP media"
+  register:                            readme_file
+  become:                              true
+  become_user:                         root
+
+- name:                                "BOM: Check storage account container"
+  ansible.builtin.command: >-
+                                       az storage blob upload
+                                         --account-name {{ account }}
+                                         --account-key {{ sapbits_access_key }}
+                                         --container-name {{ container }}
+                                         --name readme.md
+                                         --file {{ readme_file.dest }}
+                                         --if-none-match "*"
+                                         --no-progress
+  delegate_to:                     localhost
+  register:                        azresult
+  ignore_errors:                   true
+  failed_when:
+    - azresult.rc != 0
+    - azresult.stderr is defined
+    - azresult.stderr.find("BlobAlreadyExists") == -1
+
 # ------------------<DEBUGGING>-------------------
 # - name:                                "Show BOM Info"
 #   ansible.builtin.debug:
@@ -66,13 +92,28 @@
 
 - name:                                "BOM: {{ bom_name }} Check and Download Files"
   include_tasks:                       bom_download.yaml
-  vars:
-    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
-    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
 
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   no_log:                              false
 
+- name:                                "BOM: {{ bom_name }} Upload Folder"
+  vars:
+     bom_container_name:               "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms"
+  ansible.builtin.command: >-
+                                       az storage blob upload-batch
+                                         --account-name {{ account }}
+                                         --account-key {{ sapbits_access_key }}
+                                         --destination {{ bom_container_name }}/{{ bom_name }}
+                                         --source {{ playbook_dir }}/{{ bom_file.rpartition('/')[0] }}
+                                         --if-none-match "*"
+                                         --no-progress 
+  delegate_to:                         localhost
+  register:                            bomazresult
+  ignore_errors:                       true
+  failed_when:
+    - bomazresult.rc != 0
+    - bomazresult.stderr is defined
+    - bomazresult.stderr.find("BlobAlreadyExists") == -1
 
 # ------------------<DEBUGGING>-------------------
 # - name: "List error codes"

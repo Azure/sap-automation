@@ -1,0 +1,100 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |         Post Installation activities                                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                                "PAS Install: Create run flag directory"
+  ansible.builtin.file:
+    path:                              "{{ _workspace_directory }}/logs"
+    state:                             directory
+    mode:                              0755
+
+- name:                                Show path
+  ansible.builtin.debug:
+    msg:                               "{{ target_media_location }}/sapinst_instdir/{{ prefix }}{{ path }}"
+  when:
+    - tier != 'hana'
+
+- name:                                Find the log files (SAPINST)
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/sapinst_instdir/{{ prefix }}{{ path }}"
+    file_type:                         file
+    patterns:                          'sa*.log,Hd*.log'
+    recurse:                           true
+  register:                            sapinst_log_files
+  when:
+    - tier != 'hana'
+
+- name:                                Debug (sapinst_log_files)
+  ansible.builtin.debug:
+    var:                               sapinst_log_files
+    verbosity:                         2
+  when:                                sapinst_log_files is defined
+
+- name:                                Create List (sapinst)
+  ansible.builtin.set_fact:
+    sapinst_list_of_files:             "{{ sapinst_log_files.files | map(attribute='path') | list }}"
+  when:                                sapinst_log_files.files is defined
+
+- name:                                Debug (sapinst_list_of_files)
+  ansible.builtin.debug:
+    msg:                               "{{ sapinst_list_of_files }}"
+    verbosity:                         2
+  when:                                sapinst_list_of_files is defined
+
+- name:                                "Compress the installation log files"
+  ansible.builtin.archive:
+    path:                              "{{ sapinst_list_of_files }}"
+    dest:                              "{{ target_media_location }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
+    format:                            zip
+  when:
+    - sapinst_list_of_files is defined
+
+- name:                                "Copy installation logs (sapinst)"
+  ansible.builtin.fetch:
+    src:                               "{{ target_media_location }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
+    dest:                              "{{ _workspace_directory }}/logs/{{ sap_sid }}{{ suffix }}.zip"
+    flat:                              true
+  when:
+    - sapinst_list_of_files is defined
+
+- name:                                Find the log files (HDBLCM)
+  ansible.builtin.find:
+    paths:                             "/var/tmp"
+    file_type:                         file
+    patterns:                          'hd*.log'
+    recurse:                           true
+  register:                            hana_log_files
+  when:
+    - tier == 'hana'
+
+- name:                                Create List (hana)
+  ansible.builtin.set_fact:
+    hana_list_of_files:                "{{ hana_log_files.files | map(attribute='path')| list}}"
+  when:                                hana_log_files.files is defined
+
+- name:                                "Compress the installation log files (hana)"
+  ansible.builtin.archive:
+    path:                              "{{ hana_list_of_files }}"
+    dest:                              "/var/tmp/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
+    format:                            zip
+  when:
+    - hana_list_of_files is defined
+    - tier == 'hana'
+
+- name:                                "Copy installation logs (hana)"
+  ansible.builtin.fetch:
+    src:                               "/var/tmp/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
+    dest:                              "{{ _workspace_directory }}/logs/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
+    flat:                              true
+  when:
+    - hana_list_of_files is defined
+    - tier == 'hana'
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

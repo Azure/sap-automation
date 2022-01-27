@@ -4,20 +4,6 @@ target:  'HANA 2.0'
 version: 4
 
 materials:
-#   templates:
-    # - name:     X
-    #   file:     HANA_2_00_055_v1.params
-    #   override_target_location: "{{ target_media_location }}/config"
-
-    # - name:     X
-    #   file:     HANA_2_00_055_v1.params.xml
-    #   override_target_location: "{{ target_media_location }}/config"
-
-#   stackfiles:
-    # # Download Basket permalinks
-    # - name: Download Basket permalinks
-    #   file: myDownloadBasketFiles.txt
-    #   override_target_location: "{{ target_media_location }}/config"
 
   media:
     # SAPCAR 7.22

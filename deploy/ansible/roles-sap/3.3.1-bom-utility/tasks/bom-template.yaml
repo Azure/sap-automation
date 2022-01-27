@@ -67,26 +67,26 @@
 - name:                                Parameters
   ansible.builtin.debug:
     msg:
-      - "SAP SID              : {{ sap_sid }}"
-      - "Instance Number - SCS: {{ scs_instance_number }}"
-      - "SCS Virtual Hostname : {{ sap_scs_hostname }}"
-      - "DB Hostname          : {{ sap_db_hostname }}"
-      - "FQDN                 : {{ sap_fqdn }}"
-      - "Master Password      : {{ main_password }}"
-      - "sapadm UID           : {{ sapadm_uid }}"
-      - "sapsys GID           : {{ sapsys_gid }}"
-      - "<sid>adm UID         : {{ sidadm_uid }}"
+      - "SAP SID              :        {{ sap_sid }}"
+      - "Instance Number - SCS:        {{ scs_instance_number }}"
+      - "SCS Virtual Hostname :        {{ sap_scs_hostname }}"
+      - "DB Hostname          :        {{ sap_db_hostname }}"
+      - "FQDN                 :        {{ sap_fqdn }}"
+      - "Master Password      :        {{ main_password }}"
+      - "sapadm UID           :        {{ sapadm_uid }}"
+      - "sapsys GID           :        {{ sapsys_gid }}"
+      - "<sid>adm UID         :        {{ sidadm_uid }}"
     verbosity:                         2
 # ------------------</DEBUGGING>------------------
 
 
-- name:                                "Check for Microsoft Supplied BOM ({{ bom_base_name }}) template for {{ node_tier | upper }} tier"
+- name:                                "Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
   ansible.builtin.stat:
     path:                              BOM-catalog/{{ bom_base_name }}/templates/{{ sap_inifile_template }}
   register:                            microsoft_supplied_bom_template
   delegate_to:                         localhost
 
-- name:                                "Check for Microsoft Supplied BOM ({{ bom_base_name }}) template in archive for {{ node_tier | upper }} tier"
+- name:                                "Check for Microsoft Supplied BOM ({{ bom_base_name }}) template in archive"
   ansible.builtin.stat:
     path:                              BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}
   register:                            microsoft_supplied_bom_template_archive
@@ -94,7 +94,7 @@
 
 
 # If Microsoft supplied BOM template found
-- name:                                "Deploy parameter file install template for {{ node_tier | upper }} tier"
+- name:                                "Deploy parameter file install template"
   ansible.builtin.template:
     src:                               "{% if microsoft_supplied_bom_template.stat.exists %}{{ microsoft_supplied_bom_template.stat.path }}{% else %}{{ microsoft_supplied_bom_template_archive.stat.path }}{% endif %}"
     dest:                              /usr/sap/install/downloads/{{ sap_inifile }}
@@ -103,9 +103,9 @@
   when:                                microsoft_supplied_bom_template.stat.exists or microsoft_supplied_bom_template_archive.stat.exists
 
 # If Microsoft supplied BOM template not found
-- name:                                "Retrieve BOM ({{ bom_base_name }}) template from Storage Account for {{ node_tier | upper }} tier"
+- name:                                "Retrieve BOM ({{ bom_base_name }}) template from Storage Account"
   block:
-    - name:                            "Download BOM ({{ bom_base_name }}) template from Storage Account for {{ node_tier | upper }} tier"
+    - name:                            "Download BOM ({{ bom_base_name }}) template from Storage Account"
       ansible.builtin.get_url:
         url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
@@ -118,7 +118,7 @@
       delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
       become:                          false
 
-    - name:                            "Deploy {{ node_tier | upper }} Parameter file install template for {{ node_tier | upper }} tier"
+    - name:                            "Deploy {{ node_tier | upper }} Parameter file install template"
       ansible.builtin.template:
         src:                           "{{ inventory_dir }}/{{ sap_inifile_template }}"
         dest:                          /usr/sap/install/downloads/{{ sap_inifile }}

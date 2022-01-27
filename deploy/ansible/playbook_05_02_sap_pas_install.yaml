@@ -12,10 +12,16 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
-    - name:                            Remove .step502 flag
+    - name:                            Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step502"
-        state:                         absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755 
+
+    - name:                            Remove pas-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
+        state:                          absent
 
     - name:                            Include 0.1 passwords role
       ansible.builtin.include_role:
@@ -32,7 +38,9 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_PAS"
+- hosts:                               "{{ sap_sid|upper }}_DB  :
+                                        {{ sap_sid|upper }}_SCS :
+                                        {{ sap_sid|upper }}_PAS"
 
   name:                                SAP Installation - PAS
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -41,14 +49,13 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
-
-
-  tasks:
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
+
+  tasks:
 
     - name:                            Set 'pas' tier facts
       ansible.builtin.set_fact:
@@ -64,23 +71,71 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - block:
-        - name:                        Include 2.6-sap-mounts role
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-      tags:
-        - 2.6-sap-mounts
+    - name:                            Run PAS Installation 
+      block:
 
-    - block:
-        - name:                        Include 5.2-pas-install
-          ansible.builtin.include_role:
-            name:     roles-sap/5.2-pas-install
-      tags:
-        - 5.2-pas-install
+        - block:
+            - ansible.builtin.debug:
+                msg:
+                  - "pas_instance_number: {{ pas_instance_number }}"
+                  - "scs_instance_number: {{ scs_instance_number }}"
+                verbosity:             2
+
+            - ansible.builtin.assert:
+                that:
+                  - "pas_instance_number is defined"
+                  - "scs_instance_number != pas_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the pas_instance_number"
+          when:                        (ansible_play_hosts_all | length) <= 2
+
+        - block:
+            - name:                    Include 5.2-pas-install
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.2-pas-install
+              vars:
+                instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
+          always:
+            - name:                    Get the error lines
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ pas_installation.stdout_lines }}"
+              when:
+                - pas_installation.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_PAS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/HA/ABAP/APP1'
+                tier:                  'pas'
+              when:                    db_high_availability
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_PAS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/DISTRIBUTED/ABAP/APP1'
+                tier:                  'pas'
+              when:                    not db_high_availability
+            - name:                    Errors from PAS installation
+              ansible.builtin.fail:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+          tags:
+            - 5.2-pas-install
+
+      when:
+        - "'pas' in supported_tiers"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                       Playbook for SAP SCS Logging                         |
+# |                       Playbook for SAP PAS Logging                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -92,9 +147,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Create .step502 flag
+    - name:                            Create pas-install-done flag
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step502"
+        path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
         state:                         touch
         mode:                          0755
 

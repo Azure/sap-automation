@@ -1,0 +1,29 @@
+---
+
+name:    'HCMT_v0001ms'
+target:  'HANA Cloud Measurement Tool'
+version: 1
+
+product_ids:
+  hcmt:
+
+materials:
+
+  media:
+    # SAPCAR 7.22
+    - name:         SAPCAR
+      archive:      SAPCAR_1010-70006178.EXE
+      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+      filename:     SAPCAR
+      permissions:  '0755'
+      url:          https://softwaredownloads.sap.com/file/0020000002208852020
+
+    # Kernel
+    - name:         "SAP HANA 2 SPS06 Revision 060.00"
+      archive:      HCMT_060_0-80003261.SAR
+      checksum:     8d25ac065b70f51c5645b6600ee6d04d59ab6544def1455b58f7ee9659d7457c
+      extract:      true
+      extractDir:   hcmt
+      url:          https://softwaredownloads.sap.com/file/0020000001739812021
+
+...
