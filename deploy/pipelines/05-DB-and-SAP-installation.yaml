@@ -7,7 +7,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: OS Configuration and SAP Installation $(sapsystemfolder) $(bom) [$(Date:yyyyMMdd)]
+name:                                  OS Configuration and SAP Installation $(sapsystemfolder) $(bom) [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              sap_system
@@ -15,11 +15,17 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
+  - name:                              environment
+    displayName:                       Environment name
+    type:                              string
+    default:                           DEV
+
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
-    default:                           S41909SPS03_v0009ms
+    default:                           S41909SPS03_v0010ms
     values:
+      - S41909SPS03_v0010ms
       - S41909SPS03_v0009ms
       - S41909SPS03_v0008ms
       - S41909SPS03_v0007ms
@@ -85,26 +91,24 @@ parameters:
   - name:                              postinstallation
     displayName:                       Post Installation Steps
     type:                              boolean
-    default:                           true
+    default:                           false
 
-trigger: none
+trigger:                               none
 
 pool:
-  name: $(Agent)
+  name:                                $(Agent)
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name: sapsystemfolder
-    value: ${{ parameters.sap_system }}
-  - name: sapsystemconfig
-    value: ${{ parameters.sap_system }}.tfvars
-  - name: bom
-    value: ${{ parameters.bom_base_name }}
-  - name: fqdn
-    value:  ${{ parameters.sap_fqdn }}
-  - name: log
-    value:  logfile_$(Build.BuildId)
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             ${{ parameters.environment }}
+  - name:                              sapsystemfolder
+    value:                             ${{ parameters.sap_system }}
+  - name:                              sapsystemconfig
+    value:                             ${{ parameters.sap_system }}.tfvars
+  - name:                              bom
+    value:                             ${{ parameters.bom_base_name }}
+  - name:                              fqdn
+    value:                             ${{ parameters.sap_fqdn }}
 
 stages:
   - stage:                             Preparation_for_Ansible
@@ -112,6 +116,8 @@ stages:
     jobs:
       - job:                           Preparation_step
         displayName:                   Preparation steps
+        workspace:
+          clean: all
         steps:
           - script: |
               #!/bin/bash
@@ -134,14 +140,15 @@ stages:
                   exit 2
                 fi
                 dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
-                export SID=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep sid'=' | awk -F'=' '{print $2}' | xargs) ; echo SID $SID
-                echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml"
-                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)"
-                echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
+                export SID=$(echo $(sapsystemfolder)  | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
+
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sapsystemconfig)."
                   exit 2
                 fi
+                echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml"
+                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)"
+                echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
                 
                 if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
                   echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found ---$reset"
@@ -155,9 +162,6 @@ stages:
                 sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(fqdn)"'|'      SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
               echo -e "$green--- Get SID and copy hosts file over for ansible runs ---$reset"
                 cp -p $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml $(Build.Repository.LocalPath)/sap_hosts.yaml
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
@@ -178,7 +182,7 @@ stages:
                 echo "##vso[task.setvariable variable=SSHKEY;isOutput=true]$(Build.Repository.LocalPath)/sshkey"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git pull --append origin $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull --append origin $(Branch)
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 added=0
@@ -192,8 +196,6 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
                 fi
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
-
             name:                      Preparation
             displayName:               Preparation_for_Ansible
             env:
@@ -216,6 +218,12 @@ stages:
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         
         steps:
+          - script: |
+              echo $(SID_hosts)
+              echo $(SAP_parameters)
+              echo $(parameters_folder)
+              echo $(key_path)
+              echo $(DEPLOYMENT_REPO_PATH)
           - checkout:                  none
             persistCredentials:        true
           - task:                      Ansible@0
@@ -231,7 +239,7 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
             
 
@@ -296,7 +304,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
 
   - stage: Database_Installation
@@ -329,7 +337,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
 
   - stage: SCS_Installation
@@ -363,7 +371,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
 
   - stage: Database_Load
@@ -398,7 +406,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
 
   - stage: PAS_Installation
@@ -434,7 +442,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
 
   - stage: APP_Install
@@ -471,7 +479,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
 
   - stage: WebDispatcher_Installation
@@ -509,7 +517,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             continueOnError:           false          
 
   - stage: HighAvailability_Setup
@@ -553,6 +561,13 @@ stages:
 
   - stage: Post_Installation_Steps
     displayName:                       Post Installation Steps
+    condition:                         always()
+    dependsOn:
+      - Preparation_for_Ansible
+      - Database_Installation
+      - SCS_Installation
+      - Database_Load
+      - PAS_Installation
     jobs:
       - job:                           Post_Installation_Steps
         displayName:                   Post Installation Steps
@@ -581,13 +596,17 @@ stages:
                 fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 git checkout $(Branch)
-                git pull
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
                 added=0
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip ]; then
-                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_*.zip
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip
+                  added=1
+                fi
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip
                   added=1
                 fi
                 if [ 1 == $added ]; then
@@ -601,7 +620,7 @@ stages:
             displayName:               Copy Log files
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
             failOnStderr:              false
 
 ...
