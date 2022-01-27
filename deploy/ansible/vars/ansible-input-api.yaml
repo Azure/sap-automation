@@ -41,7 +41,7 @@ sapinst_gid:                  2001
 sapsys_gid:                   2000
 
 # Oracle specific parameters
-ora_sid:                      "ORA" 
+ora_sid:                      "ORA"
 dba_gid:                      3000
 oper_gid:                     3001
 asmoper_gid:                  3002
@@ -49,7 +49,7 @@ asmadmin_gid:                 3003
 asmdba_gid:                   3004
 oinstall_gid:                 3005
 orasid_uid:                   3000
-oracle_uid:                   3001    
+oracle_uid:                   3001
 hdbshm_gid:                   2002
 
 scs_hostname:                 ""
