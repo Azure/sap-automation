@@ -358,7 +358,7 @@ namespace AutomationForm.Controllers
                 string currLine = stringReader.ReadLine();
                 if (currLine == null)
                 {
-                    jsonString.Remove(jsonString.Length - 2, 1);
+                    jsonString.Remove(jsonString.Length - 3, 1);
                     jsonString.AppendLine("}");
                     break;
                 }
@@ -368,7 +368,7 @@ namespace AutomationForm.Controllers
                 }
                 else if (currLine.StartsWith("}"))
                 {
-                    jsonString.Remove(jsonString.Length - 2, 1);
+                    jsonString.Remove(jsonString.Length - 3, 1);
                     jsonString.AppendLine("},");
                 }
                 else

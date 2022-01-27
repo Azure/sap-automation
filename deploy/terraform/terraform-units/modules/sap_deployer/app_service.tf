@@ -4,8 +4,8 @@ resource "azurerm_app_service_plan" "appserviceplan" {
     name                = lower(format("%s%s%s", local.prefix, local.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
     resource_group_name = local.rg_name
     location            = local.rg_appservice_location
-    kind = "Linux"
-    reserved = true
+    kind = "Windows"
+    reserved = false
 
     sku {
         tier = "Standard"
@@ -21,15 +21,6 @@ resource "azurerm_app_service" "webapp" {
     resource_group_name = local.rg_name
     location            = local.rg_appservice_location
     app_service_plan_id = azurerm_app_service_plan.appserviceplan.id
-    
-    site_config {
-        linux_fx_version = "DOTNETCORE|3.1"
-    }
-
-    # source_control {
-    #     repo_url = "https://azurecat-sapdeploy@dev.azure.com/azurecat-sapdeploy/sap_deployment_automation/_git/persius"
-    #     branch = "main"
-    # }
 
     auth_settings {
         enabled = true
