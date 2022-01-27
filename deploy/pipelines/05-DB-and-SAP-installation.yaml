@@ -234,7 +234,7 @@ stages:
 
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
 
             env:
@@ -268,12 +268,12 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage:                             Software_Acquisition
     displayName:                       Software Acquisition
@@ -300,7 +300,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
@@ -333,12 +333,12 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage: SCS_Installation
     displayName:                       SCS Installation
@@ -367,7 +367,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
@@ -402,7 +402,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
@@ -438,7 +438,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
@@ -475,7 +475,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
@@ -513,7 +513,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
@@ -552,7 +552,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) '
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
