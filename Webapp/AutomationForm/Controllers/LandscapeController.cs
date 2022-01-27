@@ -145,12 +145,13 @@ namespace AutomationForm.Controllers
             {
                 LandscapeModel landscape = GetById(id).Result.Value;
 
-                string path = $"{id}.tfvars";
+                string path = $"samples/WORKSPACES/LANDSCAPE/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
                 string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
+                bool isSystem = false;
 
                 await Helper.UpdateRepo(path, content, _configuration);
-                await Helper.TriggerPipeline(pipelineId, _configuration);
+                await Helper.TriggerPipeline(pipelineId, id, _configuration, isSystem);
                 
                 TempData["success"] = "Successfully deployed landscape " + id;
             }

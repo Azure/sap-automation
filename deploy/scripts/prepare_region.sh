@@ -479,11 +479,6 @@ if [ 3 == $step ]; then
     if [ 0 != $return_code ]; then
         exit $return_code
     fi
-
-    terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/sap_deployer/
-    specificGroupId=$(az pipelines variable-group list --query "[?name=='SAP-deployment-variables-specific'].id | [0]")
-    webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output webapp_url_base | tr -d \")
-    az pipelines variable-group variable create --group-id $specificGroupId --name WEBAPP_URL_BASE --value $webapp_url_base
     
     cd "${curdir}" || exit
     export step=4

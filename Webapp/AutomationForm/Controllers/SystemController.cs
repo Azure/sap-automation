@@ -111,12 +111,13 @@ namespace AutomationForm.Controllers
             {
                 SystemModel system = GetById(id).Result.Value;
 
-                string path = $"{id}.tfvars";
+                string path = $"samples/WORKSPACES/SYSTEM/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
                 string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
+                bool isSystem = true;
 
                 await Helper.UpdateRepo(path, content, _configuration);
-                await Helper.TriggerPipeline(pipelineId, _configuration);
+                await Helper.TriggerPipeline(pipelineId, id, _configuration, isSystem);
                 
                 TempData["success"] = "Successfully deployed system " + id;
             }

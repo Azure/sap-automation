@@ -9,6 +9,7 @@ namespace AutomationForm.Models
     public class PipelineRequestBody
     {
         public Resources resources { get; set; }
+        public Templateparameters templateParameters { get; set; }
     }
 
     public class Resources
@@ -24,6 +25,13 @@ namespace AutomationForm.Models
     public class Self
     {
         public string refName { get; set; }
+    }
+
+    public class Templateparameters
+    {
+        public string workloadZone { get; set; }
+        public string environment { get; set; }
+        public string sap_system { get; set; }
     }
 
 }

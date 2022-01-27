@@ -169,7 +169,7 @@ namespace AutomationForm.Controllers
             string requestJson = JsonSerializer.Serialize(requestBody);
             return new StringContent(requestJson, Encoding.ASCII, "application/json");
         }
-        public static async Task TriggerPipeline(string pipelineId, IConfiguration configuration)
+        public static async Task TriggerPipeline(string pipelineId, string id, IConfiguration configuration, bool isSystem)
         {
             string collectionUri    = configuration["CollectionUri"];
             string project          = configuration["Project"];
@@ -199,7 +199,20 @@ namespace AutomationForm.Controllers
                     }
                 }
             };
-            string requestJson = JsonSerializer.Serialize(requestBody);
+            if (isSystem)
+            {
+                requestBody.templateParameters = new Templateparameters {
+                    sap_system = id
+                };
+            }
+            else
+            {
+                requestBody.templateParameters = new Templateparameters {
+                    workloadZone = id,
+                    environment = id.Substring(0, id.IndexOf('-'))
+                };
+            }
+            string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
             StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
 
             // TRIGGER PIPELINE
