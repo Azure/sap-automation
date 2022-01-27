@@ -18,6 +18,10 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
+  - name:                              environment
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    type:                              string
+    default:                           MGMT
 trigger:                               none
 
 pool:
@@ -25,7 +29,7 @@ pool:
 
 variables:
   - group:                             "SAP-deployment-variables-general"
-  - group:                             "SAP-deployment-variables-specific"
+  - group:                             ${{ parameters.environment }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig

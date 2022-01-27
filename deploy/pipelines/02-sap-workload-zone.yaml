@@ -18,14 +18,20 @@ parameters:
     type:                              string
     default:                           MGMT
 
-trigger: none
+  - name:                              workload_environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+trigger:                               none
 
 pool:
+  name:                                $(Agent)
   vmImage: ubuntu-latest
 
 variables:
   - group:                             "SAP-deployment-variables-general"
-  - group:                             "SAP-deployment-variables-specific"
+  - group:                             ${{ parameters.workload_environment }}
   - name:                              zonefolder
     value:                             ${{ parameters.workloadzone }}
   - name:                              zoneconfig
@@ -121,11 +127,11 @@ stages:
                 git pull
                 added=0
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
-                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
+                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                   added=1
                 fi
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
+                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                   added=1
                 fi
                 if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate ]; then
@@ -134,7 +140,6 @@ stages:
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
