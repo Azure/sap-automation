@@ -19,13 +19,14 @@ parameters:
     default:                           MGMT
 
   - name:                              workload_environment
-    displayName:                       Workload Environment name (MGMT, DEV, QA, PRD, ...)
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
 
-trigger: none
+trigger:                               none
 
 pool:
+  name:                                $(Agent)
   vmImage: ubuntu-latest
 
 variables:

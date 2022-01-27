@@ -14,13 +14,14 @@ parameters:
     default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
-    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
 
 trigger:                               none
 
 pool:
+  name:                                $(Agent)
   vmImage:                             ubuntu-latest
 
 variables:
