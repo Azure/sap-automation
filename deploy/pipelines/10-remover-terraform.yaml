@@ -45,6 +45,11 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
+  - name:                              environment
+    displayName:                       Environment name
+    type:                              string
+    default:                           DEV
+
 trigger:                               none
 
 pool:
@@ -52,7 +57,7 @@ pool:
 
 variables:
   - group:                             "SAP-deployment-variables-general"
-  - group:                             "SAP-deployment-variables-specific"
+  - group:                             ${{ parameters.environment }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig
@@ -140,6 +145,7 @@ stages:
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)" 
+                git checkout $(Branch)
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
@@ -227,7 +233,8 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)" 
                 export  ENV=$(echo $(zonefolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
+                git checkout $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull 
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
@@ -309,6 +316,7 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 export  ENV=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
+                git checkout $(Branch)
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md

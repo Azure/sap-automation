@@ -15,6 +15,11 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
+  - name:                              environment
+    displayName:                       Environment name
+    type:                              string
+    default:                           DEV
+
   - name:                              hcmt
     displayName:                       HANA Cloud Measurement Tool
     type:                              boolean
@@ -32,7 +37,7 @@ pool:
 
 variables:
   - group:                             "SAP-deployment-variables-general"
-  - group:                             "SAP-deployment-variables-specific"
+  - group:                             ${{ parameters.environment }}
   - name:                              sapsystemfolder
     value:                             ${{ parameters.sap_system }}
 
@@ -133,7 +138,7 @@ stages:
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_02_db_hcmt.yaml"
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)"'
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false

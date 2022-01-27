@@ -29,8 +29,6 @@ pool:
   vmImage:                             ubuntu-latest
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             "SAP-deployment-variables-specific"
   - name:                              repository
     value:                             ${{ parameters.repository }}
   - name:                              branch
