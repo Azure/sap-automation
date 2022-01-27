@@ -320,7 +320,7 @@ if [ "$rel" == "20.04" ]; then
     sudo apt remove azure-cli -y 
     sudo apt autoremove -y
     sudo apt update -y
-    touch /etc/az_removed
+    sudo touch /etc/az_removed
   fi
 fi
 #
@@ -468,10 +468,6 @@ export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}
 # Set env for MSI
 export ARM_USE_MSI=true
 
-# Ensure that the user's account is logged in to Azure with specified creds
-/usr/bin/az login --identity --output none
-'echo ${USER} account ready for use with Azure SAP Automated Deployment'
-
 #
 # Create /etc/profile.d script to setup environment for future interactive sessions
 #
@@ -491,6 +487,7 @@ echo export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} | sudo tee -a /etc/
 echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh
 
 /usr/bin/az login --identity 2>error.log || :
+# Ensure that the user's account is logged in to Azure with specified creds
 
 if [ ! -f error.log ]; then
   /usr/bin/az account show > az.json
@@ -516,4 +513,8 @@ fi
 # Ensure that the user's account is logged in to Azure with specified creds
 echo az login --identity --output none | sudo tee -a /etc/profile.d/deploy_server.sh
 echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
+
+/usr/bin/az login --identity --output none
+'echo ${USER} account ready for use with Azure SAP Automated Deployment'
+
 
