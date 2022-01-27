@@ -16,7 +16,7 @@ parameters:
     default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
-    displayName:                       Environment name
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
 

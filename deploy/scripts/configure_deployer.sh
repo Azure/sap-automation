@@ -54,7 +54,7 @@ set -o pipefail
 # Terraform Version settings
 #
 
-if [ ! -n "${TF_VERSION}" ]; then
+if [ -z "${TF_VERSION}" ]; then
   TF_VERSION="1.0.11"
 fi
 
@@ -477,9 +477,7 @@ echo "# Configure environment settings for deployer interactive sessions" | tee 
 echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" | tee -a /tmp/deploy_server.sh
 echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a  /tmp/deploy_server.sh
 
-
 echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
-
 
 # Set env for ansible
 echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh

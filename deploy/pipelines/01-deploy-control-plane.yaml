@@ -22,7 +22,6 @@ parameters:
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
     default:                           MGMT
-
 trigger:                               none
 
 pool:

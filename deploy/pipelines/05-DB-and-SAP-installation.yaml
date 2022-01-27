@@ -16,7 +16,7 @@ parameters:
     default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
-    displayName:                       Environment name
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
 
@@ -141,7 +141,6 @@ stages:
                 fi
                 dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
                 export SID=$(echo $(sapsystemfolder)  | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
-
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sapsystemconfig)."
                   exit 2
@@ -149,7 +148,6 @@ stages:
                 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml"
                 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)"
                 echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
-                
                 if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
                   echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found."
