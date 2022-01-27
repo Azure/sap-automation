@@ -474,21 +474,21 @@ export ARM_USE_MSI=true
 export PATH="${ansible_bin}":"${tf_bin}":"${PATH}":"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible
 
 
-echo '# Configure environment settings for deployer interactive sessions' | tee /tmp/deploy_server.sh
+echo '# Configure environment settings for deployer interactive sessions' >> /tmp/deploy_server.sh
 
-echo export ARM_SUBSCRIPTION_ID=${subscription_id} | tee -a /tmp/profile.d/deploy_server.sh
-echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation | tee -a /tmp/profile.d/deploy_server.sh
+echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" >> /tmp/profile.d/deploy_server.sh
+echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" >>  /tmp/profile.d/deploy_server.sh
 
 
-echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/profile.d/deploy_server.sh
+echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" >>  /tmp/profile.d/deploy_server.sh
 
 
 # Set env for ansible
-echo export ANSIBLE_HOST_KEY_CHECKING=False | tee -a /tmp/profile.d/deploy_server.sh
-echo export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} | tee -a /tmp/profile.d/deploy_server.sh
+echo "export ANSIBLE_HOST_KEY_CHECKING=False" >>  /tmp/profile.d/deploy_server.sh
+echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" >>  /tmp/profile.d/deploy_server.sh
 
 # Set env for MSI
-echo export ARM_USE_MSI=true | tee -a /tmp/profile.d/deploy_server.sh
+echo "export ARM_USE_MSI=true" >>  /tmp/profile.d/deploy_server.sh
 
 /usr/bin/az login --identity 2>error.log || :
 # Ensure that the user's account is logged in to Azure with specified creds
@@ -506,21 +506,21 @@ fi
 
 if [ -n "${client_id}" ]; then
   export ARM_CLIENT_ID=${client_id}
-  echo export ARM_CLIENT_ID=${client_id} | tee -a /tmp/profile.d/deploy_server.sh
+  echo "export ARM_CLIENT_ID=${client_id}" >>  /tmp/profile.d/deploy_server.sh
 fi
 
 if [ -n "${tenant_id}" ]; then
   export ARM_TENANT_ID=${tenant_id}
-  echo export ARM_TENANT_ID=${tenant_id} | tee -a /tmp/profile.d/deploy_server.sh
+  echo "export ARM_TENANT_ID=${tenant_id}" >>  /tmp/profile.d/deploy_server.sh
 fi
 
 # Ensure that the user's account is logged in to Azure with specified creds
-echo az login --identity --output none | tee -a /tmp/profile.d/deploy_server.sh
-echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/profile.d/deploy_server.sh
+echo "az login --identity --output none" >>  /tmp/profile.d/deploy_server.sh
+echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' >>  /tmp/profile.d/deploy_server.sh
 
 sudo cp /tmp/profile.d/deploy_server.sh /etc/profile.d/deploy_server.sh
 
 /usr/bin/az login --identity --output none
-'echo ${USER} account ready for use with Azure SAP Automated Deployment'
+echo "${USER} account ready for use with Azure SAP Automated Deployment"
 
 
