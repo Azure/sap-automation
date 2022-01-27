@@ -471,12 +471,16 @@ export ARM_USE_MSI=true
 #
 # Create /etc/profile.d script to setup environment for future interactive sessions
 #
+export PATH="${ansible_bin}":"${tf_bin}":"${PATH}":"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible
+
+
 echo '# Configure environment settings for deployer interactive sessions' | sudo tee /etc/profile.d/deploy_server.sh
 
 echo export ARM_SUBSCRIPTION_ID=${subscription_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation | sudo tee -a /etc/profile.d/deploy_server.sh
 
-echo export "PATH=${ansible_bin}:${tf_bin}:"'${PATH}':$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible | sudo tee -a /etc/profile.d/deploy_server.sh
+
+echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | sudo tee -a /etc/profile.d/deploy_server.sh
 
 
 # Set env for ansible
