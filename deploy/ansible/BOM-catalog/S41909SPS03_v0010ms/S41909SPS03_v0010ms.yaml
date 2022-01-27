@@ -2,9 +2,9 @@
 # Download time:  70 Minutes (Full - 63GB)
 # Download time:  43 Minutes (Partial - 38GB)
 #
-name:    'S41909SPS03_v0009ms'
+name:    'S41909SPS03_v00010ms'
 target:  'S/4 HANA 1909 SPS 03'
-version: 9
+version: 10
 
 product_ids:
   dbl:       NW_ABAP_DB:S4HANA1909.CORE.HDB.ABAP
@@ -22,6 +22,7 @@ materials:
   dependencies:
     - name:     HANA_2_00_055_v0006ms
     - name:     SWPM20SP10_latest
+    - name:     SUM20SP12_latest
 
   media:
     # SAPCAR 7.22
@@ -64,15 +65,6 @@ materials:
       checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000000703122018
-
-   # SWPM
-    - name:         "SWPM20SP10; OS: Linux on x86_64 64bit"
-      archive:      SWPM20SP10_5-80003424.SAR
-      checksum:     6e3f1904d3232af3c9edc86963e517d32d3c5db7c717889f257a1816d6fe2fea
-      extract:      true
-      extractDir:   SWPM
-      creates:      SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000088472022
 
     # DB Export
     - name:         "File on DVD"
@@ -231,12 +223,6 @@ materials:
       checksum:     4cd694252c228dfd158c273a8c0d0886f543d1a138698bb6f73445c398f22e2a
       download:     false
       url:          https://softwaredownloads.sap.com/file/0020000000410162020
-
-    - name:         "Patch 5 for SOFTWARE UPDATE MANAGER 2.0 SP12 ; OS: Linux on x86_64 64bit"
-      archive:      SUM20SP12_6-80002456.SAR
-      checksum:     38fcd4df3db11edecbdee54df9ee88fb8797221177b677f1260fc84f740afd03
-      download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000000070832022
 
     - name:         "SP12 Patch5 for UMML4HANA 1"
       archive:      HANAUMML12_5-70001054.ZIP
