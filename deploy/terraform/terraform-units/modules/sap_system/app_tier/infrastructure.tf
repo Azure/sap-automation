@@ -192,7 +192,7 @@ resource "azurerm_availability_set" "scs" {
 # Create the Application Availability Set
 resource "azurerm_availability_set" "app" {
   provider                     = azurerm.main
-  count                        = local.enable_deployment && local.use_app_avset ? max(length(local.app_zones), 1) : 0
+  count                        = local.enable_deployment && local.use_app_avset  && length(var.application.avset_arm_ids) == 0 ? max(length(local.app_zones), 1) : 0
   name                         = format("%s%s%s", local.prefix, var.naming.separator, var.naming.app_avset_names[count.index])
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name

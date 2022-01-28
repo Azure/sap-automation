@@ -13,6 +13,10 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source 
 source "${script_directory}/deploy_utils.sh"
 
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
+
 function showhelp {
     echo ""
     echo "##################################################################################################################"
@@ -90,7 +94,7 @@ function missing {
 }    
 
 
-INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:h --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:l:h --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,landscape_tfstate_key:,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -101,15 +105,16 @@ eval set -- "$INPUT_ARGUMENTS"
 while :
 do
   case "$1" in
-    -p | --parameterfile)                      parameterfile="$2"        ; shift 2 ;;
-    -s | --subscription)                       subscription_id="$2"      ; shift 2 ;;
-    -a | --storage_account_name)               storage_account_name="$2" ; shift 2 ;;
-    -k | --terraform_keyfile)                  key="$2"                  ; shift 2 ;;
-    -t | --type)                               type="$2"                 ; shift 2 ;;
-    -n | --tf_resource_name)                   moduleID="$2"             ; shift 2 ;;
-    -i | --azure_resource_id)                  resourceID="$2"           ; shift 2 ;;
+    -p | --parameterfile)                      parameterfile="$2"         ; shift 2 ;;
+    -s | --subscription)                       subscription_id="$2"       ; shift 2 ;;
+    -a | --storage_account_name)               storage_account_name="$2"  ; shift 2 ;;
+    -l | --landscape_tfstate_key)              landscape_tfstate_key="$2" ; shift 2 ;;
+    -k | --terraform_keyfile)                  key="$2"                   ; shift 2 ;;
+    -t | --type)                               type="$2"                  ; shift 2 ;;
+    -n | --tf_resource_name)                   moduleID="$2"              ; shift 2 ;;
+    -i | --azure_resource_id)                  resourceID="$2"            ; shift 2 ;;
     -h | --help)                               showhelp
-    exit 3                                                               ; shift ;;
+    exit 3                                                                ; shift ;;
     --) shift; break ;;
   esac
 done
@@ -125,7 +130,7 @@ if [ -z "$parameterfile" ]; then
     exit 2 #No such file or directory
 fi
 
-if [ ! -n "${type}" ]
+if [ -z "${type}" ]
 then
     printf -v val %-40.40s "$type"
     echo "#########################################################################################"
@@ -143,45 +148,36 @@ then
     exit 64 #script usage wrong
 fi
 
+# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+validate_exports
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
 
-# Checking for valid az session
-az account show > stdout.az 2>&1
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Please login using az login $resetformatting                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-    exit 67                                                                                             #addressee unknown
+# Check that Terraform and Azure CLI is installed
+validate_dependencies
+return_code=$?
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
+
+# Check that parameter files have environment and location defined
+validate_key_parameters "$parameterfile"
+if [ 0 != $return_code ]; then
+    exit $return_code
+fi
+
+if valid_region_name ${region} ; then
+    # Convert the region to the correct code
+    get_region_code ${region}
 else
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-    
+    echo "Invalid region: $region"
+    exit 2
 fi
 
-account_set=0
-
-cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ ! -z "${cloudIDUsed}" ];
-then 
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 67                                                                                             #addressee unknown
-fi
+automation_config_directory=~/.sap_deployment_automation/
+system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 
 az_res=$(az resource show --ids "${resourceID}")
@@ -199,15 +195,28 @@ if [ 0 != $return_value ] ; then
     exit $return_value
 fi
 
-if [ ! -z "${subscription_id}" ]
+if [ -n "${subscription_id}" ]
 then
-    $(az account set --sub "${subscription_id}")
-    account_set=1
+    az account set --sub "${subscription_id}"
+else
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+
+    subscription_id=$STATE_SUBSCRIPTION
+
+    if [ -n "${subscription_id}" ]
+    then
+        read -p "Subscription ID containing Terraform state storage account:"  subscription_id
+    fi
+    az account set --sub "${subscription_id}"
 fi
 
+load_config_vars "${system_config_information}" "tfstate_resource_id"
 
-tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
-fail_if_null tfstate_resource_id
+if [ -z "${tfstate_resource_id}" ]
+then
+    tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
+    fail_if_null tfstate_resource_id
+fi
 resource_group_name=$(echo $tfstate_resource_id | cut -d/ -f5 | tr -d \" | xargs)
 
 directory=$(pwd)/.terraform
@@ -240,11 +249,34 @@ if [ 0 != $return_value ] ; then
     exit $return_value
 fi
 
+if [ -z "$landscape_tfstate_key" ];
+then
+    load_config_vars "${system_config_information}" "landscape_tfstate_key"
+else
+    save_config_vars "${system_config_information}" landscape_tfstate_key
+fi
+
+
+if [ "${type}" == sap_system ]
+then
+    if [ -n "${landscape_tfstate_key}" ]; then
+        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+        landscape_tfstate_key_exists=true
+    else
+        read -p "Workload terraform statefile name :" landscape_tfstate_key
+        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+        save_config_var "landscape_tfstate_key" "${system_config_information}"
+    fi
+else
+    landscape_tfstate_key_parameter=""
+fi
+
+echo "Looking for resource: ${moduleID}"
 
 terraform  -chdir=${module_dir} state list > resources.lst
 shorter_name=$(echo ${moduleID} | cut -d[ -f1)
 tf_resource=$(grep ${shorter_name} resources.lst)
-echo $tf_resource
+echo "Result after grep: $tf_resource"
 if [ -n "${tf_resource}" ]; then
   
   echo "#########################################################################################"
@@ -263,15 +295,15 @@ if [ -n "${tf_resource}" ]; then
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
-      unset TF_DATA_DIR
-      exit $return_value
+#      unset TF_DATA_DIR
+#      exit $return_value
   fi
 fi
 
 
 tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
-terraform -chdir=${module_dir} import -var-file $(pwd)/"${parameterfile}"  ${tfstate_parameter} "${moduleID}" "${resourceID}"
+terraform -chdir=${module_dir} import -var-file $(pwd)/"${parameterfile}"  ${tfstate_parameter} ${landscape_tfstate_key_parameter} "${moduleID}" "${resourceID}"
 
 return_value=$?
 if [ 0 != $return_value ] ; then

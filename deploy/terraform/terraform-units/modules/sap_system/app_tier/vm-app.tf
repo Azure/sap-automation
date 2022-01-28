@@ -73,7 +73,13 @@ resource "azurerm_linux_virtual_machine" "app" {
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.use_app_avset ? azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id : null
+  availability_set_id = local.use_app_avset ? (
+    length(var.application.avset_arm_ids) > 0 ? (
+      var.application.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
+      azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id
+    )) : (
+    null
+  )
 
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
@@ -167,7 +173,13 @@ resource "azurerm_windows_virtual_machine" "app" {
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.use_app_avset ? azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id : null
+  availability_set_id = local.use_app_avset ? (
+    length(var.application.avset_arm_ids) > 0 ? (
+      var.application.avset_arm_ids[count.index % max(local.app_zone_count, 1)]) : (
+      azurerm_availability_set.app[count.index % max(local.app_zone_count, 1)].id
+    )) : (
+    null
+  )
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_app_avset ? null : local.app_zones[count.index % max(local.app_zone_count, 1)]
 

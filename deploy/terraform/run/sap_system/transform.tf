@@ -121,6 +121,7 @@ locals {
     app_sku                  = try(coalesce(var.application_server_sku, var.application.app_sku), "")
     app_no_ppg               = var.application_server_no_ppg || try(var.application.app_no_ppg, false)
     app_no_avset             = var.application_server_no_avset || try(var.application.app_no_avset, false)
+    avset_arm_ids            = var.application_server_vm_avset_arm_ids
 
     scs_server_count      = max(var.scs_server_count, try(var.application.scs_server_count, 1))
     scs_high_availability = var.scs_high_availability || try(var.application.scs_high_availability, false)

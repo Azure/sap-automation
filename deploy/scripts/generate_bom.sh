@@ -177,18 +177,15 @@ END {
     }
 
     printf("\n    - name: \"%s\"\n", component);
-    printf("      archive: \"%s\"\n", filename);
+    printf("      archive: %s\n", filename);
     if ( overridedir != "") printf("      override_target_location: \"%s\"\n", overridedir);
     if (match(filename, /SAPCAR_.*\.EXE/ ) != 0) printf("      override_target_filename: \"SAPCAR.EXE\"\n");
     if (match(filename, /SWPM.*\.SAR/ ) != 0) printf("      override_target_filename: \"SWPM.SAR\"\n");
     if (match(filename, /SWPM.*\.SAR/ ) != 0) printf("      extract: true\n");
     if (match(filename, /SWPM.*\.SAR/ ) != 0) printf("      extractDir: SWPM\n");
-    if ( sapurl != "" ) printf("      url: \"https://softwaredownloads.sap.com/file/%s\"\n", sapurl);
+    if ( sapurl != "" ) printf("      url: https://softwaredownloads.sap.com/file/%s\n", sapurl);
     if ( current == "CC" ) printf("      download: false\n");
     if ( current != "CC" ) printf("      path: download_basket\n");
-
-    
-
   }
 
   stackfileid = gensub(/^MP_Excel_([0-9]+_[0-9]+).*/, "\\1", "g", xlsfile);

@@ -51,6 +51,7 @@
 - name:                                Save the BOM
   ansible.builtin.set_fact:
     bom_base:                          "{{ bom }}"
+    cacheable:                         true
 
 
 # -------------------------------------+---------------------------------------8

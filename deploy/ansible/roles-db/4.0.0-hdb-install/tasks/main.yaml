@@ -102,13 +102,17 @@
         chdir:                         /usr/sap/install/CD_HDBSERVER/SAP_HANA_DATABASE
         creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
       register:                        hana_installation
-      failed_when:                     hana_installation.rc > 1
+      failed_when:                     hana_installation.rc > 0
 
     - name:                            "Installation results"
       ansible.builtin.debug:
         var:                           hana_installation
         verbosity:                     2
 
+    - name:                            "Installation results"
+      ansible.builtin.debug:
+        var:                           hana_installation
+      when:                            hana_installation.rc > 0
 
     - name:                            "REMOVE install password file "
       ansible.builtin.file:

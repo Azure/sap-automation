@@ -63,7 +63,7 @@ while :; do
         shift 2
         ;;
     -r | --region)
-        region="$2"
+        region_code="$2"
         shift 2
         ;;
     -v | --vault)
@@ -106,24 +106,29 @@ while [ -z "${environment}" ]; do
     read -r -p "Environment name: " environment
 done
 
-while [ -z "${region}" ]; do
+while [ -z "${region_code}" ]; do
     read -r -p "Region name: " region
 done
 
-if ! valid_environment "${environment}"; then
-    echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
-    showhelp
-    exit 65	#/* data format error */
+if [ -z "${region_code}" ]; then
+  # Convert the region to the correct code
+  get_region_code $region
 fi
 
-if ! valid_region_name "${region}"; then
-    echo "The 'region' must be a non-empty string composed of lowercase letters followed by numbers!"
-    showhelp
-    exit 65	#/* data format error */
-fi
+# if ! valid_environment "${environment}"; then
+#     echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
+#     showhelp
+#     exit 65	#/* data format error */
+# fi
+
+# if ! valid_region_code "${region_code}"; then
+#    echo "The 'region' must be a non-empty string composed of 4 uppercase letters!"
+#    showhelp
+#    exit 65	#/* data format error */
+# fi
 
 automation_config_directory=~/.sap_deployment_automation
-environment_config_information="${automation_config_directory}"/"${environment}""${region}"
+environment_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 if [ ! -d "${automation_config_directory}" ]; then
     # No configuration directory exists
@@ -143,15 +148,39 @@ fi
 
 if [ -z "$keyvault" ]; then
     load_config_vars "${environment_config_information}" "keyvault"
-    if [ ! -n "$keyvault" ]; then
+    if [ -z "$keyvault" ]; then
         read -r -p "Keyvault name: " keyvault
     fi
+    if valid_kv_name "$keyvault" ; then
+        echo "Valid keyvault name format specified"
+    else
+        printf -v val %-40.40s "$keyvault"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
+
 fi
 
-if [ -z "$client_id" ]; then
+if [ -z "${client_id}" ]; then
     load_config_vars "${environment_config_information}" "client_id"
     if [ -z "$client_id" ]; then
         read -r -p "SPN App ID: " client_id
+    fi
+else
+    if is_valid_guid "${client_id}" ; then
+        echo "Valid client_id specified"
+    else
+        printf -v val %-40.40s "$client_id"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided client_id is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
     fi
 fi
 
@@ -166,10 +195,34 @@ if [ -z "${tenant_id}" ]; then
     if [ ! -n "${tenant_id}" ]; then
         read -r -p "SPN Tenant ID: " tenant_id
     fi
+else
+    if is_valid_guid "${tenant_id}" ; then
+        echo "Valid tenant_id specified"
+    else
+        printf -v val %-40.40s "$tenant_id"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
 fi
 
-if [ -z "$subscription" ]; then
+if [ -z "${subscription}" ]; then
     read -r -p "SPN Subscription: " subscription
+else
+    if is_valid_guid "${subscription}" ; then
+        echo "Valid subscription specified"
+    else
+        printf -v val %-40.40s "$subscription"
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#     The provided subscription is not valid:$boldred ${val} $resetformatting #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        exit 65
+    fi
 fi
 
 if [ -z "${keyvault}" ]; then

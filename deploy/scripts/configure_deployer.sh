@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ ! -n "${TF_VERSION}" ]; then
-  TF_VERSION="0.14.8"
+  TF_VERSION="1.0.11"
 fi
 
 
@@ -260,6 +260,7 @@ required_pkgs=(
     lsb-release
     gnupg
     sshpass
+    dos2unix
 )
 
 cli_pkgs=(
@@ -327,6 +328,8 @@ fi
 #
 
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
+
+/usr/bin/az extension add --name storage-blob-preview > /dev/null
 
 # Ensure our package metadata cache is up to date
 pkg_mgr_refresh

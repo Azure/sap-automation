@@ -20,6 +20,10 @@ variable "custom_prefix" {
   default = ""
 }
 
+variable "use_prefix" {
+  default = true
+}
+
 
 variable "location" {
   type    = string
@@ -45,15 +49,6 @@ variable "proximityplacementgroup_names" {
 variable "proximityplacementgroup_arm_ids" {
   default = []
 }
-
-
-
-
-/*
-
-This block describes the variables for the VNet block in the json file
-
-*/
 
 variable "network_logical_name" {
   default = ""
@@ -192,6 +187,11 @@ variable "anchor_vm_nic_ips" {
 }
 
 variable "anchor_vm_accelerated_networking" {
+  default = true
+}
+
+
+variable "use_observer" {
   default = true
 }
 /*
@@ -388,6 +388,10 @@ variable "application_server_no_avset" {
   default = false
 }
 
+variable "application_server_vm_avset_arm_ids" {
+  default = []
+}
+
 variable "application_server_no_ppg" {
   default = false
 }
@@ -535,20 +539,6 @@ variable "enable_purge_control_for_keyvaults" {
   default = true
 }
 
-#ANF Settings
-
-variable "anf_sapmnt_volume_size" {
-  default = 512
-}
-
-variable "anf_transport_volume_size" {
-  default = 512
-}
-
-variable "use_ANF" {
-  default = false
-}
-
 
 variable "use_loadbalancers_for_standalone_deployments" {
   default = true
@@ -564,4 +554,28 @@ variable "bom_name" {
 
 variable "use_spn" {
   default = true
+}
+
+variable "NFS_provider" {
+  type = string
+  default = "NONE"
+}
+
+#NFS Settings
+
+variable "sapmnt_volume_size" {
+  default = 512
+}
+
+variable "azure_files_storage_account_id" {
+  default = ""
+}
+
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}
+
+variable "use_private_endpoint" {
+  default = false
 }

@@ -20,12 +20,13 @@ function showhelp {
 
     echo ""
     echo "#########################################################################################"
+    echo "#                                                                                       #"
     echo -e "#                 $boldreduscore !Warning!: This script will remove deployed systems $resetformatting                 #"
     echo "#                                                                                       #"
     echo "#   This file contains the logic to remove the different systems                        #"
     echo "#   The script expects the following exports:                                           #"
     echo "#                                                                                       #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
@@ -35,14 +36,19 @@ function showhelp {
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: remover.sh                                                                   #"
-    echo "#    -p or --parameterfile                parameter file                                #"
-    echo "#    -t or --type                         type of system to remove                      #"
+    echo "#    -p or --parameterfile           parameter file                                     #"
+    echo "#    -t or --type                    type of system to remove                           #"
     echo "#                                         valid options:                                #"
     echo "#                                           sap_deployer                                #"
     echo "#                                           sap_library                                 #"
     echo "#                                           sap_landscape                               #"
     echo "#                                           sap_system                                  #"
     echo "#    -h or --help                    Show help                                          #"
+    echo "#                                                                                       #"
+    echo "#   Optional parameters                                                                 #"
+    echo "#                                                                                       #"
+    echo "#    -o or --storageaccountname      Storage account name for state file                #"
+    echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
     echo "#                                                                                       #"
     echo "#   Example:                                                                            #"
     echo "#                                                                                       #"
@@ -62,14 +68,14 @@ function missing {
     echo "#   Missing environment variables: ${option}!!!              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n validate -o p:t:hi --longoptions type:,parameterfile:,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:hi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -81,6 +87,8 @@ while :
 do
   case "$1" in
     -p | --parameterfile)                      parameterfile="$2"               ; shift 2 ;;
+    -o | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+    -s | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
     -t | --type)                               deployment_system="$2"           ; shift 2 ;;
     -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
     -h | --help)                               showhelp 
@@ -181,10 +189,12 @@ if [ ! -f "${parameterfile}" ]; then
     exit 2 #No such file or directory
 fi
 
-#Persisting the parameters across executions
-automation_config_directory="$HOME/.sap_deployment_automation/"
-generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}""${environment}""${region}"
+# Convert the region to the correct code
+get_region_code $region
+
+automation_config_directory=~/.sap_deployment_automation
+generic_config_information="${automation_config_directory}"/config
+system_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
@@ -194,18 +204,24 @@ if [ ! -d "$HOME/.terraform.d/plugin-cache" ]; then
 fi
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 
-#root_dirname=$(pwd)
-#parameterfile_dirname=$(pwd) <- this would not be necessary we validate this above
-
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 var_file="${parameterfile_dirname}"/"${parameterfile}"
+if [ -z "$REMOTE_STATE_SA" ];
+then
+    load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
+    load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
+    load_config_vars "${system_config_information}" "tfstate_resource_id"
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+else
+    save_config_vars "${system_config_information}" REMOTE_STATE_SA
+    get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
+    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+    load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
+    load_config_vars "${system_config_information}" "tfstate_resource_id"
+fi
 
-load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
-load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-load_config_vars "${system_config_information}" "tfstate_resource_id"
 load_config_vars "${system_config_information}" "deployer_tfstate_key"
 load_config_vars "${system_config_information}" "landscape_tfstate_key"
-load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
 
 deployer_tfstate_key_parameter=''
@@ -354,7 +370,7 @@ elif [ "$deployment_system" == "sap_library" ]; then
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
 
-    terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" \
+    terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" ${approve} \
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
 else
@@ -364,7 +380,7 @@ else
         $deployer_tfstate_key_parameter
 
     echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-    terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
+    terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
         $tfstate_parameter \
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
@@ -375,7 +391,7 @@ if [ "${deployment_system}" == sap_deployer ]; then
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
-    sed -i /landscape_tfstate_key/d "${system_config_information}"
+    rm "${system_config_information}"
 fi
 
 if [ "${deployment_system}" == sap_library ]; then

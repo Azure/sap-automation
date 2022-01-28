@@ -103,6 +103,12 @@ variable "order_deployment" {
   default     = ""
 }
 
+variable "use_observer" {
+}
+
+
+
+
 locals {
   // Imports database sizing information
 
@@ -165,7 +171,7 @@ locals {
   enable_deployment = (length(local.anydb_databases) > 0) ? true : false
 
   anydb          = local.enable_deployment ? local.anydb_databases[0] : null
-  anydb_platform = local.enable_deployment ? try(local.anydb.platform, "NONE") : "NONE"
+  anydb_platform = local.enable_deployment ? upper(try(local.anydb.platform, "NONE")) : "NONE"
   // Enable deployment based on length of local.anydb_databases
 
   // If custom image is used, we do not overwrite os reference with default value
@@ -183,7 +189,9 @@ locals {
   anydb_ha                = try(local.anydb.high_availability, false)
   db_sid                  = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
   loadbalancer            = try(local.anydb.loadbalancer, {})
-  enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1)
+
+  # Oracle deployments do not need a load balancer
+  enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) && local.anydb_platform != "ORACLE"  && local.anydb_platform != "NONE"
 
   anydb_cred = try(local.anydb.credentials, {})
 
@@ -244,7 +252,9 @@ locals {
 
   //Observer VM
   observer                 = try(local.anydb.observer, {})
-  deploy_observer          = upper(local.anydb_platform) == "ORACLE" && local.anydb_ha
+  
+  #If using an existing VM for observer set use_observer to false in .tfvars
+  deploy_observer          = var.use_observer ? upper(local.anydb_platform) == "ORACLE" && local.anydb_ha : false
   observer_size            = "Standard_D4s_v3"
   observer_authentication  = local.authentication
   observer_custom_image    = local.anydb_custom_image

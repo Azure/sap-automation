@@ -15,12 +15,13 @@
     - name:                            Create Progress folder
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
-        state:                          directory
+        state:                         directory
+        mode:                          0755
 
     - name:                            Remove os-configuration-done flag
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
-        state:                          absent
+        state:                         absent
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -129,9 +130,8 @@
       ansible.builtin.include_role:
         name:                          roles-os/1.11-accounts
       vars:
-        tier:                          ora               
+        tier:                          ora
       when:                            node_tier == "oracle"
-
 
     - block:
         - name:                        Include 1.16-services role

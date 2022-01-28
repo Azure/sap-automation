@@ -27,15 +27,12 @@
 #
 # -------------------------------------+---------------------------------------8
 ---
-
-
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Validation for Prerequisites
 #
-- import_tasks:     pre_checks.yaml
+- import_tasks:                        pre_checks.yaml
 # -------------------------------------+---------------------------------------8
-
 
 # -------------------------------------+---------------------------------------8
 #
@@ -62,21 +59,22 @@
 # TODO:
 #       Enhance so a single task loops over bas bom and dependencies
 #
-- include_tasks:                       "bom_validator.yaml"
+- include_tasks:                       bom_validator.yaml
   vars:
+    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_base_name }}"
-    check_storage_account:             true
 # -------------------------------------+---------------------------------------8
-
 
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing dependent BOM names.
 #
-- include_tasks:                       "bom_validator.yaml"
+- include_tasks:                       bom_validator.yaml
   vars:
+    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_dependency.name }}"
-    check_storage_account:             true
   loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
@@ -85,7 +83,8 @@
     - bom.materials.dependencies|length>0
 # -------------------------------------+---------------------------------------8
 
-...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
+
+...

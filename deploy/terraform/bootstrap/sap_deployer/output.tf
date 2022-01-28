@@ -10,7 +10,7 @@ output "deployer_id" {
 }
 
 output "vnet_mgmt_id" {
-  value = module.sap_deployer.vnet_mgmt.id
+  value = module.sap_deployer.vnet_mgmt_id
 }
 
 output "subnet_mgmt_id" {

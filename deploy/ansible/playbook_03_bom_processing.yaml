@@ -18,6 +18,7 @@
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                          directory
+        mode:                          0755
 
     - name:                            Remove bom-processing-done flag
       ansible.builtin.file:
