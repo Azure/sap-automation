@@ -46,6 +46,11 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
 trigger:                               none
 
 pool:
@@ -53,7 +58,7 @@ pool:
 
 variables:
   - group:                             "SAP-deployment-variables-general"
-  - group:                             "SAP-deployment-variables-specific"
+  - group:                             ${{ parameters.environment }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig

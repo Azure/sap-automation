@@ -13,14 +13,20 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
 trigger:                               none
 
 pool:
+  name:                                $(Agent)
   vmImage:                             ubuntu-latest
 
 variables:
   - group:                             "SAP-deployment-variables-general"
-  - group:                             "SAP-deployment-variables-specific"
+  - group:                             ${{ parameters.environment }}
   - name:                              sapsystemfolder
     value:                             ${{ parameters.sap_system }}
   - name:                              sapsystemconfig
@@ -33,6 +39,7 @@ stages:
     displayName:                       Deploy SAP infrastructure
     jobs:
       - job:                           Deploy_SAP_infrastructure
+        displayName:                   Deploy SAP infrastructure
         steps:
           - checkout:                  self
             persistCredentials:        true
