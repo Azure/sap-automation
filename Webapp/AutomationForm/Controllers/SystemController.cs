@@ -105,7 +105,7 @@ namespace AutomationForm.Controllers
 
         [HttpPost]
         [ActionName("Deploy")]
-        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id)
+        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string environment)
         {
             try
             {
@@ -117,7 +117,7 @@ namespace AutomationForm.Controllers
                 bool isSystem = true;
 
                 await Helper.UpdateRepo(path, content, _configuration);
-                await Helper.TriggerPipeline(pipelineId, id, _configuration, isSystem);
+                await Helper.TriggerPipeline(pipelineId, id, _configuration, isSystem, environment);
                 
                 TempData["success"] = "Successfully deployed system " + id;
             }

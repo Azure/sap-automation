@@ -10,10 +10,16 @@ parameters:
   - name: webappName
     displayName: Web App Name
     type: string
+    default: $(WEBAPP_URL_BASE)
+
+  - name: environment
+    displayName: "Environment name (MGMT, DEV, QA, etc)"
+    type: string
+    default: MGMT
 
 variables:
-  - group: "SAP-deployment-variables-specific"
   - group: "SAP-deployment-variables-general"
+  - group: ${{ parameters.environment }}
   - name: solution
     value: '**/*.sln'
   - name: buildPlatform

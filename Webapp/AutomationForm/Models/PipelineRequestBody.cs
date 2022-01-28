@@ -29,8 +29,9 @@ namespace AutomationForm.Models
 
     public class Templateparameters
     {
-        public string workloadZone { get; set; }
+        public string workloadzone { get; set; }
         public string environment { get; set; }
+        public string workload_environment { get; set;}
         public string sap_system { get; set; }
     }
 

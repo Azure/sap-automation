@@ -40,7 +40,18 @@
     {
         @Html.AntiForgeryToken()
 
-        <fluent-checkbox onchange="toggleDisable(this, 'deploy-landscape-button')">I confirm that I wish to deploy this landscape</fluent-checkbox><br />
+        <div class="ms-TextField">                    
+            <div class="left-input">
+                @Html.Label("environment", "Environment", new { @class = $"ms-Label required" })
+                <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("environment", "", new { @class = "ms-TextField-field", @onkeyup = "toggleDisableViaInput('environment', 'confirm-deploy-landscape-checkbox')" })
+            </div>
+        </div>
+
+        <fluent-checkbox id="confirm-deploy-landscape-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-landscape-button')" disabled>I confirm that I wish to deploy this landscape</fluent-checkbox><br />
 
         <fluent-button id="deploy-landscape-button" appearance="accent" value="Deploy" type="submit" disabled>
             <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Deploy

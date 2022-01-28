@@ -5,11 +5,21 @@ function setModelData(data) {
     model = data;
 }
 
-function toggleDisable(checkbox, id) {
+function toggleDisableViaCheckbox(checkbox, id) {
     if (checkbox.checked) {
         $("#" + id).prop('disabled', false);
     }
     else {
+        $("#" + id).prop('disabled', true);
+    }
+}
+
+function toggleDisableViaInput(input, id) {
+    if ($("#" + input).val()) {
+        $("#" + id).prop('disabled', false);
+    }
+    else {
+        $("#" + id).prop('checked', false);
         $("#" + id).prop('disabled', true);
     }
 }

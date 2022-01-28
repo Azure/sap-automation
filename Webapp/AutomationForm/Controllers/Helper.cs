@@ -179,7 +179,7 @@ namespace AutomationForm.Controllers
             string requestJson = JsonSerializer.Serialize(requestBody);
             return new StringContent(requestJson, Encoding.ASCII, "application/json");
         }
-        public static async Task TriggerPipeline(string pipelineId, string id, IConfiguration configuration, bool isSystem)
+        public static async Task TriggerPipeline(string pipelineId, string id, IConfiguration configuration, bool isSystem, string environment)
         {
             string collectionUri    = configuration["CollectionUri"];
             string project          = configuration["Project"];
@@ -212,14 +212,16 @@ namespace AutomationForm.Controllers
             if (isSystem)
             {
                 requestBody.templateParameters = new Templateparameters {
-                    sap_system = id
+                    sap_system = id,
+                    environment = environment
                 };
             }
             else
             {
                 requestBody.templateParameters = new Templateparameters {
-                    workloadZone = id,
-                    environment = id.Substring(0, id.IndexOf('-'))
+                    workloadzone = id,
+                    environment = id.Substring(0, id.IndexOf('-')),
+                    workload_environment = environment
                 };
             }
             string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
