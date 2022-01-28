@@ -1,0 +1,49 @@
+
+- name:                                "Execute RUNINSTALLER"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       ./RUNINSTALLER -ohcheck -silent |tee -a /oracle/pre-req.log
+  register:                            oraprecheck_results
+  failed_when:                         oraprecheck_results.rc >= 3
+  environment:
+    DB_SID:                            "{{db_sid}}"
+    CV_ASSUME_DISTID:                  OL7
+  args:
+    executable:                        /bin/csh        
+    chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+
+    #Create sqlnet.ora .
+
+- name:                               "Create the sqlnet.ora for Secondary"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              sqlnet.ora.j2
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_secondary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  
+
+  #Create tnsnames.ora .
+
+- name:                               "Create the tnsnames file for Primary"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              tnsnames_primary.j2
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  

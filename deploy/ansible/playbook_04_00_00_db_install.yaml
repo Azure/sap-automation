@@ -153,6 +153,7 @@
             - name:                    Include 1.17-generic-pacemaker role
               ansible.builtin.include_role:
                 name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+              when:                    node_tier != 'oracle'
           tags:
             - 1.17-generic-pacemaker
 

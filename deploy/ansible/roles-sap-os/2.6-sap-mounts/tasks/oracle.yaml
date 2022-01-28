@@ -58,12 +58,12 @@
     mode:                              0755
     state:                             directory
 
-- name:                                "ORACLE: Create filepermission.txt"          
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt   
-    state:                             touch
+# - name:                                "ORACLE: Create filepermission.txt"          
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/filepermission.txt   
+#     state:                             touch
 
 - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"          
   ansible.builtin.stat:
@@ -71,6 +71,8 @@
   register:                            oracle_permissions_set
 
 - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -123,6 +125,9 @@
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop:
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
+    #- { tier: 'ora',            type: 'xfs',    src: '/dev/vg_orabackup/lv_orabackup',    path: '/oracle/orabackup' }
+
+   # src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'
   
   when:         
     - item.tier == "ora"

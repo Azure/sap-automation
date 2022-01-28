@@ -26,6 +26,7 @@ disk_type_to_name_map:
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
   oraarch: '{{ node_tier | lower }}_oraarch'
+  #orabackup: '{{ node_tier | lower }}_orabackup'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -195,7 +196,12 @@ logical_volumes:
     size:       '64g'
     fstype:     'xfs'
 
-
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_orabackup'
+    lv:         'lv_orabackup'
+    size:       '64g'
+    fstype:     'xfs'
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

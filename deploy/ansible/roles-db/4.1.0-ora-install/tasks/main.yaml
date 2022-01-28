@@ -159,6 +159,10 @@
     var:                               rootscript_results
     verbosity:                     2
 
+- import_tasks: ora-dg-observer-setup.yaml
+  when:
+      node_tier == "observer"
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

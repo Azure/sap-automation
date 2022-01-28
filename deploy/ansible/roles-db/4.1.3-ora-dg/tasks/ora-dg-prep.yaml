@@ -1,0 +1,320 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# | Prepare the sql script  for  data guard initial configuration.             |
+# |                                                                            |
+# |                                                                            |
+# | Step 1 create the SQL scripts for DG                                       |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "Add environment variables to the Bash profile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    path: /home/oracle/.bashrc
+    insertafter: 'fi '
+    block: |
+        #User Specific environment
+        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_version }}
+        export ORACLE_SID={{ db_sid }} 
+        export ORACLE_BASE=/oracle
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID={{ db_sid}}
+
+
+- name:                                "create enablearchivelog.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/enablearchivelog.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+        SHUTDOWN IMMEDIATE; 
+        STARTUP MOUNT; 
+        ALTER DATABASE ARCHIVELOG; 
+        ALTER DATABASE OPEN;
+    mode: 0755
+
+
+- name:                                "create standbyredologs.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/standbyredologs.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl1.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl2.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl3.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl4.dbf' size 400M reuse;
+    mode: 0755
+
+
+- name:                                "create enableforcelogging.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/enableforcelogging.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         ALTER DATABASE FORCE LOGGING; 
+         ALTER SYSTEM SWITCH LOGFILE;
+    mode: 0755
+
+
+- name:                                "create turnonflashback.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/turnonflashback.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         ALTER DATABASE FLASHBACK ON;
+         ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
+    mode: 0755
+
+- name:                                "create createpfile.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/createpfile.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         CREATE PFILE FROM SPFILE;
+    mode: 0755
+
+- name:                                "create createspfile.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/createspfile.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         CREATE SPFILE FROM PFILE;
+    mode: 0755
+
+- name:                                "create dgstatus.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/dgstatus.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         select  instance_name, status, database_role from v$database, v$instance;
+    mode: 0755
+
+- name:                                "create enabledgbroker.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/enabledgbroker.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         ALTER SYSTEM SET dg_broker_start=true;
+    mode: 0755
+
+- name:                                "create dgconfig.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/dgconfig.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "CREATE CONFIGURATION dgconfig AS PRIMARY DATABASE IS {{ db_sid }} CONNECT IDENTIFIER IS {{ db_sid }}";
+         host sleep 30
+         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ADD DATABASE ORA_STDBY AS CONNECT IDENTIFIER IS ORA_STDBY" ;
+         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ENABLE CONFIGURATION"
+    mode: 0755
+
+
+# Set Primary and Secondary node names.
+- name:                        "Setting the priamry and Secondary DB names"
+  ansible.builtin.set_fact:
+            ora_primary:           "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+            ora_secondary:         "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+            current_host:                  "{{ ansible_hostname }}"
+          
+
+#Debug for testing
+- name:                                "Debug: installer prechecks output"
+  ansible.builtin.debug:
+    msg:                               
+      primary host is {{ ora_primary }}
+      secondary host is {{ ora_secondary }}
+      host is {{ current_host }}
+    verbosity:                         2
+
+  
+#Create Listener for primary node.
+
+- name:                               "Create the Listener file for Primary"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              listener_primary.j2
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/listener.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+  when:  current_host == ora_primary
+
+
+#Create Listener for secondary node.
+
+- name:                               "Create the Listener file for Secondary"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              listener_secondary.j2
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/listener.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_secondary }}"
+  when:  current_host == ora_secondary
+
+
+
+#Create tnsnames.ora for primary node.
+
+- name:                               "Create the tnsnames file for Primary"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              tnsnames_primary.j2
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host == ora_primary
+
+
+#Create tnsnames.ora for secondary node.
+
+- name:                               "Create the tnsnames file for Secondary"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              tnsnames_secondary.j2
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_secondary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host == ora_secondary
+ 
+
+#Create sqlnet.ora for secondary node.
+
+- name:                               "Create the sqlnet.ora for Secondary"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              sqlnet.ora.j2
+    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_secondary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host != ora_primary
+
+
+# - name:                   "Copy file"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.copy:
+#     src:  "/oracle/sap_deployment_automation/ORACLE_{{ ora_primary}}.ora"
+#     dest: /oracle/listener_primary_test.ora
+#     mode: '0644'
+#   when: ora_primary == host1
+
+# #Create Listener for secondary node.
+# - name:          "Create the Listener file for Secondary"
+#   ansible.builtin.template:
+#     src:          "listener_primary.j2"
+#     dest:         /oracle/sap_automation_deployment/listener_secondary.ora
+#     mode:          0644
+#   vars:
+#     hostname:  "{{ ora_secondary }}"
+  
+
+# #Create tnsnames.ora for primary node.
+# - name:          "Create the tnsnames file for Primary"
+#   ansible.builtin.template:
+#     src:          "tnsnames_primary.j2"
+#     dest:         "/oracle/sap_automation_deployment/tnsnames_primary.ora"
+#     mode:          0644
+#   vars:
+#     hostname:  "{{ ora_primary }}"
+  
+# #Create tnsnames.ora for secondary node.
+# - name:          "Create the tnsnames file for Secondary"
+#   ansible.builtin.template:
+#     src:          "tnsnames_secondary.j2"
+#     dest:         "/oracle/sap_automation_deployment/tnsnames_secondary.ora"
+#     mode:          0644
+#   vars:
+#     hostname:  "{{ ora_secondary }}"
+  
+
+# #Create sqlnet.ora for secondary and observer.
+# - name:          "Create the tnsnames file for Secondary"
+#   ansible.builtin.template:
+#     src:          "sqlnet.ora.j2"
+#     dest:         "/oracle/sap_automation_deployment/sqlnet.ora"
+#     mode:          0644
+#   vars:
+#     hostname:  "{{ ansible_hostname }}"
+  
+- import_task: ora-dg-observer-setup.yaml
+  when: node_tier == 'observer'
+
+
+#Copy the listener, sqlnet, tnsnames to oracle folders.
+
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
