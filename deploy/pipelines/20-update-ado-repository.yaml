@@ -5,48 +5,50 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  Update Azure DevOps repository from GitHub $(branch) branch [$(Date:yyyyMMdd)]
+name: Update Azure DevOps repository from GitHub $(branch) branch [$(Date:yyyyMMdd)]
 
 parameters:
-  - name:                              repository
-    displayName:                       Source repository
-    type:                              string
-    default:                           https://github.com/Azure/sap-automation.git
+  - name: repository
+    displayName: Source repository
+    type: string
+    default: https://github.com/wksheehan/sap-automation.git
 
-  - name:                              branch
-    displayName:                       Source branch to update from
-    type:                              string
-    default:                           private-preview
+  - name: branch
+    displayName: Source branch to update from
+    type: string
+    default: private-preview
 
-  - name:                              force
-    displayName:                       Force the update
-    type:                              boolean
-    default:                           False
+  - name: force
+    displayName: Force the update
+    type: boolean
+    default: False
 
-trigger:                               none
+trigger: none
 
 pool:
-  vmImage:                             ubuntu-latest
+  vmImage: ubuntu-latest
 
 variables:
-  - name:                              repository
-    value:                             ${{ parameters.repository }}
-  - name:                              branch
-    value:                             ${{ parameters.branch }}
-  - name:                              force
-    value:                             ${{ parameters.force }}
-  - name:                              log
-    value:                             logfile_$(Build.BuildId)
+  - group: "SAP-deployment-variables-general"
+  - group: "SAP-deployment-variables-specific"
+  - name: repository
+    value: ${{ parameters.repository }}
+  - name: branch
+    value: ${{ parameters.branch }}
+  - name: force
+    value: ${{ parameters.force }}
+  - name: log
+    value: logfile_$(Build.BuildId)
 
 stages:
-  - stage:                             Update_ADO_repository
-    displayName:                       Update ADO repository
+  - stage: Update_ADO_repository
+    displayName: Update ADO repository
     jobs:
-      - job:                           Update_ADO_repository
-        displayName:                   Update ADO repository
+      - job: Update_ADO_repository
+        displayName: Update ADO repository
         steps:
-          - checkout:                  self
-            persistCredentials:        true
+          - checkout: self
+            persistCredentials: true
           - script: |
               #!/bin/bash
 
@@ -67,9 +69,9 @@ stages:
                 echo "running git push to ADO" >> /tmp/$(log) 2>&1
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(branch) >> /tmp/$(log) 2>&1
               fi
-              cat /tmp/$(log)
-            displayName:               Update ADO repository
+              cat /tmp/$(log) 
+            displayName: Update ADO repository
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              true
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+            failOnStderr: true
 ...
