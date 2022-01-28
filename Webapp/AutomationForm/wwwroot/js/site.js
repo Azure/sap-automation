@@ -59,7 +59,25 @@ function initializeDropdowns() {
         "use_private_endpoint",
         "enable_purge_control_for_keyvaults",
         "NFS_provider",
-        "database_vm_zones"
+        "database_vm_zones",
+        "NFS_provider",
+        "database_platform",
+        "database_vm_authentication_type",
+        "app_tier_authentication_type",
+        "anchor_vm_authentication_type",
+        "use_prefix",
+        "database_high_availability",
+        "database_vm_use_DHCP",
+        "database_no_ppg",
+        "database_no_avset",
+        "enable_app_tier_deployment",
+        "app_tier_use_DHCP",
+        "app_tier_dual_nics",
+        "scs_high_availability",
+        "deploy_anchor_vm",
+        "anchor_vm_accelerated_networking",
+        "anchor_vm_use_DHCP",
+        "nsg_asg_with_vnet"
     ];
     var prepopulatedValues = [
         model.environment,
@@ -67,7 +85,25 @@ function initializeDropdowns() {
         model.useprivateendpoint,
         model.enablepurgecontrol,
         model.nfsprovider,
-        model.databasevmzones
+        model.databasevmzones,
+        model.nfsprovider,
+        model.databaseplatform,
+        model.dbauthtype,
+        model.apptierauthtype,
+        model.anchorauthtype,
+        model.useprefix,
+        model.dbhighavailability,
+        model.dbusedhcp,
+        model.dbnoppg,
+        model.dbnoavset,
+        model.enableapptierdeployment,
+        model.apptierusedhcp,
+        model.apptierdualnics,
+        model.scshighavailability,
+        model.deployanchorvm,
+        model.anchoraccnetworking,
+        model.anchorusedhcp,
+        model.nsgasgwvnet
     ];
     
     successFunc(prepopulatedIds, prepopulatedValues, [])
