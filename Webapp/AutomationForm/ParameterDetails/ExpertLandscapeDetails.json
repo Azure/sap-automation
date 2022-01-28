@@ -572,6 +572,65 @@
           "Overrules": ""
         }
       ]
+    },
+    {
+      "Section": "Private DNS support",
+      "Parameters": [
+        {
+          "Name": "dns_label",
+          "Required": false,
+          "Description": "Provides the DNS label for the Virtual Network",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "dns_resourcegroup_name",
+          "Required": false,
+          "Description": "Provides the name of the resource group hosting the Private DNS zone",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "NFS support",
+      "Parameters": [
+        {
+          "Name": "NFS_provider",
+          "Required": false,
+          "Description": "Defines how NFS services are provided to the SAP systems: AFS (Azure Files for NFS), ANF (Azure NetApp Files), NFS (custom solution)",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "AFS",
+              "Value": "AFS"
+            },
+            {
+              "Text": "ANF",
+              "Value": "ANF"
+            },
+            {
+              "Text": "NFS",
+              "Value": "NFS"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "transport_volume_size",
+          "Required": false,
+          "Description": "",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
     }
   ]
 }

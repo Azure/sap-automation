@@ -26,7 +26,11 @@
             appsubnetnsgarmid: '@Model.Landscape.app_subnet_nsg_arm_id',
             websubnetnsgarmid: '@Model.Landscape.web_subnet_nsg_arm_id',
             iscsisubnetnsgarmid: '@Model.Landscape.iscsi_subnet_nsg_arm_id',
-            anfsubnetnsgarmid: '@Model.Landscape.anf_subnet_nsg_arm_id'
+            anfsubnetnsgarmid: '@Model.Landscape.anf_subnet_nsg_arm_id',
+            nfsprovider: '@Model.Landscape.NFS_provider',
+            useanf: '@Model.Landscape.use_ANF'.toLowerCase(),
+            useprivateendpoint: '@Model.Landscape.use_private_endpoint'.toLowerCase(),
+            enablepurgecontrol: '@Model.Landscape.enable_purge_control_for_keyvaults'.toLowerCase()
         }
         setModelData(retainedValues);
         initializeDropdowns();

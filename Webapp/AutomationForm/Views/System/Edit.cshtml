@@ -19,6 +19,7 @@
             dbsubnetarmid: '@Model.System.db_subnet_arm_id',
             appsubnetarmid: '@Model.System.app_subnet_arm_id',
             websubnetarmid: '@Model.System.web_subnet_arm_id',
+            databasevmzones: @Json.Serialize(@Model.System.database_vm_zones)
         }
         setModelData(retainedValues);
         initializeDropdowns();
@@ -96,6 +97,10 @@
             {
                 id: 'webdispatcher_server_tags',
                 data: @Json.Serialize(@Model.System.webdispatcher_server_tags)
+            },
+            {
+                id: 'anchor_vm_nic_ips',
+                data: @Json.Serialize(@Model.System.anchor_vm_nic_ips)
             }
         ]
         initializeLists(retainedListValues);

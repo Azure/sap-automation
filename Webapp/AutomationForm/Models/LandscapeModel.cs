@@ -220,5 +220,19 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public string automation_path_to_private_key { get; set; }
+        
+
+        [BsonIgnoreIfNull]
+        public string dns_label { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string dns_resourcegroup_name { get; set; }
+
+
+        [BsonIgnoreIfNull]
+        public string NFS_provider { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? transport_volume_size { get; set; }
     }
 }

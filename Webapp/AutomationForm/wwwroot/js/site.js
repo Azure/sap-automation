@@ -52,16 +52,35 @@ function initializeDropdowns() {
         }
     ];
     updateDropdownData(dropdowns, true);
-    successFunc(["environment"], [model.environment], []);
-    successFunc(["network_logical_name"], [model.networkname], []);
+
+    var prepopulatedIds = [
+        "environment",
+        "use_ANF",
+        "use_private_endpoint",
+        "enable_purge_control_for_keyvaults",
+        "NFS_provider",
+        "database_vm_zones"
+    ];
+    var prepopulatedValues = [
+        model.environment,
+        model.useanf,
+        model.useprivateendpoint,
+        model.enablepurgecontrol,
+        model.nfsprovider,
+        model.databasevmzones
+    ];
+    
+    successFunc(prepopulatedIds, prepopulatedValues, [])
 }
 
 function initializeLists(lists) {
     for (i = 0; i < lists.length; i++) {
-        for (j = 0; j < lists[i].data.length; j++) {
-            $("#" + lists[i].id).append($("<option />").val(lists[i].data[j]).text(lists[i].data[j]));
+        if (lists[i].data) {
+            for (j = 0; j < lists[i].data.length; j++) {
+                $("#" + lists[i].id).append($("<option />").val(lists[i].data[j]).text(lists[i].data[j]));
+            }
+        $("#" + lists[i].id).val(lists[i].data);
         }
-    $("#" + lists[i].id).val(lists[i].data);
     }
 }
 
