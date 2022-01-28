@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: "Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
+name: Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              deployer
@@ -18,26 +18,30 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-trigger: none
+  - name:                              environment
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    type:                              string
+    default:                           MGMT
+trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage:                             ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name: deployerfolder
-    value: ${{ parameters.deployer }}
-  - name: deployerconfig
-    value: ${{ parameters.deployer }}.tfvars
-  - name: libraryfolder
-    value: ${{ parameters.library }}
-  - name: libraryconfig
-    value: ${{ parameters.library }}.tfvars
-  - name: log
-    value: logfile_$(Build.BuildId)
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             ${{ parameters.environment }}
+  - name:                              deployerfolder
+    value:                             ${{ parameters.deployer }}
+  - name:                              deployerconfig
+    value:                             ${{ parameters.deployer }}.tfvars
+  - name:                              libraryfolder
+    value:                             ${{ parameters.library }}
+  - name:                              libraryconfig
+    value:                             ${{ parameters.library }}.tfvars
+  - name:                              log
+    value:                             logfile_$(Build.BuildId)
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage:                             Deploy_controlplane
@@ -50,7 +54,7 @@ stages:
             persistCredentials:        true
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  [$(Date:yyyyMMdd)]"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Install Terraform ---$reset"
@@ -144,7 +148,8 @@ stages:
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
                 git config --global user.email "$(Build.RequestedForEmail)"
@@ -172,7 +177,7 @@ stages:
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"

@@ -23,7 +23,7 @@ check_storage_account:        true
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""
-sap_sid:                      "BPC"                                                        # REQUIRED - SAP Install
+sap_sid:                      ""                                                        # REQUIRED - SAP Install
 download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
 db_sid:                       "XDB"                                                     # Default
@@ -76,6 +76,9 @@ prometheus:                   false                                             
 deployer_kv_name_secret:      "deployer-kv-name"                                         # Name of secret containing the deployer keyvault name in the workload zone keyvault
 sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
 sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
+
+# NFS
+NFS_provider:                 "NONE"
 
 sap_swap:
   - { tier: 'scs',  swap_size_mb: '4096' }

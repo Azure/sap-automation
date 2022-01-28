@@ -98,22 +98,22 @@ PS3='Please select playbook: '
 # all_playbooks array defined below
 options=(
         # Specific playbook entries
-        "Base OS Config"
-        "SAP specific OS Config"
+        "Base Operating System configuration"
+        "SAP specific Operating System configuration"
         "BOM Processing"
-        "DB Install"
+        "Database Instance installation"
         "SCS Install"
-        "DB Load"
-        "PAS Install"
-        "APP Install"
-        "WebDisp Install"
-        "Database HA Setup"
+        "Database Load"
+        "Primary Application Server installation"
+        "Application Server installations"
+        "Web Dispatcher installations"
+        "Database High Availability Setup"
+        "HCMT"
 
         # Special menu entries
         "BOM Download"
-        "Tester"
-        "Install SAP (1-7)"
-        "Post SAP Install (8-10)"
+        "Configure and install SAP (1-7)"
+        "Post SAP Installation tasks (8-10)"
         "All Playbooks"
         "Quit"
 )
@@ -133,8 +133,9 @@ all_playbooks=(
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
         ${cmd_dir}/playbook_04_00_01_db_ha.yaml
-        ${cmd_dir}/playbook_bom_downloader
-        ${cmd_dir}/playbook_tester.yaml
+        ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
+        ${cmd_dir}/playbook_bom_downloader.yaml
+        ${cmd_dir}/playbook_07_00_00_post_installation.yaml
 )
 
 # Set of options that will be passed to the ansible-playbook command

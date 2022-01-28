@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: "Deploying the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
+name: Deploying the SAP Workload zone defined in $(zonefolder) [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              workloadzone
@@ -18,24 +18,28 @@ parameters:
     type:                              string
     default:                           MGMT
 
-trigger: none
+  - name:                              workload_environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+trigger:                               none
 
 pool:
+  name:                                $(Agent)
   vmImage: ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name: zonefolder
-    value: ${{ parameters.workloadzone }}
-  - name: zoneconfig
-    value: ${{ parameters.workloadzone }}.tfvars
-  - name: env
-    value: ${{ parameters.environment }}
-  - name: log
-    value: logfile_$(Build.BuildId)
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             ${{ parameters.workload_environment }}
+  - name:                              zonefolder
+    value:                             ${{ parameters.workloadzone }}
+  - name:                              zoneconfig
+    value:                             ${{ parameters.workloadzone }}.tfvars
+  - name:                              env
+    value:                             ${{ parameters.environment }}
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage:                             Deploy_SAP_workloadzone
@@ -48,7 +52,7 @@ stages:
             persistCredentials:        true
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(zonefolder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -119,14 +123,15 @@ stages:
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 added=0
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
-                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
+                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                   added=1
                 fi
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
+                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                   added=1
                 fi
                 if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate ]; then
@@ -135,8 +140,7 @@ stages:
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
                 if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"

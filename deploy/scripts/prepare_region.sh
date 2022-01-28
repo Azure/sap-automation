@@ -555,11 +555,10 @@ export terraform_state_storage_account="${REMOTE_STATE_SA}"
 
 if [ 5 == $step ]; then
     
-    key=$(az keyvault secret show --vault-name "${keyvault}" --name "sapbits-access-key" | jq -r .value)
+    account_key=$(az keyvault secret show --vault-name "${keyvault}" --name "sapbits-access-key" | jq -r .value)
     end=$(date -u -d "180 days" '+%Y-%m-%dT%H:%MZ')
     
-    sas=$(az storage container generate-sas --permissions rl --account-name ${REMOTE_STATE_SA} --name 'sapbits' --https-only  --expiry $end -o tsv --account-key "${key}")
-    
+    sas=$(az storage container generate-sas --permissions rl --account-name $REMOTE_STATE_SA --name sapbits --https-only  --expiry $end -o tsv --account-key "${account_key}")
     az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "?${sas}"
     
     step=6

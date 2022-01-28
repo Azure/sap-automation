@@ -92,9 +92,11 @@ resource "local_file" "sap-parameters_yml" {
     platform            = var.platform
     scs_instance_number = var.scs_instance_number
     ers_instance_number = var.ers_instance_number
-    install_path        = var.install_path
-    NFS_provider        = var.NFS_provider
-
+    install_path = length(trimspace(var.install_path)) > 0 ? (
+      format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
+      ""
+    )
+    NFS_provider = var.NFS_provider
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)

@@ -7,13 +7,13 @@
 # +------------------------------------4--------------------------------------*/
 
 
-name: "Removal $(Date:yyyyMMdd)"
+name: Removal [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              cleanupsap
     displayName:                       Remove the SAP system
     type:                              boolean
-    default: false
+    default:                           true
 
   - name:                              sap_system
     displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
@@ -23,7 +23,7 @@ parameters:
   - name:                              cleanupzone
     displayName:                       Remove the SAP workload zone
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              workloadzone
     displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -33,7 +33,7 @@ parameters:
   - name:                              cleanupregion
     displayName:                       Remove the control plane
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              deployer
     displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -45,34 +45,37 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-trigger: none
+  - name:                              environment
+    displayName:                       Environment (DEV, QUA, PRD)
+    type:                              string
+    default:                           DEV
+
+trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage:                             ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name:  deployerfolder
-    value: ${{ parameters.deployer }}
-  - name:  deployerconfig
-    value: ${{ parameters.deployer }}.tfvars
-  - name:  libraryfolder
-    value: ${{ parameters.library }}
-  - name:  libraryconfig
-    value: ${{ parameters.library }}.tfvars
-  - name:  zonefolder
-    value: ${{ parameters.workloadzone }}
-  - name:  zoneconfig
-    value: ${{ parameters.workloadzone }}.tfvars
-  - name:  sapsystemfolder
-    value: ${{ parameters.sap_system }}
-  - name:  sapsystemconfig
-    value: ${{ parameters.sap_system }}.tfvars
-  - name:  log
-    value: logfile_$(Build.BuildId)
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             ${{ parameters.environment }}
+  - name:                              deployerfolder
+    value:                             ${{ parameters.deployer }}
+  - name:                              deployerconfig
+    value:                             ${{ parameters.deployer }}.tfvars
+  - name:                              libraryfolder
+    value:                             ${{ parameters.library }}
+  - name:                              libraryconfig
+    value:                             ${{ parameters.library }}.tfvars
+  - name:                              zonefolder
+    value:                             ${{ parameters.workloadzone }}
+  - name:                              zoneconfig
+    value:                             ${{ parameters.workloadzone }}.tfvars
+  - name:                              sapsystemfolder
+    value:                             ${{ parameters.sap_system }}
+  - name:                              sapsystemconfig
+    value:                             ${{ parameters.sap_system }}.tfvars
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage:                             Remove_SAP_systems
@@ -84,7 +87,7 @@ stages:
         steps:
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sapsystemfolder) $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sapsystemfolder)"
               green="\e[1;32m" ; reset="\e[0m"
               SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs)
               echo -e "$green--- Install Terraform ---$reset"
@@ -131,9 +134,6 @@ stages:
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
                 cd $HOME/SYSTEM/$(sapsystemfolder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sapsystemconfig) --type sap_system --auto-approve
@@ -145,7 +145,8 @@ stages:
                 cd $(Build.Repository.LocalPath)
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)" 
-                git pull  origin $(Branch)
+                git checkout $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml
@@ -153,7 +154,8 @@ stages:
                 git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.zip
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-              git config --unset-all http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader
+              exit $return_code
+
             displayName:               Remove SAP systems
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
@@ -161,7 +163,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr: false
+            failOnStderr:              false
 
   - stage:                             Remove_SAP_workloadzone
     displayName:                       "Removing the SAP workload zone"
@@ -172,7 +174,7 @@ stages:
         steps:
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(zonefolder) $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(zonefolder)"
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -218,9 +220,6 @@ stages:
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
                 cd $HOME/LANDSCAPE/$(zonefolder)
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(zoneconfig) --type sap_landscape --auto-approve
@@ -234,14 +233,14 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)" 
                 export  ENV=$(echo $(zonefolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git pull  origin $(Branch)
+                git checkout $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull 
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                 git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-                exit $return_code
-
+              exit $return_code
             displayName:               Remove SAP workloadzone
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
@@ -249,7 +248,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr: true
+            failOnStderr:              true
 
   - stage:                             Remove_region
     displayName:                       "Remove the control plane"
@@ -260,7 +259,7 @@ stages:
         steps:
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployerfolder) $(libraryfolder)"
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -301,9 +300,6 @@ stages:
                   exit $return_code
                 fi
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig) 2> /dev/null
@@ -320,7 +316,8 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 export  ENV=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git pull  origin $(Branch)
+                git checkout $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
                 git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
                 git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform
@@ -328,7 +325,7 @@ stages:
                 git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars
                 git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
-                exit $return_code
+              exit $return_code
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
@@ -336,5 +333,5 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr: true
+            failOnStderr:              true
 ...

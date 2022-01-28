@@ -66,8 +66,8 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB  :
-                                        {{ sap_sid|upper }}_SCS"
+- hosts:                               "{{ sap_sid|upper }}_SCS  :
+                                        {{ sap_sid|upper }}_DB"
 
   name:                                SAP Installation - SCS
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -85,6 +85,19 @@
 # -------------------------------------+---------------------------------------8
     - name:                            Standalone SCS Setup
       block:
+
+        - block:
+            - ansible.builtin.debug:
+                msg:
+                  - "hdb_instance_number: {{ hdb_instance_number }}"
+                  - "scs_instance_number: {{ scs_instance_number }}"
+                verbosity:             2
+
+            - ansible.builtin.assert:
+                that:
+                  - "scs_instance_number != hdb_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the hdb_instance_number"
+          when:                        (ansible_play_hosts_all | length) == 1
 
         - name:                        Set 'scs' tier facts
           ansible.builtin.set_fact:
@@ -105,11 +118,39 @@
             - name:                    Include 5.0.0-scs-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
+          always:
+            - name:                    Get the error lines
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ scs_installation.stdout_lines }}"
+              when:
+                - scs_installation.stdout_lines is defined
+                - '"ERROR" in item'
+                - scs_installation.rc > 0
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_SCS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/DISTRIBUTED/ABAP/ASCS'
+                tier:                  'scs'
+
+            - name:                    Errors from HANA installation
+              ansible.builtin.fail:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
           tags:
             - 5.0.0-scs-install
-      when:                            
-       - not scs_high_availability
-       - "'scs' in supported_tiers"
+
+          vars:
+            tier:                      "{{ tier }}"
+      when:
+        - not scs_high_availability
+        - "'scs' in supported_tiers"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -214,11 +255,62 @@
             - name:                    Run the pacemaker role
               include_role:
                 name:                  roles-sap/5.6-scsers-pacemaker
+          always:
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_SCS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/HA/ABAP/ASCS'
+                tier:                  'scs'
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_ERS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/HA/ABAP/ERS'
+                tier:                  'ers'
+
+            - name:                    Get the Error lines (SCS)
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ scs_installation.stdout_lines }}"
+              when:
+                - scs_installation.stdout_lines is defined
+                - scs_installation.rc is defined
+                - '"ERROR" in item'
+
+            - name:                    Errors from SCS installation
+              ansible.builtin.fail:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+            - name:                    Get the Error lines (ERS)
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ ers_installation.stdout_lines }}"
+              when:
+                - ers_installation.stdout_lines is defined
+                - ers_installation.rc is defined
+                - '"ERROR" in item'
+                - ers_installation.rc > 0
+
+            - name:                    Errors from ERS installation
+              ansible.builtin.fail:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
           tags:
             - 5.6-scsers-pacemaker
-      when:                            
-       - scs_high_availability
-       - "'scs' in supported_tiers or 'ers' in supported_tiers "
+      when:
+        - scs_high_availability
+        - "'scs' in supported_tiers or 'ers' in supported_tiers "
 
 
 - hosts:                               localhost

@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)
+name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              sap_system
@@ -13,34 +13,39 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
-trigger: none
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  name:                                $(Agent)
+  vmImage:                             ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name: sapsystemfolder
-    value: ${{ parameters.sap_system }}
-  - name: sapsystemconfig
-    value: ${{ parameters.sap_system }}.tfvars
-  - name: log
-    value: logfile_$(Build.BuildId)
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SAP-deployment-variables-general"
+  - group:                             ${{ parameters.environment }}
+  - name:                              sapsystemfolder
+    value:                             ${{ parameters.sap_system }}
+  - name:                              sapsystemconfig
+    value:                             ${{ parameters.sap_system }}.tfvars
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage:                             Deploy_SAP_infrastructure
     displayName:                       Deploy SAP infrastructure
     jobs:
       - job:                           Deploy_SAP_infrastructure
+        displayName:                   Deploy SAP infrastructure
         steps:
           - checkout:                  self
             persistCredentials:        true
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sapsystemfolder) $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sapsystemfolder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
@@ -103,7 +108,8 @@ stages:
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
                 return_code=$?
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git pull --append origin $(Branch)
+                git checkout $(Branch)
+                git pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 cd $(Build.Repository.LocalPath)
@@ -128,16 +134,16 @@ stages:
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
               exit $return_code
-            displayName: Deploy_SAP_infrastructure
+
+            displayName:               Deploy_SAP_infrastructure
             env:
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              REMOTE_STATE_SA:         ${REMOTE_STATE_SA}
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              false
 ...
