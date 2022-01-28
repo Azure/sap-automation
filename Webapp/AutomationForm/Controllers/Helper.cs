@@ -82,6 +82,16 @@ namespace AutomationForm.Controllers
                         str.AppendLine("  sku="               + $"\"{img.sku}\",");
                         str.AppendLine("}");
                     }
+                    else if (property.PropertyType == typeof(bool?))
+                    {
+                        bool b = (bool)value;
+                        str.AppendLine(property.Name + " = " + b.ToString().ToLower());
+                    }
+                    else if (property.PropertyType == typeof(int?))
+                    {
+                        int i = (int)value;
+                        str.AppendLine(property.Name + " = " + i);
+                    }
                     else
                     {
                         str.AppendLine(property.Name + " = " + $"\"{value}\"");
