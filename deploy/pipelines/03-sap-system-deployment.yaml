@@ -25,8 +25,8 @@ pool:
   vmImage:                             ubuntu-latest
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
   - name:                              sap_system_folder
     value:                             ${{ parameters.sap_system }}
   - name:                              sap_system_configuration

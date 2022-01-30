@@ -36,8 +36,8 @@ pool:
   name: $(Agent)
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
   - name:                              sapsystemfolder
     value:                             ${{ parameters.sap_system }}
 

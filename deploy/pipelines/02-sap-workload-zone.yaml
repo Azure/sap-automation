@@ -30,8 +30,8 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.workload_environment_parameter }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.workload_environment_parameter }}
   - name:                              workload_zone_folder
     value:                             ${{ parameters.workload_zone }}
   - name:                              workload_zone_configuration_file

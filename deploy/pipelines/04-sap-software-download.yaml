@@ -42,8 +42,8 @@ pool:
   name:                                $(Agent)
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
   - name:                              bom
     value:                             ${{ parameters.bom_base_name }}
   - name:                              env
