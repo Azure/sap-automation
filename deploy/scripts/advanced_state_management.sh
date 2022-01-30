@@ -106,6 +106,7 @@ do
   case "$1" in
     -p | --parameterfile)                      parameterfile="$2"         ; shift 2 ;;
     -s | --subscription)                       subscription_id="$2"       ; shift 2 ;;
+    -e | --deployer_environment)               deployer_environment="$2"        ; shift 2 ;;
     -a | --storage_account_name)               storage_account_name="$2"  ; shift 2 ;;
     -d | --deployer_environment)               deployer_environment="$2"  ; shift 2 ;;
     -l | --landscape_tfstate_key)              landscape_tfstate_key="$2" ; shift 2 ;;

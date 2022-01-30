@@ -141,6 +141,7 @@ packages:
     - { tier: 'os',    package: 'tuned',                                                    state: 'present' }
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs-utils',                                                state: 'present' }
+    - { tier: 'sapos', package: 'nfs-client',                                               state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
     - { tier: 'sapos', package: 'saptune',                                                  state: 'present' }
     - { tier: 'sapos', package: 'libgcc_s1',                                                state: 'present' }

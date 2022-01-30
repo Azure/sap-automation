@@ -13,7 +13,7 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source 
+#call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -85,34 +85,29 @@ function missing {
 
 force=0
 ado=0
-INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:iha --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account,auto-approve,ado,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:iha --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
-  showhelp
+    showhelp
 fi
 echo "$INPUT_ARGUMENTS"
 eval set -- "$INPUT_ARGUMENTS"
 while :
 do
-  case "$1" in
-    -d | --deployer_parameter_file)            deployer_parameter_file="$2"     ; shift 2 ;;
-    -l | --library_parameter_file)             library_parameter_file="$2"      ; shift 2 ;;
-    -s | --subscription)                       subscription="$2"                ; shift 2 ;;
-    -b | --storage_account)                    storage_account="$2"             ; shift 2 ;;
-    -r | --resource_group)                     resource_group="$2"              ; shift 2 ;;
-    -a | --ado)                                ado=1                            ; shift ;;
-    -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
-    -h | --help)                               showhelp 
-                                               exit 3                           ; shift ;;
-    --) shift; break ;;
-  esac
+    case "$1" in
+        -d | --deployer_parameter_file)            deployer_parameter_file="$2"     ; shift 2 ;;
+        -l | --library_parameter_file)             library_parameter_file="$2"      ; shift 2 ;;
+        -s | --subscription)                       subscription="$2"                ; shift 2 ;;
+        -b | --storage_account)                    storage_account="$2"             ; shift 2 ;;
+        -r | --resource_group)                     resource_group="$2"              ; shift 2 ;;
+        -a | --ado)                                approveparam="--auto-approve"    ; shift ;;
+        -i | --auto-approve)                       approveparam="--auto-approve"    ; shift ;;
+        -h | --help)                               showhelp
+        exit 3                           ; shift ;;
+        --) shift; break ;;
+    esac
 done
-
-approveparam=""
-if [ 1 == $ado ]; then
-    approveparam=" --auto-approve"
-fi
 
 if [ -z "$deployer_parameter_file" ]; then
     missing_value='deployer parameter file'
@@ -164,20 +159,15 @@ if [ -z "$deployer_config_information" ]; then
     rm $deployer_config_information
 fi
 
-#Plugins
-if [ ! -d "$HOME/.terraform.d/plugin-cache" ]
-then
-    mkdir -p "$HOME/.terraform.d/plugin-cache"
-fi
-export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-
 root_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-if [ -z "${subscription}" ]
+if [ -n "${subscription}" ]
 then
     export ARM_SUBSCRIPTION_ID=$subscription
+else
+    subscription=$ARM_SUBSCRIPTION_ID
 fi
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")
@@ -188,48 +178,6 @@ library_file_parametername=$(basename "${library_parameter_file}")
 
 relative_path="${root_dirname}"/"${deployer_dirname}"
 export TF_DATA_DIR="${relative_path}"/.terraform
-# Checking for valid az session
-
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                           Please login using az login                                 #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-    exit 67 #addressee unknown
-else
-    if [ -f stdout.az ]
-    then
-        rm stdout.az
-    fi
-
-    if [ -n "${subscription}" ]
-    then
-        az account set --sub "${subscription}"
-    fi
-
-fi
-
-cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ -n "${cloudIDUsed}" ];
-then 
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#       Please login using your credentials or service principal credentials!           #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 67                                                                                             #addressee unknown
-fi
-
 
 curdir=$(pwd)
 
@@ -259,38 +207,40 @@ if [ -z "${storage_account}" ]; then
         az account set --sub "${STATE_SUBSCRIPTION}"
         
     fi
-
+    
     if [ -n "${REMOTE_STATE_SA}" ]
     then
         storage_account="${REMOTE_STATE_SA}"
     fi
-
+    
     if [ -n "${REMOTE_STATE_RG}" ]
     then
         resource_group="${REMOTE_STATE_RG}"
     fi
 fi
 
-temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
-if [ -z "${temp}" ]
-then
-    #Reinitialize
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                          Running Terraform init (deployer)                            #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
+key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
 
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
-    --backend-config "subscription_id=${subscription}" \
-    --backend-config "resource_group_name=${resource_group}" \
-    --backend-config "storage_account_name=${storage_account}" \
-    --backend-config "container_name=tfstate" \
-    --backend-config "key=${key}.terraform.tfstate"
+# Reinitialize
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo "#                          Running Terraform init (deployer)                            #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+echo "#  subscription_id=${subscription}"                                 
+echo "#  backend-config resource_group_name=${resource_group}" 
+echo "#  storage_account_name=${storage_account}" 
+echo "#  container_name=tfstate" 
+echo "#  key=${key}.terraform.tfstate"
 
-fi
+terraform -chdir="${terraform_module_directory}" init -upgrade=true  \
+--backend-config "subscription_id=${subscription}"                   \
+--backend-config "resource_group_name=${resource_group}"             \
+--backend-config "storage_account_name=${storage_account}"           \
+--backend-config "container_name=tfstate"                            \
+--backend-config "key=${key}.terraform.tfstate"
 
 #Initialize the statefile and copy to local
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
@@ -304,13 +254,12 @@ echo "##########################################################################
 echo ""
 
 
-terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy -reconfigure \
-    --backend-config "path=${param_dirname}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
 
 cd "${curdir}" || exit
 
-key=$(echo "${library_parameter_file}" | cut -d. -f1)
-cd "${library_dirname}" || exitstorage_account 
+key=$(echo "${library_file_parametername}" | cut -d. -f1)
+cd "${library_dirname}" || exitstorage_account
 param_dirname=$(pwd)
 
 #Library
@@ -322,25 +271,26 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 key=$(echo "${library_file_parametername}" | cut -d. -f1)
 
-temp=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate)
-if [ -z "${temp}" ]
-then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                             Running Terraform init (library)                          #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo "#                             Running Terraform init (library)                          #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+echo ""
+echo "#  subscription_id=${subscription}"                                 
+echo "#  backend-config resource_group_name=${resource_group}" 
+echo "#  storage_account_name=${storage_account}" 
+echo "#  container_name=tfstate" 
+echo "#  key=${key}.terraform.tfstate"
 
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
-    --backend-config "subscription_id=${subscription}" \
-    --backend-config "resource_group_name=${resource_group}" \
-    --backend-config "storage_account_name=${storage_account}" \
-    --backend-config "container_name=tfstate" \
-    --backend-config "key=${key}.terraform.tfstate"
-
-fi
+terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+--backend-config "subscription_id=${subscription}"                  \
+--backend-config "resource_group_name=${resource_group}"            \
+--backend-config "storage_account_name=${storage_account}"          \
+--backend-config "container_name=tfstate"                           \
+--backend-config "key=${key}.terraform.tfstate"
 
 echo ""
 echo "#########################################################################################"
@@ -352,7 +302,7 @@ echo ""
 
 #Initialize the statefile and copy to local
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-terraform -chdir="${terraform_module_directory}" init -force-copy -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
 
 extra_vars=""
 
@@ -360,9 +310,12 @@ if [ -f terraform.tfvars ]; then
     extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
-var_file="${param_dirname}"/"${library_file_parametername}" 
- 
+var_file="${param_dirname}"/"${library_file_parametername}"
+
 allParams=$(printf " -var-file=%s -var use_deployer=false -var deployer_statefile_foldername=%s %s %s " "${var_file}" "${relative_path}" "${extra_vars}" "${approveparam}" )
+
+export TF_DATA_DIR="${param_dirname}/.terraform"
+export TF_use_spn=false
 
 echo ""
 echo "#########################################################################################"
@@ -377,7 +330,7 @@ return_value=$?
 
 if [ 0 != $return_value ]
 then
-  exit $return_value
+    exit $return_value
 fi
 
 cd "${curdir}" || exit
@@ -395,7 +348,7 @@ if [ -f terraform.tfvars ]; then
     extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
-var_file="${param_dirname}"/"${deployer_file_parametername}" 
+var_file="${param_dirname}"/"${deployer_file_parametername}"
 allParams=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${approveparam}"  )
 
 echo ""
@@ -416,6 +369,25 @@ unset TF_DATA_DIR
 step=0
 save_config_var "step" "${deployer_config_information}"
 
-rm "${deployer_config_information}"
+
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo "#                                       Reset settings                                  #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+
+STATE_SUBSCRIPTION=''
+REMOTE_STATE_SA=''
+REMOTE_STATE_RG=''
+tfstate_resource_id=''
+keyvault=''
+save_config_vars "${deployer_config_information}" \
+        keyvault \
+        tfstate_resource_id \
+        REMOTE_STATE_SA \
+        REMOTE_STATE_RG \
+        STATE_SUBSCRIPTION
 
 exit $return_value
