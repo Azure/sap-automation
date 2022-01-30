@@ -49,9 +49,9 @@ stages:
     jobs:
       - job:                           Deploy_controlplane
         displayName:                   Deploy the control plane
+        workspace:
+          clean:                       all
         steps:
-          - checkout:                  self
-            persistCredentials:        true
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  [$(Date:yyyyMMdd)]"
@@ -126,7 +126,7 @@ stages:
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git checkout $(Branch)
+                git checkout -q $(Branch)
                 git pull
                 export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA

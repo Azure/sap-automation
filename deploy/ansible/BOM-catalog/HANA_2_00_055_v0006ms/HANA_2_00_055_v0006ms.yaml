@@ -42,14 +42,14 @@ materials:
       extractDir:   CD_HDBSERVER/COMPONENTS
       creates:      COMPONENTS/SAP_HANA_AFL/packages
       url:          https://softwaredownloads.sap.com/file/0020000000064932022
-
+      
     - name:         LCAPPS for HANA 2.00.059.00
       archive:      IMDB_LCAPPS_2059P_100-20010426.SAR
       checksum:     561318bf34896d97918878cb68729c7f2c6451d89182e95ea7020b1df074bc1d
       extract:      true
       extractDir:   CD_HDBSERVER/COMPONENTS
       creates:      COMPONENTS/SAP_HANA_LCAPPS/packages
-      url:          https://softwaredownloads.sap.com/file/0020000000064992022
+      url:          https://softwaredownloads.sap.com/file/0020000000064932022
 
     - name:         VCH AFL 1909 Rev 59.100 only for HANA 2.0 Rev 59.01
       archive:      VCH190900_2059P_100-80004631.SAR
@@ -69,5 +69,6 @@ materials:
       archive:      saphostagentrpm_54-80004822.rpm
       checksum:     36e07aa24b0dca972f9bfeff5757ca52f693d34f013818b171aa684b3aef1d98
       url:          https://softwaredownloads.sap.com/file/0020000001305892021
+
 
 ...

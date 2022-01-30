@@ -198,6 +198,23 @@
     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") )
 
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Process BOM dependencies.
+#               Call BOM processor, passing dependent BOM names.
+#
+- name:                                Process dependent BOMs
+  include_tasks:                       "bom_processor.yaml"
+  vars:
+    bom_name:                          "{{ bom_dependency.name }}"
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                          bom_dependency
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies|length>0
+# -------------------------------------+---------------------------------------8
+
 
 # -------------------------------------+---------------------------------------8
 #

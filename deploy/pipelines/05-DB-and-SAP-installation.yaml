@@ -88,11 +88,6 @@ parameters:
     type:                              boolean
     default:                           false
 
-  - name:                              postinstallation
-    displayName:                       Post Installation Steps
-    type:                              boolean
-    default:                           false
-
 trigger:                               none
 
 pool:
@@ -195,7 +190,7 @@ stages:
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
                 fi
             name:                      Preparation
-            displayName:               Preparation_for_Ansible
+            displayName:               Preparation for Ansible
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              false
@@ -560,12 +555,6 @@ stages:
   - stage: Post_Installation_Steps
     displayName:                       Post Installation Steps
     condition:                         always()
-    dependsOn:
-      - Preparation_for_Ansible
-      - Database_Installation
-      - SCS_Installation
-      - Database_Load
-      - PAS_Installation
     jobs:
       - job:                           Post_Installation_Steps
         displayName:                   Post Installation Steps
@@ -593,7 +582,7 @@ stages:
                   exit 2
                 fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git checkout $(Branch)
+                git checkout -q $(Branch)
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
