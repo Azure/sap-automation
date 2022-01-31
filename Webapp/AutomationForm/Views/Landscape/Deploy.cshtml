@@ -47,7 +47,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("environment", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaInput('environment', 'workload_environment', 'confirm-deploy-checkbox')" })
+                @Html.TextBox("environment", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaTwoInputs('environment', 'workload_environment', 'confirm-deploy-checkbox')" })
             </div>
         </div>
 
@@ -58,7 +58,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("workload_environment", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaInput('workload_environment', 'environment', 'confirm-deploy-checkbox')" })
+                @Html.TextBox("workload_environment", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaTwoInputs('workload_environment', 'environment', 'confirm-deploy-checkbox')" })
             </div>
         </div>
 

@@ -83,7 +83,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("workload_environment", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaInput('workload_environment', 'confirm-deploy-system-checkbox')" })
+                @Html.TextBox("workload_environment", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaOneInput('workload_environment', 'confirm-deploy-system-checkbox')" })
             </div>
         </div>
 

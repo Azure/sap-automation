@@ -14,8 +14,8 @@ function toggleDisableViaCheckbox(checkbox, id) {
     }
 }
 
-function toggleDisableViaInput(input1, input2, id) {
-    if ($("#" + input1).val() && $("#" + input2).val()) {
+function toggleDisableViaOneInput(input, id) {
+    if ($("#" + input).val()) {
         $("#" + id).prop('disabled', false);
     }
     else {
@@ -24,8 +24,8 @@ function toggleDisableViaInput(input1, input2, id) {
     }
 }
 
-function toggleDisableViaInput(input, id) {
-    if ($("#" + input).val()) {
+function toggleDisableViaTwoInputs(input1, input2, id) {
+    if ($("#" + input1).val() && $("#" + input2).val()) {
         $("#" + id).prop('disabled', false);
     }
     else {
