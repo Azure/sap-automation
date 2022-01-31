@@ -33,7 +33,7 @@
         {
           "Name": "environment",
           "Required": true,
-          "Description": "Identifier for the workload zone, used for partitioning the environments.",
+          "Description": "Identifier for the workload zone, used for partitioning the environments",
           "Type": "lookup",
           "Options": [
             {

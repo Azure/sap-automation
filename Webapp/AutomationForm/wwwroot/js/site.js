@@ -14,6 +14,16 @@ function toggleDisableViaCheckbox(checkbox, id) {
     }
 }
 
+function toggleDisableViaInput(input1, input2, id) {
+    if ($("#" + input1).val() && $("#" + input2).val()) {
+        $("#" + id).prop('disabled', false);
+    }
+    else {
+        $("#" + id).prop('checked', false);
+        $("#" + id).prop('disabled', true);
+    }
+}
+
 function toggleDisableViaInput(input, id) {
     if ($("#" + input).val()) {
         $("#" + id).prop('disabled', false);
