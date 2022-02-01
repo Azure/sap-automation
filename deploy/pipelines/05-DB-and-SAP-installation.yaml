@@ -541,6 +541,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_REMOTE_USER :    azureadm
+              ANSIBLE_PYTHON_INTERPRETER: auto_silent
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false          
 
