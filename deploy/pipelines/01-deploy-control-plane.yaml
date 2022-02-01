@@ -30,6 +30,8 @@ pool:
 variables:
   - group:                             "SAP-deployment-variables-general"
   - group:                             ${{ parameters.environment }}
+  - name:                              variablegroup
+    value:                             ${{ parameters.environment }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig
@@ -125,6 +127,7 @@ stages:
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variablegroup)'].id | [0]")
 
               echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
                 organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
