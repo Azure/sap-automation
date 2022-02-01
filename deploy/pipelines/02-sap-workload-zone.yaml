@@ -50,6 +50,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task: PostBuildCleanup@3
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"

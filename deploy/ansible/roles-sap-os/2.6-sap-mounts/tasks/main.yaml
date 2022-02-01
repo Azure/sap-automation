@@ -37,7 +37,7 @@
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
     nfs_server:                        "{{ nfs_server_temp | first }}"
-  when:                                NFS_provider == "NONE"
+  when:                                NFS_provider != "AFS"
 
 # Mount Filesystems
 - name:                                Mount local filesystems

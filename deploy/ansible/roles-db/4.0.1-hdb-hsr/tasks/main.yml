@@ -1,7 +1,13 @@
 ---
 # +------------------------------------4--------------------------------------*/
 
+- name:                                Perform the HSR tasks
+  ansible.builtin.debug:
+    msg:                               Starting the HRS tasks
+
+
 - import_tasks:                        4.0.1.0-pre_checks.yml
+
 
 - name:                                Perform the HSR tasks
   block:

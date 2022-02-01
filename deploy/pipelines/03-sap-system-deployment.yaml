@@ -43,6 +43,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task: PostBuildCleanup@3
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"

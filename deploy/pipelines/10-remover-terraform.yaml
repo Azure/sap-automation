@@ -87,6 +87,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task:                      PostBuildCleanup@3
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
@@ -199,6 +200,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task:                      PostBuildCleanup@3
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(workload_zone_folder)"
@@ -301,6 +303,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task:                      PostBuildCleanup@3
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
