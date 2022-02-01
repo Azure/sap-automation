@@ -73,7 +73,7 @@
           ansible.builtin.include_role:
             name:                      roles-sap/5.3-app-install
           vars:
-            instance_number:           00
+            instance_number:           "{{ app_instance_number }}"
       always:
         - name:                        Get the error lines
           ansible.builtin.set_fact:
