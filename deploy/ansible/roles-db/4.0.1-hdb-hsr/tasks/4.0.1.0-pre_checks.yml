@@ -27,33 +27,46 @@
       - "sap_dir | trim | length != 0"
 
 - name:                                HSR - Check that HANA was installed successfully and is running normally
-  become_user:                         "{{ db_sid_admin_user }}"
-  ansible.builtin.shell: >
-                                       source ~/.bashrc ;
-                                       {{ sapcontrol_command }} -function GetProcessList
+  ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
   register:                            hana_process_list_result
   failed_when:                         hana_process_list_result.rc != 3
   changed_when:                        false
 
 - name:                                HSR - Check whether replication has already been set up
-  become_user:                         "{{ db_sid_admin_user }}"
+  become_user:                         "{{ db_sid | lower }}adm"
   become:                              true
-  ansible.builtin.shell: >
-                                       set -o pipefail
-                                       source ~/.bashrc ;
-                                       hdbnsutil -sr_state | grep 'attached: true'
+  ansible.builtin.command:             hdbnsutil -sr_state 
+  vars:
+    ansible_python_interpreter:        python3
+  environment:
+    HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
+    PYTHONHOME:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+    DIR_EXECUTABLE:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+    DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
+    SECUDIR:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+    DAT_BIN_DIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+    DIR_INSTANCE:                      "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+    PYTHONPATH:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+    PATH:                              "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+    LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
   register:                            hana_replication_status
   changed_when:                        false
-  failed_when:                         hana_replication_status.rc != 1
 
 - name:                                HSR - Debug replication status
   ansible.builtin.debug:
     var:                               hana_replication_status
     verbosity:                         2
-
+  
 - name:                                HSR - Ensure current replication status is known
   ansible.builtin.set_fact:
-    hana_system_replication_enabled:   "{{ hana_replication_status.rc == 0 }}"
+    hana_system_replication_enabled:   "{{ 'online: true' in hana_replication_status.stdout_lines }}"
 
 - name:                                HSR - Debug replication status
   ansible.builtin.debug:
@@ -62,13 +75,30 @@
 - name:                                HSR - Check on the primary node whether installed HANA is single container or multi-container
   block:
     - name:                            HSR - Check whether HANA has been installed as a single container (no SYSTEMDB)
-      become_user:                     "{{ db_sid_admin_user }}"
-      ansible.builtin.shell: >
-                                       source ~/.bashrc ;
-                                       {{ hdbsql_systemdb_command }} "SELECT DATABASE_NAME FROM SYS.M_DATABASES"
+      ansible.builtin.command:         "{{ hdbsql_systemdb_command }} 'SELECT DATABASE_NAME FROM SYS.M_DATABASES'"
       register:                        hana_container_status
       changed_when:                    false
       failed_when:                     false
+      vars:
+        ansible_python_interpreter:    python3
+      environment:
+        HOME:                          "/usr/sap/{{ db_sid | upper }}/home"
+        PYTHONHOME:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+        DIR_EXECUTABLE:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+        DIR_SYSEXE:                    "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SECUDIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+        DAT_BIN_DIR:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+        DIR_INSTANCE:                  "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+        PYTHONPATH:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+        PATH:                          "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+        LD_LIBRARY_PATH:               "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
 
     - name:                            HSR - Ensure systemdb fact is set
       ansible.builtin.set_fact:
@@ -105,10 +135,29 @@
 
 - name:                                HSR - Check that HANA DB SYSTEM user can access the SYSTEM database
   # If HSR is already enabled, we cannot read from the secondary node
-  become_user:                         "{{ db_sid_admin_user }}"
-  ansible.builtin.shell: >
-                                       source ~/.bashrc ;
-                                       {{ hdbsql_systemdb_command }} '{{ dummy_cmd }}'
+  ansible.builtin.command:             "{{ hdbsql_systemdb_command }} '{{ dummy_cmd }}'"
+  args:
+     executable:                       /bin/bash
+  vars:
+    ansible_python_interpreter:        python3
+  environment:
+    HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
+    PYTHONHOME:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+    DIR_EXECUTABLE:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+    DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
+    SECUDIR:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+    DAT_BIN_DIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+    DIR_INSTANCE:                      "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+    PYTHONPATH:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+    PATH:                              "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+    LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
   changed_when:                        false
   when:
     - ansible_hostname == primary_instance_name
@@ -117,9 +166,7 @@
 - name:                                HSR - Check that HANA DB SYSTEM user can access the tenant database {{ hana_tenant_database_name }}
   # If HSR is already enabled, we cannot read from the secondary node
   become_user:                         "{{ db_sid_admin_user }}"
-  ansible.builtin.shell: >
-                                       source ~/.bashrc ;
-                                       {{ hdbsql_tenant_command }} '{{ dummy_cmd }}'
+  ansible.builtin.command:             "{{ hdbsql_tenant_command }} '{{ dummy_cmd }}'"
   changed_when:                        false
   when:
     - hana_has_tenant_db is defined and hana_has_tenant_db
@@ -129,9 +176,7 @@
 - name:                                HSR - Check HANA log mode is set to normal
   # If HSR is already enabled, we cannot read from the secondary node
   become_user:                         "{{ db_sid_admin_user }}"
-  ansible.builtin.shell: >
-                                       source ~/.bashrc ;
-                                       {{ hdbsql_systemdb_command }} "{{ get_log_mode_cmd }}"
+  ansible.builtin.command:             "{{ hdbsql_systemdb_command }} '{{ get_log_mode_cmd }}'"
   register:                            log_mode_status
   failed_when:                         log_mode_status.rc != 0 or ("normal" not in log_mode_status.stdout)
   changed_when:                        false

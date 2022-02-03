@@ -24,8 +24,27 @@
   become_user:                         "{{ db_sid_admin_user }}"
   block:
     - name:                            "HSR - Check whether backup exists for SYSTEMDB database for System Identifier {{ db_sid }}"
-      ansible.builtin.shell: >
-        . ~/.bashrc && {{ hdbsql_systemdb_command }} "{{ backup_exists_cmd_for_systemdb }}"
+      ansible.builtin.command:         "{{ hdbsql_systemdb_command }} {{ backup_exists_cmd_for_systemdb }}"
+      vars:
+        ansible_python_interpreter:        python3
+      environment:
+        HOME:                          "/usr/sap/{{ db_sid | upper }}/home"
+        PYTHONHOME:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+        DIR_EXECUTABLE:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+        DIR_SYSEXE:                    "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SECUDIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+        DAT_BIN_DIR:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+        DIR_INSTANCE:                  "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+        PYTHONPATH:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+        PATH:                          "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+        LD_LIBRARY_PATH:               "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
       register:                        backup_exists_cmd_for_systemdb_result
       changed_when:                    false
 
@@ -34,15 +53,53 @@
         backup_systemdb:               "{{ ( backup_cmd_no_rows_found in backup_exists_cmd_for_systemdb_result.stdout) }}"
 
     - name:                            "HSR - Backup SYSTEMDB database for System Identifier {{ db_sid }}"
-      ansible.builtin.shell: >
-                                       . ~/.bashrc && {{ hdbsql_systemdb_command }} "{{ backup_cmd_for_systemdb }}"
+      ansible.builtin.command:         "{{ hdbsql_systemdb_command }} {{ backup_cmd_for_systemdb }}"
+      vars:
+        ansible_python_interpreter:        python3
+      environment:
+        HOME:                          "/usr/sap/{{ db_sid | upper }}/home"
+        PYTHONHOME:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+        DIR_EXECUTABLE:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+        DIR_SYSEXE:                    "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SECUDIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+        DAT_BIN_DIR:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+        DIR_INSTANCE:                  "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+        PYTHONPATH:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+        PATH:                          "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+        LD_LIBRARY_PATH:               "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
       when:                            backup_systemdb
 
     - name:                            HSR - Check if there is a tenant db needing backup
       block:
         - name:                        "HSR - Check whether backup exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
-          ansible.builtin.shell: >
-            . ~/.bashrc && {{ hdbsql_tenant_command }} "{{ backup_exists_cmd_for_tenant }}"
+          ansible.builtin.command:     "{{ hdbsql_tenant_command }} {{ backup_exists_cmd_for_tenant }}"
+          vars:
+            ansible_python_interpreter:        python3
+          environment:
+            HOME:                      "/usr/sap/{{ db_sid | upper }}/home"
+            PYTHONHOME:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+            DIR_EXECUTABLE:            "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+            SAP_RETRIEVAL_PATH:        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+            DIR_SYSEXE:                "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+            SECUDIR:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+            DAT_BIN_DIR:               "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+            DIR_INSTANCE:              "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+            PYTHONPATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+            PATH:                      "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+            LD_LIBRARY_PATH:           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
           register:                    backup_exists_cmd_for_tenant_result
           changed_when:                false
 
@@ -51,8 +108,27 @@
             backup_tenantdb:           "{{ ( backup_cmd_no_rows_found in backup_exists_cmd_for_tenant_result.stdout) }}"
 
         - name:                        "HSR - Backup {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
-          ansible.builtin.shell: >
-            . ~/.bashrc && {{ hdbsql_tenant_command }} "{{ backup_cmd_for_tenant }}"
+          ansible.builtin.command:     "{{ hdbsql_tenant_command }} {{ backup_cmd_for_tenant }}"
+          vars:
+            ansible_python_interpreter:   python3
+          environment:
+            HOME:                      "/usr/sap/{{ db_sid | upper }}/home"
+            PYTHONHOME:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+            DIR_EXECUTABLE:            "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+            SAP_RETRIEVAL_PATH:        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+            DIR_SYSEXE:                "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+            SECUDIR:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+            DAT_BIN_DIR:               "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+            DIR_INSTANCE:              "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+            PYTHONPATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+            PATH:                      "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+            LD_LIBRARY_PATH:           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
           when:                        backup_tenantdb
       when:
         - hana_has_tenant_db is defined

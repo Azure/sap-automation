@@ -49,7 +49,7 @@
 
     - name:                            HSR - Ensure trust relationship is working from primary to secondary
       ansible.builtin.shell: >
-                                       ssh -oStrictHostKeyChecking=no {{ secondary_instance_ip_db }} "hostname -s"
+                                       ssh -o StrictHostKeyChecking=no {{ secondary_instance_ip_db }} "hostname -s"
       register:                        primary_to_secondary_ssh_result
       changed_when:                    false
       failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != secondary_instance_name
@@ -57,7 +57,7 @@
 
     - name:                            HSR - Ensure trust relationship is working from secondary to primary
       ansible.builtin.shell: >
-                                       ssh -oStrictHostKeyChecking=no {{ primary_instance_ip_db }} "hostname -s"
+                                       ssh -o StrictHostKeyChecking=no {{ primary_instance_ip_db }} "hostname -s"
       register:                        secondary_to_primary_ssh_result
       changed_when:                    false
       failed_when:                     secondary_to_primary_ssh_result.stdout_lines[0] != primary_instance_name

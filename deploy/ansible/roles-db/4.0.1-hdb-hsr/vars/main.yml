@@ -24,7 +24,7 @@ sapcontrol_command:                    "/usr/sap/{{ db_sid | upper}}/HDB{{ hdb_i
 # SQL Commands
 
 # SQL to ensure the HANA DB is able to parse and process queries
-dummy_cmd: "SELECT * FROM DUMMY"
+dummy_cmd:                             "SELECT * FROM DUMMY"
 
 # SQL to determine current log mode (we need "normal")
 get_log_mode_cmd: "SELECT VALUE FROM M_INIFILE_CONTENTS
@@ -34,10 +34,10 @@ get_log_mode_cmd: "SELECT VALUE FROM M_INIFILE_CONTENTS
   AND KEY='log_mode'"
 
 # SQL to take a SYSTEMDB full backup
-backup_cmd_for_systemdb: "BACKUP DATA USING FILE ('{{ backup_file_for_systemdb_full_path }}')"
+backup_cmd_for_systemdb:               "BACKUP DATA USING FILE ('{{ backup_file_for_systemdb_full_path }}')"
 
 # SQL to take a tenant DB full backup
-backup_cmd_for_tenant: "BACKUP DATA USING FILE ('{{ backup_file_for_tenant_full_path }}')"
+backup_cmd_for_tenant:                 "BACKUP DATA USING FILE ('{{ backup_file_for_tenant_full_path }}')"
 
 # SQL to confirm a system backup has been taken for SYSTEMDB
 backup_exists_cmd_for_systemdb: "SELECT SYS.M_BACKUP_CATALOG.BACKUP_ID FROM SYS.M_BACKUP_CATALOG
@@ -54,4 +54,4 @@ backup_exists_cmd_for_tenant: "SELECT SYS.M_BACKUP_CATALOG.BACKUP_ID FROM SYS.M_
   AND SYS.M_BACKUP_CATALOG_FILES.DESTINATION_PATH LIKE '{{ backup_file_for_tenant_full_path }}%'"
 
 # Expected response if no backups have been taken
-backup_cmd_no_rows_found: "BACKUP_ID\n0 rows selected"
+backup_cmd_no_rows_found:              "BACKUP_ID\n0 rows selected"

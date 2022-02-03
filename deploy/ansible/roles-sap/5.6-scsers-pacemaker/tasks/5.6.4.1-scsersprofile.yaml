@@ -66,21 +66,38 @@
 #
 #
 ######################################################
-- name:                                 Enqueue Server Setup
+- name:                                Enqueue Server Setup
   block:
 
-    - name:                             "Get the variable for ENSA1"
-      become_user:                      "{{ sap_sid | lower }}adm"
-      ansible.builtin.shell:            >
-                                        source ~/.bashrc ;
-                                        {{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList | grep enserver
+    - name:                            "Get the variable for ENSA1"
+      become_user:                     "{{ sap_sid | lower }}adm"
+      ansible.builtin.command:         "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList"
+      vars:
+        ansible_python_interpreter:    python3
+      environment:
+        HOME:                          "/usr/sap/{{ db_sid | upper }}/home"
+        PYTHONHOME:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
+        DIR_EXECUTABLE:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+        DIR_SYSEXE:                    "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SECUDIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
+        DAT_BIN_DIR:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
+        DIR_INSTANCE:                  "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+        PYTHONPATH:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
+        PATH:                          "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
+        LD_LIBRARY_PATH:               "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
+                                       /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
+                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
+                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
+                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
       register:                         enq_server1
-      failed_when:                      enq_server1.stdout != 'enserver'
       changed_when:                     false
 
-    - name:                             Capture the Enqueue server version
+    - name:                             Is ENSA1
       ansible.builtin.set_fact:
-        ensa1:                          "{{ enq_server1.stdout_lines.1.split().1 }}"
+        ensa1:                          "{{ 'enserver' in enq_server1.stdout_lines }}"
 
     - name:                             Print the value of ENSA1
       ansible.builtin.debug:
@@ -89,13 +106,13 @@
     - name:                             "Set the variable for ENSA2"
       become_user:                      "{{ sap_sid | lower }}adm"
       become:                           true
-      ansible.builtin.shell:            "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList | grep enq_server"
+      ansible.builtin.command:          "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList"
       register:                         enq_server2
       failed_when:                      enq_server2.stdout != 'enq_server'
 
     - name:                             Capture the Enqueue server version
       ansible.builtin.set_fact:
-        ensa2:                          "{{ enq_server2.stdout_lines.1.split().1 }}"
+        ensa2:                          "{{ 'enq_server' in enq_server2.stdout_lines }}"
 
     - name:                             Print the value of ENSA2
       ansible.builtin.debug:
@@ -164,7 +181,6 @@
 
   when:
     - inventory_hostname == secondary_instance_name
-    - ensa1 is defined
-#    - ensa1 == "enserver"
+    - ensa1
 
 ...
