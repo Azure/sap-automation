@@ -136,7 +136,7 @@
                     "name"                       : "sap",
                     "count"                      : 1,
                     "disk_type"                  : "Premium_LRS",
-                    "size_gb"                    : 512,
+                    "size_gb"                    : 256,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 0
@@ -175,7 +175,6 @@
                     "size_gb"                    : 512,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
-                    "mount_point"                : "/hana/backup",
                     "lun_start"                  : 2
                 }
             ]

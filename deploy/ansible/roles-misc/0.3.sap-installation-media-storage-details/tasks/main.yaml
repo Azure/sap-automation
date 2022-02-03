@@ -75,16 +75,11 @@
                                          --name {{ sapbits_sas_token_secret }}
       changed_when:                    false
       register:                        sapbits_sas_token_secret
-    
-    - name:                            Extract SAP Binaries Storage Account SAS
-      ansible.builtin.set_fact:
-        sapbits_sas_token_temp: >-
-                                       {{ (sapbits_sas_token_secret.stdout | from_json).value }}
-      no_log:                          false
 
     - name:                            Extract SAP Binaries Storage Account SAS
       ansible.builtin.set_fact:
-        sapbits_sas_token:             "{% sapbits_sas_token_temp[0] == '?' %}{{ sapbits_sas_token_temp }}{% else %}?{{ sapbits_sas_token_temp }}{% endif %}"
+        sapbits_sas_token: >-
+                                       {{ (sapbits_sas_token_secret.stdout | from_json).value }}
       no_log:                          false
 
   when:                                sapbits_sas_token is not defined
