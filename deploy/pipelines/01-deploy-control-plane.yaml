@@ -71,7 +71,11 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-
+              echo -e "$green--- Git checkout and pull DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
               echo -e "$green--- Validations ---$reset"
                 if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                   echo -e "$boldred--- File DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
@@ -126,12 +130,8 @@ stages:
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git checkout $(Branch)
-                git pull
                 export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
                 added=0
                 if [ -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA} ]; then
                   git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
