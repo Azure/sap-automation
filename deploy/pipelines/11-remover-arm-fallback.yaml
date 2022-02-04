@@ -9,7 +9,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  Remove deployment [$(Date:yyyyMMdd)]
+name:                                  Remove deployment 
 parameters:
   - name:                              cleanup_sap
     displayName:                       Remove the SAP system

@@ -16,7 +16,7 @@
 
 - name:                                Mount local filesystems (when not using AFS)
   ansible.builtin.set_fact:
-    sharedpath:                       "{% if shareddisk == 1 %}/dev/vg_hana_shared/lv_hana_shared{% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
+    sharedpath:                       "{% if shareddisk == '1' %}/dev/vg_hana_shared/lv_hana_shared{% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
 
 - name:                                Show NFS_provider
   ansible.builtin.debug:
@@ -164,10 +164,10 @@
     - sap_mnt is defined or sap_trans is defined
     - tier == 'sapos'
     - NFS_provider == 'ANF'
+
 # Import this task only if the tier is ora.
 - import_tasks:                        "oracle.yaml"
   when:
     - node_tier == "oracle"
-    - node_tier != "oracle-asm"
 
 ...

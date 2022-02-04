@@ -210,6 +210,12 @@ stages:
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         
         steps:
+          - script: |
+              echo $(SID_hosts)
+              echo $(SAP_parameters)
+              echo $(parameters_folder)
+              echo $(key_path)
+              echo $(DEPLOYMENT_REPO_PATH)
           - checkout:                  none
             persistCredentials:        true
           - script: |
