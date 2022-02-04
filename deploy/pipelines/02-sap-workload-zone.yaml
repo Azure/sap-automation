@@ -26,7 +26,7 @@ parameters:
 trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  name:                                $(Agent)
 
 variables:
   - group:                             "SAP-deployment-variables-general"
