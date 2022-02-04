@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: SAP Infrastructure Deployment $(sapsystemfolder) [$(Date:yyyyMMdd)]
+name: SAP Infrastructure Deployment $(sap_system_folder) [$(Date:yyyyMMdd)]
 
 parameters:
   - name:                              sap_system
@@ -25,11 +25,11 @@ pool:
   vmImage:                             ubuntu-latest
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
-  - name:                              sapsystemfolder
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
+  - name:                              sap_system_folder
     value:                             ${{ parameters.sap_system }}
-  - name:                              sapsystemconfig
+  - name:                              sap_system_configuration
     value:                             ${{ parameters.sap_system }}.tfvars
   - name:                              tf_url
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
@@ -40,45 +40,67 @@ stages:
     jobs:
       - job:                           Deploy_SAP_infrastructure
         displayName:                   Deploy SAP infrastructure
+        workspace:
+          clean:                       all
         steps:
-          - checkout:                  self
-            persistCredentials:        true
+          - task: PostBuildCleanup@3
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sapsystemfolder)"
+              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                export HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
+                
                 cd $HOME; mkdir -p .sap_deployment_automation
+                
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
               echo -e "$green--- Validations ---$reset"
-              if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) ]; then
-                echo -e "$boldred--- $(sapsystemconfig) was not found ---$reset"
-                echo "##vso[task.logissue type=error]File $(sapsystemconfig) was not found."
-                exit 2
-              fi
-              if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-                exit 2
-              fi
-              if [ ! -n $(ARM_CLIENT_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                exit 2
-              fi
-              if [ ! -n $(ARM_CLIENT_SECRET) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                exit 2
-              fi
-              if [ ! -n $(ARM_TENANT_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                exit 2
-              fi
-              SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs) 
-              if [ ! -n ${SID} ]; then
-                echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
-                exit 2
-              fi
+                
+                if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
+                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+                  exit 2
+                fi
+                
+                export ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                export    LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+                
+                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
+                
+                if [ ! -f $environment_file_name ]; then
+                  echo -e "$boldred--- $ENVIRONMENT$LOCATION was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Workload zone configuration file $ENVIRONMENT$LOCATION was not found."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+                
+                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+                
+                if [ ! -n $(ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+                
+                SID=$(echo $(sap_system_folder) | cut -d'-' -f4 | xargs) 
+                
+                if [ ! -n ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
+                  exit 2
+                fi
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
                 return_code=$?
@@ -100,35 +122,48 @@ stages:
                   exit $return_code
                 fi
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
-                dos2unix -q SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
-              echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
-                cd $HOME/SYSTEM/$(sapsystemfolder)
-                ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sapsystemconfig) --type sap_system --ado --auto-approve
-                return_code=$?
-              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git checkout $(Branch)
-                git pull
+              echo -e "$green--- Pull the latest content from DevOps ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
+              echo -e "$green--- --- Convert config file to UX format ---$reset"
+                sudo apt-get -qq install dos2unix
+                dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
+
+              echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
+                cd $HOME/SYSTEM/$(sap_system_folder)
+                export    STATE_SUBSCRIPTION=$(cat "${environment_file_name}"  | grep STATE_SUBSCRIPTION    | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile subscription' $STATE_SUBSCRIPTION
+                export  deployer_tfstate_key=$(cat "${environment_file_name}"  | grep deployer_tfstate_key  | awk -F'=' '{print $2}' | xargs) ; echo 'deployer_tfstate_key' $deployer_tfstate_key
+                export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                export       REMOTE_STATE_SA=$(cat "${environment_file_name}"  | grep REMOTE_STATE_SA       | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+
+                ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
+                --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                                \
+                --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                   \
+                 --ado --auto-approve
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from installer $return_code."
+                fi
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 added=0
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform/terraform.tfstate
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform/terraform.tfstate ]; then
+                  git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform/terraform.tfstate
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml ]; then
-                  git add  $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
+                  git add  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
-                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml ]; then
+                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md ]; then
-                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
+                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
                   added=1
                 fi
                 if [ 1 == $added ]; then

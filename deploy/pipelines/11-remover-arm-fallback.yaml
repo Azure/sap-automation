@@ -9,9 +9,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  Remove deployment [$(Date:yyyyMMdd)]
+name:                                  Remove deployment 
 parameters:
-  - name:                              cleanupsap
+  - name:                              cleanup_sap
     displayName:                       Remove the SAP system
     type:                              boolean
     default:                           true
@@ -21,17 +21,17 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
-  - name:                              cleanupzone
+  - name:                              cleanup_workload_zone
     displayName:                       Remove the SAP workload zone
     type:                              boolean
     default:                           true
 
-  - name:                              workloadzone
+  - name:                              workload_zone
     displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              cleanupregion
+  - name:                              cleanup_control_plane
     displayName:                       Remove the control plane
     type:                              boolean
     default:                           true
@@ -57,70 +57,93 @@ pool:
   vmImage:                             ubuntu-latest
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
-  - name:                              deployerfolder
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
+  - name:                              deployer_folder
     value:                             ${{ parameters.deployer }}
-  - name:                              deployerconfig
+  - name:                              deployer_config
     value:                             ${{ parameters.deployer }}.tfvars
-  - name:                              libraryfolder
+  - name:                              library_folder
     value:                             ${{ parameters.library }}
-  - name:                              libraryconfig
+  - name:                              library_config
     value:                             ${{ parameters.library }}.tfvars
-  - name:                              zonefolder
-    value:                             ${{ parameters.workloadzone }}
-  - name:                              zoneconfig
-    value:                             ${{ parameters.workloadzone }}.tfvars
-  - name:                              sapsystemfolder
+  - name:                              zone_folder
+    value:                             ${{ parameters.workload_zone }}
+  - name:                              zone_config
+    value:                             ${{ parameters.workload_zone }}.tfvars
+  - name:                              sap_system_folder
     value:                             ${{ parameters.sap_system }}
-  - name:                              sapsystemconfig
+  - name:                              sap_system_config
     value:                             ${{ parameters.sap_system }}.tfvars
 
 stages:
   - stage:                             Remove_SAP_systems
     displayName:                       Remove SAP System
-    condition:                         eq(${{ parameters.cleanupsap }}, true)
+    condition:                         eq(${{ parameters.cleanup_sap }}, true)
     jobs:
       - job:                           Remove_SAP_system_RG
-        displayName:                   Remove SAP System ${{ parameters.cleanupsap }}
+        displayName:                   Remove SAP System ${{ parameters.cleanup_sap }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group $(sapsystemfolder)
+            displayName:               Remove Resource Group $(sap_system_folder)
             inputs:
               deploymentScope:         "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
               subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
               action:                  "DeleteRG"
-              resourceGroupName:       "$(sapsystemfolder)"
+              resourceGroupName:       "$(sap_system_folder)"
 
-      - job:                           Remove_sap_deployment_artefacts_in_WORKSPACES
+      - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
+        displayName:                   Remove SAP System deployment artifacts from WORKSPACES
         steps:
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
-                git rm -r $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/.terraform
-                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
-                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.md
-                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*.zip
-                git rm    $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/*_hosts.yaml
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
+                git config --global user.name "$(Build.RequestedFor)" 
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+                changed=0
+                if [ -d $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform ]; then
+                  git rm -q -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
+                  changed=1
+                fi
+                if [ -f  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
+                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+                  changed=1
+                fi
+                
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
+                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml
+                  changed=1
+                fi
+                
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md | wc -l ) -gt 0 ] ; then
+                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md
+                  changed=1
+                fi
+                
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.zip | wc -l ) -gt 0 ] ; then
+                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.zip
+                  changed=1
+                fi
+                if [ 1 == $changed ]; then
+                  git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
 
-            displayName:               Remove_sap_deployment_artefacts_in_WORKSPACES
+            displayName:               Remove SAP System deployment artifacts from WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              false
 
-  - stage:                             Remove_SAP_workloadzone
+  - stage:                             Remove_SAP_workload_zone
     displayName:                       Remove SAP workload zone
-    condition:                         eq(${{ parameters.cleanupzone }}, true)
+    condition:                         eq(${{ parameters.cleanup_workload_zone }}, true)
     jobs:
-      - job:                           Remove_SAP_workloadzone
-        displayName:                   Remove SAP workload zone ${{ parameters.cleanupzone }}
+      - job:                           Remove_SAP_workload_zone
+        displayName:                   Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
             displayName:               Remove Resource Group 
@@ -129,33 +152,48 @@ stages:
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
               subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
               action:                  "DeleteRG"
-              resourceGroupName:       "$(zonefolder)"
+              resourceGroupName:       "$(zone_folder)"
 
       - job:                           Remove_zone_deployment_artefacts_in_WORKSPACES
+        displayName:                   Remove Workload Zone deployment artifacts
         steps:
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-                export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
-                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
-                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md                
-                git rm -r $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  origin HEAD:$(Branch)
+                export ENVIRONMENT=$(echo $(zone_folder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                export LOCATION=$(echo $(zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+                git config --global user.email "$(Build.RequestedForEmail)"                
+                git config --global user.name "$(Build.RequestedFor)" 
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull 
+                changed=0
+                if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(zone_folder)/.terraform ]; then
+                  git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zone_folder)/.terraform
+                  changed=1
+                fi
+                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                  git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                  changed=1
+                fi
+                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                  git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                  changed=1
+                fi
+                
+                if [ 1 == $changed ] ; then
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
 
-            displayName:               Remove_zone_deployment_artefacts_in_WORKSPACES
+            displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              true
 
   - stage:                             Remove_Control_plane
     displayName:                       Remove Control Plane
-    condition:                         eq(${{ parameters.cleanupregion }}, true)
+    condition:                         eq(${{ parameters.cleanup_control_plane }}, true)
     jobs:
       - job:                           Remove_SAP_library
         displayName:                   Remove SAP Library ${{ parameters.library }}
@@ -181,25 +219,49 @@ stages:
               action:                  "DeleteRG"
               resourceGroupName:       "${{ parameters.deployer }}"
 
-      - job:                           Remove_region_deployment_artefacts_in_WORKSPACES
+      - job:                           Remove_region_deployment_artifacts_in_WORKSPACES
+        displayName:                   Remove Control Plane deployment artifacts from WORKSPACES
         steps:
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-                export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
+                export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                export LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull  origin $(Branch)
-                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
-                git rm    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
-                git rm -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform
-                git rm -r $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform
-                git rm    $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars
-                git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Branch)
-            displayName:               Remove_region_deployment_artefacts_in_WORKSPACES
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull 
+                changed=0
+                if [ -d "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform" ]; then
+                  git rm -q -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform
+                  changed=1
+                fi
+                changed=0
+                if [ -d $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform ]; then
+                  git rm -q -r $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform
+                  changed=1
+                fi
+
+                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                  git rm -q    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                  changed=1
+                fi
+                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                  git rm -q    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                  changed=1
+                fi
+
+                if [ -f  $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars ]; then
+                  git rm -q    $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars
+                  changed=1
+                fi
+                
+                if [ 1 == $changed ] ; then
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+            displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              true

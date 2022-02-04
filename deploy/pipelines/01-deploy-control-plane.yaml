@@ -28,8 +28,8 @@ pool:
   vmImage:                             ubuntu-latest
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig
@@ -49,9 +49,9 @@ stages:
     jobs:
       - job:                           Deploy_controlplane
         displayName:                   Deploy the control plane
+        workspace:
+          clean:                       all
         steps:
-          - checkout:                  self
-            persistCredentials:        true
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  [$(Date:yyyyMMdd)]"
@@ -111,6 +111,11 @@ stages:
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
+              echo -e "$green--- Pull the latest content from DevOps ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
 
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
@@ -126,12 +131,8 @@ stages:
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git checkout $(Branch)
-                git pull
                 export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
                 export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
                 added=0
                 if [ -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA} ]; then
                   git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}

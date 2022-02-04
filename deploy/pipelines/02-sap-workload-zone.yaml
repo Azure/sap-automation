@@ -5,20 +5,20 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Deploying the SAP Workload zone defined in $(zonefolder) [$(Date:yyyyMMdd)]
+name: Deploying the SAP Workload zone defined in $(workload_zone_folder) [$(Date:yyyyMMdd)]
 
 parameters:
-  - name:                              workloadzone
+  - name:                              workload_zone
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              environment
+  - name:                              deployer_environment_parameter
     displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
     type:                              string
     default:                           MGMT
 
-  - name:                              workload_environment
+  - name:                              workload_environment_parameter
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
@@ -30,60 +30,32 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.workload_environment }}
-  - name:                              zonefolder
-    value:                             ${{ parameters.workloadzone }}
-  - name:                              zoneconfig
-    value:                             ${{ parameters.workloadzone }}.tfvars
-  - name:                              env
-    value:                             ${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.workload_environment_parameter }}
+  - name:                              workload_zone_folder
+    value:                             ${{ parameters.workload_zone }}
+  - name:                              workload_zone_configuration_file
+    value:                             ${{ parameters.workload_zone }}.tfvars
+  - name:                              deployer_environment
+    value:                             ${{ parameters.deployer_environment_parameter }}
   - name:                              tf_url
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage:                             Deploy_SAP_workloadzone
+  - stage:                             Deploy_SAP_workload_zone
     displayName:                       Deploy SAP workload zone
     jobs:
-      - job:                           Deploy_SAP_workloadzone
+      - job:                           Deploy_SAP_workload_zone
         displayName:                   Deploy SAP workload zone
+        workspace:
+          clean:                       all
         steps:
-          - checkout:                  self
-            persistCredentials:        true
+          - task: PostBuildCleanup@3
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(zonefolder)"
+              echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-              echo -e "$green--- Install Terraform ---$reset"
-                wget -q $(tf_url)
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-                  exit 2
-                fi
-                unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-              echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
-                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-                cd $HOME; mkdir -p .sap_deployment_automation
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-                export ENV=$(echo $(zonefolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-                export LOCA=$(echo $(zonefolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                export deployer_tfstate_key=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-                export keyvault=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep keyvault | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' $keyvault
-                export REMOTE_STATE_SA=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile storage account' $REMOTE_STATE_SA
-                export STATE_SUBSCRIPTION=$(cat .sap_deployment_automation/$(env)${LOCA}  | grep STATE_SUBSCRIPTION | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile subscription' $STATE_SUBSCRIPTION
-
               echo -e "$green--- Validations ---$reset"
-                if [ ! -f $HOME/.sap_deployment_automation/$(env)$LOCA ]; then
-                  echo -e "$boldred--- $(env)$LOCA was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Control plane configuration file $(env)$LOC was not found."
-                  exit 2
-                fi
-                if [ ! -f $HOME/LANDSCAPE/$(zonefolder)/$(zoneconfig) ]; then
-                  echo -e "$boldred--- $(zoneconfig) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(zoneconfig) was not found."
-                  exit 2
-                fi
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
@@ -100,6 +72,32 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
+              echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                cd $HOME; mkdir -p .sap_deployment_automation
+                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                export ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                export    LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+
+                deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$LOCATION
+                workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
+
+                if [ ! -f $HOME/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
+                  echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
+                  exit 2
+                fi
+                if [ ! -f ${deployer_environment_file_name} ]; then
+                  echo -e "$boldred--- $(deployer_environment)$LOCATION was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$LOCATION was not found."
+                  exit 2
+                fi
+
+                export deployer_tfstate_key=$(cat ${deployer_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                export             keyvault=$(cat ${deployer_environment_file_name}  | grep keyvault             | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                export      REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                export   STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+
               echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
@@ -111,39 +109,58 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
+                
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
-                dos2unix -q LANDSCAPE/$(zonefolder)/$(zoneconfig)
-              echo -e "$green--- Run the install workloadzone script that deploys the SAP networks ---$reset"
-                cd $HOME/LANDSCAPE/$(zonefolder)
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(zoneconfig) --deployer_environment $(env) --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID) --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
+              echo -e "$green--- Install Terraform ---$reset"
+                wget -q $(tf_url)
                 return_code=$?
-              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                cd $(Build.Repository.LocalPath)
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                  exit 2
+                fi
+                unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                rm -f terraform_$(tf_version)_linux_amd64.zip
+
+              echo -e "$green--- Pull the latest content from DevOps ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
-                git checkout $(Branch)
+                git checkout -q $(Branch)
                 git pull
+              echo -e "$green--- --- Convert config file to UX format ---$reset"
+                sudo apt-get -qq install dos2unix
+                dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
+              echo -e "$green--- Run the install workload_zone script that deploys the SAP networks ---$reset"
+                cd $HOME/LANDSCAPE/$(workload_zone_folder)
+                $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)      \
+                  --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                \
+                  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)                            \
+                  --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" \
+                  --state_subscription "${STATE_SUBSCRIPTION}" --subscription $(ARM_SUBSCRIPTION_ID) --auto-approve --ado
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from install_workloadzone $return_code."
+                fi
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                cd $(Build.Repository.LocalPath)
                 added=0
-                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA} ]; then
-                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
+                if [ -f ${workload_environment_file_name} ]; then
+                  git add ${workload_environment_file_name}
                   added=1
                 fi
-                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
+                if [ -f ${workload_environment_file_name}.md ]; then
+                  git add ${workload_environment_file_name}.md
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zonefolder)/.terraform/terraform.tfstate
+                if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate ]; then
+                  git add -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate
                   added=1
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
-                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
+                if [ -f $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                 fi
               exit $return_code
               
