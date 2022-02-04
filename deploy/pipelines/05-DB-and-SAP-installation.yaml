@@ -111,6 +111,8 @@ stages:
     jobs:
       - job:                           Preparation_step
         displayName:                   Preparation steps
+        workspace:
+          clean:                       all
         steps:
           - script: |
               #!/bin/bash
@@ -521,8 +523,6 @@ stages:
     jobs:
       - job:                           HighAvailability_Setup
         displayName:                   High Availability Setup
-        workspace:
-          clean:                       all
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
@@ -530,7 +530,6 @@ stages:
           key_path:                    $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSHKEY'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         steps:
-          - task:                      PostBuildCleanup@3
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Performing the HA configuration for $(sap_system_folder)"

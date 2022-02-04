@@ -75,7 +75,7 @@
                                          --name {{ sapbits_sas_token_secret }}
       changed_when:                    false
       register:                        sapbits_sas_token_secret
-
+    
     - name:                            Extract SAP Binaries Storage Account SAS
       ansible.builtin.set_fact:
         sapbits_sas_token: >-
