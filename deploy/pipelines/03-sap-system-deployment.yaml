@@ -22,7 +22,6 @@ trigger:                               none
 
 pool:
   name:                                $(Agent)
-  vmImage:                             ubuntu-latest
 
 variables:
   - group:                             "SDAF-General"
@@ -56,6 +55,11 @@ stages:
                 cd $HOME; mkdir -p .sap_deployment_automation
                 
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+              echo -e "$green--- Git checkout and pull DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
               echo -e "$green--- Validations ---$reset"
                 
                 if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
@@ -110,9 +114,6 @@ stages:
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
-              echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
-              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-                export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
