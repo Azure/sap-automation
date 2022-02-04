@@ -4,8 +4,6 @@ target:  'HANA 2.0'
 version: 6
 
 materials:
-  dependencies:
-    - name:         HCMT_v0001ms
 
   media:
     # SAPCAR 7.22

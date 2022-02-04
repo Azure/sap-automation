@@ -11,12 +11,12 @@ materials:
 
   media:
     # SAPCAR 7.22
-    - name:         SAPCAR
-      archive:      SAPCAR_1010-70006178.EXE
-      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
       filename:     SAPCAR
       permissions:  '0755'
-      url:          https://softwaredownloads.sap.com/file/0020000002208852020
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
 
     # Kernel
     - name:         "SAP HANA 2 SPS06 Revision 060.00"
