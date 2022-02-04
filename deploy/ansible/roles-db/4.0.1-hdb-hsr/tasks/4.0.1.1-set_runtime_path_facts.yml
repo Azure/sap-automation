@@ -10,6 +10,8 @@
   ansible.builtin.shell: >
                                        set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
   register:                            global_path_status
+  environment:
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"  
   changed_when:                        false
 
 - name:                                HSR - Ensure SAP global directory fact is set

@@ -72,25 +72,26 @@
         - name:                        Include 5.3-app-install
           ansible.builtin.include_role:
             name:                      roles-sap/5.3-app-install
+          vars:
+            instance_number:           "{{ app_instance_number }}"
       always:
-        - name:                    Get the error lines
+        - name:                        Get the error lines
           ansible.builtin.set_fact:
-            error_lines:           "{{ error_lines | default([]) + [item] }}"
-          with_items:              "{{ app_installation.stdout_lines }}"
+            error_lines:               "{{ error_lines | default([]) + [item] }}"
+          with_items:                  "{{ app_installation.stdout_lines }}"
           when:
             - app_installation.stdout_lines is defined
             - '"ERROR" in item'
-            - app_installation.rc > 0
 
-        - name:                    Include 7.0.0-post-install role
+        - name:                        Include 7.0.0-post-install role
           ansible.builtin.include_role:
-            name:                  roles-sap/7.0.0-post-install
+            name:                      roles-sap/7.0.0-post-install
           vars:
-            suffix:                "_APP"
-            prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-            path:                  '/INSTALL/HA/ABAP/APPX'
-            tier:                  'app'
-          when:                    db_high_availability
+            suffix:                    "_APP"
+            prefix:                    "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            path:                      '/INSTALL/HA/ABAP/APPX'
+            tier:                      'app'
+          when:                        db_high_availability
 
         - name:                    Include 7.0.0-post-install role
           ansible.builtin.include_role:

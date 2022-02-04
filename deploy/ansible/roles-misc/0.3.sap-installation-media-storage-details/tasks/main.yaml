@@ -81,6 +81,7 @@
         sapbits_sas_token: >-
                                        {{ (sapbits_sas_token_secret.stdout | from_json).value }}
       no_log:                          false
+
   when:                                sapbits_sas_token is not defined
     
 - name:                                Debug, SAS Token

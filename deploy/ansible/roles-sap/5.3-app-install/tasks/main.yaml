@@ -59,7 +59,7 @@
     sap_cd_package_cd4:
     sap_cd_package_cd5:
     sap_ciInstanceNumber:             "{{ scs_instance_number }}"
-    app_instance_number:              "{{ instance_number}}"
+    app_instance_number:              "{{ instance_number }}"
     sap_ciDialogWPNumber:              12
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
@@ -94,10 +94,9 @@
 
     - name:                            "SAP APP Install"
       ansible.builtin.shell: |
-                                       export TMPDIR=/usr/sap/install
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                          \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}  \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                                \
+                                                 SAPINST_SKIP_DIALOGS=true                                                  \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         /usr/sap/install/SWPM
@@ -114,6 +113,7 @@
         path:                          /etc/sap_deployment_automation/sap_deployment_app.txt
         state:                         touch
         mode:                          0755
+      when:                            app_installation.rc == 0
 
   when:
     - not app_installed.stat.exists

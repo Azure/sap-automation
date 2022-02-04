@@ -233,9 +233,6 @@ enable_purge_control_for_keyvaults=false
 #  Azure NetApp files support                                                           #                                                                                       #
 #                                                                                       #
 #########################################################################################
-# use_ANF is a boolean flag controlling if Azure NetApp files is used for storage
-
-use_ANF=false
 
 # ANF_account_arm_id is the Azure resource identifier for an existing Netapp Account
 # ANF_account_arm_id=""

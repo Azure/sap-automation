@@ -1,0 +1,38 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for HANA DB HSR                          |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- hosts:                               "{{ sap_sid|upper }}_DB"
+
+  name:                                DB HA Configuration
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Test"
+      block:
+
+        - block:
+            - name:                    Run the roles-misc/0.0-tester
+              include_role:
+                name:                  roles-misc/0.0-tester
+          tags:
+            - roles-misc/0.0-tester
+
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

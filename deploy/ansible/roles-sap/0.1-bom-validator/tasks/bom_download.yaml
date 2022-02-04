@@ -10,7 +10,7 @@
     - name:                            "BOM: {{ bom_name }} Check is file {{ item.archive }} is already downloaded"
       ansible.builtin.uri:
         url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
-        status_code:                   [200, 403, 404]
+        status_code:                   [200, 403, 404, 409]
         method:                        HEAD
       register:                        blob_exists
 
@@ -28,7 +28,7 @@
       ansible.builtin.set_fact:
         proceed:                       false
       when:                            blob_exists.status != 404
-  when:                                check_storage_account
+  when:                                check_storage_account | bool
 
 - name:                                "BOM: Debug {{ bom_name }} Download File {{ item.archive }}"
   ansible.builtin.debug:
@@ -39,7 +39,7 @@
   block:
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
       ansible.builtin.get_url:
-        url:                           "{{ item.url }}"
+        url:                           "{{ item.url  | trim }}"
         dest:                          "{{ download_directory }}/files/{{ item.archive }}"
         tmp_dest:                      "{{ download_directory }}/tmp"
         url_username:                  "{{ s_user }}"

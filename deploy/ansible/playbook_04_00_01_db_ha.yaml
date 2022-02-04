@@ -71,12 +71,12 @@
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"        # Setting up Secondary Instance Name
             main_password:             "{{ hostvars.localhost.sap_password }}"
 
-        - block:
-            - name:                    Include 1.4-packages role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.4-packages
-          tags:
-            - 1.4-packages
+        # - block:
+        #     - name:                    Include 1.4-packages role
+        #       ansible.builtin.include_role:
+        #         name:                  roles-os/1.4-packages
+        #   tags:
+        #     - 1.4-packages
 
         - block:
             - name:                    Run the db/hdb-hsr role
@@ -84,15 +84,6 @@
                 name:                  roles-db/4.0.1-hdb-hsr
           tags:
             - 4.0.1-hdb-hsr
-
-        - block:
-            - name:                    Include 7.0.0-post-install role
-              ansible.builtin.include_role:
-                name:                  roles-sap/7.0.0-post-install
-              vars:
-                suffix:                "_HA"
-          tags:
-            - 7.0.0-post-install
 
       when:
         - db_high_availability

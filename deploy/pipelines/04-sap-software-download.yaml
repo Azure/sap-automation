@@ -70,9 +70,6 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-              echo -e "$green--- Git checkout and pull DevOps Repository ---$reset"
-                git checkout $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
               echo -e "$green--- Validations ---$reset"
               if [ ! -f .sap_deployment_automation/$(env)$(loc) ]; then
                 echo -e "$boldred--- .sap_deployment_automation/$(env)$(loc) was not found ---$reset"

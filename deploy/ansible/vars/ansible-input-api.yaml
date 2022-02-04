@@ -52,6 +52,7 @@ hdbshm_gid:                   2002
 scs_hostname:                 ""
 scs_instance_number:          "00"                                                      # SAP Install
 ers_instance_number:          "02"
+app_instance_number:          "00"
 sidadm_uid:                   2000
 hdbadm_uid:                   2200
 scs_lb_ip:                    ""                                                        # SAP HA

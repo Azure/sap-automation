@@ -1,16 +1,28 @@
 ---
 # +------------------------------------4--------------------------------------*/
 
+- name:                                Perform the HSR tasks
+  ansible.builtin.debug:
+    msg:                               Starting the HSR tasks
+
+
 - import_tasks:                        4.0.1.0-pre_checks.yml
+
 
 - name:                                Perform the HSR tasks
   block:
 
-    - import_tasks: 4.0.1.1-set_runtime_path_facts.yml
-    - import_tasks: 4.0.1.2-set_trust_relationship.yml
-    - import_tasks: 4.0.1.3-copy_ssfs_keys.yml
-    - import_tasks: 4.0.1.4-create_hana_backup.yml
-    - import_tasks: 4.0.1.5-provision_hana_replication.yml
-    - import_tasks: 4.0.1.6-post_checks.yml
+    - import_tasks:                   4.0.1.1-set_runtime_path_facts.yml
+    - import_tasks:                   4.0.1.2-set_trust_relationship.yml
+    - import_tasks:                   4.0.1.3-copy_ssfs_keys.yml
+    - import_tasks:                   4.0.1.4-create_hana_backup.yml
+    - import_tasks:                   4.0.1.5-provision_hana_replication.yml
+    - import_tasks:                   4.0.1.6-post_checks.yml
 
-#  when:                                not hana_system_replication_enabled
+  when:                               not hana_system_replication_enabled
+
+- name:                               HSR - Ensure the Public SSH key is deleted from controller
+  ansible.builtin.file: 
+    path:                             "/tmp/{{ ansible_hostname }}-id_rsa.pub"
+    state:                             
+    delegate_to:                      localhost
