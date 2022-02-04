@@ -57,9 +57,10 @@ landscape_tfstate_key_parameter=""
 
 deployment_system="sap_landscape"
 
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+
 echo "Deployer environment: $deployer_environment"
 if [ 1 == $called_from_ado ] ; then
-    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
     echo "Agent IP: $this_ip"
 fi
@@ -199,7 +200,7 @@ then
             load_config_vars "${deployer_config_information}" "subscription"
             echo "tfstate_resource_id $tfstate_resource_id"
             save_config_vars "${workload_config_information}" \
-                tfstate_resource_id
+            tfstate_resource_id
             
             save_config_vars "${workload_config_information}" \
             keyvault \
@@ -212,7 +213,7 @@ then
 else
     echo "tfstate_resource_id $tfstate_resource_id"
     save_config_vars "${workload_config_information}" \
-            tfstate_resource_id
+    tfstate_resource_id
 fi
 
 
@@ -243,7 +244,7 @@ then
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
         echo "Valid subscription format"
         save_config_vars "${workload_config_information}" \
-            STATE_SUBSCRIPTION
+        STATE_SUBSCRIPTION
     else
         printf -v val %-40.40s "$STATE_SUBSCRIPTION"
         echo "#########################################################################################"
@@ -320,7 +321,7 @@ then
     REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
     REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
     STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
-
+    
     save_config_vars "${workload_config_information}" \
     REMOTE_STATE_SA \
     REMOTE_STATE_RG \
@@ -609,6 +610,34 @@ then
     fi
 fi
 
+# ip_saved=0
+# if [ 1 == $called_from_ado ] ; then
+    
+#     load_config_vars "${workload_config_information}" "azure_files_transport_storage_account_id"
+#     echo "Transport SA: " ${azure_files_transport_storage_account_id}
+#     if [ -n "${azure_files_transport_storage_account_id}" ]; then
+#         RG=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f5)
+#         SA=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f9)
+#         SUB=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f3)
+#         az storage account network-rule add --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}"  --ip-address $this_ip
+#         echo "Wait 60 seconds for network rule"
+#         sleep 60
+#     else
+#         azure_files_transport_storage_account_id=$(terraform -chdir="${terraform_module_directory}"  output azure_files_transport_storage_account_id | tr -d \")
+#         echo "Transport SA: " ${azure_files_transport_storage_account_id}
+#         RG=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f5)
+#         SA=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f9)
+#         SUB=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f3)
+#         if [ -n "${SA}" ]; then
+#             az storage account network-rule add --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}" --ip-address $this_ip
+#             echo "Wait 60 seconds for network rule"
+#             sleep 60
+#             ip_saved=1
+#             save_config_var "azure_files_transport_storage_account_id" "${workload_config_information}"
+#         fi
+#     fi
+# fi
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -665,6 +694,9 @@ if [ 0 == $return_value ] ; then
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
     save_config_var "workloadkeyvault" "${workload_config_information}"
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
+    
+    azure_files_transport_storage_account_id=$(terraform -chdir="${terraform_module_directory}"  output azure_files_transport_storage_account_id | tr -d \")
+    save_config_var "azure_files_transport_storage_account_id" "${workload_config_information}"
     ok_to_proceed=0
 fi
 
@@ -756,6 +788,12 @@ if [ 0 == $return_value ] ; then
     fi
     
 fi
+
+# if [ 1 == $ip_saved ] ; then
+    
+#     az storage account network-rule remove --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}" --ip-address $this_ip
+# fi
+
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md
