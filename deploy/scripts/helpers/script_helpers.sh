@@ -335,7 +335,6 @@ function validate_dependencies {
     fi
     export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
     
-    
     az --version >stdout.az 2>&1
     az=$(grep "azure-cli" stdout.az)
     if [ -z "${az}" ]; then
