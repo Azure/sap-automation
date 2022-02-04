@@ -93,7 +93,7 @@ variable "network_resource_group" {
   default     = ""
 }
 
-variable   "order_deployment" {
+variable "order_deployment" {
   description = "psuedo condition for ordering deployment"
   default     = ""
 }
@@ -116,7 +116,7 @@ locals {
 
   sizes = jsondecode(file(local.file_name))
 
-  faults = jsondecode(file(format("%s%s", path.module, "/../../../../../configs/max_fault_domain_count.json")))
+  faults            = jsondecode(file(format("%s%s", path.module, "/../../../../../configs/max_fault_domain_count.json")))
   resource_suffixes = var.naming.resource_suffixes
 
   //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
@@ -204,14 +204,17 @@ locals {
     local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg_app[0] : azurerm_network_security_group.nsg_app[0]), null
   )
 
-  firewall_exists = length(var.firewall_id) > 0
+  firewall_exists          = length(var.firewall_id) > 0
   enable_deployment        = var.application.enable_deployment
   scs_instance_number      = var.application.scs_instance_number
   ers_instance_number      = var.application.ers_instance_number
   scs_high_availability    = var.application.scs_high_availability
   application_server_count = var.application.application_server_count
   scs_server_count         = var.application.scs_server_count * (local.scs_high_availability ? 2 : 1)
-  enable_scs_lb_deployment = local.scs_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || local.scs_server_count > 1)
+  enable_scs_lb_deployment = local.enable_deployment ? (
+    local.scs_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || local.scs_server_count > 1)
+    ) : (
+  false)
 
   webdispatcher_count      = var.application.webdispatcher_count
   enable_web_lb_deployment = local.webdispatcher_count > 0 && (var.use_loadbalancers_for_standalone_deployments || local.webdispatcher_count > 1)
