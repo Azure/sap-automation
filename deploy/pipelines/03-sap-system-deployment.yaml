@@ -21,7 +21,6 @@ parameters:
 trigger:                               none
 
 pool:
-  name:                                $(Agent)
   vmImage:                             ubuntu-latest
 
 variables:
