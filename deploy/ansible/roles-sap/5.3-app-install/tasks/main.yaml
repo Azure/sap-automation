@@ -71,8 +71,6 @@
   tags:
     - skip_ansible_lint
 
-
-# Returns bom object
 - name:                                "APP Install"
   block:
 

@@ -106,7 +106,7 @@
                 tier:                  'hana'
 
             - name:                    Errors from HANA installation
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined

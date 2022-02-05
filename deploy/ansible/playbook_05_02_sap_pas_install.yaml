@@ -122,8 +122,9 @@
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/APP1'
                 tier:                  'pas'
               when:                    not db_high_availability
+
             - name:                    Errors from PAS installation
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined

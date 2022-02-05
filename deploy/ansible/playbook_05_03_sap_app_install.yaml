@@ -88,7 +88,7 @@
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_APP"
-            prefix:                    "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            prefix:                    "{{ app_bom_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
             path:                      '/INSTALL/HA/ABAP/APPX'
             tier:                      'app'
           when:                        db_high_availability
@@ -105,7 +105,7 @@
 
 
         - name:                    Errors from APP installation
-          ansible.builtin.fail:
+          ansible.builtin.debug:
             msg:                   "{{ error_lines }}"
           when:
             - error_lines is defined
