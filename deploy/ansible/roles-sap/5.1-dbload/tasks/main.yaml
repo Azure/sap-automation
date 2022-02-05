@@ -102,9 +102,10 @@
         creates:                       /etc/sap_deployment_automation/sap_deployment_dbload.txt
       environment:
         TMPDIR:                        /usr/sap/install
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+
       register:                        dbload
       failed_when:                     dbload.rc > 0
-      no_log:                          true
       tags:
         - skip_ansible_lint
 

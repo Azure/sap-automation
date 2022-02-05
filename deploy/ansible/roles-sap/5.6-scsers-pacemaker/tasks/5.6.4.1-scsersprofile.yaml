@@ -121,7 +121,7 @@
 
   when:
     - inventory_hostname == secondary_instance_name
-    - 1 == 2 # TODO Add if needed later
+
 # Following are the changes in ASCS/ERS profiles based if ENSA1 is applicable
 
 - name:                                "ASCS, ERS profile changes"
@@ -174,13 +174,13 @@
 
     - name:                            "Add the keep alive parameter, if using ENSA1"
       lineinfile:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ ascs_instance_number }}_{{ ascs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          enque/encni/set_so_keepalive = true
       tags:
         - keepalive
 
   when:
     - inventory_hostname == secondary_instance_name
-    - ensa1 is defined
+    - ensa1 
 
 ...
