@@ -26,11 +26,11 @@
       - "hana_dir | trim | length != 0"
       - "sap_dir | trim | length != 0"
 
-- name:                            HSR - Check for existence of id_rsa file
+- name:                                HSR - Check for existence of id_rsa file
   ansible.builtin.stat:
-    path:                          "~/.ssh/id_rsa"
-  register:                        id_rsa_file_status
-  failed_when:                     false
+    path:                              "~/.ssh/id_rsa"
+  register:                            id_rsa_file_status
+  failed_when:                         false
 
 - name:                                HSR - Ensure ssh keys on both nodes
   block:
@@ -52,12 +52,8 @@
     dest:                              /tmp/{{ ansible_hostname }}-id_rsa.pub 
     flat:                              true
 
-
-- name:                                HSR - Check that HANA was installed successfully and is running normally
-  ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
-  register:                            hana_process_list_result
-  failed_when:                         hana_process_list_result.rc != 3
-  changed_when:                        false
+- name:                                Start HANA
+  import_tasks:                       ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
 - name:                                HSR - Check whether replication has already been set up
   become_user:                         "{{ db_sid | lower }}adm"
@@ -134,8 +130,7 @@
 
     - name:                            "HSR - Show if HANA has the 'SYSTEMDB' database"
       ansible.builtin.debug:
-        var:                           hana_has_system_db
-        verbosity:                     2
+        msg:                           "HANA has 'SYSTEMDB' database {{ hana_has_system_db }}"
 
     - name:                            HSR - Ensure tenant db fact is set
       ansible.builtin.set_fact:
@@ -145,8 +140,7 @@
 
     - name:                            "HSR - Show if HANA has the tenant database"
       ansible.builtin.debug:
-        var:                           hana_has_tenant_db
-        verbosity:                     2
+        msg:                           "HANA has tenant database {{ hana_has_system_db }}"
 
     - name:                            "HSR - Ensure failure with meaningful message if no {{ db_sid | upper }} tenant db"
       ansible.builtin.fail:

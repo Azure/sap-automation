@@ -6,7 +6,7 @@
 
 - hosts:                               localhost
   name:                                Get SPN from KeyVault
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
 
@@ -38,90 +38,57 @@
     - name:                            Check required variables are present and not empty
       ansible.builtin.assert:
         that:
-          - "{{ item.parameter }} is defined"                    # Has the variable been defined
-          - "{{ item.parameter }}  | type_debug != 'NoneType'"    # and given a value
-          - "{{ item.parameter }} | trim | length > 1" 
-        fail_msg:                      "Please ensure that the {{ item.parameter }} details are provided"
+          - item_to_check.parameter is defined                    # Has the variable been defined
+          - item_to_check.parameter | type_debug != 'NoneType'    # and given a value
+          - item_to_check.parameter | trim | length > 1 
+        fail_msg:                      item_to_check.error
       loop: 
-       - { parameter: 'bom_base_name'}
-       - { parameter: 'kv_name'}
-       - { parameter: 'sap_fqdn'}
-       - { parameter: 'sap_sid'}
-       - { parameter: 'secret_prefix'}
-       - { parameter: 'platform'}
-       - { parameter: 'NFS_Provider'}
+       - { parameter: 'bom_base_name', error: 'Please provide the Bill of materials name in bom_base_name parameter'}
+       - { parameter: 'kv_name', error: 'Please provide the workload zone key vault name in kv_name parameter'}
+       - { parameter: 'sap_fqdn', error: 'Please provide the SAP fqdn in  in sap_fqdn parameter'}
+       - { parameter: 'sap_sid', error: 'Please provide the SAP SID in sap_sid parameter'} 
+       - { parameter: 'secret_prefix', error: 'Please provide the Key Vault secret prefix in secret_prefix parameter'}
+      loop_control:
+        loop_var: item_to_check
 
-    
-    # - name:                            Check required variables are present and not empty (kv)
-    #   ansible.builtin.assert:
-    #     that:
-    
-    #       - "kv_name is defined"
-    #       - "kv_name | type_debug != 'NoneType'"
-    #       - "kv_name | trim | length != 0"
-    #     fail_msg:                      "Please ensure that the key vault details are provided"
-    
-    # - name:                            Check required variables are present and not empty (sap_fqdn)
-    #   ansible.builtin.assert:
-    #     that:
-    
-    #       - "sap_fqdn is defined"
-    #       - "sap_fqdn | type_debug != 'NoneType'"
-    #       - "sap_fqdn | trim | length != 0"
-    #     fail_msg:                      "Please ensure that the sap_fqdn is provided"
-
-    # - name:                            Check required variables are present and not empty (sap_sid)
-    #   ansible.builtin.assert:
-    #     that:
-    
-    #       - "sap_sid is defined"
-    #       - "sap_sid | type_debug != 'NoneType'"
-    #       - "sap_sid | trim | length != 0"
-    #     fail_msg:                      "Please ensure that the sap_fqdn is provided"
-
-    # - name:                            Validate that sap_mnt is defined 
-    #   ansible.builtin.assert:
-    #     that:
-    #       - sap_mnt is defined
-    #     fail_msg:                      A highly available SCS deployment requires a shared sap_mnt
-
-
-    - name:                            Validate HA SCS configuration
-      block:
-        - name:                        Validate that sap_mnt is defined 
-          ansible.builtin.assert:
-            that:
-              - sap_mnt is defined
-            fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
-
-        - name:                        Validate that sap_mnt is defined 
-          ansible.builtin.assert:
-            that:
-              - sap_mnt is defined
-            fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
-
-        - name:                        Validate that the load balancer IP is defined
-          ansible.builtin.assert:
-            that:
-              - scs_lb_ip is defined
-              - scs_lb_ip is defined | trim | length > 0"
-            fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
-        
-        - name:                        Validate that Fencing SPN details are available
-          ansible.builtin.assert:
-            that:
-              - "sap_hana_fencing_spn_subscription_id is defined"
-              - "sap_hana_fencing_spn_subscription_id | trim | length > 0"
-              - "sap_hana_fencing_spn_tenant_id is defined"
-              - "sap_hana_fencing_spn_tenant_id | trim | length > 0"
-              - "sap_hana_fencing_spn_client_id is defined"
-              - "sap_hana_fencing_spn_client_id | trim | length > 0"
-              - "sap_hana_fencing_spn_client_pwd is defined"
-              - "sap_hana_fencing_spn_client_pwd | trim | length > 0"
-            fail_msg:                  A highly available SCS deployment requires that an SPN is defined for the fencing agent
-
+    - name:                            Check required SCS HA variables are present and not empty
+      ansible.builtin.assert:
+        that:
+          - item_to_check.parameter is defined                    # Has the variable been defined
+          - item_to_check.parameter | type_debug != 'NoneType'    # and given a value
+          - item_to_check.parameter | trim | length > 1 
+        fail_msg:                      item_to_check.error
+      loop: 
+       - { parameter: 'NFS_Provider', error: 'A highly available SCS deployment requires that NFS_Provider provided'}
+       - { parameter: 'sap_mnt', error: 'A highly available SCS deployment requires a shared sap_mnt is provided'}
+       - { parameter: 'scs_lb_ip', error: 'A highly available SCS deployment requires that scs_lb_ip is provided'}
+       - { parameter: 'ecs_lb_ip', error: 'A highly available SCS deployment requires  that ers_lb_ip is provided'}
+       - { parameter: 'sap_hana_fencing_spn_client_id', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+       - { parameter: 'sap_hana_fencing_spn_client_pwd', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+       - { parameter: 'sap_hana_fencing_spn_subscription_id', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+       - { parameter: 'sap_hana_fencing_spn_tenant_id', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+      loop_control:
+        loop_var: item_to_check
       when:                            scs_high_availability
 
+    - name:                            Check required Database HA variables are present and not empty
+      ansible.builtin.assert:
+        that:
+          - item_to_check.parameter is defined                    # Has the variable been defined
+          - item_to_check.parameter | type_debug != 'NoneType'    # and given a value
+          - item_to_check.parameter | trim | length > 1 
+        fail_msg:                      item_to_check.error
+      loop: 
+       - { parameter: 'db_lb_ip', error: 'A highly available SCS deployment requires that scs_lb_ip is provided'}
+       - { parameter: 'sap_hana_fencing_spn_client_id', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+       - { parameter: 'sap_hana_fencing_spn_client_pwd', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+       - { parameter: 'sap_hana_fencing_spn_subscription_id', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+       - { parameter: 'sap_hana_fencing_spn_tenant_id', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent'}
+      loop_control:
+        loop_var: item_to_check
+      when:                            
+        - db_high_availability
+        - platform == "HANA"
 
 - hosts:              "{{ sap_sid|upper }}_DB  :
                        {{ sap_sid|upper }}_SCS :
@@ -158,149 +125,13 @@
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number when installing PAS on ASCS"
       when:                            (ansible_play_hosts_all | length) == 2
 
+    - name:                            Validate SCS and PAS instance numbers
+      ansible.builtin.assert:
+        that:
+          - "scs_instance_number != pas_instance_number"
+        fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number on standalone installation"
+      when:                            (ansible_play_hosts_all | length) == 1
 
-
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |       Playbook for performing general baseline OS configuration tasks      |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-
-  name:               OS - Base Configuration
-  remote_user:        "{{ orchestration_ansible_user }}"
-  become:             true
-  become_user:        root
-  gather_facts:       true                                                      # Important to collect hostvars information
-  any_errors_fatal:   true
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
-
-
-  tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
-
-  # Specify the active tier for this playbook run
-    - name:                            Setting the os tier facts
-      ansible.builtin.set_fact:
-        tier:                          os                                     # Actions for HANA DB Serve
-      tags:
-        - always
-
-    - block:
-        - name:                        Include 1.0-sudoers role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.0-sudoers
-      tags:
-        - 1.0-sudoers
-
-    - block:
-        - name:                        Include 1.1-swap role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.1-swap
-      tags:
-        - 1.1-swap
-
-    - block:
-        - name:                        Include 1.2-hostname role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.2-hostname
-      tags:
-        - 1.2-hostname
-
-    - block:
-        - name:                        Include 1.3-repository role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.3-repository
-      tags:
-        - 1.3-repository
-
-
-    - block:
-        - name:                        Include 1.4-packages role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.4-packages
-      tags:
-        - 1.4-packages
-
-
-    - block:
-        - name:                        Include 1.5-disk-setup role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.5-disk-setup
-      tags:
-        - 1.5-disk-setup
-
-    - block:
-        - name:                        Include 1.7-chrony role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.7-chrony
-      tags:
-        - 1.7-chrony
-
-    - block:
-        - name:                        Include 1.9-kernelparameters role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.9-kernelparameters
-      tags:
-        - 1.9-kernelparameters
-
-    - block:
-        - name:                        Include 1.11-accounts role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
-      tags:
-        - 1.11-accounts
-
-    - name:                            Include 1.11-accounts role
-      ansible.builtin.include_role:
-        name:                          roles-os/1.11-accounts
-      vars:
-        tier:                          ora
-      when:                            node_tier == "oracle"
-
-    - block:
-        - name:                        Include 1.16-services role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.16-services
-      tags:
-        - 1.16-services
-
-    - block:
-        - name:                        Include 1.20-prometheus role
-          ansible.builtin.include_role:
-            name:                      roles-os/1.20-prometheus
-      when:   prometheus
-              and             ansible_os_family|upper == "SUSE"
-              and (     (     ansible_distribution_major_version == '12'
-                          and ansible_distribution_release is search('[3-5]' ) )
-                    or  (     ansible_distribution_major_version == '15' ) )
-      tags:
-        - 1.20-prometheus
-
-# /*----------------------------------------------------------------------------8
-# |                                                                            |
-# |     Logging for performing OS configuration tasks                          |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-
-- hosts:                               localhost
-  name:                                Log results
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                           Create os-configuration-done flag
-      ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.progress/os-configuration-done"
-        state:                        touch
-        mode:                         0755
 
 
 ...

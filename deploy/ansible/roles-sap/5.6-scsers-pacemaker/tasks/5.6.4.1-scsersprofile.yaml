@@ -121,6 +121,7 @@
 
   when:
     - inventory_hostname == secondary_instance_name
+    - 1 == 2  # ToDO Fix later
 
 # Following are the changes in ASCS/ERS profiles based if ENSA1 is applicable
 

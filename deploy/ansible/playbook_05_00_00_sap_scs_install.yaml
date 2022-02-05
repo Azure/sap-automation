@@ -13,7 +13,7 @@
 
 - hosts:                               localhost
   name:                                Get SPN from KeyVault
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
 
