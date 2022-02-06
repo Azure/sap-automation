@@ -15,7 +15,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                Determine if HANA is running
+- name:                                "Determine if HANA is running on {{ ansible_hostname}}"
   become_user:                         "{{ db_sid | lower }}adm"
   become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
@@ -25,12 +25,12 @@
   changed_when:                        false
   register:                            hana_running
 
-- name:                                Ensure HANA is running
+- name:                                "Ensure HANA is running on {{ ansible_hostname}}"
   become_user:                         "{{ db_sid | lower }}adm"
   ansible.builtin.command:             "{{ sapcontrol_command }} -function StartWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
   when:                                hana_running.rc != 3
 
-- name:                                Check if HANA is running
+- name:                                "Validate HANA is running  on {{ ansible_hostname}}"
   become_user:                         "{{ db_sid | lower }}adm"
   ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
   changed_when:                        false

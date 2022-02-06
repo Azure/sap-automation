@@ -58,8 +58,7 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.shell: >
-                                       set -o pipefail
-                                       hdbnsutil -sr_state | grep 'attached: true'
+                                       hdbnsutil -sr_state
   register:                            hana_replication_status
   changed_when:                        false
   failed_when:                         hana_replication_status.rc != 1
@@ -71,7 +70,7 @@
 
 - name:                                HSR - Ensure current replication status is known
   ansible.builtin.set_fact:
-    hana_system_replication_enabled:   "{{ hana_replication_status.rc == 0 }}"
+    hana_system_replication_enabled:   "'attached: true' in hana_replication_status.stdout_lines"
 
 - name:                                HSR - Debug replication status
   ansible.builtin.debug:

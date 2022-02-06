@@ -62,6 +62,7 @@
 
 - name:                                HSR - Provision replication
   import_tasks:                        4.0.1.5-provision_hana_replication.yml
+  when:                                not hana_system_replication_enabled
 
 - name:                                Perform the HSR tasks
   block:

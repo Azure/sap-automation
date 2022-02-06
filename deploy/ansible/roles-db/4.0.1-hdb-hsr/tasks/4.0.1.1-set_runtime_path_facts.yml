@@ -71,10 +71,3 @@
         var:                           hdb_version[0:2]
   when: ansible_hostname == primary_instance_name
 
-- name:                                HSR - set the primary instance db nic and admin nic IP
-  ansible.builtin.set_fact:
-    primary_instance_ip_db:            "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
-
-- name:                                HSR - set the secondary instance db nic and admin nic IP
-  ansible.builtin.set_fact:
-    secondary_instance_ip_db:          "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
