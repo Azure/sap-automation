@@ -61,7 +61,6 @@ materials:
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000000703122018
 
-
     # DB Export
     - name:         "NW 7.5 Installation Export"
       archive:      51050829_3.ZIP
