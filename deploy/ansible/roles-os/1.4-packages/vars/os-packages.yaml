@@ -58,6 +58,7 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'libselinux-python3',                                       state: 'present' }
     # ------------------------- End - Packages required for Clustering -----------------------------------------8
   redhat7.4:
     # Install Right Version of Azure Fence Agent
@@ -124,13 +125,18 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
+    
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
   redhat8.1:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
   redhat8.2:
+    - { tier: 'ha',    package: 'python3-libselinux',                 node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'libselinux-python3',                 node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
   redhat8.4:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
+    - { tier: 'ha',    package: 'python3-libselinux',                 node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'libselinux-python3',                 node_tier: 'hana',    state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                                   state: 'present' }
     - { tier: 'os',    package: 'glibc',                                                    state: 'present' }

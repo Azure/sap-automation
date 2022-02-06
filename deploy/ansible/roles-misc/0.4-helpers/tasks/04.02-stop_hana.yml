@@ -4,8 +4,8 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |     0  Last webmethod call successful
-# |     1  Last webmethod call failed, invalid parameter
+# |     0  Last web method call successful
+# |     1  Last web method call failed, invalid parameter
 # |     2  StartWait, StopWait, WaitforStarted, WaitforStopped, RestartServiceWait
 # |        timed out
 # |        CheckSystemCertificates detected warnings
