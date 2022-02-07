@@ -106,7 +106,6 @@
           {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
       no_log:                          true
   when:
-   - tier == "bom"
    - sapbits_access_key is not defined    
 
 ...

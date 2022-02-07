@@ -48,7 +48,6 @@
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
 
-
 #   02) Create static download directories
 - name:                                "BOM: Create SAP download directories"
   ansible.builtin.file:
@@ -110,7 +109,7 @@
 
 - name:                                "BOM: Download Files SUSE15"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
@@ -131,7 +130,7 @@
 
 - name:                                "BOM: Download Files"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"

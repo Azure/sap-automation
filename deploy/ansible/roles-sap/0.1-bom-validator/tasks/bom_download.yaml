@@ -39,7 +39,7 @@
   block:
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
       ansible.builtin.get_url:
-        url:                           "{{ item.url  | trim }}"
+        url:                           "{{ item.url | string | trim }}"
         dest:                          "{{ download_directory }}/files/{{ item.archive }}"
         tmp_dest:                      "{{ download_directory }}/tmp"
         url_username:                  "{{ s_user }}"
