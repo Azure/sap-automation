@@ -27,8 +27,17 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
+      when:                            hostvars.localhost.sap_password is not defined
       tags:
         - 0.1-passwords
+
+
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+      when:                            hostvars.localhost.sapbits_location_base_path is not defined
+      tags:
+        - kv-sap-installation-media-storage-details
 
 
 # /*---------------------------------------------------------------------------8
@@ -60,6 +69,8 @@
       ansible.builtin.set_fact:
         tier:                          app                                     # SAP Install phase: APP - Application Server
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
 
     - block:
         - name:                        Include 2.6-sap-mounts role
