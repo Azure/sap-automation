@@ -63,9 +63,19 @@
 
 ######################################################
 #
-#
+# 
 #
 ######################################################
+
+- name:                                Set ensa1 to false as default
+  ansible.builtin.set_fact:
+    ensa1:                             false
+
+- name:                                Set ensa2 to true as default
+  ansible.builtin.set_fact:
+    ensa2:                             true
+
+
 - name:                                Enqueue Server Setup
   block:
 
@@ -99,28 +109,19 @@
       ansible.builtin.set_fact:
         ensa1:                          "{{ 'enserver' in enq_server1.stdout_lines }}"
 
-    - name:                             Print the value of ENSA1
-      ansible.builtin.debug:
-        var:                            ensa1
-
-    - name:                             "Set the variable for ENSA2"
-      become_user:                      "{{ sap_sid | lower }}adm"
-      become:                           true
-      ansible.builtin.command:          "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList"
-      register:                         enq_server2
-      failed_when:                      enq_server2.stdout != 'enq_server'
-
     - name:                             Capture the Enqueue server version
       ansible.builtin.set_fact:
-        ensa2:                          "{{ 'enq_server' in enq_server2.stdout_lines }}"
+        ensa2:                          "{{ 'enq_server' in enq_server1.stdout_lines }}"
 
-    - name:                             Print the value of ENSA2
+    - name:                             Print the value of ENSA1/ENSA2
       ansible.builtin.debug:
-        var:                            ensa2
+        var:                            
+          - ensa1
+          - ensa2
 
   when:
     - inventory_hostname == secondary_instance_name
-    - 1 == 2 # TODO Add if needed later
+    - 1 == 2  # ToDO Fix later
 
 # Following are the changes in ASCS/ERS profiles based if ENSA1 is applicable
 
@@ -174,13 +175,13 @@
 
     - name:                            "Add the keep alive parameter, if using ENSA1"
       lineinfile:
-        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ ascs_instance_number }}_{{ ascs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          enque/encni/set_so_keepalive = true
       tags:
         - keepalive
 
   when:
     - inventory_hostname == secondary_instance_name
-    - ensa1
+    - ensa1 
 
 ...

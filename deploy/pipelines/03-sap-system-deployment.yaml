@@ -146,6 +146,7 @@ stages:
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
                 fi
+                git pull
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 added=0

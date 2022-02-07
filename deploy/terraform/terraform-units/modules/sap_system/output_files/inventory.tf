@@ -89,14 +89,18 @@ resource "local_file" "sap-parameters_yml" {
       format("sap_trans:                     %s", var.sap_transport)) : (
       ""
     )
-    platform            = var.platform
-    scs_instance_number = var.scs_instance_number
+    platform = var.platform
+    scs_instance_number = (local.app_server_count + local.scs_server_count) == 0 ? (
+      "01") : (
+      var.scs_instance_number
+    )
     ers_instance_number = var.ers_instance_number
     install_path = length(trimspace(var.install_path)) > 0 ? (
       format("usr_sap_install_mountpoint:    %s", var.install_path)) : (
       ""
     )
-    NFS_provider = var.NFS_provider
+    NFS_provider        = var.NFS_provider
+    pas_instance_number = local.pas_instance_number
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)

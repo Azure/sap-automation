@@ -7,7 +7,7 @@
 
 - hosts:                               localhost
   name:                                Get SAP Password from KeyVault
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
@@ -72,8 +72,6 @@
         - name:                        Include 5.3-app-install
           ansible.builtin.include_role:
             name:                      roles-sap/5.3-app-install
-          vars:
-            instance_number:           "{{ app_instance_number }}"
       always:
         - name:                        Get the error lines
           ansible.builtin.set_fact:
@@ -88,24 +86,24 @@
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_APP"
-            prefix:                    "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            prefix:                    "{{ app_bom_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
             path:                      '/INSTALL/HA/ABAP/APPX'
             tier:                      'app'
-          when:                        db_high_availability
+          when:                        scs_high_availability
 
-        - name:                    Include 7.0.0-post-install role
+        - name:                        Include 7.0.0-post-install role
           ansible.builtin.include_role:
-            name:                  roles-sap/7.0.0-post-install
+            name:                      roles-sap/7.0.0-post-install
           vars:
-            suffix:                "_APP"
-            prefix:                "{{ bom.product_ids.dlb.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-            path:                  '/INSTALL/DISTRIBUTED/ABAP/APPX'
-            tier:                  'app'
-          when:                    not db_high_availability
+            suffix:                    "_APP"
+            prefix:                    "{{ app_bom_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            path:                      '/INSTALL/DISTRIBUTED/ABAP/APPX'
+            tier:                      'app'
+          when:                        not scs_high_availability
 
 
         - name:                    Errors from APP installation
-          ansible.builtin.fail:
+          ansible.builtin.debug:
             msg:                   "{{ error_lines }}"
           when:
             - error_lines is defined
@@ -121,7 +119,7 @@
 
 - hosts:                               localhost
   name:                                Log results
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 

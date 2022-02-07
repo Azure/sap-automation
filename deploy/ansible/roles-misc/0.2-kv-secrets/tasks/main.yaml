@@ -47,7 +47,7 @@
 
 - name:                                Show Key Vault
   ansible.builtin.debug:
-    var:                               kv_name
+    var:                               deployer_kv_name
   when:
     - tier == "bom"
 
