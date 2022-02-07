@@ -466,9 +466,6 @@ network_logical_name = "SAP01"
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 #anchor_vm_use_DHCP=true
 
-
-
-
 #########################################################################################
 #                                                                                       #
 #  Terraform deploy parameters                                                          #
