@@ -32,6 +32,7 @@
     - name:                            Retrieve the storage account details
       include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
       tags:
         - kv-sap-installation-media-storage-details
 
