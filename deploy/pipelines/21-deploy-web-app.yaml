@@ -4,6 +4,7 @@ trigger:
 - none
 
 pool:
+  name: $(Agent)
   vmImage: 'ubuntu-latest'
 
 parameters:

@@ -74,7 +74,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        [HttpGet] // #resource_group_arm_id
+        [HttpGet] // #resourcegroup_arm_id
         public ActionResult GetResourceGroupOptions(string subscriptionId)
         {
             List<SelectListItem> options = new List<SelectListItem>

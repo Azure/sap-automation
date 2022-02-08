@@ -31,6 +31,18 @@ resource "azurerm_app_service" "webapp" {
         }
     }
 
+    site_config {
+        ip_restriction = [ {
+            action = "Allow"
+            name = "Allow subnet access"
+            virtual_network_subnet_id = azurerm_subnet.subnet_mgmt[0].id
+            priority = 1
+            headers = []
+            ip_address = null
+            service_tag = null
+        } ]
+    }
+
     connection_string {
         name  = "CMDB"
         type  = "Custom"

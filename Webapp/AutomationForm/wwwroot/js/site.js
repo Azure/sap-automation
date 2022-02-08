@@ -177,7 +177,7 @@ $("#workload_zone").on("change", function () {
                     subscription: data.subscription,
                     environment: data.environment,
                     location: data.location,
-                    rg: data.resource_group_arm_id,
+                    rg: data.resourcegroup_arm_id,
                     network: data.network_address_arm_id,
                     networkname: data.network_logical_name,
                     adminsubnetarmid: data.admin_subnet_arm_id,
@@ -207,7 +207,7 @@ $("#subscription").on("change", function () {
     var subscriptionid = $(this).val();
     var dropdowns = [
         {
-            ids: ["resource_group_arm_id"],
+            ids: ["resourcegroup_arm_id"],
             values: [model.rg],
             controller: "/Armclient/GetResourceGroupOptions",
             data: {
