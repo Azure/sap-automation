@@ -1,3 +1,4 @@
+---
 name:    'Oracle19_v0001ms'
 target:  'Oracle 19'
 version: 1
@@ -142,3 +143,4 @@ materials:
       download:     true
       url:          https://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/getPackage/compat-libcap1-1.10-7.el7.x86_64.rpm
 
+...

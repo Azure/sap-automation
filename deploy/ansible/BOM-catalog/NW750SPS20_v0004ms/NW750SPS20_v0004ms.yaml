@@ -1,4 +1,7 @@
-
+---
+# Download time:  xx Minutes (Full    - xx GB)
+# Download time:  xx Minutes (Partial - xx GB)
+#
 name:                                  NW750SPS20_v0004ms
 target:                                NETWEAVER 7.50 SPS 20
 version:                               0004

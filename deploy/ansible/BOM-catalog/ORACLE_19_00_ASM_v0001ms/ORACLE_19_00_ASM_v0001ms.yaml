@@ -1,4 +1,4 @@
-
+---
 name:    'ORACLE_19_00_ASM_v0001ms'
 target:  'Oracle 19c'
 version: 1
@@ -120,3 +120,4 @@ materials:
     #   archive:      saphostagentrpm_51-20009394.rpm
     #   url:          https://softwaredownloads.sap.com/file/0020000000269152021
 
+...
