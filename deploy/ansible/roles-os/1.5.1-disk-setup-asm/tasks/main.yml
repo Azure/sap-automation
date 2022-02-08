@@ -88,7 +88,7 @@
 #       - volume_groups
 #       - disks
 #     verbosity:                         2
-      
+
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
 # -------------------------------------+---------------------------------------8
 #
@@ -103,10 +103,6 @@
   when:
     - tier == "ora"
     - node_tier == "oracle-asm"
-    
-
-    
-  
 
 - name:                                "Filter the vg name from vgscreated results"
   ansible.builtin.set_fact:
@@ -193,7 +189,7 @@
   ansible.builtin.debug:
     var:                               filesystemscreated
     verbosity:                         2
- 
+
 # Mount Filesystems required for install.
 
 - name:                                "Mount SAP Filesystems on Database for installation"
@@ -223,16 +219,19 @@
 
 # ORACLE should be the owner of the file systems /oracle directories.
 
-- name:              "Make orasid:dba as owners"
-  ansible.builtin.shell: |
-                      chown -R oracle:oinstall /oracle
-                      chmod -R 777 /usr/sap/install/
-  args:
-    creates:  /etc/sap_deployment_automation/permissionupdated.txt
+- name:                                "Make orasid:dba as owners"
+  ansible.builtin.file:
+    path:                              /oracle
+    state:                             directory
+    mode:                              0755
+    owner:                             oracle
+    group:                             oinstall
 
-- name:                                "creation permission flag"
-  ansible.builtin.shell: |
-                      touch /etc/sap_deployment_automation/permissionupdated.txt
+- name:                                "Make orasid:dba as owners"
+  ansible.builtin.file:
+    path:                              /usr/sap/install/
+    state:                             directory
+    mode:                              0777
 
 # Setup and configure ORACLE ASM.
 
@@ -279,7 +278,7 @@
 # Capture the list of disks to create list for DATA disk group.
 
 - name:                             "Capture disks for DATA Group"
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                      set -o errexit
                      readlink -f lun{{ item.LUN }}
 
@@ -309,13 +308,13 @@
 # Capture the list of disks to create list for ARCH disk group.
 
 - name:                             "Capture disks for ARCH Group"
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                      set -o errexit
                      readlink -f lun{{ item.LUN }}
 
-  loop: "{{ disks }}"
-  when: item.type == "arch-asm"
-  register: archgroup
+  loop:                                "{{ disks }}"
+  when:                                item.type == "arch-asm"
+  register:                            archgroup
   args:
     # executable:       /bin/csh
     chdir:            "/dev/disk/azure/scsi1"
@@ -329,14 +328,14 @@
   ansible.builtin.set_fact:
     archdisklist:                     "{{ archdiskgroup | map(attribute='stdout')  | list }}"
 
-- name:
+- name:                                Set archlistrsp
   ansible.builtin.set_fact:
     archlistrsp:                       "{{ archdisklist | join ('1,') }}"
 
 # Capture the list of disks to create list for RECO disk group.
 
 - name:                                "Capture disks for RECO Group"
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                      set -o errexit
                      readlink -f lun{{ item.LUN }}
 
@@ -389,7 +388,7 @@
   loop:                                "{{ datadisklist }}"
   failed_when:                         false
   register:                            data_disk_status
-
+  changed_when:                        data_disk_status.rc == 0
 - name:                                Ensure that there is one partition that occupies whole data disk
   ansible.builtin.parted:
     device:                            "{{ item }}"
@@ -439,14 +438,15 @@
 # Initialise a ARCH disk device only if it is not already an ASM disk
 # ==============================================================================
 - name:                                Query status of disk archdisk1
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                      set -o errexit
-                     /usr/sbin/oracleasm querydisk "{{ item }}1" 
+                     /usr/sbin/oracleasm querydisk "{{ item }}1"
   loop:                                "{{ archdisklist }}"
   failed_when:                         false
   register:                            arch_disk_status
+  changed_when:                        arch_disk_status.rc == 0
 
-- name:                                Ensure that there is one partition that occupies whole arch disk 
+- name:                                Ensure that there is one partition that occupies whole arch disk
   ansible.builtin.parted:
     device:                            "{{ item }}"
     number:                            1
@@ -457,7 +457,7 @@
     part_end:                          100%
   loop:                                "{{ archdisklist }}"
   register:                            archpartioneddisks
-       
+
 - name:                                Print arch_disk_status
   ansible.builtin.debug:
     var:                               arch_disk_status
@@ -469,7 +469,7 @@
     verbosity:                         2
 
 - name:         Initialize ASM DISKS ARCH"
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                      set -o errexit
                      /usr/sbin/oracleasm createdisk ARCH"{{ db_sid|upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
                      chown -R oracle:oinstall "{{ item }}1"
@@ -484,6 +484,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/asmarchdisks.txt
     state:                             touch
+    mode:                              0755
 
 - name:                                Print archdiskcreated
   ansible.builtin.debug:
@@ -494,11 +495,12 @@
 # Initialise a RECO disk device only if it is not already an ASM disk
 # ==============================================================================
 - name:                                Query status of disk recodisk1
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                      set -o errexit
                      /usr/sbin/oracleasm querydisk "{{ item }}1"
   loop:                                "{{ recodisklist }}"
   failed_when:                         false
+  changed_when:                        false
   register:                            reco_disk_status
 
 - name:                                Ensure that there is one partition that occupies whole reco disk
@@ -524,7 +526,7 @@
     verbosity:                         2
 
 - name:                                Initialize ASM DISKS RECO"
-  ansible.builtin.shell: |   
+  ansible.builtin.shell: |
                      set -o errexit
                      /usr/sbin/oracleasm createdisk RECO"{{ db_sid|upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
                      chown -R oracle:oinstall "{{ item }}1"
@@ -535,10 +537,11 @@
   args:
     creates:                           /etc/sap_deployment_automation/asmrecodisks.txt
 
-- name:                                Initialize ASM DISKS RECO File"
-  ansible.builtin.shell: |   
-                     set -o errexit
-                     touch /etc/sap_deployment_automation/asmrecodisks.txt
+- name:                                Initialize ASM DISKS RECO File
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/asmrecodisks.txt
+    state:                             touch
+    mode:                              0755
 
 - name:                                Print recodiskcreated
   ansible.builtin.debug:

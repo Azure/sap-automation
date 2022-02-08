@@ -39,7 +39,7 @@
   tasks:
 # -------------------------------------+---------------------------------------8
 #
-# Build the list of tasks to be executed in order here. 
+# Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
 
@@ -54,7 +54,7 @@
 # Role: oracle-users
 #
 # Description: Create oracle users and groups.
-#              
+#
 #
     - block:
         - name:                        Include 1.11-accounts
@@ -62,7 +62,7 @@
             name:                      roles-os/1.11-accounts
       tags:
         - 1.11-accounts
-      
+
 # -------------------------------------+---------------------------------------8
 # -------------------------------------+---------------------------------------8
 # Role: sap-mounts
@@ -84,7 +84,7 @@
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
   name:                                DB Installation - Oracle
-  remote_user:                         "{{ orchestration_ansible_user }}"                
+  remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         "oracle"
   gather_facts:                        true
@@ -110,7 +110,7 @@
 # Role: ASM Grid SOftware install.
 #
 # Description: ASM Grid SOftware Install
-#              
+#
 #
     - name:                               Include roles-db/4.1.2-ora-asm-db-install
       include_role:
@@ -118,14 +118,12 @@
       tags:
         - 4.1.2-ora-asm-db-install
 # -------------------------------------+---------------------------------------8
-      
-
 
 # # Oracle Post installation scripts
 # - hosts:          "{{ sap_sid|upper }}_DB"
 
 #   name:           DB Installation - Oracle
-#   remote_user:    "{{ orchestration_ansible_user }}"                
+#   remote_user:    "{{ orchestration_ansible_user }}"
 #   become:         yes
 #   become_user:    root
 #   gather_facts:   true
@@ -135,5 +133,3 @@
 #   tasks:
 #   - include_role:
 #       name:     roles-db/4.1.0-ora-post-install
-
-

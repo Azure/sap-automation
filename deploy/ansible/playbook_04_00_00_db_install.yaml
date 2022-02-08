@@ -33,7 +33,7 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
-      
+
       tags:
         - 0.1-passwords
 

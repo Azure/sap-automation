@@ -45,6 +45,7 @@
   ansible.builtin.copy:
     dest:                              "{{ download_directory }}/readme.md"
     content:                           "This is the container with the SAP media"
+    mode:                              0755
   register:                            readme_file
   become:                              true
   become_user:                         root

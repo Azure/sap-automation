@@ -19,7 +19,7 @@
 # -------------------------------------+---------------------------------------8
 #
 
-- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
+- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"
   block:
 
     - name:                            Check required variables are present and not empty

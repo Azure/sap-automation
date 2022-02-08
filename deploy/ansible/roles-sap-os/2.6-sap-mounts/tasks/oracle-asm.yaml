@@ -76,9 +76,16 @@
 #.PARAMS folder is not required for oracle install as we are not passing any parameters files.
 
 - name:                                "Make oracle:oinstall as owners"
-  ansible.builtin.shell: |
-                      chown -R oracle:oinstall /oracle
-                      chmod -R 777 /usr/sap/install/
+  ansible.builtin.file:
+    path:                              /oracle
+    group:                             oracle:oinstall
+    mode:                              0777
+
+- name:                                "Make oracle:oinstall as owners"
+  ansible.builtin.file:
+    path:                              /usr/sap/install/
+    group:                             oracle:oinstall
+    mode:                              0777
 
 
 #Debug for testing
