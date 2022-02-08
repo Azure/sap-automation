@@ -28,3 +28,4 @@ skip_list:
   - braces
   - hyphens
   - role-name
+  - var-naming

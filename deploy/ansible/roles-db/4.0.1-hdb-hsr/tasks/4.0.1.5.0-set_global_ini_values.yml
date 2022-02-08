@@ -23,7 +23,6 @@
     ansible_python_interpreter:        python3
 
 
-
 # - name:                                HSR - Ensure options set in section [inifile_checker] of global.ini.
 #   become_user:                         "{{ db_sid_admin_user }}"
 #   ansible.builtin.ini_file:

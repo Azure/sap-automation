@@ -6,3 +6,5 @@
 distro_name:    "{{ ansible_distribution|upper }}-{{ ansible_distribution_major_version }}"
 distro_id:      "{{ ansible_distribution|lower ~ ansible_distribution_major_version }}"
 distro_full_id: "{{ ansible_distribution|lower ~ ansible_distribution_version }}"
+
+...

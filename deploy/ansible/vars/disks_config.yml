@@ -110,7 +110,7 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 256
     fstype:     'xfs'
-  
+
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_oracle_sapdata2'
@@ -167,7 +167,7 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 128
     fstype:     'xfs'
- 
+
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_oracle_oraarch'

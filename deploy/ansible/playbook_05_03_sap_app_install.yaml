@@ -16,7 +16,7 @@
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
-        mode:                          0755 
+        mode:                          0755
 
     - name:                            Remove app-install-done flag
       ansible.builtin.file:
@@ -30,6 +30,9 @@
       tags:
         - 0.1-passwords
 
+    - name:                            Initialize tier
+      ansible.builtin.set_fact:
+        tier:                          app
 
     - name:                            Run the sap-installation-media-storage-details role
       include_role:
