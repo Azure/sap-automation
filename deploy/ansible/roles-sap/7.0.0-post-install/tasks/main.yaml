@@ -37,9 +37,9 @@
 - name:                                Create List (sapinst)
   ansible.builtin.set_fact:
     sapinst_list_of_files:             "{{ sapinst_log_files.files | map(attribute='path') | list }}"
-  when:                                
-   - sapinst_log_files.files is defined
-   - sapinst_log_files.files | length > 0
+  when:
+    - sapinst_log_files.files is defined
+    - sapinst_log_files.files | length > 0
 
 - name:                                Debug (sapinst_list_of_files)
   ansible.builtin.debug:
@@ -52,6 +52,7 @@
     path:                              "{{ sapinst_list_of_files }}"
     dest:                              "{{ target_media_location }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
     format:                            zip
+    mode:                              0755
   when:
     - sapinst_list_of_files is defined
 
@@ -75,16 +76,18 @@
 
 - name:                                Create List (hana)
   ansible.builtin.set_fact:
-    hana_list_of_files:                "{{ hana_log_files.files | map(attribute='path')| list}}"
-  when:                                
-   - hana_log_files.files is defined
-   - hana_log_files.files | length > 0
+    hana_list_of_files:                "{{ hana_log_files.files | map(attribute='path')| list }}"
+  when:
+    - hana_log_files.files is defined
+    - hana_log_files.files | length > 0
 
 - name:                                "Compress the installation log files (hana)"
   ansible.builtin.archive:
     path:                              "{{ hana_list_of_files }}"
     dest:                              "/var/tmp/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
     format:                            zip
+    mode:                              0755
+
   when:
     - hana_list_of_files is defined
     - tier == 'hana'

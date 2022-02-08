@@ -41,7 +41,7 @@
     - name:                            HSR - Check if there is a tenant db needing backup
       block:
         - name:                        "HSR - Check whether backup exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
-          ansible.builtin.shell: > 
+          ansible.builtin.shell: >
                                        {{ hdbsql_tenant_command }} "{{ backup_exists_cmd_for_tenant }}"
           register:                    backup_exists_cmd_for_tenant_result
           changed_when:                false

@@ -74,7 +74,7 @@
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
     sap_scs_hostname:                  "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server }}{% endif %}"
     sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
-    sap_ciVirtualHostname:         
+    sap_ciVirtualHostname:
     sap_appVirtualHostname:
   tags:
     - skip_ansible_lint

@@ -36,9 +36,11 @@
   become_user:                         "oracle"
   ansible.builtin.shell: |
                                        set -o errexit
+                                       set -o pipefail
                                        ./RUNINSTALLER -ohcheck -silent |tee -a /oracle/pre-req.log
   register:                            oraprecheck_results
   failed_when:                         oraprecheck_results.rc >= 3
+  changed_when:                        oraprecheck_results.rc < 3
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -65,6 +67,7 @@
   become_user:                         "oracle"
   ansible.builtin.shell: |
                                        set -o errexit
+                                       set -o pipefail
                                        ./RUNINSTALLER -silent |tee -a /oracle/install.log
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
@@ -107,6 +110,9 @@
     path:                              /oracle/{{ db_sid|upper }}/19.0.0/bin/oracle
     state:                             file
     mode:                              6751
+  tags:
+    - skip_ansible_lint
+
 
 - name:                                Create rootscripts_executed.txt
   ansible.builtin.file:

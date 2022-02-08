@@ -45,6 +45,7 @@
   ansible.builtin.copy:
     dest:                              "{{ download_directory }}/readme.md"
     content:                           "This is the container with the SAP media"
+    mode:                              0755
   register:                            readme_file
   become:                              true
   become_user:                         root
@@ -59,9 +60,10 @@
                                          --file {{ readme_file.dest }}
                                          --if-none-match "*"
                                          --no-progress
-  delegate_to:                     localhost
-  register:                        azresult
-  ignore_errors:                   true
+  delegate_to:                         localhost
+  register:                            azresult
+  ignore_errors:                       true
+  changed_when:                        false
   failed_when:
     - azresult.rc != 0
     - azresult.stderr is defined
@@ -98,7 +100,7 @@
 
 - name:                                "BOM: {{ bom_name }} Upload Folder"
   vars:
-     bom_container_name:               "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms"
+    bom_container_name:               "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms"
   ansible.builtin.command: >-
                                        az storage blob upload-batch
                                          --account-name {{ account }}
@@ -106,9 +108,10 @@
                                          --destination {{ bom_container_name }}/{{ bom_name }}
                                          --source {{ playbook_dir }}/{{ bom_file.rpartition('/')[0] }}
                                          --if-none-match "*"
-                                         --no-progress 
+                                         --no-progress
   delegate_to:                         localhost
   register:                            bomazresult
+  changed_when:                        false
   ignore_errors:                       true
   failed_when:
     - bomazresult.rc != 0

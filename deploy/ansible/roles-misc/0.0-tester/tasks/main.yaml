@@ -22,6 +22,7 @@
   args:
     executable:                        /usr/bin/bash
   register:                            printenv
+  changed_when:                        false
 
 - name:                                Printenv debug
   ansible.builtin.debug:
@@ -32,16 +33,17 @@
   ansible.builtin.command:             /usr/sap/XDB/HDB00/exe/sapcontrol -nr 00 -function GetProcessList
   register:                            gpl
   ignore_errors:                       true
+  changed_when:                        false
 
 
 - name:                                GetProcessList
   ansible.builtin.debug:
     msg:                               "{{ gpl }}"
 
-
 - name:                                Ensure HSR
   become_user:                         "{{ db_sid | lower }}adm"
-  ansible.builtin.shell:               hdbnsutil -sr_state
+  ansible.builtin.command:             hdbnsutil -sr_state
+  changed_when:                        false
   register: sr_state
   args:
     executable:                        /bin/bash
@@ -119,8 +121,4 @@
     #                                     /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
     #                                     /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
     #                                     /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
-
-
-
-
 ...

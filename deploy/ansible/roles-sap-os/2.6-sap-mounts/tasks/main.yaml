@@ -49,7 +49,7 @@
     state:                             mounted
   loop:
     - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
-  when:         
+  when:
     - (item.node_tier == "all" or item.node_tier == node_tier)
     - not scs_high_availability
 
@@ -78,7 +78,7 @@
     state:                             mounted
   loop:
     - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
-  when:         
+  when:
     - item.node_tier in supported_tiers
     - not use_AFS
 
