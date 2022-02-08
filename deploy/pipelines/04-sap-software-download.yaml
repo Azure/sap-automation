@@ -27,9 +27,14 @@ parameters:
     default:                           MGMT
 
   - name:                              region
-    displayName:                       Control Plane (SAP Library) Locationcode
+    displayName:                       Control Plane (SAP Library) location code
     type:                              string
     default:                           WEEU
+
+  - name:                              re_download
+    displayName:                       Re-download software from SAP
+    type:                              boolean
+    default:                           false
 
 trigger:                               none
 
@@ -37,20 +42,22 @@ pool:
   name:                                $(Agent)
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
   - name:                              bom
     value:                             ${{ parameters.bom_base_name }}
   - name:                              env
     value:                             ${{ parameters.environment }}
   - name:                              loc
     value:                             ${{ parameters.region }}
+  - name:                              check_storage_account
+    value:                             $[not(${{ parameters.re_download }})]
 
 stages:
   - stage:                             Prepare_download
     displayName:                       Preparation
     jobs:
-      - job:                           Prepare_download
+      - job:                           Prepare_download_job
         displayName:                   Preparation
         workspace:
           clean:                       all
@@ -63,9 +70,6 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-              echo -e "$green--- Git checkout and pull DevOps Repository ---$reset"
-                git checkout $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
               echo -e "$green--- Validations ---$reset"
               if [ ! -f .sap_deployment_automation/$(env)$(loc) ]; then
                 echo -e "$boldred--- .sap_deployment_automation/$(env)$(loc) was not found ---$reset"
@@ -88,33 +92,11 @@ stages:
                 echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                 exit 2
               fi
-              ls $(Build.Repository.LocalPath)
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-              echo -e "$green--- Convert config files to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
-                dos2unix -q $HOME/BOMS/sap-parameters.yaml
                 kv_name=$(cat .sap_deployment_automation/$(env)$(loc) | grep keyvault |awk -F'=' '{print $2}')
-                sapbits_sa_url=$(az keyvault secret show --vault-name $kv_name --name sapbits-location-base-path --query value |xargs)
-                sed -i 's|bom_base_name:.*|bom_base_name:   '"$(bom)"'|' BOMS/sap-parameters.yaml
-                sed -i 's|sapbits_location_base_path:.*|sapbits_location_base_path:    '"$sapbits_sa_url"'|' BOMS/sap-parameters.yaml
-                sed -i 's|deployer_kv_name:.*|deployer_kv_name:    '"$kv_name"'|' BOMS/sap-parameters.yaml
-              echo -e "$green--- Content of BOMS/sap-parameters.yaml ---$reset"
-                cat $HOME/BOMS/sap-parameters.yaml
-              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                cd $(Build.Repository.LocalPath)
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                added=0
-                if [ -f $HOME/BOMS/sap-parameters.yaml ]; then
-                  git add $HOME/BOMS/sap-parameters.yaml
-                  added=1
-                fi
-                if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
-                fi
+                echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
                 if [ -z "$SUsername" ]; then 
@@ -127,6 +109,7 @@ stages:
                   az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
                 fi
             displayName:               Prepare download
+            name:                      Preparation
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             failOnStderr:              false
@@ -136,6 +119,8 @@ stages:
     jobs:
       - job:                           Software_download
         displayName:                   Download software
+        variables:
+          kv_name:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
         timeoutInMinutes:              0
         steps:
           - task:                      PostBuildCleanup@3
@@ -147,7 +132,7 @@ stages:
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: $DEPLOYMENT_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
-              args:                    '-e "HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)" -e "@$(Deployment_Configuration_Path)/BOMS/sap-parameters.yaml" -e "_workspace_directory=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/BOMS" $(ExtraParams) '
+              args:                    ' -e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" $(ExtraParams) '
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false

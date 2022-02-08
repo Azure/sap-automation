@@ -7,7 +7,7 @@
 
 - hosts:                               localhost
   name:                                Get SAP Password from KeyVault
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
@@ -16,7 +16,7 @@
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
-        mode:                          0755 
+        mode:                          0755
 
     - name:                            Remove pas-install-done flag
       ansible.builtin.file:
@@ -27,8 +27,22 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
+
       tags:
         - 0.1-passwords
+
+    - name:                            Initialize tier
+      ansible.builtin.set_fact:
+        tier:                          pas
+
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          pas
+      tags:
+        - kv-sap-installation-media-storage-details
 
 
 # /*---------------------------------------------------------------------------8
@@ -61,6 +75,8 @@
       ansible.builtin.set_fact:
         tier:                          pas
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 
@@ -71,7 +87,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                            Run PAS Installation 
+    - name:                            Run PAS Installation
       block:
 
         - block:
@@ -122,8 +138,9 @@
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/APP1'
                 tier:                  'pas'
               when:                    not db_high_availability
+
             - name:                    Errors from PAS installation
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined
@@ -142,7 +159,7 @@
 
 - hosts:                               localhost
   name:                                Log results
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 

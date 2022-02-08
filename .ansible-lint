@@ -1,3 +1,4 @@
+
 exclude_paths:
   # FIXME: Use non-existing roles
   - deploy/ansible/sap_playbook.yml
@@ -28,3 +29,4 @@ skip_list:
   - braces
   - hyphens
   - role-name
+  - var-naming

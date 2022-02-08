@@ -36,8 +36,8 @@ pool:
   name: $(Agent)
 
 variables:
-  - group:                             "SAP-deployment-variables-general"
-  - group:                             ${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
   - name:                              sapsystemfolder
     value:                             ${{ parameters.sap_system }}
 
@@ -175,7 +175,7 @@ stages:
                   exit 2
                 fi
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git checkout $(Branch)
+                git checkout -q $(Branch)
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"

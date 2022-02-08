@@ -7,7 +7,7 @@
 
 - hosts:                               localhost
   name:                                Get SAP Password from KeyVault
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -33,6 +33,7 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
+
       tags:
         - 0.1-passwords
 
@@ -44,6 +45,13 @@
         tier:                          fencing
       tags:
         - 0.2-kv-secrets
+
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      tags:
+        - kv-sap-installation-media-storage-details
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -76,6 +84,8 @@
           ansible.builtin.set_fact:
             tier:                      hdb                                     # Actions for HANA DB Serve
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -106,7 +116,7 @@
                 tier:                  'hana'
 
             - name:                    Errors from HANA installation
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined
@@ -239,7 +249,7 @@
 
 - hosts:                               localhost
   name:                                Log results
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 

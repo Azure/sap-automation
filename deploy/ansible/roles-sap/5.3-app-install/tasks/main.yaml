@@ -38,7 +38,7 @@
 
 - name:                                Set the SCS Server name
   ansible.builtin.set_fact:
-    scs_server:                        "{{ scs_server_temp | first }}"
+    scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -52,14 +52,14 @@
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
-    sap_cd_package_hdbclient:          /usr/sap/install/CD_HDBCLIENT/SAP_HANA_CLIENT
-    sap_cd_package_cd1:                /usr/sap/install/CD_EXPORT
+    sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+    sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
     sap_cd_package_cd2:
     sap_cd_package_cd3:
     sap_cd_package_cd4:
     sap_cd_package_cd5:
     sap_ciInstanceNumber:             "{{ scs_instance_number }}"
-    app_instance_number:              "{{ instance_number}}"
+    app_instance_number:
     sap_ciDialogWPNumber:              12
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
@@ -71,8 +71,11 @@
   tags:
     - skip_ansible_lint
 
+- name:                            "App install: register variables"
+  ansible.builtin.set_fact:
+    app_bom_id:                    "{% if scs_high_availability %}{{ bom.product_ids.app_ha }}{% else %}{{ bom.product_ids.app }}{% endif %}"
 
-# Returns bom object
+
 - name:                                "APP Install"
   block:
 
@@ -81,9 +84,6 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-    - name:                            "App install: register variables"
-      ansible.builtin.set_fact:
-        app_bom_id:                    "{% if scs_high_availability %}{{ bom.product_ids.app_ha }}{% else %}{{ bom.product_ids.app }}{% endif %}"
 
     - name:                            "APP install: debug variables"
       ansible.builtin.debug:
@@ -94,10 +94,9 @@
 
     - name:                            "SAP APP Install"
       ansible.builtin.shell: |
-                                       export TMPDIR=/usr/sap/install
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                          \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}  \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                                \
+                                                 SAPINST_SKIP_DIALOGS=true                                                  \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         /usr/sap/install/SWPM
@@ -114,6 +113,7 @@
         path:                          /etc/sap_deployment_automation/sap_deployment_app.txt
         state:                         touch
         mode:                          0755
+      when:                            app_installation.rc == 0
 
   when:
     - not app_installed.stat.exists

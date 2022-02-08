@@ -4,8 +4,6 @@ target:  'HANA 2.0'
 version: 6
 
 materials:
-  dependencies:
-    - name:         HCMT_v0001ms
 
   media:
     # SAPCAR 7.22
@@ -15,7 +13,7 @@ materials:
       filename:     SAPCAR
       permissions:  '0755'
       url:          https://softwaredownloads.sap.com/file/0020000000098642022
-      
+
     # HANA Client v2.9
     - name:         SAP HANA CLIENT Version 2.9
       archive:      IMDB_CLIENT20_009_28-80002082.SAR
@@ -69,5 +67,6 @@ materials:
       archive:      saphostagentrpm_54-80004822.rpm
       checksum:     36e07aa24b0dca972f9bfeff5757ca52f693d34f013818b171aa684b3aef1d98
       url:          https://softwaredownloads.sap.com/file/0020000001305892021
+
 
 ...

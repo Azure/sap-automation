@@ -18,7 +18,6 @@
 #   can be depracated.
 #
 
-
 admin_groups:
   - name:         example
     gid:          "2000"
@@ -38,43 +37,43 @@ admin_groups:
     tier:         os
     enabled:      true
     node_tier:    all
-  
-  #Admin groups for Oracle Non-ASM
+
+  # Admin groups for Oracle Non-ASM
   - name:         dba
     gid:          "{{ dba_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    oracle
-  
+
   - name:         oper
     gid:          "{{ oper_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    oracle
-  
+
   - name:         asmoper
     gid:          "{{ asmoper_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    oracle
-  
+
   - name:         asmadmin
     gid:          "{{ asmadmin_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    oracle
-  
+
   - name:         asmdba
     gid:          "{{ asmdba_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    oracle
-  
+
   - name:         oinstall
     gid:          "{{ oinstall_gid }}"
     state:        present
@@ -88,42 +87,41 @@ admin_groups:
     tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
-  
+
   - name:         oper
     gid:          "{{ oper_gid }}"
     state:        present
     tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
-  
+
   - name:         asmoper
     gid:          "{{ asmoper_gid }}"
     state:        present
     tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
-  
+
   - name:         asmadmin
     gid:          "{{ asmadmin_gid }}"
     state:        present
     tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
-  
+
   - name:         asmdba
     gid:          "{{ asmdba_gid }}"
     state:        present
     tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
-  
+
   - name:         oinstall
     gid:          "{{ oinstall_gid }}"
     state:        present
     tier:         oraasm
     enabled:      true
     node_tier:    oracle-asm
-
 
 # -------------------------------------+---------------------------------------8
 #
@@ -172,8 +170,8 @@ admin_users:
 #    node_tier:    all
 #    enabled:      true
 
-#Admin users for Oracle Non-ASM
-  
+# Admin users for Oracle Non-ASM
+
   - name:         "ora{{ sap_sid|lower }}"
     comment:      "Oracle Database System Administrator"
     uid:          "{{ orasid_uid }}"
@@ -227,3 +225,5 @@ admin_users:
     tier:         oraasm
     node_tier:    oracle-asm
     enabled:      true
+
+...

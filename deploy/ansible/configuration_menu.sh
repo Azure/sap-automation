@@ -98,6 +98,7 @@ PS3='Please select playbook: '
 # all_playbooks array defined below
 options=(
         # Specific playbook entries
+        "Validate parameters"
         "Base Operating System configuration"
         "SAP specific Operating System configuration"
         "BOM Processing"
@@ -121,6 +122,7 @@ options=(
 # List of all possible playbooks
 all_playbooks=(
         # Basic/Minimal SAP Install Steps
+        ${cmd_dir}/playbook_00_validate_parameters.yaml
         ${cmd_dir}/playbook_01_os_base_config.yaml
         ${cmd_dir}/playbook_02_os_sap_specific_config.yaml
         ${cmd_dir}/playbook_03_bom_processing.yaml
@@ -165,9 +167,9 @@ do
         "${options[-2]}")   # Run through all playbooks
                 playbooks+=( "${all_playbooks[@]}" );;
         "${options[-3]}")   # Run through post installation playbooks
-                playbooks+=( "${all_playbooks[@]:7:3}" );;
+                playbooks+=( "${all_playbooks[@]:8:3}" );;
         "${options[-4]}")   # Run through first 7 playbooks i.e.  SAP installation
-                playbooks+=( "${all_playbooks[@]:0:7}" );;
+                playbooks+=( "${all_playbooks[@]:0:8}" );;
         *)
                 # If not a numeric reply
                 if ! [[ "${REPLY}" =~ ^[0-9]{1,2}$ ]]; then

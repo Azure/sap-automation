@@ -37,6 +37,7 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
 recover=0
+ado_flag=""
 
 INPUT_ARGUMENTS=$(getopt -n prepare_region -o d:l:s:c:p:t:a:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
 VALID_ARGUMENTS=$?
@@ -66,6 +67,8 @@ do
         --) shift; break ;;
     esac
 done
+
+echo "ADO flag ${ado_flag}"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)

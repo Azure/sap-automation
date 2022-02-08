@@ -12,7 +12,7 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source 
+#call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -55,20 +55,20 @@ INPUT_ARGUMENTS=$(getopt -n install_deployer -o p:ih --longoptions parameterfile
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
-  showhelp
-
+    showhelp
+    
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
 while :
 do
-  case "$1" in
-    -p | --parameterfile)                      parameterfile="$2"               ; shift 2 ;;
-    -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
-    -h | --help)                               showhelp 
-                                               exit 3                           ; shift ;;
-    --) shift; break ;;
-  esac
+    case "$1" in
+        -p | --parameterfile)                      parameterfile="$2"               ; shift 2 ;;
+        -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
+        -h | --help)                               showhelp
+        exit 3                           ; shift ;;
+        --) shift; break ;;
+    esac
 done
 
 deployment_system=sap_deployer
@@ -125,7 +125,7 @@ param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
-var_file="${param_dirname}"/"${parameterfile}" 
+var_file="${param_dirname}"/"${parameterfile}"
 # Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
 validate_exports
 return_code=$?
@@ -161,14 +161,19 @@ else
             echo "#                     The state is already migrated to Azure!!!                         #"
             echo "#                                                                                       #"
             echo "#########################################################################################"
-            read -p "Do you want to bootstrap the deployer again Y/N?"  ans
-            answer=${ans^^}
-            if [ $answer == 'Y' ]; then
+            if [ $approve == "--auto-approve" ] ; then
                 terraform -chdir="${terraform_module_directory}" init -upgrade=true  -backend-config "path=${param_dirname}/terraform.tfstate"
-                terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" 
+                terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
             else
-                unset TF_DATA_DIR
-                exit 0
+                read -p "Do you want to bootstrap the deployer again Y/N?"  ans
+                answer=${ans^^}
+                if [ $answer == 'Y' ]; then
+                    terraform -chdir="${terraform_module_directory}" init -upgrade=true  -backend-config "path=${param_dirname}/terraform.tfstate"
+                    terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+                else
+                    unset TF_DATA_DIR
+                    exit 0
+                fi
             fi
         else
             terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
@@ -242,9 +247,9 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}" $extra_vars 
+terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}" $extra_vars
 return_value=$?
-    
+
 if [ 0 != $return_value ] ; then
     echo ""
     echo "#########################################################################################"
@@ -268,8 +273,8 @@ then
     if [ -z "${temp}" ]
     then
         touch "${deployer_config_information}"
-        printf -v val %-.20s "$keyvault"            
-
+        printf -v val %-.20s "$keyvault"
+        
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -277,7 +282,7 @@ then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-
+        
         save_config_var "keyvault" "${deployer_config_information}"
         return_value=0
     else

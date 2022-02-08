@@ -131,7 +131,7 @@ database_vm_zones=["1"]
 # sid is a mandatory field that defines the SAP Application SID
 sid = "Q00"
 
-app_tier_vm_sizing = "Production"
+app_tier_vm_sizing = "Optimized"
 
 
 # app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)

@@ -19,7 +19,7 @@
 # -------------------------------------+---------------------------------------8
 #
 
-- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
+- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"
   block:
 
     - name:                            Check required variables are present and not empty
@@ -47,7 +47,7 @@
 
 - name:                                Show Key Vault
   ansible.builtin.debug:
-    var:                               kv_name
+    var:                               deployer_kv_name
   when:
     - tier == "bom"
 

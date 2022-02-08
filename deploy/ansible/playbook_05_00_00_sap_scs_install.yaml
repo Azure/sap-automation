@@ -13,7 +13,7 @@
 
 - hosts:                               localhost
   name:                                Get SPN from KeyVault
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
 
@@ -44,6 +44,7 @@
       include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
+
       tags:
         - 0.1-passwords
 
@@ -56,6 +57,9 @@
     - name:                            Run the sap-installation-media-storage-details role
       include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          scs 
       tags:
         - kv-sap-installation-media-storage-details
 
@@ -138,7 +142,7 @@
                 tier:                  'scs'
 
             - name:                    Errors from HANA installation
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined
@@ -285,7 +289,7 @@
                 - '"ERROR" in item'
 
             - name:                    Errors from SCS installation
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined
@@ -301,7 +305,7 @@
                 - ers_installation.rc > 0
 
             - name:                    Errors from ERS installation
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined

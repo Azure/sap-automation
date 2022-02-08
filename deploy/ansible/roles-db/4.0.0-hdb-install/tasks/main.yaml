@@ -129,7 +129,8 @@
         path:                          "/hana/backup"
         state:                         directory
         group:                         sapsys
-        owner:                         "{{ db_sid | lower}}adm"
+        owner:                         "{{ db_sid | lower }}adm"
+        mode:                          0755
 
     - name:                            "HANA Install: flag"
       ansible.builtin.file:

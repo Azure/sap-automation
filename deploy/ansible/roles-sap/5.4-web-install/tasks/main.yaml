@@ -34,37 +34,58 @@
   ansible.builtin.debug:
     var:                               web_installed
 
-- name:                                "Web Install"
-  block:
+- name:                                "APP Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-app-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-app-inifile-param.j2"
 
-    - name:                                Initialize facts
-      set_fact:
-        sap_inifile:                  "{{ bom_base_name }}-web-{{ ansible_hostname }}.params"
-        sap_inifile_template:         "{{ bom_base_name }}-web-inifile-param.j2"
+- name:                                Set the SCS Server name list
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+- name:                                Set the SCS Server name
+  ansible.builtin.set_fact:
+    scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+
+- name:                                Initialize facts
+  set_fact:
+    sap_inifile:                      "{{ bom_base_name }}-web-{{ ansible_hostname }}.params"
+    sap_inifile_template:             "{{ bom_base_name }}-web-inifile-param.j2"
 
 # Returns bom object
-    - name:                            "Web Install: Include 3.3.1-bom-utility role"
-      include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
 
-    - name:                            "Web Install: Include 3.3.1-bom-utility role"
-      include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
-      vars:
-        web_instance_number:           '00'
-        sap_ciInstanceNumber:          '00'
-        sap_installSAPHostAgent:       "false"
-        sap_profile_dir:               /sapmnt/{{ sap_sid|upper }}/profile
-        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-        sap_ciVirtualHostname:         "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') | first }}"
-        sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
-        sap_webVirtualHostname:        "{{ inventory_hostname }}"
-      tags:
-        - skip_ansible_lint
+- name:                                "Web Install: Include 3.3.1-bom-utility role"
+  include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+
+- name:                                "Web Install: Include 3.3.1-bom-utility role"
+  include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-template
+  vars:
+    web_instance_number:               '00'
+    sap_ciInstanceNumber:              '00'
+    sap_installSAPHostAgent:           "false"
+    sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
+    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') | first }}"
+    sap_webVirtualHostname:            "{{ inventory_hostname }}"
+  tags:
+    - skip_ansible_lint
+
+- name:                            "Web install: register variables"
+  ansible.builtin.set_fact:
+    web_bom_id:                    "{{ bom.product_ids.web }}"
+
+- name:                                "Web Install"
+  block:
 
 # *====================================4=======================================8
 #   SAP Web Dispatcher: Install
@@ -81,8 +102,8 @@
         creates:                       /etc/sap_deployment_automation/sap_deployment_web.txt
       environment:
         TMPDIR:                        /usr/sap/install
-      register:                        scs_installation
-      failed_when:                     scs_installation.rc > 0
+      register:                        web_installation
+      failed_when:                     web_installation.rc > 0
       tags:
         - skip_ansible_lint
       when:                            node_tier == 'web'
@@ -96,7 +117,6 @@
   when:
     - node_tier == 'web'
     - not web_installed.stat.exists
-
 
 # *====================================4=======================================8
 

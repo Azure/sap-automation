@@ -7,7 +7,7 @@
 
 - hosts:                               localhost
   name:                                Get SAP Password from KeyVault
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml
     # API Input template with defaults
@@ -25,6 +25,10 @@
         path:                          "{{ _workspace_directory }}/.progress/db-load-done"
         state:                          absent
 
+    - name:                            Initialize tier
+      ansible.builtin.set_fact:
+        tier:                          dbload
+
     - name:                            Include 0.1-passwords Role
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
@@ -35,9 +39,10 @@
     - name:                            Run the sap-installation-media-storage-details role
       include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
       vars:
         tier:                          dbload
-        
+
       tags:
         - kv-sap-installation-media-storage-details
 
@@ -70,7 +75,7 @@
       include_vars:                    "{{ _workspace_directory }}/sap-parameters.yaml"
 
     - name:                            Load the SAP parameters
-      ansible.builtin.debug:          
+      ansible.builtin.debug:
         var:                           platform
 
 
@@ -80,7 +85,9 @@
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
-            bom_processing:            true 
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            bom_processing:            true
           tags:
             - always
 
@@ -109,7 +116,7 @@
                 - '"ERROR" in item'
 
             - name:                    Errors from SAPInst
-              ansible.builtin.fail:
+              ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined
@@ -148,6 +155,8 @@
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -164,7 +173,7 @@
 
 - hosts:                               localhost
   name:                                Log results
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 

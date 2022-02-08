@@ -37,7 +37,21 @@
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
     nfs_server:                        "{{ nfs_server_temp | first }}"
-  when:                                NFS_provider == "NONE"
+  when:                                NFS_provider != "AFS"
+
+# Mount Filesystems
+- name:                                Mount local filesystems (sap)
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
+    - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
+  when:
+    - (item.node_tier == "all" or item.node_tier == node_tier)
+    - not scs_high_availability
 
 # Mount Filesystems
 - name:                                Mount local filesystems
@@ -48,12 +62,12 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
     - { node_tier: 'hana', type: 'xfs',   src: "{{ sharedpath }}",                      path: '/hana/shared'     }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_data/lv_hana_data',        path: '/hana/data'       }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_log/lv_hana_log',          path: '/hana/log'        }
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'     }
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
+
 
 - name:                                Mount local filesystems (when not using AFS)
   ansible.builtin.mount:
@@ -64,7 +78,7 @@
     state:                             mounted
   loop:
     - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
-  when:         
+  when:
     - item.node_tier in supported_tiers
     - not use_AFS
 
@@ -103,7 +117,7 @@
   rescue:
     - name:                            Re-mount Filesystems when not using external NFS (app & pas)
       ansible.builtin.debug:
-        msg:                           "Trying to remount"
+        msg:                           "Trying to remount sap-mnt"
     - name:                            Re-mount Filesystems when not using external NFS (app & pas)
       ansible.builtin.mount:
         src:                           "{{ item.src }}"
@@ -118,22 +132,6 @@
         - node_tier in ['pas', 'app', 'ers']
         - sap_mnt is undefined
         - nfs_server !=  ansible_hostname
-
-
-# Mount Filesystems
-
-- name:                                Mount Install folder when using AFS
-  ansible.builtin.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
-    opts:                              "vers=4,minorversion=1,sec=sys"
-    state:                             mounted
-  loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
-  when:
-    - tier == 'sapos'
-    - use_AFS
 
 - name:                                Mount Install folder when not using AFS
   ansible.builtin.mount:
