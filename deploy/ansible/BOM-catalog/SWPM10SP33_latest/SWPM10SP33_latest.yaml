@@ -1,4 +1,3 @@
----
 name:    'SWPM10SP33'
 target:  'SWPM10SP33'
 version: 1
@@ -14,3 +13,4 @@ materials:
       extractDir:   SWPM
       creates:      SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000070482022
+                                                           
