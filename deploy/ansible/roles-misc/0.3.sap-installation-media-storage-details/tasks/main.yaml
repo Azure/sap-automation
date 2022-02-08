@@ -107,6 +107,7 @@
       no_log:                          true
   when:
    - sapbits_access_key is not defined    
+   - tier == 'bom'
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -27,14 +27,15 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
-      when:                            hostvars.localhost.sap_password is not defined
+      
       tags:
         - 0.1-passwords
 
     - name:                            Run the sap-installation-media-storage-details role
       include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
-      when:                            hostvars.localhost.sapbits_location_base_path is not defined
+        public:                        true
+      
       tags:
         - kv-sap-installation-media-storage-details
 
