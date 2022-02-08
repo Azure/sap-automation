@@ -63,7 +63,7 @@
 
 ######################################################
 #
-# 
+#
 #
 ######################################################
 
@@ -115,7 +115,7 @@
 
     - name:                             Print the value of ENSA1/ENSA2
       ansible.builtin.debug:
-        var:                            
+        var:
           - ensa1
           - ensa2
 
@@ -182,6 +182,6 @@
 
   when:
     - inventory_hostname == secondary_instance_name
-    - ensa1 
+    - ensa1
 
 ...

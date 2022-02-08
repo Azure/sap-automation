@@ -70,4 +70,3 @@
       ansible.builtin.debug:
         var:                           hdb_version[0:2]
   when: ansible_hostname == primary_instance_name
-

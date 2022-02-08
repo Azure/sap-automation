@@ -161,9 +161,6 @@
 #----------------------------------------
 # END
 
-
-
-
 - name:                                Ensure additional zypper repo is configured on SLE VMs
   block:
     # If there are no repos configured zypper lr will fail with rc == 6

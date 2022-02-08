@@ -31,7 +31,7 @@ materials:
       checksum:                        c1efbbd12cb16134720b251fd18cab4fdbc8a0a3ee93b54c2ee41671bc3048fc
       path:                            download_basket
       url:                             https://softwaredownloads.sap.com/file/0020000000937192021
-    
+
     - name:                            "Kernel Part II (753) ; OS: Linux on x86_64 64bit ; DB: SAP HANA database"
       archive:                         SAPEXEDB_801-80002572.SAR
       checksum:                        cea354d096aeca009ffcc81d0830956626fbb0b3c65e7507798256a18318bc5e
@@ -714,4 +714,3 @@ materials:
       checksum:                        02132b43b349c45e8fc6731ceb8a78ef406477a942637bb53b8228d9e11ad6a7
       download:                        false
       url:                             https://softwaredownloads.sap.com/file/0010000000297212015
-      

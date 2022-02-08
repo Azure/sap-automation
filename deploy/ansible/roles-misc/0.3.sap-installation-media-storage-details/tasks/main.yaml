@@ -12,7 +12,7 @@
     verbosity:                         2
 
 
-- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
+- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"
   block:
 
     - name:                            Check required variables are present and not empty
@@ -36,7 +36,7 @@
       ansible.builtin.set_fact:
         deployer_kv_name: >-
                                        {{ (deployer_kv_name_secret.stdout | from_json).value }}
-  when: deployer_kv_name is not defined 
+  when: deployer_kv_name is not defined
 
 - name:                                Debug, Deployer Keyvault
   ansible.builtin.debug:
@@ -53,12 +53,12 @@
       changed_when:                    false
       register:                        sapbits_location_base_path_secret
       no_log:                          false
-    
+
     - name:                            Save SAP Binaries Storage Account information
       ansible.builtin.set_fact:
         sapbits_location_base_path: >-
                                        {{ (sapbits_location_base_path_secret.stdout | from_json).value }}
-  when:                                sapbits_location_base_path is not defined  
+  when:                                sapbits_location_base_path is not defined
 
 - name:                                Debug, storage account
   ansible.builtin.debug:
@@ -75,7 +75,7 @@
                                          --name {{ sapbits_sas_token_secret }}
       changed_when:                    false
       register:                        sapbits_sas_token_secret
-    
+
     - name:                            Extract SAP Binaries Storage Account SAS
       ansible.builtin.set_fact:
         sapbits_sas_token: >-
@@ -83,7 +83,7 @@
       no_log:                          false
 
   when:                                sapbits_sas_token is not defined
-    
+
 - name:                                Debug, SAS Token
   ansible.builtin.debug:
     var:                               sapbits_sas_token
@@ -99,15 +99,15 @@
       changed_when:                    false
       register:                        keyvault_secret_show_accesskey
       no_log:                          true
-    
+
     - name:                            "BoM Secrets: Extract Access Key details"
       ansible.builtin.set_fact:
         sapbits_access_key: >-
           {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
       no_log:                          true
   when:
-   - sapbits_access_key is not defined    
-   - tier == 'bom'
+    - tier == 'bom'
+    - sapbits_access_key is not defined
 
 ...
 # /*---------------------------------------------------------------------------8

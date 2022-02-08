@@ -5,17 +5,33 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
+- hosts:                               localhost
+  name:                                Get SAP Password from KeyVault
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            Include 0.1-passwords Role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+
 # Steps:
 #   01) NFS: Mount
 #
 
-- hosts:          "{{ db_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid|upper }}_DB"
 
-  name:           DB Installation prechecks - Oracle ASM
-  remote_user:    "{{ orchestration_ansible_user }}"                
-  become:         yes
-  become_user:    root
-  gather_facts:   true
+  name:                                DB Installation prechecks - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
@@ -23,58 +39,97 @@
   tasks:
 # -------------------------------------+---------------------------------------8
 #
-# Build the list of tasks to be executed in order here. 
+# Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
 
-  - ansible.builtin.set_fact:
-      tier:     ora                                                       # Actions for Oracle DB Servers
-      node_tier: oracle-asm
-    tags:
-      - always
+    - name:                            Setting the DB facts
+      ansible.builtin.set_fact:
+        tier:                            "ora"                                    # Actions for Oracle DB Servers
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+      tags:
+        - always
 
 # -------------------------------------+---------------------------------------8
 # Role: oracle-users
 #
 # Description: Create oracle users and groups.
-#              
 #
-  - include_role:
-      name:     roles-os/1.11-accounts
+#
+    - block:
+        - name:                        Include 1.11-accounts
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+      tags:
+        - 1.11-accounts
+
+# -------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
+# Role: sap-mounts
+#
+# Description: Mount Filesystems
+#              Mount NFS Filesystems
+#
+    - block:
+        - name:                        Include 2.6-sap-mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+      tags:
+        - 2.6-sap-mounts
 # -------------------------------------+---------------------------------------8
 
-# Description: Installs ASM Packages, configures ASMLIB and initialises the disks for ASM.
-# Mounts local filesystems and NFS file systems for installation.
-  - include_role:
-      name:                      roles-os/1.5.1-disk-setup-asm
-      
-    tags:
-      - 1.5.1-disk-setup-asm
-    
+
+# Oracle installation has to be done with oracle user. Change the user to become orasid and call the installer.
+
+- hosts:                               "{{ sap_sid|upper }}_DB"
+
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "oracle"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            Setting the DB facts
+      ansible.builtin.set_fact:
+        tier:                          ora                                    # Actions for Oracle DB Servers
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+      tags:
+        - always
+
+    - name:                               Include roles-db/4.1.1-ora-asm-grid
+      include_role:
+        name:     roles-db/4.1.1-ora-asm-grid
+      tags:
+        - 4.1.1-ora-asm-grid
+
 # -------------------------------------+---------------------------------------8
 # Role: ASM Grid SOftware install.
 #
 # Description: ASM Grid SOftware Install
-#              
 #
-  - include_role:
-      name:     roles-db/4.1.1-ora-asm-grid
-    tags:
-      - 4.1.1-ora-asm-grid
+#
+    - name:                               Include roles-db/4.1.2-ora-asm-db-install
+      include_role:
+        name:                          roles-db/4.1.2-ora-asm-db-install
+      tags:
+        - 4.1.2-ora-asm-db-install
 # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Role: ASM Grid SOftware install.
-#
-# Description: ASM Grid SOftware Install
-#              
-#
-  - include_role:
-      name:     roles-db/4.1.2-ora-asm-db-install
-    tags:
-      - 4.1.2-ora-asm-db-install
-# -------------------------------------+---------------------------------------8
+# # Oracle Post installation scripts
+# - hosts:          "{{ sap_sid|upper }}_DB"
 
+#   name:           DB Installation - Oracle
+#   remote_user:    "{{ orchestration_ansible_user }}"
+#   become:         yes
+#   become_user:    root
+#   gather_facts:   true
+#   vars_files:
+#     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
-
-
+#   tasks:
+#   - include_role:
+#       name:     roles-db/4.1.0-ora-post-install
