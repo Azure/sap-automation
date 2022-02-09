@@ -140,7 +140,7 @@
                                        mv  $ORACLE_HOME/OPatch   $ORACLE_HOME/OPatch.bck
                                        cp -R OPATCH/OPatch $ORACLE_HOME/.
                                        cp -R {{ mopatch_directory }} $ORACLE_HOME/.
-                                       $ORACLE_HOME/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SAP19P_2108-70004508.ZIP
+                                       $ORACLE_HOME/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/{{ oracle_sbp_patch }}
 
   environment:
     DB_SID:                            "{{ db_sid }}"
