@@ -59,10 +59,17 @@
     opts:                              defaults
     state:                             mounted
   loop:                                "{{ logical_volumes |sort(attribute='lv') }}"
-  register:  oraclefilesystemmounts
+  register:  oracle_filesystem_mounts
   when:
     - item.node_tier == "oracle"
-    - item.lv in  lvexists
+    - item.lv in lvexists
+
+# Debug for testing
+- name:                                "ORACLE: Print oracle filesystems"
+  ansible.builtin.debug:
+    var:                               oracle_filesystem_mounts
+    verbosity:                         2
+
 
 - name:                                "ORACLE: Create sap_deployment_automation folder"
   ansible.builtin.file:
@@ -70,18 +77,11 @@
     mode:                              0755
     state:                             directory
 
-- name:                                "ORACLE: Create filepermission.txt"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
-    state:                             touch
-    mode:                              0755
 
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"
-  ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
-  register:                            oracle_permissions_set
+# - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"
+#   ansible.builtin.stat:
+#     path:                              /etc/sap_deployment_automation/filepermission.txt
+#   register:                            oracle_permissions_set
 
 - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"
   ansible.builtin.file:
@@ -91,50 +91,23 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
-  when:
-    - not oracle_permissions_set.stat.exists
+    - { path: '/oracle',           group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install',  group: 'oinstall',   owner: 'oracle'}
+  # when:
+  #   - not oracle_permissions_set.stat.exists
 
-- name:                                "ORACLE: Create sap_deployment_automation folder"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
-    mode:                              0755
-    state:                             directory
-
-- name:                                "ORACLE: Create filepermission.txt"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
-    state:                             touch
-    mode:                              0755
-
-- name:                                "ORACLE: Make orasid:dba as owners"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    owner:                             "{{ item.owner }}"
-    group:                             "{{ item.group }}"
-    recurse:                           true
-  loop:
-    - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
-    - { path: '/usr/sap/install/oraclient', group: 'oinstall',   owner: 'oracle'}
-    - { path: '/usr/sap/install/oraserver', group: 'oinstall',   owner: 'oracle'}
-
-# Mount Filesystems
-- name:     "Mount SAP Filesystems on Database for installation"
-  mount:
-    src:    "{{ item.src }}"
-    path:   "{{ item.path }}"
-    fstype: "{{ item.type }}"
-    opts:   defaults
-    state:  mounted
-  loop:
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
-  when:
-    - item.tier == "ora"
+# # Mount Filesystems
+# - name:     "Mount SAP Filesystems on Database for installation"
+#   mount:
+#     src:    "{{ item.src }}"
+#     path:   "{{ item.path }}"
+#     fstype: "{{ item.type }}"
+#     opts:   defaults
+#     state:  mounted
+#   loop:
+#     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
+#   when:
+#     - item.tier == "ora"
 
 
 # - name:                             "File permissions updated"
@@ -142,8 +115,3 @@
 #     path:                              /etc/sap_deployment_automation/filepermission.txt
 #     state:                             touch
 
-#Debug for testing
-- name:                                "ORACLE: Print oracle filesystems"
-  ansible.builtin.debug:
-    var:                               oraclefilesystemmounts
-    verbosity:                         2

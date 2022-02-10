@@ -135,7 +135,7 @@
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    checksum:                          "sha256:{{ item.checksum | upper }}"
+    checksum:                          "{% if item.checksum is defined %}sha256:{{ item.checksum | upper }}{% endif %}"
     tmp_dest:                          "{{ target_media_location }}/tmp"
     validate_certs:                    true
   register:                            result

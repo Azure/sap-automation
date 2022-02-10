@@ -20,6 +20,14 @@
       tags:
         - 0.1-passwords
 
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          ora
+      tags:
+        - kv-sap-installation-media-storage-details
 
 # Steps:
 #   01) NFS: Mount
@@ -45,8 +53,10 @@
 
     - name:                            Setting the DB facts
       ansible.builtin.set_fact:
-        tier:                            "ora"                                    # Actions for Oracle DB Servers
+        tier:                          "ora"                                    # Actions for Oracle DB Servers
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 
@@ -97,6 +107,8 @@
       ansible.builtin.set_fact:
         tier:                          ora                                    # Actions for Oracle DB Servers
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 

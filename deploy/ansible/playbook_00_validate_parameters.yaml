@@ -102,7 +102,7 @@
         - { parameter: 'oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
       loop_control:
         loop_var: item_to_check
-      when:                            node_tier == "ORACLE"
+      when:                            platform == "ORACLE"
 
 
 
