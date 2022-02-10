@@ -120,6 +120,12 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
+    # - name:                            Validate outbound internet
+    #   ansible.builtin.get_url:
+    #     url:                           'https://www.microsoft.com'
+    #     dest:                          /tmp/foo.html
+    #     http_agent:                    'SAP Software Download'
+
     - name:                            Validate SCS and HDB instance numbers
       ansible.builtin.assert:
         that:
