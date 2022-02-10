@@ -104,6 +104,12 @@
         loop_var: item_to_check
       when:                            platform == "ORACLE"
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                  Validate the serverside parameters                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
 - hosts:              "{{ sap_sid|upper }}_DB  :
                        {{ sap_sid|upper }}_SCS :
                        {{ sap_sid|upper }}_ERS :
@@ -118,12 +124,15 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
+<<<<<<< HEAD
     # - name:                            Validate outbound internet
     #   ansible.builtin.get_url:
     #     url:                           'https://www.microsoft.com'
     #     dest:                          /tmp/foo.html
     #     http_agent:                    'SAP Software Download'
 
+=======
+>>>>>>> 84dec6ec084af45edd1a10d3ee44746c06dad9de
     - name:                            Validate SCS and HDB instance numbers
       ansible.builtin.assert:
         that:
