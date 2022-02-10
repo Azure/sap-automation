@@ -84,6 +84,8 @@
 #   register:                            oracle_permissions_set
 
 - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory

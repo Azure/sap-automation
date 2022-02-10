@@ -226,7 +226,7 @@
 
 - name:                                "Post processing installer output"
   ansible.builtin.debug:
-    var:                               sbpscript_results
+    var:                               sbpscript_results.stdout_lines
 
 # - name:                                Remove SAPSBP
 #   ansible.builtin.file:
