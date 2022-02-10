@@ -36,8 +36,8 @@ namespace AutomationForm.Controllers
         [ActionName("Templates")]
         public ActionResult Templates()
         {
-            string[] landscapeFilePaths = Directory.GetFiles("..\\..\\sap-automation\\samples\\WORKSPACES\\LANDSCAPE", "*", SearchOption.AllDirectories);
-            string[] systemFilePaths = Directory.GetFiles("..\\..\\sap-automation\\samples\\WORKSPACES\\SYSTEM", "*", SearchOption.AllDirectories);
+            string[] landscapeFilePaths = Directory.GetFiles("..\\..\\..\\samples\\WORKSPACES\\LANDSCAPE", "*", SearchOption.AllDirectories);
+            string[] systemFilePaths = Directory.GetFiles("..\\..\\..\\samples\\WORKSPACES\\SYSTEM", "*", SearchOption.AllDirectories);
 
             Dictionary<string, string[]> filePaths = new Dictionary<string, string[]>
             {
