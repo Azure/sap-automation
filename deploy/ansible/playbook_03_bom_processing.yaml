@@ -27,7 +27,7 @@
 
     - name:                            Set 'bom' tier
       ansible.builtin.set_fact:
-        tier:                          bom
+        tier:                          bom_download
 
     - name:                            Include 0.3.sap-installation-media-storage-details role
       ansible.builtin.include_role:
