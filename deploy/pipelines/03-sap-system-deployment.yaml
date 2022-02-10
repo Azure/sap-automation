@@ -49,26 +49,26 @@ stages:
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-                
+
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
                 export HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
-                
+
                 cd $HOME; mkdir -p .sap_deployment_automation
-                
+
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
               echo -e "$green--- Validations ---$reset"
-                
+
                 if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
                   echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
                   exit 2
                 fi
-                
+
                 export ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                 export    LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-                
+
                 environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
-                
+
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $ENVIRONMENT$LOCATION was not found ---$reset"
                   echo "##vso[task.logissue type=error]Workload zone configuration file $ENVIRONMENT$LOCATION was not found."
@@ -84,19 +84,19 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
-                
+
                 if [ ! -n $(ARM_CLIENT_SECRET) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-                
+
                 if [ ! -n $(ARM_TENANT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                
-                SID=$(echo $(sap_system_folder) | cut -d'-' -f4 | xargs) 
-                
+
+                SID=$(echo $(sap_system_folder) | cut -d'-' -f4 | xargs)
+
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
                   exit 2

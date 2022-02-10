@@ -104,7 +104,11 @@
         loop_var: item_to_check
       when:                            platform == "ORACLE"
 
-
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                  Validate the serverside parameters                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 - hosts:              "{{ sap_sid|upper }}_DB  :
                        {{ sap_sid|upper }}_SCS :

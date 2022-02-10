@@ -113,10 +113,13 @@
         - { state: 'absent' }   # Then remove packages that we don't want
 
   rescue:
+    - name:                            Print return value
+      ansible.builtin.debug:
+        var:                           package_result
+
     - name:                            "Performing rescue action"
       ansible.builtin.pause:
         seconds:                       60
-      when: package_result.rc == 7
     - name:                            "1.4 - Update OS packages: {{ distro_full_id }}"
       ansible.builtin.package:
         name:                          "{{ packages_for_specific_tier |
@@ -127,7 +130,9 @@
       loop:
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
-      when: package_result.rc == 7
+      when:
+        - package_result is defined
+        - package_result.rc == 7
 
 - name:                                "1.4 - Upgrade all: {{ distro_full_id }}"
   zypper:
