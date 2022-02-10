@@ -79,7 +79,7 @@ stages:
                   echo "##vso[task.logissue type=error]SID was not found in $(sapsystemconfig)."
                   exit 2
                 fi
-                
+
                 if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
                   echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found."
@@ -105,7 +105,7 @@ stages:
                 export kv_name=$(cat .sap_deployment_automation/${ENV}${LOCA}  | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
                 az keyvault secret show --name ${ENV}-${LOCA}-${VNET}-sid-sshkey --vault-name $kv_name --query value -o tsv > $(Build.Repository.LocalPath)/sshkey
                 chmod 600 $(Build.Repository.LocalPath)/sshkey
-                
+
                 echo "##vso[task.setvariable variable=SSHKEY;isOutput=true]$(Build.Repository.LocalPath)/sshkey"
             name:                      Preparation
             displayName:               Preparation_for_Ansible
@@ -169,7 +169,7 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-                SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs) 
+                SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs)
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
                   exit 2

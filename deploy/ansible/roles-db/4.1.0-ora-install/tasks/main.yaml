@@ -44,7 +44,9 @@
   args:
     chdir:                             /usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP
     creates:                           /oracle/oracle_pre_check_install.txt
-    executable:                        /bin/csh    
+    executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
 
 # Debug for testing
 - name:                                "Debug: installer prechecks output"
@@ -55,6 +57,7 @@
   ansible.builtin.copy:
     dest:                              /oracle/pre-req.log
     content:                           oraprecheck_results.stdout
+    mode:                              0777
   when:                                oraprecheck_results.stdout is defined
 
 - name:                                Create oracle_pre_check_install.txt
@@ -84,6 +87,8 @@
     executable:                        /bin/csh
     chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /oracle/oracleinstall.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Debug: installer output"
   ansible.builtin.debug:
@@ -93,6 +98,7 @@
   ansible.builtin.copy:
     dest:                              /oracle/install.log
     content:                           orainstaller_results.stdout
+    mode:                              0777
   when:                                orainstaller_results.stdout is defined
 
 - name:                                Create oracleinstall.txt
@@ -117,6 +123,8 @@
   args:
     creates:                           /oracle/orainstRoot_executed.txt
     executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
 
 - name:                                Create orainstRoot_executed.txt
   ansible.builtin.file:
@@ -132,6 +140,8 @@
   args:
     creates:                           /oracle/rootscripts_executed.txt
     executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
 
 - name:                                Create rootscripts_executed.txt
   ansible.builtin.file:
@@ -172,7 +182,7 @@
   when:                                mopatch_directory.matched == 1
 
 - name:                                Check if "OPatch.bck" exists
-  ansible.builtin.stat:            
+  ansible.builtin.stat:
     path:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
   register:                            opatch_stat
 
@@ -181,6 +191,7 @@
     src:                               /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
     remote_src:                        true
+    mode:                              0777
   when:
     - not opatch_stat.stat.exists
 
@@ -198,6 +209,7 @@
     src:                               /usr/sap/install/SBP/OPATCH/OPatch
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                        true
+    mode:                              0777
 
 - name:                                copy MOPatch
   become:                              true
@@ -206,6 +218,8 @@
     src:                               "{{ mopatch_path }}"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                        true
+    mode:                              0777
+
 
 - name:                                "Oracle Post Processing - SBP Patching"
   become:                              true

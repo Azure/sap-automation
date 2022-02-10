@@ -116,4 +116,3 @@
 #   ansible.builtin.file:
 #     path:                              /etc/sap_deployment_automation/filepermission.txt
 #     state:                             touch
-

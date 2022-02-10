@@ -104,8 +104,6 @@
         loop_var: item_to_check
       when:                            platform == "ORACLE"
 
-
-
 - hosts:              "{{ sap_sid|upper }}_DB  :
                        {{ sap_sid|upper }}_SCS :
                        {{ sap_sid|upper }}_ERS :
