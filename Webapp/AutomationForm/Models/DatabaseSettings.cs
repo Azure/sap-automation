@@ -6,6 +6,7 @@
         public string LandscapeCollectionName { get; set; }
         public string SystemCollectionName { get; set; }
         public string AppFileCollectionName { get; set; }
+        public string TemplateCollectionName { get; set; }
         public string MongoConnectionStringKey { get; set; }
     }
 
@@ -15,6 +16,7 @@
         string LandscapeCollectionName { get; set; }
         string SystemCollectionName { get; set; }
         string AppFileCollectionName { get; set; }
+        string TemplateCollectionName { get; set; }
         string MongoConnectionStringKey { get; set; }
     }
 }

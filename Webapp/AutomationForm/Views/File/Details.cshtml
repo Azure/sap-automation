@@ -15,14 +15,16 @@
 </div>
 
 <div>
-    <pre>
-        <code class="language-hcl">
-            @Html.Raw(ViewBag.Message)
-        </code>
-    </pre>
+    <pre><code id="file-content" class="language-hcl" spellcheck="false">@ViewBag.Message</code></pre>
+
+    <div class="bottom-buttons">
+        <fluent-anchor appearance="accent" href="@Url.Action("Edit", "File", new { id = Model.Id })">
+            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
+        </fluent-anchor>
+
+        <fluent-anchor href="@Url.Action("Index", "File")">
+            Back to list
+        </fluent-anchor>
+    </div>
+
 </div>
-<p>
-    <fluent-anchor href="@Url.Action("Index", "File")">
-        Back to list
-    </fluent-anchor>
-</p>

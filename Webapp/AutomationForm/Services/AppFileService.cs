@@ -8,11 +8,13 @@ namespace AutomationForm.Services
     public class AppFileService : ILandscapeService<AppFile>
     {
         private readonly IMongoCollection<AppFile> _files;
+        private readonly IMongoCollection<AppFile> _templates;
 
         public AppFileService(MongoService mongo, IDatabaseSettings settings)
         {
             var db = mongo.GetClient().GetDatabase(settings.DatabaseName);
             _files = db.GetCollection<AppFile>(settings.AppFileCollectionName);
+            _templates = db.GetCollection<AppFile>(settings.TemplateCollectionName);
         }
 
         public Task<List<AppFile>> GetNAsync(int n)

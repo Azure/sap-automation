@@ -9,6 +9,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace AutomationForm.Controllers
 {
@@ -29,6 +31,36 @@ namespace AutomationForm.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _appFileService.GetNAsync(10));
+        }
+
+        [ActionName("Templates")]
+        public ActionResult Templates()
+        {
+            string[] landscapeFilePaths = Directory.GetFiles("..\\..\\sap-automation\\samples\\WORKSPACES\\LANDSCAPE", "*", SearchOption.AllDirectories);
+            string[] systemFilePaths = Directory.GetFiles("..\\..\\sap-automation\\samples\\WORKSPACES\\SYSTEM", "*", SearchOption.AllDirectories);
+
+            Dictionary<string, string[]> filePaths = new Dictionary<string, string[]>
+            {
+                { "landscapes", landscapeFilePaths },
+                { "systems", systemFilePaths }
+            };
+            
+            return View(filePaths);
+        }
+
+        [ActionName("UseTemplate")]
+        public IActionResult UseTemplate(string fileName)
+        {
+            using (var stream = System.IO.File.OpenRead(fileName))
+            {
+                MemoryStream ms = new MemoryStream();
+                stream.CopyTo(ms);
+                byte[] bytes = ms.ToArray();
+                string bitString = Encoding.ASCII.GetString(bytes);
+                ViewBag.Message = bitString;
+                ViewBag.TemplateName = fileName.Substring(fileName.LastIndexOf('\\') + 1);
+                return View("Create");
+            }
         }
 
         [ActionName("Upload")]
@@ -80,23 +112,6 @@ namespace AutomationForm.Controllers
                         };
                         file.Id = WebUtility.HtmlEncode(formFile.FileName);
 
-                        // Convert to a landscape or system object
-                        byte[] bytes = file.Content;
-                        string bitString = Encoding.ASCII.GetString(bytes);
-                        string jsonString = Helper.TfvarToJson(bitString);
-                        if (file.Id.EndsWith("INFRASTRUCTURE.tfvars"))
-                        {
-                            LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
-                            landscape.Id = (landscape.environment + "-" + Helper.MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
-                            await _landscapeService.CreateAsync(landscape);
-                        }
-                        else
-                        {
-                            SystemModel system = JsonSerializer.Deserialize<SystemModel>(jsonString);
-                            system.Id = (system.environment + "-" + Helper.MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
-                            await _systemService.CreateAsync(system);
-                        }
-
                         await _appFileService.CreateAsync(file);
 
                         TempData["success"] = "Successfully uploaded file(s)";
@@ -112,14 +127,168 @@ namespace AutomationForm.Controllers
             return View();
         }
 
+
+        [ActionName("Convert")]
+        public async Task<IActionResult> ConvertFileToObject(string id)
+        {
+            try
+            {
+                // Convert a file to a landscape or system object
+                AppFile file = await _appFileService.GetByIdAsync(id);
+                if (file == null) return NotFound();
+
+                byte[] bytes = file.Content;
+                string bitString = Encoding.ASCII.GetString(bytes);
+                string jsonString = Helper.TfvarToJson(bitString);
+                if (file.Id.EndsWith("INFRASTRUCTURE.tfvars"))
+                {
+                    LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
+                    landscape.Id = id;
+                    await _landscapeService.CreateAsync(landscape);
+                    TempData["success"] = "Successfully converted file " + id + " to a landscape object";
+                }
+                else
+                {
+                    SystemModel system = JsonSerializer.Deserialize<SystemModel>(jsonString);
+                    system.Id = id;
+                    await _systemService.CreateAsync(system);
+                    TempData["success"] = "Successfully converted file " + id + " to a system object";
+                }
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error converting file: " + e.Message;
+            }
+            return RedirectToAction("Index");
+        }
+
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id)
         {
             AppFile file = await _appFileService.GetByIdAsync(id);
+            if (file == null) return NotFound();
+
             byte[] bytes = file.Content;
             string bitString = Encoding.ASCII.GetString(bytes);
             ViewBag.Message = bitString;
             return View(file);
+        }
+
+        [ActionName("Create")]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ActionName("Create")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAsync(string id, string fileContent, string templateName)
+        {
+            try
+            {
+                byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
+
+                AppFile file = new AppFile()
+                {
+                    Id = WebUtility.HtmlEncode(id),
+                    Content = bytes,
+                    UntrustedName = id,
+                    Size = bytes.Length,
+                    UploadDT = DateTime.UtcNow
+                };
+
+                await _appFileService.CreateAsync(file);
+
+                TempData["success"] = "Successfully created file " + id;
+                
+                return RedirectToAction("Index");
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("FileId", "Error creating file: " + e.Message);
+            }
+
+            ViewBag.TemplateName = templateName;
+            ViewBag.Message = fileContent;
+            return View();
+
+        }
+        
+        [ActionName("Edit")]
+        public async Task<IActionResult> EditAsync(string id)
+        {
+            AppFile file = await _appFileService.GetByIdAsync(id);
+            if (file == null) return NotFound();
+
+            byte[] bytes = file.Content;
+            string bitString = Encoding.ASCII.GetString(bytes);
+            ViewBag.Message = bitString;
+            return View(file);
+        }
+
+        [HttpPost]
+        [ActionName("Edit")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAsync(string id, string newId, string fileContent)
+        {
+            AppFile file = await _appFileService.GetByIdAsync(id);
+            if (file == null) return NotFound();
+            try
+            {
+                if (id != newId)
+                {
+                    file.Id = newId;
+                    await _appFileService.CreateAsync(file);
+                    await _appFileService.DeleteAsync(id);
+                }
+                else
+                {
+                    byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
+                    file.Content = bytes;
+                    await _appFileService.UpdateAsync(file);
+                }
+
+                TempData["success"] = "Successfully updated file " + id;
+
+                return RedirectToAction("Index");
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("FileId", "Error updating file: " + e.Message);
+            }
+            ViewBag.Message = fileContent;
+            return View(file);
+
+        }
+
+        [HttpPost]
+        [ActionName("SubmitNew")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitNewAsync(string id, string newId, string fileContent)
+        {
+            AppFile file = await _appFileService.GetByIdAsync(id);
+            if (file == null) return NotFound();
+            
+            file.Id = newId;
+            byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
+            file.Content = bytes;
+
+            try
+            {
+                await _appFileService.CreateAsync(file);
+
+                TempData["success"] = "Successfully created file " + id;
+                
+                return RedirectToAction("Index");
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("FileId", "Error creating file: " + e.Message);
+            }
+
+            ViewBag.Message = fileContent;
+            return View("Edit", file);
         }
 
         [ActionName("Delete")]

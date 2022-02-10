@@ -67,11 +67,15 @@ body {
 
 pre {
     height: 70vh;
-    margin: 20px !important;
+    margin: 20px 20px 0px 20px !important;
 }
 
 fluent-checkbox {
     padding-bottom: 10px;
+}
+
+fluent-breadcrumb {
+    padding-bottom: 15px;
 }
 
 .footer {
@@ -99,6 +103,10 @@ fluent-checkbox {
     width: 90%;
     margin: 10px auto;
     padding-bottom: 10px;
+}
+
+.bottom-buttons {
+    margin-top: 2vh;
 }
 
 label.required:after {
@@ -135,6 +143,10 @@ label.required:after {
 
 .text-center {
     padding: 1vh;
+}
+
+.text-center p {
+    margin: 0px;
 }
 
 @media screen and (min-width: 992px) {
