@@ -99,13 +99,13 @@ stages:
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
-                if [ -z "$SUsername" ]; then 
+                if [ -z "$SUsername" ]; then
                   az keyvault secret set --output none --name S-Username --vault-name $kv_name --value $(S-Username)
                 else
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
                 fi
                 export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
-                if [ -z "$SPassword" ]; then 
+                if [ -z "$SPassword" ]; then
                   az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
                 fi
             displayName:               Prepare download

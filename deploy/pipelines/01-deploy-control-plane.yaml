@@ -172,3 +172,4 @@ stages:
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr:              false
 ...
+

@@ -107,11 +107,10 @@ stages:
                 export ANSIBLE_PASSWORD=$password_secret
                 chmod 600 $(Build.Repository.LocalPath)/sshkey
                 echo $(Build.Repository.LocalPath)/sshkey
-                
+
                 cd $HOME/SYSTEM/$(sap_system_folder)
                 ls
 
-                
                 export           ANSIBLE_HOST_KEY_CHECKING=False
                 export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
                 export           ANSIBLE_REMOTE_USER=azureadm
@@ -123,8 +122,8 @@ stages:
 
                 pb=playbook_tester.yaml
                 # pb=playbook_04_00_01_db_ha.yaml
- 
-                ansible-playbook -i $(Build.Repository.LocalPath)/sap_hosts.yaml ${DEPLOYMENT_REPO_PATH}/deploy/ansible/$pb  --private-key $(Build.Repository.LocalPath)/sshkey -e @$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}' -e "_workspace_directory=@$HOME/SYSTEM/$(sap_system_folder)" -vv  
+
+                ansible-playbook -i $(Build.Repository.LocalPath)/sap_hosts.yaml ${DEPLOYMENT_REPO_PATH}/deploy/ansible/$pb  --private-key $(Build.Repository.LocalPath)/sshkey -e @$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}' -e "_workspace_directory=@$HOME/SYSTEM/$(sap_system_folder)" -vv
 
                 return_code=$?
                 echo "Return code from ansible-playbook $return_code."

@@ -104,10 +104,10 @@ stages:
         displayName:                   Preparation steps
         workspace:
           clean:                       all
-          
+
         steps:
           - checkout:                  self
-            persistCredentials:        true            
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -122,9 +122,9 @@ stages:
                    LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
                 VIRTUAL_NET=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $VIRTUAL_NET
                         SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
-                
+
                 environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
-                
+
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $environment_file_name was not found ---$reset"
                   echo "##vso[task.logissue type=error]Workload zone configuration file $environment_file_name was not found."
@@ -137,7 +137,7 @@ stages:
                   exit 2
                 fi
                 dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
-                
+
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sap_system_folder)."
                   exit 2
@@ -148,7 +148,7 @@ stages:
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found."
                   exit 2
                 fi
-                
+
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
                 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml"
                 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sap_system_folder)"
@@ -188,7 +188,7 @@ stages:
                 fi
 
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -q & >/dev/null
                 fi
                 2> >(while read line; do (>&2 echo "STDERROR: $line"); done)
@@ -215,7 +215,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -227,7 +227,7 @@ stages:
               echo $(parameters_folder)
               echo $(DEPLOYMENT_REPO_PATH)
               sudo chmod 600 $(Pipeline.Workspace)/key/$(CONFIGURATION_NAME)_sshkey
-              
+
             displayName: Variables
           - task:                      Ansible@0
             displayName:               Validate the input parameters
@@ -237,15 +237,15 @@ stages:
 
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(SID_hosts)
-              
+
               args:                    '--private-key $(Pipeline.Workspace)/key/$(CONFIGURATION_NAME)_sshkey -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_HOST_KEY_CHECKING: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage:                             Core_Operating_System_Configuration
     displayName:                       Core Operating System Configuration
@@ -263,7 +263,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -283,9 +283,9 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_HOST_KEY_CHECKING: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
-            
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
 
   - stage:                             SAP_Operating_System_Configuration
     displayName:                       SAP Operating System Configuration
@@ -339,7 +339,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -356,8 +356,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage: Database_Installation
     displayName:                       Database Installation
@@ -376,7 +376,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -414,7 +414,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -431,8 +431,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage: Database_Load
     displayName:                       Database Load
@@ -453,7 +453,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -470,8 +470,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage: PAS_Installation
     displayName:                       PAS Installation
@@ -493,7 +493,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -510,8 +510,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage: APP_Install
     displayName:                       Application Server Install
@@ -534,7 +534,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -551,8 +551,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage: WebDispatcher_Installation
     displayName:                       WebDispatcher Installation
@@ -576,7 +576,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -593,8 +593,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
 
   - stage:                             HighAvailability_Setup
     displayName:                       High Availability Setup
@@ -615,7 +615,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-        
+
         steps:
           - checkout:                  none
             persistCredentials:        true
@@ -632,8 +632,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
-            continueOnError:           false          
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
           # - bash: |
           #     #!/bin/bash
           #     echo "##vso[build.updatebuildnumber]Performing the HA configuration for $(sap_system_folder)"
@@ -689,9 +689,9 @@ stages:
           #       password_secret=$(az keyvault secret show --vault-name ${kv_name} --name ${ENV}-${LOCA}-${VNET}-sid-password | jq -r .value)
           #       export ANSIBLE_PASSWORD=$password_secret
           #       chmod 600 $(Build.Repository.LocalPath)/sshkey
-                
+
           #       cd $HOME/SYSTEM/$(sap_system_folder)
-                
+
           #       export           ANSIBLE_HOST_KEY_CHECKING=False
           #       export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
           #       export           ANSIBLE_REMOTE_USER=azureadm
@@ -703,8 +703,8 @@ stages:
 
           #       #pb=playbook_tester.yaml
           #       pb=playbook_04_00_01_db_ha.yaml
- 
-          #       ansible-playbook -i $(Build.Repository.LocalPath)/sap_hosts.yaml ${DEPLOYMENT_REPO_PATH}/deploy/ansible/$pb  --private-key $(Build.Repository.LocalPath)/sshkey -e @$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}' -e "_workspace_directory=@$HOME/SYSTEM/$(sap_system_folder)" $(ExtraParams)  
+
+          #       ansible-playbook -i $(Build.Repository.LocalPath)/sap_hosts.yaml ${DEPLOYMENT_REPO_PATH}/deploy/ansible/$pb  --private-key $(Build.Repository.LocalPath)/sshkey -e @$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}' -e "_workspace_directory=@$HOME/SYSTEM/$(sap_system_folder)" $(ExtraParams)
           #       rm $(Build.Repository.LocalPath)/sshkey
 
           #       return_code=$?
@@ -755,7 +755,7 @@ stages:
                 # #   git rm $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/$(sap_system_folder)_sshkey
                 # #   added=1
                 # # fi
-                
+
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
@@ -767,7 +767,7 @@ stages:
             displayName:               Copy Log files
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)    
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
             failOnStderr:              false
 
 ...
