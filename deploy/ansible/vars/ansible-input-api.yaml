@@ -1,4 +1,5 @@
 ---
+
 # API Input template with defaults
 
 # Example of passing input YAML to ansible-playbook
@@ -15,14 +16,8 @@ chrony_pool:                  ""
 chrony_servers:               []
 
 # BoM Processing variables
-sapbits_location_base_path:   ""                                                        # REQUIRED
 sapbits_bom_files:            "sapfiles"                                                # Default
-bom_base_name:                ""                                                        # REQUIRED
 target_media_location:        "/usr/sap/install"                                        # Default
-sapbits_sas_token:            ""                                                        # Optional
-sapbits_access_key:           ""                                                        # Optional
-s_user:                       ""
-s_password:                   ""
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
 
@@ -42,16 +37,31 @@ sap_fqdn:                     ""                                                
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
+
+# Oracle specific parameters
+ora_sid:                      "ORA"
+dba_gid:                      3000
+oper_gid:                     3001
+asmoper_gid:                  3002
+asmadmin_gid:                 3003
+asmdba_gid:                   3004
+oinstall_gid:                 3005
+orasid_uid:                   3000
+oracle_uid:                   3001
 hdbshm_gid:                   2002
+
 scs_hostname:                 ""
 scs_instance_number:          "00"                                                      # SAP Install
 ers_instance_number:          "02"
+app_instance_number:          "00"
 sidadm_uid:                   2000
 hdbadm_uid:                   2200
 scs_lb_ip:                    ""                                                        # SAP HA
 db_lb_ip:                     ""                                                        # SAP HA
 reinstall:                    false                                                     # Provide a way to override the idempotency flags for SAP tasks
-
+ora_release:                  19
+ora_version:                  19.0.0
+ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
 
 password_cockpit_admin:       ""
@@ -65,9 +75,12 @@ download_templates:           false
 prometheus:                   false                                                      # Install Prometheus Monitoring Agent
 
 # Keyvault
-deployer_kv_name:             "deployer-kv-name"                                         # Name of secret containing the deployer keyvault name in the workload zone keyvault
+deployer_kv_name_secret:      "deployer-kv-name"                                         # Name of secret containing the deployer keyvault name in the workload zone keyvault
 sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
 sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
+
+# NFS
+NFS_provider:                 "NONE"
 
 sap_swap:
   - { tier: 'scs',  swap_size_mb: '4096' }
@@ -76,6 +89,7 @@ sap_swap:
   - { tier: 'app',  swap_size_mb: '20480' }
   - { tier: 'web',  swap_size_mb: '4096' }
   - { tier: 'hana', swap_size_mb: '2048' }
-
+  - { tier: 'oracle', swap_size_mb: '20480' }
+  - { tier: 'oracle-asm', swap_size_mb: '20480' }
 
 ...
