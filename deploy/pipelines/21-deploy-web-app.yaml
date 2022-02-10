@@ -19,8 +19,8 @@ parameters:
     default: MGMT
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: ${{ parameters.environment }}
+  - group: "SDAF-General"
+  - group: SDAF-${{ parameters.environment }}
   - name: solution
     value: '**/*.sln'
   - name: buildPlatform
