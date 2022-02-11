@@ -66,10 +66,6 @@
     bom_name:                          "{{ bom_base_name }}"
 # -------------------------------------+---------------------------------------8
 
-- name: Bom folder path
-  ansible.builtin.debug:
-    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
-
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing dependent BOM names.
@@ -86,6 +82,14 @@
     - bom.materials.dependencies is defined
     - bom.materials.dependencies|length>0
 # -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Print BOM folder output path to console.
+#
+- name: BOM folder path
+  ansible.builtin.debug:
+    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
