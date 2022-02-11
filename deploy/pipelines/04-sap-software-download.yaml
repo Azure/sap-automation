@@ -18,12 +18,11 @@ parameters:
       - S41909SPS03_v0010ms
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
-      - HANA_2_00_055_v0005ms
-      - NW750SPS20_v0002ms
+      - HANA_2_00_055_v0006ms
+      - NW750SPS20_v0004ms
 
   - name:                              environment
     displayName:                       Control Plane Environment
-    type:                              string
     default:                           MGMT
 
   - name:                              region
@@ -99,14 +98,20 @@ stages:
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
-                if [ -z "$SUsername" ]; then
+                if [ -z "$SUsername" ]; then 
                   az keyvault secret set --output none --name S-Username --vault-name $kv_name --value $(S-Username)
+                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$(S-Username)"
                 else
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
+                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsername"
+
                 fi
                 export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
-                if [ -z "$SPassword" ]; then
+                if [ -z "$SPassword" ]; then 
                   az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
+                  echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$(S-Password)"
+                else
+                  echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
                 fi
             displayName:               Prepare download
             name:                      Preparation
@@ -121,6 +126,8 @@ stages:
         displayName:                   Download software
         variables:
           kv_name:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          S-USER:                      $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
+          S-PASSWORD:                  $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
         timeoutInMinutes:              0
         steps:
           - task:                      PostBuildCleanup@3
