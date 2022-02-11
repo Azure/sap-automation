@@ -105,7 +105,6 @@
               with_items:              "{{ hana_installation.stdout_lines }}"
               when:
                 - hana_installation.stdout_lines is defined
-                - hana_installation.rc is defined
                 - '"ERROR" in item'
 
             - name:                    Include 7.0.0-post-install role

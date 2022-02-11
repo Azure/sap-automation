@@ -354,8 +354,8 @@ webdispatcher_server_count = 0
 # for the brownfield scenario the Azure resource identifier for the subnet must be specified
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-##network_name ="SAP01"
-network_logical_name = "SAP01"
+##network_name ="SAP05"
+network_logical_name = "SAP05"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix
