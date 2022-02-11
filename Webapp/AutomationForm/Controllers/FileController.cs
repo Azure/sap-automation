@@ -134,6 +134,7 @@ namespace AutomationForm.Controllers
                 AppFile file = await _appFileService.GetByIdAsync(id);
                 if (file == null) return NotFound();
 
+                id = id.Substring(0, id.IndexOf('.'));
                 byte[] bytes = file.Content;
                 string bitString = Encoding.ASCII.GetString(bytes);
                 string jsonString = Helper.TfvarToJson(bitString);

@@ -103,9 +103,9 @@ namespace AutomationForm.Controllers
             {
                 requestBody.templateParameters = new Templateparameters
                 {
-                    workloadzone = id,
-                    environment = environment,
-                    workload_environment = workload_environment
+                    workload_zone = id,
+                    deployer_environment_parameter = environment,
+                    workload_environment_parameter = workload_environment
                 };
             }
 
