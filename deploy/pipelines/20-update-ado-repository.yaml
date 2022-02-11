@@ -21,7 +21,7 @@ parameters:
   - name:                              force
     displayName:                       Force the update
     type:                              boolean
-    default:                           False
+    default:                           false
 
 trigger:                               none
 

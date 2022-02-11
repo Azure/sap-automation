@@ -108,11 +108,7 @@
       ansible.builtin.debug:
         var:                           hana_installation
         verbosity:                     2
-
-    - name:                            "Installation results"
-      ansible.builtin.debug:
-        var:                           hana_installation
-      when:                            hana_installation.rc > 0
+      when:                            hana_installation is defined
 
     - name:                            "REMOVE install password file "
       ansible.builtin.file:

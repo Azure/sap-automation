@@ -109,7 +109,7 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                
+
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -165,7 +165,7 @@ stages:
                   echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                 fi
               exit $return_code
-              
+
             displayName:               Deploy SAP Workload Zone
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
