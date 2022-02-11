@@ -20,11 +20,13 @@ namespace AutomationForm.Controllers
         private readonly ILandscapeService<LandscapeModel> _landscapeService;
         private LandscapeViewModel landscapeView;
         private readonly IConfiguration _configuration;
+        private RestHelper restHelper;
 
         public LandscapeController(ILandscapeService<LandscapeModel> landscapeService, IConfiguration configuration)
         {
             _landscapeService = landscapeService;
             _configuration = configuration;
+            restHelper = new RestHelper(configuration);
             landscapeView = SetViewData();
         }
         private LandscapeViewModel SetViewData()
@@ -150,8 +152,8 @@ namespace AutomationForm.Controllers
                 string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
                 bool isSystem = false;
 
-                await Helper.UpdateRepo(path, content, _configuration);
-                await Helper.TriggerPipeline(pipelineId, id, _configuration, isSystem, environment, workload_environment);
+                await restHelper.UpdateRepo(path, content);
+                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment);
                 
                 TempData["success"] = "Successfully deployed landscape " + id;
             }

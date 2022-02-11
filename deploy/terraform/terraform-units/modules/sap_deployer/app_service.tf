@@ -41,6 +41,7 @@ resource "azurerm_app_service" "webapp" {
             ip_address = null
             service_tag = null
         } ]
+        scm_use_main_ip_restriction = true
     }
 
     connection_string {

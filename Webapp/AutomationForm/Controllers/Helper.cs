@@ -100,60 +100,7 @@ namespace AutomationForm.Controllers
             }
             return str.ToString();
         }
-        public static async Task UpdateRepo(string path, string content, IConfiguration configuration)
-        {
-            string collectionUri    = configuration["CollectionUri"];
-            string project          = configuration["Project"];
-            string repositoryId     = configuration["RepositoryId"];
-            string PAT              = configuration["PAT"];
-            string getUri           = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/refs/?filter=heads/private-preview";
-            string postUri          = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=5.1";
-            string ooId;
-
-            // CONFIGURE HTTP CLIENT
-
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(
-                    System.Text.ASCIIEncoding.ASCII.GetBytes(
-                        string.Format("{0}:{1}", "", PAT))));
-            
-            // SET THE MAIN BRANCH OBJECT ID
-
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
-            RefModel branchData = JsonSerializer.Deserialize<RefModel>(responseBody);
-            ooId = branchData.value[0].objectId;
-
-            // CREATE REQUEST BODY AND UPDATE
-
-            Refupdate refUpdate = new Refupdate()
-            {
-                name = "refs/heads/private-preview",
-                oldObjectId = ooId
-            };
-            GitRequestBody requestBody = new GitRequestBody()
-            {
-                refUpdates = new Refupdate[] { refUpdate },
-            };
-            StringContent editContent = CreateHttpContent("edit", path, content, requestBody);
-            
-            // try to edit file (if it exists)
-            HttpResponseMessage editResponse = await client.PostAsync(postUri, editContent);
-
-            // add file on unsuccessful edit (because it does not exist)
-            if (!editResponse.IsSuccessStatusCode)
-            {
-                StringContent addContent = CreateHttpContent("add", path, content, requestBody);
-                HttpResponseMessage addResponse = await client.PostAsync(postUri, addContent);
-                addResponse.EnsureSuccessStatusCode();
-            }
-        }
-        private static StringContent CreateHttpContent(string changeType, string path, string content, GitRequestBody requestBody)
+        public static StringContent CreateHttpContent(string changeType, string path, string content, GitRequestBody requestBody)
         {
             Commit commit = new Commit()
             {
@@ -178,59 +125,6 @@ namespace AutomationForm.Controllers
             requestBody.commits = new Commit[] { commit };
             string requestJson = JsonSerializer.Serialize(requestBody);
             return new StringContent(requestJson, Encoding.ASCII, "application/json");
-        }
-        public static async Task TriggerPipeline(string pipelineId, string id, IConfiguration configuration, bool isSystem, string environment, string workload_environment)
-        {
-            string collectionUri    = configuration["CollectionUri"];
-            string project          = configuration["Project"];
-            string PAT              = configuration["PAT"];
-            string postUri          = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
-
-            // CONFIGURE HTTP CLIENT
-
-            using HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(
-                    System.Text.ASCIIEncoding.ASCII.GetBytes(
-                        string.Format("{0}:{1}", "", PAT))));
-
-            // CREATE REQUEST BODY
-
-            PipelineRequestBody requestBody = new PipelineRequestBody
-            {
-                resources = new Resources { 
-                    repositories = new Repositories {
-                        self = new Self {
-                            refName = "refs/heads/private-preview"
-                        }
-                    }
-                }
-            };
-            if (isSystem)
-            {
-                requestBody.templateParameters = new Templateparameters {
-                    sap_system = id,
-                    environment = workload_environment
-                };
-            }
-            else
-            {
-                requestBody.templateParameters = new Templateparameters {
-                    workloadzone = id,
-                    environment = environment,
-                    workload_environment = workload_environment
-                };
-            }
-            string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
-            StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
-
-            // TRIGGER PIPELINE
-
-            HttpResponseMessage response = await client.PostAsync(postUri, content);
-            response.EnsureSuccessStatusCode();
         }
         public static ParameterGroupingModel ReadJson(string filename)
         {

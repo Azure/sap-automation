@@ -13,11 +13,13 @@ namespace AutomationForm.Controllers
         private readonly ILandscapeService<SystemModel> _systemService;
         private SystemViewModel systemView;
         private readonly IConfiguration _configuration;
+        private RestHelper restHelper;
 
         public SystemController(ILandscapeService<SystemModel> systemService, IConfiguration configuration)
         {
             _systemService = systemService;
             _configuration = configuration;
+            restHelper = new RestHelper(configuration);
             systemView = SetViewData();
         }
         private SystemViewModel SetViewData()
@@ -116,8 +118,8 @@ namespace AutomationForm.Controllers
                 string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
                 bool isSystem = true;
 
-                await Helper.UpdateRepo(path, content, _configuration);
-                await Helper.TriggerPipeline(pipelineId, id, _configuration, isSystem, "", workload_environment);
+                await restHelper.UpdateRepo(path, content);
+                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "");
                 
                 TempData["success"] = "Successfully deployed system " + id;
             }

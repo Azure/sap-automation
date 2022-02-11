@@ -32,7 +32,7 @@
     {
         <tr>
             <td>
-                @file.Substring(file.LastIndexOf('\\') + 1)
+                @file.Substring(file.LastIndexOf('/') + 1)
             </td>
             <td>
                 @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file })
@@ -50,7 +50,7 @@
     {
         <tr>
             <td>
-                @file.Substring(file.LastIndexOf('\\') + 1)
+                @file.Substring(file.LastIndexOf('/') + 1)
             </td>
             <td>
                 @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file })

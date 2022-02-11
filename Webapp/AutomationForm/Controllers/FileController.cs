@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace AutomationForm.Controllers
 {
@@ -19,12 +20,14 @@ namespace AutomationForm.Controllers
         private readonly ILandscapeService<AppFile> _appFileService;
         private readonly ILandscapeService<LandscapeModel> _landscapeService;
         private readonly ILandscapeService<SystemModel> _systemService;
+        private readonly RestHelper restHelper;
 
-        public FileController(ILandscapeService<AppFile> appFileService, ILandscapeService<LandscapeModel> landscapeService, ILandscapeService<SystemModel> systemService)
+        public FileController(ILandscapeService<AppFile> appFileService, ILandscapeService<LandscapeModel> landscapeService, ILandscapeService<SystemModel> systemService, IConfiguration configuration)
         {
             _appFileService = appFileService;
             _landscapeService = landscapeService;
             _systemService = systemService;
+            restHelper = new RestHelper(configuration);
         }
 
         [ActionName("Index")]
@@ -36,8 +39,8 @@ namespace AutomationForm.Controllers
         [ActionName("Templates")]
         public ActionResult Templates()
         {
-            string[] landscapeFilePaths = Directory.GetFiles("..\\..\\..\\samples\\WORKSPACES\\LANDSCAPE", "*", SearchOption.AllDirectories);
-            string[] systemFilePaths = Directory.GetFiles("..\\..\\..\\samples\\WORKSPACES\\SYSTEM", "*", SearchOption.AllDirectories);
+            string[] landscapeFilePaths = restHelper.GetTemplateFileNames("samples/WORKSPACES/LANDSCAPE").Result;
+            string[] systemFilePaths = restHelper.GetTemplateFileNames("samples/WORKSPACES/SYSTEM/").Result;
 
             Dictionary<string, string[]> filePaths = new Dictionary<string, string[]>
             {
@@ -51,16 +54,10 @@ namespace AutomationForm.Controllers
         [ActionName("UseTemplate")]
         public IActionResult UseTemplate(string fileName)
         {
-            using (var stream = System.IO.File.OpenRead(fileName))
-            {
-                MemoryStream ms = new MemoryStream();
-                stream.CopyTo(ms);
-                byte[] bytes = ms.ToArray();
-                string bitString = Encoding.ASCII.GetString(bytes);
-                ViewBag.Message = bitString;
-                ViewBag.TemplateName = fileName.Substring(fileName.LastIndexOf('\\') + 1);
-                return View("Create");
-            }
+            string content = restHelper.GetTemplateFile(fileName).Result;
+            ViewBag.Message = content;
+            ViewBag.TemplateName = fileName.Substring(fileName.LastIndexOf('/') + 1);
+            return View("Create");
         }
 
         [ActionName("Upload")]

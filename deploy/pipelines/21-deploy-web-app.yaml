@@ -80,5 +80,6 @@ steps:
     -Project $(System.TeamProject)
     -RepositoryId $(Build.Repository.ID)
     -PAT $(PAT)
+    -SourceBranch $(Build.SourceBranchName)
     -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
     -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)'
