@@ -70,6 +70,10 @@ pre {
     margin: 20px 20px 0px 20px !important;
 }
 
+pre code {
+    outline: none;
+}
+
 fluent-checkbox {
     padding-bottom: 10px;
 }

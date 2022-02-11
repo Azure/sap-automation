@@ -234,6 +234,8 @@ namespace AutomationForm.Controllers
             if (file == null) return NotFound();
             try
             {
+                byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
+                file.Content = bytes;
                 if (id != newId)
                 {
                     file.Id = newId;
@@ -242,8 +244,6 @@ namespace AutomationForm.Controllers
                 }
                 else
                 {
-                    byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
-                    file.Content = bytes;
                     await _appFileService.UpdateAsync(file);
                 }
 
