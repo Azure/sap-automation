@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: SAP Infrastructure Deployment $(sap_system_folder) [$(Date:yyyyMMdd)]
+name: SAP Infrastructure Deployment $(sap_system_folder)
 
 parameters:
   - name:                              sap_system

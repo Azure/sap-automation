@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Deploying the SAP Workload zone defined in $(workload_zone_folder) [$(Date:yyyyMMdd)]
+name: Deploying the SAP Workload zone defined in $(workload_zone_folder)
 
 parameters:
   - name:                              workload_zone

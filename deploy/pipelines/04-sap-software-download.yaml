@@ -7,7 +7,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  SAP Software download $(bom) $(env) $(loc) [$(Date:yyyyMMdd)]
+name:                                  SAP Software download $(bom) $(env) $(loc)
 
 parameters:
   - name:                              bom_base_name

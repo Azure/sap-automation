@@ -7,7 +7,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-name: Removal [$(Date:yyyyMMdd)]
+name: Removal
 
 parameters:
   - name:                              cleanup_sap

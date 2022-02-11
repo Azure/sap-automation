@@ -7,7 +7,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  OS Configuration and SAP Installation $(sap_system_folder) $(bom) [$(Date:yyyyMMdd)]
+name:                                  OS Configuration and SAP Installation $(sap_system_folder) $(bom)
 
 parameters:
   - name:                              sap_system_configuration_name
