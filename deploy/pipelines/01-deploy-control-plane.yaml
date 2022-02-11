@@ -134,10 +134,6 @@ stages:
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variablegroup)'].id | [0]")
 
-              echo -e "$green--- Prepare the exchange of information from devops agent back to the repository ---$reset"
-                organization=$(echo $(System.CollectionUri) | cut -d'/' -f4)
-                git config  http.https://$organization@dev.azure.com/$organization/$(System.TeamProject)/_git/$(Build.Repository.Name).extraheader "AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN"
-
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
