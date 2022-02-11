@@ -111,7 +111,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'oracle']
         - sap_mnt is undefined
         - nfs_server !=  ansible_hostname
   rescue:
@@ -129,7 +129,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'oracle']
         - sap_mnt is undefined
         - nfs_server !=  ansible_hostname
 
@@ -167,5 +167,39 @@
 - import_tasks:                        "oracle.yaml"
   when:
     - node_tier == "oracle"
+
+# Create directory structure for symlinks
+- name:                                Create /usr/sap/{{ sap_sid|upper }} if it does not exist
+  ansible.builtin.file:
+    path:                              /usr/sap/{{ sap_sid|upper }}
+    state:                             directory
+    mode:                              '0755'
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+
+- name:                                Create /usr/sap/{{ sap_sid|upper }}/SYS if it does not exist
+  ansible.builtin.file:
+    path:                              /usr/sap/{{ sap_sid|upper }}/SYS
+    state:                             directory
+    mode:                              '0755'
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+
+# Create Symlinks for better installation experience
+- name:                                Create symlink for sapmnt global
+  ansible.builtin.file:
+    src:                               /sapmnt/{{ sap_sid|upper }}/global
+    dest:                              /usr/sap/{{ sap_sid|upper }}/SYS/global
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+    state:                             link
+
+- name:                                Create symlink for sapmnt profile
+  ansible.builtin.file:
+    src:                               /sapmnt/{{ sap_sid|upper }}/profile
+    dest:                              /usr/sap/{{ sap_sid|upper }}/SYS/profile
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+    state:                             link
 
 ...

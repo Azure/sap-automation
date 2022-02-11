@@ -330,7 +330,7 @@
       when:
         - scs_high_availability
         - tier in ['sapos']
-        - node_tier in ['scs','ers']
+        - node_tier in ['scs', 'ers', 'oracle']
         - sap_mnt is defined
 
 - name:                                "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
@@ -348,7 +348,7 @@
       when:
         - scs_high_availability
         - tier in ['sapos']
-        - node_tier in ['scs','ers']
+        - node_tier in ['scs', 'ers', 'oracle']
         - sap_mnt is defined
   rescue:
     - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
@@ -366,7 +366,7 @@
       when:
         - scs_high_availability
         - tier in ['sapos']
-        - node_tier in ['scs','ers']
+        - node_tier in ['scs', 'ers', 'oracle']
         - sap_mnt is defined
 
 # Mount Filesystems

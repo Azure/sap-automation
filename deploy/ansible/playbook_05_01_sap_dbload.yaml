@@ -57,7 +57,7 @@
                                         {{ sap_sid|upper }}_SCS :
                                         {{ sap_sid|upper }}_PAS"
 
-  name:                                DB Installation - HANA
+  name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
