@@ -162,3 +162,7 @@ variable "library_ansible_blob_container_name" {
 variable "use_private_endpoint" {
   default = false
 }
+
+variable "use_webapp" {
+  default = false
+}

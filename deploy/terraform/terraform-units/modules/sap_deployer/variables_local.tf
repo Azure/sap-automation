@@ -25,6 +25,10 @@ variable "use_private_endpoint" {
   default = false
 }
 
+variable "use_webapp" {
+  default = false
+}
+
 variable "configure" {
   default = false
 }

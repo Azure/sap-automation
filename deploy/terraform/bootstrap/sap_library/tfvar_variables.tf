@@ -166,3 +166,7 @@ variable "enable_purge_control_for_keyvaults" {
 variable "use_private_endpoint" {
   default = false
 }
+
+variable "use_webapp" {
+  default = false
+}

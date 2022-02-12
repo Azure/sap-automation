@@ -22,6 +22,12 @@ parameters:
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
     default:                           MGMT
+  
+  - name:                              use_webapp
+    displayName:                       "Deploy the web app infrastructure"
+    type:                              boolean
+    default:                           false
+
 trigger:                               none
 
 pool:
@@ -32,6 +38,8 @@ variables:
   - group:                             SDAF-${{ parameters.environment }}
   - name:                              variablegroup
     value:                             SDAF-${{ parameters.environment }}
+  - name:                              use_webapp
+    value:                             ${{ parameters.use_webapp }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig
@@ -142,6 +150,7 @@ stages:
               echo -e "$green--- Exporting webapp variables ---$reset"
                 export TF_VAR_app_registration_app_id=$(TF_VAR_app_registration_app_id)
                 export TF_VAR_webapp_client_secret=$(TF_VAR_webapp_client_secret)
+                export TF_VAR_use_webapp=$(use_webapp)
 
               echo -e "$green--- Deploys the Control Plane ---$reset"
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve

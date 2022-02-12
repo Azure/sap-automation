@@ -21,6 +21,10 @@ variable "use_private_endpoint" {
   default = false
 }
 
+variable "use_webapp" {
+  default = false
+}
+
 locals {
 
   storageaccount_names = var.naming.storageaccount_names.LIBRARY
