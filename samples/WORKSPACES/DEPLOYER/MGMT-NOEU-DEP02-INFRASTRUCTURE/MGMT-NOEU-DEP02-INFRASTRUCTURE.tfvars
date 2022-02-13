@@ -15,17 +15,18 @@ location="northeurope"
 #resourcegroup_arm_id=""
 
 
-#resourcegroup_tags = {
-# tag=value    
-#    }
+resourcegroup_tags = {
+ Control_plane="North Europe"    
+   }
+
 #
 # Networking information
 #
 
 #management_network_name=""
-management_network_logical_name="DEP00"
+management_network_logical_name="DEP02"
 #management_network_arm_id=""
-management_network_address_space="10.10.20.0/24"
+management_network_address_space="10.11.20.0/24"
 
 # management subnet
 # If defined these parameters control the subnet name and the subnet prefix
@@ -33,24 +34,59 @@ management_network_address_space="10.10.20.0/24"
 #management_subnet_name=""
 
 # management_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-management_subnet_address_prefix="10.10.20.64/28"
+management_subnet_address_prefix="10.11.20.64/28"
 # management_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 #management_subnet_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/MGMT-WEEU-MGMT01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/MGMT-WEEU-MGMT01-vnet/subnets/MGMT-WEEU-MGMT01-subnet_management"
 
 # management_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 #management_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/MGMT-WEEU-MGMT01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/MGMT-WEEU-SAP01_managementSubnet-nsg"
 
-# management_subnet_nsg_allowed_ips is an optional parameter that if provided specifies a list of allowed IP ranges for the NSG
-#management_firewall_subnet_arm_id= ""
+
+##################################################
+#
+# Azure Firewall
+#
+##################################################
+
+# firewall_deployment is a boolean flag controlling if an Azure firewall is to be deployed in the deployer VNet
+firewall_deployment=true
+
+# management_firewall_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing firewall subnet
+# management_firewall_subnet_arm_id= ""
 
 # management_firewall_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-management_firewall_subnet_address_prefix="10.10.20.0/26"
+management_firewall_subnet_address_prefix="10.11.20.0/26"
+
+# firewall_rule_subnets is an optional list of subnets to be added to the Azure firewall
+#firewall_rule_subnets=[]
+
+# firewall_rule_allowed_ipaddresses is an optional list of IP Addresses to be added to the Azure firewall
+#firewall_rule_allowed_ipaddresses=[]
+
+
+##################################################
+#
+# Azure Bastion
+#
+##################################################
+
+# bastion_deployment is a boolean flag controlling if Azure bastion is to be deployed in the deployer VNet
+bastion_deployment=false
+
+# bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing AzureBastion subnet
+# bastion_subnet_arm_id= ""
+
+# bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
+bastion_subnet_address_prefix="10.11.20.128/26"
 
 ########################################################
 #
 #         Deployer VM information
 #
 ########################################################
+
+deployer_enable_public_ip=true
+
 
 # deployer_size is optional and defines the virtual machine SKU
 #deployer_size="Standard_D4ds_v4"
@@ -114,21 +150,6 @@ This block describes the variables for the authentication section block in the j
 
 # deployer_password_secret_name if provided contains the secret name for the password 
 #deployer_password_secret_name=""
-
-
-/*
-This block describes the variables for the options section block in the json file
-*/
-
-deployer_enable_public_ip=true
-# firewall_deployment is a boolean flag controlling if an Azure firewall is to be deployed in the deployer VNet
-firewall_deployment=true
-
-# firewall_rule_subnets is an optional list of subnets to be added to the Azure firewall
-#firewall_rule_subnets=[]
-
-# firewall_rule_allowed_ipaddresses is an optional list of IP Addresses to be added to the Azure firewall
-#firewall_rule_allowed_ipaddresses=[]
 
 # assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
 #assign_subscription_permissions=true

@@ -63,6 +63,7 @@
   when:
     - item.node_tier == "oracle"
     - item.lv in lvexists
+    - tier == 'sapos'
 
 # Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"
@@ -93,26 +94,46 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/oracle',           group: 'oinstall',   owner: 'oracle'}
-    - { path: '/usr/sap/install',  group: 'oinstall',   owner: 'oracle'}
-  # when:
-  #   - not oracle_permissions_set.stat.exists
+    - { path: '/oracle',                group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install/SBP',   group: 'oinstall',   owner: 'oracle'}
+  when:
+    - node_tier == 'oracle'
 
-# # Mount Filesystems
-# - name:     "Mount SAP Filesystems on Database for installation"
-#   mount:
-#     src:    "{{ item.src }}"
-#     path:   "{{ item.path }}"
-#     fstype: "{{ item.type }}"
-#     opts:   defaults
-#     state:  mounted
-#   loop:
-#     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
-#   when:
-#     - item.tier == "ora"
+- name:                                "ORACLE: Create directory structure for symlinks "
+  block:
+    # Create directory structure for symlinks
+    - name:                            Create /usr/sap/{{ sap_sid|upper }} if it does not exist
+      ansible.builtin.file:
+        path:                          /usr/sap/{{ sap_sid|upper }}
+        state:                         directory
+        mode:                          '0755'
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
 
+    - name:                            Create /usr/sap/{{ sap_sid|upper }}/SYS if it does not exist
+      ansible.builtin.file:
+        path:                          /usr/sap/{{ sap_sid|upper }}/SYS
+        state:                         directory
+        mode:                          '0755'
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
 
-# - name:                             "File permissions updated"
-#   ansible.builtin.file:
-#     path:                              /etc/sap_deployment_automation/filepermission.txt
-#     state:                             touch
+    # Create Symlinks for better installation experience
+    - name:                            Create symlink for sapmnt global
+      ansible.builtin.file:
+        src:                           /sapmnt/{{ sap_sid|upper }}/global
+        dest:                          /usr/sap/{{ sap_sid|upper }}/SYS/global
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
+        state:                         link
+
+    - name:                            Create symlink for sapmnt profile
+      ansible.builtin.file:
+        src:                           /sapmnt/{{ sap_sid|upper }}/profile
+        dest:                          /usr/sap/{{ sap_sid|upper }}/SYS/profile
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
+        state:                         link
+  when:
+    - node_tier in ['pas', 'oracle']
+    - tier == 'dbload'

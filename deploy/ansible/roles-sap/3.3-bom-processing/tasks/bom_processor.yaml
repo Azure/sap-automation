@@ -7,7 +7,7 @@
 # |   target_media_location exists on disk                                     |
 # |                                                                            |
 # | Inputs:                                                                    |
-# |   target_media_location             Default     /usr/sap/install           |
+# |   target_media_location             Default     {{ target_media_location }}           |
 # | download_directory                                                         |
 # | bom_name                                                                   |
 # | sapbits_location_base_path                                                 |
@@ -55,9 +55,9 @@
     state:                             directory
     mode:                              0755
   loop:
-    - path: '/usr/sap/install/tmp'
-    - path: '/usr/sap/install/downloads'
-    - path: '/usr/sap/install/download_basket'
+    - path: '{{ target_media_location }}/tmp'
+    - path: '{{ target_media_location }}/downloads'
+    - path: '{{ target_media_location }}/download_basket'
 
 
 #   03) Create dynamic extract directories

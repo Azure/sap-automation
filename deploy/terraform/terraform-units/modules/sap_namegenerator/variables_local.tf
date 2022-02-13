@@ -240,6 +240,8 @@ variable "resource_suffixes" {
     "app_avset"                      = "app-avset"
     "app_subnet"                     = "app-subnet"
     "app_subnet_nsg"                 = "appSubnet-nsg"
+    "bastion_host"                   = "bastion-host"
+    "bastion_pip"                    = "bastion-pip"
     "db_alb"                         = "db-alb"
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"
