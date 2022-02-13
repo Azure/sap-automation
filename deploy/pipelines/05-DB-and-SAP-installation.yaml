@@ -192,8 +192,8 @@ stages:
                 sap_params_updated=0
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
-                if [-n $(bom_base_name_override)] ; then
-                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom_base_name_override)"'|'  sap-parameters.yaml
+                if [ -n $(bom_override)] ; then
+                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom_override)"'|'  sap-parameters.yaml
                 else
                   sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
                 fi
@@ -352,7 +352,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -391,7 +391,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -431,7 +431,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -472,7 +472,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -514,7 +514,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -557,7 +557,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -601,7 +601,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -646,7 +646,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
@@ -688,7 +688,7 @@ stages:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
               inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(SID_hosts)
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
               args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
               failOnStderr:            false
             env:
