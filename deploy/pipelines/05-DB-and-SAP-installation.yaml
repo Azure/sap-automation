@@ -192,11 +192,7 @@ stages:
                 sap_params_updated=0
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
-                if [ -n $(bom_override)] ; then
-                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom_override)"'|'  sap-parameters.yaml
-                else
-                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
-                fi
+                sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
                 sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
 
               echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
