@@ -807,7 +807,7 @@ if [ $ok_to_proceed ]; then
         echo ""
         if [ -f error.log ]; then
             cat error.log
-            export LASTERROR=$(grep -m1 Error: error.log)
+            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
             if [ 1 == $called_from_ado ] ; then
                 echo "##vso[task.logissue type=error]$LASTERROR"
             fi

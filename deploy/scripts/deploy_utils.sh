@@ -397,15 +397,19 @@ function get_region_code() {
         "canadaeast")         export region_code="CAEA" ;;
         "centralindia")       export region_code="CEIN" ;;
         "centralus")          export region_code="CEUS" ;;
+        "centraluseuap")      export region_code="CEUA" ;;
         "eastasia")           export region_code="EAAS" ;;
         "eastus")             export region_code="EAUS" ;;
         "eastus2")            export region_code="EUS2" ;;
+        "eastus2euap")        export region_code="EUSA" ;;
         "francecentral")      export region_code="FRCE" ;;
         "francesouth")        export region_code="FRSO" ;;
         "germanynorth")       export region_code="GENO" ;;
         "germanywestcentral") export region_code="GEWC" ;;
         "japaneast")          export region_code="JAEA" ;;
         "japanwest")          export region_code="JAWE" ;;
+        "jioindiacentral")    export region_code="JINC" ;;
+        "jioindiawest")       export region_code="JINW" ;;
         "koreacentral")       export region_code="KOCE" ;;
         "koreasouth")         export region_code="KOSO" ;;
         "northcentralus")     export region_code="NCUS" ;;
@@ -415,6 +419,7 @@ function get_region_code() {
         "southafricanorth")   export region_code="SANO" ;;
         "southafricawest")    export region_code="SAWE" ;;
         "southcentralus")     export region_code="SCUS" ;;
+        "southcentralusstg")  export region_code="SCUG" ;;
         "southeastasia")      export region_code="SOEA" ;;
         "southindia")         export region_code="SOIN" ;;
         "swedencentral")      export region_code="SECE" ;;

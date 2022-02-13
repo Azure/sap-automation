@@ -741,8 +741,20 @@ if [ 1 == $ok_to_proceed ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  2>error.log
+
+    parallelism=10
+
+    #Provide a way to limit the number of parallell tasks for Terraform
+    if [[ -n "${TF_PARALLELLISM}" ]]; then
+        parallelism=$TF_PARALLELLISM
+    fi
+
+    if [ 1 == $called_from_ado ] ; then
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  2>error.log
+    else
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  2>error.log
+    fi
+
     return_value=$?
 
     if [ 0 != $return_value ] ; then
@@ -755,7 +767,7 @@ if [ 1 == $ok_to_proceed ]; then
         echo ""
         if [ -f error.log ]; then
             cat error.log
-            export LASTERROR=$(grep -m1 Error: error.log)
+            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
             if [ 1 == $called_from_ado ] ; then
                 echo "##vso[task.logissue type=error]$LASTERROR"
             fi
