@@ -19,19 +19,18 @@
   become_user:                         "{{ db_sid | lower }}adm"
   become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
-  vars:
-    ansible_python_interpreter:        python3
-  failed_when:                         false
   changed_when:                        false
-  register:                            hana_running
+  failed_when:                         false
 
-- name:                                "Ensure HANA is running on {{  ansible_hostname }}"
+- name:                                "Ensure HANA is running on {{ ansible_hostname }}"
   become_user:                         "{{ db_sid | lower }}adm"
+  become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function StartWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
-  when:                                hana_running.rc != 3
+  changed_when:                        false
 
 - name:                                "Validate HANA is running  on {{  ansible_hostname }}"
   become_user:                         "{{ db_sid | lower }}adm"
+  become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
   changed_when:                        false
   register:                            hana_running

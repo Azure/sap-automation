@@ -53,7 +53,6 @@
 - name:                                HSR - Check that HANA was installed successfully and is running normally
   import_tasks:                       ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
-
 - name:                                HSR - Check whether replication has already been set up
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
