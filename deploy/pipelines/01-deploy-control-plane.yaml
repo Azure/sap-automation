@@ -150,6 +150,7 @@ stages:
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
               
               echo -e "$green--- Exporting webapp variables ---$reset"
+                export IS_PIPELINE_DEPLOYMENT=true
                 export TF_VAR_use_webapp=$(use_webapp)
                 if [ $(use_webapp) = "true" ]; then
                   export TF_VAR_app_registration_app_id=$(TF_VAR_app_registration_app_id)

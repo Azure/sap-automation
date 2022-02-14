@@ -547,7 +547,7 @@ if [ 0 == $return_value ] ; then
         deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
         keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
-        if [ $TF_VAR_use_webapp = "true" ]; then
+        if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
             webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output webapp_url_base | tr -d \")
             az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
         fi
@@ -821,7 +821,7 @@ then
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
     
-    if [ $TF_VAR_use_webapp = "true" ]; then
+    if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
         webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output webapp_url_base | tr -d \")
         az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
     fi
