@@ -58,9 +58,10 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.command:             hdbnsutil -sr_state
+  run_once:                            true
   register:                            hana_replication_status
   changed_when:                        false
-  failed_when:                         false
+  failed_when:                         hana_replication_status.rc != 0
 
 - name:                                HSR - Debug replication status
   ansible.builtin.debug:

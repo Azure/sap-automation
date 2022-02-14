@@ -7,7 +7,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-name: Removal [$(Date:yyyyMMdd)]
+name: Removal
 
 parameters:
   - name:                              cleanup_sap
@@ -88,7 +88,7 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@3
-          - script: |
+          - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m"
@@ -102,9 +102,11 @@ stages:
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
+
               echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+
               echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
@@ -134,24 +136,32 @@ stages:
                   exit $return_code
                 fi
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_config)
+
+              echo -e "$green--- Pull latest from DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
                 cd $HOME/SYSTEM/$(sap_system_folder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sap_system_config) --type sap_system --auto-approve
+                git pull
                 return_code=$?
                 echo "Return code from remover.sh $return_code."
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
                 fi
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+
                 changed=0
+
                 if [ -d $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform ]; then
                   git rm -q -f -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
                   changed=1
@@ -171,15 +181,11 @@ stages:
                   changed=1
                 fi
 
-                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.zip | wc -l ) -gt 0 ] ; then
-                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.zip
-                  changed=1
-                fi
                 if [ 1 == $changed ]; then
-
                   git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
+
               exit $return_code
 
             displayName:               Remove SAP systems
@@ -201,10 +207,11 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@3
-          - script: |
+          - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(workload_zone_folder)"
               green="\e[1;32m" ; reset="\e[0m"
+
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
                 return_code=$?
@@ -214,9 +221,11 @@ stages:
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
+
               echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+
               echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
@@ -246,26 +255,32 @@ stages:
                   exit $return_code
                 fi
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
+              echo -e "$green--- Pull latest ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
                 cd $HOME/LANDSCAPE/$(workload_zone_folder)
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(workload_zone_configuration_file) --type sap_landscape --auto-approve
+                git pull
                 return_code=$?
                 echo "Return code from remover.sh $return_code."
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
                 fi
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 export ENVIRONMENT=$(echo $(workload_zone_folder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
-                export LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+                export    LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
                 changed=0
+
                 if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform ]; then
                   git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
                   changed=1
@@ -294,20 +309,21 @@ stages:
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr:              false
 
-  - stage:                             Remove_region
+  - stage:                             Remove_controlplane
     displayName:                       "Remove the control plane"
     condition:                         eq(${{ parameters.cleanup_region }}, true)
     jobs:
-      - job:                           Remove_region
+      - job:                           Remove_controlplane
         displayName:                   "Remove the control plane"
         workspace:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@3
-          - script: |
+          - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
               green="\e[1;32m" ; reset="\e[0m"
+
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
                 return_code=$?
@@ -322,7 +338,9 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+
               echo -e "$green--- az login ---$reset"
+
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
@@ -351,6 +369,13 @@ stages:
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
                 dos2unix -q LIBRARY/$(library_folder)/$(library_configuration_file)    2> /dev/null
+
+              echo -e "$green--- Pull latest ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
                 export ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                 export    LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
@@ -367,17 +392,17 @@ stages:
                   --resource_group $REMOTE_STATE_RG                                                      \
                   --ado --auto-approve
                 return_code=$?
+                git pull
                 echo "Return code from remove_region $return_code."
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from remove_region $return_code."
                 fi
+
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+
                 changed=0
+
                 if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
                   git rm -q -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
                   changed=1
@@ -396,12 +421,13 @@ stages:
                   changed=1
                 fi
 
-                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                  git rm -q -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                if [ -f  ${deployer_environment_file_name} ]; then
+                  git rm -q -f  ${deployer_environment_file_name}
                   changed=1
                 fi
-                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+
+                if [ -f  ${deployer_environment_file_name}.md ]; then
+                  git rm -q -f ${deployer_environment_file_name}.md
                   changed=1
                 fi
 

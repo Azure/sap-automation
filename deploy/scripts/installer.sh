@@ -790,7 +790,11 @@ if [ $ok_to_proceed ]; then
     
     allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}  "${approve}"" )
     
-    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+    if [ 1 == $called_from_ado ] ; then
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings $allParams  2>error.log
+    else
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+    fi
     return_value=$?
     
     if [ 0 != $return_value ] ; then
@@ -801,8 +805,14 @@ if [ $ok_to_proceed ]; then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        cat error.log
-        rm error.log
+        if [ -f error.log ]; then
+            cat error.log
+            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
+            if [ 1 == $called_from_ado ] ; then
+                echo "##vso[task.logissue type=error]$LASTERROR"
+            fi
+            rm error.log
+        fi
         unset TF_DATA_DIR
         exit $return_value
     fi
