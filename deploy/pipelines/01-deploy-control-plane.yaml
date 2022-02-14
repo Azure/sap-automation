@@ -39,7 +39,7 @@ variables:
   - name:                              variablegroup
     value:                             SDAF-${{ parameters.environment }}
   - name:                              use_webapp
-    value:                             ${{ parameters.use_webapp }}
+    value:                             ${{ lower(parameters.use_webapp) }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig
@@ -109,7 +109,7 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                if [ $(use_webapp) ]; then
+                if [ $(use_webapp) = "true" ]; then
                   if [ ! -n $(TF_VAR_app_registration_app_id) ]; then
                     echo "##vso[task.logissue type=error]Variable TF_VAR_app_registration_app_id was not defined."
                     exit 2
@@ -151,7 +151,7 @@ stages:
               
               echo -e "$green--- Exporting webapp variables ---$reset"
                 export TF_VAR_use_webapp=$(use_webapp)
-                if [ $(use_webapp) ]; then
+                if [ $(use_webapp) = "true" ]; then
                   export TF_VAR_app_registration_app_id=$(TF_VAR_app_registration_app_id)
                   export TF_VAR_webapp_client_secret=$(TF_VAR_webapp_client_secret)
                 fi
