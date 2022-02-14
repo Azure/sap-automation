@@ -18,7 +18,6 @@
 #   can be depracated.
 #
 
-
 admin_groups:
   - name:         example
     gid:          "2000"
@@ -29,15 +28,100 @@ admin_groups:
   - name:         sapsys
     gid:          "{{ sapsys_gid }}"
     state:        present
-    tier:         ha
+    tier:         os
     enabled:      true
     node_tier:    all
   - name:         sapinst
     gid:          "{{ sapinst_gid }}"
     state:        present
-    tier:         ha
+    tier:         os
     enabled:      true
     node_tier:    all
+
+  # Admin groups for Oracle Non-ASM
+  - name:         dba
+    gid:          "{{ dba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         oper
+    gid:          "{{ oper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         asmoper
+    gid:          "{{ asmoper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         asmadmin
+    gid:          "{{ asmadmin_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         asmdba
+    gid:          "{{ asmdba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         oinstall
+    gid:          "{{ oinstall_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle
+
+  - name:         dba
+    gid:          "{{ dba_gid }}"
+    state:        present
+    tier:         oraasm
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         oper
+    gid:          "{{ oper_gid }}"
+    state:        present
+    tier:         oraasm
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmoper
+    gid:          "{{ asmoper_gid }}"
+    state:        present
+    tier:         oraasm
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmadmin
+    gid:          "{{ asmadmin_gid }}"
+    state:        present
+    tier:         oraasm
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmdba
+    gid:          "{{ asmdba_gid }}"
+    state:        present
+    tier:         oraasm
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         oinstall
+    gid:          "{{ oinstall_gid }}"
+    state:        present
+    tier:         oraasm
+    enabled:      true
+    node_tier:    oracle-asm
 
 # -------------------------------------+---------------------------------------8
 #
@@ -85,3 +169,61 @@ admin_users:
 #    tier:         sapos
 #    node_tier:    all
 #    enabled:      true
+
+# Admin users for Oracle Non-ASM
+
+  - name:         "ora{{ sap_sid|lower }}"
+    comment:      "Oracle Database System Administrator"
+    uid:          "{{ orasid_uid }}"
+    group:        dba
+    groups:       ["oper","sapinst","oinstall"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle
+    enabled:      true
+
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    oracle
+    enabled:      true
+
+#Admin users for Oracle ASM
+
+  - name:         "ora{{ db_sid|lower }}"
+    comment:      "Oracle Database System Administrator"
+    uid:          "{{ orasid_uid }}"
+    group:        dba
+    groups:       ["oper","sapinst","oinstall"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         oraasm
+    node_tier:    oracle-asm
+    enabled:      true
+
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         oraasm
+    node_tier:    oracle-asm
+    enabled:      true
+
+...

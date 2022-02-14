@@ -13,7 +13,7 @@ materials:
       filename:     SAPCAR
       permissions:  '0755'
       url:          https://softwaredownloads.sap.com/file/0020000000098642022
-      
+
     # HANA Client v2.9
     - name:         SAP HANA CLIENT Version 2.9
       archive:      IMDB_CLIENT20_009_28-80002082.SAR
@@ -40,7 +40,7 @@ materials:
       extractDir:   CD_HDBSERVER/COMPONENTS
       creates:      COMPONENTS/SAP_HANA_AFL/packages
       url:          https://softwaredownloads.sap.com/file/0020000000064932022
-      
+
     - name:         LCAPPS for HANA 2.00.059.00
       archive:      IMDB_LCAPPS_2059P_100-20010426.SAR
       checksum:     561318bf34896d97918878cb68729c7f2c6451d89182e95ea7020b1df074bc1d

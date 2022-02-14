@@ -66,7 +66,7 @@ variable "sapmnt_volume_size" {
 
 variable "NFS_provider" {
   type    = string
-  default = "AFS"
+  default = "NONE"
 }
 
 variable "azure_files_storage_account_id" {

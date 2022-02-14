@@ -158,7 +158,7 @@ output "web_nsg_id" {
 
 output "ANF_pool_settings" {
   value = var.ANF_settings.use ? {
-    use_ANF = true
+    use_ANF = var.NFS_provider == "ANF"
     account_name = var.ANF_settings.use && length(var.ANF_settings.arm_id) > 0 ? (
       data.azurerm_netapp_account.workload_netapp_account[0].name) : (
       azurerm_netapp_account.workload_netapp_account[0].name
@@ -201,4 +201,8 @@ output "saptransport_path" {
       ""
     )
   )
+}
+
+output "azure_files_transport_storage_account_id" {
+  value = var.NFS_provider == "AFS" ? azurerm_storage_account.transport[0].id : ""
 }

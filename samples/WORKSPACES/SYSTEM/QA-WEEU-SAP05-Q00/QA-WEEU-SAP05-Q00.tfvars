@@ -131,7 +131,7 @@ database_vm_zones=["1"]
 # sid is a mandatory field that defines the SAP Application SID
 sid = "Q00"
 
-app_tier_vm_sizing = "Production"
+app_tier_vm_sizing = "Optimized"
 
 
 # app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
@@ -209,7 +209,7 @@ scs_server_count = 1
 scs_high_availability = false
 
 # scs_instance_number
-scs_instance_number = "00"
+scs_instance_number = "01"
 
 # ers_instance_number
 ers_instance_number = "02"
@@ -354,8 +354,8 @@ webdispatcher_server_count = 0
 # for the brownfield scenario the Azure resource identifier for the subnet must be specified
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-##network_name ="SAP01"
-network_logical_name = "SAP01"
+##network_name ="SAP05"
+network_logical_name = "SAP05"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix

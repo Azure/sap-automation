@@ -21,7 +21,9 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     HANA_2_00_055_v0005ms
+    - name:     HANA_2_00_055_v0006ms
+    - name:     SWPM10SP33_latest
+    - name:     SUM20SP12_latest
 
 
   media:
@@ -36,12 +38,12 @@ materials:
   #     url:            optional download url if known      (Not Used at this time)
   #
     # SAPCAR 7.22
-    - name:         SAPCAR
-      archive:      SAPCAR_1010-70006178.EXE
-      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
       filename:     SAPCAR
       permissions:  '0755'
-      url:          https://softwaredownloads.sap.com/file/0020000002208852020
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
 
     # Kernel
     - name:         "Kernel Part I (753) ; OS: Linux on x86_64 64bit ; DB: Database independe"
@@ -76,15 +78,6 @@ materials:
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000000703122018
 
-    # SWPM
-    - name:         "SWPM 1.0 SP33 for NW higher than 7.0x ; OS: Linux on x86_64 64bit"
-      archive:      SWPM10SP33_2-20009701.SAR
-      checksum:     ffe85860fd6d907329c08c811e628d7f5dff98c07e64cc77d6cee4908b6119d6
-      extract:      true
-      extractDir:   SWPM
-      creates:      SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000001663962021
-
     # DB Export
     - name:         "NW 7.5 Installation Export"
       archive:      51050829_3.ZIP
@@ -105,12 +98,6 @@ materials:
       checksum:     9fc3fa5a22c120df9d3b6aa04eff39c924dffd8bd633607116f446b46d3b5dd7
       url:          https://softwaredownloads.sap.com/file/0030000000635142016
 
-    # MISC
-    - name:         "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP12"
-      archive:      SUM20SP12_4-80002456.SAR
-      checksum:     dd1b677342bbda47d9585fffc6a7107f845b41b3d114f895d954c19d70987087
-      download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000001731572021
     # SPAM
     - name:         "SPAM/SAINT Update - Version 750/0077"
       archive:      KD75077.SAR

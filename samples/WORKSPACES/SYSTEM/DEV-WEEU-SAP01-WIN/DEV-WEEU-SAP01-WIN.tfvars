@@ -189,7 +189,7 @@ scs_server_count=1
 scs_high_availability=false
 
 # scs_instance_number
-scs_instance_number="00"
+scs_instance_number = "01"
 
 # ers_instance_number
 ers_instance_number="02"
@@ -423,7 +423,7 @@ network_logical_name="SAP01"
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 #anchor_vm_use_DHCP=true
 
-bom_base="S41909SPS03_v0007ms"
+
 
 #########################################################################################
 #                                                                                       #
