@@ -20,7 +20,7 @@
 
 - name:                                "SAP Oracle DB ASM: Create run MOPatch directory"
   ansible.builtin.file:
-    path:                              /oracle/stage/{{ ora_release }}/grid_home/MOPatch
+    path:                              "/oracle/stage/{{ ora_release }}/grid_home/MOPatch"
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -195,7 +195,7 @@
   failed_when:                         sbpscript_results.rc >= 2
   args:
     executable:                        /bin/csh
-    chdir:                             {{ target_media_location }}/SBP/
+    chdir:                             "{{ target_media_location }}/SBP/"
     creates:                           /etc/sap_deployment_automation/oracle/sbpinstalled.txt
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"
@@ -242,7 +242,7 @@
     ORACLE_HOME:                       /oracle/stage/{{ ora_release }}/grid_home
   args:
     executable:                        /bin/csh
-    chdir:                             {{ target_media_location }}/SBP/
+    chdir:                             "{{ target_media_location }}/SBP/"
     creates:                           /etc/sap_deployment_automation/oracle/sbpginstalled.txt
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"

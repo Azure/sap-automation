@@ -158,9 +158,11 @@
         - name:                        Include 1.11-accounts role
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
+          vars:
+            tier:                      ora
       tags:
         - 1.11-accounts
-        
+
     - block:
         - name:                        Include 2.6-sap-mounts role
           ansible.builtin.include_role:

@@ -55,6 +55,7 @@ packages:
     - { tier: 'ha',    package: 'pcs',                                                      state: 'present' }
     - { tier: 'ha',    package: 'pacemaker',                                                state: 'present' }
     - { tier: 'ha',    package: 'nmap-ncat',                                                state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents',                                          state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
@@ -122,6 +123,7 @@ packages:
     - { tier: 'ha',    package: 'pacemaker',                                                state: 'present' }
     - { tier: 'ha',    package: 'nmap-ncat',                                                state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents',                                          state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
@@ -163,6 +165,7 @@ packages:
   # Assumption: Public_Cloud_Module_x86_64 already available
     - { tier: 'ha',    package: 'python-azure-mgmt-compute=4.6.2',                          state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'ers',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
   sles_sap12.4:
   sles_sap12.5:

@@ -131,7 +131,7 @@ NW_getLoadType.loadType                                    = SAP
 NW_getUnicode.isUnicode                                    = true
 
 # Provide  'profile' directory of SAP Netweaver-based system.
-NW_readProfileDir.profileDir                               = /sapmnt/{{ db_sid | upper }}/profile
+NW_readProfileDir.profileDir                               = /sapmnt/{{ sap_sid | upper }}/profile
 
 # Enter the path of the existing 'profile' directory.
 # NW_readProfileDir.profilesAvailable = true

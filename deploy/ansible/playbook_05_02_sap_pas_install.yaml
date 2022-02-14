@@ -105,6 +105,17 @@
           when:                        (ansible_play_hosts_all | length) <= 2
 
         - block:
+            - name:                        Include 1.11-accounts role
+              ansible.builtin.include_role:
+                name:                      roles-os/1.11-accounts
+              vars:
+                tier:                      ora
+          when:
+            platform == 'ORACLE'
+          tags:
+            - 1.11-accounts
+
+        - block:
             - name:                    Include 2.6-sap-mounts
               ansible.builtin.include_role:
                 name:                  roles-sap-os/2.6-sap-mounts

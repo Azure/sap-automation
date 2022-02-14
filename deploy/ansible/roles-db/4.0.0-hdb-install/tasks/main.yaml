@@ -99,7 +99,7 @@
     - name:                            "SAP HANA: Execute hdblcm on {{ ansible_hostname }}"
       ansible.builtin.command:         ./hdblcm --batch --action=install  --configfile='{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp'
       args:
-        chdir:                         {{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE
+        chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
         creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
       register:                        hana_installation
       failed_when:                     hana_installation.rc > 0

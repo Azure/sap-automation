@@ -227,12 +227,6 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "Make orasid:dba as owners"
-  ansible.builtin.file:
-    path:                              {{ target_media_location }}/
-    state:                             directory
-    mode:                              0777
-
 # Setup and configure ORACLE ASM.
 
 
