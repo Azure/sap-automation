@@ -20,6 +20,7 @@ module "sap_deployer" {
   use_private_endpoint               = var.use_private_endpoint
   configure                          = false
   tf_version                         = var.tf_version
+  bastion_deployment                     = var.bastion_deployment
 }
 
 module "sap_namegenerator" {

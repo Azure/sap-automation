@@ -33,6 +33,10 @@ variable "tf_version" {
   default = ""
 }
 
+variable "bastion_deployment" {
+  type    = bool
+  default = false
+}
 
 // Set defaults
 locals {

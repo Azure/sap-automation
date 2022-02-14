@@ -97,7 +97,7 @@
 - name:                                "Deploy parameter file install template"
   ansible.builtin.template:
     src:                               "{% if microsoft_supplied_bom_template.stat.exists %}{{ microsoft_supplied_bom_template.stat.path }}{% else %}{{ microsoft_supplied_bom_template_archive.stat.path }}{% endif %}"
-    dest:                              /usr/sap/install/downloads/{{ sap_inifile }}
+    dest:                              "{{ target_media_location }}/downloads/{{ sap_inifile }}"
     mode:                              0644
     force:                             true
   when:                                microsoft_supplied_bom_template.stat.exists or microsoft_supplied_bom_template_archive.stat.exists
@@ -121,7 +121,7 @@
     - name:                            "Deploy {{ node_tier | upper }} Parameter file install template"
       ansible.builtin.template:
         src:                           "{{ inventory_dir }}/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
+        dest:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
   when:                                microsoft_supplied_bom_template.stat.exists != true

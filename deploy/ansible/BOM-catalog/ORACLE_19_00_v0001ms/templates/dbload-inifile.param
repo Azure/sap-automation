@@ -84,7 +84,7 @@ NW_GetSidNoProfiles.sid = DEV
 # NW_System.installSAPHostAgent = true
 
 # DEPRECATED, DO NOT USE!
-NW_Unpack.dbaToolsSar = /usr/sap/install/download_basket/DBATOOLS.SAR
+NW_Unpack.dbaToolsSar = {{ target_media_location }}/download_basket/DBATOOLS.SAR
 
 # DEPRECATED, DO NOT USE!
 # NW_Unpack.igsExeSar = 
@@ -93,10 +93,10 @@ NW_Unpack.dbaToolsSar = /usr/sap/install/download_basket/DBATOOLS.SAR
 # NW_Unpack.igsHelperSar = 
 
 # DEPRECATED, DO NOT USE!
-NW_Unpack.sapExeDbSar = /usr/sap/install/download_basket/SAPEXEDB_801-80002605.SAR
+NW_Unpack.sapExeDbSar = {{ target_media_location }}/download_basket/SAPEXEDB_801-80002605.SAR
 
 # DEPRECATED, DO NOT USE!
-NW_Unpack.sapExeSar = /usr/sap/install/download_basket/SAPEXE_801-80002573.SAR
+NW_Unpack.sapExeSar = {{ target_media_location }}/download_basket/SAPEXE_801-80002573.SAR
 
 # DEPRECATED, DO NOT USE!
 # NW_Unpack.sapJvmSar = 
@@ -145,7 +145,7 @@ NW_readProfileDir.profilesAvailable = false
 # OS4.DestinationASP = 
 
 # The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
-archives.downloadBasket = /usr/sap/install/download_basket
+archives.downloadBasket = {{ target_media_location }}/download_basket
 
 # Windows only: The domain of the SAP Host Agent user
 # hostAgent.domain = 

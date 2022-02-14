@@ -53,11 +53,11 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB  :
+- hosts:                               "{{ sap_sid|upper }}_PAS  :
                                         {{ sap_sid|upper }}_SCS :
-                                        {{ sap_sid|upper }}_PAS"
+                                        {{ sap_sid|upper }}_DB"
 
-  name:                                DB Installation - HANA
+  name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
@@ -93,6 +93,7 @@
 
         - block:
             - name:                    Include 5.1-dbload role
+              run_once:                true
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
           always:
@@ -133,6 +134,43 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+- hosts:                               "{{ sap_sid|upper }}_PAS  :
+                                        {{ sap_sid|upper }}_DB"
+
+  name:                                DB Installation - ORACLE - preparation
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            Setting the dbload facts
+      ansible.builtin.set_fact:
+        tier:                          dbload                                                          # SAP Install phase: DBLOAD
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+      tags:
+        - always
+
+    - block:
+        - name:                        Include 1.11-accounts role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+      tags:
+        - 1.11-accounts
+        
+    - block:
+        - name:                        Include 2.6-sap-mounts role
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          vars:
+            tier:                      dbload
+      tags:
+        - 2.6-sap-mounts
+
+
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
   name:                                DB Installation - ORACLE
@@ -160,10 +198,41 @@
           tags:
             - always
 
-        - name:                        Include 5.1-dbload role
-          ansible.builtin.include_role:
-            name:                      roles-sap/5.1-dbload
-      when:                            platform == 'ORACLE'
+        - block:
+            - name:                    Include 5.1-dbload role
+              run_once:                true
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.1-dbload
+          always:
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                '_DBLOAD'
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                tier:                  'dbload'
+
+            - name:                    Get the error lines
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ dbload.stdout_lines }}"
+              when:
+                - dbload is defined
+                - dbload.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    Errors from SAPInst
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+          tags:
+            - 5.1-dbload
+
+      when:
+        - platform == 'ORACLE'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |

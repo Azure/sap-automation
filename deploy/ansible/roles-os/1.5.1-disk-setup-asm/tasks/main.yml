@@ -201,7 +201,7 @@
     state:                             mounted
   loop:
     - { tier: 'ora',            type: 'xfs',     src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/usr/sap/install',                 path: '/usr/sap/install' }                # Special Install Structure; Destroy on Completion
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',                 path: '{{ target_media_location }}' }                # Special Install Structure; Destroy on Completion
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ db_sid|upper }}',       path: '/sapmnt/{{ db_sid|upper }}' }
     - { tier: 'ora',            type: 'xfs',     src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle'         }
   when:
@@ -229,7 +229,7 @@
 
 - name:                                "Make orasid:dba as owners"
   ansible.builtin.file:
-    path:                              /usr/sap/install/
+    path:                              {{ target_media_location }}/
     state:                             directory
     mode:                              0777
 
@@ -241,9 +241,9 @@
 - name:               "Install ASM RPM Packages"
   ansible.builtin.shell: |
                       set -o errexit
-                      yum install -y /usr/sap/install/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm
-                      yum install -y /usr/sap/install/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm
-                      yum install -y /usr/sap/install/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm
+                      yum install -y {{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm
+                      yum install -y {{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm
+                      yum install -y {{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm
                       touch /etc/sap_deployment_automation/asmlibinstall.txt
   register:           asmpackageouput
 

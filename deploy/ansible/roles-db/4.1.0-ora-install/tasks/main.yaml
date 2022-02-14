@@ -31,9 +31,13 @@
 # | Step 1 run the pre-installation check                                      |
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "Oracle Installation - precheck"
+  ansible.builtin.debug:
+    msg:                               "Start Oracle Installation - Execute RUNINSTALLER precheck"
+
 - name:                                "Execute RUNINSTALLER PreCheck"
-  # become:                              true
-  # become_user:                         "oracle"
+  become:                              true
+  become_user:                         "oracle"
   ansible.builtin.shell:              ./RUNINSTALLER -ohcheck -silent
   register:                            oraprecheck_results
   failed_when:                         oraprecheck_results.rc >= 3
@@ -42,7 +46,7 @@
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
   args:
-    chdir:                             /usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP
+    chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /oracle/oracle_pre_check_install.txt
     executable:                        /bin/csh
   tags:
@@ -74,9 +78,14 @@
 # | Step 2 run the installation check                                          |
 # +------------------------------------4--------------------------------------*/
 
+
+- name:                                Oracle Installation
+  ansible.builtin.debug:
+    msg:                               "Start Oracle Installation - Execute RUNINSTALLER"
+
 - name:                                "Execute RUNINSTALLER"
-  # become:                              true
-  # become_user:                         "oracle"
+  become:                              true
+  become_user:                         "oracle"
   ansible.builtin.shell:               ./RUNINSTALLER -silent
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
@@ -85,7 +94,7 @@
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
-    chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+    chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /oracle/oracleinstall.txt
   tags:
     - skip_ansible_lint
@@ -165,7 +174,7 @@
 
 - name:                                Find MOPatch
   ansible.builtin.find:
-    paths:                             /usr/sap/install/SBP/SAPSBP
+    paths:                             "{{ target_media_location }}/SBP/SAPSBP"
     patterns:                          ["MOPatch"]
     file_type:                         directory
     recurse:                           true
@@ -206,7 +215,7 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.copy:
-    src:                               /usr/sap/install/SBP/OPATCH/OPatch
+    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                        true
     mode:                              0777
@@ -220,11 +229,14 @@
     remote_src:                        true
     mode:                              0777
 
+- name:                                Oracle Post Processing - SBP Patching
+  ansible.builtin.debug:
+    msg:                               "Start Oracle Post Processing - SBP Patching"
 
 - name:                                "Oracle Post Processing - SBP Patching"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/{{ oracle_sbp_patch }}
+  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -235,7 +247,7 @@
   failed_when:                         sbpscript_results.rc >= 2
   args:
     creates:                           /oracle/sbpinstalled.txt
-    chdir:                             /usr/sap/install/SBP/
+    chdir:                             "{{ target_media_location }}/SBP"
     executable:                        /bin/csh
 
 - name:                                "Post processing installer output"

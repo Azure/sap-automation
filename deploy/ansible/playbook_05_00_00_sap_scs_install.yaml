@@ -120,6 +120,7 @@
 
         - block:
             - name:                    Include 5.0.0-scs-install role
+              run_once:                true
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
           always:

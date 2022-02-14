@@ -297,10 +297,25 @@
     - node_tier != 'hana'
     - sap_mnt is defined
 
-- name:                                "AFS Mount: usr/sap/{{ sap_sid|upper }}"
+- name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} (ORACLE)"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    state:                             mounted
+  loop:
+    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
+  when:
+    - platform == 'ORACLE'
+    - tier in ['sapos', 'dbload']
+    - node_tier in ['pas', 'oracle']
+    - sap_mnt is defined
+
+- name:                                "AFS Mount: {{ sap_mnt }}/usrsap{{ sap_sid|upper }}"
   block:
 
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}"
+    - name:                            "AFS Mount: {{ sap_mnt }}/usrsap{{ sap_sid|upper }}"
       ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -331,7 +346,7 @@
       when:
         - scs_high_availability
         - tier in ['sapos']
-        - node_tier in ['scs','ers']
+        - node_tier in ['scs', 'ers']
         - sap_mnt is defined
 
 - name:                                "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
@@ -349,7 +364,7 @@
       when:
         - scs_high_availability
         - tier in ['sapos']
-        - node_tier in ['scs','ers']
+        - node_tier in ['scs', 'ers', 'oracle']
         - sap_mnt is defined
   rescue:
     - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
@@ -368,7 +383,7 @@
       when:
         - scs_high_availability
         - tier in ['sapos']
-        - node_tier in ['scs','ers']
+        - node_tier in ['scs', 'ers', 'oracle']
         - sap_mnt is defined
 
 # Mount Filesystems

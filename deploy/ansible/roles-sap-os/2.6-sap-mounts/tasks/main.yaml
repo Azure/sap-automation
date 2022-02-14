@@ -111,7 +111,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'oracle']
         - sap_mnt is undefined
         - nfs_server !=  ansible_hostname
   rescue:
@@ -129,7 +129,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'oracle']
         - sap_mnt is undefined
         - nfs_server !=  ansible_hostname
 
@@ -164,8 +164,8 @@
     - NFS_provider == 'ANF'
 
 # Import this task only if the tier is ora.
-- import_tasks:                        "oracle.yaml"
+- name:                                Oracle tasks
+  import_tasks:                        "oracle.yaml"
   when:
-    - node_tier == "oracle"
-
+    - platform == "ORACLE"
 ...

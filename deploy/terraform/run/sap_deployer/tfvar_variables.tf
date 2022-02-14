@@ -213,5 +213,25 @@ variable "use_private_endpoint" {
 }
 
 variable "tf_version" {
-  default = "1.0.8"
+  default = "1.1.4"
+}
+
+########################################################
+#
+#                     Bastion
+#
+########################################################
+
+
+variable "bastion_subnet_arm_id" {
+  default = ""
+}
+
+variable "bastion_subnet_address_prefix" {
+  default = ""
+}
+
+variable "bastion_deployment" {
+  type    = bool
+  default = false
 }
