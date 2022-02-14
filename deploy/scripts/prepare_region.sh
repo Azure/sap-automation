@@ -433,7 +433,7 @@ if [ 2 == $step ]; then
         exit $return_code
     fi
 
-    if [ $TF_VAR_use_webapp ]; then
+    if [ $TF_VAR_use_webapp = "true" ]; then
         terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
         export TF_VAR_cmdb_connection_string=$(terraform -chdir="${terraform_module_directory}" output cmdb_connection_string | tr -d \")
         az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name TF_VAR_cmdb_connection_string --value $TF_VAR_cmdb_connection_string
@@ -475,7 +475,7 @@ if [ 3 == $step ]; then
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
-    if [ $TF_VAR_use_webapp ]; then
+    if [ $TF_VAR_use_webapp = "true" ]; then
         export TF_VAR_cmdb_connection_string=$(az pipelines variable-group variable list --group-id $VARIABLE_GROUP_ID --query "TF_VAR_cmdb_connection_string.value" | tr -d '"')
     fi
     
