@@ -25,22 +25,17 @@
     ansible_python_interpreter:        python3
   environment:
     HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
-    PYTHONHOME:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
-    DIR_EXECUTABLE:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
-    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+    PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
+    DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ ansible_hostname }}"
     DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
     SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
-    SECUDIR:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
-    DAT_BIN_DIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
-    DIR_INSTANCE:                      "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
-    PYTHONPATH:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
-    PATH:                              "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
-    LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
-                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
-                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+    SECUDIR:                           "/usr/sap/{{ DB }}/{{ ansible_hostname }}/sec"
+    DAT_BIN_DIR:                       "/usr/sap/{{ DB }}/exe/dat_bin_dir"
+    DIR_INSTANCE:                      "/usr/sap/{{ DB }}"
+    PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
+    PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
+    LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
   when:
     - ansible_hostname == primary_instance_name
     - hdb_version[0:2] == "1."  # https://www.blue.works/en/hana-version-numbering-explained/
@@ -82,30 +77,38 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            HSR - Check replication state on primary
-      ansible.builtin.shell: >
-        {{ hdbnsutil_command }} -sr_state | grep 'mode: primary'
+    - name:                            HSR - Check whether replication has already been set up
+      become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
+      ansible.builtin.command:         hdbnsutil -sr_state
+      run_once:                        true
+      register:                        hana_replication_status
       changed_when:                    false
+      failed_when:                     hana_replication_status.rc != 0
+
+    - name:                            HSR - Debug replication status
+      ansible.builtin.debug:
+        var:                           hana_replication_status
+        verbosity:                     2
+
+    - name:                            HSR - Check replication state on primary
+      ansible.builtin.set_fact:
+        primary_replication_enabled:   "{{ 'mode: primary'  in hana_replication_status.stdout_lines }}"
   vars:
     ansible_python_interpreter:        python3
   environment:
     HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
-    PYTHONHOME:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
-    DIR_EXECUTABLE:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
-    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+    PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
+    DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ ansible_hostname }}"
     DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
     SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
-    SECUDIR:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
-    DAT_BIN_DIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
-    DIR_INSTANCE:                      "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
-    PYTHONPATH:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
-    PATH:                              "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
-    LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
-                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
-                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+    SECUDIR:                           "/usr/sap/{{ DB }}/{{ ansible_hostname }}/sec"
+    DAT_BIN_DIR:                       "/usr/sap/{{ DB }}/exe/dat_bin_dir"
+    DIR_INSTANCE:                      "/usr/sap/{{ DB }}"
+    PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
+    PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
+    LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
   when:                                ansible_hostname == primary_instance_name
 
 - name:                                HSR - Set INI File values
@@ -123,22 +126,17 @@
     ansible_python_interpreter:        python3
   environment:
     HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
-    PYTHONHOME:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
-    DIR_EXECUTABLE:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
-    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+    PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
+    DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ ansible_hostname }}"
     DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
     SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
-    SECUDIR:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
-    DAT_BIN_DIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
-    DIR_INSTANCE:                      "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
-    PYTHONPATH:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
-    PATH:                              "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
-    LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
-                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
-                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+    SECUDIR:                           "/usr/sap/{{ DB }}/{{ ansible_hostname }}/sec"
+    DAT_BIN_DIR:                       "/usr/sap/{{ DB }}/exe/dat_bin_dir"
+    DIR_INSTANCE:                      "/usr/sap/{{ DB }}"
+    PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
+    PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
+    LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
   when:                                ansible_hostname == primary_instance_name
 
 - name:                                HSR - Ensure System Replication is configured command on secondary
@@ -172,22 +170,17 @@
     ansible_python_interpreter:        python3
   environment:
     HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
-    PYTHONHOME:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3"
-    DIR_EXECUTABLE:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe"
-    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}"
+    PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
+    DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ ansible_hostname }}"
     DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
     SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
-    SECUDIR:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}/sec"
-    DAT_BIN_DIR:                       "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir"
-    DIR_INSTANCE:                      "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
-    PYTHONPATH:                        "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/XDB/SYS/global/hdb/custom/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/python_support:/usr/sap/XDB/HDB{{ hdb_instance_number }}/rh8dxdb00l192:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/testscripts:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/lib/python3.7"
-    PATH:                              "/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/krb5/sbin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/{{ ansible_hostname }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/mdc:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/Python3/bin:/usr/sap/XDB/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/XDB/home:/sbin:/bin:/usr/sbin:/usr/bin"
-    LD_LIBRARY_PATH:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/krb5/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Python3/lib:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/Py3:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/filter:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/dat_bin_dir:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/afl:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/lcapps:\
-                                        /usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/repository:/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/plugins/epmmds:\
-                                        /usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:\
-                                        /usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+    SECUDIR:                           "/usr/sap/{{ DB }}/{{ ansible_hostname }}/sec"
+    DAT_BIN_DIR:                       "/usr/sap/{{ DB }}/exe/dat_bin_dir"
+    DIR_INSTANCE:                      "/usr/sap/{{ DB }}"
+    PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
+    PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
+    LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
   when:
     - ansible_hostname == secondary_instance_name
     - not hana_system_replication_enabled
