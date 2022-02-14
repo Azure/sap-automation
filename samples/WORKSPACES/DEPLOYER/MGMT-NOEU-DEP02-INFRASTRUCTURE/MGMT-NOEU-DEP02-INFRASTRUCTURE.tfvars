@@ -26,7 +26,7 @@ resourcegroup_tags = {
 #management_network_name=""
 management_network_logical_name="DEP02"
 #management_network_arm_id=""
-management_network_address_space="10.11.20.0/24"
+management_network_address_space="10.10.20.0/24"
 
 # management subnet
 # If defined these parameters control the subnet name and the subnet prefix

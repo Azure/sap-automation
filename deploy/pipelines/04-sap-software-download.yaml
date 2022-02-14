@@ -7,7 +7,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  SAP Software download $(bom) $(env) $(loc) [$(Date:yyyyMMdd)]
+name:                                  SAP Software download $(bom) $(environment_code) $(location_code)
 
 parameters:
   - name:                              bom_base_name
@@ -18,12 +18,14 @@ parameters:
       - S41909SPS03_v0010ms
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
-      - HANA_2_00_055_v0005ms
-      - NW750SPS20_v0002ms
+      - HANA_2_00_055_v0006ms
+      - NW750SPS20_v0004ms
+      - SWPM20SP10_latest
+      - SWPM10SP33_latest
+      - SUM20SP12_latest
 
   - name:                              environment
     displayName:                       Control Plane Environment
-    type:                              string
     default:                           MGMT
 
   - name:                              region
@@ -46,9 +48,9 @@ variables:
   - group:                             SDAF-${{ parameters.environment }}
   - name:                              bom
     value:                             ${{ parameters.bom_base_name }}
-  - name:                              env
+  - name:                              environment_code
     value:                             ${{ parameters.environment }}
-  - name:                              loc
+  - name:                              location_code
     value:                             ${{ parameters.region }}
   - name:                              check_storage_account
     value:                             $[not(${{ parameters.re_download }})]
@@ -62,52 +64,88 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - script: |
+          - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              
+
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                environment_file_name=$HOME/.sap_deployment_automation/$(environment_code)$(location_code)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+
               echo -e "$green--- Validations ---$reset"
-              if [ ! -f .sap_deployment_automation/$(env)$(loc) ]; then
-                echo -e "$boldred--- .sap_deployment_automation/$(env)$(loc) was not found ---$reset"
-                echo "##vso[task.logissue type=error]File .sap_deployment_automation/$(env)$(loc) was not found."
+              if [ ! -f ${environment_file_name} ]; then
+                echo -e "$boldred--- ${environment_file_name} was not found ---$reset"
+                echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
                 exit 2
               fi
-              if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-                exit 2
-              fi
-              if [ ! -n $(ARM_CLIENT_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                exit 2
-              fi
-              if [ ! -n $(ARM_CLIENT_SECRET) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                exit 2
-              fi
-              if [ ! -n $(ARM_TENANT_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                exit 2
-              fi
+
               echo -e "$green--- az login ---$reset"
+                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-                kv_name=$(cat .sap_deployment_automation/$(env)$(loc) | grep keyvault |awk -F'=' '{print $2}')
+              echo -e "$green--- Get key_vault name ---$reset"
+
+                kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}')
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
+
+              echo -e "$green--- Save BOM ---$reset"
+                if [ -n $(bom_override) ] ; then
+                  echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom_override)"
+                  echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom_override)"
+                else
+                  echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
+                  echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
+                fi
+
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
+
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
                 if [ -z "$SUsername" ]; then
                   az keyvault secret set --output none --name S-Username --vault-name $kv_name --value $(S-Username)
+                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$(S-Username)"
                 else
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
+                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsername"
                 fi
+
                 export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
                 if [ -z "$SPassword" ]; then
                   az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
+                  echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$(S-Password)"
+                else
+                  echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
                 fi
+
             displayName:               Prepare download
             name:                      Preparation
             env:
@@ -121,6 +159,9 @@ stages:
         displayName:                   Download software
         variables:
           kv_name:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          S-USER:                      $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
+          S-PASSWORD:                  $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
+          BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
         timeoutInMinutes:              0
         steps:
           - task:                      PostBuildCleanup@3
@@ -132,7 +173,7 @@ stages:
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: $DEPLOYMENT_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
-              args:                    ' -e "bom_base_name=$(bom)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" $(ExtraParams) '
+              args:                    ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" -e "s_user=$(S-Username)" -e "s_password=$(S-Password)" $(ExtraParams) '
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false

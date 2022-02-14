@@ -333,7 +333,6 @@
     - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}"
       ansible.builtin.debug:
         msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid|upper }}"
-
     - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
       ansible.builtin.mount:
         src:                           "{{ item.src }}"
@@ -370,7 +369,6 @@
     - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
       ansible.builtin.debug:
         msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
-
     - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
       ansible.builtin.mount:
         src:                           "{{ item.src }}"
