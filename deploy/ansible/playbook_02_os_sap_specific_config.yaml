@@ -7,25 +7,20 @@
 
 - hosts:                               localhost
   name:                                Preparation activities
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Set 'hdb' tier fact
-      ansible.builtin.set_fact:
-        tier:                          hdb
-
-    # - name:                            Include 0.1.passwords role
-    #   ansible.builtin.include_role:
-    #     name:                          roles-misc/0.1-passwords
-    #     public:                        true
-    #   tags:
-    #     - 0.1-passwords
-
-    - name:                            Remove .step2 flag
+    - name:                            Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step2"
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+        mode:                          0755
+
+    - name:                            Remove sap-os-configuration-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
         state:                          absent
 
 # /*----------------------------------------------------------------------------8
@@ -59,7 +54,6 @@
     - name:                            Setting the sapos tier facts
       ansible.builtin.set_fact:
         tier:                          sapos                                     # Actions for HANA DB Serve
-        # main_password:                 "{{ hostvars.localhost.sap_password }}"
       tags:
         - always
 
@@ -148,17 +142,16 @@
 
 - hosts:                               localhost
   name:                                Log results
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                           Create .step2 flag
+    - name:                           Create sap-os-configuration-done flag
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.step2"
+        path:                         "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
         state:                        touch
         mode:                         0755
-
 
 ...
 # /*----------------------------------------------------------------------------8

@@ -236,9 +236,6 @@ automation_username="azureadm"
 #  Azure NetApp files support                                                           #                                                                                       #
 #                                                                                       #
 #########################################################################################
-# use_ANF is a boolean flag controlling if Azure NetApp files is used for storage
-
-#use_ANF=false
 
 /* anf subnet information */
 # If defined these parameters control the subnet name and the subnet prefix

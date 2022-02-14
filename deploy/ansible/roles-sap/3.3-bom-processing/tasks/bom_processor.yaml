@@ -48,7 +48,6 @@
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
 
-
 #   02) Create static download directories
 - name:                                "BOM: Create SAP download directories"
   ansible.builtin.file:
@@ -56,6 +55,7 @@
     state:                             directory
     mode:                              0755
   loop:
+    - path: '/usr/sap/install/tmp'
     - path: '/usr/sap/install/downloads'
     - path: '/usr/sap/install/download_basket'
 
@@ -95,14 +95,27 @@
 
 #   04) Download media from bom
 # Loop through BOM media files and download to correct location
+# validate checksum while downloading the files.
+# For checksum validation, if we need to worry about portability, only the
+# sha1 algorithm is available on all platforms and python versions.
+# also, when we pass checksum if the file exists in destination it will be
+# deleted if the checksum does not match and will be downloaded from URL
+
+- name:                               "Creates temporary download directory"
+  file:
+    path:                             '/mnt/resource'
+    state:                            directory
+    mode:                             0775
+
 - name:                                "BOM: Download Files SUSE15"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    tmp_dest:                          '/mnt/resource'
+    tmp_dest:                          "{{ target_media_location }}/tmp"
+    checksum:                          "sha256:{{ item.checksum | upper }}"
     validate_certs:                    true
   register:                            result
   until:                               result is succeeded
@@ -117,12 +130,13 @@
 
 - name:                                "BOM: Download Files"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    tmp_dest:                          '/mnt/resource'
+    checksum:                          "{% if item.checksum is defined %}sha256:{{ item.checksum | upper }}{% endif %}"
+    tmp_dest:                          "{{ target_media_location }}/tmp"
     validate_certs:                    true
   register:                            result
   until:                               result is succeeded
@@ -182,6 +196,42 @@
     - item.extract
     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") )
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Process BOM dependencies.
+#               Call BOM processor, passing dependent BOM names.
+#
+- name:                                Process dependent BOMs
+  include_tasks:                       "bom_processor.yaml"
+  vars:
+    bom_name:                          "{{ bom_dependency.name }}"
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                          bom_dependency
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies|length>0
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Process BOM dependencies.
+#               Call BOM processor, passing dependent BOM names.
+#
+# -------------------------------------+---------------------------------------8
+
+- name:                                Process dependent BOMs
+  include_tasks:                       "bom_processor.yaml"
+  vars:
+    bom_name:                          "{{ bom_dependency.name }}"
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                          bom_dependency
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies|length>0
 
 
 # #   08) Purge BOM file from Ansible Controller

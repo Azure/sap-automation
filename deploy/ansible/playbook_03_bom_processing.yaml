@@ -14,22 +14,27 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
-    - name:                            Set 'sa' tier
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                          directory
+        mode:                          0755
+
+    - name:                            Remove bom-processing-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/bom-processing-done"
+        state:                          absent
+
+    - name:                            Set 'bom' tier
       ansible.builtin.set_fact:
-        tier:                          sa
+        tier:                          bom_download
 
-    - block:
-        - name:                        Remove .step3 flag
-          ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.step3"
-            state:                     absent
-
-        - name:                        Include 0.3.sap-installation-media-storage-details role
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.3.sap-installation-media-storage-details
-            public:                    true
-          tags:
-            - 0.3.sap-installation-media-storage-details
+    - name:                            Include 0.3.sap-installation-media-storage-details role
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          bom_download
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -37,7 +42,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_SCS"
+- hosts:                               "{{ sap_sid|upper }}_SCS : {{ sap_sid|upper }}_DB"
 
   name:                                BOM Processing
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -53,20 +58,26 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-
-    - name: Set facts
-      ansible.builtin.set_fact:
-        tier:                          preparation
-        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-
-    - name:                            3.3-bom-processing role
+    - name:                            "Perform BoM processing"
       block:
-        - name:                        Include the 3.3-bom-processing role
-          ansible.builtin.include_role:
-            name:                      roles-sap/3.3-bom-processing
-          tags:
-            - 3.3-bom-processing
+
+        - name:                        Set facts
+          ansible.builtin.set_fact:
+            tier:                      preparation
+            sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+
+        - name:                        3.3-bom-processing role
+          block:
+            - name:                    Include the 3.3-bom-processing role
+              ansible.builtin.include_role:
+                name:                  roles-sap/3.3-bom-processing
+              vars:
+                tier:                  bom_download
+              tags:
+                - 3.3-bom-processing
+      when:
+        - "'scs' in supported_tiers"
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -82,9 +93,9 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Create .step3 flag
+    - name:                            Create bom-processing flag
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step3"
+        path:                          "{{ _workspace_directory }}/.progress/bom-processing"
         state:                         touch
         mode:                          0755
 
