@@ -1,0 +1,752 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline performs the software installation             |
+# |              and must run on a self hosted deployment agent                |
+# |                      due to long run time                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name:                                  OS Configuration and SAP Installation $(sap_system_folder) $(bom)
+
+parameters:
+  - name:                              sap_system_configuration_name
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
+
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+  - name:                              bom_base_name
+    displayName:                       Bill of Materials name
+    type:                              string
+    default:                           S41909SPS03_v0010ms
+    values:
+      - S41909SPS03_v0010ms
+      - S41909SPS03_v0009ms
+      - S41909SPS03_v0008ms
+      - S41909SPS03_v0007ms
+      - BW4HANA2021SPS01_v0002ms
+      - HANA_2_00_055_v0005ms
+      - NW750SPS20_v0002ms
+
+  - name:                              base_os_configuration
+    displayName:                       Core Operating System Configuration
+    type:                              boolean
+    default:                           true
+
+  - name:                              sap_os_configuration
+    displayName: SAP Operating System Configuration
+    type:                              boolean
+    default:                           true
+
+  - name:                              bom_processing
+    displayName: Software Acquisition
+    type:                              boolean
+    default:                           true
+
+  - name:                              database_install
+    displayName: Database Installation
+    type:                              boolean
+    default:                           true
+
+  - name:                              scs_installation
+    displayName: SCS Installation
+    type:                              boolean
+    default:                           true
+
+  - name:                              db_load
+    displayName: Database Load
+    type:                              boolean
+    default:                           true
+
+  - name:                              pas_installation
+    displayName: PAS Installation
+    type:                              boolean
+    default:                           true
+
+  - name:                              application_server_installation
+    displayName: APP Installation
+    type:                              boolean
+    default:                           true
+
+  - name:                              webdispatcher_installation
+    displayName:                       WebDispatcher Installation
+    type:                              boolean
+    default:                           false
+
+  - name:                              high_availability_configuration
+    displayName:                       SAP & DB High Availability Setup
+    type:                              boolean
+    default:                           false
+
+trigger:                               none
+
+variables:
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
+  - name:                              sap_system_folder
+    value:                             ${{ parameters.sap_system_configuration_name }}
+  - name:                              bom
+    value:                             ${{ parameters.bom_base_name }}
+
+pool:
+  name:                                $(Agent)
+
+stages:
+  - stage:                             Preparation_for_Ansible
+    displayName:                       Preparation steps
+    jobs:
+      - job:                           Preparation_step
+        displayName:                   Preparation steps
+        workspace:
+          clean:                       all
+        steps:
+          - checkout:                  self
+            persistCredentials:        true
+          - bash: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- --- Convert config file to UX format ---$reset"
+                sudo apt-get -qq install dos2unix
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                cd $HOME
+
+              echo -e "$green--- Validations ---$reset"
+                ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                   LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+                VIRTUAL_NET=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $VIRTUAL_NET
+                        SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
+
+                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
+
+                if [ ! -f $environment_file_name ]; then
+                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Workload zone configuration file $environment_file_name was not found."
+                  exit 2
+                fi
+
+                if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
+                  echo -e "$boldred--- $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found."
+                  exit 2
+                fi
+                dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+
+                if [ ! -n ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not found in $(sap_system_folder)."
+                  exit 2
+                fi
+
+                if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml ]; then
+                  echo -e "$boldred--- $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found."
+                  exit 2
+                fi
+                dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml
+
+                echo "##vso[build.updatebuildnumber]Deploying $(sap_system_folder) using BoM ${bom_file}"
+
+                echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
+                echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
+                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sap_system_folder)"
+                echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
+                echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
+                echo "##vso[task.setvariable variable=CONFIGURATION_NAME;isOutput=true]$(sap_system_folder)"
+
+              echo -e "$green--- az login ---$reset"
+                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+              echo -e "$green--- Get Files from the DevOps Repository ---$reset"
+                cd $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)
+                sap_params_updated=0
+
+              echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
+                sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
+                sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
+
+              echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
+                mkdir -p artifacts
+
+                export kv_name=$(cat $environment_file_name  | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
+                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${VIRTUAL_NET}-sid-sshkey --vault-name $kv_name --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
+                cp sap-parameters.yaml artifacts/.
+                cp ${SID}_hosts.yaml artifacts/.
+
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                added=0
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)  &> /dev/null
+
+                if [ -f sap-parameters.yaml ]; then
+                  echo -e "$green--- Add sap-parameters to DevOps Repository ---$reset"
+                  git add sap-parameters.yaml
+                  added=1
+                fi
+
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -q & >/dev/null
+                fi
+                2> >(while read line; do (>&2 echo "STDERROR: $line"); done)
+            name:                      Preparation
+            displayName:               Preparation for Ansible
+            env:
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              true
+          - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
+            artifact:                  ansible_data
+
+  - stage:                             Validate_Parameters
+    displayName:                       Validate the input parameters
+    condition:                         always()
+    dependsOn:
+      - Preparation_for_Ansible
+    jobs:
+      - job:                           Validate_Parameters
+        displayName:                   Validate the input parameters
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              echo $(SID_hosts)
+              echo $(SAP_parameters)
+              echo $(parameters_folder)
+              echo $(DEPLOYMENT_REPO_PATH)
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+
+            displayName: Variables
+          - task:                      Ansible@0
+            displayName:               Validate the input parameters
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_00_validate_parameters.yaml"
+
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              ANSIBLE_HOST_KEY_CHECKING: false
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage:                             Core_Operating_System_Configuration
+    displayName:                       Core Operating System Configuration
+    condition:                         eq(${{ parameters.base_os_configuration }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - Validate_Parameters
+    jobs:
+      - job:                           Core_Operating_System_Configuration
+        displayName:                   Core Operating System Configuration
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               Core Operating System Configuration
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_01_os_base_config.yaml"
+
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              ANSIBLE_HOST_KEY_CHECKING: false
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage:                             SAP_Operating_System_Configuration
+    displayName:                       SAP Operating System Configuration
+    condition:                         eq(${{ parameters.sap_os_configuration }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - Core_Operating_System_Configuration
+    jobs:
+      - job:                           SAP_Operating_System_Configuration
+        displayName:                   SAP Operating System Configuration
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               SAP Operating System Configuration
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage:                             Software_Acquisition
+    displayName:                       Software Acquisition
+    condition:                         eq(${{ parameters.bom_processing }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - Core_Operating_System_Configuration
+      - SAP_Operating_System_Configuration
+    jobs:
+      - job:                           Software_Acquisition
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               Software Acquisition
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage: Database_Installation
+    displayName:                       Database Installation
+    condition:                         eq(${{ parameters.database_install }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+    jobs:
+      - job:                           Database_Installation
+        displayName:                   Database Installation
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               Database Installation
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage: SCS_Installation
+    displayName:                       SCS Installation
+    condition:                         eq(${{ parameters.scs_installation }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+    jobs:
+      - job:                           SCS_Installation
+        displayName:                   SCS Installation
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               SCS Installation
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage: Database_Load
+    displayName:                       Database Load
+    condition:                         eq(${{ parameters.db_load }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - SCS_Installation
+    jobs:
+      - job:                           Database_Load
+        displayName:                   Database Load
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               Database Load
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage: PAS_Installation
+    displayName:                       PAS Installation
+    condition:                         eq(${{ parameters.pas_installation }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - SCS_Installation
+      - Database_Load
+    jobs:
+      - job:                           PAS_Installation
+        displayName:                   PAS Installation
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               PAS Installation
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage: APP_Install
+    displayName:                       Application Server Install
+    condition:                         eq(${{ parameters.application_server_installation }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - SCS_Installation
+      - Database_Load
+      - PAS_Installation
+    jobs:
+      - job:                           APP_Install
+        displayName:                   Application Server Install
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               Application Server Install
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage: WebDispatcher_Installation
+    displayName:                       WebDispatcher Installation
+    condition:                         eq(${{ parameters.webdispatcher_installation }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - SCS_Installation
+      - Database_Load
+      - PAS_Installation
+      - APP_Install
+    jobs:
+      - job:                           WebDispatcher_Installation
+        displayName:                   WebDispatcher Installation
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               WebDispatcher Installation
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage:                             HighAvailability_Setup
+    displayName:                       High Availability Setup
+    condition:                         eq(${{ parameters.high_availability_configuration }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - Database_Load
+    jobs:
+      - job:                           HighAvailability_Setup
+        displayName:                   High Availability Setup
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+          - task:                      Ansible@0
+            displayName:               High Availability Setup
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+            name: HA
+
+  - stage: Post_Installation_Steps
+    displayName:                       Post Installation Steps
+    condition:                         always()
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - Database_Load
+      - PAS_Installation
+      - APP_Install
+      - HighAvailability_Setup
+    jobs:
+      - job:                           Post_Installation_Steps
+        displayName:                   Post Installation Steps
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+        steps:
+          - task:                      PostBuildCleanup@3
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                  added=1
+                fi
+                # # if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/$(sap_system_folder)_sshkey ] ; then
+                # #   git rm $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/$(sap_system_folder)_sshkey
+                # #   added=1
+                # # fi
+
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
+                fi
+
+            displayName:               Copy Log files
+            env:
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            failOnStderr:              false
+
+...

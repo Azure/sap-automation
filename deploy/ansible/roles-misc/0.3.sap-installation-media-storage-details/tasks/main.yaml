@@ -11,74 +11,103 @@
     var:                               bom_processing
     verbosity:                         2
 
-- name:                                Workload Keyvault name
-  ansible.builtin.set_fact:
-    workload_kv_name:                  "{{ kv_name }}"
 
-- name:                                Get Deployer Keyvault name from keyvault
-  ansible.builtin.command: >-
+- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"
+  block:
+
+    - name:                            Check required variables are present and not empty
+      ansible.builtin.assert:
+        that:
+          - "kv_name is defined"                    # Has the variable been defined
+          - "kv_name | type_debug != 'NoneType'"    # and given a value
+          - "kv_name | string | length != 0 "       # Detect null values
+        fail_msg:                          "Please define the kv_name parameter"
+
+    - name:                            Get Deployer Keyvault name from keyvault
+      ansible.builtin.command: >-
                                        az keyvault secret show
-                                         --vault-name {{ workload_kv_name }}
-                                         --name deployer-kv-name
-  changed_when:                        false
-  register:                            deployer_kv_name_secret
-  when:                                bom_processing is not defined
+                                         --vault-name {{ kv_name }}
+                                         --name {{ deployer_kv_name_secret }}
+      changed_when:                    false
+      register:                        deployer_kv_name_secret
+      when:                            bom_processing is not defined
 
-- name:                                Save Deployer Keyvault name
-  ansible.builtin.set_fact:
-    deployer_kv_name:                  "{{ kv_name }}"
-  when:                                bom_processing is defined
-
-- name:                                Save Deployer Keyvault name
-  ansible.builtin.set_fact:
-    deployer_kv_name: >-
+    - name:                            Save Deployer Keyvault name
+      ansible.builtin.set_fact:
+        deployer_kv_name: >-
                                        {{ (deployer_kv_name_secret.stdout | from_json).value }}
-  when:                                bom_processing is not defined
-
+  when: deployer_kv_name is not defined
 
 - name:                                Debug, Deployer Keyvault
   ansible.builtin.debug:
     var:                               deployer_kv_name
     verbosity:                         2
 
-- name:                                Extract SAP Binaries Storage Account information
-  ansible.builtin.command: >-
+- name:                                Extract SAP Binaries Storage Account secrets
+  block:
+    - name:                            Extract SAP Binaries Storage Account information
+      ansible.builtin.command: >-
                                        az keyvault secret show
                                          --vault-name {{ deployer_kv_name }}
                                          --name {{ sapbits_location_secret }}
-  changed_when:                        false
-  register:                            sapbits_location_base_path_secret
-  no_log:                              false
+      changed_when:                    false
+      register:                        sapbits_location_base_path_secret
+      no_log:                          false
 
-- name:                                Save SAP Binaries Storage Account information
-  ansible.builtin.set_fact:
-    sapbits_location_base_path: >-
+    - name:                            Save SAP Binaries Storage Account information
+      ansible.builtin.set_fact:
+        sapbits_location_base_path: >-
                                        {{ (sapbits_location_base_path_secret.stdout | from_json).value }}
+  when:                                sapbits_location_base_path is not defined
 
 - name:                                Debug, storage account
   ansible.builtin.debug:
     var:                               sapbits_location_base_path
     verbosity:                         2
 
+- name:                                Extract SAP Binaries Storage Account SAS secret
+  block:
 
-- name:                                Extract SAP Binaries Storage Account SAS
-  ansible.builtin.command: >-
+    - name:                            Extract SAP Binaries Storage Account SAS
+      ansible.builtin.command: >-
                                        az keyvault secret show
                                          --vault-name {{ deployer_kv_name }}
                                          --name {{ sapbits_sas_token_secret }}
-  changed_when:                        false
-  register:                            sapbits_sas_token_secret
+      changed_when:                    false
+      register:                        sapbits_sas_token_secret
 
-- name:                                Extract SAP Binaries Storage Account SAS
-  ansible.builtin.set_fact:
-    sapbits_sas_token: >-
+    - name:                            Extract SAP Binaries Storage Account SAS
+      ansible.builtin.set_fact:
+        sapbits_sas_token: >-
                                        {{ (sapbits_sas_token_secret.stdout | from_json).value }}
-  no_log:                              false
+      no_log:                          false
+
+  when:                                sapbits_sas_token is not defined
 
 - name:                                Debug, SAS Token
   ansible.builtin.debug:
     var:                               sapbits_sas_token
     verbosity:                         2
+
+- name:                                "BoM Secrets: Retrieve Access Key secret"
+  block:
+    - name:                            "BoM Secrets: Retrieve Access Key details"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ deployer_kv_name }}
+          --name "sapbits-access-key"
+      changed_when:                    false
+      register:                        keyvault_secret_show_accesskey
+      no_log:                          true
+
+    - name:                            "BoM Secrets: Extract Access Key details"
+      ansible.builtin.set_fact:
+        sapbits_access_key: >-
+          {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
+      no_log:                          true
+  when:
+    - tier == 'bom'
+    - sapbits_access_key is not defined
 
 ...
 # /*---------------------------------------------------------------------------8

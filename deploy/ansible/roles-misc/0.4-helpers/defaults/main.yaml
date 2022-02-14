@@ -3,3 +3,6 @@
 # +------------------------------------4--------------------------------------*/
 
 sapcontrol_command:                    "sapcontrol -nr {{ hdb_instance_number }}"
+
+hana_stop_start_timeout_in_seconds:    2700
+hana_stop_start_delay_in_seconds:      2

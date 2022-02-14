@@ -234,55 +234,11 @@ fi
 
 tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
-if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
-    option="DEPLOYMENT_REPO_PATH"
-    missing
-    exit -1
-fi
-
-# Checking for valid az session
-az account show >stdout.az 2>&1
-temp=$(grep "az login" stdout.az)
-if [ -n "${temp}" ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldred Please login using az login $resetformatting                                #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f stdout.az ]; then
-        rm stdout.az
-    fi
-    exit 67 #addressee unknown
-else
-    if [ -f stdout.az ]; then
-        rm stdout.az
-    fi
-
-fi
-
-account_set=0
-
-cloudIDUsed=$(az account show | grep "cloudShellID")
-if [ ! -z "${cloudIDUsed}" ];
-then 
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#         $boldred Please login using your credentials or service principal credentials! $resetformatting       #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    exit 67                                                                                             #addressee unknown
-fi
-
 #setting the user environment variables
 set_executing_user_environment_variables "none"
 
-if [ ! -z "${STATE_SUBSCRIPTION}" ]; then
-    $(az account set --sub "${STATE_SUBSCRIPTION}")
-    account_set=1
+if [ -n "${STATE_SUBSCRIPTION}" ]; then
+    az account set --sub "${STATE_SUBSCRIPTION}"
 fi
 
 export TF_DATA_DIR="${parameterfile_dirname}"/.terraform
@@ -321,13 +277,12 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
---backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
---backend-config "resource_group_name=${REMOTE_STATE_RG}" \
---backend-config "storage_account_name=${REMOTE_STATE_SA}" \
---backend-config "container_name=tfstate" \
---backend-config "key=${key}.terraform.tfstate"
-
+terraform -chdir="${terraform_module_directory}" init  -reconfigure \
+  --backend-config "subscription_id=${STATE_SUBSCRIPTION}"          \
+  --backend-config "resource_group_name=${REMOTE_STATE_RG}"         \
+  --backend-config "storage_account_name=${REMOTE_STATE_SA}"        \
+  --backend-config "container_name=tfstate"                         \
+  --backend-config "key=${key}.terraform.tfstate"
 
 echo ""
 echo "#########################################################################################"
@@ -337,9 +292,6 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-#TODO:
-#create retire_region.sh for deleting the deployer and the library in a proper way
-#terraform doesn't seem to tokenize properly when we pass a full string
 if [ "$deployment_system" == "sap_deployer" ]; then
     terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
         $deployer_tfstate_key_parameter

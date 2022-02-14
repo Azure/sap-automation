@@ -1,0 +1,206 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline performs post installation tasks               |
+# |              and must run on a self hosted deployment agent                |
+# |                      due to long run time                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name:                                  Post installation tooling
+
+parameters:
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
+
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+  - name:                              hcmt
+    displayName:                       HANA Cloud Measurement Tool
+    type:                              boolean
+    default:                           false
+
+  - name:                              postinstallation
+    displayName:                       Post Installation Steps
+    type:                              boolean
+    default:                           false
+
+trigger: none
+
+pool:
+  name: $(Agent)
+
+variables:
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
+  - name:                              sapsystemfolder
+    value:                             ${{ parameters.sap_system }}
+
+stages:
+  - stage:                             Preparation_for_Ansible
+    displayName:                       Preparation steps
+    jobs:
+      - job:                           Preparation_step
+        displayName:                   Preparation steps
+        workspace:
+          clean:                       all
+        steps:
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- --- Convert config file to UX format ---$reset"
+                sudo apt-get -qq install dos2unix
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                cd $HOME
+              echo -e "$green--- Validations ---$reset"
+                if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) ]; then
+                  echo -e "$boldred--- $(sapsystemconfig) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(sapsystemconfig) was not found."
+                  exit 2
+                fi
+                dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/$(sapsystemconfig)
+                if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml ]; then
+                  echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml was not found."
+                  exit 2
+                fi
+                dos2unix -q $HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml
+                export SID=$(cat SYSTEM/$(sapsystemfolder)/$(sapsystemconfig) | grep sid'=' | awk -F'=' '{print $2}' | xargs) ; echo SID $SID
+                echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)/sap-parameters.yaml"
+                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)"
+                echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
+                if [ ! -n ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not found in $(sapsystemconfig)."
+                  exit 2
+                fi
+
+                if [ ! -f $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml ]; then
+                  echo -e "$boldred--- $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml was not found."
+                  exit 2
+                fi
+                echo "##vso[task.setvariable variable=HOSTS;isOutput=true]$HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml"
+                echo $DEPLOYMENT_REPO_PATH
+              echo -e "$green--- Get SID and copy hosts file over for ansible runs ---$reset"
+                cp -p $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml $(Build.Repository.LocalPath)/sap_hosts.yaml
+              echo -e "$green--- az login ---$reset"
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+              echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
+                export ENV=$(echo $(sapsystemfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
+                export LOCA=$(echo $(sapsystemfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location $LOCA
+                export VNET=$(echo $(sapsystemfolder) | awk -F'-' '{print $3}' | xargs) ; echo VNET $VNET
+                export kv_name=$(cat .sap_deployment_automation/${ENV}${LOCA}  | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
+                az keyvault secret show --name ${ENV}-${LOCA}-${VNET}-sid-sshkey --vault-name $kv_name --query value -o tsv > $(Build.Repository.LocalPath)/sshkey
+                chmod 600 $(Build.Repository.LocalPath)/sshkey
+
+                echo "##vso[task.setvariable variable=SSHKEY;isOutput=true]$(Build.Repository.LocalPath)/sshkey"
+            name:                      Preparation
+            displayName:               Preparation_for_Ansible
+            env:
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              false
+
+
+  - stage:                             HCMT
+    displayName:                       HANA Cloud Measurement Tool
+    condition:                         eq(${{ parameters.hcmt }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+    jobs:
+      - job:                           HANA_Cloud_Measurement_Tool
+        displayName:                   HANA Cloud Measurement Tool
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          key_path:                    $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSHKEY'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+        steps:
+          - checkout:                  none
+            persistCredentials:        true
+          - task:                      Ansible@0
+            displayName:               HANA Cloud Measurement Tool
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_02_db_hcmt.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(SID_hosts)
+              args:                    '--private-key $(key_path) -e "@$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+
+  - stage:                             Post_Installation_Steps
+    displayName:                       Post Installation Steps
+    condition:                         always()
+    jobs:
+      - job:                           Post_Installation_Steps
+        displayName:                   Post Installation Steps
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          key_path:                    $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSHKEY'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+        steps:
+          - task:                      PostBuildCleanup@3
+          - checkout:                  none
+            persistCredentials:        true
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                cd $HOME; mkdir -p .sap_deployment_automation
+                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                SID=$(echo $(sapsystemfolder) | cut -d'-' -f4 | xargs)
+                if [ ! -n ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
+                  exit 2
+                fi
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git checkout -q $(Branch)
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/${SID}_*.zip
+                  added=1
+                fi
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip ]; then
+                  git add $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/logs/hcmtresult-*.zip
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sapsystemfolder)/${SID}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sapsystemfolder)/${SID}.md"
+                fi
+
+            displayName:               Copy Log files
+            env:
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+            failOnStderr:              false
+
+...
