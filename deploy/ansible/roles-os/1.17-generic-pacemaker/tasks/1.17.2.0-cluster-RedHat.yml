@@ -62,9 +62,11 @@
 
     - name:                            Ensure the cluster is starting on all nodes
       ansible.builtin.command:         pcs cluster start --all
+      changed_when:                    false
 
     - name:                            Allow Concurrent Fencing
       ansible.builtin.command:         pcs property set concurrent-fencing=true
+      changed_when:                    false
 
     - name:                            Wait until cluster has stabilized
       ansible.builtin.shell:           pcs status | grep '^Online:'
