@@ -90,14 +90,17 @@
     - name:                            Run PAS Installation
       block:
 
-        - block:
-            - ansible.builtin.debug:
+        - name:                        PAS assertions
+          block:
+            - name:                    Show instance numbers
+              ansible.builtin.debug:
                 msg:
                   - "pas_instance_number: {{ pas_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
                 verbosity:             2
 
-            - ansible.builtin.assert:
+            - name:                    Assert instance numbers
+              ansible.builtin.assert:
                 that:
                   - "pas_instance_number is defined"
                   - "scs_instance_number != pas_instance_number"

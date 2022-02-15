@@ -278,10 +278,16 @@ stages:
 
   - stage:                             Core_Operating_System_Configuration
     displayName:                       Core Operating System Configuration
-    condition:                         eq(${{ parameters.base_os_configuration }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - Validate_Parameters
+    condition: |
+      and
+      (
+        eq(${{ parameters.base_os_configuration }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           Core_Operating_System_Configuration
         displayName:                   Core Operating System Configuration
@@ -320,10 +326,16 @@ stages:
 
   - stage:                             SAP_Operating_System_Configuration
     displayName:                       SAP Operating System Configuration
-    condition:                         eq(${{ parameters.sap_os_configuration }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - Core_Operating_System_Configuration
+    condition: |
+      and
+      (
+        eq(${{ parameters.sap_os_configuration }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           SAP_Operating_System_Configuration
         displayName:                   SAP Operating System Configuration
@@ -359,11 +371,17 @@ stages:
 
   - stage:                             Software_Acquisition
     displayName:                       Software Acquisition
-    condition:                         eq(${{ parameters.bom_processing }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - Core_Operating_System_Configuration
       - SAP_Operating_System_Configuration
+    condition: |
+      and
+      (
+        eq(${{ parameters.bom_processing }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           Software_Acquisition
         variables:
@@ -398,11 +416,17 @@ stages:
 
   - stage: Database_Installation
     displayName:                       Database Installation
-    condition:                         eq(${{ parameters.database_install }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
       - Software_Acquisition
+    condition: |
+      and
+      (
+        eq(${{ parameters.database_install }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           Database_Installation
         displayName:                   Database Installation
@@ -438,12 +462,19 @@ stages:
 
   - stage: SCS_Installation
     displayName:                       SCS Installation
-    condition:                         eq(${{ parameters.scs_installation }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
       - Software_Acquisition
       - Database_Installation
+    condition: |
+      and
+      (
+        eq(${{ parameters.scs_installation }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           SCS_Installation
         displayName:                   SCS Installation
@@ -479,13 +510,21 @@ stages:
 
   - stage: Database_Load
     displayName:                       Database Load
-    condition:                         eq(${{ parameters.db_load }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
       - Software_Acquisition
       - Database_Installation
       - SCS_Installation
+    condition: |
+      and
+      (
+        eq(${{ parameters.db_load }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           Database_Load
         displayName:                   Database Load
@@ -521,7 +560,6 @@ stages:
 
   - stage: PAS_Installation
     displayName:                       PAS Installation
-    condition:                         eq(${{ parameters.pas_installation }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
@@ -529,6 +567,14 @@ stages:
       - Database_Installation
       - SCS_Installation
       - Database_Load
+    condition: |
+      and
+      (
+        eq(${{ parameters.pas_installation }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           PAS_Installation
         displayName:                   PAS Installation
@@ -564,7 +610,6 @@ stages:
 
   - stage: APP_Install
     displayName:                       Application Server Install
-    condition:                         eq(${{ parameters.application_server_installation }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
@@ -573,6 +618,15 @@ stages:
       - SCS_Installation
       - Database_Load
       - PAS_Installation
+    condition: |
+      and
+      (
+        eq(${{ parameters.application_server_installation }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           APP_Install
         displayName:                   Application Server Install
@@ -653,13 +707,22 @@ stages:
 
   - stage:                             HighAvailability_Setup
     displayName:                       High Availability Setup
-    condition:                         eq(${{ parameters.high_availability_configuration }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
       - Software_Acquisition
       - Database_Installation
       - Database_Load
+    condition: |
+      and
+      (
+        eq(${{ parameters.high_availability_configuration }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
+        in(dependencies.Database_Load.result, 'Succeeded', 'Skipped'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
     jobs:
       - job:                           HighAvailability_Setup
         displayName:                   High Availability Setup

@@ -35,6 +35,7 @@
 
     - name:                            Execute HCMT
       ansible.builtin.command:         ./hcmt -v -p config/executionplan.json
+      changed_when:                    false      
       args:
         chdir:                         "{{ target_media_location }}/hcmt/setup"
 
