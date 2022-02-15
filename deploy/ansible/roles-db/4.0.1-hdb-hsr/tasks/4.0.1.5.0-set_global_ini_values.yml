@@ -37,5 +37,5 @@
     - { option: replicate,                         value: "true" }
     - { option: fixed_exclusion_global.ini/SYSTEM, value: "storage/*, persistence/*path*, internal_hostname_resolution/*,
                                                           public_hostname_resolution/*, system_replication*, multidb/mode, system_landscape_hostname_virtualization/sldsystemhome" }
-#  when:                                ansible_hostname == primary_instance_name and not hana_system_replication_enabled
+#  when:                                ansible_hostname == primary_instance_name and not hana_system_replication_needed
 # #

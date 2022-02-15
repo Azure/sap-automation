@@ -68,17 +68,21 @@
     var:                               scs_installed
     verbosity:                         2
 
+- name:                                "PAS install: register variables"
+  ansible.builtin.set_fact:
+    scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
+    public:                            true
 
 - name:                                "SCS Install"
   block:
 
     - name:                            "SCS Install: install variables"
-      debug:
+      ansible.builtin.debug:
         msg:                           "{{ sap_inifile }}"
         verbosity:                     2
 
     - name:                            "SCS Install: install variables"
-      debug:
+      ansible.builtin.debug:
         msg:                           "{{ bom.product_ids.scs_ha }}"
         verbosity:                     2
 
