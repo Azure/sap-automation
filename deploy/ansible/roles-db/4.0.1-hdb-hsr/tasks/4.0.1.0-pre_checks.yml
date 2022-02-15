@@ -42,6 +42,7 @@
       become:                          true
       ansible.builtin.shell: >
                                        ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      changed_when:                    true
   when: not id_rsa_file_pub_status.stat.exists
 
 - name:                                HSR - Copy SSH public key
