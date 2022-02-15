@@ -79,7 +79,7 @@ namespace AutomationForm.Controllers
                         str.AppendLine("  source_image_id="   + $"\"{img.source_image_id}\",");
                         str.AppendLine("  publisher="         + $"\"{img.publisher}\",");
                         str.AppendLine("  offer="             + $"\"{img.offer}\",");
-                        str.AppendLine("  sku="               + $"\"{img.sku}\",");
+                        str.AppendLine("  sku="               + $"\"{img.sku}\"");
                         str.AppendLine("}");
                     }
                     else if (property.PropertyType == typeof(bool?))

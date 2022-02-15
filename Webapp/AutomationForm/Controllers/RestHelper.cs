@@ -38,6 +38,8 @@ namespace AutomationForm.Controllers
                 Convert.ToBase64String(
                     System.Text.ASCIIEncoding.ASCII.GetBytes(
                         string.Format("{0}:{1}", "", PAT))));
+
+            client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
         }
         public async Task UpdateRepo(string path, string content)
         {
@@ -119,7 +121,7 @@ namespace AutomationForm.Controllers
         }
         public async Task<string[]> GetTemplateFileNames(string scopePath)
         {
-            string getUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/items?scopePath={scopePath}&recursionLevel=full&api-version=6.0&versionDescriptor.version={branch}";
+            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{scopePath}?ref={branch}";
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             response.EnsureSuccessStatusCode();
@@ -127,28 +129,27 @@ namespace AutomationForm.Controllers
             string responseBody = await response.Content.ReadAsStringAsync();
             List<string> fileNames = new List<string>();
 
-            JsonElement values = JsonDocument.Parse(responseBody).RootElement.GetProperty("value");
+            JsonElement values = JsonDocument.Parse(responseBody).RootElement;
             foreach (var value in values.EnumerateArray())
             {
-                string path = value.GetProperty("path").GetString();
-                if (path.EndsWith(".tfvars"))
-                {
-                    fileNames.Add(path);
-                }
+                string path = value.GetProperty("path").GetString() + "/";
+                string filename = value.GetProperty("name").GetString() + ".tfvars";
+                fileNames.Add(path + filename);
             }
 
             return fileNames.ToArray();
         }
         public async Task<string> GetTemplateFile(string path)
         {
-            string getUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/items?path={path}&api-version=6.0&versionDescriptor.version={branch}&includeContent=true";
+            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{path}?ref={branch}";
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             response.EnsureSuccessStatusCode();
 
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            return JsonDocument.Parse(responseBody).RootElement.GetProperty("content").GetString();
+            string bitstring = JsonDocument.Parse(responseBody).RootElement.GetProperty("content").GetString();
+            return Encoding.UTF8.GetString(Convert.FromBase64String(bitstring));
         }
 
     }
