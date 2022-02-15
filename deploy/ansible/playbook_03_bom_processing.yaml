@@ -70,6 +70,7 @@
         - name:                        3.3-bom-processing role
           block:
             - name:                    Include the 3.3-bom-processing role
+              run_once:                true
               ansible.builtin.include_role:
                 name:                  roles-sap/3.3-bom-processing
               vars:
