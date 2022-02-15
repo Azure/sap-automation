@@ -121,7 +121,7 @@ namespace AutomationForm.Controllers
         }
         public async Task<string[]> GetTemplateFileNames(string scopePath)
         {
-            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{scopePath}?ref={branch}";
+            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{scopePath}?ref=main";
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             response.EnsureSuccessStatusCode();
@@ -141,7 +141,7 @@ namespace AutomationForm.Controllers
         }
         public async Task<string> GetTemplateFile(string path)
         {
-            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{path}?ref={branch}";
+            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{path}?ref=main";
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             response.EnsureSuccessStatusCode();
