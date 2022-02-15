@@ -162,10 +162,4 @@
     - sap_mnt is defined or sap_trans is defined
     - tier == 'sapos'
     - NFS_provider == 'ANF'
-
-# Import this task only if the tier is ora.
-- import_tasks:                        "oracle.yaml"
-  when:
-    - node_tier == "oracle"
-
 ...
