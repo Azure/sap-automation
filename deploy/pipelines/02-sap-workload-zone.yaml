@@ -95,7 +95,7 @@ stages:
                   echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
                   exit 2
                 fi
-              
+
                 if [ ! -f ${deployer_environment_file_name} ]; then
                   echo -e "$boldred--- $(deployer_environment)$LOCATION was not found ---$reset"
                   echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$LOCATION was not found."
