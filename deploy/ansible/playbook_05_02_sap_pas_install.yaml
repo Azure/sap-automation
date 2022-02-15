@@ -86,8 +86,13 @@
             - name:                        Include 5.2-pas-install
               ansible.builtin.include_role:
                 name:     roles-sap/5.2-pas-install
+              when:       ora_msids is undefined
+            - name:                        Include 5.2.1-pas-msid-install
+              ansible.builtin.include_role:
+                name:     roles-sap/5.2.1-pas-msid-install
+              when:       ora_msids is defined
           tags:
-            - 5.2-pas-install
+            - 5.2.1-pas-msid-install
       when:                            
         - "'pas' in supported_tiers"
 

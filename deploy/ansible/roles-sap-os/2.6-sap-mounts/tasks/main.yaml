@@ -6,6 +6,40 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+# Mount Filesystems for SCS server in Multi-SID installations
+- name:                                Mount local sapmnt (scs) for oracle multisid installation
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
+    - { type: 'xfs',  src: '/dev/vg_sap/lv_sapmnt',  path: '/sapmnt' }
+    - { type: 'xfs',  src: '/dev/vg_sap/lv_usrsap',  path: '/usr/sap'}
+  when:
+    - tier == 'sapos'
+    - node_tier == 'scs'
+    - ora_msids is defined
+    - not use_AFS
+
+# Create Folders under sapmnt whilist using Local disk for Multi-SID installation.
+- name:                                Create Filesystems under sapmnt
+  block:
+    - name:                            Create Filesystems for multi-sid installation
+      ansible.builtin.file:
+        path:                          /sapmnt/{{ item.sid }}
+        state:                         directory
+        mode:                          '0644'
+      when:
+         - node_tier == 'scs'
+         - ora_msids is defined
+      loop: "{{ ora_msids }}"
+
+- name:                                Show ora_msids
+  ansible.builtin.debug:
+    var:                               ora_msids
+
 # Mount Filesystems
 - name:                                Mount local filesystems
   ansible.builtin.mount:
@@ -25,6 +59,17 @@
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'     }
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
 
+- name:                               "Exports: Create SAP Trans MSIDs"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:
+    - { path: '/usr/sap/trans' }
+  when:
+    - node_tier == 'scs'
+    - ora_msids is defined
+
 - name:                                Mount local filesystems (when not using AFS)
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
@@ -40,6 +85,7 @@
   when:         
     - item.node_tier == node_tier
     - not use_AFS
+
 
 - name:                                Show NFS_provider
   ansible.builtin.debug:
@@ -73,6 +119,7 @@
     - tier == 'sapos'
     - sap_mnt is undefined
     - node_tier == 'scs'
+    - ora_msids is undefined
 
 # Mount Filesystems
 - name:                                Mount Filesystems block
@@ -90,6 +137,7 @@
         - tier == 'sapos'
         - node_tier in ['pas', 'app', 'ers']
         - sap_mnt is undefined
+        - ora_msids is undefined
   rescue:
     - name:                            Re-mount Filesystems when not using external NFS (app & pas)
       ansible.builtin.debug:
@@ -107,6 +155,7 @@
         - tier == 'sapos'
         - node_tier in ['pas', 'app', 'ers']
         - sap_mnt is undefined
+        - ora_msids is defined
 
 
 # Mount Filesystems
@@ -138,6 +187,24 @@
     - node_tier != 'scs'
     - not use_AFS
 
+#Mount Filesystems for Oracle Multi-SID on DB and APP servers
+
+- name:     "Mount SAP Filesystems for installation"
+  mount:
+    src: '{{ nfs_server }}:/sapmnt/{{ item.sid|upper }}'
+    path: '/sapmnt/{{ item.sid|upper }}'
+    fstype: 'nfs4'
+    opts:   defaults
+    state:  mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop: "{{ ora_msids }}"
+  when:         
+    - tier == 'sapos'
+    - ora_msids is defined
+    - node_tier != 'scs'
+
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                Import AFS tasks
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
@@ -160,6 +227,11 @@
 - import_tasks:                        "oracle.yaml"
   when:
     - node_tier == "oracle"
+    - node_tier != "oracle-asm"
+
+- import_tasks:                        "oracle-msid.yaml"
+  when: 
+    - node_tier == "oracle-msid"
     - node_tier != "oracle-asm"
 
 ...

@@ -108,7 +108,7 @@
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     tmp_dest:                          '/mnt/resource'
-    checksum:                          "sha256:{{ item.checksum | upper }}"
+    #checksum:                          "sha256:{{ item.checksum | upper }}"
     validate_certs:                    true
   register:                            result
   until:                               result is succeeded
@@ -128,7 +128,7 @@
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    checksum:                          "sha256:{{ item.checksum | upper }}"
+    #checksum:                          "sha256:{{ item.checksum | upper }}"
     tmp_dest:                          '/mnt/resource'
     validate_certs:                    true
   register:                            result

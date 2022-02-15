@@ -105,8 +105,19 @@
             - name:                    Include 5.0.0-scs-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
+              when:                    ora_msids is undefined
           tags:
             - 5.0.0-scs-install
+
+
+        - block:
+            - name:                    Include 5.0.3-scs-msid-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.0.3-scs-msid-install
+              when:                    ora_msids is defined
+          tags:
+            - 5.0.2-scs-msid-install
+
       when:                            
        - not scs_high_availability
        - "'scs' in supported_tiers"

@@ -89,8 +89,19 @@
         - name:                        Include 1.5-disk-setup role
           ansible.builtin.include_role:
             name:                      roles-os/1.5-disk-setup
+          when:       ( node_tier != "oracle-msid" or node_tier != "oracle-asm" )
       tags:
         - 1.5-disk-setup
+
+    - block:
+        - name:                        Include 1.5.2-disk-setup-ora-msid role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-ora-msid
+          when:
+            node_tier == "oracle-msid"
+      tags:
+        - 1.5.2-disk-setup-ora-msid
+
 
     - block:
         - name:                        Include 1.9-kernelparameters role
@@ -114,18 +125,19 @@
         - 2.3-sap-exports
 
     - block:
+        - name:                        Include 2.6-sap-mounts role
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        node_tier != "oracle-asm"
+      tags:
+        - 2.6-sap-mounts
+
+    - block:
         - name:                        Include 1.16-services role
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
       tags:
         - 1.16-services
-
-    - block:
-        - name:                        Include 2.6-sap-mounts role
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-      tags:
-        - 2.6-sap-mounts
 
     - block:
         - name:                        Include 2.10-sap-notes role

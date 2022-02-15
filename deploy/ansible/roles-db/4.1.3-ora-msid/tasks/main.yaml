@@ -1,0 +1,217 @@
+#   SAP: Register BOM
+#   Install Oracle for Multi-SID installation.
+#   1778431 - SAP Installations using Shared Oracle Homes
+#   Install Oracle Database
+#   Run the Oracle universal installer in silent mode. Refer to SAP Note : 2660017 Oracle Software Installation on Unix
+#
+
+
+---
+
+- name:  
+  ansible.builtin.set_fact:
+    dir_params:                   "{{ target_media_location }}/.params"
+
+
+
+- name:     "Create run flag directory"
+  become:         yes
+  become_user:    root
+  ansible.builtin.file:
+    path:   /etc/sap_deployment_automation
+    state:  directory
+    mode:   0755
+    owner:  oracle
+    group:  oinstall
+
+
+- name:              "Make oracle:oinstall as owners"          
+  become:         yes
+  become_user:    root
+  ansible.builtin.shell: | 
+                      chown -R oracle:oinstall /oracle
+                      chmod -R 777 /usr/sap/install/
+                      touch  /etc/sap_deployment_automation/oracleownerchange.txt
+  args:
+    creates:          /etc/sap_deployment_automation/oracleownerchange.txt
+
+#  START OF ORACLE SOFTWARE INSTALLATION USING SAP RUNINSTALLER WRAPPER.
+
+
+#BEFORE RUNNING INSTALLER SETENV DB_SID AND CV_ASSUME_DISTID VALUES ARE SET ACCORDING TO SAP NOTE 2660017 Oracle Software Installation on Unix
+
+#STEP1 Install IHRDBMS - /oracle/RDBMS.
+
+- name:               "Install IHRDBMS - Database executables"
+  become:         yes
+  become_user:    oracle
+  ansible.builtin.shell: |
+                      set -o errexit
+                      ./RUNINSTALLER -shared -create_link no -orabasetab no -silent |tee /etc/sap_deployment_automation/rdbms.log
+                      touch /etc/sap_deployment_automation/shareddbinstalled.txt
+  register:           orainstall_results
+  failed_when:        orainstall_results.rc >= 2
+  environment:
+    DB_SID:                            "{{ db_sid }}"
+    CV_ASSUME_DISTID:                  OL7
+  args:
+    executable:       /bin/csh        
+    chdir:            "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:          /etc/sap_deployment_automation/shareddbinstalled.txt
+
+
+
+#Debug for testing
+- name:                           "installer prechecks ouput"
+  debug:
+    var:                           orainstall_results
+
+
+#STEP2 RUN THE INSTALLATION - EXECUTE.
+
+- name:               "Execute RUNINSTALLER"
+  become:         yes
+  become_user:    oracle
+  ansible.builtin.shell: |
+                      set -o errexit
+                      ./RUNINSTALLER -shared -ohsapcfg |tee -a /etc/sap_deployment_automation/"{{ item.sid }}"_install.log
+  register:           orainstaller_results
+  failed_when:        orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  environment:
+    DB_SID:                            "{{ item.sid }}"
+    CV_ASSUME_DISTID:                  OL7
+  loop:    "{{ ora_msids }}"
+  args:
+    executable:       /bin/csh        
+    chdir:            "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:          /etc/sap_deployment_automation/oracleinstall.txt
+
+- name:            "create after a sucessfull install"
+  ansible.builtin.shell: |                    
+                      touch /etc/sap_deployment_automation/oracleinstall.txt
+
+# - fail: 
+#     msg: "fail after oracle installer"
+
+#STEP3 POST PROCESSING.
+
+
+- name:           "Oracle Post Processing - Run root.sh"                
+  become:         yes
+  become_user:    root
+  ansible.builtin.shell: |      
+                     /oracle/RDBMS/{{ ora_version}}/root.sh
+                     chmod 6751 /oracle/RDBMS/{{ ora_version}}/bin/oracle 
+  register: rootscript_results
+  args:
+    executable:       /bin/csh
+    creates:          /etc/sap_deployment_automation/rootscripstexecuted.txt
+
+- name:            "creates after a sucessfull script execution"
+  ansible.builtin.shell: |                    
+                      touch /etc/sap_deployment_automation/rootscripstexecuted.txt
+
+#STEP 4 SBP Patching for Oracle.
+
+- name:           "Oracle Post Processing - SBP Patching Prep"                
+  become:         yes
+  become_user:    "oracle"
+  ansible.builtin.shell: |   
+                     set -o errexit
+                     mv  /oracle/RDBMS/{{ ora_version }}/OPatch   /oracle/RDBMS/{{ ora_version }}/OPatch.bck 
+                     cp -R OPATCH/OPatch  /oracle/RDBMS/{{ ora_version }}/.
+                     cp -R SAPSBP/S*/MOPatch  /oracle/RDBMS/{{ ora_version }}/.
+  register: sbpprep_results
+  failed_when:        sbpprep_results.rc >= 2 
+  args:
+    executable:       /bin/csh
+    chdir:            "/usr/sap/install/SBP/"
+    creates:          /etc/sap_deployment_automation/sbpprep.txt
+
+
+- name:           "Oracle Post Processing - SBP Patching"                
+  become:         yes
+  become_user:    "oracle"
+  ansible.builtin.shell: |   
+                     set -o errexit
+                     $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/{{ ora_sbp_file_name }} |tee -a /etc/sap_deployment_automation/sbp.log
+  register: sbpscript_results
+  failed_when:        sbpscript_results.rc >= 2 
+  environment:
+    DB_SID:                            "{{ db_sid }}"
+    CV_ASSUME_DISTID:                  OL7
+    IHRDBMS:                           "/oracle/RDBMS/{{ ora_version }}"
+    ORACLE_HOME:                       "/oracle/RDBMS/{{ ora_version }}"
+    RDBMS:                             "/oracle/RDBMS/{{ ora_version }}"
+  args:
+    executable:       /bin/csh
+    chdir:            "/usr/sap/install/SBP/"
+    creates:          /etc/sap_deployment_automation/sbpinstalled.txt
+
+- name:            "creates after a sucessfull script execution"
+  ansible.builtin.shell: |                    
+                      touch /etc/sap_deployment_automation/sbpinstalled.txt
+
+- name:                                "Add environment variables to the Bash profile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    path: /home/oracle/.bashrc
+    insertafter: 'fi '
+    block: |
+        #User Specific environment
+        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_release }}
+        export ORACLE_SID={{ db_sid }} 
+        export ORACLE_BASE=/oracle
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID={{ db_sid}}
+        PATH="$PATH:$ORACLE_HOME/bin"
+        export PATH
+
+
+- name:                                "create .cshrc"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /home/oracle/.cshrc
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+        #User Specific environment
+        setenv  ORACLE_HOME /oracle/{{ db_sid }}/{{ ora_release }}
+        setenv  ORACLE_SID  {{ db_sid }} 
+        setenv  ORACLE_BASE /oracle
+        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv  DB_SID {{ db_sid}}
+        set path = ($path $ORACLE_HOME/bin)
+    mode: 0755
+
+#Debug for testing
+- name:                           "installer ouput"
+  debug:
+    var:                           orainstaller_results
+
+#Debug for testing
+- name:                           "installer ouput"
+  debug:
+    var:                           rootscript_results
+
+
+
+
+# #   0x) remove hidden directory for parameter files
+# - name:     "remove hidden directory"
+#   ansible.builtin.file:
+#     path:   "{{ item.path }}"
+#     state:  "{{ item.state }}"
+#     mode:   "{{ item.mode }}"
+#   loop:
+#     - { state: 'absent',    mode: '0755', path: '{{ dir_params }}' }
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
