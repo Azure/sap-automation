@@ -132,6 +132,14 @@ return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
+# Check that webapp exports are defined, if deploying webapp
+if [ $TF_VAR_use_webapp = "true" ]; then
+    validate_webapp_exports
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        exit $return_code
+    fi
+fi
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
@@ -436,6 +444,7 @@ if [ 2 == $step ]; then
     if [ $TF_VAR_use_webapp = "true" ]; then
         terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
         export TF_VAR_cmdb_connection_string=$(terraform -chdir="${terraform_module_directory}" output cmdb_connection_string | tr -d \")
+        save_config_var "cmdb_connection_string" "${deployer_config_information}"
     fi
     
     cd "${curdir}" || exit
@@ -473,6 +482,9 @@ if [ 3 == $step ]; then
         rm post_deployment.sh
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
+
+    load_config_vars "${deployer_config_information}" "cmdb_connection_string"
+    export TF_VAR_cmdb_connection_string=$cmdb_connection_string
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
