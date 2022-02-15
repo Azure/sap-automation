@@ -17,10 +17,12 @@
         {{ hdbsql_systemdb_command }} 'CREATE USER {{ hana_1_hsr_user }} PASSWORD "{{ hana_1_hsr_password }}"'
         {{ hdbsql_systemdb_command }} 'GRANT DATA ADMIN TO {{ hana_1_hsr_user }}'
         {{ hdbsql_systemdb_command }} 'ALTER USER {{ hana_1_hsr_user }} DISABLE PASSWORD LIFETIME'
+      changed_when:                    false
 
     - name:                            HSR - Ensure keystore entry exists
       ansible.builtin.shell: |
                                        hdbuserstore SET hdbhaloc localhost:3{{ hdb_instance_number }}15 {{ hana_1_hsr_user }} {{ hana_1_hsr_password }}
+      changed_when:                    false
   vars:
     ansible_python_interpreter:        python3
   environment:

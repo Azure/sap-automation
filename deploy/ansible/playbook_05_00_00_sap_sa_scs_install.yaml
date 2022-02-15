@@ -1,29 +1,67 @@
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |                       Prepare for SAP SCS Install                          |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
+# /*---------------------------------------------------------------------------------------------------8
+# |                                                                                                    |
+# |                      Playbook for SAP SCS HA Install and Pacemaker configuration                   |
+# |                                                                                                    |
+# +------------------------------------4--------------------------------------------------------------*/
 ---
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Retrieving the SPN details                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
 - hosts:                               localhost
-  name:                                Get SAP Password from KeyVault
-  gather_facts:                        true
+  name:                                Get SPN from KeyVault
+  gather_facts:                        false
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml      # API Input template with defaults
+
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+
   tasks:
-
-    - name:                            Remove .step5 flag
+    - name:                            Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step5"
-        state:                         absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
 
-    - name:                            Include 0.1 passwords role
-      ansible.builtin.include_role:
+    - name:                            Remove scs-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/scs-install-done"
+        state:                          absent
+
+    - name:                            Initialize tier
+      ansible.builtin.set_fact:
+        tier:                          fencing
+
+    - name:                            Run the password role
+      include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
+
       tags:
         - 0.1-passwords
 
+    - name:                            Run the keyvault role
+      include_role:
+        name:                          roles-misc/0.2-kv-secrets
+      tags:
+        - kv-secrets
+
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          scs
+      tags:
+        - kv-sap-installation-media-storage-details
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -32,7 +70,8 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_SCS"
+- hosts:                               "{{ sap_sid|upper }}_SCS  :
+                                        {{ sap_sid|upper }}_DB"
 
   name:                                SAP Installation - SCS
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -42,6 +81,99 @@
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            Standalone SCS Setup
+      block:
+
+        - name:                        SCS assertions
+          block:
+            - name:                    Show instance numbers
+              ansible.builtin.debug:
+                msg:
+                  - "hdb_instance_number: {{ hdb_instance_number }}"
+                  - "scs_instance_number: {{ scs_instance_number }}"
+                verbosity:             2
+
+            - name:                    Assert instance numbers
+              ansible.builtin.assert:
+                that:
+                  - "scs_instance_number != hdb_instance_number"
+                fail_msg:              "Please ensure that the scs_instance_number is different from the hdb_instance_number"
+          when:                        (ansible_play_hosts_all | length) == 1
+
+        - name:                        Set 'scs' tier facts
+          ansible.builtin.set_fact:
+            tier:                      scs
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            scs_high_availability:     "{{ scs_high_availability }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+          tags:
+            - always
+
+        - name:                        Show SAP password
+          ansible.builtin.debug:
+            msg:                       "{{ hostvars.localhost.sap_password }}"
+            verbosity:                 2
+
+        - block:
+            - name:                    Include 5.0.0-scs-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.0.0-scs-install
+          always:
+            - name:                    Get the error lines
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ scs_installation.stdout_lines }}"
+              when:
+                - scs_installation.stdout_lines is defined
+                - '"ERROR" in item'
+                - scs_installation.rc > 0
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_SCS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/DISTRIBUTED/ABAP/ASCS'
+                tier:                  'scs'
+
+            - name:                    Errors from HANA installation
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+          tags:
+            - 5.0.0-scs-install
+
+          vars:
+            tier:                      "{{ tier }}"
+      when:
+        - not scs_high_availability
+        - "'scs' in supported_tiers"
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |              Playbook for SAP SCS HA and Pacemaker Resources               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid|upper }}_SCS :
+                                        {{ sap_sid|upper }}_ERS"
+  name:                                "SCS HA Install and Pacemaker Resources"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml      # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -49,50 +181,158 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
+    - name:                            HA SCS Setup
+      block:
+        - name:                        Assertions
+          ansible.builtin.assert:
+            that:
+              - sap_mnt is defined
+            fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
 
-    - name:                            Set 'scs' tier facts
-      ansible.builtin.set_fact:
-        tier:                          scs
-        main_password:                 "{{ hostvars.localhost.sap_password }}"
-        scs_high_availability:         "{{ scs_high_availability }}"
-      tags:
-        - always
+        - name:                        Print the fencing tenant id
+          ansible.builtin.debug:
+            msg:                       "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+            verbosity:                 2
 
-    - name:                            Show SAP password
-      ansible.builtin.debug:
-        msg:                           "{{ hostvars.localhost.sap_password }}"
-        verbosity:                       2
+        - name:                        Initialize facts
+          set_fact:
+            tier:                      ha
+            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            sap_hana_fencing_spn_client_id:  "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+            sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+            sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+          tags:
+            - always
+        - block:
+            - name:                    Include 1.3-repository role
+              ansible.builtin.include_role:
+                name:                  roles-os/1.3-repository
+          tags:
+            - 1.3-repository
 
+        - block:
+            - name:                    Include 1.4-packages role
+              ansible.builtin.include_role:
+                name:                  roles-os/1.4-packages
+          tags:
+            - 1.4-packages
 
-    - block:
-        - name:                        Include 5.0.0-scs-install role
-          ansible.builtin.include_role:
-            name:                      roles-sap/5.0.0-scs-install
-      tags:
-        - 5.0.0-scs-install
+        - block:
+            - name:                    Include 1.9-kernelparameters role
+              ansible.builtin.include_role:
+                name:                  roles-os/1.9-kernelparameters
+          tags:
+            - 1.9-kernelparameters
 
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |                       Playbook for SAP SCS Logging                         |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
+        - block:
+            - name:                    Include 1.16-services role
+              ansible.builtin.include_role:
+                name:                  roles-os/1.16-services
+          tags:
+            - 1.16-services
+
+        - block:
+            - name:                    Run the hana sudoers role
+              include_role:
+                name:                  roles-os/1.11-accounts
+                tasks_from:            setup_hanausers_sudoers.yml
+          tags:
+            - 1.11-accounts
+
+        - block:
+            - name:                    Include 1.17-generic-pacemaker role
+              ansible.builtin.include_role:
+                name:                  roles-os/1.17-generic-pacemaker       # Configures the Pacemaker cluster with Azure fence agent
+          tags:
+            - 1.17-generic-pacemaker
+
+        - block:
+            - name:                    Include 2.6-sap-mounts role
+              ansible.builtin.include_role:
+                name:                  roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
+
+        - block:
+            - name:                    Run the pacemaker role
+              include_role:
+                name:                  roles-sap/5.6-scsers-pacemaker
+          always:
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_SCS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/HA/ABAP/ASCS'
+                tier:                  'scs'
+
+            - name:                    Include 7.0.0-post-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_ERS"
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/HA/ABAP/ERS'
+                tier:                  'ers'
+
+            - name:                    Get the Error lines (SCS)
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ scs_installation.stdout_lines }}"
+              when:
+                - scs_installation.stdout_lines is defined
+                - scs_installation.rc is defined
+                - '"ERROR" in item'
+
+            - name:                    Errors from SCS installation
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+            - name:                    Get the Error lines (ERS)
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ ers_installation.stdout_lines }}"
+              when:
+                - ers_installation.stdout_lines is defined
+                - ers_installation.rc is defined
+                - '"ERROR" in item'
+                - ers_installation.rc > 0
+
+            - name:                    Errors from ERS installation
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+          tags:
+            - 5.6-scsers-pacemaker
+      when:
+        - scs_high_availability
+        - "'scs' in supported_tiers or 'ers' in supported_tiers "
 
 
 - hosts:                               localhost
   name:                                Log results
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+  gather_facts:                        false
 
   tasks:
-    - name:                            Create .step5 flag
+
+    - name:                            Ensure the scs-install-done file exists
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step5"
+        path:                          "{{ _workspace_directory }}/.progress/scs-install-done"
         state:                         touch
         mode:                          0755
-
-
 ...
-# /*---------------------------------------------------------------------------8
-# |                                    END                                     |
+
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
 # +------------------------------------4--------------------------------------*/
