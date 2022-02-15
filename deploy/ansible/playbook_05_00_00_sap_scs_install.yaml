@@ -91,13 +91,15 @@
       block:
 
         - block:
-            - ansible.builtin.debug:
+            - name:                    Print Instance Numbers
+              ansible.builtin.debug:
                 msg:
                   - "hdb_instance_number: {{ hdb_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
                 verbosity:             2
 
-            - ansible.builtin.assert:
+            - name:                    SCS Assertions
+              ansible.builtin.assert:
                 that:
                   - "scs_instance_number != hdb_instance_number"
                 fail_msg:              "Please ensure that the scs_instance_number is different from the hdb_instance_number"
