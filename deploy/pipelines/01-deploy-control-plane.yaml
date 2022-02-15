@@ -1,7 +1,7 @@
 ---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |               This pipeline deploys the control plane                     |
+# |               This pipeline deploys the control plane                      |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -126,7 +126,7 @@ stages:
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 git checkout -q $(Branch)
-                git pull
+                git pull -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)"
 
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
@@ -139,28 +139,29 @@ stages:
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from prepare_region $return_code."
                 fi
-                git pull
+                git pull -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)"
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 added=0
+                cd $HOME
 
-                if [ -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                  git add    .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                   added=1
                 fi
 
-                if [ -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                  git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                   added=1
                 fi
 
-                if [ -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
+                if [ -f DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
+                  git add -f DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                   added=1
                 fi
 
-                if [ -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                if [ -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
+                  git add -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
                   added=1
                 fi
 

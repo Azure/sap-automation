@@ -324,7 +324,7 @@
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
         opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-        state:                         remounted
+        state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}', path: '/usr/sap/{{ sap_sid|upper }}' }
       when:
@@ -360,7 +360,7 @@
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
         opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-        state:                         remounted
+        state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
       when:
@@ -394,7 +394,7 @@
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
         opts:                          "vers=4,minorversion=1,sec=sys"
-        state:                         remounted
+        state:                         mounted
       loop:
         - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
       when:
