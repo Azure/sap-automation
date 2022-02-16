@@ -123,8 +123,11 @@ packages:
     - { tier: 'ha',    package: 'nmap-ncat',                                                state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
-#    - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
-#    - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-cluster-connector-3.0.1-1.el7_6.5', node_tier: 'hana',  state: 'present' }
+    - { tier: 'ha',    package: 'sap-cluster-connector-3.0.1-1.el7_6.5', node_tier: 'scs',   state: 'present' }
+    - { tier: 'ha',    package: 'sap-cluster-connector-3.0.1-1.el7_6.5', node_tier: 'ers',   state: 'present' }
 
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
   redhat8.1:

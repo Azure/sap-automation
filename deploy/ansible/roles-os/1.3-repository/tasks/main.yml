@@ -220,4 +220,21 @@
     var:                               zypresult
     verbosity:                         2
 
+- name:                                Add the repositories
+  ansible.builtin.yum_repository:
+    name:                              "{{ item.repo }}"
+    state:                             "{{ item.state }}"
+    overwrite_multiple:                true
+    disable_gpg_check:                 true
+    auto_import_keys:                  true
+  loop:                                "{{ repos_for_tier }}"
+  register:                            zypresult
+  ignore_errors:                       true
+  failed_when:
+    - zypresult.rc != 0
+    - zypresult.rc != 4
+  when:     ansible_os_family|upper != 'SUSE'
+
+
+
 ...
