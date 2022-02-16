@@ -20,7 +20,7 @@
   ansible.builtin.copy:
     src:                               "/tmp/{{ item.file }}"
     dest:                              "{{ item.path }}{{ item.file }}"
-    owner:                             "{{ sap_hana_hsr_hana_sid | lower }}adm"
+    owner:                             "{{ sap_sid | lower }}adm"
     group:                             sapsys
     mode:                              '{{ item.mode }}'
   loop:
