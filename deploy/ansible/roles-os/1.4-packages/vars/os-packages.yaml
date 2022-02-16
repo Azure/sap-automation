@@ -207,12 +207,12 @@ packages:
   # [2] sudo zypper search --requires -n python3-azure-mgmt-compute=4.6.2
   # identify requirements for azure-cli-vm which allows the restart of VMs
   # [3]  sudo zypper search --requires -n azure-cli-vm=2.2.2
-    - { tier: 'ha',    package: 'azure-cli=2.0.45',                   node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'azure-cli=2.0.45',                   node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'azure-cli=2.0.45',                   node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'azure-cli',                          node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'azure-cli',                          node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'azure-cli',                          node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8
