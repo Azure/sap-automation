@@ -20,6 +20,7 @@ module "sap_library" {
   naming                  = module.sap_namegenerator.naming
   dns_label               = var.dns_label
   use_private_endpoint    = var.use_private_endpoint
+  use_webapp              = var.use_webapp
 }
 
 module "sap_namegenerator" {

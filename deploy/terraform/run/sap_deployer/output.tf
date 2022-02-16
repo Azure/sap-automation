@@ -104,5 +104,5 @@ output "tags" {
 }
 
 output "webapp_url_base" {
-  value = module.sap_deployer.webapp_url_base
+  value = var.use_webapp ? module.sap_deployer.webapp_url_base : ""
 }

@@ -80,6 +80,7 @@ namespace AutomationForm.Controllers
                         str.AppendLine("  publisher="         + $"\"{img.publisher}\",");
                         str.AppendLine("  offer="             + $"\"{img.offer}\",");
                         str.AppendLine("  sku="               + $"\"{img.sku}\",");
+                        str.AppendLine("  version="           + $"\"{img.version}\"");
                         str.AppendLine("}");
                     }
                     else if (property.PropertyType == typeof(bool?))

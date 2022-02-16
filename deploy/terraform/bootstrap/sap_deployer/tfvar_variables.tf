@@ -209,6 +209,10 @@ variable "use_private_endpoint" {
   default = false
 }
 
+variable "use_webapp" {
+  default = false
+}
+
 variable "tf_version" {
   default = "1.0.8"
 }

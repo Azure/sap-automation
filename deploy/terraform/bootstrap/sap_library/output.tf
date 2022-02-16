@@ -57,5 +57,5 @@ output "automation_version" {
 
 output "cmdb_connection_string" {
   sensitive = true
-  value = module.sap_library.cmdb_connection_string
+  value = var.use_webapp ? module.sap_library.cmdb_connection_string : ""
 }

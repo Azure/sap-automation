@@ -11,6 +11,7 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Net;
+using Microsoft.Net.Http.Headers;
 
 namespace AutomationForm.Controllers
 {
@@ -52,6 +53,7 @@ namespace AutomationForm.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
+            ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
             return View(await _landscapeService.GetNAsync(10));
         }
 
@@ -265,6 +267,30 @@ namespace AutomationForm.Controllers
         public async Task<IActionResult> DetailsAsync(string id)
         {
             return View(await _landscapeService.GetByIdAsync(id));
+        }
+
+        [ActionName("Download")]
+        public ActionResult DownloadFile(string id)
+        {
+            try
+            {
+                if (id == null) return BadRequest();
+                LandscapeModel landscape = GetById(id).Result.Value;
+
+                string path = $"{id}.tfvars";
+                string content = Helper.ConvertToTerraform(landscape);
+
+                var stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                return new FileStreamResult(stream, new MediaTypeHeaderValue("text/plain"))
+                {
+                    FileDownloadName = path
+                };
+            }
+            catch
+            {
+                TempData["error"] = "Something went wrong downloading file " + id;
+                return RedirectToAction("Index");
+            }
         }
         
     }

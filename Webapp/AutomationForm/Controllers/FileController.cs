@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Net.Http.Headers;
 
 namespace AutomationForm.Controllers
 {
@@ -316,6 +317,27 @@ namespace AutomationForm.Controllers
             await _appFileService.DeleteAsync(id);
             TempData["success"] = "Successfully deleted file " + id;
             return RedirectToAction("Index");
+        }
+
+        [ActionName("Download")]
+        public async Task<ActionResult> DownloadFile(string id)
+        {
+            try
+            {
+                AppFile file = await _appFileService.GetByIdAsync(id);
+                if (file == null) return NotFound();
+
+                var stream = new MemoryStream(file.Content);
+                return new FileStreamResult(stream, new MediaTypeHeaderValue("text/plain"))
+                {
+                    FileDownloadName = id
+                };
+            }
+            catch
+            {
+                TempData["error"] = "Something went wrong downloading file " + id;
+                return RedirectToAction("Index");
+            }
         }
     }
 }
