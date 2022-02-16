@@ -52,9 +52,9 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB  :
+- hosts:                               "{{ sap_sid|upper }}_PAS  :
                                         {{ sap_sid|upper }}_SCS :
-                                        {{ sap_sid|upper }}_PAS"
+                                        {{ sap_sid|upper }}_DB"
 
   name:                                SAP Installation - PAS
   remote_user:                         "{{ orchestration_ansible_user }}"
