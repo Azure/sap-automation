@@ -223,6 +223,7 @@
 - name:                                Add the repositories
   ansible.builtin.yum_repository:
     name:                              "{{ item.repo }}"
+    baseurl:                           "{{ item.url }}"
     state:                             "{{ item.state }}"
   loop:                                "{{ repos_for_tier }}"
   ignore_errors:                       true
