@@ -230,9 +230,6 @@
   loop:                                "{{ repos_for_tier }}"
   register:                            zypresult
   ignore_errors:                       true
-  failed_when:
-    - zypresult.rc != 0
-    - zypresult.rc != 4
   when:     ansible_os_family|upper != 'SUSE'
 
 
