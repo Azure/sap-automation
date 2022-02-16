@@ -293,7 +293,6 @@
     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
   when:
     - scs_high_availability
-    - tier in ['sapos']
     - node_tier != 'hana'
     - sap_mnt is defined
 

@@ -26,14 +26,14 @@
   when:                                ansible_os_family|upper == 'SUSE'
 
 - name:                                Check if a cluster has already been prepared
-  ansible.builtin.command:             '"{{ cluster_status_cmd[ansible_os_family] }}" | grep ASCS'
+  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
   register:                            ascs_cluster_existence_check_result
   changed_when:                        false
   failed_when:                         false
 
 - name:                                Check if a cluster has already been prepared (save)
   ansible.builtin.set_fact:
-    cluster_existence_check:           "{{ ascs_cluster_existence_check_result.rc }}"
+    cluster_existence_check:           "{{ ('ASCS' in ascs_cluster_existence_check_result.stdout_lines) | bool }}"
 
 - name:                                Check if a cluster has already been prepared (show)
   ansible.builtin.debug:

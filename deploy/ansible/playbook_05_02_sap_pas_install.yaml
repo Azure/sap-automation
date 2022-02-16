@@ -52,9 +52,9 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB  :
+- hosts:                               "{{ sap_sid|upper }}_PAS  :
                                         {{ sap_sid|upper }}_SCS :
-                                        {{ sap_sid|upper }}_PAS"
+                                        {{ sap_sid|upper }}_DB"
 
   name:                                SAP Installation - PAS
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -127,20 +127,10 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_PAS"
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ pas_bom_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/APP1'
                 tier:                  'pas'
               when:                    db_high_availability
-
-            - name:                    Include 7.0.0-post-install role
-              ansible.builtin.include_role:
-                name:                  roles-sap/7.0.0-post-install
-              vars:
-                suffix:                "_PAS"
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/ABAP/APP1'
-                tier:                  'pas'
-              when:                    not db_high_availability
 
             - name:                    Errors from PAS installation
               ansible.builtin.debug:
