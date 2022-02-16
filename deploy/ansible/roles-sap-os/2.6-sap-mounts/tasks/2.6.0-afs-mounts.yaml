@@ -43,7 +43,6 @@
     state:                             directory
     group:                             sapsys
   when:
-    - tier == 'sapos'
     - sap_mnt is defined
     - "'scs' in supported_tiers"
   tags:
@@ -324,7 +323,6 @@
   loop:
     - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
   when:
-    - tier == 'sapos'
     - node_tier in ['scs','ers','pas','app']
     - sap_trans is defined
 
@@ -339,7 +337,6 @@
     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
   when:
     - not scs_high_availability
-    - tier in ['sapos']
     - node_tier != 'hana'
     - sap_mnt is defined
 
@@ -371,7 +368,6 @@
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}', path: '/usr/sap/{{ sap_sid|upper }}' }
       when:
         - scs_high_availability
-        - tier in ['sapos']
         - node_tier in ['scs','ers']
         - sap_mnt is defined
   rescue:
@@ -389,7 +385,6 @@
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}', path: '/usr/sap/{{ sap_sid|upper }}' }
       when:
         - scs_high_availability
-        - tier in ['sapos']
         - node_tier in ['scs','ers']
         - sap_mnt is defined
 
@@ -408,7 +403,6 @@
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
       when:
         - scs_high_availability
-        - tier in ['sapos']
         - node_tier in ['scs','ers']
         - sap_mnt is defined
         - 1 == 2
@@ -436,7 +430,6 @@
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
       when:
         - scs_high_availability
-        - tier in ['sapos']
         - node_tier in ['scs','ers']
         - sap_mnt is defined
 

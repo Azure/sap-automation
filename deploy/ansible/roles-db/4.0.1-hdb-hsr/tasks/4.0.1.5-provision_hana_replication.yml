@@ -83,7 +83,6 @@
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
       ansible.builtin.command:         hdbnsutil -sr_state
-      run_once:                        true
       register:                        hana_replication_status
       changed_when:                    false
       failed_when:                     hana_replication_status.rc != 0
@@ -95,7 +94,7 @@
 
     - name:                            HSR - Check replication state on primary
       ansible.builtin.set_fact:
-        primary_replication_enabled:   "{{ 'mode: primary'  in hana_replication_status.stdout_lines }}"
+        primary_replication_enabled:   "{{ ('mode: primary'  in hana_replication_status.stdout_lines) | bool }}"
   vars:
     ansible_python_interpreter:        python3
   environment:

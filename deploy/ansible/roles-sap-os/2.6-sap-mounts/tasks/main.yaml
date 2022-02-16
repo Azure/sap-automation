@@ -152,7 +152,6 @@
   ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined
-    - tier == 'sapos'
     - NFS_provider == 'AFS'
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
@@ -160,6 +159,5 @@
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined
-    - tier == 'sapos'
     - NFS_provider == 'ANF'
 ...
