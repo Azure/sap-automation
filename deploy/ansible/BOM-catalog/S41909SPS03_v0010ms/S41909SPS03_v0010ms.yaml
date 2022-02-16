@@ -25,7 +25,8 @@ materials:
     - name:     SUM20SP12_latest
 
   media:
-    # SAPCAR 7.22
+
+  # SAPCAR 7.22
     - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
       archive:      SAPCAR_1115-70006178.EXE
       checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5

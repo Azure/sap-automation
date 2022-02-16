@@ -168,7 +168,7 @@ stages:
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: $DEPLOYMENT_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
-              args:                    ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" -e "s_user=$(S-Username)" -e "s_password=$(S-PASSWORD)" $(ExtraParams) '
+              args:                    ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
