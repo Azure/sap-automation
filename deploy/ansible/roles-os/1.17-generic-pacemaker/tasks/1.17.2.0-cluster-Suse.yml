@@ -29,16 +29,26 @@
 - name:                                Install Azure python SDK Sles 12
   ansible.builtin.shell: |
                                        SUSEConnect -p sle-module-public-cloud/12/x86_64
-                                       sudo zypper --non-interactive install 'python-azure-mgmt-compute=4.6.2'
   when:                                ansible_distribution_major_version == "12"
 
 # SLES 15 Activate public cloud extension & Install Azure Python SDK
-- name:                                Install Azure python SDK Sles 15
+- name:                                Install Azure python SDK Sles 15.1
   ansible.builtin.shell: |
                                        SUSEConnect -p sle-module-public-cloud/15.1/x86_64
-                                       sudo zypper --non-interactive install 'python3-azure-mgmt-compute=4.6.2'
-  when:                                ansible_distribution_major_version == "15"
+  when:                                
+    - distro_full_id == "sles_sap15.1"
 
+- name:                                Install Azure python SDK Sles 15.2
+  ansible.builtin.shell: |
+                                       SUSEConnect -p sle-module-public-cloud/15.2/x86_64
+  when:                                
+    - distro_full_id == "sles_sap15.2"
+
+- name:                                Install Azure python SDK Sles 15.3
+  ansible.builtin.shell: |
+                                       SUSEConnect -p sle-module-public-cloud/15.3/x86_64
+  when:                                
+    - distro_full_id == "sles_sap15.3"
 
 # https://rpm.pbone.net/index.php3/stat/45/idpl/27916721/numer/8/nazwa/ha-cluster-init
 - name:                                Ensure Primary node initiates the Cluster
