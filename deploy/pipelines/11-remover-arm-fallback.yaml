@@ -106,6 +106,8 @@ stages:
                 git checkout -q $(Branch)
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
 
+                echo "##vso[build.updatebuildnumber]Removing $(sap_system_folder)"
+
                 changed=0
                 if [ -d $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform ]; then
                   git rm -q -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
@@ -173,7 +175,8 @@ stages:
                 git config --global user.name "$(Build.RequestedFor)"
                 git checkout -q $(Branch)
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
-
+                
+                echo "##vso[build.updatebuildnumber]Removing workload zone $(zone_folder)"
                 changed=0
 
                 if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(zone_folder)/.terraform ]; then
@@ -242,7 +245,8 @@ stages:
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+                git pull
+                echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
 
                 changed=0
 

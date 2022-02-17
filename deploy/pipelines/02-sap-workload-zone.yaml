@@ -154,10 +154,10 @@ stages:
                   echo "##vso[task.logissue type=error]Return code from install_workloadzone $return_code."
                 fi
                 # Pull changes if there are other deployment jobs
-                git pull
-
+                
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
+                git pull
                 added=0
 
                 if [ -f ${workload_environment_file_name} ]; then

@@ -149,8 +149,9 @@ stages:
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
                 fi
                 # Pull changes if there are other deployment jobs
-                git pull -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)"
+                
                 cd $HOME/SYSTEM/$(sap_system_folder)
+                git pull
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
