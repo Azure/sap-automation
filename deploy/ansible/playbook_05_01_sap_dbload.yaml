@@ -132,7 +132,7 @@
             name:                      roles-sap/5.1.1-dbload-msid
           when:                        
             - MULTI_SIDS is defined
-            - node_tier == 'ORACLE-MULTI-SID'
+            - node_tier == 'oracle-multi-sid'
     
       when:                            platform == 'ORACLE'
 

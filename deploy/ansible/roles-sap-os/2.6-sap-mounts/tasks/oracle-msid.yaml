@@ -40,10 +40,10 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { node_tier: 'ORACLE-MULTI-SID',  type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',      path: '/oracle'         }
-    - { node_tier: 'ORACLE-MULTI-SID',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',      path: '/usr/sap'         }
+    - { node_tier: 'oracle-multi-sid',  type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',      path: '/oracle'         }
+    - { node_tier: 'oracle-multi-sid',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',      path: '/usr/sap'         }
   when:         
-    -  item.node_tier == "ORACLE-MULTI-SID"
+    -  item.node_tier == "oracle-multi-sid"
 
 
 # Mount Filesystems
@@ -65,7 +65,7 @@
   loop: "{{ logical_volume_groups |sort(attribute='lv') }}"
   when:         
               #- item.tier == "ora"
-              - item.node_tier == "ORACLE-MULTI-SID" 
+              - item.node_tier == "oracle-multi-sid" 
               - item.lv in  lvexists
               - item.lv != 'lv_usrsap'
               - item.lv != 'lv_oracle'
@@ -103,7 +103,7 @@
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop: "{{ MULTI_SIDS }}"
   when:         
-    - node_tier == "ORACLE-MULTI-SID"
+    - node_tier == "oracle-multi-sid"
 
 
 # Create Run Flag Directory

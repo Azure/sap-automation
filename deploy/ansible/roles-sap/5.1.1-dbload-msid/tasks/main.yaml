@@ -11,7 +11,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
-  when:                                 node_tier == "ORACLE-MULTI-SID"
+  when:                                 node_tier == "oracle-multi-sid"
   loop:                                 "{{ MULTI_SIDS }}"
 
 - name:                                "Create run flag directory"

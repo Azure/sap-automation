@@ -126,7 +126,7 @@
     force:                             true
   when:                                
        - microsoft_supplied_bom_template.stat.exists or microsoft_supplied_bom_template_archive.stat.exists
-       - node_tier == "ORACLE-MULTI-SID"
+       - node_tier == "oracle-multi-sid"
   loop:  "{{ MULTI_SIDS }}"
 
 # If Microsoft supplied BOM template not found

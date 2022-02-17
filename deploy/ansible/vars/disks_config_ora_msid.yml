@@ -100,7 +100,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
   
 # #Adding Tier and disk types for Oracle multi-sid installation non-ASM.
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         vg_'{{ ora_sid1| lower }}'_sapdata1
 #     lv:         lv_'{{ ora_sid1| lower }}'_sapdata1
 #     size:       '100%FREE'
@@ -108,7 +108,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
   
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         vg_'{{ ora_sid1| lower }}'_sapdata2
 #     lv:         lv_'{{ ora_sid1| lower }}'_sapdata2
 #     size:       '100%FREE'
@@ -117,7 +117,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         vg_'{{ ora_sid1| lower }}'_sapdata3
 #     lv:         lv_'{{ ora_sid1| lower }}'_sapdata3
 #     size:       '100%FREE'
@@ -125,7 +125,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         vg_'{{ ora_sid1| lower }}'_sapdata4
 #     lv:         lv_'{{ ora_sid1| lower }}'_sapdata4
 #     size:       '100%FREE'
@@ -133,7 +133,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid1| lower }}_origlogA'
 #     lv:         'lv_{{ ora_sid1| lower }}_origlogA'
 #     size:       '100%FREE'
@@ -141,7 +141,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid1| lower }}_origlogB'
 #     lv:         'lv_{{ ora_sid1| lower }}_origlogB'
 #     size:       '100%FREE'
@@ -149,7 +149,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid1| lower }}_mirrlogA'
 #     lv:         'lv_{{ ora_sid1| lower }}_mirrlogA'
 #     size:       '100%FREE'
@@ -157,7 +157,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid1| lower }}_mirrlogB'
 #     lv:         'lv_{{ ora_sid1| lower }}_mirrlogB'
 #     size:       '100%FREE'
@@ -165,14 +165,14 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
  
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid1| lower }}_oraarch'
 #     lv:         'lv_{{ ora_sid1| lower }}_oraarch'
 #     size:       '100%FREE'
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_sapdata1'
 #     lv:         'lv_{{ ora_sid2| lower }}_sapdata1'
 #     size:       '100%FREE'
@@ -180,7 +180,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
   
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_sapdata2'
 #     lv:         'lv_{{ ora_sid2| lower }}_sapdata2'
 #     size:       '100%FREE'
@@ -189,7 +189,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_sapdata3'
 #     lv:         'lv_{{ ora_sid2| lower }}_sapdata3'
 #     size:       '100%FREE'
@@ -197,7 +197,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_sapdata4'
 #     lv:         'lv_{{ ora_sid2| lower }}_sapdata4'
 #     size:       '100%FREE'
@@ -205,7 +205,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_origlogA'
 #     lv:         'lv_{{ ora_sid2| lower }}_origlogA'
 #     size:       '100%FREE'
@@ -213,7 +213,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_origlogB'
 #     lv:         'lv_{{ ora_sid2| lower }}_origlogB'
 #     size:       '100%FREE'
@@ -221,7 +221,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_mirrlogA'
 #     lv:         'lv_{{ ora_sid2| lower }}_mirrlogA'
 #     size:       '100%FREE'
@@ -229,7 +229,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_mirrlogB'
 #     lv:         'lv_{{ ora_sid2| lower }}_mirrlogB'
 #     size:       '100%FREE'
@@ -237,7 +237,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     fstype:     'xfs'
  
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_oraarch'
 #     lv:         'lv_{{ ora_sid2| lower }}_oraarch'
 #     size:       '100%FREE'
@@ -245,7 +245,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 
 
 #   - tier:       'sapos'
-#     node_tier:  'ORACLE-MULTI-SID'
+#     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_oracle'
 #     lv:         'lv_oracle'
 #     size:       '64g'
