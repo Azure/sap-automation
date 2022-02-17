@@ -1,7 +1,7 @@
 ---
-name:    'Oracle19_v0001ms'
+name:    'Oracle19_v0002ms'
 target:  'Oracle 19'
-version: 1
+version: 2
 
 materials:
 
@@ -68,56 +68,6 @@ materials:
       #creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000751692021
 
-#GRID SBP Patching
-
-    - name:         "Oracle SBP - Bundle patches for 19c: GRID Infra"
-      archive:      SGR19P_2108-70004550.ZIP
-      checksum:     8be66ab14c9c01d4a5c9d3486d473617740cf9d75ed352353388923a9cf1b423
-      extract:      true
-      download:     true
-      extractDir:   SBP/SAPGSBP
-      path:         SBP
-      url:          https://softwaredownloads.sap.com/file/0020000001217972021
-
-    - name:         "Oracle SBP - Bundle patches for 19c: GRID Infra - GIRU"
-      archive:      GIRU19P_2108-70004550.ZIP
-      checksum:     da8f186ec1c6077b1bdfb06c07294bb67fd2850f5d81d2ab13496f7416d34380
-      extract:      false
-      download:     true
-      #extractDir:   SBP
-      path:         SBP
-      url:          https://softwaredownloads.sap.com/file/0020000001218252021
-
-    - name:         "Oracle SBP - Bundle patches for 19c: GRID Infra - SBPJDK"
-      archive:      SBPJDK19P_2108-70004550.ZIP
-      checksum:     135a28b572f610339c8962def688316a4450d3be3d969aa7d00d92474d63c11c
-      extract:      false
-      download:     true
-      #extractDir:   SBP
-      path:         SBP
-      url:          https://softwaredownloads.sap.com/file/0020000001218012021
-
-    - name:         "Oracle SBP - Bundle patches for 19c: Readme Patch File"
-      archive:      README19P_2108-70004508.HTM
-      checksum:     b862969f89526430cb156458267b91db320866c854b2c96319cd80f36fdd7340
-      extract:      false
-      download:     false
-      extractDir:   SBP
-      path:         SBP
-      #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000001213422021
-
-    - name:         "Oracle ASMSUPPORT RPM"
-      archive:      oracleasm-support-2.1.12-1.el8.x86_64.rpm
-      extract:      false
-      download:     true
-      url:          https://public-yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64/getPackage/oracleasm-support-2.1.12-1.el8.x86_64.rpm
-
-    - name:         "Oracle ASMLIB RPM"
-      archive:      oracleasmlib-2.0.17-1.el8.x86_64.rpm
-      extract:      false
-      download:     true
-      url:          https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.17-1.el8.x86_64.rpm
 
     - name:         "Oracle compact-lib"
       archive:      compat-libcap1-1.10-7.el7.x86_64.rpm
@@ -136,7 +86,7 @@ materials:
       extract:      false
       download:     true
       url:          https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.17-1.el8.x86_64.rpm
-    
+
     - name:         "Oracle compact-lib"
       archive:      compat-libcap1-1.10-7.el7.x86_64.rpm
       extract:      false
