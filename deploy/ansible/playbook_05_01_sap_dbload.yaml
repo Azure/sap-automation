@@ -102,7 +102,6 @@
             - name:                    Include 5.1-dbload role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
-                run_once:              true
           always:
 
             - name:                    Include 7.0.0-post-install role

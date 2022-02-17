@@ -215,6 +215,18 @@
     - zypresult.rc != 4
   when:     ansible_os_family|upper == 'SUSE'
 
+- name:                                Add the repositories
+  ansible.builtin.yum_repository:
+    name:                              "{{ item.repo }}"
+    description:                       "{{ item.repo }}"
+    baseurl:                           "{{ item.url }}"
+    state:                             "{{ item.state }}"
+  loop:                                "{{ repos_for_tier }}"
+  register:                            zypresult
+  ignore_errors:                       true
+  when:     ansible_os_family|upper != 'SUSE'
+
+
 - name:                                Add the repositories result
   ansible.builtin.debug:
     var:                               zypresult

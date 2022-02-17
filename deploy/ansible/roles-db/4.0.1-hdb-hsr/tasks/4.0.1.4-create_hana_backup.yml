@@ -31,7 +31,7 @@
 
     - name:                            "HSR - Ensure backup exists for SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.set_fact:
-        backup_systemdb:               "{{ ( backup_cmd_no_rows_found in backup_exists_cmd_for_systemdb_result.stdout) | bool}}"
+        backup_systemdb:               "{{ ( backup_cmd_no_rows_found in backup_exists_cmd_for_systemdb_result.stdout) | bool }}"
 
     - name:                            "HSR - Ensure backup exists for SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.debug:
