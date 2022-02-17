@@ -133,7 +133,7 @@
   register:                            lvscreated
   when:
     - item.tier == "sapos"
-    - item.node_tier == "oracle-msid"
+    - item.node_tier == "ORACLE-MULTI-SID"
     - item.vg in vgcreatedlist
 
 

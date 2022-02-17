@@ -37,7 +37,7 @@
 
 - name:                                "SAP Oracle ASM: Create Grid software directory"
   ansible.builtin.file:
-    path:                              /oracle/stage/{{ ora_release }}/grid_home
+    path:                              /oracle/stage/{{ anydb_release }}/grid_home
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -62,7 +62,7 @@
   become_user:                        oracle
   ansible.builtin.template:
     src:                              ORACLE_19c_00_asm_v1_install.rsp.j2
-    dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_asm_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ anydb_release }}c_00_asm_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                             0644
     force:                            true
 
@@ -78,7 +78,7 @@
   become_user:                         oracle
   ansible.builtin.unarchive:
     src:                               /usr/sap/install/oraserver/LINUX_X86_64/grid_home/LINUX.X64_193000_grid_home.zip
-    dest:                              /oracle/stage/{{ ora_release }}/grid_home
+    dest:                              /oracle/stage/{{ anydb_release }}/grid_home
   args:
     chdir:                             /oracle/stage
     creates:                           /etc/sap_deployment_automation/oracle/gridswunzip.txt
@@ -95,7 +95,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.yum:
-    name:                              "/oracle/stage/{{ ora_release }}/grid_home/cv/rpm/cvuqdisk-1.0.10-1.rpm"
+    name:                              "/oracle/stage/{{ anydb_release }}/grid_home/cv/rpm/cvuqdisk-1.0.10-1.rpm"
     state:                             present
 
 # +------------------------------------4--------------------------------------*/
@@ -117,7 +117,7 @@
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
-    chdir:                             "/oracle/stage/{{ ora_release }}/grid_home"
+    chdir:                             "/oracle/stage/{{ anydb_release }}/grid_home"
     creates:                           /etc/sap_deployment_automation/oracle/gridinstall.txt
 
 - name:                                "SAP Oracle ASM: Create after a successful GRID install"
@@ -138,7 +138,7 @@
   become_user:                         root
   ansible.builtin.shell: |
                                        /oracle/oraInventory/orainstRoot.sh
-                                       /oracle/stage/{{ ora_release }}/grid_home/root.sh
+                                       /oracle/stage/{{ anydb_release }}/grid_home/root.sh
   register:                            rootscript_results
   args:
     executable:                        /bin/csh
@@ -169,7 +169,7 @@
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
-    chdir:                             "/oracle/stage/{{ ora_release }}/grid_home"
+    chdir:                             "/oracle/stage/{{ anydb_release }}/grid_home"
     creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
 
 - name:                                "SAP Oracle ASM: Create after a successful Config tool execution"
@@ -198,7 +198,7 @@
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
-    chdir:                             "/oracle/stage/{{ ora_release }}/grid_home/bin"
+    chdir:                             "/oracle/stage/{{ anydb_release }}/grid_home/bin"
     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
 
 - name:                                "SAP Oracle ASM: Created after a successful disk group creation"

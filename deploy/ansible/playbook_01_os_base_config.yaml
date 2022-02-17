@@ -110,7 +110,7 @@
           ansible.builtin.include_role:
             name:                      roles-os/1.5.2-disk-setup-ora-msid
           when:
-            node_tier == "oracle-msid"
+            node_tier == "ORACLE-MULTI-SID"
       tags:
         - 1.5.2-disk-setup-ora-msid
     

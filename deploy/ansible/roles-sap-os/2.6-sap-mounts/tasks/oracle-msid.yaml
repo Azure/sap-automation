@@ -40,10 +40,10 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { node_tier: 'oracle-msid',  type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',      path: '/oracle'         }
-    - { node_tier: 'oracle-msid',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',      path: '/usr/sap'         }
+    - { node_tier: 'ORACLE-MULTI-SID',  type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',      path: '/oracle'         }
+    - { node_tier: 'ORACLE-MULTI-SID',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',      path: '/usr/sap'         }
   when:         
-    -  item.node_tier == "oracle-msid"
+    -  item.node_tier == "ORACLE-MULTI-SID"
 
 
 # Mount Filesystems
@@ -65,7 +65,7 @@
   loop: "{{ logical_volume_groups |sort(attribute='lv') }}"
   when:         
               #- item.tier == "ora"
-              - item.node_tier == "oracle-msid" 
+              - item.node_tier == "ORACLE-MULTI-SID" 
               - item.lv in  lvexists
               - item.lv != 'lv_usrsap'
               - item.lv != 'lv_oracle'
@@ -101,9 +101,9 @@
   vars:
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-  loop: "{{ ora_msids }}"
+  loop: "{{ MULTI_SIDS }}"
   when:         
-    - node_tier == "oracle-msid"
+    - node_tier == "ORACLE-MULTI-SID"
 
 
 # Create Run Flag Directory

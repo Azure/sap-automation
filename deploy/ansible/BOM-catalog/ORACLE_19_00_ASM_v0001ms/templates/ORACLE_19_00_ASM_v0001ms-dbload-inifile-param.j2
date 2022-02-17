@@ -43,7 +43,7 @@ NW_getLoadType.loadType                                              = SAP
 ora.SysPassword                                                      = {{ main_password }}
 ora.SystemPassword                                                   = {{ main_password }}
 ora.createStatisticsCodeABAP                                         = CREATE
-ora.dbhome                                                           = /oracle/{{ db_sid|upper }}/{{ ora_release }}
+ora.dbhome                                                           = /oracle/{{ db_sid|upper }}/{{ anydb_release }}
 #ora.oraclePassword                                                  = {{ main_password }}
 # ora.orasidPassword                                                 = {{ main_password }}
 storageBasedCopy.abapSchemaPassword                                  = {{ main_password }}
@@ -54,7 +54,7 @@ ora.multitenant.pdbsid                                               = {{ db_sid
 storageBasedCopy.ora.ABAPSchema                                     = SAPSR3
 
 # Path to 'ORACLE_HOME' directory of GRID software
-ora.grid.ORACLE_HOME                                                = /oracle/stage/{{ ora_release }}/grid_home
+ora.grid.ORACLE_HOME                                                = /oracle/stage/{{ anydb_release }}/grid_home
 
 # ORACLE_SID' of 'GRID', default value is: '+ASM'
 # ora.grid.ORACLE_SID = +ASM
@@ -93,8 +93,8 @@ ora.whatIsOracleUser                                                 = true
 # storageBasedCopy.ora.swowner                                      = oracle
 
 # Oracle client & Server  version: 121, 112, ...
-storageBasedCopy.ora.serverVersion                                   ={{ ora_release}}
-storageBasedCopy.ora.clientVersion                                   ={{ ora_release }}
+storageBasedCopy.ora.serverVersion                                   ={{ anydb_release}}
+storageBasedCopy.ora.clientVersion                                   ={{ anydb_release }}
 
 # Name of Oracle Listener. Default value is: LISTENER
 # storageBasedCopy.ora.listenerName = 

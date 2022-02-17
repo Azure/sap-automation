@@ -21,7 +21,7 @@
 
 - name:                                "SAP Oracle DB ASM: Create run MOPatch directory"
   ansible.builtin.file:
-    path:                              /oracle/stage/{{ ora_release }}/grid_home/MOPatch
+    path:                              /oracle/stage/{{ anydb_release }}/grid_home/MOPatch
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -29,8 +29,8 @@
 #   Oracle DB install: Response file
 - name:                               "SAP Oracle DB ASM: deploy Database install response file"
   ansible.builtin.template:
-    src:                              ORACLE_{{ ora_release }}c_00_asm_db_v1_install.rsp.j2
-    dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_asm_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
+    src:                              ORACLE_{{ anydb_release }}c_00_asm_db_v1_install.rsp.j2
+    dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ anydb_release }}c_00_asm_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                             0644
     force:                            true
 
@@ -48,7 +48,7 @@
   ansible.builtin.shell: |
                                       set -o errexit
                                       ./RUNINSTALLER -ohextract -silent |tee -a /oracle/installlogs/oraextract.log
-                                      ln -s /oracle/{{ db_sid }}/{{ ora_version }} /oracle/{{ db_sid }}/{{ ora_release }}
+                                      ln -s /oracle/{{ db_sid }}/{{ anydb_version }} /oracle/{{ db_sid }}/{{ anydb_release }}
                                       touch /etc/sap_deployment_automation/oracle/oraextract.txt
   register:                           swinstaller_results
   failed_when:                        swinstaller_results.rc >= 2   
@@ -71,14 +71,14 @@
   become_user:                        oracle
   ansible.builtin.shell: |
                                       set -o errexit
-                                      ./runInstaller -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_asm_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /oracle/installlogs/dbinstall.log
+                                      ./runInstaller -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ anydb_release }}c_00_asm_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /oracle/installlogs/dbinstall.log
   register:                           dbinstaller_results
   environment:
     DB_SID:                           "{{ db_sid }}"
     CV_ASSUME_DISTID:                 OL7
   args:       
     executable:                       /bin/csh
-    chdir:                            "/oracle/{{ db_sid }}/{{ ora_version }}"
+    chdir:                            "/oracle/{{ db_sid }}/{{ anydb_version }}"
     creates:                          /etc/sap_deployment_automation/oracle/dbinstall.txt
 
 - name:                               "SAP Oracle DB ASM: Create after a successful install"
@@ -98,7 +98,7 @@
   become:                             yes
   become_user:                        root
   ansible.builtin.shell: |   
-                                      /oracle/{{ db_sid }}/{{ ora_version }}/root.sh                                                    
+                                      /oracle/{{ db_sid }}/{{ anydb_version }}/root.sh                                                    
   register:                           rootscript_results
   args:
     executable:                       /bin/csh
@@ -111,7 +111,7 @@
 
 - name:                                "SAP Oracle DB ASM: Set permissions"
   ansible.builtin.file:
-    path:                              "/oracle/stage/{{ ora_release }}/grid_home/bin/oracle"
+    path:                              "/oracle/stage/{{ anydb_release }}/grid_home/bin/oracle"
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -123,14 +123,14 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o errexit
-                                       /oracle/{{ db_sid }}/{{ ora_version }}/runInstaller -executeConfigTools -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_asm_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /oracle/installlogs/dbconfigtoolsinstall.log
+                                       /oracle/{{ db_sid }}/{{ anydb_version }}/runInstaller -executeConfigTools -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ anydb_release }}c_00_asm_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /oracle/installlogs/dbconfigtoolsinstall.log
   register:                            dbtools_installer_results
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
   args:       
     executable:                        /bin/csh
-    chdir:                             "/oracle/{{ db_sid }}/{{ ora_version }}"
+    chdir:                             "/oracle/{{ db_sid }}/{{ anydb_version }}"
     creates:                           /etc/sap_deployment_automation/oracle/dbtools_install.txt
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful execution"
@@ -158,7 +158,7 @@
   register:                            dbstop_results
   failed_when:                         dbstop_results.rc >= 3 
   args:
-    chdir:                             /oracle/stage/{{ ora_release }}/grid_home/bin
+    chdir:                             /oracle/stage/{{ anydb_release }}/grid_home/bin
     creates:                           /etc/sap_deployment_automation/oracle/dbstopped.txt
 
 - name:                                "SAP Oracle DB ASM: flag file created after a successful DB Stop"
@@ -174,16 +174,16 @@
   become_user:                         oracle
   ansible.builtin.shell: |   
                                        set -o errexit 
-                                       mv  /oracle/{{ db_sid }}/{{ ora_version }}/OPatch   /oracle/{{ db_sid }}/{{ ora_version }}/OPatch.bck 
-                                       cp -R OPATCH/OPatch  /oracle/{{ db_sid }}/{{ ora_version }}/.
-                                       cp -R SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/{{ db_sid }}/{{ ora_version }}/.
+                                       mv  /oracle/{{ db_sid }}/{{ anydb_version }}/OPatch   /oracle/{{ db_sid }}/{{ anydb_version }}/OPatch.bck 
+                                       cp -R OPATCH/OPatch  /oracle/{{ db_sid }}/{{ anydb_version }}/.
+                                       cp -R SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/{{ db_sid }}/{{ anydb_version }}/.
                                        $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SAP19P_2108-70004508.ZIP |tee -a /oracle/installlogs/sbp.log
   register:                            sbpscript_results
   environment:
     CV_ASSUME_DISTID:                  OL7
-    IHRDBMS:                           /oracle/{{ db_sid }}/{{ ora_version }}
-    ORACLE_HOME:                       /oracle/{{ db_sid }}/{{ ora_version }}
-    RDBMS:                             /oracle/{{ db_sid }}/{{ ora_release }}
+    IHRDBMS:                           /oracle/{{ db_sid }}/{{ anydb_version }}
+    ORACLE_HOME:                       /oracle/{{ db_sid }}/{{ anydb_version }}
+    RDBMS:                             /oracle/{{ db_sid }}/{{ anydb_release }}
   failed_when:                         sbpscript_results.rc >= 2 
   args:
     executable:                        /bin/csh
@@ -201,10 +201,10 @@
 
 - name:                                "SAP Oracle DB ASM: Prepare for GRID SBP Patching"
   ansible.builtin.shell: |                    
-                                       cp -rp /oracle/stage/{{ ora_release }}/grid_home /oracle/stage/{{ ora_release }}/grid_home.bck
-                                       /oracle/stage/{{ ora_release }}/grid_home/crs/install/roothas.sh -prepatch |tee /oracle/installlogs/pre-patchcmd.log
-                                       cp -R /usr/sap/install/SBP/SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/stage/{{ ora_release }}/grid_home/.
-                                       chown -R oracle:oinstall  /oracle/stage/{{ ora_release }}/grid_home/MOPatch            
+                                       cp -rp /oracle/stage/{{ anydb_release }}/grid_home /oracle/stage/{{ anydb_release }}/grid_home.bck
+                                       /oracle/stage/{{ anydb_release }}/grid_home/crs/install/roothas.sh -prepatch |tee /oracle/installlogs/pre-patchcmd.log
+                                       cp -R /usr/sap/install/SBP/SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/stage/{{ anydb_release }}/grid_home/.
+                                       chown -R oracle:oinstall  /oracle/stage/{{ anydb_release }}/grid_home/MOPatch            
   args:
     creates:                           /etc/sap_deployment_automation/oracle/gridpreinstall.txt
 
@@ -220,14 +220,14 @@
   become_user:                         oracle
   ansible.builtin.shell: |   
                                        set -o errexit
-                                       mv  /oracle/stage/{{ ora_release }}/grid_home/OPatch   /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
-                                       cp -R OPATCH/OPatch  /oracle/stage/{{ ora_release }}/grid_home/.
-                                       chmod 6751 /oracle/stage/{{ ora_release }}/grid_home/bin/oracle
+                                       mv  /oracle/stage/{{ anydb_release }}/grid_home/OPatch   /oracle/stage/{{ anydb_release }}/grid_home/OPatch.bck
+                                       cp -R OPATCH/OPatch  /oracle/stage/{{ anydb_release }}/grid_home/.
+                                       chmod 6751 /oracle/stage/{{ anydb_release }}/grid_home/bin/oracle
                                        $OHGRID/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SGR19P_2108-70004550.ZIP |tee -a /oracle/installlogs/sbpgrid.log
   register:                            sbpgscript_results
   environment:
-    OHGRID:                            /oracle/stage/{{ ora_release }}/grid_home
-    ORACLE_HOME:                       /oracle/stage/{{ ora_release }}/grid_home
+    OHGRID:                            /oracle/stage/{{ anydb_release }}/grid_home
+    ORACLE_HOME:                       /oracle/stage/{{ anydb_release }}/grid_home
   args:
     executable:                        /bin/csh
     chdir:                             /usr/sap/install/SBP/
@@ -249,14 +249,14 @@
   become_user:                         root
   ansible.builtin.shell: |   
                                        set -o errexit
-                                       /oracle/stage/{{ ora_release }}/grid_home/rdbms/install/rootadd_rdbms.sh
-                                       /oracle/stage/{{ ora_release }}/grid_home/crs/install/roothas.sh -postpatch |tee /oracle/installlogs/post-processing.log
-                                       chown oracle:oinstall /oracle/{{ db_sid}}/{{ ora_version }}/bin/oracle
-                                       chmod 6751  /oracle/{{ db_sid}}/{{ ora_version }}/bin/oracle
+                                       /oracle/stage/{{ anydb_release }}/grid_home/rdbms/install/rootadd_rdbms.sh
+                                       /oracle/stage/{{ anydb_release }}/grid_home/crs/install/roothas.sh -postpatch |tee /oracle/installlogs/post-processing.log
+                                       chown oracle:oinstall /oracle/{{ db_sid}}/{{ anydb_version }}/bin/oracle
+                                       chmod 6751  /oracle/{{ db_sid}}/{{ anydb_version }}/bin/oracle
                                        chmod 755 /opt/oracle
   register:                            sbppostpro_results 
   args:
-    chdir:                            /oracle/stage/{{ ora_release }}/grid_home/
+    chdir:                            /oracle/stage/{{ anydb_release }}/grid_home/
     creates:                          /etc/sap_deployment_automation/oracle/sbpgpostprocess.txt
 
 - name:                               "SAP Oracle DB ASM: Create flag after a successful change"
@@ -281,17 +281,17 @@
   become_user:                        oracle
   ansible.builtin.shell: |
                                       set -o errexit
-                                      /oracle/stage/{{ ora_release }}/grid_home/bin/srvctl start LISTENER
-                                      /oracle/stage/{{ ora_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.rdbms={{ ora_version }}
-                                      /oracle/stage/{{ ora_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName ARCH -attribute compatible.rdbms={{ ora_version }}
-                                      /oracle/stage/{{ ora_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName RECO -attribute compatible.rdbms={{ ora_version }}
+                                      /oracle/stage/{{ anydb_release }}/grid_home/bin/srvctl start LISTENER
+                                      /oracle/stage/{{ anydb_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.rdbms={{ anydb_version }}
+                                      /oracle/stage/{{ anydb_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName ARCH -attribute compatible.rdbms={{ anydb_version }}
+                                      /oracle/stage/{{ anydb_release }}/grid_home/bin/asmca -silent -editDiskGroupAttributes -diskGroupName RECO -attribute compatible.rdbms={{ anydb_version }}
   register:                           diskgroupcreation_results
   environment:
     DB_SID:                           "{{ db_sid }}"
     CV_ASSUME_DISTID:                 OL7
   args:
     executable:                       /bin/csh
-    chdir:                            /oracle/stage/{{ ora_release }}/grid_home/bin
+    chdir:                            /oracle/stage/{{ anydb_release }}/grid_home/bin
     creates:                          /etc/sap_deployment_automation/oracle/diskgroupupdated.txt
 
 - name:                               "SAP Oracle DB ASM: Create flag after a sucessfull change"

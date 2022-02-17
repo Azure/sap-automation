@@ -11,8 +11,8 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-app-inifile-param.j2"
-  when:                                 ora_msids is defined
-  loop:                                 "{{ ora_msids }}"
+  when:                                 MULTI_SIDS is defined
+  loop:                                 "{{ MULTI_SIDS }}"
 
 - name:                                "APP Install: Create run flag directory"
   ansible.builtin.file:
@@ -36,7 +36,7 @@
     path:                              /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
     state:                             absent
   when:                                reinstall
-  loop:                                "{{ ora_msids }}"
+  loop:                                "{{ MULTI_SIDS }}"
 
 # Returns bom object
 - name:                                "APP Install"
@@ -104,7 +104,7 @@
         TMPDIR:                        /usr/sap/install/{{ item.sid|upper }}
       register:                        app_installation
       failed_when:                     app_installation.rc > 0
-      loop:                            "{{ ora_msids }}"
+      loop:                            "{{ MULTI_SIDS }}"
       tags:
       - skip_ansible_lint
 

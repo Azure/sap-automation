@@ -20,7 +20,7 @@
   when:
     - tier == 'sapos'
     - node_tier == 'scs'
-    - ora_msids is defined
+    - MULTI_SIDS is defined
     - not use_AFS
 
 # Create Folders under sapmnt whilist using Local disk for Multi-SID installation.
@@ -33,12 +33,12 @@
         mode:                          '0644'
       when:
          - node_tier == 'scs'
-         - ora_msids is defined
-      loop: "{{ ora_msids }}"
+         - MULTI_SIDS is defined
+      loop: "{{ MULTI_SIDS }}"
 
-- name:                                Show ora_msids
+- name:                                Show MULTI_SIDS
   ansible.builtin.debug:
-    var:                               ora_msids
+    var:                               MULTI_SIDS
 
 # Mount Filesystems
 - name:                                Mount local filesystems
@@ -68,7 +68,7 @@
     - { path: '/usr/sap/trans' }
   when:
     - node_tier == 'scs'
-    - ora_msids is defined
+    - MULTI_SIDS is defined
 
 - name:                                Mount local filesystems (when not using AFS)
   ansible.builtin.mount:
@@ -119,7 +119,7 @@
     - tier == 'sapos'
     - sap_mnt is undefined
     - node_tier == 'scs'
-    - ora_msids is undefined
+    - MULTI_SIDS is undefined
 
 # Mount Filesystems
 - name:                                Mount Filesystems block
@@ -137,7 +137,7 @@
         - tier == 'sapos'
         - node_tier in ['pas', 'app', 'ers']
         - sap_mnt is undefined
-        - ora_msids is undefined
+        - MULTI_SIDS is undefined
   rescue:
     - name:                            Re-mount Filesystems when not using external NFS (app & pas)
       ansible.builtin.debug:
@@ -155,7 +155,7 @@
         - tier == 'sapos'
         - node_tier in ['pas', 'app', 'ers']
         - sap_mnt is undefined
-        - ora_msids is defined
+        - MULTI_SIDS is defined
 
 
 # Mount Filesystems
@@ -199,10 +199,10 @@
   vars:
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-  loop: "{{ ora_msids }}"
+  loop: "{{ MULTI_SIDS }}"
   when:         
     - tier == 'sapos'
-    - ora_msids is defined
+    - MULTI_SIDS is defined
     - node_tier != 'scs'
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
@@ -229,9 +229,9 @@
     - node_tier == "oracle"
     - node_tier != "oracle-asm"
 
-- import_tasks:                        "oracle-msid.yaml"
+- import_tasks:                        "ORACLE-MULTI-SID.yaml"
   when: 
-    - node_tier == "oracle-msid"
+    - node_tier == "ORACLE-MULTI-SID"
     - node_tier != "oracle-asm"
 
 ...

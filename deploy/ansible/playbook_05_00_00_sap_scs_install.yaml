@@ -105,7 +105,7 @@
             - name:                    Include 5.0.0-scs-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
-              when:                    ora_msids is undefined
+              when:                    MULTI_SIDS is undefined
           tags:
             - 5.0.0-scs-install
 
@@ -114,7 +114,7 @@
             - name:                    Include 5.0.3-scs-msid-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.3-scs-msid-install
-              when:                    ora_msids is defined
+              when:                    MULTI_SIDS is defined
           tags:
             - 5.0.2-scs-msid-install
 

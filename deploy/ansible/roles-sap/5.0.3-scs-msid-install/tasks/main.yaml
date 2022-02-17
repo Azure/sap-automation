@@ -11,15 +11,15 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-scs-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
-  when:                                ora_msids is undefined
+  when:                                MULTI_SIDS is undefined
 
 
 - name:                                Set SCS facts for oracle multi-sid
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
-  when:                                 ora_msids is defined
-  loop:                                 "{{ ora_msids }}"
+  when:                                 MULTI_SIDS is defined
+  loop:                                 "{{ MULTI_SIDS }}"
 
 
 # Returns bom object
@@ -73,7 +73,7 @@
       - "{{ bom.product_ids.scs }}"
       - "{{ bom_base_name }}"
       - "{{ ansible_hostname }}"
-      - "{{ ora_msids }}"
+      - "{{ MULTI_SIDS }}"
     verbosity:                         2
 
 
@@ -100,8 +100,8 @@
   args:
     chdir:                             /usr/sap/install/SWPM
     creates:                           /etc/sap_deployment_automation/sap_deployment_scs_{{ item.sid }}.txt
-  when:       ora_msids is defined
-  loop:       "{{ ora_msids }}"
+  when:       MULTI_SIDS is defined
+  loop:       "{{ MULTI_SIDS }}"
   tags:
     - skip_ansible_lint
 

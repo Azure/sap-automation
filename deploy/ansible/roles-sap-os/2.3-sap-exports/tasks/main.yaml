@@ -11,7 +11,7 @@
     - { path: '/sapmnt/{{ sap_sid|upper }}' }
   when:
     - node_tier == 'scs'
-    - ora_msids is undefined
+    - MULTI_SIDS is undefined
 
 - name:                               "Exports: Create SAP Directories for MSIDs"
   ansible.builtin.file:
@@ -24,7 +24,7 @@
     - { path: '/sapmnt' }
   when:
     - node_tier == 'scs'
-    - ora_msids is defined
+    - MULTI_SIDS is defined
 
 # Create Folders under sapmnt whilist using Local disk for Multi-SID installation.
 - name:                                Create Filesystems under sapmnt
@@ -36,8 +36,8 @@
         mode:                          0755
       when:
          - node_tier == 'scs'
-         - ora_msids is defined
-      loop: "{{ ora_msids }}"
+         - MULTI_SIDS is defined
+      loop: "{{ MULTI_SIDS }}"
 
 
 - name:                               "Exports: NFS Server Config on Suse (install)"
@@ -173,7 +173,7 @@
     - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
     - node_tier == 'scs'
     - sap_mnt is not defined
-    - ora_msids is not defined
+    - MULTI_SIDS is not defined
 
 
 - name: "Exports: NFS Server Config on Oracle Linux 8 for oracle Multi-SID installation"
@@ -194,7 +194,7 @@
     - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
     - node_tier == 'scs'
     - sap_mnt is not defined
-    - ora_msids is defined
+    - MULTI_SIDS is defined
 
 
 - name: "Exports: NFS Server Config on Oracle Linux 8 for Multi-SID installation sapmnt mounts"
@@ -205,12 +205,12 @@
     owner:  root
     group:  root
     mode:   0644
-  loop: "{{ ora_msids }}"
+  loop: "{{ MULTI_SIDS }}"
   when:     
     - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
     - node_tier == 'scs'
     - sap_mnt is not defined
-    - ora_msids is defined
+    - MULTI_SIDS is defined
 
 - name:                                "Exports: Set the NFS Service name {{ distro_id }}"
   ansible.builtin.set_fact:

@@ -102,7 +102,7 @@
     force:                             true
   when:                                
     - microsoft_supplied_bom_template.stat.exists or microsoft_supplied_bom_template_archive.stat.exists
-    - ora_msids is undefined
+    - MULTI_SIDS is undefined
 
 # If Microsoft supplied BOM template found for Oracle Mult-SID Deployment SCS, PAS & APP.
 - name:                                "SAP : deploy Parameter file install template"
@@ -113,8 +113,8 @@
     force:                             true
   when:                                
        - microsoft_supplied_bom_template.stat.exists or microsoft_supplied_bom_template_archive.stat.exists
-       - ora_msids is defined
-  loop:                                "{{ ora_msids }}"
+       - MULTI_SIDS is defined
+  loop:                                "{{ MULTI_SIDS }}"
 
 
 # If Microsoft supplied BOM template found for Oracle Mult-SID Deployment DB Load.
@@ -126,8 +126,8 @@
     force:                             true
   when:                                
        - microsoft_supplied_bom_template.stat.exists or microsoft_supplied_bom_template_archive.stat.exists
-       - node_tier == "oracle-msid"
-  loop:  "{{ ora_msids }}"
+       - node_tier == "ORACLE-MULTI-SID"
+  loop:  "{{ MULTI_SIDS }}"
 
 # If Microsoft supplied BOM template not found
 - name:                                "Retrieve BOM ({{ bom_base_name }}) template from Storage Account for {{ node_tier | upper }} tier"

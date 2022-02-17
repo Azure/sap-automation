@@ -11,8 +11,8 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
-  when:                                 node_tier == "oracle-msid"
-  loop:                                 "{{ ora_msids }}"
+  when:                                 node_tier == "ORACLE-MULTI-SID"
+  loop:                                 "{{ MULTI_SIDS }}"
 
 - name:                                "Create run flag directory"
   ansible.builtin.file:
@@ -30,7 +30,7 @@
   ansible.builtin.template:
     backup:                           yes
     src:                              tnsnames.j2
-    dest:                             "/oracle/RDBMS/{{ ora_version }}/network/admin/tnsnames.ora"
+    dest:                             "/oracle/RDBMS/{{ anydb_version }}/network/admin/tnsnames.ora"
     mode:                             0644
     force:                            true
 
@@ -40,7 +40,7 @@
   ansible.builtin.template:
     backup:                           yes
     src:                              listener.j2
-    dest:                             "/oracle/RDBMS/{{ ora_version }}/network/admin/listener.ora"
+    dest:                             "/oracle/RDBMS/{{ anydb_version }}/network/admin/listener.ora"
     mode:                             0644
     force:                            true
 
@@ -137,7 +137,7 @@
         TMPDIR:                        /usr/sap/install/{{ item.sid|upper }}
       register:                        dbload
       failed_when:                     dbload.rc > 0
-      loop:                            "{{ ora_msids }}"
+      loop:                            "{{ MULTI_SIDS }}"
       tags:
         - skip_ansible_lint
     

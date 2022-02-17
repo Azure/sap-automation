@@ -72,11 +72,11 @@
         - name:                        Include 5.3-app-install
           ansible.builtin.include_role:
             name:                      roles-sap/5.3-app-install
-          when:                        ora_msids is undefined
+          when:                        MULTI_SIDS is undefined
         - name:                        Include 5.3-app-install
           ansible.builtin.include_role:
             name:                      roles-sap/5.3.1-app-msid-install
-          when:                        ora_msids is defined
+          when:                        MULTI_SIDS is defined
       tags:
         - 5.3-app-install
 
