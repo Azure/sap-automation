@@ -105,6 +105,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
           - bash: |
