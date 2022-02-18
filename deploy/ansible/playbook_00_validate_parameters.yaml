@@ -153,7 +153,7 @@
       when:                            (ansible_play_hosts_all | length) == 1
 
     - name:                            Show Mounts
-      ansible.builtin.command:         dh -h 
+      ansible.builtin.command:         df -h 
       register:                        mounts   
 
     - name:                            Show Mounts
