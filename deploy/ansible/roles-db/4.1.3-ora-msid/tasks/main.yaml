@@ -32,11 +32,11 @@
                       chmod -R 777 /usr/sap/install/
                       
   args:
-    creates:          /etc/sap_deployment_automation/oracleownerchange.txt
+    creates:          /etc/sap_deployment_automation/oracleowner.txt
 
 - name:                                Create shareddbinstalled.txt
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/oracleownerchange.txt
+    path:                              /etc/sap_deployment_automation/oracleowner.txt
     state:                             touch
     mode:                              0755
 
