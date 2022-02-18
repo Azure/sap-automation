@@ -155,7 +155,7 @@
         - tier == 'sapos'
         - node_tier in ['pas', 'app', 'ers']
         - sap_mnt is undefined
-        - MULTI_SIDS is defined
+        - MULTI_SIDS is undefined
 
 
 # Mount Filesystems
