@@ -66,11 +66,11 @@
             state:                     directory
             mode:                      0755
           loop:
-            - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
+            - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
           ansible.builtin.mount:
@@ -83,11 +83,11 @@
             path:                      "{{ item.path }}"
             state:                     absent
           loop:
-            - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
-            - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
+            - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
+            - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
           ansible.builtin.mount:
