@@ -313,19 +313,6 @@
       when:
         - tier == 'sapos'
 
-- name:                                "AFS Mount: (transport)"
-  ansible.builtin.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-    state:                             mounted
-  loop:
-    - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
-  when:
-    - node_tier in ['scs','ers','pas','app']
-    - sap_trans is defined
-
 - name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} - Standalone"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
@@ -435,5 +422,19 @@
         - scs_high_availability
         - node_tier in ['scs','ers']
         - sap_mnt is defined
+
+
+- name:                                "AFS Mount: (transport)"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    state:                             mounted
+  loop:
+    - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
+  when:
+    - node_tier in ['scs','ers','pas','app']
+    - sap_trans is defined
 
 ...
