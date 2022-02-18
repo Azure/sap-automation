@@ -45,7 +45,7 @@
 
   when:
     - node_tier == 'scs'
-    - usr_sap_install_path not defined
+    - usr_sap_install_path is not defined
 
 - name:                                "2.3 SAP Exports: - Create SAP Directories (sapmnt)"
   block:
@@ -91,7 +91,7 @@
 
   when:
     - node_tier == 'scs'
-    - sap_mnt not defined
+    - sap_mnt is not defined
 
 - name:                                "2.3 SAP Exports: - Create SAP Directories (saptrans)"
   block:
@@ -137,7 +137,7 @@
 
   when:
     - node_tier == 'scs'
-    - sap_trans not defined
+    - sap_trans is not defined
 
 
 - name:                                "Exports: Set the NFS Service name {{ distro_id }}"
