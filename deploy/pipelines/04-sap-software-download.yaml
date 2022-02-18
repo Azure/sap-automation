@@ -64,6 +64,9 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -172,4 +175,6 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
+
 ...

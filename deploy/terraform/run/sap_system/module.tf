@@ -5,33 +5,27 @@
 
 
 module "sap_namegenerator" {
-  source           = "../../terraform-units/modules/sap_namegenerator"
-  environment      = local.infrastructure.environment
-  location         = local.infrastructure.region
-  codename         = lower(try(local.infrastructure.codename, ""))
-  random_id        = module.common_infrastructure.random_id
-  sap_vnet_name    = local.vnet_logical_name
-  sap_sid          = local.sap_sid
-  db_sid           = local.db_sid
-  app_ostype       = try(local.application.os.os_type, "LINUX")
-  anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = try(local.databases[0].os.os_type, "LINUX")
-  db_server_count  = var.database_server_count
-  app_server_count = try(local.application.application_server_count, 0)
-  web_server_count = try(local.application.webdispatcher_count, 0)
-  scs_server_count = local.application.scs_high_availability ? 2 * local.application.scs_server_count : local.application.scs_server_count
-  app_zones        = []
-  scs_zones        = try(local.application.scs_zones, [])
-  web_zones        = try(local.application.web_zones, [])
-  db_zones         = try(local.databases[0].zones, [])
-  resource_offset  = try(var.options.resource_offset, 0)
-  custom_prefix = var.use_prefix ? (
-    length(trimspace(var.custom_prefix)) > 0 ? (
-      var.custom_prefix) : (
-      ""
-    )) : (
-    " "
-  )
+  source                     = "../../terraform-units/modules/sap_namegenerator"
+  environment                = local.infrastructure.environment
+  location                   = local.infrastructure.region
+  codename                   = lower(try(local.infrastructure.codename, ""))
+  random_id                  = module.common_infrastructure.random_id
+  sap_vnet_name              = local.vnet_logical_name
+  sap_sid                    = local.sap_sid
+  db_sid                     = local.db_sid
+  app_ostype                 = try(local.application.os.os_type, "LINUX")
+  anchor_ostype              = upper(try(local.anchor_vms.os.os_type, "LINUX"))
+  db_ostype                  = try(local.databases[0].os.os_type, "LINUX")
+  db_server_count            = var.database_server_count
+  app_server_count           = try(local.application.application_server_count, 0)
+  web_server_count           = try(local.application.webdispatcher_count, 0)
+  scs_server_count           = local.application.scs_high_availability ? 2 * local.application.scs_server_count : local.application.scs_server_count
+  app_zones                  = []
+  scs_zones                  = try(local.application.scs_zones, [])
+  web_zones                  = try(local.application.web_zones, [])
+  db_zones                   = try(local.databases[0].zones, [])
+  resource_offset            = try(var.options.resource_offset, 0)
+  custom_prefix              = var.custom_prefix
   database_high_availability = local.databases[0].high_availability
   scs_high_availability      = local.application.scs_high_availability
   use_zonal_markers          = var.use_zonal_markers
