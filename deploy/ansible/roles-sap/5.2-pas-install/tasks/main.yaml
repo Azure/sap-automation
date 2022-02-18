@@ -29,24 +29,17 @@
     path:                              /etc/sap_deployment_automation/sap_deployment_pas.txt
   register:                            pas_installed
 
-- name:                                Set the SCS Server name list
+- name:                                "PAS Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
-- name:                                Set the SCS Server name
+- name:                                "PAS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{{ scs_server_temp | first }}"
-
-- name:                                Show the instance number
-  ansible.builtin.debug:
-    msg:                              "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
-
-- name:                                Show the SCS host name
-  ansible.builtin.debug:
-    msg:                              "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+    instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
 
 - name:                                "PAS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -55,7 +48,7 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
 
-- name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "PAS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
@@ -72,14 +65,14 @@
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
-    sap_scs_hostname:                  "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server }}{% endif %}"
+    sap_scs_hostname:                  "{{ scs_server }}"
     sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
   tags:
     - skip_ansible_lint
 
-- name:                                "PAS install: register variables"
+- name:                                "PAS Install: register variables"
   ansible.builtin.set_fact:
     pas_bom_id:                        "{{ bom.product_ids.pas }}"
 
@@ -89,6 +82,7 @@
       - "INSTALLED:  {{ pas_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ pas_bom_id }}"
+      - "INSTANCE:   {{ instance_number }}"
     verbosity:                         2
 
 - name:                                "PAS Install"
@@ -107,10 +101,10 @@
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         /usr/sap/install/SWPM
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_pas.txt
       environment:
-        TMPDIR:                        /usr/sap/install
+        TMPDIR:                        "{{ target_media_location }}"
       register:                        pas_installation
       failed_when:                     pas_installation.rc > 0
       tags:

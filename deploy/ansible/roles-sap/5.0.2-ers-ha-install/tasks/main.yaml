@@ -104,10 +104,10 @@
                                                  SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
       become:                          true
       args:
-        chdir:                         /usr/sap/install/SWPM
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_ers.txt
       environment:
-        TMPDIR:                        /usr/sap/install
+        TMPDIR:                        "{{ target_media_location }}"
       register:                        ers_installation
       failed_when:                     ers_installation.rc > 0
       tags:

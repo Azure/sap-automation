@@ -31,13 +31,9 @@
   block:
 
 # +------------------------------------4--------------------------------------*/
-    - name:                            Set dir_params fact
+    - name:                            "SAP HANA: Set dir_params fact"
       ansible.builtin.set_fact:
         dir_params:                    "{{ target_media_location }}/.params"
-
-    - name:                            Show dir_params
-      ansible.builtin.debug:
-        var:                           dir_params
 
 #   0x) Create hidden directory for parameter files
     - name:                            "SAP HANA: Create hidden directory"
@@ -99,32 +95,32 @@
     - name:                            "SAP HANA: Execute hdblcm on {{ ansible_hostname }}"
       ansible.builtin.command:         ./hdblcm --batch --action=install  --configfile='{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp'
       args:
-        chdir:                         /usr/sap/install/CD_HDBSERVER/SAP_HANA_DATABASE
+        chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
         creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
       register:                        hana_installation
       failed_when:                     hana_installation.rc > 0
 
-    - name:                            "Installation results"
+    - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
         var:                           hana_installation
         verbosity:                     2
 
-    - name:                            "Installation results"
+    - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
         var:                           hana_installation
       when:                            hana_installation.rc > 0
 
-    - name:                            "REMOVE install password file "
+    - name:                            "SAP HANA: remove install password file"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_passwords.xml"
         state:                         absent
 
-    - name:                            "REMOVE install response file"
+    - name:                            "SAP HANA: remove install response file"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
         state:                         absent
 
-    - name:                            "Create backup folder"
+    - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
         path:                          "/hana/backup"
         state:                         directory
@@ -132,7 +128,7 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
 
-    - name:                            "HANA Install: flag"
+    - name:                            "SAP HANA: HANA Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_hdb.txt
         state:                         touch
