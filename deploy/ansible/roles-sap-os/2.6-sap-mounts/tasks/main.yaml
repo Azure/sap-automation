@@ -93,7 +93,6 @@
     - "'scs' in supported_tiers"
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
-  ansible.builtin.mount:
   block:
     - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
       ansible.builtin.mount:
