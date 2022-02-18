@@ -138,8 +138,8 @@
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             state:                     absent
-            loop:
-              - { path: '/saptrans/usrsaptrans'}
+          loop:
+            - { path: '/saptrans/usrsaptrans' }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (transport)"
           ansible.builtin.mount:
