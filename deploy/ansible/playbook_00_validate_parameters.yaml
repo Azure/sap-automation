@@ -154,6 +154,13 @@
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number on standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
 
+    - name:                            Show Mounts
+      ansible.builtin.command:         df -h 
+      register:                        mounts   
+
+    - name:                            Show Mounts
+      ansible.builtin.debug:         
+        var:                           mounts
 
 ...
 # /*----------------------------------------------------------------------------8

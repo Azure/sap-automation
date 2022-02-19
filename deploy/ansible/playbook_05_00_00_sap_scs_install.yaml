@@ -91,13 +91,15 @@
       block:
 
         - block:
-            - ansible.builtin.debug:
+            - name:                    Print Instance Numbers
+              ansible.builtin.debug:
                 msg:
                   - "hdb_instance_number: {{ hdb_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
                 verbosity:             2
 
-            - ansible.builtin.assert:
+            - name:                    SCS Assertions
+              ansible.builtin.assert:
                 that:
                   - "scs_instance_number != hdb_instance_number"
                 fail_msg:              "Please ensure that the scs_instance_number is different from the hdb_instance_number"
@@ -259,6 +261,7 @@
             - name:                    Run the pacemaker role
               include_role:
                 name:                  roles-sap/5.6-scsers-pacemaker
+                public:                true
           always:
 
             - name:                    Include 7.0.0-post-install role
@@ -266,18 +269,20 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_SCS"
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ scs_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
+              when:                    scs_bom_id is defined
 
             - name:                    Include 7.0.0-post-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_ERS"
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ ers_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
+              when:                    ers_bom_id is defined
 
             - name:                    Get the Error lines (SCS)
               ansible.builtin.set_fact:
@@ -315,7 +320,10 @@
       when:
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2fbf0722669b0465fe713d24a7bfe70389fe7070
 
 - hosts:                               localhost
   name:                                Log results

@@ -7,8 +7,8 @@ materials:
 
   media:
    # SUM
-    - name:         "Patch 6 for SOFTWARE UPDATE MANAGER 2.0 SP12 ; OS: Linux on x86_64 64bit"
-      archive:      SUM20SP12_6-80002456.SAR
-      checksum:     38fcd4df3db11edecbdee54df9ee88fb8797221177b677f1260fc84f740afd03
+    - name:         "Patch 7 for SOFTWARE UPDATE MANAGER 2.0 SP12 ; OS: Linux on x86_64 64bit"
+      archive:      SUM20SP12_7-80002456.SAR
+      checksum:     a7418e8e933068b3a147a171cd85ef5de31309219791cc398e87448bcfe099c5 
       download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000000070832022
+      url:          https://softwaredownloads.sap.com/file/0020000000174442022
