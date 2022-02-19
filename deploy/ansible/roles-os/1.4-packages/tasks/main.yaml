@@ -5,16 +5,11 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                1.4 - Import package list
+- name:                                "1.4 Packages: - Import package list"
   ansible.builtin.include_vars:        os-packages.yaml
 
-  # Print list of matching packages if verbosity it 1 or greater
-- name:                                Show tier
-  ansible.builtin.debug:
-    var:                               tier
-    verbosity:                         2
 
-- name:                                "1.4 - Update Python: {{ distro_full_id }}"
+- name:                                "1.4 Packages: - Update Python: {{ distro_full_id }}"
   zypper:
     name:                              'python-xml'
     state:                             latest
@@ -24,7 +19,7 @@
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
-- name:                                "Determine packages appropriate for tier on: {{ distro_id }}"
+- name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distro_id }}"
   ansible.builtin.set_fact:
     packages_for_tier:                 "{{ packages[distro_id]  |
                                           selectattr('tier', 'in', ['all', tier]) |
@@ -32,32 +27,23 @@
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
-- name:                                "Determine packages appropriate for tier on: {{ distro_full_id }}"
+- name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distro_full_id }}"
   ansible.builtin.set_fact:
     packages_for_specific_tier:        "{{ packages[distro_full_id]  |
                                            selectattr('tier', 'in', ['all', tier]) |
                                            list }}"
-    when: packages|selectattr(distro_full_id, "defined")|list|length >0
+    when: packages | selectattr(distro_full_id, "defined") | list | length  >0
 
 
 # Print list of matching packages if verbosity it 1 or greater
-- name:                                Show packages
+- name:                                "1.4 Packages: - Show packages"
   ansible.builtin.debug:
-    var:                               packages_for_tier
+    msg:
+      - "Packages for {{ distro_id }} : {{ packages_for_tier }}"                               
+      - "Packages for {{ distro_full_id }} : {{ packages_for_specific_tier }}"                               
     verbosity:                         2
   when:                                packages_for_tier is defined
 
-- name:                                Show packages
-  ansible.builtin.debug:
-    var:                               packages_for_specific_tier
-    verbosity:                         2
-  when:                                packages_for_specific_tier is defined
-
-    # Print list of matching packages if verbosity it 1 or greater
-- name:                                Show version specific packages
-  ansible.builtin.debug:
-    var:                               packages_for_specific_tier
-    verbosity:                         2
 
 # Extract the list of package names whose state match the specified value and
 # pass them as the argument to the name parameter; this is the recommended
@@ -65,10 +51,10 @@
 # once per state value.
 # TODO: Do we want to remap 'present' to 'latest' to install latest version
 # for packages that may not be up-to-date?
-- name:                                "1.4 - Update OS packages: {{ distro_name }}"
+- name:                                "1.4 Packages: - Update OS packages: {{ distro_name }}"
   block:
 
-    - name:                            "1.4 - Update OS packages: {{ distro_name }}"
+    - name:                            "1.4 Packages: - Update OS packages: {{ distro_name }}"
       ansible.builtin.package:
         name:                          "{{ packages_for_tier |
                                            selectattr('state', 'equalto', item.state) |
@@ -80,16 +66,16 @@
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
   rescue:
-    - name:                            Show result from packages module
+    - name:                            "1.4 Packages: - Show result from packages module"
       ansible.builtin.debug:
         var:                           package_result
         verbosity:                     2
 
-    - name:                            "Performing rescue action"
+    - name:                            "1.4 Packages: - Performing rescue action"
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "1.4 - Update OS packages: {{ distro_name }}"
+    - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
       ansible.builtin.package:
         name:                          "{{ packages_for_tier |
                                            selectattr('state', 'equalto', item.state) |
@@ -101,9 +87,9 @@
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
 
-- name:                                "1.4 - Update OS packages: {{ distro_full_id }}"
+- name:                                "1.4 Packages: - Update OS packages: {{ distro_full_id }}"
   block:
-    - name:                            "1.4 - Update OS packages: {{ distro_full_id }}"
+    - name:                            "1.4 Packages: - Update OS packages: {{ distro_full_id }}"
       ansible.builtin.package:
         name:                          "{{ packages_for_specific_tier |
                                            selectattr('state', 'equalto', item.state) |
@@ -116,15 +102,15 @@
         - { state: 'absent' }   # Then remove packages that we don't want
 
   rescue:
-    - name:                            Print return value
+    - name:                            "1.4 Packages: - Print return value"
       ansible.builtin.debug:
         var:                           package_result
 
-    - name:                            "Performing rescue action"
+    - name:                            "1.4 Packages: - Performing rescue action"
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "1.4 - Update OS packages: {{ distro_full_id }}"
+    - name:                            "1.4 Packages: - Update OS packages: {{ distro_full_id }}"
       ansible.builtin.package:
         name:                          "{{ packages_for_specific_tier |
                                            selectattr('state', 'equalto', item.state) |
@@ -135,7 +121,7 @@
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
 
-- name:                                "1.4 - Upgrade all: {{ distro_full_id }}"
+- name:                                "1.4 Packages: - Upgrade all: {{ distro_full_id }}"
   zypper:
     name:                              '*'
     state:                             latest
@@ -146,7 +132,7 @@
   tags:
     - skip_ansible_lint
 
-- name:                                "1.4 - Upgrade all: {{ distro_full_id }}"
+- name:                                "1.4 Packages: - Upgrade all: {{ distro_full_id }}"
   become:                              true
   ansible.builtin.yum:
     name:                              '*'

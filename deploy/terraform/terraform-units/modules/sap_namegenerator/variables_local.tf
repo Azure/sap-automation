@@ -364,6 +364,13 @@ variable "custom_prefix" {
   default     = ""
 }
 
+variable "use_prefix" {
+  type        = bool
+  description = "Use prefix"
+  default     = true
+}
+
+
 variable "deployer_location" {
   description = "Deployer Azure region"
   default     = ""

@@ -105,6 +105,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
           - bash: |
@@ -735,7 +736,7 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data

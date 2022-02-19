@@ -7,38 +7,38 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
-- name:                                "SCS Install: Set BOM facts"
+- name:                                "SCS HA Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-scsha-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scsha-inifile-param.j2"
 
-- name:                                "SCS Install: Create run flag directory"
+- name:                                "SCS HA Install: Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     state:                             directory
     mode:                              0755
 
-- name:                                "SCS Install: reset"
+- name:                                "SCS HA Install: reset"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
     state:                             absent
   when:                                reinstall
 
-- name:                                "SCS Install: check if installed"
+- name:                                "SCS HA Install: check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
 # Returns bom object
-- name:                                "SCS Install: Include 3.3.1-bom-utility role"
+- name:                                "SCS HA Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
 
-- name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "SCS HA Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
@@ -63,27 +63,24 @@
     - skip_ansible_lint
 
 
-- name:                                "SCS Install: check if installed"
+- name:                                "SCS HA Install: check if installed"
   ansible.builtin.debug:
-    var:                               scs_installed
+    msg:                               "SCS HA Install flag: {{ scs_installed }}"
     verbosity:                         2
 
-- name:                                "PAS install: register variables"
+- name:                                "SCS HA Install: register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
     public:                            true
 
-- name:                                "SCS Install"
+- name:                                "SCS HA Install"
   block:
 
-    - name:                            "SCS Install: install variables"
+    - name:                            "SCS HA Install: install variables"
       ansible.builtin.debug:
-        msg:                           "{{ sap_inifile }}"
-        verbosity:                     2
-
-    - name:                            "SCS Install: install variables"
-      ansible.builtin.debug:
-        msg:                           "{{ bom.product_ids.scs_ha }}"
+        msg:                          
+          - "INIFILE:    {{ sap_inifile }}"
+          - "PRODUCT ID: {{ bom.product_ids.scs_ha }}"
         verbosity:                     2
 
 # *====================================4=======================================8
@@ -91,7 +88,7 @@
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
 
-    - name:                            "SCS Install: SAP SCS Install"
+    - name:                            "SCS HA Install: SAPINST"
       ansible.builtin.command: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}                          \
@@ -99,17 +96,17 @@
                                                  SAPINST_START_GUISERVER=false                                                 \
                                                  SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
       args:
-        chdir:                         /usr/sap/install/SWPM
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
-        TMPDIR:                        /usr/sap/install
+        TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:
         - skip_ansible_lint
       when:                            node_tier == 'scs'
 
-    - name:                            "SCS Install: flag"
+    - name:                            "SCS HA Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
         state:                         touch

@@ -8,18 +8,18 @@
 
 ---
 
-- name:                                Set the SCS Server name list
+- name:                                "SCS Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
-- name:                                Show the tier
+- name:                                "SCS Install: Show the tier"
   ansible.builtin.debug:
     var:                               tier
 
-- name:                                Set the SCS Server name
+- name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ scs_server_temp | first }}"
 
@@ -85,23 +85,18 @@
   tags:
     - skip_ansible_lint
 
+- name:                                "PAS Install: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ scs_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.scs }}"
+      - "INSTANCE:   {{ scs_instance_number }}"
+    verbosity:                         2
+
+
 - name:                                "SCS Install"
   block:
-
-    - name:                            "SCS Install: install variables"
-      debug:
-        msg:                           "{{ sap_inifile }}"
-        verbosity:                     2
-
-    - name:                            "SCS Install: install variables"
-      debug:
-        msg:                           "{{ bom.product_ids.scs }}"
-        verbosity:                     2
-
-    - name:                            "SCS Install: instance number"
-      debug:
-        msg:                           "{{ scs_instance_number }}"
-        verbosity:                     2
 
 # *====================================4=======================================8
 # |  SAP SCS: Install                                                          |
@@ -115,10 +110,10 @@
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         /usr/sap/install/SWPM
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
-        TMPDIR:                        /usr/sap/install
+        TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:

@@ -63,33 +63,31 @@
   tags:
     - skip_ansible_lint
 
-- name:                                "PAS install: register variables"
+- name:                                "ERS Install: register variables"
   ansible.builtin.set_fact:
     ers_bom_id:                        "{{ bom.product_ids.ers_ha }}"
+
+- name:                                "ERS Install: check if installed"
+  ansible.builtin.debug:
+    msg:                               "ERS Install flag: {{ ers_installed }}"
+    verbosity:                         2
+
 
 - name:                                "ERS Install"
   block:
 
     - name:                            "ERS Install: install variables"
       ansible.builtin.debug:
-        msg:                           "{{ sap_inifile }}"
-        verbosity:                     2
-
-    - name:                            SAP ERS install variables
-      ansible.builtin.debug:
-        msg:                           "{{ bom.product_ids.ers_ha }}"
-        verbosity:                     2
-
-    - name:                            SAP ERS install variables
-      ansible.builtin.debug:
-        msg:                           "{{ ers_virtual_hostname }}"
+        msg: 
+          - "INIFILE:    {{ sap_inifile }}"
+          - "PRODUCT ID: {{ bom.product_ids.ers_ha }}"
         verbosity:                     2
 
     - name:                            SAP ERS install command
       ansible.builtin.debug:
         msg:                           ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}
                                         SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }} SAPINST_SKIP_DIALOGS=true SAPINST_START_GUISERVER=false SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
-        verbosity:                     2
+        verbosity:                     4
 
 # *====================================4=======================================8
 #   SAP ERS: Install
@@ -97,7 +95,7 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "ERS Install: SAP ERS Install"
+    - name:                            "ERS Install: SAPINST"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                          \
@@ -106,10 +104,10 @@
                                                  SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
       become:                          true
       args:
-        chdir:                         /usr/sap/install/SWPM
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_ers.txt
       environment:
-        TMPDIR:                        /usr/sap/install
+        TMPDIR:                        "{{ target_media_location }}"
       register:                        ers_installation
       failed_when:                     ers_installation.rc > 0
       tags:
