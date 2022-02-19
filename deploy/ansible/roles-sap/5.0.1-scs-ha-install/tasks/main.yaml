@@ -37,12 +37,14 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "SCS HA Install: "
 
 - name:                                "SCS HA Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
+    name:                              "SCS HA Install: BOM template"
     tasks_from:                        bom-template
   vars:
+    task_prefix:                       "SCS HA Install: "
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -99,6 +101,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0

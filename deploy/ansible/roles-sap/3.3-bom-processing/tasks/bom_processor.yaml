@@ -47,6 +47,7 @@
     tasks_from:                        bom-register
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
+    task_prefix:                       "BOM Processing: "
 
 #   02) Create static download directories
 - name:                                "BOM: Create SAP download directories"

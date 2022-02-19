@@ -47,12 +47,13 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "PAS Install: "
 
 - name:                                "PAS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
+    task_prefix:                       "PAS Install: "
     sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
     sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
     sap_cd_package_cd2:
@@ -105,6 +106,7 @@
         creates:                       /etc/sap_deployment_automation/sap_deployment_pas.txt
       environment:
         TMPDIR:                        "{{ target_media_location }}"
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
       register:                        pas_installation
       failed_when:                     pas_installation.rc > 0
       tags:

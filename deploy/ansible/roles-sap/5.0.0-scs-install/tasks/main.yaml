@@ -59,12 +59,14 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     tier:                              "{{ tier }}"
+    task_prefix:                       "SCS Install: "
 
 - name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-bom-utility
+    name:                              "SCS Install: BOM template"
     tasks_from:                        bom-template
   vars:
+    task_prefix:                       "SCS Install: "
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -85,7 +87,7 @@
   tags:
     - skip_ansible_lint
 
-- name:                                "PAS Install: install variables"
+- name:                                "SCS Install: install variables"
   ansible.builtin.debug:
     msg:                          
       - "INSTALLED:  {{ scs_installed.stat.exists }}"
@@ -113,6 +115,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
