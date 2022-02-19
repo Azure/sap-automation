@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: SAP Infrastructure Deployment $(sap_system_folder) [$(Date:yyyyMMdd)]
+name: SAP Infrastructure Deployment $(sap_system_folder)
 
 parameters:
   - name:                              sap_system
@@ -51,10 +51,13 @@ stages:
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
 
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                export HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
+                export                 HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
+                export          ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                export             LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
 
                 cd $HOME; mkdir -p .sap_deployment_automation
 
+              echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
               echo -e "$green--- Validations ---$reset"
 
@@ -63,9 +66,6 @@ stages:
                   echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
                   exit 2
                 fi
-
-                export ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
-                export    LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
 
                 environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
 
@@ -110,9 +110,6 @@ stages:
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
-              echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
-              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-                export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
@@ -146,32 +143,40 @@ stages:
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
                 fi
+                # Pull changes if there are other deployment jobs
+                
+                cd $HOME/SYSTEM/$(sap_system_folder)
                 git pull
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                cd $(Build.Repository.LocalPath)
+
                 added=0
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform/terraform.tfstate
+
+                if [ -f $.terraform/terraform.tfstate ]; then
+                  git add -f .terraform/terraform.tfstate
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
-                  git add  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+
+                if [ -f sap-parameters.yaml ]; then
+                  git add sap-parameters.yaml
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml ]; then
-                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml
+
+                if [ -f ${SID}_hosts.yaml ]; then
+                  git add -f ${SID}_hosts.yaml
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
-                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
+
+                if [ -f ${SID}.md ]; then
+                  git add    ${SID}.md
                   added=1
                 fi
+
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
+                echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure

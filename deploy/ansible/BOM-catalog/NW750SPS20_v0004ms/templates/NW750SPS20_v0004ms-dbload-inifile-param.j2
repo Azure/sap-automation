@@ -17,7 +17,7 @@ SAPINST.CD.PACKAGE.CD4                                               = {{ sap_cd
 SAPINST.CD.PACKAGE.CD5                                               = {{ sap_cd_package_cd5 }}
 
 
-archives.downloadBasket                                               = /usr/sap/install/download_basket
+archives.downloadBasket                                               = {{ target_media_location }}/download_basket
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
@@ -46,6 +46,8 @@ NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_
 NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
 NW_HDB_getDBInfo.systemid                                             = {{ db_sid|upper }}
 NW_HDB_getDBInfo.usingSSL                                             = true
+
+NW_Recovery_Install_HDB.extractLocation                               = /hana/backup/{{ db_sid|upper }}/HDB{{ hdb_instance_number }}/backup/data/DB_{{ db_sid|upper }}{{ hdb_instance_number }}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
 NW_getLoadType.loadType                                               = SAP

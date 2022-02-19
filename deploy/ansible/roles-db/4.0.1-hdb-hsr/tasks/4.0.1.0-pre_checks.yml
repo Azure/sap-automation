@@ -42,6 +42,7 @@
       become:                          true
       ansible.builtin.shell: >
                                        ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      changed_when:                    true
   when: not id_rsa_file_pub_status.stat.exists
 
 - name:                                HSR - Copy SSH public key
@@ -52,15 +53,11 @@
 
 - name:                                HSR - Check that HANA was installed successfully and is running normally
   import_tasks:                       ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
-
-
-- name:                                HSR - Check whether replication has already been set up
-  become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.command:             hdbnsutil -sr_state
   register:                            hana_replication_status
   changed_when:                        false
-  failed_when:                         false
+  failed_when:                         hana_replication_status.rc != 0
 
 - name:                                HSR - Debug replication status
   ansible.builtin.debug:
@@ -69,11 +66,23 @@
 
 - name:                                HSR - Ensure current replication status is known
   ansible.builtin.set_fact:
-    hana_system_replication_enabled:   "{{ 'mode: none' not in hana_replication_status.stdout_lines }}"
+    hana_system_replication_needed:   "{{ ('mode: none' in hana_replication_status.stdout_lines) | bool }}"
 
 - name:                                HSR - Debug replication status
   ansible.builtin.debug:
-    msg:                               "HSR Replication status: {{ hana_system_replication_enabled }}"
+    msg:                               "HSR Replication configuration needed: {{ hana_system_replication_needed }}"
+
+- name:                                HSR - Determine runtime value of SAP global path
+  become_user:                         "{{ db_sid_admin_user }}"
+  ansible.builtin.shell: >
+                                       set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
+  register:                            global_path_status
+  changed_when:                        false
+
+- name:                                HSR - Ensure SAP global directory fact is set
+  ansible.builtin.set_fact:
+    hana_global_dir: "                 {{ global_path_status.stdout_lines[0] }}"
+
 
 - name:                                HSR - Check on the primary node whether installed HANA is single container or multi-container
   block:
@@ -116,7 +125,7 @@
       when: not hana_has_system_db
   when:
     - ansible_hostname == primary_instance_name
-    - not hana_system_replication_enabled
+    - hana_system_replication_needed
 
 - name:                                HSR - Check that HANA DB SYSTEM user can access the SYSTEM database
   # If HSR is already enabled, we cannot read from the secondary node
@@ -126,7 +135,7 @@
   changed_when:                        false
   when:
     - ansible_hostname == primary_instance_name
-    - not hana_system_replication_enabled
+    - hana_system_replication_needed
 
 - name:                                HSR - Check that HANA DB SYSTEM user can access the tenant database {{ hana_tenant_database_name }}
   # If HSR is already enabled, we cannot read from the secondary node
@@ -137,7 +146,7 @@
   when:
     - hana_has_tenant_db is defined and hana_has_tenant_db
     - ansible_hostname == primary_instance_name
-    - not hana_system_replication_enabled
+    - hana_system_replication_needed
 
 - name:                                HSR - Check HANA log mode is set to normal
   # If HSR is already enabled, we cannot read from the secondary node
@@ -149,6 +158,6 @@
   changed_when:                        false
   when:
     - ansible_hostname == primary_instance_name
-    - not hana_system_replication_enabled
+    - hana_system_replication_needed
   tags:
     - skip_ansible_lint

@@ -3,13 +3,11 @@
 
 ########################################################################################################################################################################################################
 #                                                                                                                                                                                                      #
-# Installation service 'SAP BW/4HANA 2021 > SAP BW/4HANA Server > SAP HANA Database > Installation > Application Server ABAP
-#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:BW4HANA2021.CORE.HDB.ABAP'
-#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:BW4HANA2021.CORE.HDB.ABAP' #
-#                       > Additional SAP System Instances > Additional Application Server Instance', product id 'NW_DI:BW4HANA2021.CORE.HDB.PD' 
-#                                                                                                                                                                                                      #
-########################################################################################################################################################################################################
-#                                                                               #
+# Installation service 'SAP S/4HANA Server 1909 > SAP HANA Database > Installation > Application Server ABAP                                                                                           #
+#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAP'                                                                                      #
+#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:S4HANA1909.CORE.HDB.ABAP'                                                                                    #
+#                       > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:S4HANA1909.CORE.HDB.ABAP'                                                                  #
+#                       > Additional SAP System Instances > Additional Application Server Instance', product id 'NW_DI:S4HANA1909.CORE.HDB.PD'                                                         #
 #                                                                                                                                                                                                      #
 ########################################################################################################################################################################################################
 
@@ -22,7 +20,7 @@ SAPINST.CD.PACKAGE.CD4                                                = {{ sap_c
 SAPINST.CD.PACKAGE.CD5                                                = {{ sap_cd_package_cd5 }}
 
 
-archives.downloadBasket                                               = /usr/sap/install/download_basket
+archives.downloadBasket                                               = {{ target_media_location }}/download_basket
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}

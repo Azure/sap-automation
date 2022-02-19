@@ -247,7 +247,14 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -var-file="${var_file}" $extra_vars
+parallelism=10
+
+#Provide a way to limit the number of parallell tasks for Terraform
+if [[ -n "${TF_PARALLELLISM}" ]]; then
+    parallelism=$TF_PARALLELLISM
+fi
+
+terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars
 return_value=$?
 
 if [ 0 != $return_value ] ; then
@@ -259,13 +266,13 @@ if [ 0 != $return_value ] ; then
     echo "#########################################################################################"
     echo ""
     unset TF_DATA_DIR
-    exit -1
+    exit $return_value
 fi
 
 
 keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 
-return_value=-1
+return_value=0
 temp=$(echo "${keyvault}" | grep "Warning")
 if [ -z "${temp}" ]
 then
@@ -286,7 +293,7 @@ then
         save_config_var "keyvault" "${deployer_config_information}"
         return_value=0
     else
-        return_value=-1
+        return_value=2
     fi
 fi
 unset TF_DATA_DIR

@@ -22,8 +22,8 @@
     line:                              "{{ item.lif }}"
     state:                             present
   loop:
-    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} -D -u {{ sap_sid | lower }}adm" }
-    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} -D -u {{ sap_sid | lower }}adm"     }
+    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} -D -u {{ sap_sid | lower }}adm" }
+    - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} -D -u {{ sap_sid | lower }}adm"     }
   when:
     - ansible_os_family|upper == "SUSE"
 
@@ -41,7 +41,7 @@
 
     - name:                            ASCS Profile - add service/halib
       ansible.builtin.blockinfile:
-        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         block: |
                                        service/halib = $(DIR_CT_RUN)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
@@ -50,7 +50,7 @@
 
     - name:                            "ERS Profile - add service/halib"
       ansible.builtin.blockinfile:
-        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
         block: |
                                        service/halib = $(DIR_CT_RUN)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector

@@ -320,10 +320,6 @@
       when:
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
-<<<<<<< HEAD
-
-=======
->>>>>>> 2fbf0722669b0465fe713d24a7bfe70389fe7070
 
 - hosts:                               localhost
   name:                                Log results
