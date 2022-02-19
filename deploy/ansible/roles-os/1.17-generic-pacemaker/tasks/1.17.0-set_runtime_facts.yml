@@ -59,6 +59,30 @@
       - "RESOURCE GROUP : {{ resource_group_name }}"
     verbosity:                         2
 
+- name:                                "1.17 Generic Pacemaker - Check for existence of id_rsa.pub file"
+  become_user:                         root
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "~/.ssh/id_rsa.pub"
+  register:                            id_rsa_file_pub_status
+  failed_when:                         false
+
+- name:                                "1.17 Generic Pacemaker - Ensure ssh keys on both nodes"
+  block:
+    - name:                            "1.17 Generic Pacemaker - Ensure key pair files exist"
+      become_user:                     root
+      become:                          true
+      ansible.builtin.shell: >
+                                       ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      changed_when:                    true
+  when: not id_rsa_file_pub_status.stat.exists
+
+- name:                                "1.17 Generic Pacemaker - Copy SSH public key"
+  ansible.builtin.fetch:
+    src:                               ~/.ssh/id_rsa.pub
+    dest:                              /tmp/{{ ansible_hostname }}-id_rsa.pub
+    flat:                              true
+
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |
 # +------------------------------------4--------------------------------------*/

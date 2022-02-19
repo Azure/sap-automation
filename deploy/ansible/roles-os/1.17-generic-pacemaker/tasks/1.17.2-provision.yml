@@ -26,34 +26,25 @@
   tags:
     - cloudnetmanage
 
-# Configure SSH Keys for inter-node communication as root
-- name:                                "1.17 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
-  ansible.builtin.command:             ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
-  args:
-    creates:                           /root/.ssh/id_rsa
-
-- name:                                "1.17 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
-  ansible.builtin.shell:               ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
-  args:
-    creates:                           /root/.ssh/id_rsa.pub
-
-- name:                                "1.17 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
-  ansible.builtin.command:             cat /root/.ssh/id_rsa.pub
-  register:                            cluster_public_ssh_key
-  changed_when:                        false
-
-- name:                                "1.17 Generic Pacemaker - Ensure the Primary Node public key is authorized on all nodes, required for crm_clustering"
+- name:                                "1.17 Generic Pacemaker - Ensure the primary node public key is on the secondary node"
   ansible.builtin.authorized_key:
-    user:                              root
-    key:                               "{{ hostvars[primary_instance_name].cluster_public_ssh_key.stdout }}"
+    user:                              "root"
+    key:                                "{{ lookup('file','/tmp/{{ primary_instance_name }}-id_rsa.pub') }} "
+  when: ansible_hostname == secondary_instance_name
+  tags:
+    - skip_ansible_lint
 
-- name:                                "1.17 Generic Pacemaker - Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering"
+- name:                                "1.17 Generic Pacemaker - Ensure the secondary node public key is on the primary node"
   ansible.builtin.authorized_key:
-    user:                              root
-    key:                               "{{ hostvars[secondary_instance_name].cluster_public_ssh_key.stdout }}"
-
+    user:                              "root"
+    key:                                "{{ lookup('file','/tmp/{{ secondary_instance_name }}-id_rsa.pub') }} "
+  when: ansible_hostname == primary_instance_name
+  tags:
+    - skip_ansible_lint
 
 # Clustering commands are based on the Host OS
 - name:                                "1.17 Generic Pacemaker - Cluster based on OS on VM {{ ansible_hostname }}"
   include_tasks:                       "1.17.2.0-cluster-{{ ansible_os_family }}.yml"
   when:                                cluster_existence_check != 0
+
+...
