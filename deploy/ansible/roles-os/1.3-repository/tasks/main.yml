@@ -195,7 +195,9 @@
   ansible.builtin.debug:
     var:                               "{{ repos_for_tier }}"
     verbosity:                         2
-  when:                                repos_for_tier is defined
+  when:                                
+   - repos_for_tier is defined
+   - repos_for_tier | length > 0
 
 # Add repositories
 - name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"

@@ -58,6 +58,7 @@
       - "SUBSCRIPTION   : {{ sap_hana_fencing_spn_subscription_id }}"
       - "RESOURCE GROUP : {{ resource_group_name }}"
     verbosity:                         2
+  when:                                ansible_hostname == primary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Check for existence of id_rsa.pub file"
   become_user:                         root

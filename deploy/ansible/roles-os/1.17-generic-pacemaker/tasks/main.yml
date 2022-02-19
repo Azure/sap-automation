@@ -3,7 +3,7 @@
   import_tasks:                        1.17.0-set_runtime_facts.yml
 
 - name:                                "1.17 Generic Pacemaker - Run pre-checks"
-  import_tasks: 1.17.1-pre_checks.yml
+  import_tasks:                        1.17.1-pre_checks.yml
 
 # Import this task only if the cluster is not yet created
 - name:                                "1.17 Generic Pacemaker - Provision"
