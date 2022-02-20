@@ -31,8 +31,6 @@
   ansible.builtin.set_fact:
     sap_hana_fencing_spn_subscription_id: "{{ jsondata | json_query('compute.subscriptionId') }}"
     resource_group_name:               "{{ jsondata | json_query('compute.resourceGroupName') }}"
-    primary_vm_name:                   "{{ jsondata | json_query('compute.name') }}"
-  when:                                ansible_hostname == primary_instance_name
   no_log:                              true
 
 - name:                                "1.17 Generic Pacemaker - Extract details"

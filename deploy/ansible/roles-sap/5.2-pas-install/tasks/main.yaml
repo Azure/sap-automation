@@ -51,6 +51,7 @@
 
 - name:                                "PAS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-template
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "PAS Install: "

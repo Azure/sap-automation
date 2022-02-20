@@ -28,7 +28,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Ensure the primary node public key is on the secondary node"
   ansible.builtin.authorized_key:
-    user:                              "root"
+    user:                              root
     key:                                "{{ lookup('file','/tmp/{{ primary_instance_name }}-id_rsa.pub') }} "
   when: ansible_hostname == secondary_instance_name
   tags:
@@ -36,7 +36,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Ensure the secondary node public key is on the primary node"
   ansible.builtin.authorized_key:
-    user:                              "root"
+    user:                              root
     key:                                "{{ lookup('file','/tmp/{{ secondary_instance_name }}-id_rsa.pub') }} "
   when: ansible_hostname == primary_instance_name
   tags:
