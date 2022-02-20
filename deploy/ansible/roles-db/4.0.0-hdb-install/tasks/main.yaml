@@ -110,6 +110,12 @@
         var:                           hana_installation
       when:                            hana_installation.rc > 0
 
+    - name:                            "SAP HANA: Installation results"
+      ansible.builtin.debug:
+        msg:                           "HANA Installation succeeded"
+      when:                            hana_installation.rc == 0
+
+
     - name:                            "SAP HANA: remove install password file"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_passwords.xml"
@@ -136,6 +142,12 @@
 
   when:
     - not hana_installed.stat.exists
+
+- name:                                "HANA Install status"
+  ansible.builtin.debug:
+    msg:                               "HANA is already installed"
+  when:
+    -  hana_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

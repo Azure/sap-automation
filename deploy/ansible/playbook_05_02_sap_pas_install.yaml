@@ -6,24 +6,30 @@
 ---
 
 - hosts:                               localhost
-  name:                                Get SAP Password from KeyVault
+  name:                                "PAS Installation Playbook: - Initialization"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+
   tasks:
 
-    - name:                            Create Progress folder
+    - name:                            "PAS Installation Playbook: - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
         mode:                          0755
 
-    - name:                            Remove pas-install-done flag
+    - name:                            "PAS Installation Playbook: - Remove pas-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
         state:                          absent
 
-    - name:                            Include 0.1 passwords role
+
+    - name:                            "PAS Installation Playbook: - Set pas fact"
+      ansible.builtin.set_fact:
+        tier:                          pas
+
+    - name:                            "PAS Installation Playbook: - Read/Create passwords"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
@@ -31,11 +37,14 @@
       tags:
         - 0.1-passwords
 
-    - name:                            Initialize tier
-      ansible.builtin.set_fact:
-        tier:                          pas
+    - name:                            "PAS Installation Playbook: - Read/Create key vault secrets"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.2-kv-secrets
+        public:                        true
+      tags:
+        - 0.2-kv-secrets
 
-    - name:                            Run the sap-installation-media-storage-details role
+    - name:                            "PAS Installation Playbook: - Read storage account details"
       include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
@@ -43,7 +52,6 @@
         tier:                          pas
       tags:
         - kv-sap-installation-media-storage-details
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -56,7 +64,7 @@
                                         {{ sap_sid|upper }}_SCS :
                                         {{ sap_sid|upper }}_DB"
 
-  name:                                SAP Installation - PAS
+  name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
@@ -71,7 +79,7 @@
 
   tasks:
 
-    - name:                            Set 'pas' tier facts
+    - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
       ansible.builtin.set_fact:
         tier:                          pas
         main_password:                 "{{ hostvars.localhost.sap_password }}"
@@ -87,19 +95,18 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                            Run PAS Installation
+    - name:                            "PAS Installation Playbook: - Run PAS Installation"
       block:
 
-        - name:                        PAS assertions
+        - name:                        "PAS Installation Playbook: - Assertions"
           block:
-            - name:                    Show instance numbers
+            - name:                    "PAS Installation Playbook: - Show instance numbers"
               ansible.builtin.debug:
                 msg:
                   - "pas_instance_number: {{ pas_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
-                verbosity:             2
 
-            - name:                    Assert instance numbers
+            - name:                    "PAS Installation Playbook: - Assert instance numbers"
               ansible.builtin.assert:
                 that:
                   - "pas_instance_number is defined"
@@ -108,13 +115,13 @@
           when:                        (ansible_play_hosts_all | length) <= 2
 
         - block:
-            - name:                    Include 5.2-pas-install
+            - name:                    "PAS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.2-pas-install
               vars:
                 instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
           always:
-            - name:                    Get the error lines
+            - name:                    "PAS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
                 error_lines:           "{{ error_lines | default([]) + [item] }}"
               with_items:              "{{ pas_installation.stdout_lines }}"
@@ -122,7 +129,7 @@
                 - pas_installation.stdout_lines is defined
                 - '"ERROR" in item'
 
-            - name:                    Include 7.0.0-post-install role
+            - name:                    "PAS Installation Playbook: - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
@@ -132,7 +139,7 @@
                 tier:                  'pas'
               when:                    db_high_availability
 
-            - name:                    Errors from PAS installation
+            - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
               ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
@@ -149,15 +156,14 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 - hosts:                               localhost
-  name:                                Log results
+  name:                                "PAS Installation Playbook: - Log results"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Create pas-install-done flag
+    - name:                            "PAS Installation Playbook: - Create pas-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
         state:                         touch

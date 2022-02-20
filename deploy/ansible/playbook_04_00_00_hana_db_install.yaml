@@ -6,24 +6,24 @@
 ---
 
 - hosts:                               localhost
-  name:                                Get SAP Password from KeyVault
+  name:                                "DB Playbook: - Initialization"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Set hdb fact
+    - name:                            "DB Playbook: - Set hdb fact"
       ansible.builtin.set_fact:
         tier:                          hdb
 
-    - name:                            Include 0.1-passwords Role
+    - name:                            "DB Playbook: - Read/create passwords"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
       tags:
         - 0.1-passwords
 
-    - name:                            Include 0.2-kv-secrets role
+    - name:                            "DB Playbook: - Read secrets from Key Vault"
       ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
         public:                        true

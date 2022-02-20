@@ -31,11 +31,11 @@
 #   sapinst - typically only used durring install, and removed after. Potentially
 #   can be depracated.
 #
-- name:       "SAP: Create SAP Groups"
+- name:                                "2.5 SAP Users: - Create SAP Groups"
   ansible.builtin.group:
-    name:         "{{ item.group }}"
-    gid:          "{{ item.gid }}"
-    state:        present
+    name:                              "{{ item.group }}"
+    gid:                               "{{ item.gid }}"
+    state:                             present
   loop:
     - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
     - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
@@ -57,23 +57,19 @@
 #
 #   webadm - SAP admin user for web dispatcher. same as <sid>adm.
 #
-- name:       "SAP: Create SAP Users"
+- name:                                "2.5 SAP Users: -  Create SAP Users"
   ansible.builtin.user:
-    name:         "{{ item.user }}"
-    comment:      "{{ item.comment }}"
-    uid:          "{{ item.uid }}"
-    group:        "{{ item.group }}"
-    password:     "{{ main_password | password_hash('sha512', inventory_hostname) }}"
-    append:       false
-    shell:        /bin/csh
-    create_home:  true
-    home:         "{{ item.home }}"
+    name:                              "{{ item.user }}"
+    comment:                           "{{ item.comment }}"
+    uid:                               "{{ item.uid }}"
+    group:                             "{{ item.group }}"
+    password:                          "{{ main_password | password_hash('sha512', inventory_hostname) }}"
+    append:                            false
+    shell:                             /bin/csh
+    create_home:                       true
+    home:                              "{{ item.home }}"
   loop:
     - { tier: 'sapos',        user: 'sapadm',                   uid: '{{ sapadm_uid }}', group: 'sapsys', home: '/home/sapadm',                 comment: 'SAP Host Agent' }
-#    - { tier: 'scs',          user: '{{ sap_sid | lower }}adm', uid: '{{ sidadm_uid }}', group: 'sapsys', home: '/home/{{ sap_sid|lower }}adm', comment: 'SAP {{ sap_sid|upper }} Admin' }
-#    - { tier: 'pas',         user: '{{ sap_sid | lower }}adm', uid: '{{ sidadm_uid }}', group: 'sapsys', home: '/home/{{ sap_sid|lower }}adm', comment: 'SAP {{ sap_sid|upper }} Admin' }
-#    - { tier: 'app',         user: '{{ sap_sid | lower }}adm', uid: '{{ sidadm_uid }}', group: 'sapsys', home: '/home/{{ sap_sid|lower }}adm', comment: 'SAP {{ sap_sid|upper }} Admin' }
-#    - { tier: 'hdb',         user: '{{ db_sid | lower }}adm', uid: '{{ hdbadm_uid }}', group: 'sapsys', home: '/home/{{ db_sid|lower }}adm', comment: 'SAP {{ db_sid|upper }} Admin' }
     # TODO: add user for WebDisp Functionality
     # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
   when:     item.tier == "all" or

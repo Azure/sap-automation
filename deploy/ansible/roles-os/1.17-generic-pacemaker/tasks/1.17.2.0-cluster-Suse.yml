@@ -17,7 +17,7 @@
   register:                            raise_process_limit
 
 # eth0 is the "db" NIC
-- name:                                "1.17 Generic Pacemaker - Ensure clustering can manage Virtual IPs on the Interface"
+- name:                                "1.17 Generic Pacemaker - Ensure clustering can manage Virtual IPs on the Database Interface"
   ansible.builtin.lineinfile:
     path:                              /etc/sysconfig/network/ifcfg-eth0
     state:                             present
@@ -25,7 +25,6 @@
     line:                              "CLOUD_NETCONFIG_MANAGE='no'"
   when:                                ansible_facts.packages['cloud-netconfig-azure'] and (ansible_facts.packages['cloud-netconfig-azure'][0].version | float) < 1.3
 
-# https://rpm.pbone.net/index.php3/stat/45/idpl/27916721/numer/8/nazwa/ha-cluster-init
 - name:                                "1.17 Generic Pacemaker - Ensure Primary node initiates the Cluster"
   block:
     - name:                            "1.17 Generic Pacemaker - Ensure csync2 is configured"
@@ -45,7 +44,7 @@
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured"
       ansible.builtin.command:         "crm cluster init -y cluster --name 'db2_{{ db_sid | upper }}' --interface eth0"
       when:                            node_tier == 'db2'
-  when:                                inventory_hostname == primary_instance_name
+  when:                                ansible_hostname == primary_instance_name
 
 
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
@@ -55,7 +54,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is joined"
       ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_ip }} cluster --interface eth0"
-  when:                                inventory_hostname == secondary_instance_name
+  when:                                ansible_hostname == secondary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
@@ -68,27 +67,27 @@
     dest:                              /etc/corosync/corosync.conf
     mode:                              0600
 
-- name:                                "1.17 Generic Pacemaker - Ensure the Corosync service is restarted on primary node."
+- name:                                "1.17 Generic Pacemaker - Ensure the corosync service is restarted on primary node."
   ansible.builtin.systemd:
     name:                              corosync
     state:                             restarted
-  when:                                inventory_hostname == primary_instance_name
+  when:                                ansible_hostname == primary_instance_name
 
-- name:                                "1.17 Generic Pacemaker - Pause to let the service start"
+- name:                                "1.17 Generic Pacemaker - Pause"
   ansible.builtin.pause:
     seconds: 15
   when:                                inventory_hostname == primary_instance_name
 
-- name:                                "1.17 Generic Pacemaker - Ensure the Corosync service is restarted on secondary node"
+- name:                                "1.17 Generic Pacemaker - Ensure the corosync service is restarted on secondary node"
   ansible.builtin.systemd:
     name:                              corosync
     state:                             restarted
-  when:                                inventory_hostname == secondary_instance_name
+  when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "1.17 Generic Pacemaker - Pause to let the service start"
+- name:                                "1.17 Generic Pacemaker - Pause"
   ansible.builtin.pause:
     seconds: 15
-  when:                                inventory_hostname == secondary_instance_name
+  when:                                ansible_hostname == secondary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure the STONITH Azure fence agent is created when SBD not used"
   block:
@@ -113,7 +112,7 @@
                                        pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
 
 
-    - name:                            "1.17 Generic Pacemaker - Set Stonith Timeout Property"
+    - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"
       become:                          true
       ansible.builtin.command:         crm configure property stonith-timeout=900
   when:                                inventory_hostname == primary_instance_name

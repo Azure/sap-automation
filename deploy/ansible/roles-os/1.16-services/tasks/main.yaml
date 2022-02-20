@@ -12,7 +12,7 @@
 # services assigned to the active tier or 'all'.
 - name:                                Determine services appropriate for tier
   ansible.builtin.set_fact:
-    services_to_process:               "{{ services[distro_id] |
+    services_to_process:               "{{ services[distribution_id] |
                                          selectattr('tier', 'in', ['all', tier]) |
                                          selectattr('node_tier', 'in', ['all', node_tier]) |
                                          list }}"

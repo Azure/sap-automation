@@ -12,36 +12,37 @@
 
 - name:                                "1.17 Generic Pacemaker - Retrieve Subscription ID and Resource Group Name"
   ansible.builtin.command:             curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-  register:                            hanavmmetadata
+  register:                            azure_metadata
+  no_log:                              true
   changed_when:                        false
   args:
     warn:                              false
 
 - name:                                "1.17 Generic Pacemaker - Show IMDS results"
   ansible.builtin.debug:
-    var:                               hanavmmetadata
+    var:                               azure_metadata
     verbosity:                         2
 
 - name:                                "1.17 Generic Pacemaker - Save the Json data to a Variable as a Fact"
   ansible.builtin.set_fact:
-    jsondata:                          "{{ hanavmmetadata.stdout | from_json }}"
+    json_azure_data:                          "{{ azure_metadata.stdout | from_json }}"
   no_log:                              true
 
 - name:                                "1.17 Generic Pacemaker - Extract details"
   ansible.builtin.set_fact:
-    sap_hana_fencing_spn_subscription_id: "{{ jsondata | json_query('compute.subscriptionId') }}"
-    resource_group_name:               "{{ jsondata | json_query('compute.resourceGroupName') }}"
+    sap_hana_fencing_spn_subscription_id: "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+    resource_group_name:               "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
   no_log:                              true
 
 - name:                                "1.17 Generic Pacemaker - Extract details"
   ansible.builtin.set_fact:
-    primary_vm_name:                   "{{ jsondata | json_query('compute.name') }}"
+    primary_vm_name:                   "{{ json_azure_data | json_query('compute.name') }}"
   when:                                ansible_hostname == primary_instance_name
   no_log:                              true
 
 - name:                                "1.17 Generic Pacemaker - Extract VM Name"
   ansible.builtin.set_fact:
-    secondary_vm_name:                 "{{ jsondata | json_query('compute.name') }}"
+    secondary_vm_name:                 "{{ json_azure_data | json_query('compute.name') }}"
   when:                                ansible_hostname == secondary_instance_name
   no_log:                              true
 
@@ -57,30 +58,6 @@
       - "RESOURCE GROUP : {{ resource_group_name }}"
     verbosity:                         2
   when:                                ansible_hostname == primary_instance_name
-
-- name:                                "1.17 Generic Pacemaker - Check for existence of id_rsa.pub file"
-  become_user:                         root
-  become:                              true
-  ansible.builtin.stat:
-    path:                              "~/.ssh/id_rsa.pub"
-  register:                            id_rsa_file_pub_status
-  failed_when:                         false
-
-- name:                                "1.17 Generic Pacemaker - Ensure ssh keys on both nodes"
-  block:
-    - name:                            "1.17 Generic Pacemaker - Ensure key pair files exist"
-      become_user:                     root
-      become:                          true
-      ansible.builtin.shell: >
-                                       ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N ""
-      changed_when:                    true
-  when: not id_rsa_file_pub_status.stat.exists
-
-- name:                                "1.17 Generic Pacemaker - Copy SSH public key"
-  ansible.builtin.fetch:
-    src:                               ~/.ssh/id_rsa.pub
-    dest:                              /tmp/{{ ansible_hostname }}-id_rsa.pub
-    flat:                              true
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |

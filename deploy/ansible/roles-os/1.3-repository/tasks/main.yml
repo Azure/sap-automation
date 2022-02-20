@@ -184,9 +184,9 @@
 
 # Analyse the repo list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
-- name:                                "1.3 Repository - Determine repos appropriate for tier {{ distro_full_id }}"
+- name:                                "1.3 Repository - Determine repos appropriate for tier {{ distribution_full_id }}"
   ansible.builtin.set_fact:
-    repos_for_tier:                    "{{ repos[distro_full_id] |
+    repos_for_tier:                    "{{ repos[distribution_full_id] |
                                              selectattr('tier', 'in', ['all', tier]) |
                                              list }}"
 

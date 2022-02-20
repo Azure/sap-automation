@@ -41,7 +41,7 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distro_id == "redhat8"
+        - distribution_id == "redhat8"
 
   when:
     - node_tier == 'scs'
@@ -87,7 +87,7 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distro_id == "redhat8"
+        - distribution_id == "redhat8"
 
   when:
     - node_tier == 'scs'
@@ -133,26 +133,26 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distro_id == "redhat8"
+        - distribution_id == "redhat8"
 
   when:
     - node_tier == 'scs'
     - sap_trans is not defined
 
 
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
+- name:                                "Exports: Set the NFS Service name {{ distribution_id }}"
   ansible.builtin.set_fact:
     nfs_service:                       'nfsserver'
 
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
+- name:                                "Exports: Set the NFS Service name {{ distribution_id }}"
   ansible.builtin.set_fact:
     nfs_service:                       "nfs-server"
-  when:                                "'redhat8' == distro_id"
+  when:                                "'redhat8' == distribution_id"
 
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
+- name:                                "Exports: Set the NFS Service name {{ distribution_id }}"
   ansible.builtin.set_fact:
     nfs_service:                       'nfs'
-  when:                                "'redhat7' == distro_id"
+  when:                                "'redhat7' == distribution_id"
 
 - name:                               "Exports: NFS Ensure the NFS service is restarted"
   ansible.builtin.systemd:

@@ -48,7 +48,6 @@
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
-    task_prefix:                       "DBLoad: "
   vars:
     bom_name:                          "{{ bom_base_name }}"
     tier:                              "{{ tier }}"
@@ -56,6 +55,7 @@
 
 - name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "DBLoad: "
@@ -115,6 +115,18 @@
       tags:
         - skip_ansible_lint
 
+
+    - name:                            "DBLoad: Installation results"
+      ansible.builtin.debug:
+        var:                           dbload
+      when:                            dbload.rc > 0
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "DBLoad Installation succeeded"
+      when:                            dbload.rc == 0
+
+
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_dbload.txt
@@ -123,6 +135,13 @@
 
   when:
     - not dbload_installed.stat.exists
+
+- name:                                "DBLoad: - status"
+  ansible.builtin.debug:
+    msg:                               "DBLoad is already performed"
+  when:
+    -  dbload_installed.stat.exists
+
 
 ...
 # /*---------------------------------------------------------------------------8

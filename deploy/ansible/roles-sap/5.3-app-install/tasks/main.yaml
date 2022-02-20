@@ -50,6 +50,7 @@
 
 - name:                                "APP Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "APP Install: "
@@ -108,6 +109,17 @@
       tags:
         - skip_ansible_lint
 
+
+    - name:                            "APP Install: Installation results"
+      ansible.builtin.debug:
+        var:                           app_installation
+      when:                            app_installation.rc > 0
+
+    - name:                            "APP Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "APP Installation succeeded"
+      when:                            app_installation.rc == 0
+
     - name:                            "APP Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_app.txt
@@ -117,6 +129,13 @@
 
   when:
     - not app_installed.stat.exists
+
+- name:                                "APP Install: - status"
+  ansible.builtin.debug:
+    msg:                               "APP Installation is already performed"
+  when:
+    -  app_installed.stat.exists
+
 # *====================================4=======================================8
 
 ...

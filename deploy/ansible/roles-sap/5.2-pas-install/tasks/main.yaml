@@ -51,7 +51,7 @@
 
 - name:                                "PAS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
-    name:                              roles-sap/3.3.1-template
+    name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "PAS Install: "
@@ -113,6 +113,17 @@
       tags:
         - skip_ansible_lint
 
+
+    - name:                            "PAS Install: Installation results"
+      ansible.builtin.debug:
+        var:                           pas_installation
+      when:                            pas_installation.rc > 0
+
+    - name:                            "PAS Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "PAS Installation succeeded"
+      when:                            pas_installation.rc == 0
+
     - name:                            "PAS Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_pas.txt
@@ -121,6 +132,12 @@
 
   when:
     - not pas_installed.stat.exists
+
+- name:                                "PAS Install: - status"
+  ansible.builtin.debug:
+    msg:                               "PAS Installation is already performed"
+  when:
+    -  pas_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

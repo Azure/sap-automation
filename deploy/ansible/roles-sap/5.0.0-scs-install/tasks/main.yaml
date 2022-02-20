@@ -15,10 +15,6 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
-- name:                                "SCS Install: Show the tier"
-  ansible.builtin.debug:
-    var:                               tier
-
 - name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ scs_server_temp | first }}"
@@ -122,6 +118,16 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "SCS Install: Installation results"
+      ansible.builtin.debug:
+        var:                           scs_installation
+      when:                            scs_installation.rc > 0
+
+    - name:                            "SCS Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SCS Installation succeeded"
+      when:                            scs_installation.rc == 0
+
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
@@ -131,6 +137,13 @@
   when:
     - "'scs' in supported_tiers"
     - not scs_installed.stat.exists
+
+- name:                                "SCS Install status"
+  ansible.builtin.debug:
+    msg:                               "SCS is already installed"
+  when:
+    - "'scs' in supported_tiers"
+    -  scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

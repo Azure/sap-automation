@@ -5,10 +5,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# For each supported 'distro_id' we want a list of dictionary entries that
+# For each supported 'distribution_id' we want a list of dictionary entries that
 # specify the associated tier (or 'all' to always match), the service name,
 # and whether we want the service to be enabled and started or disabled
-# and stopped. See the definition of 'distro_id' to determine what to use when
+# and stopped. See the definition of 'distribution_id' to determine what to use when
 # creating an entry for a new distribution.
 # In this list one can specify the custom list of services to be enabled,disabled
 # OR started, stopped
