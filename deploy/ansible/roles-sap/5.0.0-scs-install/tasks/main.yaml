@@ -59,7 +59,7 @@
 
 - name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
-    name:                              "SCS Install: BOM template"
+    name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "SCS Install: "
