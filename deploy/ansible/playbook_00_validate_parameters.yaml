@@ -5,7 +5,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               localhost
-  name:                                Get SPN from KeyVault
+  name:                                "0.0 Validations"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
@@ -19,24 +19,24 @@
 
   tasks:
 
-    - name:                            Initialize tier
+    - name:                            "0.0 Validations - Initialize tier"
       ansible.builtin.set_fact:
         tier:                          fencing
 
-    - name:                            Retrieve the Fencing SPN details
+    - name:                            "0.0 Validations - Retrieve the Fencing SPN details"
       include_role:
         name:                          roles-misc/0.2-kv-secrets
       tags:
         - kv-secrets
 
-    - name:                            Retrieve the storage account details
+    - name:                            "0.0 Validations - Retrieve the storage account details"
       include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       tags:
         - kv-sap-installation-media-storage-details
 
-    - name:                            Check required variables are present and not empty
+    - name:                            "0.0 Validations - Check required variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined                    # Has the variable been defined
@@ -52,7 +52,7 @@
       loop_control:
         loop_var: item_to_check
 
-    - name:                            Check required SCS HA variables are present and not empty
+    - name:                            "0.0 Validations - Check required SCS HA variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined                    # Has the variable been defined
@@ -72,7 +72,7 @@
         loop_var: item_to_check
       when:                            scs_high_availability
 
-    - name:                            Check required Database HA variables are present and not empty
+    - name:                            "0.0 Validations - Check required Database HA variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined                    # Has the variable been defined
@@ -91,7 +91,7 @@
         - db_high_availability
         - platform == "HANA"
 
-    - name:                            Validate ORACLE parameters
+    - name:                            "0.0 Validations - Validate ORACLE parameters"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined                    # Has the variable been defined
@@ -106,7 +106,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                  Validate the serverside parameters                        |
+# |                  Validate the server side parameters                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -118,20 +118,20 @@
                        {{ sap_sid|upper }}_APP :
                        {{ sap_sid|upper }}_WEB"
 
-  name:                                "Validate SAP-Parameters"
+  name:                                "0.0 Validations - Validate SAP-Parameters"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
-    - name:                            Validate SCS and HDB instance numbers
+    - name:                            "0.0 Validations - Validate SCS and HDB instance numbers"
       ansible.builtin.assert:
         that:
           - "scs_instance_number != hdb_instance_number"
         fail_msg:                      "Please ensure that the scs_instance_number is different from the hdb_instance_number when performing a standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
 
-    - name:                            Validate SCS and HDB SIDs
+    - name:                            "0.0 Validations - Validate SCS and HDB SIDs"
       ansible.builtin.assert:
         that:
           - "sap_sid != db_sid"
@@ -145,13 +145,29 @@
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number when installing PAS on ASCS"
       when:                            (ansible_play_hosts_all | length) == 2
 
-    - name:                            Validate SCS and PAS instance numbers
+    - name:                            "0.0 Validations - Validate SCS and PAS instance numbers"
       ansible.builtin.assert:
         that:
           - "scs_instance_number != pas_instance_number"
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number on standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
 
+    - name:                            "0.0 Validations - Show Mounts"
+      ansible.builtin.command:         df -h 
+      register:                        mounts   
+
+    - name:                            "0.0 Validations - Show Mounts"
+      ansible.builtin.debug:         
+        var:                           mounts
+
+    - name:                            "0.0 Validations - Show Hosts"
+      ansible.builtin.command:         cat /etc/hosts
+      register:                        hosts   
+
+    - name:                            "0.0 Validations - Show Hosts"
+      ansible.builtin.debug:         
+        var:                           hosts
+        
 
 ...
 # /*----------------------------------------------------------------------------8

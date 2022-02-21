@@ -41,7 +41,7 @@
   when:
     - ansible_hostname == primary_instance_name
     - hdb_version[0:2] == "1."  # https://www.blue.works/en/hana-version-numbering-explained/
-    - not hana_system_replication_enabled
+    - hana_system_replication_needed
 
 - name:                                HSR - Perform pre-flight backup checks
   become_user:                         "{{ db_sid_admin_user }}"
@@ -83,7 +83,6 @@
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
       ansible.builtin.command:         hdbnsutil -sr_state
-      run_once:                        true
       register:                        hana_replication_status
       changed_when:                    false
       failed_when:                     hana_replication_status.rc != 0
@@ -95,7 +94,7 @@
 
     - name:                            HSR - Check replication state on primary
       ansible.builtin.set_fact:
-        primary_replication_enabled:   "{{ 'mode: primary'  in hana_replication_status.stdout_lines }}"
+        primary_replication_enabled:   "{{ ('mode: primary'  in hana_replication_status.stdout_lines) | bool }}"
   vars:
     ansible_python_interpreter:        python3
   environment:
@@ -185,4 +184,4 @@
     LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
   when:
     - ansible_hostname == secondary_instance_name
-    - not hana_system_replication_enabled
+    - hana_system_replication_needed

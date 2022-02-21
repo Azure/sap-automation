@@ -80,13 +80,13 @@
 # ------------------</DEBUGGING>------------------
 
 
-- name:                                "Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
+- name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
   ansible.builtin.stat:
     path:                              BOM-catalog/{{ bom_base_name }}/templates/{{ sap_inifile_template }}
   register:                            microsoft_supplied_bom_template
   delegate_to:                         localhost
 
-- name:                                "Check for Microsoft Supplied BOM ({{ bom_base_name }}) template in archive"
+- name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) ini file in archive"
   ansible.builtin.stat:
     path:                              BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}
   register:                            microsoft_supplied_bom_template_archive
@@ -94,7 +94,7 @@
 
 
 # If Microsoft supplied BOM template found
-- name:                                "Deploy parameter file install template"
+- name:                                "{{ task_prefix }} Create ini file {{ sap_inifile }}"
   ansible.builtin.template:
     src:                               "{% if microsoft_supplied_bom_template.stat.exists %}{{ microsoft_supplied_bom_template.stat.path }}{% else %}{{ microsoft_supplied_bom_template_archive.stat.path }}{% endif %}"
     dest:                              "{{ target_media_location }}/downloads/{{ sap_inifile }}"
@@ -103,9 +103,9 @@
   when:                                microsoft_supplied_bom_template.stat.exists or microsoft_supplied_bom_template_archive.stat.exists
 
 # If Microsoft supplied BOM template not found
-- name:                                "Retrieve BOM ({{ bom_base_name }}) template from Storage Account"
+- name:                                "{{ task_prefix }} Retrieve BOM ({{ bom_base_name }}) template from Storage Account"
   block:
-    - name:                            "Download BOM ({{ bom_base_name }}) template from Storage Account"
+    - name:                            "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
       ansible.builtin.get_url:
         url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
@@ -118,7 +118,7 @@
       delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
       become:                          false
 
-    - name:                            "Deploy {{ node_tier | upper }} Parameter file install template"
+    - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ inventory_dir }}/{{ sap_inifile_template }}"
         dest:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"

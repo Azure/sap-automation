@@ -105,6 +105,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
           - bash: |
@@ -245,7 +246,7 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
@@ -255,8 +256,8 @@ stages:
               echo $(parameters_folder)
               echo $(DEPLOYMENT_REPO_PATH)
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               "Variables & Process sshkey"
 
-            displayName: Variables
           - task:                      Ansible@0
             displayName:               Validate the input parameters
             inputs:
@@ -271,9 +272,9 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              ANSIBLE_HOST_KEY_CHECKING: false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage:                             Core_Operating_System_Configuration
@@ -300,12 +301,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Core Operating System Configuration
             inputs:
@@ -348,12 +350,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               SAP Operating System Configuration
             inputs:
@@ -365,8 +368,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage:                             Software_Acquisition
@@ -393,12 +397,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Software Acquisition
             inputs:
@@ -410,8 +415,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage: Database_Installation
@@ -425,6 +431,7 @@ stages:
       (
         eq(${{ parameters.database_install }}, true),
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
     jobs:
@@ -439,12 +446,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Database Installation
             inputs:
@@ -456,8 +464,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage: SCS_Installation
@@ -472,7 +481,7 @@ stages:
       (
         eq(${{ parameters.scs_installation }}, true),
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
     jobs:
@@ -487,12 +496,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               SCS Installation
             inputs:
@@ -504,9 +514,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
-            continueOnError:           false
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
 
   - stage: Database_Load
     displayName:                       Database Load
@@ -521,7 +531,7 @@ stages:
       (
         eq(${{ parameters.db_load }}, true),
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
@@ -537,12 +547,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Database Load
             inputs:
@@ -554,8 +565,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage: PAS_Installation
@@ -572,7 +584,7 @@ stages:
       (
         eq(${{ parameters.pas_installation }}, true),
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
     jobs:
@@ -587,12 +599,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               PAS Installation
             inputs:
@@ -604,8 +617,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage: APP_Install
@@ -623,7 +637,7 @@ stages:
       (
         eq(${{ parameters.application_server_installation }}, true),
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
@@ -639,12 +653,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Application Server Install
             inputs:
@@ -656,8 +671,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage: WebDispatcher_Installation
@@ -684,12 +700,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               WebDispatcher Installation
             inputs:
@@ -701,8 +718,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
   - stage:                             HighAvailability_Setup
@@ -718,7 +736,7 @@ stages:
       (
         eq(${{ parameters.high_availability_configuration }}, true),
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Software_Acquisition.result, 'Succeeded'),
+        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Load.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
@@ -735,12 +753,13 @@ stages:
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout:                  none
+          - checkout:                  self
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey      
           - task:                      Ansible@0
             displayName:               High Availability Setup
             inputs:
@@ -752,8 +771,9 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
             name: HA
 

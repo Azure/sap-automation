@@ -144,35 +144,38 @@ stages:
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
                 fi
                 # Pull changes if there are other deployment jobs
+                
+                cd $HOME/SYSTEM/$(sap_system_folder)
                 git pull
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                cd $(Build.Repository.LocalPath)
 
                 added=0
 
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform/terraform.tfstate
+                if [ -f $.terraform/terraform.tfstate ]; then
+                  git add -f .terraform/terraform.tfstate
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
-                  git add  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+
+                if [ -f sap-parameters.yaml ]; then
+                  git add sap-parameters.yaml
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml ]; then
-                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml
+
+                if [ -f ${SID}_hosts.yaml ]; then
+                  git add -f ${SID}_hosts.yaml
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
-                  git add    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
+
+                if [ -f ${SID}.md ]; then
+                  git add    ${SID}.md
                   added=1
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
+                echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure

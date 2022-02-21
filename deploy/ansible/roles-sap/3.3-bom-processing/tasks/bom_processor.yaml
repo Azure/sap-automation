@@ -47,6 +47,7 @@
     tasks_from:                        bom-register
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
+    task_prefix:                       "BOM Processing: "
 
 #   02) Create static download directories
 - name:                                "BOM: Create SAP download directories"
@@ -83,14 +84,14 @@
   loop:       "{{ bom.materials.media|flatten(levels=1) }}"
 # ------------------</DEBUGGING>------------------
 
-- name:                                "BOM: Set Python version {{ distro_id }}"
+- name:                                "BOM: Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python2'
 
-- name:                                "BOM: Set Python version {{ distro_id }}"
+- name:                                "BOM: Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python3'
-  when:                                distro_id in ['suse15', 'redhat82']
+  when:                                distribution_id in ['suse15', 'redhat82']
 
 
 #   04) Download media from bom
@@ -126,7 +127,7 @@
     ansible_python_interpreter:        "{{ python_version }}"
   when:
     - item.download is undefined or item.download
-    - "distro_id == 'suse15' or distro_id == 'redhat82'"
+    - "distribution_id == 'suse15' or distribution_id == 'redhat82'"
 
 - name:                                "BOM: Download Files"
   ansible.builtin.get_url:
@@ -145,8 +146,8 @@
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   when:
     - item.download is undefined or item.download
-    - distro_id != 'suse15'
-    - distro_id != 'redhat82'
+    - distribution_id != 'suse15'
+    - distribution_id != 'redhat82'
 
 #   05) Extract files - SAPCAR
 - name:                                "BOM: Extract File, SAPCAR"

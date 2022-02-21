@@ -22,7 +22,7 @@
       ansible.builtin.command: >
                                        pcs resource create fs_{{ sap_sid }}_ASCS Filesystem \
                                        device='{{ sap_mnt }}/usrsap{{ sap_sid }}ascs{{ scs_instance_number }}' \
-                                       directory='/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
+                                       directory='/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
                                        op start interval=0 timeout=60 \
                                        op stop interval=0 timeout=120 \
                                        op monitor interval=200 timeout=40 \
@@ -85,7 +85,7 @@
       ansible.builtin.command: >
                                        pcs resource create fs_{{ sap_sid }}_ERS Filesystem \
                                        device='{{ sap_mnt }}/usrsap{{ sap_sid }}ers{{ ers_instance_number }}' \
-                                       directory='/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
+                                       directory='/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
                                        op start interval=0 timeout=60 \
                                        op stop interval=0 timeout=120 \
                                        op monitor interval=200 timeout=40 \

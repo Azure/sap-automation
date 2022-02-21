@@ -8,18 +8,14 @@
 
 ---
 
-- name:                                Set the SCS Server name list
+- name:                                "SCS Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
-- name:                                Show the tier
-  ansible.builtin.debug:
-    var:                               tier
-
-- name:                                Set the SCS Server name
+- name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ scs_server_temp | first }}"
 
@@ -59,12 +55,14 @@
   vars:
     bom_name:                          "{{ bom_base_name }}"
     tier:                              "{{ tier }}"
+    task_prefix:                       "SCS Install: "
 
-- name:                                 "SCS Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
+    task_prefix:                       "SCS Install: "
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -85,24 +83,18 @@
   tags:
     - skip_ansible_lint
 
+- name:                                "SCS Install: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ scs_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.scs }}"
+      - "INSTANCE:   {{ scs_instance_number }}"
+    verbosity:                         2
+
 
 - name:                                "SCS Install"
   block:
-
-    - name:                            "SCS Install: install variables"
-      debug:
-        msg:                           "{{ sap_inifile }}"
-        verbosity:                     2
-
-    - name:                            "SCS Install: install variables"
-      debug:
-        msg:                           "{{ bom.product_ids.scs }}"
-        verbosity:                     2
-
-    - name:                            "SCS Install: instance number"
-      debug:
-        msg:                           "{{ scs_instance_number }}"
-        verbosity:                     2
 
 # *====================================4=======================================8
 # |  SAP SCS: Install                                                          |
@@ -119,11 +111,22 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:
         - skip_ansible_lint
+
+    - name:                            "SCS Install: Installation results"
+      ansible.builtin.debug:
+        var:                           scs_installation
+      when:                            scs_installation.rc > 0
+
+    - name:                            "SCS Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SCS Installation succeeded"
+      when:                            scs_installation.rc == 0
 
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
@@ -134,6 +137,13 @@
   when:
     - "'scs' in supported_tiers"
     - not scs_installed.stat.exists
+
+- name:                                "SCS Install status"
+  ansible.builtin.debug:
+    msg:                               "SCS is already installed"
+  when:
+    - "'scs' in supported_tiers"
+    -  scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8
