@@ -321,7 +321,7 @@
 
 - name:                                "AFS Mount: Pause for 5 seconds"
   ansible.builtin.pause:
-    seconds:                           5
+    seconds:                           15
 
 - name:                                "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
   block:
@@ -339,7 +339,7 @@
   rescue:
     - name:                            "AFS Mount: Pause for 5 seconds"
       ansible.builtin.pause:
-        seconds:                       5
+        seconds:                       15
     - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
       ansible.builtin.debug:
         msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
@@ -354,7 +354,7 @@
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
         opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-        state:                         remounted
+        state:                         mounted
       
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
