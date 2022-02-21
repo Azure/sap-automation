@@ -40,6 +40,7 @@
     tasks_from:                        bom-register
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
+    task_prefix:                       "Validation: "
 
 - name:                                "BoM Initial file"
   ansible.builtin.copy:

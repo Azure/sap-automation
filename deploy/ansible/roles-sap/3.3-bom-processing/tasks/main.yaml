@@ -46,6 +46,7 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "BOM Processing: "
 
 - name:                                Save the BOM
   ansible.builtin.set_fact:

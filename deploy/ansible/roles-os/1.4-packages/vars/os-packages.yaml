@@ -5,10 +5,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# For each supported 'distro_id' we want a list of dictionary entries that
+# For each supported 'distribution_id' we want a list of dictionary entries that
 # specify the associated tier (or 'all' to always match), the package name,
 # and whether we want the package to be installed (present) or removed
-# (absent). See the definition of 'distro_id' to determine what to use when
+# (absent). See the definition of 'distribution_id' to determine what to use when
 # creating an entry for a new distribution.
 packages:
   redhat7:

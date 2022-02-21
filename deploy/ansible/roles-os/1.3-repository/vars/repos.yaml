@@ -5,9 +5,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# For each supported 'distro_id' we want a list of dictionary entries that
+# For each supported 'distribution_id' we want a list of dictionary entries that
 # specify the associated tier (or 'all' to always match), the repository name name
-# See the definition of 'distro_full_id' to determine what to use when
+# See the definition of 'distribution_full_id' to determine what to use when
 # creating an entry for a new distribution.
 # For example, XX.Y where XX is the major version and Y is the minor version
 repos:
