@@ -28,10 +28,8 @@ parameters:
       - S41909SPS03_v0010ms
       - S41909SPS03_v0009ms
       - S41909SPS03_v0008ms
-      - S41909SPS03_v0007ms
-      - BW4HANA2021SPS01_v0002ms
-      - HANA_2_00_055_v0005ms
-      - NW750SPS20_v0002ms
+      - HANA_2_00_055_v0006ms
+      - NW750SPS20_v0004ms
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
