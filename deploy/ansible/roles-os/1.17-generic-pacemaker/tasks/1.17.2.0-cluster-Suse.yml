@@ -49,7 +49,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
   block:
-    - name:                            "1.17 Generic Pacemaker - Ensure the configuration files are synchronised"
+    - name:                            "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
       ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_ip }} csync2 --interface eth0"
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is joined"
