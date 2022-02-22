@@ -50,10 +50,10 @@
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
   block:
     - name:                            "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
-      ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_ip }} csync2 --interface eth0"
+      ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_name }} csync2 --interface eth0"
 
     - name:                            "1.17 Generic Pacemaker - Ensure the cluster is joined"
-      ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_ip }} cluster --interface eth0"
+      ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_name }} cluster --interface eth0"
   when:                                ansible_hostname == secondary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
