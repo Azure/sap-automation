@@ -34,7 +34,7 @@
   ansible.builtin.debug:
     msg:
       - "NFS Provider: {{ NFS_provider }}"                             
-      - "Install path: {{ usr_sap_install_path }}"                             
+      - "Install path: {{ usr_sap_install_mountpoint }}"                             
     verbosity:                         2
 
 # Mount Filesystems
@@ -135,7 +135,7 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
+    - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '/usr/sap/install' }
   when:
     - tier == 'sapos'
     - node_tier != 'scs'

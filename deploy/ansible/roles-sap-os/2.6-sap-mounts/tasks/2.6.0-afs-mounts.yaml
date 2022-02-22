@@ -18,7 +18,7 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       loop:
-        - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
+        - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '/usr/sap/install' }
       when:
         - tier == 'sapos'
   rescue:
@@ -33,10 +33,10 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       loop:
-        - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
+        - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '/usr/sap/install' }
       when:
         - tier == 'sapos'
-  when: usr_sap_install_path is defined 
+  when: usr_sap_install_mountpoint is defined 
 
 - name:                                "AFS Mount: Create local directories"
   block:

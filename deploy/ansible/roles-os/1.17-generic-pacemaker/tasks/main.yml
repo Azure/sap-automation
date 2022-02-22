@@ -12,7 +12,7 @@
       import_tasks:                    1.17.2-provision.yml
   tags:
     - 1.17.2-provision
-  #when: not cluster_existence_check == '0'
+  when: not cluster_existence_check == '0'
 
 - name:                                "1.17 Generic Pacemaker - Post provision report"
   import_tasks:                        1.17.3-post_provision_report.yml
