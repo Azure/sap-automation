@@ -6,7 +6,6 @@
 - name:                                "1.17 Generic Pacemaker - Ensure a list of package version is available for checking the cloud-netconfig-azure version"
   package_facts:
 
-
 # Pacemaker can create a large number of processes
 - name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
   ansible.builtin.lineinfile:
@@ -27,34 +26,25 @@
 
 - name:                                "1.17 Generic Pacemaker - Ensure Primary node initiates the Cluster"
   block:
-    - name:                            "1.17 Generic Pacemaker - Ensure csync2 is configured"
-      ansible.builtin.command:         crm cluster init -y csync2 --interface eth0
-
-    - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
-      ansible.builtin.command:         crm cluster init -y -u corosync --interface eth0
-
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured"
-      ansible.builtin.command:         "crm cluster init -y cluster --name 'hdb_{{ db_sid | upper }}' --interface eth0"
+      ansible.builtin.command:         "ha-cluster-init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       when:                            node_tier == 'hana'
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured"
-      ansible.builtin.command:         "crm cluster init -y cluster --name 'scs_{{ sap_sid | upper }}' --interface eth0"
+      ansible.builtin.command:         "ha-cluster-init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       when:                            node_tier == 'scs'
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured"
-      ansible.builtin.command:         "crm cluster init -y cluster --name 'db2_{{ db_sid | upper }}' --interface eth0"
+      ansible.builtin.command:         "ha-cluster-init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       when:                            node_tier == 'db2'
   when:                                ansible_hostname == primary_instance_name
 
-
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
   block:
-    - name:                            "1.17 Generic Pacemaker - Ensure the configuration files are synchronised"
-      ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_ip }} csync2 --interface eth0"
-
-    - name:                            "1.17 Generic Pacemaker - Ensure the cluster is joined"
-      ansible.builtin.command:         "crm cluster join -y -c {{ primary_instance_ip }} cluster --interface eth0"
-  when:                                ansible_hostname == secondary_instance_name
+    - name:                            "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
+      ansible.builtin.command:         "ha-cluster-join  -y -c {{ primary_instance_name }} --interface eth0"
+  when:                                
+    - ansible_hostname == secondary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
@@ -129,6 +119,9 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configure"
       ansible.builtin.command:         crm configure clone cln_azure-events rsc_azure-events
+
+    - name:                            "1.17 Generic Pacemaker - Remove false positives"
+      ansible.builtin.command:         crm_resource -C
 
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
