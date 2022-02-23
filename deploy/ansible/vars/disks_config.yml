@@ -27,6 +27,7 @@ disk_type_to_name_map:
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
   oraarch:   '{{ node_tier | lower }}_oraarch'
+   # ------------------- Begin - disktypes required for Sybase -------------------8
   saplog1:   '{{ node_tier | lower }}_saplog1'
   sybsystem:  '{{ node_tier | lower }}_sybsystem'
   sybsecurity:  '{{ node_tier | lower }}_sybsecurity'
@@ -34,6 +35,7 @@ disk_type_to_name_map:
   saptemp:  '{{ node_tier | lower }}_saptemp'
   sapdiag:   '{{ node_tier | lower }}_sapdiag'
   sybbackup:    '{{ node_tier | lower }}_sybbackup'
+   # ------------------- End - disktypes required for Sybase ---------------------8
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -65,21 +67,33 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 logical_volumes:
+ # --------------------- Begin - disks required for usrsap -------------------8
   - tier:       'sapos'
     node_tier:  "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
     vg:         'vg_sap'
     lv:         'lv_usrsap'
     size:       '31g'
     fstype:     'xfs'
+# ---------------------- End - disks required for usrsap --------------------8
 
+# ---------------------- Begin - disks required for WD  ---------------------8
   - tier:       'sapos'
+    node_tier:  'web'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       '1g'
+    fstype:     'xfs'
+# ----------------------- End - disks required for WD  ----------------------8
+
+# --------------------- Begin - disks required for HANA ---------------------8
+    - tier:       'sapos'
     node_tier:  'hana'
     vg:         'vg_hana_data'
     lv:         'lv_hana_data'
     size:       '100%FREE'
     stripesize: 256
     fstype:     'xfs'
-
+  
   - tier:       'sapos'
     node_tier:  'hana'
     vg:         'vg_hana_log'
@@ -101,15 +115,10 @@ logical_volumes:
     lv:         'lv_hana_shared'
     size:       "{% if shareddisk == '1' %}100%FREE{% else %}32g{% endif %}"
     fstype:     'xfs'
+# ---------------------- End - disks required for HANA ---------------------8
 
-  - tier:       'sapos'
-    node_tier:  'web'
-    vg:         'vg_sap'
-    lv:         'lv_sapmnt'
-    size:       '1g'
-    fstype:     'xfs'
-
-# Adding Tier and disk types for Oracle installation non-ASM.
+ # --------------- Begin - disks required for Oracle(non-ASM) ---------------8
+ # Adding Tier and disk types for Oracle installation non-ASM.
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_oracle_sapdata1'
@@ -188,7 +197,9 @@ logical_volumes:
     lv:         'lv_oracle'
     size:       '64g'
     fstype:     'xfs'
+# ---------------- End - disks required for Oracle(non-ASM) ----------------8
 
+# --------------------- Begin - disks required for Sybase ---------------------8
 # Adding Tier and disk types for sybase installation.
   - tier:       'sapos'
     node_tier:  'sybase'
@@ -205,7 +216,6 @@ logical_volumes:
     size:       '100%FREE'
     stripesize: 128
     fstype:     'xfs'
-
 
   - tier:       'sapos'
     node_tier:  'sybase'
@@ -272,7 +282,11 @@ logical_volumes:
     lv:         'lv_sybase_sybbackup'
     size:       '100%FREE'
     fstype:     'xfs'
-    
+
+# ----------------------- End - disks required for Sybase ----------------------8
+
+
+# ---------------------- Begin - disks required for SCS ---------------------8
 logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'
@@ -288,7 +302,7 @@ logical_volumes_install:
     lv:         'lv_usrsapinstall'
     size:       '100%FREE'
     fstype:     'xfs'
-
+# ----------------------- End - disks required for SCS ----------------------8
 
 # Define a dynamic expression bsybased upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

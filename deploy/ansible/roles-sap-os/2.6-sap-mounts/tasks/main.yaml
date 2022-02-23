@@ -156,7 +156,7 @@
     - NFS_provider == 'ANF'
 
 # Import this task only if the tier is Sybase.
-- import_tasks:                        "ase.yaml"
+- import_tasks:                        "2.6.5-sybase-mounts.yaml"
   when:
     - node_tier == 'sybase'
 ...
