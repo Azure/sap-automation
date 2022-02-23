@@ -27,7 +27,7 @@ disk_type_to_name_map:
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
   oraarch:   '{{ node_tier | lower }}_oraarch'
-   # ------------------- Begin - disktypes required for Sybase -------------------8
+  # ------------------- Begin - disktypes required for Sybase -------------------8
   saplog1:   '{{ node_tier | lower }}_saplog1'
   sybsystem:  '{{ node_tier | lower }}_sybsystem'
   sybsecurity:  '{{ node_tier | lower }}_sybsecurity'
@@ -67,7 +67,7 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 logical_volumes:
- # --------------------- Begin - disks required for usrsap -------------------8
+# --------------------- Begin - disks required for usrsap -------------------8
   - tier:       'sapos'
     node_tier:  "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
     vg:         'vg_sap'
@@ -86,7 +86,7 @@ logical_volumes:
 # ----------------------- End - disks required for WD  ----------------------8
 
 # --------------------- Begin - disks required for HANA ---------------------8
-    - tier:       'sapos'
+  - tier:       'sapos'
     node_tier:  'hana'
     vg:         'vg_hana_data'
     lv:         'lv_hana_data'
