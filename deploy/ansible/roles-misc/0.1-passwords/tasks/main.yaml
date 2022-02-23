@@ -20,6 +20,19 @@
     var:                               sap_password_id
     verbosity:                         2
 
+- name:                                "Get SAP password from key vault"
+  ansible.builtin.command: >-
+    az keyvault secret list
+      --vault-name {{ kv_name }}
+      --query [].name 
+      --output yaml
+  changed_when:                        false
+  register:                            keyvault_secret_sap_password_exists
+
+- name:                                "Check for secret availability"
+  ansible.builtin.set_fact:
+    secret_exists:                     "{{ (sap_password_id in keyvault_secret_sap_password_exists.stdout) | bool }}"
+
 - name:                                "Retrieve SAP system password"
   block:
     - name:                            "Get SAP password from key vault"
@@ -30,10 +43,15 @@
       changed_when:                    false
       register:                        keyvault_secret_show_sap_password_id
       no_log:                          true
-  rescue:
-    - name:                            "Performing rescue action"
-      ansible.builtin.debug:
-        msg:                           "{{ keyvault_secret_show_sap_password_id.rc }}"
+    
+    - name:                            "Extract SAP password"
+      ansible.builtin.set_fact:
+        sap_password: >-
+                                       {{ (keyvault_secret_show_sap_password_id.stdout | from_json).value }}
+  when:                                secret_exists
+    
+- name:                                "Set SAP system password"
+  block:
 
     - name:                            Remove tmp file
       ansible.builtin.file:
@@ -48,34 +66,18 @@
     - name:                            "Debug: SAP Password"
       ansible.builtin.debug:
         var:                           sap_password
-      when:                            3 == keyvault_secret_show_sap_password_id.rc
 
     - name:                            "Create Password secret"
       ansible.builtin.command:         az keyvault secret set --vault-name {{ kv_name }} --name {{ sap_password_id }} --value "{{ sap_password }}"
-      when:                            3 == keyvault_secret_show_sap_password_id.rc
 
-    - name:                            "Get SAP password from keyvault"
-      ansible.builtin.command: >-
-                                       az keyvault secret show
-                                         --vault-name {{ kv_name }}
-                                         --name {{ sap_password_id }}
-      changed_when:                    false
-      register:                        keyvault_secret_show_sap_password_id
-      no_log:                          false
-
-- name:                                "Extract SAP password"
-  ansible.builtin.set_fact:
-    sap_password: >-
-                                       {{ (keyvault_secret_show_sap_password_id.stdout | from_json).value }}
-  no_log:                              false
+  when:                                not secret_exists
 
 - name:                                "Debug: SAP Password"
   ansible.builtin.debug:
     var:                               sap_password
-    verbosity:                         2
+    verbosity:                         4
 
-
-- name:                                Cluster passwords
+- name:                                Get Cluster passwords
   include_tasks:                       0.1.1-ha_clusterpasswords.yaml
   when:                                db_high_availability or scs_high_availability
 ...
