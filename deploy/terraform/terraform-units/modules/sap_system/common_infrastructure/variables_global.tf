@@ -12,7 +12,7 @@ variable "databases" {
     condition = (
       length(trimspace(try(var.databases[0].platform, ""))) != 7
     )
-    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2) must be specified in the databases block."
+    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2, SYBASE) must be specified in the databases block."
   }
 
   validation {

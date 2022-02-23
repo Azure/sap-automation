@@ -1,0 +1,136 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Mount Filesystems
+
+- name:                                "Sybase ASE: Gather Logical volumes created in 1.5"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                Set the NFS Server name list
+  ansible.builtin.set_fact:
+    nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+- name:                                Set the NFS Server name
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ nfs_server_temp | first }}"
+  when:                                NFS_provider == "NONE"
+
+- name:                                "Sybase ASE: Check if LVs exists."
+  ansible.builtin.stat:
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{ logical_volumes }}"
+  register:                            asevgstat
+
+- name:                                "Sybase ASE: Show asevgstat"
+  ansible.builtin.debug:
+    var:                               asevgstat
+    verbosity:                         2
+
+- name:                                "Sybase ASE: Gather existing LVs" 
+  set_fact:
+    lvexists:                          "{{ asevgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}" 
+
+- name:                                "Sybase ASE: Show lvexists"
+  ansible.builtin.debug:
+    var:                               lvexists
+    verbosity:                         2
+
+# Mount Filesystems
+- name:                                "Sybase ASE: Mount Filesystems for sybase"
+  ansible.builtin.mount:
+    src:                               "{{ dev_path_from_lv_item }}"
+    path: >-
+                                       {%- set lv_parts = item.lv.split('_') -%}
+                                       {%- if lv_parts| length == 2 -%}
+                                       {%- set _path = '/' ~ lv_parts[-1] -%}
+                                       {%- else -%}
+                                       {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
+                                       {%- endif -%}
+                                       {{- _path -}} 
+    fstype:                            "{{ item.fstype }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:                                "{{ logical_volumes |sort(attribute='lv') }}"
+  register:  asefilesystemmounts
+  when:         
+    - item.node_tier == "sybase" 
+    - item.lv in  lvexists
+
+- name:                                "Sybase ASE: Create sap_deployment_automation folder"          
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+- name:                                "Sybase ASE: Create filepermission.txt"          
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    state:                             touch
+
+- name:                                "Sybase ASE: Make asesid:dba as owners for Sybase directories - check flag file"          
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/filepermission.txt   
+  register:                            ase_permissions_set
+
+#- name:                                "Sybase ASE: Make orasid:dba as owners for Sybase directories"          
+#  ansible.builtin.file:
+#    path:                              "{{ item.path }}"
+#    state:                             directory
+#    owner:                             "{{ item.owner }}"
+#    group:                             "{{ item.group }}"
+#    recurse:                           true
+#  loop:
+#    - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
+#  when:
+#     - not oracle_permissions_set.stat.exists
+
+- name:                                "Sybase ASE: Create sap_deployment_automation folder"          
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+- name:                                "Sybase ASE: Create filepermission.txt"          
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    state:                             touch
+
+# Mount Filesystems
+# - name:     "Mount SAP Filesystems on Database for installation"
+#  mount:
+#    src:    "{{ item.src }}"
+#    path:   "{{ item.path }}"
+#   fstype: "{{ item.type }}"
+#    opts:   defaults
+#    state:  mounted
+#  loop:
+#    - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap', 
+#    - { tier: 'ase',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
+#  
+#  when:         
+#    - item.node_tier == "ase"
+#    - item.lv in lvexists
+
+
+# - name:                             "File permissions updated"
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/filepermission.txt
+#     state:                             touch
+
+#Debug for testing
+- name:                                "Sybase ASE: Print sybase filesystems"
+  ansible.builtin.debug:
+    var:                               sybasefilesystemmounts
+    verbosity:                         2

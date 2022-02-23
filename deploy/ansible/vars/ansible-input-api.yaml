@@ -91,5 +91,6 @@ sap_swap:
   - { tier: 'hana', swap_size_mb: '2048' }
   - { tier: 'oracle', swap_size_mb: '20480' }
   - { tier: 'oracle-asm', swap_size_mb: '20480' }
+  - { tier: 'sybase', swap_size_mb: '20480' }
 
 ...

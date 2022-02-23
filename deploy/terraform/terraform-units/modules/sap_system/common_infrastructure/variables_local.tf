@@ -159,7 +159,7 @@ locals {
   //Enable xDB deployment 
   xdb_list = [
     for db in var.databases : db
-    if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(db.platform, "NONE")))
+    if contains(["ORACLE", "DB2", "SQLSERVER", "SYBASE"], upper(try(db.platform, "NONE")))
   ]
 
   enable_xdb_deployment = (length(local.xdb_list) > 0) ? true : false

@@ -27,6 +27,13 @@ disk_type_to_name_map:
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
   oraarch:   '{{ node_tier | lower }}_oraarch'
+  saplog1:   '{{ node_tier | lower }}_saplog1'
+  sybsystem:  '{{ node_tier | lower }}_sybsystem'
+  sybsecurity:  '{{ node_tier | lower }}_sybsecurity'
+  sybtemp:  '{{ node_tier | lower }}_sybtemp'
+  saptemp:  '{{ node_tier | lower }}_saptemp'
+  sapdiag:   '{{ node_tier | lower }}_sapdiag'
+  sybbackup:    '{{ node_tier | lower }}_sybbackup'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -62,7 +69,7 @@ logical_volumes:
     node_tier:  "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
     vg:         'vg_sap'
     lv:         'lv_usrsap'
-    size:       '32g'
+    size:       '31g'
     fstype:     'xfs'
 
   - tier:       'sapos'
@@ -182,6 +189,90 @@ logical_volumes:
     size:       '64g'
     fstype:     'xfs'
 
+# Adding Tier and disk types for sybase installation.
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdata1'
+    lv:         'lv_sybase_sapdata1'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+  
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdata2'
+    lv:         'lv_sybase_sapdata2'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdata3'
+    lv:         'lv_sybase_sapdata3'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdata4'
+    lv:         'lv_sybase_sapdata4'
+    size:       '100%FREE'
+    stripesize: 128
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_saplog1'
+    lv:         'lv_sybase_saplog1'
+    size:       '100%FREE'
+    stripesize: 64
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybsystem'
+    lv:         'lv_sybase_sybsystem'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybtemp'
+    lv:         'lv_sybase_sybtemp'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybsecurity'
+    lv:         'lv_sybase_sybsecurity'
+    size:       '100%FREE'
+    fstype:     'xfs'
+    
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_saptemp'
+    lv:         'lv_sybase_saptemp'
+    size:       '100%FREE'
+    fstype:     'xfs'
+ 
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdiag'
+    lv:         'lv_sybase_sapdiag'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybbackup'
+    lv:         'lv_sybase_sybbackup'
+    size:       '100%FREE'
+    fstype:     'xfs'
+    
 logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'
@@ -199,7 +290,7 @@ logical_volumes_install:
     fstype:     'xfs'
 
 
-# Define a dynamic expression based upon the 'item' fact that can
+# Define a dynamic expression bsybased upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs
 # in associated with the associated VG.
 vg_stripecount_from_lv_item: >-
@@ -207,7 +298,7 @@ vg_stripecount_from_lv_item: >-
        selectattr('vg', 'equalto', item.vg) |
        list | first).pvs | default([])) | count }}
 
-# Define a dynamic expression based upon the 'item' fact that can
+# Define a dynamic expression bsybased upon the 'item' fact that can
 # only be used within a loop, that determines the options string
 # to pass to the lvol action's opts argument. Will evaluate to
 # '-i <num_vg_pvs> -I <stripesize>' only when the LV 'item' has
@@ -218,7 +309,7 @@ lvol_opts_from_lv_item: >-
              ' -I ' ~ (item.stripesize | default(0)),
              '') }}
 
-# Define a dynamic expression based upon the 'item' fact that can
+# Define a dynamic expression bsybased upon the 'item' fact that can
 # only be used within a loop, that determines the device path for
 # a LV device.
 dev_path_from_lv_item: >-

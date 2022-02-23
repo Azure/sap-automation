@@ -154,4 +154,9 @@
   when:
     - sap_mnt is defined or sap_trans is defined
     - NFS_provider == 'ANF'
+
+# Import this task only if the tier is Sybase.
+- import_tasks:                        "ase.yaml"
+  when:
+    - node_tier == 'sybase'
 ...

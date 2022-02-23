@@ -92,7 +92,7 @@ locals {
   // Supported databases: Oracle, DB2, SQLServer, ASE 
   anydb-databases = [
     for database in local.databases : database
-    if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(database.platform, "NONE")))
+    if contains(["ORACLE", "DB2", "SQLSERVER", "SYBASE"], upper(try(database.platform, "NONE")))
   ]
 
   hdb                 = try(local.hana-databases[0], {})
