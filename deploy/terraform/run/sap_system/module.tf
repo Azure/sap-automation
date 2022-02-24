@@ -107,6 +107,7 @@ module "hdb_node" {
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count) : (
     0
   )
+  landscape_tfstate = data.terraform_remote_state.landscape.outputs
 }
 
 # // Create Application Tier nodes
@@ -191,7 +192,8 @@ module "anydb_node" {
     0) : (
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count
   )
-  use_observer = var.use_observer
+  use_observer      = var.use_observer
+  landscape_tfstate = data.terraform_remote_state.landscape.outputs
 }
 # // Generate output files
 module "output_files" {

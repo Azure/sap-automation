@@ -79,6 +79,14 @@
   tags:
     - skip_ansible_lint
 
+- name:                                "DBLoad: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ dbload_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+      - "INSTANCE:   {{ hdb_instance_number }}"
+      - "SCSHOST:    {{ scs_server }}"
 
 - name:                                "DBLoad: - Install"
   block:
@@ -88,14 +96,6 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 # *====================================4=======================================8
-
-
-    - name:                            "DBLoad: - variables"
-      ansible.builtin.debug:
-        msg:
-          - "{{ sap_inifile }}"
-          - "{{ bom.product_ids.dbl }}"
-        verbosity:                     2
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
@@ -119,7 +119,9 @@
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         var:                           dbload
-      when:                            dbload.rc > 0
+      when:                            
+        - dbload is defined
+        - dbload.rc > 0
 
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:

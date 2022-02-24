@@ -28,11 +28,6 @@
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_web.txt
   register:                            web_installed
-  when:                                node_tier == 'web'
-
-- name:                                "Web Install: check if installed"
-  ansible.builtin.debug:
-    var:                               web_installed
 
 - name:                                "Web Install: Set BOM facts"
   ansible.builtin.set_fact:
@@ -65,22 +60,32 @@
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
-  vars:
+  vars:  
     task_prefix:                       "Web Install: "
-    web_instance_number:               '00'
-    sap_ciInstanceNumber:              '00'
-    sap_installSAPHostAgent:           "false"
+    web_instance_number:               "00" # "{{ web_instance_number }}"
+    sap_ciInstanceNumber:              "00"
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
-    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') | first }}"
     sap_webVirtualHostname:            "{{ inventory_hostname }}"
+    sap_installSAPHostAgent:           false
   tags:
     - skip_ansible_lint
 
 - name:                                "Web install: register variables"
   ansible.builtin.set_fact:
     web_bom_id:                        "{{ bom.product_ids.web }}"
+
+- name:                                "DBLoad: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ web_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "SID:        {{ web_sid }}"
+      - "SAPSID:     {{ sap_sid }}"
+      - "PRODUCT ID: {{ web_bom_id }}"
+      - "INSTANCE:   {{ web_instance_number }}"
+      - "SCSHOST:    {{ scs_server }}"
+
 
 - name:                                "Web Install"
   block:
@@ -106,6 +111,16 @@
       tags:
         - skip_ansible_lint
       when:                            node_tier == 'web'
+
+    - name:                            "WEB Install: Installation results"
+      ansible.builtin.debug:
+        var:                           web_installation
+      when:                            web_installation.rc > 0
+
+    - name:                            "WEB Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "WEB Installation succeeded"
+      when:                            web_installation.rc == 0
 
     - name:                            "Web Install: flag"
       ansible.builtin.file:

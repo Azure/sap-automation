@@ -158,7 +158,7 @@
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:         
-        var:                           mounts
+        var:                           mounts.stdout_lines
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command:         cat /etc/hosts
@@ -166,8 +166,27 @@
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:         
-        var:                           hosts
-        
+        var:                           hosts.stdout_lines
+
+
+
+- hosts:               "{{ sap_sid|upper }}_WEB"
+
+  name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+  tasks:
+
+    - name:                            "0.0 Validations - VAlidate web_sid presence of Web Dispatchers are deployed"
+      ansible.builtin.assert:
+        that:
+          - web_sid is defined                    # Has the variable been defined
+          - web_sid | type_debug != 'NoneType'    # and given a value
+          - web_sid | trim | length > 1
+        fail_msg:                      "Please specify web_sid if you are deploying web dispatchers"
+      when:                            (ansible_play_hosts_all | length) > 0
+
 
 ...
 # /*----------------------------------------------------------------------------8

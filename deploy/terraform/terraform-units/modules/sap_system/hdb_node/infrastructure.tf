@@ -90,3 +90,13 @@ resource "azurerm_lb_rule" "hdb" {
   enable_floating_ip             = true
   idle_timeout_in_minutes        = 30
 }
+resource "azurerm_private_dns_a_record" "db" {
+  provider            = azurerm.deployer
+  count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
+  name                = lower(format("%sdb%scl", local.hdb_sid, local.hdb_nr))
+  resource_group_name = local.dns_resource_group_name
+  zone_name           = local.dns_label
+  ttl                 = 300
+  records             = [try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")]
+}
+

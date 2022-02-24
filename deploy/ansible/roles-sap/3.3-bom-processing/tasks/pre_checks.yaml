@@ -4,7 +4,7 @@
 #
 # Description:  Validation for Prerequisites
 #
-- name:                                Check required variables are present and not empty
+- name:                                "3.3 BoM Processing: - Check required variables are present and not empty"
   ansible.builtin.assert:
     that:
       - "sapbits_location_base_path is defined"                                 # Has the variable been defined
@@ -17,7 +17,7 @@
       - "target_media_location | trim | length != 0"                            #   and given a value
     fail_msg:                          "Please ensure that the storage account details are provided"
 
-- name:                                Check required variables are present and not empty (bom)
+- name:                                "3.3 BoM Processing: - Check required variables are present and not empty (bom)"
   ansible.builtin.assert:
     that:
 

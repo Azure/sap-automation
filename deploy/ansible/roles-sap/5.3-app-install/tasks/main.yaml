@@ -67,7 +67,7 @@
     sap_installSAPHostAgent:           "false"
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+    sap_db_hostname:                   "{% if db_high_availability %}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}{% endif %}"
     sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') | first }}"
     sap_appVirtualHostname:            "{{ inventory_hostname }}"
   tags:
@@ -75,7 +75,16 @@
 
 - name:                                "App install: register variables"
   ansible.builtin.set_fact:
-    app_bom_id:                        "{% if scs_high_availability %}{{ bom.product_ids.app_ha }}{% else %}{{ bom.product_ids.app }}{% endif %}"
+    app_bom_id:                        "{{ bom.product_ids.app }}"
+
+- name:                                "App Install: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ app_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.app }}"
+      - "INSTANCE:   {{ instance_number }}"
+      - "DBHOST:     {{ db_virtual_host }}"
 
 - name:                                "APP Install"
   block:
@@ -84,13 +93,6 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-
-    - name:                            "APP Install: debug variables"
-      ansible.builtin.debug:
-        msg:
-          - "{{ sap_inifile }}"
-          - "{{ app_bom_id }}"
-        verbosity:                     2
 
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |

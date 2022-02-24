@@ -159,8 +159,6 @@
 - hosts:                               localhost
   name:                                "PAS Installation Playbook: - Log results"
   gather_facts:                        false
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
     - name:                            "PAS Installation Playbook: - Create pas-install-done flag"

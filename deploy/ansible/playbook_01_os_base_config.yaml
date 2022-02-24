@@ -134,6 +134,13 @@
       when:                           node_tier == "oracle"
 
     - block:
+        - name:                        "OS configuration playbook: - Configure MOTD"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.13-MOTD
+      tags:
+        - 1.13-MOTD
+
+    - block:
         - name:                        "OS configuration playbook: - Ensure the needed services are started"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
