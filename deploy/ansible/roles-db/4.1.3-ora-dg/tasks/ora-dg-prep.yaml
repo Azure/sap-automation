@@ -137,21 +137,6 @@
          ALTER SYSTEM SET dg_broker_start=true;
     mode: 0755
 
-- name:                                "create dgconfig.sql"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.blockinfile:
-    create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/dgconfig.sql
-    marker: "--"
-    marker_begin: "-- BEGIN"
-    marker_end:   "-- END"
-    block: |
-         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "CREATE CONFIGURATION dgconfig AS PRIMARY DATABASE IS {{ db_sid }} CONNECT IDENTIFIER IS {{ db_sid }}";
-         host sleep 30
-         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ADD DATABASE ORA_STDBY AS CONNECT IDENTIFIER IS ORA_STDBY" ;
-         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ENABLE CONFIGURATION"
-    mode: 0755
 
 
 # Set Primary and Secondary node names.
@@ -257,6 +242,24 @@
     sap_dbp_hostname: "{{ ora_primary }}"
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host != ora_primary
+
+- name:                                "create dgconfig.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /oracle/sap_deployment_automation/dgscripts/dgconfig.sql
+    marker: "--"
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "CREATE CONFIGURATION  {{ db_sid }}_dg_config AS PRIMARY DATABASE IS {{ db_sid }} CONNECT IDENTIFIER IS {{ db_sid }}";
+         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ADD DATABASE {{ db_sid }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid }}_STDBY" MAINTAINED AS PHYSICAL;
+         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ENABLE CONFIGURATION"
+    mode: 0755
+  when: current_host == ora_primary
+
+
 
 
 # - name:                   "Copy file"
