@@ -28,13 +28,11 @@ disk_type_to_name_map:
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
   oraarch:   '{{ node_tier | lower }}_oraarch'
   # ------------------- Begin - disktypes required for Sybase -------------------8
-  saplog1:   '{{ node_tier | lower }}_saplog1'
-  sybsystem:  '{{ node_tier | lower }}_sybsystem'
-  sybsecurity:  '{{ node_tier | lower }}_sybsecurity'
-  sybtemp:  '{{ node_tier | lower }}_sybtemp'
+  sapdata:   '{{ node_tier | lower }}_sapdata'
+  saplog:   '{{ node_tier | lower }}_saplog'
+  system:  '{{ node_tier | lower }}_system'
   saptemp:  '{{ node_tier | lower }}_saptemp'
   sapdiag:   '{{ node_tier | lower }}_sapdiag'
-  sybbackup:    '{{ node_tier | lower }}_sybbackup'
    # ------------------- End - disktypes required for Sybase ---------------------8
 #
 # Table of possible logical volumes that need to be managed.
@@ -203,62 +201,24 @@ logical_volumes:
 # Adding Tier and disk types for sybase installation.
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata1'
-    lv:         'lv_sybase_sapdata1'
-    size:       '100%FREE'
-    stripesize: 128
-    fstype:     'xfs'
-  
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata2'
-    lv:         'lv_sybase_sapdata2'
+    vg:         'vg_sybase_sapdata'
+    lv:         'lv_sybase_sapdata'
     size:       '100%FREE'
     stripesize: 128
     fstype:     'xfs'
 
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata3'
-    lv:         'lv_sybase_sapdata3'
-    size:       '100%FREE'
-    stripesize: 128
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_sapdata4'
-    lv:         'lv_sybase_sapdata4'
-    size:       '100%FREE'
-    stripesize: 128
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_saplog1'
-    lv:         'lv_sybase_saplog1'
+    vg:         'vg_sybase_saplog'
+    lv:         'lv_sybase_saplog'
     size:       '100%FREE'
     stripesize: 64
     fstype:     'xfs'
 
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_sybsystem'
-    lv:         'lv_sybase_sybsystem'
-    size:       '100%FREE'
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_sybtemp'
-    lv:         'lv_sybase_sybtemp'
-    size:       '100%FREE'
-    fstype:     'xfs'
-
-  - tier:       'sapos'
-    node_tier:  'sybase'
-    vg:         'vg_sybase_sybsecurity'
-    lv:         'lv_sybase_sybsecurity'
+    vg:         'vg_sybase_system'
+    lv:         'lv_sybase_system'
     size:       '100%FREE'
     fstype:     'xfs'
     
@@ -278,8 +238,8 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_sybbackup'
-    lv:         'lv_sybase_sybbackup'
+    vg:         'vg_sybase_backup'
+    lv:         'lv_sybase_backup'
     size:       '100%FREE'
     fstype:     'xfs'
 

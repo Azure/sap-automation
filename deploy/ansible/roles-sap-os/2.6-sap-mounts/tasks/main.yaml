@@ -47,6 +47,7 @@
     state:                             mounted
   loop:
     - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
+    - { node_tier: 'sybase',  type: 'xfs',   src: '/dev/vg_sybase_system/lv_sybase_system',                 path: '/sybase/{{ db_sid|upper }}'         }
   when:
     - (item.node_tier == "all" or item.node_tier == node_tier)
     - not scs_high_availability
@@ -105,7 +106,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'sybase']
         - sap_mnt is undefined
         - nfs_server !=  ansible_hostname
   rescue:
@@ -123,7 +124,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'sybase']
         - sap_mnt is undefined
         - nfs_server !=  ansible_hostname
 

@@ -44,42 +44,60 @@
     verbosity:                         2
 
 # Mount Filesystems
-- name:                                "Sybase ASE: Mount Filesystems for sybase"
+- name:                                "2.6 Sybase Mounts: - Mount local sap file systems"
   ansible.builtin.mount:
-    src:                               "{{ dev_path_from_lv_item }}"
-    path: >-
-                                       {%- set lv_parts = item.lv.split('_') -%}
-                                       {%- if lv_parts| length == 2 -%}
-                                       {%- set _path = '/' ~ lv_parts[-1] -%}
-                                       {%- else -%}
-                                       {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
-                                       {%- endif -%}
-                                       {{- _path -}} 
-    fstype:                            "{{ item.fstype }}"
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
     opts:                              defaults
     state:                             mounted
-  loop:                                "{{ logical_volumes |sort(attribute='lv') }}"
-  register:  asefilesystemmounts
-  when:         
-    - item.node_tier == "sybase" 
-    - item.lv in  lvexists
+ loop:
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_system/lv_sybase_system',          path: '/sybase/{{ db_sid|upper }}'         }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdata/lv_sybase_sapdata',        path: '/sybase/{{ db_sid|upper }}/sapdata_1'       }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_saplog/lv_sybase_saplog',          path: '/sybase/{{ db_sid|upper }}/saplog_1'        }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_backup/lv_sybase_backup',          path: '/sybase/{{ db_sid|upper }}/backup'     }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_saptemp/lv_sybase_saptemp',        path: '/sybase/{{ db_sid|upper }}/saptemp'        }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdiag/lv_sybase_sapdiag',        path: '/sybase/{{ db_sid|upper }}/sapdiag'     }
+  when:
+    - (item.node_tier == "sybase" or item.node_tier == node_tier)
+  
+# Mount Filesystems
+#- name:                                "Sybase ASE: Mount Filesystems for sybase"
+#  ansible.builtin.mount:
+#    src:                               "{{ dev_path_from_lv_item }}"
+#    path: >-
+#                                       {%- set lv_parts = item.lv.split('_') -%}
+#                                       {%- if lv_parts| length == 2 -%}
+#                                       {%- set _path = '/' ~ lv_parts[-1] -%}
+#                                       {%- else -%}
+#                                       {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
+#                                       {%- endif -%}
+#                                       {{- _path -}} 
+#    fstype:                            "{{ item.fstype }}"
+#    opts:                              defaults
+#    state:                             mounted
+#  loop:                                "{{ logical_volumes |sort(attribute='lv') }}"
+#  register:  asefilesystemmounts
+#  when:         
+#    - item.node_tier == "sybase" 
+#    - item.lv in  lvexists
 
-- name:                                "Sybase ASE: Create sap_deployment_automation folder"          
+- name:                                "Sybase ASE: Create sybase_install_automation folder"          
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              /etc/sybase_install_automation
     mode:                              0755
     state:                             directory
 
-- name:                                "Sybase ASE: Create filepermission.txt"          
+- name:                                "Sybase ASE: Create responsefile.txt"          
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    path:                              /etc/sybase_install_automation/responsefile.txt  
     state:                             touch
 
-- name:                                "Sybase ASE: Make asesid:dba as owners for Sybase directories - check flag file"          
+- name:                                "Sybase ASE: Make dbsidadm:sapsys as owners for Sybase directories - check flag file"          
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    path:                              /etc/sybase_install_automation/filepermission.txt   
   register:                            ase_permissions_set
 
 #- name:                                "Sybase ASE: Make orasid:dba as owners for Sybase directories"          
@@ -90,13 +108,13 @@
 #    group:                             "{{ item.group }}"
 #    recurse:                           true
 #  loop:
-#    - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
+#    - { path: '/oracle',       group: 'sapsys',   owner: 'oracle'}
 #  when:
 #     - not oracle_permissions_set.stat.exists
 
-- name:                                "Sybase ASE: Create sap_deployment_automation folder"          
+- name:                                "Sybase ASE: Create sybase_install_automation folder"          
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              /etc/sybase_install_automation
     mode:                              0755
     state:                             directory
 
@@ -104,7 +122,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    path:                              /etc/sybase_install_automation/filepermission.txt   
     state:                             touch
 
 # Mount Filesystems
