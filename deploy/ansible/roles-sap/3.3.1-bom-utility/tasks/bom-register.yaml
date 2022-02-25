@@ -23,74 +23,46 @@
   when:                                distribution_id in ['suse15', 'redhat8']
 
 - name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
-  ansible.builtin.uri:
+  ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-    status_code:                       [200, 403, 404, 409]
-    method:                            HEAD
+    dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
+    mode:                              0644
+  register:                            result
+
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
-  register:                            blob_exists
   when:                                distribution_id in ['suse15', 'redhat8']
 
 - name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
-  ansible.builtin.uri:
+  ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-    status_code:                       [200, 403, 404, 409]
-    method:                            HEAD
-  register:                            blob_exists
+    dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
+    mode:                              0644
+  register:                            result
   when:
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
 
-- name:                                "BOM: Show blob status"
-  ansible.builtin.debug:
-    var:                               blob_exists
+# - name:                                "BOM: Show blob status"
+#   ansible.builtin.debug:
+#     msg:
+#       - "{{ result }}"
+#       - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
 
 - name:                                "BOM: Download BOM ({{ bom_name }}) from Storage Account"
   block:
-    - name:                            "{{ task_prefix }} Download BOM ({{ bom_name }}) from Storage Account"
-      ansible.builtin.get_url:
-        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-        dest:                          "{{ inventory_dir }}/{{ bom_name }}.yaml"
-        mode:                          0644
-      register:                        result
-      until:                           result is succeeded
-      retries:                         2
-      delay:                           10
-      delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
-      become:                          true
-      vars:
-        ansible_python_interpreter:        "{{ python_version }}"
-      when:                            distribution_id in ['suse15', 'redhat8']
-
-    - name:                            "{{ task_prefix }} Download BOM ({{ bom_name }}) from Storage Account"
-      ansible.builtin.get_url:
-        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-        dest:                          "{{ inventory_dir }}/{{ bom_name }}.yaml"
-        mode:                          0644
-      register:                        result
-      until:                           result is succeeded
-      retries:                         2
-      delay:                           10
-      delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
-      become:                          true
-      when:
-        - distribution_id != 'suse15'
-        - distribution_id != 'redhat8'
 
     - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"
       ansible.builtin.include_vars:
         file:                          "{{ inventory_dir }}/{{ bom_name }}.yaml"
         name:                          bom
-      when:                            result is succeeded
 
     - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
       ansible.builtin.set_fact:
-        bom_file:                      "{{ inventory_dir }}/{{ bom_name }}.yaml"
+        bom_file:                      "{{ download_directory }}/bom/{{ bom_name }}.yaml"
 
   when:
-    - blob_exists is defined
-    - blob_exists.status != 404
+    - result is succeeded or result is skipped
 
 # -------------------------------------+---------------------------------------8
 
@@ -140,7 +112,7 @@
 
       when:                            not microsoft_supplied_bom.stat.exists
 
-  when:                                blob_exists.status == 404
+  when:                                result is failed
 
 # If Microsoft supplied BOM not found
 

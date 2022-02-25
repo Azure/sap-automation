@@ -37,75 +37,40 @@
     python_version:                    'python3'
   when:                                distribution_id in ['suse15', 'redhat8']
 
-- name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
-  ansible.builtin.uri:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-    status_code:                       [200, 403, 404, 409]
-    method:                            HEAD
-  register:                            blob_exists
+- name:                                "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
+  ansible.builtin.get_url:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
+                                        {{ sap_inifile_template }}{{ sapbits_sas_token }}"
+    dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+    mode:                              0644
+  register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
   when:                                distribution_id in ['suse15', 'redhat8']
 
-- name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
-  ansible.builtin.uri:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-    status_code:                       [200, 403, 404, 409]
-    method:                            HEAD
-  register:                            blob_exists
+- name:                                "BOM2: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
+  ansible.builtin.get_url:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
+                                        {{ sap_inifile_template }}{{ sapbits_sas_token }}"
+    dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+    mode:                              0644
+  register:                            result
   when:
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
 
-- name:                                "BOM: Show blob status"
-  ansible.builtin.debug:
-    var:                               blob_exists
-
 - name:                                "BOM: Download BOM ({{ bom_name }}) from Storage Account"
   block:
 
-    - name:                            "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
-      ansible.builtin.get_url:
-        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
-                                        {{ sap_inifile_template }}{{ sapbits_sas_token }}"
-        dest:                          "{{ inventory_dir }}/{{ sap_inifile_template }}"
-        mode:                          0644
-      register:                        result
-      until:                           result is succeeded
-      retries:                         2
-      delay:                           5
-      delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
-      become:                          false
-      vars:
-        ansible_python_interpreter:        "{{ python_version }}"
-      when:                            distribution_id in ['suse15', 'redhat8']
-
-    - name:                            "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
-      ansible.builtin.get_url:
-        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
-                                        {{ sap_inifile_template }}{{ sapbits_sas_token }}"
-        dest:                          "{{ inventory_dir }}/{{ sap_inifile_template }}"
-        mode:                          0644
-      register:                        result
-      until:                           result is succeeded
-      retries:                         2
-      delay:                           5
-      delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
-      become:                          false
-      when:
-        - distribution_id != 'suse15'
-        - distribution_id != 'redhat8'
-
     - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
-        src:                           "{{ inventory_dir }}/{{ sap_inifile_template }}"
+        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
         dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
         mode:                          0644
         force:                         true
-      when:                            result is succeeded
+      
   when:                                
-    - blob_exists is defined
-    - blob_exists.status != 404
+    - result is succeeded or result is skipped
 
 # -------------------------------------+---------------------------------------8
 #
@@ -152,7 +117,7 @@
             force:                     true
       when:                            microsoft_supplied_bom_template_archive.stat.exists
 
-  when:                                blob_exists.status == 404
+  when:                                result is failed
 
 
 # -------------------------------------+---------------------------------------8
