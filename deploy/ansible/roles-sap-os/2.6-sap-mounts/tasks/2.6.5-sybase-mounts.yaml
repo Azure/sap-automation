@@ -51,7 +51,7 @@
     fstype:                            "{{ item.type }}"
     opts:                              defaults
     state:                             mounted
- loop:
+  loop:
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_system/lv_sybase_system',          path: '/sybase/{{ db_sid|upper }}'         }
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdata/lv_sybase_sapdata',        path: '/sybase/{{ db_sid|upper }}/sapdata_1'       }
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_saplog/lv_sybase_saplog',          path: '/sybase/{{ db_sid|upper }}/saplog_1'        }
@@ -59,7 +59,7 @@
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_saptemp/lv_sybase_saptemp',        path: '/sybase/{{ db_sid|upper }}/saptemp'        }
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdiag/lv_sybase_sapdiag',        path: '/sybase/{{ db_sid|upper }}/sapdiag'     }
   when:
-    - (item.node_tier == "sybase" or item.node_tier == node_tier)
+    - (item.node_tier == "all" or item.node_tier == node_tier)
   
 # Mount Filesystems
 #- name:                                "Sybase ASE: Mount Filesystems for sybase"
