@@ -84,7 +84,7 @@
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/bom-processing"
                 state:                 touch
-              mode:                    0755
+                mode:                  0755
 
       when:
         - "'scs' in supported_tiers"
