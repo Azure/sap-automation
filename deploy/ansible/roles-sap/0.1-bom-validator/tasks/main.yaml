@@ -31,7 +31,8 @@
 #
 # Description:  Validation for Prerequisites
 #
-- import_tasks:                        pre_checks.yaml
+- name:                                "0.1 BoM Validator: - Pre-checks"
+  import_tasks:                        pre_checks.yaml
 # -------------------------------------+---------------------------------------8
 
 # -------------------------------------+---------------------------------------8
@@ -39,7 +40,7 @@
 # Description:  Create BOM download directories".
 #
 
-- name:                                "BOM: Create BOM download directories"
+- name:                                "0.1 BoM Validator: - Create BOM download directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -52,6 +53,35 @@
     - path: "{{ download_directory }}/bom"
     - path: "{{ download_directory }}/files"
 
+- name:                                "0.1 BoM Validator: - BoM Initial file"
+  ansible.builtin.copy:
+    dest:                              "{{ download_directory }}/readme.md"
+    content:                           "This is the container with the SAP media"
+    mode:                              0755
+  register:                            readme_file
+  become:                              true
+  become_user:                         root
+
+- name:                                "0.1 BoM Validator: - Check storage account container"
+  ansible.builtin.command: >-
+                                       az storage blob upload
+                                         --account-name {{ account }}
+                                         --account-key {{ sapbits_access_key }}
+                                         --container-name {{ container }}
+                                         --name readme.md
+                                         --file {{ readme_file.dest }}
+                                         --if-none-match "*"
+                                         --no-progress
+  delegate_to:                         localhost
+  register:                            azresult
+  ignore_errors:                       true
+  changed_when:                        false
+  failed_when:
+    - azresult.rc != 0
+    - azresult.stderr is defined
+    - azresult.stderr.find("BlobAlreadyExists") == -1
+
+
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing BOM name.
@@ -59,22 +89,20 @@
 # TODO:
 #       Enhance so a single task loops over bas bom and dependencies
 #
-- include_tasks:                       bom_validator.yaml
+- name:                                "0.1 BoM Validator: - Process main BoM"
+  include_tasks:                       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_name:                          "{{ bom_base_name }}"
 # -------------------------------------+---------------------------------------8
 
-- name: Bom folder path
-  ansible.builtin.debug:
-    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
-
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing dependent BOM names.
 #
-- include_tasks:                       bom_validator.yaml
+- name:                                "0.1 BoM Validator: - Process dependent BoMs"
+  include_tasks:                       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
@@ -90,5 +118,10 @@
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
+
+- name:                                "0.1 BoM Validator: - BoM folder path"
+  ansible.builtin.debug:
+    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
+
 
 ...

@@ -159,9 +159,14 @@ locals {
   )
   sub_app_prefix = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
 
-  sub_web_defined = length(try(var.infrastructure.vnets.sap.subnet_web, {})) > 0
-  sub_web_arm_id  = try(var.infrastructure.vnets.sap.subnet_web.arm_id, try(var.landscape_tfstate.web_subnet_id, ""))
-  sub_web_exists  = length(local.sub_web_arm_id) > 0
+
+  sub_web_arm_id = try(var.infrastructure.vnets.sap.subnet_web.arm_id, try(var.landscape_tfstate.web_subnet_id, ""))
+  sub_web_exists = length(local.sub_web_arm_id) > 0
+  sub_web_defined = local.sub_web_exists ? (
+    true) : (
+    length(try(var.infrastructure.vnets.sap.subnet_web, {})) > 0
+  )
+
   sub_web_name = local.sub_web_exists ? (
     try(split("/", var.infrastructure.vnets.sap.subnet_web.arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_web.name, "")) > 0 ? (
@@ -440,7 +445,6 @@ locals {
   app_no_ppg = var.application.app_no_ppg
   scs_no_ppg = var.application.scs_no_ppg
   web_no_ppg = var.application.web_no_ppg
-
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
