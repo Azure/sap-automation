@@ -56,6 +56,7 @@
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "PAS Install: "
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
     sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
     sap_cd_package_cd2:

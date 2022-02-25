@@ -62,6 +62,7 @@
     tasks_from:                        bom-template
   vars:  
     task_prefix:                       "Web Install: "
+    bom_name:                          "{{ bom_base_name }}"
     web_instance_number:               "00" # "{{ web_instance_number }}"
     sap_ciInstanceNumber:              "00"
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile

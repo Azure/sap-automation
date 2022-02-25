@@ -40,6 +40,19 @@
 # Description:  Create BOM download directories".
 #
 
+- name:                                "0.1 BoM Validator: - Create BOM download directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
+  become:                              true
+  become_user:                         root
+  loop:
+    - path: "{{ download_directory }}"
+    - path: "{{ download_directory }}/tmp"
+    - path: "{{ download_directory }}/bom"
+    - path: "{{ download_directory }}/files"
+
 - name:                                "0.1 BoM Validator: - BoM Initial file"
   ansible.builtin.copy:
     dest:                              "{{ download_directory }}/readme.md"
@@ -68,18 +81,6 @@
     - azresult.stderr is defined
     - azresult.stderr.find("BlobAlreadyExists") == -1
 
-- name:                                "0.1 BoM Validator: - Create BOM download directories"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    mode:                              0755
-  become:                              true
-  become_user:                         root
-  loop:
-    - path: "{{ download_directory }}"
-    - path: "{{ download_directory }}/tmp"
-    - path: "{{ download_directory }}/bom"
-    - path: "{{ download_directory }}/files"
 
 # -------------------------------------+---------------------------------------8
 #
