@@ -13,6 +13,12 @@
 #               If not, download from storage account location.
 #
 
+- name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version:                    'python3'
+  when:                                distribution_id in ['suse15', 'redhat8']
+
+
 - name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.uri:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
@@ -33,7 +39,26 @@
       delay:                           10
       delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
       become:                          true
-    
+      vars:
+        ansible_python_interpreter:        "{{ python_version }}"
+      when:                            distribution_id in ['suse15', 'redhat8']
+
+    - name:                            "{{ task_prefix }} Download BOM ({{ bom_name }}) from Storage Account"
+      ansible.builtin.get_url:
+        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+        dest:                          "{{ inventory_dir }}/{{ bom_name }}.yaml"
+        mode:                          0644
+      register:                        result
+      until:                           result is succeeded
+      retries:                         2
+      delay:                           10
+      delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
+      become:                          true
+      when:
+        - distribution_id != 'suse15'
+        - distribution_id != 'redhat8'
+
+
     - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"
       ansible.builtin.include_vars:
         file:                          "{{ inventory_dir }}/{{ bom_name }}.yaml"
