@@ -86,7 +86,7 @@ output "db_subnet_id" {
 }
 
 output "web_subnet_id" {
-  value = module.sap_landscape.admin_subnet_id
+  value = module.sap_landscape.web_subnet_id
 }
 
 
@@ -103,7 +103,7 @@ output "db_nsg_id" {
 }
 
 output "web_nsg_id" {
-  value = module.sap_landscape.admin_nsg_id
+  value = module.sap_landscape.web_nsg_id
 }
 
 output "ANF_pool_settings" {

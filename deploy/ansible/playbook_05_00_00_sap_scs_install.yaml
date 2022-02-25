@@ -115,6 +115,14 @@
             - name:                    "SCS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
+                
+            - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
+                state:                 touch
+                mode:                  0755
+
           always:
             - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
@@ -142,7 +150,6 @@
 
           tags:
             - 5.0.0-scs-install
-
           vars:
             tier:                      "{{ tier }}"
       when:
@@ -251,6 +258,14 @@
               include_role:
                 name:                  roles-sap/5.6-scsers-pacemaker
                 public:                true
+
+            - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
+                state:                 touch
+                mode:                  0755
+
           always:
 
             - name:                    "SCS HA Installation Playbook: - Run post installation routines SCS"
@@ -315,17 +330,6 @@
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
 
-- hosts:                               localhost
-  name:                                Log results
-  gather_facts:                        false
-
-  tasks:
-
-    - name:                            "SCS Installation Playbook: - Ensure scs-install-done flag exists"
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/scs-install-done"
-        state:                         touch
-        mode:                          0755
 ...
 
 # /*----------------------------------------------------------------------------8

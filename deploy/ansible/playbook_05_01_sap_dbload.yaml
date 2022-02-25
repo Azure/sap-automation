@@ -6,7 +6,7 @@
 ---
 
 - hosts:                               localhost
-  name:                                Get SAP Password from KeyVault
+  name:                                "DBLoad Playbook: - Initialization"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml
@@ -14,35 +14,33 @@
 
   tasks:
 
-    - name:                            Create Progress folder
+    - name:                            "DBLoad Playbook: - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                          directory
         mode:                          0755
 
-    - name:                            Remove db-load-done flag
+    - name:                            "DBLoad Playbook: - Remove db-load-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-load-done"
         state:                          absent
 
-    - name:                            Initialize tier
+    - name:                            "DBLoad Playbook: - Initialize tier"
       ansible.builtin.set_fact:
         tier:                          dbload
 
-    - name:                            Include 0.1-passwords Role
+    - name:                            "DBLoad Playbook: - Read/Create passwords"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
+
       tags:
         - 0.1-passwords
 
-    - name:                            Run the sap-installation-media-storage-details role
+    - name:                            "DBLoad Playbook: - Read storage account details"
       include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
-      vars:
-        tier:                          dbload
-
       tags:
         - kv-sap-installation-media-storage-details
 
@@ -71,17 +69,12 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            Load the SAP parameters
+    - name:                            "DBLoad Playbook: - Load the SAP parameters"
       include_vars:                    "{{ _workspace_directory }}/sap-parameters.yaml"
 
-    - name:                            Load the SAP parameters
-      ansible.builtin.debug:
-        var:                           platform
-
-
-    - name:                            "Perform DB Load on HANA"
+    - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
       block:
-        - name:                        Setting the dbload facts
+        - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -92,19 +85,19 @@
             - always
 
         - block:
-            - name:                    Include 2.6-sap-mounts role
+            - name:                    "DBLoad Playbook: - Mounting"
               ansible.builtin.include_role:
                 name:                  roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
 
         - block:
-            - name:                    Include 5.1-dbload role
+            - name:                    "DBLoad Playbook: - Run DBLoad"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
           always:
 
-            - name:                    Include 7.0.0-post-install role
+            - name:                    "DBLoad Playbook: - Run post installation tasks"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
@@ -113,7 +106,7 @@
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
 
-            - name:                    Get the error lines
+            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
                 error_lines:           "{{ error_lines | default([]) + [item] }}"
               with_items:              "{{ dbload.stdout_lines }}"
@@ -122,7 +115,7 @@
                 - dbload.stdout_lines is defined
                 - '"ERROR" in item'
 
-            - name:                    Errors from SAPInst
+            - name:                    "DBLoad Playbook: - Show errors from DBLoad"
               ansible.builtin.debug:
                 msg:                   "{{ error_lines }}"
               when:
@@ -156,9 +149,9 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Perform DB Load on Oracle"
+    - name:                            "DBLoad Playbook: - Perform DB Load on ORACLE"
       block:
-        - name:                        Setting the dbload facts
+        - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -167,7 +160,7 @@
           tags:
             - always
 
-        - name:                        Include 5.1-dbload role
+        - name:                        "DBLoad Playbook: - Run DBLoad"
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
       when:                            platform == 'ORACLE'
@@ -181,15 +174,13 @@
 - hosts:                               localhost
   name:                                Log results
   gather_facts:                        false
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                           Create db-load-done flag
+    - name:                            "DBLoad Playbook: - Ensure scs-install-done flag exists"
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.progress/db-load-done"
-        state:                        touch
-        mode:                         0755
+        path:                          "{{ _workspace_directory }}/.progress/db-load-done"
+        state:                         touch
+        mode:                          0755
 
 ...
 # /*----------------------------------------------------------------------------8

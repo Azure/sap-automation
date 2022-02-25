@@ -45,6 +45,7 @@
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "SCS HA Install: "
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:

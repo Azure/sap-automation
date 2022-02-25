@@ -7,6 +7,5 @@ distro_name:                           "{{ ansible_os_family|upper }}-{{ ansible
 distribution_id:                             "{{ ansible_os_family|lower ~ ansible_distribution_major_version }}"
 
 use_AFS:                               "{{ NFS_provider == 'AFS' }}"
-usr_sap_install_mountpoint:            "{% if use_AFS %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:/usr/sap/install{% endif %}"
 
 ...

@@ -40,6 +40,7 @@
   ansible.builtin.set_fact:
     scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
     instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
+    db_virtual_host:                   "{% if db_high_availability %}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}{% endif %}"
 
 - name:                                "PAS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -55,6 +56,7 @@
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "PAS Install: "
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
     sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
     sap_cd_package_cd2:
@@ -68,7 +70,7 @@
     sap_installSAPHostAgent:           "false"
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+    sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
   tags:
@@ -85,7 +87,7 @@
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ pas_bom_id }}"
       - "INSTANCE:   {{ instance_number }}"
-    verbosity:                         2
+      - "DBHOST:     {{ db_virtual_host }}"
 
 - name:                                "PAS Install"
   block:
@@ -112,7 +114,6 @@
       failed_when:                     pas_installation.rc > 0
       tags:
         - skip_ansible_lint
-
 
     - name:                            "PAS Install: Installation results"
       ansible.builtin.debug:

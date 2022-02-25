@@ -98,14 +98,20 @@
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
+            - name:                    "Database Installation Playbook: - Create db-install-done flag"
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/db-install-done"
+                state:                 touch
+                mode:                  0755
           always:
             - name:                    "Database Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
                 error_lines:           "{{ error_lines | default([]) + [item] }}"
               with_items:              "{{ hana_installation.stdout_lines }}"
               when:
+                - hana_installation is defined
                 - hana_installation.stdout_lines is defined
-                - hana_installation.rc is defined
                 - '"ERROR" in item'
 
             - name:                    "Database Installation Playbook: - Run post installation routines"
@@ -188,6 +194,13 @@
           tags:
             - 1.17-generic-pacemaker
 
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
+            mode:                      0755
+
       when:
         - db_high_availability
         - node_tier == 'hana'
@@ -236,26 +249,15 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.1.0-ora-install
           when:                        platform == 'ORACLE'
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
+            mode:                      0755
+
       when:                            platform == 'ORACLE'
-
-# /*----------------------------------------------------------------------------8
-# |                                                                            |
-# |                         PLAYBOOK FOR DB LOGGING                       |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-- hosts:                               localhost
-  name:                                "Database Installation Playbook: - Log results"
-  gather_facts:                        false
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                           "Database Installation Playbook: - Create db-install-done flag"
-      ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.progress/db-install-done"
-        state:                        touch
-        mode:                         0755
 
 ...
 # /*----------------------------------------------------------------------------8
