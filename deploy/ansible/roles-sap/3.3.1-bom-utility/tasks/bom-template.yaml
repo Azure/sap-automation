@@ -82,7 +82,7 @@
   block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
       ansible.builtin.stat:
-        path:                          BOM-catalog/{{ bom_base_name }}/templates/{{ sap_inifile_template }}
+        path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
       register:                        microsoft_supplied_bom_template
       delegate_to:                     localhost
 
@@ -105,7 +105,7 @@
 
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) ini file in archive"
           ansible.builtin.stat:
-            path:                      BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}
+            path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
             register:                  microsoft_supplied_bom_template_archive
             delegate_to:               localhost
 
@@ -115,7 +115,8 @@
             dest:                      /usr/sap/install/downloads/{{ sap_inifile }}
             mode:                      0644
             force:                     true
-      when:                            microsoft_supplied_bom_template_archive.stat.exists
+          when:                        microsoft_supplied_bom_template_archive.stat.exists
+      when:                            not microsoft_supplied_bom_template.stat.exists
 
   when:                                result is failed
 
