@@ -57,6 +57,10 @@
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
 
+- name:                                "BOM: Show blob status"
+  ansible.builtin.debug:
+    var:                               blob_exists
+
 - name:                                "BOM: Download BOM ({{ bom_name }}) from Storage Account"
   block:
 
@@ -99,7 +103,9 @@
         mode:                          0644
         force:                         true
       when:                            result is succeeded
-  when:                                blob_exists.status != 404
+  when:                                
+    - blob_exists is defined
+    - blob_exists.status != 404
 
 # -------------------------------------+---------------------------------------8
 #
