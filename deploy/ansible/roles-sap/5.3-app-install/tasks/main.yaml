@@ -83,7 +83,6 @@
       - "INSTALLED:  {{ app_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.app }}"
-      - "INSTANCE:   {{ instance_number }}"
       - "DBHOST:     {{ db_virtual_host }}"
 
 - name:                                "APP Install"
