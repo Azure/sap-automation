@@ -159,25 +159,12 @@
       tags:
         - 1.20-prometheus
 
-# /*----------------------------------------------------------------------------8
-# |                                                                            |
-# |     Logging for performing OS configuration tasks                          |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-
-- hosts:                               localhost
-  name:                                "OS configuration playbook: - Log results"
-  gather_facts:                        false
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                           "OS configuration playbook: - Create db-install-done flag"
+    - name:                            "OS configuration playbook: - Create os-configuration-done flag"
+      delegate_to:                     localhost
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.progress/os-configuration-done"
-        state:                        touch
-        mode:                         0755
+        path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
+        state:                         touch
+        mode:                          0755
 
 ...
 # /*----------------------------------------------------------------------------8

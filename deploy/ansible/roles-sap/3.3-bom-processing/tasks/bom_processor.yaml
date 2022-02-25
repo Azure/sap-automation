@@ -107,7 +107,7 @@
 - name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat82']
+  when:                                distribution_id in ['suse15', 'redhat8']
 
 #   04) Download media from bom
 # Loop through BOM media files and download to correct location

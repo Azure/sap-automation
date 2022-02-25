@@ -78,28 +78,16 @@
                 tier:                  bom_download
               tags:
                 - 3.3-bom-processing
+
+            - name:                    Create bom-processing flag
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/bom-processing"
+                state:                 touch
+              mode:                    0755
+
       when:
         - "'scs' in supported_tiers"
-
-# /*----------------------------------------------------------------------------8
-# |                                                                            |
-# |                         PLAYBOOK FOR BOM PROCESSING LOGGING                         |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-
-- hosts:                               localhost
-  name:                                Log results
-  gather_facts:                        false
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                            Create bom-processing flag
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/bom-processing"
-        state:                         touch
-        mode:                          0755
 
 ...
 # /*---------------------------------------------------------------------------8
