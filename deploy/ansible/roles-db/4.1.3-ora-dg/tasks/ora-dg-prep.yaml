@@ -259,56 +259,27 @@
     mode: 0755
   when: current_host == ora_primary
 
+#Copy the initSID.ora from primary to secondary
+
+- name: Copy initSID.ora to templocation
+  ansible.builtin.copy:
+    src: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/init{{ db_sid|upper  }}.ora
+    dest: /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
+    owner: foo
+    group: foo
+    mode: '0644'
+  when: current_host == ora_primary
 
 
+- name: Copy initSID.ora to Secondary
+  ansible.builtin.copy:
+    src:  /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
+    dest: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/init{{ db_sid|upper  }}.ora
+    owner: foo
+    group: foo
+    mode: '0644'
+  when: current_host == ora_secondary
 
-# - name:                   "Copy file"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.copy:
-#     src:  "/oracle/sap_deployment_automation/ORACLE_{{ ora_primary}}.ora"
-#     dest: /oracle/listener_primary_test.ora
-#     mode: '0644'
-#   when: ora_primary == host1
-
-# #Create Listener for secondary node.
-# - name:          "Create the Listener file for Secondary"
-#   ansible.builtin.template:
-#     src:          "listener_primary.j2"
-#     dest:         /oracle/sap_automation_deployment/listener_secondary.ora
-#     mode:          0644
-#   vars:
-#     hostname:  "{{ ora_secondary }}"
-  
-
-# #Create tnsnames.ora for primary node.
-# - name:          "Create the tnsnames file for Primary"
-#   ansible.builtin.template:
-#     src:          "tnsnames_primary.j2"
-#     dest:         "/oracle/sap_automation_deployment/tnsnames_primary.ora"
-#     mode:          0644
-#   vars:
-#     hostname:  "{{ ora_primary }}"
-  
-# #Create tnsnames.ora for secondary node.
-# - name:          "Create the tnsnames file for Secondary"
-#   ansible.builtin.template:
-#     src:          "tnsnames_secondary.j2"
-#     dest:         "/oracle/sap_automation_deployment/tnsnames_secondary.ora"
-#     mode:          0644
-#   vars:
-#     hostname:  "{{ ora_secondary }}"
-  
-
-# #Create sqlnet.ora for secondary and observer.
-# - name:          "Create the tnsnames file for Secondary"
-#   ansible.builtin.template:
-#     src:          "sqlnet.ora.j2"
-#     dest:         "/oracle/sap_automation_deployment/sqlnet.ora"
-#     mode:          0644
-#   vars:
-#     hostname:  "{{ ansible_hostname }}"
-  
 - import_task: ora-dg-observer-setup.yaml
   when: node_tier == 'observer'
 

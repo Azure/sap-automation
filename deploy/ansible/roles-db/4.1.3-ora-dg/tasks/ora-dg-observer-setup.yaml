@@ -77,7 +77,7 @@
 - name:                           "Check TNS Ping"
   become:
   become-user:                    "oracle"
-  ansible.builtin.blockinfile: |
+  ansible.builtin.shell: |
                                   tnsping  {{ ora_primary }} |tee /oracle/sap_primary.log
                                   tnsping  {{ ora_secondary }} |tee /oracle/sap_primary.log
   register:                            oratnsping_results
@@ -85,5 +85,5 @@
   environment:
   args:
     executable:                        /bin/bash       
-    chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+    
 

@@ -44,7 +44,8 @@
         tier:                          fencing
       tags:
         - 0.2-kv-secrets
-
+      when:                            platform != "ORACLE"
+      
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for HANA DB Install                           |

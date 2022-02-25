@@ -61,6 +61,7 @@ ora_release:                  19
 ora_version:                  19.0.0
 ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
+PLATFORM:                     ""
 
 password_cockpit_admin:       ""
 password_db_systemdb:         ""

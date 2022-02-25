@@ -52,6 +52,7 @@
         name:                          roles-misc/0.2-kv-secrets
       tags:
         - kv-secrets
+      when:                            platform != "ORACLE"
 
     - name:                            Run the sap-installation-media-storage-details role
       include_role:
