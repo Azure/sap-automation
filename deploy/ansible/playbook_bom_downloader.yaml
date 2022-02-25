@@ -12,8 +12,8 @@
 
 - hosts:                               localhost
 
-  name:                                BOM Downloader
-  gather_facts:                        false
+  name:                                BOM Downloader Playbook
+  gather_facts:                        true
   connection:                          local
   become:                              false
   become_user:                         root
@@ -29,17 +29,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - block:
-        - name:                        Run Az login
-          ansible.builtin.command:     "az login --identity --allow-no-subscriptions" 
-          register:                    az
-
-        - name:                        Az login output
-          ansible.builtin.debug:
-            var:                       az.stdout
-
-
-    - name:                            Show the BOM
+    - name:                            "BOM Downloader: Show the BOM"
       ansible.builtin.debug:
         var:                           bom_base_name
 
@@ -47,13 +37,13 @@
       ansible.builtin.set_fact:
         tier:                          bom
 
-    - name:                            Set deployer keyvault name
+    - name:                            "BOM Downloader: Set deployer keyvault name"
       ansible.builtin.set_fact:
         kv_name:                       "{{ deployer_kv_name }}"
       when:                            deployer_kv_name is defined
 
     - block:
-        - name:                        Load the keyvault secrets
+        - name:                        "BOM Downloader: Load the keyvault secrets"
           include_role:
             name:                      roles-misc/0.2-kv-secrets
             public:                    true
@@ -61,19 +51,19 @@
         - 0.2-kv-secrets
 
     - block:
-        - name:                        Load the storage account details
+        - name:                        "BOM Downloader: Load the storage account details"
           include_role:
             name:                      roles-misc/0.3.sap-installation-media-storage-details
             public:                    true
       tags:
         - 0.3.sap-installation-media-storage-details
 
-    - name:                            Set the preparation tier
+    - name:                            "BOM Downloader: Set the preparation tier"
       ansible.builtin.set_fact:
         tier:                          preparation
 
     - block:
-        - name:                        Run the bom-validator
+        - name:                        "BOM Downloader: Run the bom-validator"
           include_role:
             name:                      roles-sap/0.1-bom-validator
       tags:
