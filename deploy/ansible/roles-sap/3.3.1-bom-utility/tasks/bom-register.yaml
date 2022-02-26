@@ -27,6 +27,7 @@
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
+  delegate_to:                         localhost
   become:                              true
   ignore_errors:                       true
   register:                            result
@@ -40,6 +41,7 @@
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
+  delegate_to:                         localhost
   become:                              true
   register:                            result
   ignore_errors:                       true
