@@ -43,6 +43,7 @@
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
+  delegate_to:                         localhost
   register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
@@ -54,6 +55,7 @@
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
+  delegate_to:                         localhost
   register:                            result
   when:
     - distribution_id != 'suse15'
