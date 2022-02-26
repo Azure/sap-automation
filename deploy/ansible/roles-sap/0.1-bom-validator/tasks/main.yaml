@@ -47,6 +47,7 @@
     mode:                              0755
   become:                              true
   become_user:                         root
+  delegate_to:                         localhost
   loop:
     - path: "{{ download_directory }}"
     - path: "{{ download_directory }}/tmp"
