@@ -5,8 +5,8 @@
 # -----------------------------------------------------------------------------
 
 - name:                                1.6 - Setting OS timezone
-  timezone:
-    name:                              America/Los_Angeles               # ToDo: use per system setting from SAP SID yaml, central setting here, override ifExists from central yaml
+  community.general.timezone:
+    name:                              "{{ timezone }}"          
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

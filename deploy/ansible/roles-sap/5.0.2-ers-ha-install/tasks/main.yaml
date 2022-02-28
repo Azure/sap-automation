@@ -31,18 +31,21 @@
   when: node_tier == 'ers'
 
 # Returns bom object
-- name:                                "ERS Install: Include 3.3.1-bom-utility role"
+- name:                                "ERS Install: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "ERS Install: "
 
-- name:                                "ERS Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "ERS Install: Register BoM templates"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
+    task_prefix:                       "ERS Install: "
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -98,7 +101,7 @@
     - name:                            "ERS Install: SAPINST"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                          \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
                                                  SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
@@ -107,11 +110,23 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_ers.txt
       environment:
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
       register:                        ers_installation
       failed_when:                     ers_installation.rc > 0
       tags:
         - skip_ansible_lint
+
+
+    - name:                            "ERS Install: Installation results"
+      ansible.builtin.debug:
+        var:                           ers_installation
+      when:                            ers_installation.rc > 0
+
+    - name:                            "ERS Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "ERS Installation succeeded"
+      when:                            ers_installation.rc == 0
 
     - name:                            "ERS Install: flag"
       ansible.builtin.file:
@@ -123,8 +138,13 @@
     - node_tier == 'ers'
     - not ers_installed.stat.exists
 
-      # Skip when TRUE (test mode)
-  # when: not test_new_bom
+- name:                                "ERS Install status"
+  ansible.builtin.debug:
+    msg:                               "ERS is already installed"
+  when:
+    - "'scs' in supported_tiers"
+    -  scs_installed.stat.exists
+
 # *====================================4=======================================8
 
 ...

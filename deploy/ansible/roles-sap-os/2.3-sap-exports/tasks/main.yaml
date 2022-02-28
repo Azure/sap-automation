@@ -41,11 +41,11 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distro_id == "redhat8"
+        - distribution_id == "redhat8"
 
   when:
     - node_tier == 'scs'
-    - usr_sap_install_path is not defined
+    - usr_sap_install_mountpoint is not defined
 
 - name:                                "2.3 SAP Exports: - Create SAP Directories (sapmnt)"
   block:
@@ -87,7 +87,7 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distro_id == "redhat8"
+        - distribution_id == "redhat8"
 
   when:
     - node_tier == 'scs'
@@ -133,30 +133,39 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distro_id == "redhat8"
+        - distribution_id == "redhat8"
 
   when:
     - node_tier == 'scs'
     - sap_trans is not defined
 
+- name:                                "2.3 SAP Exports: - Local NFS"
+  block:
+    - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
+      ansible.builtin.set_fact:
+        nfs_service:                   'nfsserver'
+    
+    - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
+      ansible.builtin.set_fact:
+        nfs_service:                   "nfs-server"
+      when:                            "'redhat8' == distribution_id"
+    
+    - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
+      ansible.builtin.set_fact:
+        nfs_service:                   'nfs'
+      when:                            "'redhat7' == distribution_id"
+    
+    - name:                            "2.3 SAP Exports: - NFS Ensure the NFS service is started"
+      ansible.builtin.systemd:
+        name:                          "{{ nfs_service }}"
+        state:                         started
+        enabled:                       true
 
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
-  ansible.builtin.set_fact:
-    nfs_service:                       'nfsserver'
+    - name:                            "2.3 SAP Exports: - NFS Ensure the NFS service is started"
+      ansible.builtin.systemd:
+        name:                          "{{ nfs_service }}"
+        state:                         restarted
 
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
-  ansible.builtin.set_fact:
-    nfs_service:                       "nfs-server"
-  when:                                "'redhat8' == distro_id"
-
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
-  ansible.builtin.set_fact:
-    nfs_service:                       'nfs'
-  when:                                "'redhat7' == distro_id"
-
-- name:                               "Exports: NFS Ensure the NFS service is restarted"
-  ansible.builtin.systemd:
-    name:                             "{{ nfs_service }}"
-    state:                             restarted
   when:
     - node_tier == 'scs'
+    - (sap_trans is not defined) or (usr_sap_install_mountpoint is not defined) or (sap_mnt is not defined)

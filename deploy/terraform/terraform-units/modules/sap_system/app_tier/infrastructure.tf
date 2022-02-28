@@ -234,7 +234,17 @@ resource "azurerm_lb_backend_address_pool" "web" {
   loadbalancer_id = azurerm_lb.web[0].id
 }
 
-//TODO: azurerm_lb_probe
+resource "azurerm_lb_probe" "web" {
+  provider            = azurerm.main
+  count               = local.enable_web_lb_deployment ? 1 : 0
+  resource_group_name = var.resource_group[0].name
+  loadbalancer_id     = azurerm_lb.web[0].id
+  name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_hp)
+  port                = 443
+  protocol            = "Tcp"
+  interval_in_seconds = 5
+  number_of_probes    = 2
+}
 
 # Create the Web dispatcher Load Balancer Rules
 resource "azurerm_lb_rule" "web" {
@@ -249,6 +259,7 @@ resource "azurerm_lb_rule" "web" {
   frontend_ip_configuration_name = azurerm_lb.web[0].frontend_ip_configuration[0].name
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.web[0].id]
   enable_floating_ip             = true
+  probe_id                       = azurerm_lb_probe.web[0].id
 }
 
 # Associate Web dispatcher VM NICs with the Load Balancer Backend Address Pool

@@ -166,7 +166,7 @@
                     "size_gb"                    : 512,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
-                    "lun_start"                  : 13
+                    "lun_start"                  : 6
                 },
                 {
                     "name"                       : "backup",
@@ -216,7 +216,7 @@
                     "size_gb"                    : 512,
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
-                    "lun_start"                  : 13
+                    "lun_start"                  : 6
                 },
                 {
                     "name"                       : "sap",
