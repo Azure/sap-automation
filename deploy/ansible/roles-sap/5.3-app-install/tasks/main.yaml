@@ -112,7 +112,6 @@
       tags:
         - skip_ansible_lint
 
-
     - name:                            "APP Install: Installation results"
       ansible.builtin.debug:
         var:                           app_installation

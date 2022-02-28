@@ -53,13 +53,11 @@
         -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
         -  { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
 
-    - name:                                "SCS - Install SCS on Primary host"
-      block:
-        - name:                            "SCS - Install SCS on Primary host"
-          include_role:
-            name:                          roles-sap/5.0.1-scs-ha-install
-          vars:
-            sap_scs_hostname:              "{{ scs_virtual_hostname }}"
+    - name:                            "SCS - Install SCS on Primary host"
+      include_role:
+        name:                          roles-sap/5.0.1-scs-ha-install
+      vars:
+        sap_scs_hostname:              "{{ scs_virtual_hostname }}"
 
   when: inventory_hostname == primary_instance_name
 

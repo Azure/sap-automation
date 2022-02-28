@@ -516,7 +516,60 @@ stages:
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
 
-  - stage: Database_Load
+  - stage:                             HighAvailability_Setup
+    displayName:                       High Availability Setup
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+    condition: |
+      and
+      (
+        eq(${{ parameters.high_availability_configuration }}, true),
+        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
+        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
+        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
+        in(dependencies.Database_Load.result, 'Succeeded', 'Skipped'),
+        eq(dependencies.Validate_Parameters.result, 'Succeeded')
+      )
+    jobs:
+      - job:                           HighAvailability_Setup
+        displayName:                   High Availability Setup
+        variables:
+          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
+          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
+          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
+          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
+          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+
+        steps:
+          - checkout:                  self
+            persistCredentials:        true
+          - download:                  current
+            artifact:                  ansible_data
+          - script: |
+              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+            displayName:               Process sshkey      
+          - task:                      Ansible@0
+            displayName:               High Availability Setup
+            inputs:
+              ansibleInterface:        "agentMachine"
+              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
+              inventoriesAgentMachine: "file"
+              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              failOnStderr:            false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
+              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+            continueOnError:           false
+            name: HA
+
+  - stage:                             Database_Load
     displayName:                       Database Load
     dependsOn:
       - Preparation_for_Ansible
@@ -524,6 +577,7 @@ stages:
       - Software_Acquisition
       - Database_Installation
       - SCS_Installation
+      - HighAvailability_Setup
     condition: |
       and
       (
@@ -568,7 +622,7 @@ stages:
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
-  - stage: PAS_Installation
+  - stage:                             PAS_Installation
     displayName:                       PAS Installation
     dependsOn:
       - Preparation_for_Ansible
@@ -576,7 +630,9 @@ stages:
       - Software_Acquisition
       - Database_Installation
       - SCS_Installation
-      - Database_Load
+      - Database_Load  
+      - HighAvailability_Setup
+
     condition: |
       and
       (
@@ -620,7 +676,7 @@ stages:
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
-  - stage: APP_Install
+  - stage:                             APP_Install
     displayName:                       Application Server Install
     dependsOn:
       - Preparation_for_Ansible
@@ -674,7 +730,7 @@ stages:
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
 
-  - stage: WebDispatcher_Installation
+  - stage:                             WebDispatcher_Installation
     displayName:                       WebDispatcher Installation
     condition:                         eq(${{ parameters.webdispatcher_installation }}, true)
     dependsOn:
@@ -720,60 +776,6 @@ stages:
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
-
-  - stage:                             HighAvailability_Setup
-    displayName:                       High Availability Setup
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - Database_Load
-    condition: |
-      and
-      (
-        eq(${{ parameters.high_availability_configuration }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
-        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
-        in(dependencies.Database_Load.result, 'Succeeded', 'Skipped'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job:                           HighAvailability_Setup
-        displayName:                   High Availability Setup
-        variables:
-          SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
-          CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
-
-        steps:
-          - checkout:                  self
-            persistCredentials:        true
-          - download:                  current
-            artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey      
-          - task:                      Ansible@0
-            displayName:               High Availability Setup
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-            continueOnError:           false
-            name: HA
 
   - stage: Post_Installation_Steps
     displayName:                       Post Installation Steps

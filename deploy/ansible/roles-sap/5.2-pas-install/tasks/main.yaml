@@ -135,8 +135,12 @@
     - not pas_installed.stat.exists
 
 - name:                                "PAS Install: - status"
-  ansible.builtin.debug:
-    msg:                               "PAS Installation is already performed"
+  block:
+    
+    - name:                                "PAS Install: - status"
+      ansible.builtin.debug:
+        msg:                           "PAS Installation is already performed"
+
   when:
     -  pas_installed.stat.exists
 
