@@ -106,8 +106,9 @@ variable "order_deployment" {
 variable "use_observer" {
 }
 
-
-
+variable "landscape_tfstate" {
+  description = "Landscape remote tfstate file"
+}
 
 locals {
   // Imports database sizing information
@@ -415,5 +416,7 @@ locals {
   //PPG control flag
   no_ppg = var.databases[0].no_ppg
 
+  dns_label               = try(var.landscape_tfstate.dns_label, "")
+  dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
 
 }

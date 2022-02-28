@@ -5,10 +5,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# For each supported 'distro_id' we want a list of dictionary entries that
+# For each supported 'distribution_id' we want a list of dictionary entries that
 # specify the associated tier (or 'all' to always match), the package name,
 # and whether we want the package to be installed (present) or removed
-# (absent). See the definition of 'distro_id' to determine what to use when
+# (absent). See the definition of 'distribution_id' to determine what to use when
 # creating an entry for a new distribution.
 packages:
   redhat7:
@@ -213,6 +213,7 @@ packages:
     - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8
+  sles_sap15.1:
   sles_sap15.2:
   sles_sap15.3:
 

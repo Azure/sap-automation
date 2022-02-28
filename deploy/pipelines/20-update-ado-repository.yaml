@@ -16,7 +16,7 @@ parameters:
   - name:                              branch
     displayName:                       Source branch to update from
     type:                              string
-    default:                           private-preview
+    default:                           main
 
   - name:                              force
     displayName:                       Force the update
@@ -65,7 +65,7 @@ stages:
                 git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch) >> /tmp/$(log) 2>&1
               else
                 echo "running git push to ADO" >> /tmp/$(log) 2>&1
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(branch) >> /tmp/$(log) 2>&1
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push >> /tmp/$(log) 2>&1
               fi
               cat /tmp/$(log)
             displayName:               Update ADO repository

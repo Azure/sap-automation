@@ -31,16 +31,21 @@
   when:                                node_tier == 'scs'
 
 # Returns bom object
-- name:                                "SCS HA Install: Include 3.3.1-bom-utility role"
+- name:                                "SCS HA Install: Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "SCS HA Install: "
 
-- name:                                "SCS HA Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "SCS HA Install: Register BoM templates"
   ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
+  vars:
+    task_prefix:                       "SCS HA Install: "
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -79,6 +84,7 @@
         msg:                          
           - "INIFILE:    {{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.scs_ha }}"
+          - "HOST:       {{ scs_virtual_hostname }}"
         verbosity:                     2
 
 # *====================================4=======================================8
@@ -97,12 +103,23 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:
         - skip_ansible_lint
       when:                            node_tier == 'scs'
+
+    - name:                            "SCS HA Install: Installation results"
+      ansible.builtin.debug:
+        var:                           scs_installation
+      when:                            scs_installation.rc > 0
+
+    - name:                            "SCS HA Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SCS HA Installation succeeded"
+      when:                            scs_installation.rc == 0
 
     - name:                            "SCS HA Install: flag"
       ansible.builtin.file:
@@ -113,8 +130,14 @@
   when:
     - node_tier == 'scs'
     - not scs_installed.stat.exists
-      # Skip when TRUE (test mode)
-      # when: not test_new_bom
+
+- name:                                "SCS Install status"
+  ansible.builtin.debug:
+    msg:                               "SCS is already installed"
+  when:
+    - "'scs' in supported_tiers"
+    -  scs_installed.stat.exists
+
 
 ...
 # /*---------------------------------------------------------------------------8

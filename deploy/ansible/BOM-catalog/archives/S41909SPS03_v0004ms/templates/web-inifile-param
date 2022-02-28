@@ -67,7 +67,7 @@ NW_GetSidNoProfiles.sid = X00
 
 # If  this parameter is set to 'true' the message server is configured, that is parameters 'msHost', 'backEndSID', and 'msHTTPPost' are mandatory.
 # NW_Webdispatcher_Instance.configureSystemConnectivity = true
-
+ 
 # SAP Web Dispatcher instance number. Leave empty for default.
 NW_Webdispatcher_Instance.wdInstanceNumber = 00
 

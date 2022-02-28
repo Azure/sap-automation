@@ -39,6 +39,7 @@
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+    db_virtual_host:                   "{% if db_high_availability %}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -46,12 +47,15 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "APP Install: "
 
 - name:                                "APP Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
+    task_prefix:                       "APP Install: "
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
     sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
     sap_cd_package_cd2:
@@ -65,7 +69,7 @@
     sap_installSAPHostAgent:           "false"
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+    sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') | first }}"
     sap_appVirtualHostname:            "{{ inventory_hostname }}"
   tags:
@@ -73,7 +77,15 @@
 
 - name:                                "App install: register variables"
   ansible.builtin.set_fact:
-    app_bom_id:                        "{% if scs_high_availability %}{{ bom.product_ids.app_ha }}{% else %}{{ bom.product_ids.app }}{% endif %}"
+    app_bom_id:                        "{{ bom.product_ids.app }}"
+
+- name:                                "App Install: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ app_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.app }}"
+      - "DBHOST:     {{ db_virtual_host }}"
 
 - name:                                "APP Install"
   block:
@@ -82,13 +94,6 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-
-    - name:                            "APP Install: debug variables"
-      ansible.builtin.debug:
-        msg:
-          - "{{ sap_inifile }}"
-          - "{{ app_bom_id }}"
-        verbosity:                     2
 
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
@@ -100,11 +105,23 @@
         chdir:                         /usr/sap/install/SWPM
         creates:                       /etc/sap_deployment_automation/sap_deployment_app.txt
       environment:
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        /usr/sap/install
       register:                        app_installation
       failed_when:                     app_installation.rc > 0
       tags:
         - skip_ansible_lint
+
+
+    - name:                            "APP Install: Installation results"
+      ansible.builtin.debug:
+        var:                           app_installation
+      when:                            app_installation.rc > 0
+
+    - name:                            "APP Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "APP Installation succeeded"
+      when:                            app_installation.rc == 0
 
     - name:                            "APP Install: flag"
       ansible.builtin.file:
@@ -115,6 +132,13 @@
 
   when:
     - not app_installed.stat.exists
+
+- name:                                "APP Install: - status"
+  ansible.builtin.debug:
+    msg:                               "APP Installation is already performed"
+  when:
+    -  app_installed.stat.exists
+
 # *====================================4=======================================8
 
 ...

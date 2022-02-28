@@ -6,7 +6,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                Ensure systemctl daemon is reloaded
+- name:                                "1.17 Generic Pacemaker - Ensure systemctl daemon is reloaded"
   ansible.builtin.systemd:
     daemon_reload:                     true
 
@@ -14,7 +14,7 @@
 # network plugin from removing the virtual IP address (Pacemaker must control
 # the VIP assignment)
 # Refer to: https://www.suse.com/support/kb/doc/?id=7023633 for more information
-- name:                                Ensure that network interface is not managed by cloud network plugin
+- name:                                "1.17 Generic Pacemaker - Ensure that network interface is not managed by cloud network plugin"
   become:                              true
   ansible.builtin.lineinfile:
     path:                              /etc/sysconfig/network/ifcfg-eth0
@@ -27,40 +27,34 @@
     - cloudnetmanage
 
 # Configure SSH Keys for inter-node communication as root
-- name:                                Ensure there are SSH keys for the root user to communicate between nodes
+- name:                                "1.17 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
   ansible.builtin.command:             ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
   args:
     creates:                           /root/.ssh/id_rsa
 
-- name:                                Ensure there is a public key for the root user SSH key
+- name:                                "1.17 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
   ansible.builtin.shell:               ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
   args:
     creates:                           /root/.ssh/id_rsa.pub
 
-- name:                                Ensure the Public SSH keys are available for exchanging SSH key trust between nodes
+- name:                                "1.17 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
   ansible.builtin.command:             cat /root/.ssh/id_rsa.pub
   register:                            cluster_public_ssh_key
   changed_when:                        false
 
-- name:                                Ensure the Primary Node public key is authorized on all nodes, required for crm_clustering
+- name:                                "1.17 Generic Pacemaker - Ensure the Primary Node public key is authorized on all nodes, required for crm_clustering"
   ansible.builtin.authorized_key:
     user:                              root
     key:                               "{{ hostvars[primary_instance_name].cluster_public_ssh_key.stdout }}"
+  when:                                ansible_hostname != primary_instance_name
 
-- name:                                Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering
+- name:                                "1.17 Generic Pacemaker - Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering"
   ansible.builtin.authorized_key:
     user:                              root
     key:                               "{{ hostvars[secondary_instance_name].cluster_public_ssh_key.stdout }}"
-
+  when:                                ansible_hostname != secondary_instance_name
 
 # Clustering commands are based on the Host OS
-- name:                                "Cluster based on OS on VM {{ ansible_hostname }}"
+- name:                                "1.17 Generic Pacemaker - Cluster based on {{ ansible_os_family }} on VM {{ ansible_hostname }}"
   include_tasks:                       "1.17.2.0-cluster-{{ ansible_os_family }}.yml"
   when:                                cluster_existence_check != 0
-
-# HLI not in scope for the MVP release
-# - name: Ensure cluster is configured in Large Instance
-#  include_tasks: "cluster-{{ ansible_os_family }}-large-instance.yml"
-#  when:
-#    - hdb_size == "LargeInstance"
-#    - ansible_os_family == "Suse"

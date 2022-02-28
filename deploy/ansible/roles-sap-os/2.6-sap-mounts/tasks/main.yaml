@@ -30,11 +30,15 @@
     nfs_server:                        "{{ nfs_server_temp | first }}"
   when:                                NFS_provider != "AFS"
 
+- name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
+  ansible.builtin.set_fact:
+    usr_sap_install_mount_point:        "{% if NFS_provider == 'AFS' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:/usr/sap/install{% endif %}"
+
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
     msg:
       - "NFS Provider: {{ NFS_provider }}"                             
-      - "Install path: {{ usr_sap_install_path }}"                             
+      - "Install path: {{ usr_sap_install_mount_point }}"                             
     verbosity:                         2
 
 # Mount Filesystems
@@ -136,7 +140,7 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
+    - { type: 'nfs4', src: '{{ usr_sap_install_mount_point }}', path: '/usr/sap/install' }
   when:
     - tier == 'sapos'
     - node_tier != 'scs'
