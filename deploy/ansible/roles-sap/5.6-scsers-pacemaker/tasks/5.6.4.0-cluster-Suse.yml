@@ -124,6 +124,10 @@
         -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
         -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
+    - name:                             "ERS - Pause"
+      ansible.builtin.pause:
+        seconds: 15
+
     - name:                            "ERS - Install on Secondary host"
       include_role:
         name:                          roles-sap/5.0.2-ers-ha-install

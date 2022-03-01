@@ -9,18 +9,14 @@
 # 3. create os based cluster resources yaml where you actually create the cluster resources
 
 # Clustering commands are based on the Host OS
-- name:                                Cluster based on OS in VM
-  debug:
-    msg:                               "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
-
-- name:                                Cluster based on OS in VM
+- name:                                "HA SCS SAP - Cluster based on OS in VM"
   include_tasks:                       "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
-  #when:                                cluster_existence_check_result.rc != 0
+  when:                                cluster_existence_check_result.rc != 0
 
-- name:                                "Profile"
+- name:                                "HA SCS SAP - profile"
   include_tasks:                       "5.6.4.1-scsersprofile.yaml"
 
-- name:
+- name:                                "HA SCS SAP resources"
   include_tasks:                       "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
 
 ...
