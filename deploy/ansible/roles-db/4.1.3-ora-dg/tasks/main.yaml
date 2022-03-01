@@ -10,8 +10,10 @@
 - import_tasks: "ora-dg-prep.yaml"
   when:   node_tier == "oracle"
 
-- import_tasks: "ora-dg-prep.yaml"
-  when:   node_tier == "oracle"
+# - import_tasks: "ora-dg-observer-setup.yaml"
+#   when:   node_tier == "observer"
+
+
  
 
 ...

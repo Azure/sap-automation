@@ -133,7 +133,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_DB_FIRST"
+- hosts:                               "{{ sap_sid|upper }}_DB[0]"
 
   name:                                DB Installation - ORACLE
   remote_user:                         "{{ orchestration_ansible_user }}"

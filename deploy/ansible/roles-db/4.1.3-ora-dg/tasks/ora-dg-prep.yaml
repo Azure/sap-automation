@@ -7,20 +7,20 @@
 # | Step 1 create the SQL scripts for DG                                       |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "Add environment variables to the Bash profile"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.blockinfile:
-    path: /home/oracle/.bashrc
-    insertafter: 'fi '
-    block: |
-        #User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_version }}
-        export ORACLE_SID={{ db_sid }} 
-        export ORACLE_BASE=/oracle
-        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
-        export TNS_ADMIN=$ORACLE_HOME/network/admin
-        export DB_SID={{ db_sid}}
+# - name:                                "Add environment variables to the Bash profile"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.blockinfile:
+#     path: /home/oracle/.bashrc
+#     insertafter: 'fi '
+#     block: |
+#         #User Specific environment
+#         export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_version }}
+#         export ORACLE_SID={{ db_sid }} 
+#         export ORACLE_BASE=/oracle
+#         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+#         export TNS_ADMIN=$ORACLE_HOME/network/admin
+#         export DB_SID={{ db_sid}}
 
 
 - name:                                "create enablearchivelog.sql"
@@ -28,7 +28,7 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/enablearchivelog.sql
+    path: /etc/sap_deployment_automation/dgscripts/enablearchivelog.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
@@ -36,6 +36,7 @@
         STARTUP MOUNT; 
         ALTER DATABASE ARCHIVELOG; 
         ALTER DATABASE OPEN;
+        exit
     mode: 0755
 
 
@@ -44,15 +45,15 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/standbyredologs.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/standbyredologs.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
-        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl1.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl2.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl3.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/ORA/oraarch/standbylog/srl4.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl1.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl2.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl3.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl4.dbf' size 400M reuse;
+        exit
     mode: 0755
 
 
@@ -61,13 +62,13 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/enableforcelogging.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/enableforcelogging.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
          ALTER DATABASE FORCE LOGGING; 
          ALTER SYSTEM SWITCH LOGFILE;
+         exit
     mode: 0755
 
 
@@ -76,13 +77,13 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/turnonflashback.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/turnonflashback.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
          ALTER DATABASE FLASHBACK ON;
          ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
+         exit
     mode: 0755
 
 - name:                                "create createpfile.sql"
@@ -90,12 +91,12 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/createpfile.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/createpfile.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
          CREATE PFILE FROM SPFILE;
+         exit
     mode: 0755
 
 - name:                                "create createspfile.sql"
@@ -103,25 +104,56 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/createspfile.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/createspfile.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
          CREATE SPFILE FROM PFILE;
+         exit
     mode: 0755
+
+- name:                                "create secondarystartup.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /etc/sap_deployment_automation/dgscripts/secondarystartup.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid|upper }}.ora;
+         exit
+    mode: 0755
+
+# - name:                                "create parametersdg.sql"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.blockinfile:
+#     create: yes
+#     path: /oracle/sap_deployment_automation/dgscripts/parametersdg.sql
+#     marker: "--"
+#     marker_begin: "-- BEGIN"
+#     marker_end:   "-- END"
+#     block: |
+#          ALTER SYSTEM SET dg_broker_start=TRUE;
+#          ALTER SYSTEM SET log_archive_dest_1='location="/oracle/{{ db_sid|upper }}/oraarch/{{ db_sid|upper }}arch")'
+
+
+
+#          exit
+#     mode: 0755
 
 - name:                                "create dgstatus.sql"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/dgstatus.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/dgstatus.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
          select  instance_name, status, database_role from v$database, v$instance;
+         exit
     mode: 0755
 
 - name:                                "create enabledgbroker.sql"
@@ -129,12 +161,12 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/enabledgbroker.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/enabledgbroker.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
          ALTER SYSTEM SET dg_broker_start=true;
+         exit
     mode: 0755
 
 
@@ -243,45 +275,98 @@
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host != ora_primary
 
-- name:                                "create dgconfig.sql"
+# - name:                                "create dgconfig.sh"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.blockinfile:
+#     create: yes
+#     path: /etc/sap_deployment_automation/dgscripts/dgconfig.sh
+#     marker_begin: "-- BEGIN"
+#     marker_end:   "-- END"
+#     block: |
+#          CREATE CONFIGURATION  {{ db_sid }}_dg_config AS PRIMARY DATABASE IS {{ db_sid }} CONNECT IDENTIFIER IS {{ db_sid }};
+#          ADD DATABASE {{ db_sid }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid }}_STDBY MAINTAINED AS PHYSICAL;
+#          ENABLE CONFIGURATION
+#          exit
+#     mode: 0755
+#   when: current_host == ora_primary
+
+- name:                               "create dgconfig.sh"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              dgconfig.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/dgconfig.dgmgrl"
+    mode:                             0644
+    force:                            true
+  when:  current_host == ora_primary
+
+- name:                               "create rman-restore.rman"
+  become:                             yes
+  become_user:                        oracle
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              rman-restore.j2
+    dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
+    mode:                             0644
+    force:                            true
+  when:  current_host == ora_secondary
+
+- name:                                "create secondarystartup.sql"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create: yes
-    path: /oracle/sap_deployment_automation/dgscripts/dgconfig.sql
-    marker: "--"
+    path: /etc/sap_deployment_automation/dgscripts/secondarystartup.sql
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
-         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "CREATE CONFIGURATION  {{ db_sid }}_dg_config AS PRIMARY DATABASE IS {{ db_sid }} CONNECT IDENTIFIER IS {{ db_sid }}";
-         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ADD DATABASE {{ db_sid }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid }}_STDBY" MAINTAINED AS PHYSICAL;
-         host dgmgrl sys/{{ main_password }}@{{ db_sid }} "ENABLE CONFIGURATION"
+         STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid|upper }}.ora;
+         exit
     mode: 0755
-  when: current_host == ora_primary
-
-#Copy the initSID.ora from primary to secondary
-
-- name: Copy initSID.ora to templocation
-  ansible.builtin.copy:
-    src: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/init{{ db_sid|upper  }}.ora
-    dest: /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
-    owner: foo
-    group: foo
-    mode: '0644'
-  when: current_host == ora_primary
-
-
-- name: Copy initSID.ora to Secondary
-  ansible.builtin.copy:
-    src:  /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
-    dest: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/init{{ db_sid|upper  }}.ora
-    owner: foo
-    group: foo
-    mode: '0644'
   when: current_host == ora_secondary
 
-- import_task: ora-dg-observer-setup.yaml
-  when: node_tier == 'observer'
+# - name:                                "create rmanduplicate.rman"
+#   become:                              true
+#   become_user:                         "oracle"
+#   ansible.builtin.blockinfile:
+#     create: yes
+#     path: /etc/sap_deployment_automation/dgscripts/rmanduplicate.rman
+#     marker_begin: "-- BEGIN"
+#     marker_end:   "-- END"
+#     block: |
+#          rman TARGET sys/{{ main_password }}@{{ db_sid| upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid| upper }}_STDBY; 
+#          rman DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER SPFILE SET db_unique_name='{{ db_sid| upper }}_STDBY' COMMENT 'Is standby' NOFILENAMECHECK;
+#     mode: 0755
+#   when: current_host == ora_secondary
+
+
+# #Copy the spfileSID.ora from primary to secondary
+
+# - name: Copy spfileSID.ora to templocation
+#   ansible.builtin.copy:
+#     src: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/spfile{{ db_sid|upper  }}.ora
+#     dest: /usr/sap/install/downloads/spfile{{ db_sid|upper  }}.ora
+#     owner: oracle
+#     group: oinstall
+#     mode: '644'
+#   when: current_host == ora_primary
+
+
+# - name: Copy spfileSID.ora to Secondary
+#   ansible.builtin.copy:
+#     src:  /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
+#     dest: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/init{{ db_sid|upper  }}.ora
+#     owner: oracle
+#     group: oinstall
+#     mode: '0644'
+#   when: current_host == ora_secondary
+
+
+# - import_task: ora-dg-observer-setup.yaml
+#   when: node_tier == 'observer'
+
 
 
 #Copy the listener, sqlnet, tnsnames to oracle folders.

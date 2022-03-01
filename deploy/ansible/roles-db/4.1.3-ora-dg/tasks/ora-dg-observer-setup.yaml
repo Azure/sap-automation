@@ -1,4 +1,28 @@
 
+---
+
+- name:                                Set the NFS Server name
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  when:                                NFS_provider == "NONE"
+
+# Mount Filesystems
+- name:                                Mount Filesystems block
+  block:
+    - name:                            Mount Filesystems when not using external NFS (on observer)
+      ansible.builtin.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          defaults
+        state:                         mounted
+      loop:
+        - { type: 'nfs4',  src: '{{ nfs_server }}:/usr/sap/install',  path: '/usr/sap/install' }
+      when:
+        - node_tier == 'observer'
+        - sap_mnt is undefined
+  
+
 - name:                                "Execute RUNINSTALLER"
   become:                              true
   become_user:                         "oracle"
@@ -74,16 +98,20 @@
 
 #Check if tnsping is working to reach Primary and Secondary databases.
 
-- name:                           "Check TNS Ping"
-  become:
-  become-user:                    "oracle"
-  ansible.builtin.shell: |
-                                  tnsping  {{ ora_primary }} |tee /oracle/sap_primary.log
-                                  tnsping  {{ ora_secondary }} |tee /oracle/sap_primary.log
-  register:                            oratnsping_results
-  failed_when:                         oraprecheck_results.rc >= 1
-  environment:
-  args:
-    executable:                        /bin/bash       
+# - name:                           "Check TNS Ping"
+#   become:                         true
+#   become-user:                    "oracle"
+#   ansible.builtin.shell: |
+#                                   tnsping  {{ ora_primary }} |tee /oracle/sap_primary.log
+#                                   tnsping  {{ ora_secondary }} |tee /oracle/sap_primary.log
+#   register:                            oratnsping_results
+#   failed_when:                         oraprecheck_results.rc >= 1
+#   environment:
+#   args:
+#     executable:                        /bin/bash       
     
 
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
