@@ -39,7 +39,7 @@
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
-    db_virtual_host:                   "{% if db_high_availability %}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}{% endif %}"
+    db_virtual_host:                   "{% if db_high_availability %}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
