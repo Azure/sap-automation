@@ -86,6 +86,16 @@
           - "PRODUCT ID: {{ bom.product_ids.ers_ha }}"
         verbosity:                     2
 
+    - name:                            "ERS - Assign ownership"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        owner:                         "{{ sidadm_uid }}"
+        group:                         sapsys
+        recurse:                       true
+        state:                         directory
+      loop:
+        -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
+
     - name:                            SAP ERS install command
       ansible.builtin.debug:
         msg:                           ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}
@@ -98,7 +108,7 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "ERS Install: SAPINST"
+    - name:                            "ERS Install: SAPInst"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \

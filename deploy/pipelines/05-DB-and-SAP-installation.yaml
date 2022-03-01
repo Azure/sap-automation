@@ -30,6 +30,7 @@ parameters:
       - S41909SPS03_v0008ms
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
+      - ORACLE_19_00_v0002ms
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
@@ -56,6 +57,11 @@ parameters:
     type:                              boolean
     default:                           true
 
+  - name:                              high_availability_configuration
+    displayName:                       SAP & DB High Availability Setup
+    type:                              boolean
+    default:                           true
+
   - name:                              db_load
     displayName: Database Load
     type:                              boolean
@@ -73,11 +79,6 @@ parameters:
 
   - name:                              webdispatcher_installation
     displayName:                       WebDispatcher Installation
-    type:                              boolean
-    default:                           false
-
-  - name:                              high_availability_configuration
-    displayName:                       SAP & DB High Availability Setup
     type:                              boolean
     default:                           false
 
@@ -466,6 +467,25 @@ stages:
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+            displayName:               Copy Log files
 
   - stage: SCS_Installation
     displayName:                       SCS Installation
@@ -515,6 +535,25 @@ stages:
               INTERPRETER_PYTHON:            auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+            displayName:               Copy Log files
 
   - stage:                             HighAvailability_Setup
     displayName:                       High Availability Setup
@@ -522,6 +561,7 @@ stages:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
       - Software_Acquisition
+      - SCS_Installation
       - Database_Installation
     condition: |
       and
@@ -530,7 +570,7 @@ stages:
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
         in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
-        in(dependencies.Database_Load.result, 'Succeeded', 'Skipped'),
+        in(dependencies.SCS_Installation.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
     jobs:
@@ -569,7 +609,7 @@ stages:
             continueOnError:           false
             name: HA
 
-  - stage:                             Database_Load
+  - stage: Database_Load
     displayName:                       Database Load
     dependsOn:
       - Preparation_for_Ansible
@@ -584,6 +624,8 @@ stages:
         eq(${{ parameters.db_load }}, true),
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
         in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
+        in(dependencies.SCS_Installation.result, 'Succeeded', 'Skipped'),
+        in(dependencies.HighAvailability_Setup.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
@@ -621,8 +663,27 @@ stages:
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+            displayName:               Copy Log files
 
-  - stage:                             PAS_Installation
+  - stage: PAS_Installation
     displayName:                       PAS Installation
     dependsOn:
       - Preparation_for_Ansible
@@ -630,9 +691,8 @@ stages:
       - Software_Acquisition
       - Database_Installation
       - SCS_Installation
-      - Database_Load  
       - HighAvailability_Setup
-
+      - Database_Load
     condition: |
       and
       (
@@ -675,8 +735,27 @@ stages:
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+            displayName:               Copy Log files
 
-  - stage:                             APP_Install
+  - stage: APP_Install
     displayName:                       Application Server Install
     dependsOn:
       - Preparation_for_Ansible
@@ -685,6 +764,7 @@ stages:
       - Database_Installation
       - SCS_Installation
       - Database_Load
+      - HighAvailability_Setup
       - PAS_Installation
     condition: |
       and
@@ -729,8 +809,27 @@ stages:
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+            displayName:               Copy Log files
 
-  - stage:                             WebDispatcher_Installation
+  - stage: WebDispatcher_Installation
     displayName:                       WebDispatcher Installation
     condition:                         eq(${{ parameters.webdispatcher_installation }}, true)
     dependsOn:
@@ -776,6 +875,25 @@ stages:
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
+          - script: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
+                cd $(Build.Repository.LocalPath)
+                added=0
+                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                  added=1
+                fi
+                if [ 1 == $added ]; then
+                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                fi
+            displayName:               Copy Log files
 
   - stage: Post_Installation_Steps
     displayName:                       Post Installation Steps
@@ -785,10 +903,12 @@ stages:
       - SAP_Operating_System_Configuration
       - Software_Acquisition
       - Database_Installation
+      - SCS_Installation
+      - HighAvailability_Setup
       - Database_Load
       - PAS_Installation
       - APP_Install
-      - HighAvailability_Setup
+      - WebDispatcher_Installation
     jobs:
       - job:                           Post_Installation_Steps
         displayName:                   Post Installation Steps
@@ -813,11 +933,6 @@ stages:
                   git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
                   added=1
                 fi
-                # # if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/$(sap_system_folder)_sshkey ] ; then
-                # #   git rm $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/$(sap_system_folder)_sshkey
-                # #   added=1
-                # # fi
-
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
