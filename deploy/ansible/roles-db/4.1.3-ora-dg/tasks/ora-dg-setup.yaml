@@ -187,7 +187,7 @@
 
 
 
-# Steps to be run on Secondary DB
+# Configuration on the Secondary DB
 
 - name: Copy initSID.ora to Secondary
   become:                              true
