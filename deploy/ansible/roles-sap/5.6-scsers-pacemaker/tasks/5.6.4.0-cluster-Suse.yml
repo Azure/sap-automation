@@ -46,8 +46,10 @@
     - name:                            "5.6 SCSERS - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}"
+        owner:                         '{{ sidadm_uid }}'
         group:                         sapsys
+        recurse:                       true
+        state:                         directory
       loop:
         -  { path: '/sapmnt/{{ sap_sid | upper }}' }
         -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
@@ -115,7 +117,7 @@
     - name:                            "5.6 SCSERS - ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}"
+        owner:                         '{{ sidadm_uid }}'
         group:                         sapsys
         recurse:                       true
         state:                         directory
@@ -125,28 +127,8 @@
         -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
     - name:                            "5.6 SCSERS - ERS - Install on Secondary host"
-      block:
-        - name:                        "5.6 SCSERS - ERS - Install on Secondary host"
-          include_role:
-            name:                      roles-sap/5.0.2-ers-ha-install
-          vars:
-            sap_scs_hostname:          "{{ ers_virtual_hostname }}"
-      rescue:
-        - name:                        "5.6 SCSERS - ERS - Assign ownership"
-          ansible.builtin.file:
-            path:                      "{{ item.path }}"
-            owner:                     "{{ sidadm_uid }}"
-            group:                     sapsys
-            recurse:                   true
-            state:                     directory
-          loop:
-            -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
-
-        - name:                        "5.6 SCSERS - ERS - Install on Secondary host"
-          include_role:
-            name:                      roles-sap/5.0.2-ers-ha-install
-          vars:
-            sap_scs_hostname:          "{{ ers_virtual_hostname }}"
+      include_role:
+        name:                          roles-sap/5.0.2-ers-ha-install
 
     - name:                            "5.6 SCSERS - ERS - Bring Primary host online"
       ansible.builtin.command:         "crm node online {{ primary_instance_name }}"
