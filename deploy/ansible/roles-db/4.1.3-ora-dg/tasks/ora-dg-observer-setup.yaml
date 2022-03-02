@@ -4,7 +4,15 @@
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-  when:                                NFS_provider == "NONE"
+
+# Set Primary and Secondary node names.
+- name:                        "Setting the primary and Secondary DB names"
+  ansible.builtin.set_fact:
+            ora_primary:           "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')[0] }}"         # Oracle Primary Host
+            ora_secondary:         "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')[1] }}"         # Oracle Primary Host         # Oracle Secondary Host
+            current_host:          "{{ ansible_hostname }}"
+
+
 
 # Mount Filesystems
 - name:                                Mount Filesystems block
@@ -21,34 +29,70 @@
       when:
         - node_tier == 'observer'
         - sap_mnt is undefined
-  
+
+- name:                                "CHANGE GUID for oinstall"
+  ansible.builtin.group:
+    name:                               oinstall
+    gid:                                "{{ oinstall_gid }}"
+
+- name:                                "CHANGE GUID for dba"
+  ansible.builtin.group:
+    name:                               dba
+    gid:                                "{{ dba_gid }}"
+
+- name:                                "CHANGE UID for Oracle user"
+  ansible.builtin.user:
+    name:                               oracle
+    uid:                                "{{ oracle_uid }}"
+    group:                              oinstall
+    groups:                             dba,racdba,oper,backupdba,dgdba,kmdba
+
+- name:                                "ORACLE: Create sap_deployment_automation folder"
+  become:                               true
+  become_user:                          root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "Create ORACLE directory"
+  ansible.builtin.file:
+    path:                              /oracle
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 
 - name:                                "Execute RUNINSTALLER"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell: |
                                        set -o errexit
-                                       ./RUNINSTALLER -ohcheck -silent |tee -a /oracle/pre-req.log
-  register:                            oraprecheck_results
-  failed_when:                         oraprecheck_results.rc >= 3
+                                       ./RUNINSTALLER  -ignorePrereqWarnings -silent |tee -a /etc/sap_deployment_automation/install.log
+  register:                            orainstall_results
+  failed_when:                         orainstall_results.rc >= 3
   environment:
-    DB_SID:                            "{{db_sid}}"
+    DB_SID:                            "{{ db_sid|upper }}"
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh        
     chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:                           /etc/sap_deployment_automation/oracleinstalled.txt
 
-    #Create sqlnet.ora .
+- name:                                Create oracleinstalled.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/oracleinstalled.txt
+    state:                             touch
+    mode:                              0755
+  when:  current_host == ora_primary
 
-# Set Primary and Secondary node names.
-- name:                        "Setting the priamry and Secondary DB names"
-  ansible.builtin.set_fact:
-            ora_primary:           "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
-            ora_secondary:         "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
-            current_host:                  "{{ ansible_hostname }}"
-
-
-- name:                               "Create the sqlnet.ora for Secondary"
+#Create sqlnet.ora .
+- name:                               "Create the sqlnet.ora"
   become:                             yes
   become_user:                        oracle
   ansible.builtin.template:
@@ -58,7 +102,7 @@
     mode:                             0644
     force:                            true
   vars:
-    hostname:  "{{ ora_secondary }}"
+    hostname:  "{{ ora_primary }}"
     sap_dbp_hostname: "{{ ora_primary }}"
     sap_dbs_hostname: "{{ ora_secondary }}"
   
@@ -95,22 +139,103 @@
         export DB_SID={{ db_sid}}
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
+  
+- name:                                "create .cshrc"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /home/oracle/.cshrc
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+        #User Specific environment
+        setenv  ORACLE_HOME /oracle/{{ db_sid }}/{{ anydb_release }}
+        setenv  ORACLE_SID  {{ db_sid }} 
+        setenv  ORACLE_BASE /oracle
+        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv  DB_SID {{ db_sid}}
+        set path = ($path $ORACLE_HOME/bin)
+    mode: 0755
 
 #Check if tnsping is working to reach Primary and Secondary databases.
 
-# - name:                           "Check TNS Ping"
-#   become:                         true
-#   become-user:                    "oracle"
-#   ansible.builtin.shell: |
-#                                   tnsping  {{ ora_primary }} |tee /oracle/sap_primary.log
-#                                   tnsping  {{ ora_secondary }} |tee /oracle/sap_primary.log
-#   register:                            oratnsping_results
-#   failed_when:                         oraprecheck_results.rc >= 1
-#   environment:
-#   args:
-#     executable:                        /bin/bash       
-    
+# TNSPING FOR PRIMARY
+- name:                               "TNSPING FOR PRIMARY"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               tnsping {{ ora_primary }} |tee /etc/sap_deployment_automation/tnsping_primary.txt
+  register:                            tnsping_primary_results
+  args:
+    chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
+    executable:                        /bin/bash
 
+# TNSPING FOR SECONDARY
+- name:                               "TNSPING FOR SECONDARY"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               tnsping {{ ora_secondary }} |tee /etc/sap_deployment_automation/tnsping_secondary.txt
+  register:                            tnsping_primary_results
+  args:
+    chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
+    executable:                        /bin/bash
+
+# ENABLE FSFO
+
+#Create the DGMGRL Config file
+
+- name:                               "Create ENABLEFSFO.DGMGRL FILE"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              enablefsfo.j2
+    dest:                             "/etc/sap_deployment_automation/enablefsfo.dgmgrl"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+
+- name:                                " ENABLE FSFO " 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  @enablefsfo.dgmgrl
+  register:                            fsfo_results
+  failed_when:                         fsfo_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/fsfoenabled.txt
+    chdir:                             /etc/sap_deployment_automation/
+    executable:                        /bin/csh
+
+- name:                                Create fsfoenabled.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/fsfoenabled.txt
+    state:                             touch
+    mode:                              0755
+
+- name:                                " START FSFO OBSERVER " 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  "START OBSERVER" &
+  register:                            observer_results
+  failed_when:                         observer_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/observerstarted.txt
+    chdir:                             /etc/sap_deployment_automation/
+    executable:                        /bin/csh
+
+- name:                                Create observerstarted.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/observerstarted.txt
+    state:                             touch
+    mode:                              0755
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

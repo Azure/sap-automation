@@ -125,24 +125,6 @@
          exit
     mode: 0755
 
-# - name:                                "create parametersdg.sql"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.blockinfile:
-#     create: yes
-#     path: /oracle/sap_deployment_automation/dgscripts/parametersdg.sql
-#     marker: "--"
-#     marker_begin: "-- BEGIN"
-#     marker_end:   "-- END"
-#     block: |
-#          ALTER SYSTEM SET dg_broker_start=TRUE;
-#          ALTER SYSTEM SET log_archive_dest_1='location="/oracle/{{ db_sid|upper }}/oraarch/{{ db_sid|upper }}arch")'
-
-
-
-#          exit
-#     mode: 0755
-
 - name:                                "create dgstatus.sql"
   become:                              true
   become_user:                         "oracle"

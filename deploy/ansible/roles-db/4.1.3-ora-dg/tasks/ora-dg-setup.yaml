@@ -32,7 +32,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/archiveenabledonprimary.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:
     - not archive_primary_stat.stat.exists
     - current_host == ora_primary
@@ -61,7 +61,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/enableforcelogin.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:
     - not forcelogin_stat.stat.exists
 
@@ -92,7 +92,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/standbyredologs.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:  current_host == ora_primary
 
 - name:                                Create standbyredologs.txt
@@ -113,7 +113,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/turnonflashback.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:  current_host == ora_primary
 
 - name:                                Create turnonflashback.txt
@@ -135,7 +135,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/createpfile.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:  current_host == ora_primary
 
 - name:                                Create createpfile.txt
@@ -171,7 +171,7 @@
 #   args:
 #     creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
 #     chdir:                             /etc/sap_deployment_automation/dgscripts
-#     executable:                        /bin/bash
+#     executable:                        /bin/csh
 
 #Copy the initSID.ora from primary to secondary
 
@@ -330,7 +330,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:                                current_host == ora_secondary
 
 - name:                                Create lsnrctl_started_sec.txt
@@ -351,7 +351,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/secondarystarted.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when: current_host == ora_secondary
 
 - name:                                Create secondarystartup.txt
@@ -373,7 +373,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/restorecompleted.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when: current_host == ora_secondary
 
 - name:                                Create restorecompleted.txt
@@ -394,7 +394,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:                                current_host == ora_secondary
 
 - name:                                Create enabledgbroker.txt
@@ -418,7 +418,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:                                current_host == ora_primary
 
 - name:                                Create lsnrctl_started_sec.txt
@@ -440,7 +440,7 @@
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/dgconfig.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
-    executable:                        /bin/bash
+    executable:                        /bin/csh
   when:                                current_host == ora_primary
 
 - name:                                Create dgconfig.txt
