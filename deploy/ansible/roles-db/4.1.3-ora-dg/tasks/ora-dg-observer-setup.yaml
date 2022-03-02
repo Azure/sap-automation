@@ -1,20 +1,24 @@
-
 ---
-
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
 
-# Set Primary and Secondary node names.
-- name:                        "Setting the primary and Secondary DB names"
-  ansible.builtin.set_fact:
-            ora_primary:           "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')[0] }}"         # Oracle Primary Host
-            ora_secondary:         "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')[1] }}"         # Oracle Primary Host         # Oracle Secondary Host
-            current_host:          "{{ ansible_hostname }}"
+# # Set Primary and Secondary node names.
+# - name:                                "Set the  Server names"
+#   ansible.builtin.set_fact:
+#     ora_primary:                       "{{ sap_sid|upper }}_DB[0]"
+#     ora_secondary:                     "{{ sap_sid|upper }}_DB[1]"
+#     current_host:                      "{{ ansible_hostname }}"
 
+- name: show all the database hosts
+  debug:
+    msg: "{{ item }}"
+  with_inventory_hostnames:
+    - all: '"{{ sap_sid|upper }}"_DB'
 
 
 # Mount Filesystems
+
 - name:                                Mount Filesystems block
   block:
     - name:                            Mount Filesystems when not using external NFS (on observer)
@@ -89,39 +93,48 @@
     path:                              /etc/sap_deployment_automation/oracleinstalled.txt
     state:                             touch
     mode:                              0755
-  when:  current_host == ora_primary
 
-#Create sqlnet.ora .
-- name:                               "Create the sqlnet.ora"
-  become:                             yes
-  become_user:                        oracle
-  ansible.builtin.template:
-    backup:                           yes
-    src:                              sqlnet.ora.j2
-    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora"
-    mode:                             0644
-    force:                            true
-  vars:
-    hostname:  "{{ ora_primary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
+  #Create SQLNET.ORA .
+
+- name: Copy TNSNAMES.ORA TO OBSERVER
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:  /usr/sap/install/downloads/sqlnet.ora
+    dest: /oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora
+    remote_src:                         yes
+    owner: oracle
+    group: oinstall
+
+
+# #Create sqlnet.ora .
+# - name:                               "Create the sqlnet.ora"
+#   become:                             yes
+#   become_user:                        oracle
+#   ansible.builtin.template:
+#     backup:                           yes
+#     src:                              sqlnet.ora.j2
+#     dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora"
+#     mode:                             0644
+#     force:                            true
+#   vars:
+#     hostname:  "{{ ora_primary }}"
+#     sap_dbp_hostname: "{{ ora_primary }}"
+#     sap_dbs_hostname: "{{ ora_secondary }}"
   
 
   #Create tnsnames.ora .
 
-- name:                               "Create the tnsnames file for Primary"
-  become:                             yes
-  become_user:                        oracle
-  ansible.builtin.template:
-    backup:                           yes
-    src:                              tnsnames_primary.j2
-    dest:                             "/oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora"
-    mode:                             0644
-    force:                            true
-  vars:
-    hostname:  "{{ ora_primary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
+- name: Copy TNSNAMES.ORA TO OBSERVER
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:  /usr/sap/install/downloads/tnsnames.ora
+    dest: /oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora
+    remote_src:                         yes
+    owner: oracle
+    group: oinstall
+  
   
 - name:                                "Add environment variables to the Bash profile"
   become:                              true
@@ -131,12 +144,12 @@
     insertafter: 'fi '
     block: |
         #User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_version }}
-        export ORACLE_SID={{ db_sid }} 
+        export ORACLE_HOME=/oracle/{{ db_sid|upper }}/{{ ora_version }}
+        export ORACLE_SID={{ db_sid|upper }} 
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
-        export DB_SID={{ db_sid}}
+        export DB_SID={{ db_sid|upper }}
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
   
@@ -150,12 +163,12 @@
     marker_end:   "-- END"
     block: |
         #User Specific environment
-        setenv  ORACLE_HOME /oracle/{{ db_sid }}/{{ anydb_release }}
-        setenv  ORACLE_SID  {{ db_sid }} 
+        setenv  ORACLE_HOME /oracle/{{ db_sid|upper }}/{{ anydb_release }}
+        setenv  ORACLE_SID  {{ db_sid|upper }} 
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-        setenv  DB_SID {{ db_sid}}
+        setenv  DB_SID {{ db_sid|upper }}
         set path = ($path $ORACLE_HOME/bin)
     mode: 0755
 
@@ -165,21 +178,21 @@
 - name:                               "TNSPING FOR PRIMARY"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               tnsping {{ ora_primary }} |tee /etc/sap_deployment_automation/tnsping_primary.txt
+  ansible.builtin.shell:               tnsping {{ db_sid|upper }} |tee /etc/sap_deployment_automation/tnsping_primary.txt
   register:                            tnsping_primary_results
   args:
     chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
-    executable:                        /bin/bash
+    executable:                        /bin/csh
 
 # TNSPING FOR SECONDARY
 - name:                               "TNSPING FOR SECONDARY"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               tnsping {{ ora_secondary }} |tee /etc/sap_deployment_automation/tnsping_secondary.txt
+  ansible.builtin.shell:               tnsping {{ db_sid|upper }}_STDBY |tee /etc/sap_deployment_automation/tnsping_secondary.txt
   register:                            tnsping_primary_results
   args:
     chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
-    executable:                        /bin/bash
+    executable:                        /bin/csh
 
 # ENABLE FSFO
 
@@ -194,15 +207,11 @@
     dest:                             "/etc/sap_deployment_automation/enablefsfo.dgmgrl"
     mode:                             0644
     force:                            true
-  vars:
-    hostname:  "{{ ora_primary }}"
-    sap_dbp_hostname: "{{ ora_primary }}"
-    sap_dbs_hostname: "{{ ora_secondary }}"
 
 - name:                                " ENABLE FSFO " 
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  @enablefsfo.dgmgrl
+  ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  @enablefsfo.dgmgrl |tee /etc/sap_deployment_automation/fsfoenabled.log
   register:                            fsfo_results
   failed_when:                         fsfo_results.rc > 0
   args:
@@ -236,6 +245,9 @@
     path:                              /etc/sap_deployment_automation/observerstarted.txt
     state:                             touch
     mode:                              0755
+
+
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

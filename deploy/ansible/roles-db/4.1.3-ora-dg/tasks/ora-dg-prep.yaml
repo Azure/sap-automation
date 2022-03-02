@@ -221,6 +221,24 @@
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host == ora_primary
 
+# tnsnames for observer
+
+- name:                               "Create the tnsnames file for Observer"
+  become:                             yes
+  become_user:                        root
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              tnsnames_primary.j2
+    dest:                             "/usr/sap/install/downloads/tnsnames.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host == ora_primary
+
+
 
 #Create tnsnames.ora for secondary node.
 
@@ -256,6 +274,22 @@
     sap_dbp_hostname: "{{ ora_primary }}"
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host != ora_primary
+
+- name:                               "Create the sqlnet.ora for Observer"
+  become:                             yes
+  become_user:                        root
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              sqlnet.ora.j2
+    dest:                             "/usr/sap/install/downloads/sqlnet.ora"
+    mode:                             0644
+    force:                            true
+  vars:
+    hostname:  "{{ ora_primary }}"
+    sap_dbp_hostname: "{{ ora_primary }}"
+    sap_dbs_hostname: "{{ ora_secondary }}"
+  when:  current_host != ora_primary
+
 
 # - name:                                "create dgconfig.sh"
 #   become:                              true
@@ -309,49 +343,7 @@
     mode: 0755
   when: current_host == ora_secondary
 
-# - name:                                "create rmanduplicate.rman"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.blockinfile:
-#     create: yes
-#     path: /etc/sap_deployment_automation/dgscripts/rmanduplicate.rman
-#     marker_begin: "-- BEGIN"
-#     marker_end:   "-- END"
-#     block: |
-#          rman TARGET sys/{{ main_password }}@{{ db_sid| upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid| upper }}_STDBY; 
-#          rman DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER SPFILE SET db_unique_name='{{ db_sid| upper }}_STDBY' COMMENT 'Is standby' NOFILENAMECHECK;
-#     mode: 0755
-#   when: current_host == ora_secondary
 
-
-# #Copy the spfileSID.ora from primary to secondary
-
-# - name: Copy spfileSID.ora to templocation
-#   ansible.builtin.copy:
-#     src: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/spfile{{ db_sid|upper  }}.ora
-#     dest: /usr/sap/install/downloads/spfile{{ db_sid|upper  }}.ora
-#     owner: oracle
-#     group: oinstall
-#     mode: '644'
-#   when: current_host == ora_primary
-
-
-# - name: Copy spfileSID.ora to Secondary
-#   ansible.builtin.copy:
-#     src:  /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
-#     dest: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/init{{ db_sid|upper  }}.ora
-#     owner: oracle
-#     group: oinstall
-#     mode: '0644'
-#   when: current_host == ora_secondary
-
-
-# - import_task: ora-dg-observer-setup.yaml
-#   when: node_tier == 'observer'
-
-
-
-#Copy the listener, sqlnet, tnsnames to oracle folders.
 
 
 
