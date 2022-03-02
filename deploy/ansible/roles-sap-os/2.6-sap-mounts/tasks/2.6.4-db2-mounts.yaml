@@ -117,6 +117,7 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
     state:                             touch
 
+#check lines from 121 to 133 - This is Oracle based 
 - name:                                "DB2: Make db2sid:dba as owners"
   become:                              true
   become_user:                         root

@@ -10,7 +10,7 @@ defaults:
 product_ids:
   scs:
   scs_ha:
-  dbl:
+  dbl: NW_ABAP_DB:NW750.DB6.ABAP
   pas:
   pas_ha:
   app:
