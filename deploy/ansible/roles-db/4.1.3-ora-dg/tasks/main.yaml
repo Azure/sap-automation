@@ -25,23 +25,16 @@
     - node_tier == "oracle"
     - action == 0
 
-- name:            "RUN in First iteration"
+- name:            "Prepare and Restore"
   block:
     - include_tasks: "ora-dg-prep.yaml"
-      when:   
-        - node_tier == "oracle"
-        - node_tier != "observer"
-    
+      
     - include_tasks: "ora-dg-setup-primary.yaml"
       when:   
-        - node_tier == "oracle"
-        - node_tier != "observer"
         - current_host == ora_primary
     
     - include_tasks: "ora-dg-setup-secondary.yaml"
       when:   
-        - node_tier == "oracle"
-        - node_tier != "observer"
         - current_host == ora_secondary
   when: 
     - action == 1
