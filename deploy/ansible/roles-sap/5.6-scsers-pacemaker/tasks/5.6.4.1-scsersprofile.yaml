@@ -14,7 +14,7 @@
     group:                             haclient
   when:                                ansible_os_family|upper == "SUSE"
 
-- name:                                "5.6 SCSERS - SUSE - Remove the ASCS and ERS service definitions from sapservices file"
+- name:                                "5.6 SCSERS - SUSE - Add the ASCS and ERS service definitions from sapservices file"
   ansible.builtin.lineinfile:
     backup:                            true
     path:                              /usr/sap/sapservices

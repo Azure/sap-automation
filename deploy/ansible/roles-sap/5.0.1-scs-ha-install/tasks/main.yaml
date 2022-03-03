@@ -81,7 +81,7 @@
 
     - name:                            "SCS HA Install: install variables"
       ansible.builtin.debug:
-        msg:                          
+        msg:
           - "INIFILE:    {{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.scs_ha }}"
           - "HOST:       {{ scs_virtual_hostname }}"
@@ -112,9 +112,8 @@
           tags:
             - skip_ansible_lint
           when:                        node_tier == 'scs'
-
       rescue:
-        - name:                            "SCS HA Install: - SCS - Assign ownership"
+        - name:                            "RESCUE - SCS HA Install: - SCS - Assign ownership"
           ansible.builtin.file:
             path:                          "{{ item.path }}"
             owner:                         "{{ sap_sid | lower }}adm"
@@ -126,7 +125,7 @@
             -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
             -  { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
 
-        - name:                        "SCS HA Install: SAPINST"
+        - name:                        "RESCUE - SCS HA Install: SAPINST"
           ansible.builtin.command: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}                       \

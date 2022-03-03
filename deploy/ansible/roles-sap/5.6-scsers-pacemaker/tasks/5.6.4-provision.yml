@@ -24,10 +24,22 @@
   include_tasks:                       "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
   when:                                (not scs_installed.stat.exists) or (not ers_installed.stat.exists)
 
+- name:                                "Post ERS Install: check if installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
+  register:                            post_ers_install
+
+- name:                                "Post SCS HA Install: check if installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
+  register:                            post_scs_install
+
 - name:                                "5.6 SCSERS - profile"
   include_tasks:                       "5.6.4.1-scsersprofile.yaml"
+  when:                                (post_scs_install.stat.exists) and (post_ers_install.stat.exists)
 
 - name:                                "5.6 SCSERS - resources"
   include_tasks:                       "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
+  when:                                (ersservicehalib is defined) and (scsservicehalib is defined)
 
 ...

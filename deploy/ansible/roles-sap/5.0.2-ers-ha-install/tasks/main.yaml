@@ -81,7 +81,7 @@
 
     - name:                            "ERS Install: install variables"
       ansible.builtin.debug:
-        msg: 
+        msg:
           - "INIFILE:    {{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.ers_ha }}"
         verbosity:                     2
@@ -127,7 +127,7 @@
           tags:
             - skip_ansible_lint
       rescue:
-        - name:                            "ERS Install: Assign ownership"
+        - name:                            "RESCUE - ERS Install: Assign ownership"
           ansible.builtin.file:
             path:                          "{{ item.path }}"
             owner:                         "{{ sap_sid | lower }}adm"
@@ -139,7 +139,7 @@
             -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
             -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
-        - name:                        "ERS Install: SAPInst"
+        - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \

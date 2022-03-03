@@ -115,7 +115,7 @@
             - name:                    "SCS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
-                
+
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
               ansible.builtin.file:
@@ -276,9 +276,9 @@
                 prefix:                "{{ scs_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
-              when:                    
-               - scs_bom_id is defined
-               - node_tier == 'scs'
+              when:
+                - scs_bom_id is defined
+                - node_tier == 'scs'
 
 
             - name:                    "SCS HA Installation Playbook: - Run post installation routines ERS"
@@ -289,9 +289,9 @@
                 prefix:                "{{ ers_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
-              when:                    
-               - ers_bom_id is defined
-               - node_tier == 'ers'
+              when:
+                - ers_bom_id is defined
+                - node_tier == 'ers'
 
             - name:                    "SCS HA Installation Playbook: - Get the Error lines from installation output (SCS)"
               ansible.builtin.set_fact:
