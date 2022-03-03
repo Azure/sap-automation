@@ -1,0 +1,73 @@
+---
+
+# - name:                     Setting the primary and Secondary DB names
+#   ansible.builtin.set_fact:
+#     ora_primary:           "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+#     ora_secondary:         "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+#     current_host:          "{{ ansible_hostname }}"
+#   when:                     node_tier == "oracle"
+
+
+- name:                                " Create PFILE on Primary DB to COPY it on SECONDARY" 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @createpfile.sql
+  register:                            createpfile_results
+  failed_when:                         createpfile_results.rc >= 2
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/createpfile.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  #when:  current_host == ora_primary
+
+
+- name:                                Create createpfile.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
+    state:                             touch
+    mode:                              0755
+  #when:  current_host == ora_primary
+
+
+#Copy the initSID.ora from primary to secondary
+
+- name: Copy initSID.ora to templocation
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/init{{ db_sid|upper  }}.ora
+    dest: /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
+    remote_src:                         yes
+    owner: oracle
+    group: oinstall
+  #when: current_host == ora_primary
+
+- name: Copy orapwSID to templocation
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/orapw{{ db_sid|upper  }}
+    dest: /usr/sap/install/downloads/orapw{{ db_sid|upper  }}
+    remote_src:                         yes
+    owner: oracle
+    group: dba
+  #when: current_host == ora_primary
+
+- name: Copy dbs folder to templocation
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.shell:               cp -rp * /usr/sap/install/downloads/dbs/.
+  register:                            dbscopied_results
+  failed_when:                         dbscopied_results.rc >= 2
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

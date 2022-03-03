@@ -291,22 +291,6 @@
   when:  current_host != ora_primary
 
 
-# - name:                                "create dgconfig.sh"
-#   become:                              true
-#   become_user:                         "oracle"
-#   ansible.builtin.blockinfile:
-#     create: yes
-#     path: /etc/sap_deployment_automation/dgscripts/dgconfig.sh
-#     marker_begin: "-- BEGIN"
-#     marker_end:   "-- END"
-#     block: |
-#          CREATE CONFIGURATION  {{ db_sid }}_dg_config AS PRIMARY DATABASE IS {{ db_sid }} CONNECT IDENTIFIER IS {{ db_sid }};
-#          ADD DATABASE {{ db_sid }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid }}_STDBY MAINTAINED AS PHYSICAL;
-#          ENABLE CONFIGURATION
-#          exit
-#     mode: 0755
-#   when: current_host == ora_primary
-
 - name:                               "create dgconfig.sh"
   become:                             yes
   become_user:                        oracle
@@ -343,6 +327,116 @@
     mode: 0755
   when: current_host == ora_secondary
 
+#Create Directories for RESTORE on Secondary
+
+- name:                                "ORACLE: Create oracle SIDarch directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/oraarch/{{ db_sid|upper }}arch
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create oracle standbylog directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/oraarch/standbylog
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create oracle oraflash directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/oraflash
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create saptrace directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/saptrace
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create saparch directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/saparch
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create sapprof directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/sapprof
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create sapcheck directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/sapcheck
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create saptrace audit directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/saptrace/audit
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create saptrace background directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/saptrace/background
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+
+- name:                                "ORACLE: Create saptrace diag directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/saptrace/diag
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:  current_host == ora_secondary
+
+- name:                                "ORACLE: Create saptrace usertrace directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/saptrace/usertrace
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:                                current_host == ora_secondary
+
+- name:                                "ORACLE: Create orawallet directory"
+  ansible.builtin.file:
+    path:                              /oracle/{{ db_sid|upper }}/orawallet
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:                                current_host == ora_secondary
 
 
 

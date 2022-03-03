@@ -1,12 +1,12 @@
 ---
 # DGMGRL Config on Primary
 
-# Set Primary and Secondary node names.
-- name:                        Setting the primary and Secondary DB names
-  ansible.builtin.set_fact:
-    ora_primary:                "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
-    ora_secondary:              "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
-    current_host:               "{{ ansible_hostname }}"
+# # Set Primary and Secondary node names.
+# - name:                        Setting the primary and Secondary DB names
+#   ansible.builtin.set_fact:
+#     ora_primary:                "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+#     ora_secondary:              "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+#     current_host:               "{{ ansible_hostname }}"
 
 # Restart the LSNRCTL START
 - name:                               "RESTART LSNRCTL ON PRIMARY"
@@ -19,7 +19,7 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                current_host == ora_primary
+  #when:                                current_host == ora_primary
 
 - name:                                Create lsnrctl_started_sec.txt
   become:                              true
@@ -28,10 +28,31 @@
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
     state:                             touch
     mode:                              0755
-  when:                                current_host == ora_primary
+  #when:                                current_host == ora_primary
+
+- name:                                " STARTUP DG Broker on PRIMARY " 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
+  register:                            secondarystartup_results
+  failed_when:                         secondarystartup_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  #when:                                current_host == ora_primary
+
+- name:                                Create enabledgbroker.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
+    state:                             touch
+    mode:                              0755
+  #when:                                current_host == ora_primary
 
 
-- name:                                " DGMGRL CONFIG ON PRIMARY " 
+- name:                                " DGMGRL CREATE CONFIG ON PRIMARY " 
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl / as sysdba @dgconfig.dgmgrl  | tee /etc/sap_deployment_automation/dgscripts/dgcreate.log
@@ -41,7 +62,7 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/dgconfig.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                current_host == ora_primary
+  #when:                                current_host == ora_primary
 
 - name:                                Create dgconfig.txt
   become:                              true
@@ -50,9 +71,28 @@
     path:                              /etc/sap_deployment_automation/dgscripts/dgconfig.txt
     state:                             touch
     mode:                              0755
-  when:                                current_host == ora_primary
+ # when:                                current_host == ora_primary
 
+- name:                                " DGMGRL ENABLE Configuration " 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               dgmgrl / as sysdba "ENABLE CONFIGURATION"  | tee /etc/sap_deployment_automation/dgscripts/dgenable.log
+  register:                            dgconfig_results
+  failed_when:                         dgconfig_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/dgenable.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  #when:                                current_host == ora_primary
 
+- name:                                Create dgenable.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/dgenable.txt
+    state:                             touch
+    mode:                              0755
+ # when:                                current_host == ora_primary
 
 
 ...
