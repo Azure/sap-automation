@@ -96,7 +96,8 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
 
-            - name:                    "DBLoad Playbook: - Ensure scs-install-done flag exists"
+            - name:                    "DBLoad Playbook: - Create db-load-done flag"
+              delegate_to:             localhost
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/db-load-done"
                 state:                 touch
@@ -171,7 +172,8 @@
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
 
-        - name:                        "DBLoad Playbook: - Ensure scs-install-done flag exists"
+        - name:                        "DBLoad Playbook: - Create db-load-done flag"
+          delegate_to:                 localhost
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db-load-done"
             state:                     touch
