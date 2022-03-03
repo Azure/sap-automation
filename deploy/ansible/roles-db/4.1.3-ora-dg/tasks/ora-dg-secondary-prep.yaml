@@ -9,7 +9,7 @@
 
 - name:                                "create createpfile.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "root"
   ansible.builtin.blockinfile:
     create: yes
     path: /etc/sap_deployment_automation/dgscripts/createpfile.sql
@@ -19,6 +19,8 @@
          CREATE PFILE FROM SPFILE;
          exit
     mode: 0755
+    owner: oracle
+    group: oinstall
 
 - name:                                " Create PFILE on Primary DB to COPY it on SECONDARY" 
   become:                              true
