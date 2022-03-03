@@ -7,6 +7,16 @@
 #     current_host:          "{{ ansible_hostname }}"
 #   when:                     node_tier == "oracle"
 
+- name:                                "ORACLE: Create sap_deployment_automation folder"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 - name:                                "create createpfile.sql"
   become:                              true
   become_user:                         "root"
@@ -19,8 +29,7 @@
          CREATE PFILE FROM SPFILE;
          exit
     mode: 0755
-    owner: oracle
-    group: oinstall
+    
 
 - name:                                " Create PFILE on Primary DB to COPY it on SECONDARY" 
   become:                              true
