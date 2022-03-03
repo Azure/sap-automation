@@ -25,11 +25,13 @@
   when:                                (not scs_installed.stat.exists) or (not ers_installed.stat.exists)
 
 - name:                                "Post ERS Install: check if installed"
+  delegate_to:                         secondary_instance_name
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
   register:                            post_ers_install
 
 - name:                                "Post SCS HA Install: check if installed"
+  delegate_to:                         primary_instance_name
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
   register:                            post_scs_install
