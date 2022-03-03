@@ -22,6 +22,15 @@
 #         export TNS_ADMIN=$ORACLE_HOME/network/admin
 #         export DB_SID={{ db_sid}}
 
+- name:                                "ORACLE: Create sap_deployment_automation folder"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
 
 - name:                                "create enablearchivelog.sql"
   become:                              true
