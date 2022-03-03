@@ -37,6 +37,6 @@
 
 - name:                                "5.6 SCSERS - Check if a cluster has already been prepared (show)"
   ansible.builtin.debug:
-    msg:                               
+    msg:
       - "Cluster check return value: {{ cluster_existence_check }}"
       - "{{ ascs_cluster_existence_check_result.stdout_lines }}"
