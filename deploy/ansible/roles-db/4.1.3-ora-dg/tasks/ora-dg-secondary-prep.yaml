@@ -7,6 +7,18 @@
 #     current_host:          "{{ ansible_hostname }}"
 #   when:                     node_tier == "oracle"
 
+- name:                                "create createpfile.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /etc/sap_deployment_automation/dgscripts/createpfile.sql
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+         CREATE PFILE FROM SPFILE;
+         exit
+    mode: 0755
 
 - name:                                " Create PFILE on Primary DB to COPY it on SECONDARY" 
   become:                              true
