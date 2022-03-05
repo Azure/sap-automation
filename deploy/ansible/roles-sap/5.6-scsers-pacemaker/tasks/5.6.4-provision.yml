@@ -24,24 +24,38 @@
   include_tasks:                       "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
   when:                                (not scs_installed.stat.exists) or (not ers_installed.stat.exists)
 
-- name:                                "Post ERS Install: check if installed"
-  delegate_to:                         secondary_instance_name
-  ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
-  register:                            post_ers_install
+# introduce throttle to sequence task execution on each node before moving to next task
+# did not add the cluster includes in here. May need to consider this here as well.
+# ansible.builtin.stat fails with dict object has no attribute 'stat', because the
+# dict doesn't have any values as the exec on primary node is skipped and
+# registered post_[scs/ers] vars are empty not dictionaries
+- name:                                "5.6 SCSERS - Adapt the ASCS/SCS and ERS instance profiles"
+  throttle:                            1
+  block:
+    - name:                            "Post SCS HA Install: check if installed"
+      become:                          true
+      delegate_to:                     "{{ primary_instance_ip }}"
+      ansible.builtin.stat:
+        path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
+      register:                        post_scs_install
+      failed_when:                     not post_scs_install.stat.exists
+      when:                            inventory_hostname == secondary_instance_name
 
-- name:                                "Post SCS HA Install: check if installed"
-  delegate_to:                         primary_instance_name
-  ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
-  register:                            post_scs_install
+    - name:                            "Post ERS Install: check if installed"
+      become:                          true
+      ansible.builtin.stat:
+        path:                          /etc/sap_deployment_automation/sap_deployment_ers.txt
+      register:                        post_ers_install
+      failed_when:                     not post_ers_install.stat.exists
+      when:                            inventory_hostname == secondary_instance_name
 
 - name:                                "5.6 SCSERS - profile"
   include_tasks:                       "5.6.4.1-scsersprofile.yaml"
-  when:                                (post_scs_install.stat.exists) and (post_ers_install.stat.exists)
 
 - name:                                "5.6 SCSERS - resources"
   include_tasks:                       "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
-  when:                                (ersservicehalib is defined) and (scsservicehalib is defined)
+  # when:
+  #   - ersservicehalib.rc == 0
+  #   - scsservicehalib.rc == 0
 
 ...
