@@ -27,14 +27,6 @@
         $("#Basic-pivot").addClass("is-selected");
     }
 
-    // loading status
-    document.onreadystatechange = function () {
-        var state = document.readyState
-        if (state == 'complete') {
-            document.getElementById('loading-background').style.visibility = "hidden";
-        }
-    }
-
     var submitting = false;
     window.onbeforeunload = function(){
         if (!submitting) {

@@ -65,6 +65,7 @@ function updateDropdownData(dropdowns) {
                 dropdown.ids.forEach(function (id) {
                     populateAzureDropdownData(id, data);
                     setCurrentValue(id);
+                    document.getElementById('loading-background').style.visibility = "hidden";
                 });
             },
             error: function () { errorFunc(dropdown.ids, dropdown.errorMessage); }
