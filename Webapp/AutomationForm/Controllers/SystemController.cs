@@ -76,14 +76,14 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    system.Id = (system.environment + "-" + Helper.MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                    system.Id = Helper.GenerateId(system);
                     await _systemService.CreateAsync(system);
                     TempData["success"] = "Successfully created sytsem " + system.Id;
                     return RedirectToAction("Index");
                 }
-                catch
+                catch (Exception e)
                 {
-                    ModelState.AddModelError("SystemId", "Error creating system (most likely it already exists)");
+                    ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
                 }
             }
 
@@ -187,7 +187,7 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                string newId = (system.environment + "-" + Helper.MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                string newId = Helper.GenerateId(system);
                 if (system.Id == null) system.Id = newId;
                 if (newId != system.Id)
                 {
@@ -215,14 +215,14 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    system.Id = (system.environment + "-" + Helper.MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+                    system.Id = Helper.GenerateId(system);
                     await _systemService.CreateAsync(system);
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
-                catch
+                catch (Exception e)
                 {
-                    ModelState.AddModelError("SystemId", "Error creating system (most likely it already exists)");
+                    ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
                 }
             }
 

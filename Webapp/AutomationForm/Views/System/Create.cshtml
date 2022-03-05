@@ -1,4 +1,5 @@
 ﻿@model AutomationForm.Models.SystemViewModel;
+@using System.Text.Json
 
 @{
     ViewBag.Title = "Create system";
@@ -8,15 +9,9 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
-        var retainedValues = {
-            workloadzone: '@Model.System.workload_zone',
-            environment: '@Model.System.environment',
-            location: '@Model.System.location',
-            rg: '@Model.System.resourcegroup_arm_id'
-        }
-        setModelData(retainedValues);
-        initializeDropdowns();
-        initializeWorkloadZones();
+        var system = @Html.Raw(JsonSerializer.Serialize(Model.System));
+        createModel(system);
+        retainFormValues();
     });
 
     window.onload = function () {
@@ -36,6 +31,14 @@
         $("#Basic-pivot").addClass("is-selected");
     }
 
+    // loading status
+    document.onreadystatechange = function () {
+        var state = document.readyState
+        if (state == 'complete') {
+            document.getElementById('loading-background').style.visibility = "hidden";
+        }
+    }
+
     var submitting = false;
     window.onbeforeunload = function(){
         if (!submitting) {
@@ -44,6 +47,14 @@
     };
 
 </script>
+
+<div id="loading-background">
+    <div class="d-flex justify-content-center width-full">
+        <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+</div>
 
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>

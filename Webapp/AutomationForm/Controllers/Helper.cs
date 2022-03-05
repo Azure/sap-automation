@@ -21,7 +21,7 @@ namespace AutomationForm.Controllers
 {
     public class Helper : Controller
     {
-        private static readonly Dictionary<string, string> regionMapping = new Dictionary<string, string>()
+        public static readonly Dictionary<string, string> regionMapping = new Dictionary<string, string>()
             {
                 {"westus", "weus" },
                 {"westus2", "wus2" },
@@ -138,16 +138,38 @@ namespace AutomationForm.Controllers
             }
             else
             {
-                throw new System.IO.DirectoryNotFoundException();
+                throw new DirectoryNotFoundException();
             }
         }
-        public static string MapRegion(string region)
+        public static string GenerateId<T>(T model)
+        {
+            string id;
+            if (model.GetType() == typeof(LandscapeModel))
+            {
+                LandscapeModel landscape = (LandscapeModel) Convert.ChangeType(model, typeof(LandscapeModel));
+                id = (landscape.environment + "-" + MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+            }
+            else if (model.GetType() == typeof(SystemModel))
+            {
+                SystemModel system = (SystemModel) Convert.ChangeType(model, typeof(SystemModel));
+                id = (system.environment + "-" + MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
+            }
+            else
+            {
+                throw new Exception("Object provided is neither a system nor a landscape");
+            }
+            return id;
+        }
+        private static string MapRegion(string region)
         {
             if (regionMapping.ContainsKey(region))
             {
                 return regionMapping[region];
             }
-            return region;
+            else
+            {
+                throw new KeyNotFoundException("location is not a valid Azure region");
+            }
         }
         public static async Task<byte[]> ProcessFormFile(IFormFile formFile,
             ModelStateDictionary modelState, string[] permittedExtensions,

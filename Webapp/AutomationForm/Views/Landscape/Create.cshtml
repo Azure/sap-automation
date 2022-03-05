@@ -1,4 +1,5 @@
 ﻿@model AutomationForm.Models.LandscapeViewModel;
+@using System.Text.Json
 
 @{
     ViewBag.Title = "Create landscape";
@@ -8,27 +9,9 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
-        var retainedValues = {
-            subscription: '@Model.Landscape.subscription',
-            environment: '@Model.Landscape.environment',
-            location: '@Model.Landscape.location',
-            rg: '@Model.Landscape.resourcegroup_arm_id',
-            network: '@Model.Landscape.network_address_arm_id',
-            adminsubnetarmid: '@Model.Landscape.admin_subnet_arm_id',
-            dbsubnetarmid: '@Model.Landscape.db_subnet_arm_id',
-            appsubnetarmid: '@Model.Landscape.app_subnet_arm_id',
-            websubnetarmid: '@Model.Landscape.web_subnet_arm_id',
-            iscsisubnetarmid: '@Model.Landscape.iscsi_subnet_arm_id',
-            anfsubnetarmid: '@Model.Landscape.anf_subnet_arm_id',
-            adminsubnetnsgarmid: '@Model.Landscape.admin_subnet_nsg_arm_id',
-            dbsubnetnsgarmid: '@Model.Landscape.db_subnet_nsg_arm_id',
-            appsubnetnsgarmid: '@Model.Landscape.app_subnet_nsg_arm_id',
-            websubnetnsgarmid: '@Model.Landscape.web_subnet_nsg_arm_id',
-            iscsisubnetnsgarmid: '@Model.Landscape.iscsi_subnet_nsg_arm_id',
-            anfsubnetnsgarmid: '@Model.Landscape.anf_subnet_nsg_arm_id'
-        }
-        setModelData(retainedValues);
-        initializeDropdowns();
+        var landscape = @Html.Raw(JsonSerializer.Serialize(Model.Landscape));
+        createModel(landscape);
+        retainFormValues();
     });
 
     window.onload = function () {
@@ -44,6 +27,14 @@
         $("#Basic-pivot").addClass("is-selected");
     }
 
+    // loading status
+    document.onreadystatechange = function () {
+        var state = document.readyState
+        if (state == 'complete') {
+            document.getElementById('loading-background').style.visibility = "hidden";
+        }
+    }
+
     var submitting = false;
     window.onbeforeunload = function(){
         if (!submitting) {
@@ -52,6 +43,14 @@
     };
 
 </script>
+
+<div id="loading-background">
+    <div class="d-flex justify-content-center width-full">
+        <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+</div>
 
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
