@@ -37,12 +37,7 @@
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
     scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
-
-- name:                                "DBLoad: - Show the SCS Server name"
-  ansible.builtin.debug:
-    msg: 
-      - "SCS : {{ scs_server }}"
-    verbosity:                         2
+    db_virtual_host:                   "{% if db_high_availability %}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}{% endif %}"
 
 - name:                                "DBLoad: - Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -73,7 +68,7 @@
     sap_installSAPHostAgent:
     sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+    sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     tier:                              "{{ tier }}"
@@ -88,6 +83,7 @@
       - "PRODUCT ID: {{ bom.product_ids.dbl }}"
       - "INSTANCE:   {{ hdb_instance_number }}"
       - "SCSHOST:    {{ scs_server }}"
+      - "DBHOST:     {{ db_virtual_host }}"
 
 - name:                                "DBLoad: - Install"
   block:
@@ -116,7 +112,6 @@
       tags:
         - skip_ansible_lint
 
-
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         var:                           dbload
@@ -128,7 +123,6 @@
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
       when:                            dbload.rc == 0
-
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:

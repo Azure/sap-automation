@@ -62,17 +62,14 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_SECRET) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_TENANT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
@@ -95,7 +92,6 @@ stages:
                   echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
                   exit 2
                 fi
-
                 if [ ! -f ${deployer_environment_file_name} ]; then
                   echo -e "$boldred--- $(deployer_environment)$LOCATION was not found ---$reset"
                   echo "##vso[task.logissue type=error]Control plane configuration file $(deployer_environment)$LOCATION was not found."
@@ -121,7 +117,6 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
                 return_code=$?
@@ -164,17 +159,14 @@ stages:
                   git add ${workload_environment_file_name}
                   added=1
                 fi
-
                 if [ -f ${workload_environment_file_name}.md ]; then
                   git add ${workload_environment_file_name}.md
                   added=1
                 fi
-
                 if [ -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate ]; then
                   git add -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform/terraform.tfstate
                   added=1
                 fi
-
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push

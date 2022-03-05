@@ -113,7 +113,6 @@ stages:
                   git rm -q -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
                   changed=1
                 fi
-
                 if [ -f  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
                   git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                   changed=1
@@ -183,12 +182,10 @@ stages:
                   git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zone_folder)/.terraform
                   changed=1
                 fi
-
                 if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
                   git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                   changed=1
                 fi
-
                 if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
                   git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                   changed=1
@@ -254,7 +251,6 @@ stages:
                   git rm -q -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform
                   changed=1
                 fi
-
                 if [ -d $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform ]; then
                   git rm -q -r $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform
                   changed=1
@@ -264,7 +260,6 @@ stages:
                   git rm -q    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                   changed=1
                 fi
-
                 if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
                   git rm -q    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                   changed=1

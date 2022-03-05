@@ -21,6 +21,7 @@ download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
 db_sid:                       "XDB"                                                     # Default
 hdb_instance_number:          "00"                                                      # Default
+hana_schema:                  "SAPHANADB"
 pas_hostname:                 ""
 pas_instance_number:          "00"
 web_instance_number:          "00"

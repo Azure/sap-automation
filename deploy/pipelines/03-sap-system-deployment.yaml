@@ -101,7 +101,6 @@ stages:
                   echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
                   exit 2
                 fi
-
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
                 return_code=$?
@@ -111,7 +110,6 @@ stages:
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
-
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
@@ -121,20 +119,17 @@ stages:
                   exit $return_code
                 fi
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
               echo -e "$green--- Pull the latest content from DevOps ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
                 git checkout -q $(Branch)
                 git pull
-
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
                 cd $HOME/SYSTEM/$(sap_system_folder)
-
                 export    STATE_SUBSCRIPTION=$(cat "${environment_file_name}"  | grep STATE_SUBSCRIPTION    | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform statefile subscription' $STATE_SUBSCRIPTION
                 export  deployer_tfstate_key=$(cat "${environment_file_name}"  | grep deployer_tfstate_key  | awk -F'=' '{print $2}' | xargs) ; echo 'deployer_tfstate_key' $deployer_tfstate_key
                 export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key

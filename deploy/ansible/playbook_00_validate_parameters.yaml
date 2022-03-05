@@ -1,3 +1,5 @@
+---
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                           Validate the parameters                          |
@@ -169,7 +171,6 @@
         var:                           hosts.stdout_lines
 
 
-
 - hosts:               "{{ sap_sid|upper }}_WEB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
@@ -186,7 +187,6 @@
           - web_sid | trim | length > 1
         fail_msg:                      "Please specify web_sid if you are deploying web dispatchers"
       when:                            (ansible_play_hosts_all | length) > 0
-
 
 ...
 # /*----------------------------------------------------------------------------8

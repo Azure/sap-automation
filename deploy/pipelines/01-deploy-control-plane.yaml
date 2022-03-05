@@ -83,28 +83,23 @@ stages:
                   echo "##vso[task.logissue type=error]File DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
                   exit 2
                 fi
-
                 if [ ! -f LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
                   echo -e "$boldred--- File LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
                   echo "##vso[task.logissue type=error]File LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_SECRET) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_TENANT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
@@ -121,7 +116,6 @@ stages:
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
-
               echo -e "$green--- Pull the latest content from DevOps ---$reset"
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
