@@ -115,7 +115,7 @@
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
-                                                 SAPINST_START_GUISERVER=false                                                 \                                             \
+                                                 SAPINST_START_GUISERVER=false                                                 \
                                                  SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
@@ -148,7 +148,7 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
-                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
+                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                               \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
