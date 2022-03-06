@@ -8,6 +8,7 @@
 # [1] Create a virtual IP resource and health-probe for the ASCS instance
 
 - name:                                "5.6 SCSERS - RHEL - Cluster Configuration before Install"
+  throttle:                            1
   block:
 
     - name:                            "5.6 SCSERS - RHEL - Configure cluster default properties"
@@ -49,6 +50,7 @@
 
 # [1] Install SAP NetWeaver ASCS - this is where we call the SCS role
 - name:                                "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
+  throttle:                            1
   block:
     - name:                            "5.6 SCSERS - RHEL - Bring Primary host online "
       ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
@@ -65,6 +67,7 @@
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
         -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
         -  { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}' }
+      when: inventory_hostname == primary_instance_name
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
       include_role:
@@ -74,6 +77,7 @@
 # [1] Create a virtual IP resource and health-probe for the ERS instance
 
 - name:                                "5.6 SCSERS - RHEL - ERS - Cluster Configuration before Install "
+  throttle:                            1
   block:
     - name:                            "5.6 SCSERS - RHEL - Put Secondary host on online"
       ansible.builtin.command:         pcs node unstandby {{ secondary_instance_name }}
@@ -113,6 +117,7 @@
 # [2] Install SAP NetWeaver ERS - Build a new role for ERS Installation - done
 
 - name:                                "5.6 SCSERS - RHEL - Install ERS on Secondary host"
+  throttle:                            1
   block:
 
     - name:                            "5.6 SCSERS - RHEL - Bring Secondary host online"
@@ -131,6 +136,7 @@
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
         -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
         -  { path: '/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}' }
+      when: inventory_hostname == secondary_instance_name
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Install on Secondary host"
       include_role:
