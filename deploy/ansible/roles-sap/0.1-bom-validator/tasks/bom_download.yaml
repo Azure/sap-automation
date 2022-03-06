@@ -46,6 +46,7 @@
         url_password:                  "{{ s_password }}"
         force_basic_auth:              true
         http_agent:                    'SAP Software Download'
+        timeout:                       30
 
       become:                          true
       become_user:                     root
