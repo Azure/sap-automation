@@ -127,6 +127,9 @@
             -  { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
           when:                        node_tier == 'scs'
 
+        # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
+        # name <host> is not a valid virtual host on the local host
+        # SAP Note# 2279110
         - name:                        "RESCUE - SCS HA Install: SAPINST"
           ansible.builtin.command: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
@@ -134,6 +137,7 @@
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
                                                  SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
+                                                 IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
             creates:                   /etc/sap_deployment_automation/sap_deployment_scs.txt
