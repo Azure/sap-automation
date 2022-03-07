@@ -37,24 +37,51 @@
 
 - name:                                "BOM: Download File {{ item.archive }}"
   block:
-    - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
-      ansible.builtin.get_url:
-        url:                           "{{ item.url | string | trim }}"
-        dest:                          "{{ download_directory }}/files/{{ item.archive }}"
-        tmp_dest:                      "{{ download_directory }}/tmp"
-        url_username:                  "{{ s_user }}"
-        url_password:                  "{{ s_password }}"
-        force_basic_auth:              true
-        http_agent:                    'SAP Software Download'
-        timeout:                       30
+    - name:                            "BOM: {{ bom_name }} Download File"
+      block:
+        - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
+          ansible.builtin.get_url:
+            url:                       "{{ item.url | string | trim }}"
+            dest:                      "{{ download_directory }}/files/{{ item.archive }}"
+            tmp_dest:                  "{{ download_directory }}/tmp"
+            url_username:              "{{ s_user }}"
+            url_password:              "{{ s_password }}"
+            force_basic_auth:          true
+            http_agent:                'SAP Software Download'
+            timeout:                   30
+          become:                      true
+          become_user:                 root
+          register:                    result
+          until:                       result is succeeded or not result.changed
+          retries:                     2
+          delay:                       1
+          no_log:                      false
+      rescue:
+        - name:                        "BOM: Ensure URL is correct"
+          ansible.builtin.set_fact:
+            file_url:                  "{{ item.url | lower | urlsplit('scheme')}}://{{ item.url | lower | urlsplit('hostname')}}/{{ item.url | lower | urlsplit('path') | replace('\"','') }}"
 
-      become:                          true
-      become_user:                     root
-      register:                        result
-      until:                           result is succeeded or not result.changed
-      retries:                         2
-      delay:                           1
-      no_log:                          false
+        - name:                        "BOM: Ensure URL is correct"
+          ansible.builtin.debug:
+            msg:
+             - "file_url: '{{ file_url }}"
+        - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
+          ansible.builtin.get_url:
+            url:                       "{{ file_url | trim }}"
+            dest:                      "{{ download_directory }}/files/{{ item.archive }}"
+            tmp_dest:                  "{{ download_directory }}/tmp"
+            url_username:              "{{ s_user }}"
+            url_password:              "{{ s_password }}"
+            force_basic_auth:          true
+            http_agent:                'SAP Software Download'
+            timeout:                   30
+          become:                      true
+          become_user:                 root
+          register:                    result
+          until:                       result is succeeded or not result.changed
+          retries:                     2
+          delay:                       1
+          no_log:                      false
 
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
       ansible.builtin.debug:
