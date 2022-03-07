@@ -23,7 +23,7 @@ materials:
       extractDir:   sapdb2_client
       path:         download_basket
       #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0030000000137992022                      
+      url:          https://softwaredownloads.sap.com/file/0030000000137992022                       #Not all S-users have permissions to download the DB2 software.
 
 
 
