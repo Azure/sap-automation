@@ -1,0 +1,31 @@
+---
+name:    'DB2_1157_v0001ms'
+target:  'DB2 11.5'
+version: 1
+
+materials:
+
+  media:
+    - name:         DB2 Software
+      archive:      51055246.zip
+      checksum:     7b
+      extract:      true
+      extractDir:   db2server
+      path:         download_basket
+      download:     true
+      url:          https://softwaredownloads.sap.com/file/                       #Not all S-users have permissions to download the DB2 software.
+
+    - name:         DB Client
+      archive:      51055248.zip
+      checksum:     a
+      extract:      true
+      download:     true
+      extractDir:   db2client
+      path:         download_basket
+      #creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0030000002299742019          #Not all S-users have permissions to download the DB2 software.
+
+
+
+
+...
