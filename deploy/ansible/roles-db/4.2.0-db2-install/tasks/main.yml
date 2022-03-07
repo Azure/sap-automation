@@ -52,7 +52,7 @@
         tasks_from:                    bom-template
       vars:
         db2_cd_package_exportcd:      /usr/sap/install/sapdb2_software/DATA_UNITS
-        db2_cd_package_db2client:     /usr/sap/install/sapdb2_software/DB2_Linux_x86_client
+        db2_cd_package_db2client:     /usr/sap/install/sapdb2_client/DB2_Linux_x86_client
         db2_cd_package_software:      /usr/sap/install/sapdb2_software/DB2_Linux_X86_Software/LINUXX86_64
         db2_cd_package_kernel:          /usr/sap/install/sapdb2_software/
         sap_db_hostname:                    "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
