@@ -258,6 +258,58 @@
             mode:                      0755
 
       when:                            platform == 'ORACLE'
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Sybase DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_DB"
+  name:                                DB Installation - Sybase
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "root"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install Sybase"
+      block:
+
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      sybase                                   # Actions for Sybase DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        "Database Installation Playbook: - Check for file system mounts"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        platform == 'SYBASE'
+
+        - name:                        "Database Installation Playbook: - run Sybase installer"
+          ansible.builtin.include_role:
+            name:                      roles-db/4.3.0-ase-install
+          when:                        platform == 'SYBASE'
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
+            mode:                      0755
+
+      when:                            platform == 'SYBASE'
 
 ...
 # /*----------------------------------------------------------------------------8

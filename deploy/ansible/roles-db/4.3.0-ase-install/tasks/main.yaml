@@ -1,10 +1,10 @@
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                Perform the sybase Instance installation                    |
+# |                Perform the Sybase ASE Software installation                    |
 # |                  SAP: Register BOM                                         |
 # |                  create .params directory                                  |
-# |                  Export environment variables for sybase Installation      |
-# |                  Run the sybase silent installer in silent mode.           |
+# |                  Export environment variables for Sybase Installation      |
+# |                  Run the Sybase ASE installer in silent mode.           |
 # |                                                                            |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
@@ -32,169 +32,62 @@
   tags:
     - sap_ase_install
 
-- name: Check if Server already built
-  become: true
-  stat:
-    path: "{{ sybase.install.server.directory }}/ASE-16_0/install/RUN_{{ sybase.networking.name }}"
-  register: sybase_build
-  tags:
-    - sap_ase_install
+# +------------------------------------4--------------------------------------*/
+    - name:                            "SAP SYBASE: Set dir_params fact"
+      ansible.builtin.set_fact:
+        dir_params:                    "{{ target_media_location }}/.params"
 
-- name: Install Sybase in Silent mode
-  # become: true
-  # become_user: "{{ sybase.user }}"
-  shell: |
-    /usr/sap/install/aseserver/ebf30051/setup.bin -f /etc/sap_deployment_automation/sybase-ase-response.conf \
-    -i silent \
-    -DAGREE_TO_SAP_LICENSE=true \
-    -DRUN_SILENT=true
+#   0x) Create hidden directory for parameter files
+    - name:                            "SAP SYBASE: Create hidden directory"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          '{{ item.mode }}'
+      loop:
+        - { state: 'directory', mode: '0755', path: '{{ target_media_location }}' }
+        - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
+
+      # Template parameter mapping
+      vars:
+        pwd_os_root:                   "***"                                       # Not used at this time
+        pwd_os_sapadm:                 "{{ main_password }}"
+        pwd_master:                    "{{ main_password }}"
+        pwd_os_sidadm:                 "{{ main_password }}"
+        pwd_hdb_system:                "{{ main_password }}"
+
+# SAP Sybase: deploy setupbin install response file
+- name:                            "SAP SYBASE: deploy install response file"
+  ansible.builtin.template:
+    src:                        sybase_16_03_11_v0_install.rsp.j2
+    dest:                       "{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
+    mode:                        0644
+    force:                       true
+
+# Template parameter mapping
+  vars:
+    _rsp_install_folder:           "/sybase/{{ db_sid|upper }}"
+    _rsp_install_set:               "full"
+    _rsp_product_edition:           "Enterprise Edition"
+
+- name:                            "SAP SYBASE: Execute setup.bin on {{ ansible_hostname }}"
+  ansible.builtin.command:         ./setup.bin -f '{{ dir_params }}/aseserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp -i silent -DAGREE_TO_SAP_LICENSE=true -DRUN_SILENT=true'
   args:
-    executable: /bin/csh
-  when: not sybase_install.stat.exists
-  tags:
-    - sap_ase_install
+    chdir:                         "{{ target_media_location }}/CD_SYBSERVER/"
+    creates:                       /etc/sap_deployment_automation/sap_deployment_ase.txt
+  register:                        sybase_installation
+  failed_when:                     sybase_installation.rc > 0
 
-- name: Build Sybase server
-  # become: true
-  # become_user: "{{ sybase.user }}"
-  shell: |
-    source {{ sybase.install.server.directory }}/SYBASE.sh && \
-    {{ sybase.install.server.directory }}/ASE-16_0/bin/srvbuildres -r /tmp/sybase-ase.rs
-  args:
-    executable: /bin/bash
-  when: not sybase_build.stat.exists
-  tags:
-    - sap_ase_install
+- name:                            "SAP SYBASE: Debug: Installation results"
+  ansible.builtin.debug:
+   var:                           sybase_installation
+   verbosity:                     2
 
-- name: Kill dataserver processes
-  become: true
-  shell: |
-    pkill -e dataserver
-  args:
-    executable: /bin/bash
-  when: not sybase_install.stat.exists
-  tags:
-    - sap_ase_install
+- name:                            "SAP SYBASE: Installation results"
+  ansible.builtin.debug:
+    var:                           sybase_installation
+    when:                          sybase_installation.rc > 0
 
-- name: Configure Sybase interfaces
-  template:
-    src: interfaces.j2
-    dest: "{{ sybase.install.server.directory }}/interfaces"
-    owner: "{{ sybase.user }}"
-    group: "{{ sybase.group }}"
-    mode: 0770
-  tags:
-    - sap_ase_install
-
-- name: Create custom scripts directory
-  file:
-    path: "{{ sybase.install.server.directory }}/bin"
-    state: directory
-    owner: "{{ sybase.user }}"
-    group: "{{ sybase.group }}"
-  tags:
-    - sap_ase_install
-    - sap_ase_systemd
-
-- name: Copy Sybase startup script
-  template:
-    src: start-server.sh.j2
-    dest: "{{ sybase.install.server.directory }}/bin/start-server.sh"
-    owner: "{{ sybase.user }}"
-    group: "{{ sybase.group }}"
-    mode: 0755
-  tags:
-    - sap_ase_install
-    - sap_ase_systemd
-
-- name: Copy Sybase stop script
-  template:
-    src: stop-server.sh.j2
-    dest: "{{ sybase.install.server.directory }}/bin/stop-server.sh"
-    owner: "{{ sybase.user }}"
-    group: "{{ sybase.group }}"
-    mode: 0755
-  tags:
-    - sap_ase_install
-    - sap_ase_systemd
-
-- name: Create SA password file
-  copy:
-    dest: "{{ sybase.install.server.directory }}/.sa_password"
-    content: |
-      {{ sybase.sa_password }}
-    owner: "{{ sybase.user }}"
-    group: "{{ sybase.group }}"
-    mode: 0400
-  tags:
-    - sap_ase_install
-    - sap_ase_systemd
-
-- name: Install Sybase Systemd service
-  become: true
-  template:
-    src: sybase.service.j2
-    dest: /etc/systemd/system/sybase.service
-    mode: 0755
-    owner: root
-    group: root
-  tags:
-    - sap_ase_install
-    - sap_ase_systemd
-
-- name: Enable Sybase Systemd service
-  become: true
-  systemd:
-    name: sybase.service
-    enabled: yes
-    masked: no
-    state: started
-  tags:
-    - sap_ase_install
-    - sap_ase_systemd
-
-- name: Update .bashrc
-  become: true
-  become_user: "{{ sybase.user }}"
-  lineinfile:
-    path: "{{ ansible_env.HOME }}/.bashrc"
-    line: "source {{ sybase.install.server.directory }}/SYBASE.sh"
-  tags:
-    - sap_ase_install
-
-- name: Change Sybase directory owner
-  file:
-    path: "{{ sybase.install.server.directory }}"
-    state: directory
-    recurse: yes
-    owner: "{{ sybase.user }}"
-    group: "{{ sybase.group }}"
-  tags:
-    - sap_ase_install
-
-- name: Change Sybase data directory owner
-  file:
-    path: "{{ sybase.install.server.physical_name }}"
-    state: directory
-    recurse: yes
-    owner: "{{ sybase.user }}"
-    group: "{{ sybase.group }}"
-  tags:
-    - sap_ase_install
-
-# Cleanup install by deleting downloaded SAP ASE unarchive path
-- name: Remove SAP ASE unarchive directory
-  file:
-    path: /tmp/ASE_Suite
-    state: absent
-  tags:
-    - sap_ase_cleanup
-
-# Set Ansible fact that SAP ASE has completed installation. This is so that this role can be used in
-# other dependent roles. Those roles can check for this fact to determine whether or not this role
-# should be run. Failing to do so will mean that this role is executed even if it has already been run.
-- name: Set fact sap_ase_installed
-  set_fact:
-    sap_ase_installed: true
-  tags:
-    - sap_ase_install
+- name:                            "SAP SYBASE: Installation results"
+  ansible.builtin.debug:
+    msg:                           "SYBASE Installation succeeded"
+  when:                            sybase_installation.rc == 0
