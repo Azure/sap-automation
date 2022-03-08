@@ -535,6 +535,7 @@ stages:
               INTERPRETER_PYTHON:            auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -662,7 +663,7 @@ stages:
               INTERPRETER_PYTHON:            auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-            continueOnError:           false
+            continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -734,7 +735,7 @@ stages:
               INTERPRETER_PYTHON:            auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-            continueOnError:           false
+            continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -808,7 +809,7 @@ stages:
               INTERPRETER_PYTHON:            auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-            continueOnError:           false
+            continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -874,7 +875,7 @@ stages:
               INTERPRETER_PYTHON:            auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-            continueOnError:           false
+            continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
