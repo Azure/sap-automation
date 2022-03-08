@@ -3,6 +3,25 @@
 // ================
 
 var model;
+var azureResourceIds = [
+    "location",
+    "subscription",
+    "workload_zone",
+    "resourcegroup_arm_id",
+    "network_address_arm_id",
+    "admin_subnet_arm_id",
+    "db_subnet_arm_id",
+    "app_subnet_arm_id",
+    "web_subnet_arm_id",
+    "iscsi_subnet_arm_id",
+    "anf_subnet_arm_id",
+    "admin_subnet_nsg_arm_id",
+    "db_subnet_nsg_arm_id",
+    "app_subnet_nsg_arm_id",
+    "web_subnet_nsg_arm_id",
+    "iscsi_subnet_nsg_arm_id",
+    "anf_subnet_nsg_arm_id"
+];
 
 // initializes the model variable representing a system or landscape
 function createModel(object) {
@@ -19,9 +38,11 @@ function updateModel(object) {
     }
 }
 
-// keep the form values selected when editing or error postback
+// populate azure resource dropdowns and set to current value
+// retain all other form values selected for editing or on submit error
+// remove the loading background and access the form
 function retainFormValues() {
-    var azureResourceDropdowns = [
+    var dropdownsAffected = [
         {
             ids: ["location"],
             controller: "/Armclient/GetLocationOptions",
@@ -41,21 +62,19 @@ function retainFormValues() {
             input: {}
         }
     ];
-
-    // populate azure resource dropdowns and set to current value if any after populating
-    updateDropdownData(azureResourceDropdowns);
-
-    // retain all values
-    for (var prop in model) {
-        if (model[prop] != null) {
-            setCurrentValue(prop);
+    Promise.all(dropdownsAffected.map(updateAndSetDropdowns)).then(function () {
+        for (var prop in model) {
+            if (model[prop] != null && azureResourceIds.indexOf(prop) < 0 ) {
+                setCurrentValue(prop);
+            }
         }
-    }
+        document.getElementById('loading-background').style.visibility = "hidden";
+    });
 }
 
 // gets azure resource data from a controller, populates dropdowns, and sets the current value
-function updateDropdownData(dropdowns) {
-    dropdowns.forEach(function (dropdown) {
+function updateAndSetDropdowns(dropdown) {
+    return new Promise(function (resolve, reject) {
         resetDropdowns(dropdown.ids);
         $.ajax({
             type: "GET",
@@ -65,10 +84,10 @@ function updateDropdownData(dropdowns) {
                 dropdown.ids.forEach(function (id) {
                     populateAzureDropdownData(id, data);
                     setCurrentValue(id);
-                    document.getElementById('loading-background').style.visibility = "hidden";
                 });
+                resolve();
             },
-            error: function () { errorFunc(dropdown.ids, dropdown.errorMessage); }
+            error: function () { errorFunc(dropdown.ids, dropdown.errorMessage); reject(); }
         });
     });
 }
@@ -83,12 +102,14 @@ function populateAzureDropdownData(id, data) {
 // set the current value for a parameter
 function setCurrentValue(id) {
     var currentValue = model[id];
-    if (typeof currentValue == "boolean") currentValue = currentValue.toString();
+    if (typeof currentValue == "boolean") {
+        currentValue = currentValue.toString();
+    }
     if (currentValue) {
         if (Array.isArray(currentValue)) {
             populateListData(id, currentValue);
         }
-        else {
+        else if (azureResourceIds.indexOf(id) < 0) {
             populateListData(id, [currentValue]);
         }
         $("#" + id).val(currentValue);
@@ -129,7 +150,7 @@ function resetDropdowns(ids) {
 
 $("#subscription").on("change", function () {
     var subscriptionid = $(this).val();
-    var dropdownsToUpdate = [
+    var dropdownsAffected = [
         {
             ids: ["resourcegroup_arm_id"],
             controller: "/Armclient/GetResourceGroupOptions",
@@ -147,15 +168,17 @@ $("#subscription").on("change", function () {
             }
         },
     ];
-
     if (subscriptionid) {
-        updateDropdownData(dropdownsToUpdate);
+        Promise.all(dropdownsAffected.map(updateAndSetDropdowns)).then(console.log);
+    }
+    else {
+        dropdownsAffected.map(({ ids }) => { resetDropdowns(ids) });
     }
 });
 
 $("#network_address_arm_id").on("change", function () {
     var vnetid = $(this).val();
-    var dropdownsToUpdate = [
+    var dropdownsAffected = [
         {
             controller: "/Armclient/GetSubnetOptions",
             ids: [
@@ -187,9 +210,11 @@ $("#network_address_arm_id").on("change", function () {
             }
         }
     ];
-
     if (vnetid) {
-        updateDropdownData(dropdownsToUpdate);
+        Promise.all(dropdownsAffected.map(updateAndSetDropdowns)).then(console.log);
+    }
+    else {
+        dropdownsAffected.map(({ ids }) => { resetDropdowns(ids) });
     }
 });
 

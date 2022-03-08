@@ -137,7 +137,7 @@ namespace AutomationForm.Controllers
 
                 id = id.Substring(0, id.IndexOf('.'));
                 byte[] bytes = file.Content;
-                string bitString = Encoding.ASCII.GetString(bytes);
+                string bitString = Encoding.UTF8.GetString(bytes);
                 string jsonString = Helper.TfvarToJson(bitString);
                 if (file.Id.EndsWith("INFRASTRUCTURE.tfvars"))
                 {
@@ -168,7 +168,7 @@ namespace AutomationForm.Controllers
             if (file == null) return NotFound();
 
             byte[] bytes = file.Content;
-            string bitString = Encoding.ASCII.GetString(bytes);
+            string bitString = Encoding.UTF8.GetString(bytes);
             ViewBag.Message = bitString;
             return View(file);
         }
@@ -186,7 +186,7 @@ namespace AutomationForm.Controllers
         {
             try
             {
-                byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
+                byte[] bytes = Encoding.UTF8.GetBytes(fileContent);
 
                 AppFile file = new AppFile()
                 {
@@ -221,7 +221,7 @@ namespace AutomationForm.Controllers
             if (file == null) return NotFound();
 
             byte[] bytes = file.Content;
-            string bitString = Encoding.ASCII.GetString(bytes);
+            string bitString = Encoding.UTF8.GetString(bytes);
             ViewBag.Message = bitString;
             return View(file);
         }
@@ -235,7 +235,7 @@ namespace AutomationForm.Controllers
             if (file == null) return NotFound();
             try
             {
-                byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
+                byte[] bytes = Encoding.UTF8.GetBytes(fileContent);
                 file.Content = bytes;
                 if (id != newId)
                 {
@@ -270,7 +270,7 @@ namespace AutomationForm.Controllers
             if (file == null) return NotFound();
             
             file.Id = newId;
-            byte[] bytes = Encoding.ASCII.GetBytes(fileContent);
+            byte[] bytes = Encoding.UTF8.GetBytes(fileContent);
             file.Content = bytes;
 
             try
@@ -304,7 +304,7 @@ namespace AutomationForm.Controllers
                 return NotFound();
             }
             byte[] bytes = file.Content;
-            string bitString = Encoding.ASCII.GetString(bytes);
+            string bitString = Encoding.UTF8.GetString(bytes);
             ViewBag.Message = bitString;
             return View(file);
         }

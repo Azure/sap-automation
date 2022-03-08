@@ -189,7 +189,7 @@ label.required:after {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .notificationContainer {

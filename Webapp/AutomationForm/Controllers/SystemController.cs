@@ -248,7 +248,7 @@ namespace AutomationForm.Controllers
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
 
-                var stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
                 return new FileStreamResult(stream, new MediaTypeHeaderValue("text/plain"))
                 {
                     FileDownloadName = path
