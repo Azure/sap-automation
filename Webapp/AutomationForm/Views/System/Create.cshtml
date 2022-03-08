@@ -1,4 +1,5 @@
 ﻿@model AutomationForm.Models.SystemViewModel;
+@using System.Text.Json
 
 @{
     ViewBag.Title = "Create system";
@@ -8,15 +9,9 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
-        var retainedValues = {
-            workloadzone: '@Model.System.workload_zone',
-            environment: '@Model.System.environment',
-            location: '@Model.System.location',
-            rg: '@Model.System.resourcegroup_arm_id'
-        }
-        setModelData(retainedValues);
-        initializeDropdowns();
-        initializeWorkloadZones();
+        var system = @Html.Raw(JsonSerializer.Serialize(Model.System));
+        createModel(system);
+        retainFormValues();
     });
 
     window.onload = function () {
@@ -44,6 +39,10 @@
     };
 
 </script>
+
+<div id="loading-background">
+    <fluent-progress-ring class="width-full"></fluent-progress-ring>
+</div>
 
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>

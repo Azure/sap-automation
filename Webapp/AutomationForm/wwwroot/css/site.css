@@ -153,6 +153,10 @@ label.required:after {
     margin: 0px;
 }
 
+.width-full {
+    width: 100%;
+}
+
 @media screen and (min-width: 992px) {
     .ms-TextField {
         display: flex;
@@ -185,7 +189,7 @@ label.required:after {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .notificationContainer {
@@ -242,6 +246,27 @@ label.required:after {
     width: 70%;
     margin: auto;
     float: right;
+}
+
+[contenteditable="true"]:focus {
+    border: none;
+    outline: none;
+}
+
+
+/* Loading symbol */
+#loading-background {
+    position: fixed;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
 }
 
 
