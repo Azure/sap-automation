@@ -198,6 +198,21 @@
     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") )
 
+#   08) Extract files - SAR for EXE
+- name:                                "BOM: Extract File, EXE"
+  ansible.builtin.command:             "{{ target_media_location }}/downloads/SAPCAR -manifest SIGNATURE.SMF \
+                                         -xf {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+                                         {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  args:
+    chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
+    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
+                                        {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  when:
+    - item.extract is not undefined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
 # -------------------------------------+---------------------------------------8
 #

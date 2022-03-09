@@ -80,9 +80,9 @@
     state:                             touch
 
 #Debug - Fail
-- name:                                "DB2: fail here"
-  ansible.builtin.fail:
-    msg:                               "Fail after printing lv details"
+# - name:                                "DB2: fail here"
+#   ansible.builtin.fail:
+#     msg:                               "Fail after printing lv details"
 
 - name:                                "DB2: Make db2sid:dba as owners for DB2
                                         directories - check flag file"
@@ -118,19 +118,19 @@
     state:                             touch
 
 #check lines from 121 to 133 - This is Oracle based 
-- name:                                "DB2: Make db2sid:dba as owners"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    owner:                             "{{ item.owner }}"
-    group:                             "{{ item.group }}"
-    recurse:                           true
-  loop:
-    - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
-    - { path: '/usr/sap/install/oraclient', group: 'oinstall',   owner: 'oracle'}
-    - { path: '/usr/sap/install/oraserver', group: 'oinstall',   owner: 'oracle'}
+# - name:                                "DB2: Make db2sid:dba as owners"
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.file:
+#     path:                              "{{ item.path }}"
+#     state:                             directory
+#     owner:                             "{{ item.owner }}"
+#     group:                             "{{ item.group }}"
+#     recurse:                           true
+#   loop:
+#     - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
+#     - { path: '/usr/sap/install/oraclient', group: 'oinstall',   owner: 'oracle'}
+#     - { path: '/usr/sap/install/oraserver', group: 'oinstall',   owner: 'oracle'}
 
 # Mount Filesystems
 - name:     "Mount SAP Filesystems on Database for installation"
