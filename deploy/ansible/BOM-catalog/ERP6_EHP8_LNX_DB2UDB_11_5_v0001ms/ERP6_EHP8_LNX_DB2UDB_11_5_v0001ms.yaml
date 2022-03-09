@@ -20,10 +20,17 @@ product_ids:
 
 materials:
   dependencies:
-    - name: "DB2_UDB_11_5_v0001ms" 
+    - name: DB2_UDB_11_5_v0001ms 
 
   media:
-
+    # SAPCAR 7.22
+    - name:         SAPCAR
+      archive:      SAPCAR_1010-70006178.EXE
+      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+      filename:     SAPCAR
+      permissions:  '0755'
+      url:          https://softwaredownloads.sap.com/file/0020000002208852020
+    
     # kernel components
 
     - name: "Kernel Part II (753)"
@@ -68,6 +75,8 @@ materials:
     # EHP 8 Exports
     - name: "SAP ERP 6.0 EHP8 Installation Export 1/4"
       archive: 51050708_part1.exe
+      #override_target_filename: "51050708_part1.rar"
+      #filename:     51050708_part1.rar
       extract: true
       extractDir: sapdb2_software/erpexports
       url: https://softwaredownloads.sap.com/file/0030000000002962016
@@ -90,6 +99,8 @@ materials:
     
     - name: "SAP ERP 6.0 EHP8 Language I 1/3"
       archive: 51050610_LNG1_part1.exe
+      #override_target_filename: "51050610_LNG1_part1.rar"
+      #filename:   51050610_LNG1_part1.rar     
       extract: true
       extractDir: sapdb2_software/lang1export
       url: https://softwaredownloads.sap.com/file/0030000000001812016
@@ -107,6 +118,8 @@ materials:
 
     - name: "SAP ERP 6.0 EHP8 Language II 1/2"
       archive: 51050610_LNG2_part1.exe
+      #override_target_filename: "51050610_LNG2_part1.rar"
+      #filename:             51050610_LNG2_part1.rar     
       extract: true
       extractDir: sapdb2_software/lang2export
       url: https://softwaredownloads.sap.com/file/0030000000001852016

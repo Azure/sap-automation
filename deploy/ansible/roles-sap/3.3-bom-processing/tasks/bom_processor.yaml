@@ -56,7 +56,6 @@
     state:                             directory
     mode:                              0755
   loop:
-    - path: '/usr/sap/install/tmp'
     - path: '/usr/sap/install/downloads'
     - path: '/usr/sap/install/download_basket'
 
@@ -101,13 +100,6 @@
 # sha1 algorithm is available on all platforms and python versions.
 # also, when we pass checksum if the file exists in destination it will be
 # deleted if the checksum does not match and will be downloaded from URL
-
-- name:                               "Creates temporary download directory"
-  file:
-    path:                             '/mnt/resource'
-    state:                            directory
-    mode:                             0775
-
 - name:                                "BOM: Download Files SUSE15"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
@@ -115,7 +107,7 @@
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    tmp_dest:                          "{{ target_media_location }}/tmp"
+    tmp_dest:                          '/mnt/resource'
     checksum:                          "sha256:{{ item.checksum | upper }}"
     validate_certs:                    true
   register:                            result
@@ -136,8 +128,8 @@
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
-    checksum:                          "sha256:{{ item.checksum | upper }}"
-    tmp_dest:                          "{{ target_media_location }}/tmp"
+    #checksum:                          "sha256:{{ item.checksum | upper }}"
+    tmp_dest:                          '/mnt/resource'
     validate_certs:                    true
   register:                            result
   until:                               result is succeeded
@@ -198,15 +190,14 @@
     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") )
 
-#   08) Extract files - SAR for EXE
+#   08) Extract files - UNRAR
 - name:                                "BOM: Extract File, EXE"
-  ansible.builtin.command:             "{{ target_media_location }}/downloads/SAPCAR -manifest SIGNATURE.SMF \
-                                         -xf {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
-                                         {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+                                      
   args:
     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
-    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
-                                        {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+    creates:                           "{{ target_media_location }}/{{ item.extractDir }}\
+                                      {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   when:
     - item.extract is not undefined
@@ -214,23 +205,21 @@
     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
-# -------------------------------------+---------------------------------------8
-#
-# Description:  Process BOM dependencies.
-#               Call BOM processor, passing dependent BOM names.
-#
-# -------------------------------------+---------------------------------------8
-
-- name:                                Process dependent BOMs
-  include_tasks:                       "bom_processor.yaml"
-  vars:
-    bom_name:                          "{{ bom_dependency.name }}"
-  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
-  loop_control:
-    loop_var:                          bom_dependency
-  when:
-    - bom.materials.dependencies is defined
-    - bom.materials.dependencies|length>0
+#   08) Extract files - EXE
+# - name:                                "BOM: Extract File, SAPCAR"
+#   ansible.builtin.command:             "{{ target_media_location }}/downloads/SAPCAR  \
+#                                          -xf {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
+#                                          {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+#   args:
+#     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
+#     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
+#                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+#   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+#   when:
+#     - item.extract is not undefined
+#     - item.extract
+#     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+#       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
 
 # #   08) Purge BOM file from Ansible Controller
