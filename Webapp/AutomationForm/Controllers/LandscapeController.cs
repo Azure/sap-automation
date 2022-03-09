@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.Json;
 using System.Net;
 using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace AutomationForm.Controllers
 {
@@ -93,6 +94,15 @@ namespace AutomationForm.Controllers
             return landscape;
         }
 
+        // Format correctly for javascript consumption
+        [HttpGet]
+        public async Task<ActionResult> GetByIdJson(string id)
+        {
+            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
+            if (landscape == null) return NotFound();
+            return Json(JsonConvert.SerializeObject(landscape));
+        }
+
         [ActionName("Create")]
         public IActionResult Create()
         {
@@ -108,14 +118,14 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    landscape.Id = (landscape.environment + "-" + Helper.MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                    landscape.Id = Helper.GenerateId(landscape);
                     await _landscapeService.CreateAsync(landscape);
                     TempData["success"] = "Successfully created landscape " + landscape.Id;
                     return RedirectToAction("Index");
                 }
-                catch
+                catch (Exception e)
                 {
-                    ModelState.AddModelError("LandscapeId", "Error creating landscape (most likely it already exists)");
+                    ModelState.AddModelError("LandscapeId", "Error creating landscape: " + e.Message);
                 }
             }
 
@@ -219,7 +229,7 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                string newId = (landscape.environment + "-" + Helper.MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                string newId = Helper.GenerateId(landscape);
                 if (landscape.Id == null) landscape.Id = newId;
                 if (newId != landscape.Id)
                 {
@@ -247,14 +257,14 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
-                    landscape.Id = (landscape.environment + "-" + Helper.MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
+                    landscape.Id = Helper.GenerateId(landscape);
                     await _landscapeService.CreateAsync(landscape);
                     TempData["success"] = "Successfully created landscape " + landscape.Id;
                     return RedirectToAction("Index");
                 }
-                catch
+                catch (Exception e)
                 {
-                    ModelState.AddModelError("LandscapeId", "Error creating landscape (most likely it already exists)");
+                    ModelState.AddModelError("LandscapeId", "Error creating landscape: " + e.Message);
                 }
             }
 
@@ -280,7 +290,7 @@ namespace AutomationForm.Controllers
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
 
-                var stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
                 return new FileStreamResult(stream, new MediaTypeHeaderValue("text/plain"))
                 {
                     FileDownloadName = path

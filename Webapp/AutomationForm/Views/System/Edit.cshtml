@@ -1,4 +1,5 @@
 ﻿@model AutomationForm.Models.SystemViewModel;
+@using System.Text.Json
 
 @{
     ViewBag.Title = "Edit system";
@@ -8,120 +9,9 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
-        var retainedValues = {
-            workloadzone: '@Model.System.workload_zone',
-            environment: '@Model.System.environment',
-            location: '@Model.System.location',
-            subscription: '@Model.System.subscription',
-            rg: '@Model.System.resourcegroup_arm_id',
-            network: '@Model.System.network_address_arm_id',
-            adminsubnetarmid: '@Model.System.admin_subnet_arm_id',
-            dbsubnetarmid: '@Model.System.db_subnet_arm_id',
-            appsubnetarmid: '@Model.System.app_subnet_arm_id',
-            websubnetarmid: '@Model.System.web_subnet_arm_id',
-            databasevmzones: @Json.Serialize(@Model.System.database_vm_zones),
-            nfsprovider: '@Model.System.NFS_provider',
-            databaseplatform: '@Model.System.database_platform',
-            dbauthtype: '@Model.System.database_vm_authentication_type',
-            apptierauthtype: '@Model.System.app_tier_authentication_type',
-            anchorauthtype: '@Model.System.anchor_vm_authentication_type',
-            useprefix: '@Model.System.use_prefix'.toLowerCase(),
-            dbhighavailability: '@Model.System.database_high_availability'.toLowerCase(),
-            dbusedhcp: '@Model.System.database_vm_use_DHCP'.toLowerCase(),
-            dbnoppg: '@Model.System.database_no_ppg'.toLowerCase(),
-            dbnoavset: '@Model.System.database_no_avset'.toLowerCase(),
-            enableapptierdeployment: '@Model.System.enable_app_tier_deployment'.toLowerCase(),
-            apptierusedhcp: '@Model.System.app_tier_use_DHCP'.toLowerCase(),
-            apptierdualnics: '@Model.System.app_tier_dual_nics'.toLowerCase(),
-            scshighavailability: '@Model.System.scs_high_availability'.toLowerCase(),
-            deployanchorvm: '@Model.System.deploy_anchor_vm'.toLowerCase(),
-            anchoraccnetworking: '@Model.System.anchor_vm_accelerated_networking'.toLowerCase(),
-            anchorusedhcp: '@Model.System.anchor_vm_use_DHCP'.toLowerCase(),
-            nsgasgwvnet: '@Model.System.nsg_asg_with_vnet'.toLowerCase(),
-        }
-        setModelData(retainedValues);
-        initializeDropdowns();
-        initializeWorkloadZones();
-
-        var retainedListValues = [
-            {
-                id: 'proximityplacementgroup_names',
-                data: @Json.Serialize(@Model.System.proximityplacementgroup_names)
-            },
-            {
-                id: 'proximityplacementgroup_arm_ids',
-                data: @Json.Serialize(@Model.System.proximityplacementgroup_arm_ids)
-            },
-            {
-                id: 'database_vm_avset_arm_ids',
-                data: @Json.Serialize(@Model.System.database_vm_avset_arm_ids)
-            },
-            {
-                id: 'database_tags',
-                data: @Json.Serialize(@Model.System.database_tags)
-            },
-            {
-                id: 'application_server_zones',
-                data: @Json.Serialize(@Model.System.application_server_zones)
-            },
-            {
-                id: 'application_server_app_nic_ips',
-                data: @Json.Serialize(@Model.System.application_server_app_nic_ips)
-            },
-            {
-                id: 'application_server_app_admin_nic_ips',
-                data: @Json.Serialize(@Model.System.application_server_app_admin_nic_ips)
-            },
-            {
-                id: 'application_server_tags',
-                data: @Json.Serialize(@Model.System.application_server_tags)
-            },
-            {
-                id: 'scs_server_zones',
-                data: @Json.Serialize(@Model.System.scs_server_zones)
-            },
-            {
-                id: 'scs_server_app_nic_ips',
-                data: @Json.Serialize(@Model.System.scs_server_app_nic_ips)
-            },
-            {
-                id: 'scs_server_app_admin_nic_ips',
-                data: @Json.Serialize(@Model.System.scs_server_app_admin_nic_ips)
-            },
-            {
-                id: 'scs_server_loadbalancer_ips',
-                data: @Json.Serialize(@Model.System.scs_server_loadbalancer_ips)
-            },
-            {
-                id: 'scs_server_tags',
-                data: @Json.Serialize(@Model.System.scs_server_tags)
-            },
-            {
-                id: 'webdispatcher_server_zones',
-                data: @Json.Serialize(@Model.System.webdispatcher_server_zones)
-            },
-            {
-                id: 'webdispatcher_server_app_nic_ips',
-                data: @Json.Serialize(@Model.System.webdispatcher_server_app_nic_ips)
-            },
-            {
-                id: 'webdispatcher_server_app_admin_nic_ips',
-                data: @Json.Serialize(@Model.System.webdispatcher_server_app_admin_nic_ips)
-            },
-            {
-                id: 'webdispatcher_server_loadbalancer_ips',
-                data: @Json.Serialize(@Model.System.webdispatcher_server_loadbalancer_ips)
-            },
-            {
-                id: 'webdispatcher_server_tags',
-                data: @Json.Serialize(@Model.System.webdispatcher_server_tags)
-            },
-            {
-                id: 'anchor_vm_nic_ips',
-                data: @Json.Serialize(@Model.System.anchor_vm_nic_ips)
-            }
-        ]
-        initializeLists(retainedListValues);
+        var system = @Html.Raw(JsonSerializer.Serialize(Model.System));
+        createModel(system);
+        retainFormValues();
     });
 
     window.onload = function () {
@@ -151,6 +41,10 @@
 
 </script>
 
+<div id="loading-background">
+    <fluent-progress-ring class="width-full"></fluent-progress-ring>
+</div>
+
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
     <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
@@ -160,7 +54,7 @@
 <div>
 
     <div class="text-center">
-        <h2 style="text-align: center">System parameters </h2>
+        <h2 style="text-align: center">@Model.System.Id</h2>
     </div>
 
     @if (!ViewData.ModelState.IsValid)

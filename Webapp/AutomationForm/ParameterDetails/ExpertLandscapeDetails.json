@@ -257,14 +257,6 @@
           "Overrules": "web_subnet_address_prefix"
         },
         {
-          "Name": "web_subnet_address_prefix",
-          "Required": false,
-          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
           "Name": "web_subnet_name",
           "Required": false,
           "Description": "Should only be used if the default naming is not acceptable",
