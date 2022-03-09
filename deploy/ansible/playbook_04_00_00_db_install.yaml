@@ -308,8 +308,7 @@
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
             mode:                      0755
-
-      when:                            platform == 'SYBASE'
+          when:                            platform == 'SYBASE'
 
 ...
 # /*----------------------------------------------------------------------------8

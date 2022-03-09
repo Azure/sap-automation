@@ -58,5 +58,19 @@
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_backup/lv_sybase_backup',          path: '/sybase/{{ db_sid|upper }}/backup'     }
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_saptemp/lv_sybase_saptemp',        path: '/sybase/{{ db_sid|upper }}/saptemp'        }
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdiag/lv_sybase_sapdiag',        path: '/sybase/{{ db_sid|upper }}/sapdiag'     }
+  register:  sybase_filesystem_mounts
   when:
-    - (item.node_tier == "all" or item.node_tier == node_tier)
+    - item.node_tier == "SYBASE"
+    - item.lv in lvexists
+# Debug for testing
+- name:                                "Sybase: Print Sybase filesystems"
+  ansible.builtin.debug:
+    var:                               sybase_filesystem_mounts
+    verbosity:                         2
+
+
+- name:                                "Sybase: Create sap_deployment_automation folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
