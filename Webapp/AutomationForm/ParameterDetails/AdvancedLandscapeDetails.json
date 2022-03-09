@@ -27,6 +27,14 @@
           "Type": "field",
           "Options": [],
           "Overrules": ""
+        },
+        {
+          "Name": "web_subnet_address_prefix",
+          "Required": true,
+          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
         }
       ]
     },

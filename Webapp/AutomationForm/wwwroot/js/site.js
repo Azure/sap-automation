@@ -169,7 +169,7 @@ $("#subscription").on("change", function () {
         },
     ];
     if (subscriptionid) {
-        Promise.all(dropdownsAffected.map(updateAndSetDropdowns)).then(console.log);
+        Promise.all(dropdownsAffected.map(updateAndSetDropdowns));
     }
     else {
         dropdownsAffected.map(({ ids }) => { resetDropdowns(ids) });
@@ -211,7 +211,7 @@ $("#network_address_arm_id").on("change", function () {
         }
     ];
     if (vnetid) {
-        Promise.all(dropdownsAffected.map(updateAndSetDropdowns)).then(console.log);
+        Promise.all(dropdownsAffected.map(updateAndSetDropdowns));
     }
     else {
         dropdownsAffected.map(({ ids }) => { resetDropdowns(ids) });

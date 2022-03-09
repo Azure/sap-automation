@@ -16,7 +16,6 @@ namespace AutomationForm.Models
 
         // BASIC
 
-        //[Required]
         [BsonIgnoreIfNull]
         [DisplayName("Workload zone")]
         public string workload_zone { get; set; }
@@ -41,15 +40,12 @@ namespace AutomationForm.Models
 
         // ADVANCED
 
-        //[Required]
         [BsonIgnoreIfNull]
         public string tfstate_resource_id { get; set; }
 
-        //[Required]
         [BsonIgnoreIfNull]
         public string deployer_tfstate_key { get; set; }
 
-        //[Required]
         [BsonIgnoreIfNull]
         public string landscape_tfstate_key { get; set; }
 
@@ -67,6 +63,11 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         [IpAddressValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
         public string app_subnet_address_prefix { get; set; }
+
+        //[Required]
+        [BsonIgnoreIfNull]
+        [IpAddressValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
+        public string web_subnet_address_prefix { get; set; }
 
         [BsonIgnoreIfNull]
         public string automation_username { get; set; }
@@ -156,11 +157,6 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         [SubnetArmIdValidator(ErrorMessage = "Invalid web subnet arm id")]
         public string web_subnet_arm_id { get; set; }
-
-        //[Required]
-        [BsonIgnoreIfNull]
-        [IpAddressValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
-        public string web_subnet_address_prefix { get; set; }
 
         [BsonIgnoreIfNull]
         public string web_subnet_name { get; set; }

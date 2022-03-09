@@ -72,6 +72,48 @@ namespace AutomationForm.Models
             }
         }
 
+        public class SubnetRequired : ValidationAttribute
+        {
+            private readonly string thisProperty;
+            private readonly string targetProperty;
+            public SubnetRequired(string subnetType)
+            {
+                thisProperty = subnetType + "_subnet_address_prefix";
+                targetProperty = subnetType + "_subnet_arm_id";
+            }
+            protected override ValidationResult IsValid(object value, ValidationContext context)
+            {
+                string prefix = (string)value;
+                string armId = (string)context.ObjectInstance.GetType().GetProperty(targetProperty).GetValue(context.ObjectInstance);
+
+                if (prefix == null && armId == null)
+                {
+                    return new ValidationResult($"At least one of {thisProperty} or {targetProperty} must be present.");
+                }
+                else
+                {
+                    return ValidationResult.Success;
+                }
+            }
+        }
+        
+        public class VnetRequired : ValidationAttribute
+        {
+            protected override ValidationResult IsValid(object value, ValidationContext context)
+            {
+                string prefix = (string)value;
+                string armId = (string)context.ObjectInstance.GetType().GetProperty("network_address_arm_id").GetValue(context.ObjectInstance);
+
+                if (prefix == null && armId == null)
+                {
+                    return new ValidationResult($"At least one of network_address_space or network_address_arm_id must be present.");
+                }
+                else
+                {
+                    return ValidationResult.Success;
+                }
+            }
+        }
 
     }
 }

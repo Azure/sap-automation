@@ -29,7 +29,7 @@ namespace AutomationForm.Models
         [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
         public string network_logical_name { get; set; }
 
-        //[Required]
+        [VnetRequired]
         [BsonIgnoreIfNull]
         [DisplayName("Network address")]
         [IpAddressValidator(ErrorMessage = "Network address space must be a valid RFC 1918 address")]
@@ -37,20 +37,25 @@ namespace AutomationForm.Models
 
         // ADVANCED
 
-        //[Required]
+        [SubnetRequired(subnetType: "admin")]
         [BsonIgnoreIfNull]
         [IpAddressValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
         public string admin_subnet_address_prefix { get; set; }
 
-        //[Required]
+        [SubnetRequired(subnetType: "db")]
         [BsonIgnoreIfNull]
         [IpAddressValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
         public string db_subnet_address_prefix { get; set; }
 
-        //[Required]
+        [SubnetRequired(subnetType: "app")]
         [BsonIgnoreIfNull]
         [IpAddressValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
         public string app_subnet_address_prefix { get; set; }
+
+        [SubnetRequired(subnetType: "web")]
+        [BsonIgnoreIfNull]
+        [IpAddressValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
+        public string web_subnet_address_prefix { get; set; }
 
         [BsonIgnoreIfNull]
         public string automation_username { get; set; }
@@ -127,11 +132,6 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         [SubnetArmIdValidator(ErrorMessage = "Invalid web subnet arm id")]
         public string web_subnet_arm_id { get; set; }
-
-        //[Required]
-        [BsonIgnoreIfNull]
-        [IpAddressValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
-        public string web_subnet_address_prefix { get; set; }
 
         [BsonIgnoreIfNull]
         public string web_subnet_name { get; set; }

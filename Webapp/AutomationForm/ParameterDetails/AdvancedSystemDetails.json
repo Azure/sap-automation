@@ -6,7 +6,7 @@
       "Parameters": [
         {
           "Name": "admin_subnet_address_prefix",
-          "Required": true,
+          "Required": false,
           "Description": "Mandatory if the subnets are not defined in the workload, or if existing subnets are not used",
           "Type": "field",
           "Options": [],
@@ -14,7 +14,7 @@
         },
         {
           "Name": "db_subnet_address_prefix",
-          "Required": true,
+          "Required": false,
           "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
           "Type": "field",
           "Options": [],
@@ -22,7 +22,15 @@
         },
         {
           "Name": "app_subnet_address_prefix",
-          "Required": true,
+          "Required": false,
+          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "web_subnet_address_prefix",
+          "Required": false,
           "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
           "Type": "field",
           "Options": [],
