@@ -2,6 +2,7 @@
 
 name: "ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms"
 target: "SAP NETWEAVER 7.5"
+version: 0001
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
@@ -20,7 +21,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name: DB2_UDB_11_5_v0001ms 
+    - name:             DB2_UDB_11_5_v0001ms
 
   media:
     # SAPCAR 7.22
@@ -130,12 +131,12 @@ materials:
       url: https://softwaredownloads.sap.com/file/0030000000001862016
       path: download_basket
 
-    - name: "SAP ERP 6.0 EHP8 SAP Components"
-      archive: 51050610_16.ZIP
-      extract: true
-      extractDir: sapdb2_software/erpcomponents
-      url: https://softwaredownloads.sap.com/file/0030000000001942016
-      path: download_basket
+    # - name: "SAP ERP 6.0 EHP8 SAP Components"
+    #   archive: 51050610_16.ZIP
+    #   extract: true
+    #   extractDir: sapdb2_software/erpcomponents
+    #   url: https://softwaredownloads.sap.com/file/0030000000001942016
+    #   path: download_basket
     
 
     
