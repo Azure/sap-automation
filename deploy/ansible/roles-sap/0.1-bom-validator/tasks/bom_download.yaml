@@ -59,7 +59,7 @@
       rescue:
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.set_fact:
-            file_url:                  "{{ item.url | lower | urlsplit('scheme')}}://{{ item.url | lower | urlsplit('hostname')}}/{{ item.url | lower | urlsplit('path') | replace('\"','') }}"
+            file_url:                  "{{ item.url | lower | urlsplit('scheme') }}://{{ item.url | lower | urlsplit('hostname') }}/{{ item.url | lower | urlsplit('path') | replace('\"','') }}"
 
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.debug:

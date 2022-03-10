@@ -61,13 +61,15 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}"
+        owner:                         '{{ sidadm_uid }}'
         group:                         sapsys
       loop:
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
         -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
         -  { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}' }
       when: inventory_hostname == primary_instance_name
+      tags:
+        - skip_ansible_lint
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Install SCS on Primary host"
       include_role:
@@ -129,7 +131,7 @@
     - name:                            "5.6 SCSERS - RHEL - ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}"
+        owner:                         '{{ sidadm_uid }}'
         group:                         sapsys
         state:                         directory
       loop:
@@ -137,6 +139,8 @@
         -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
         -  { path: '/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}' }
       when: inventory_hostname == secondary_instance_name
+      tags:
+        - skip_ansible_lint
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Install on Secondary host"
       include_role:
