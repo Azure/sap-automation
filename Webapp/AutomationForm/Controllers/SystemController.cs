@@ -234,7 +234,10 @@ namespace AutomationForm.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id)
         {
-            return View(await _systemService.GetByIdAsync(id));
+            SystemModel system = await _systemService.GetByIdAsync(id);
+            if (system == null) return NotFound();
+            systemView.System = system;
+            return View(systemView);
         }
 
         [ActionName("Download")]

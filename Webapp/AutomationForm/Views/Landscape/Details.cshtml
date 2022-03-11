@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.LandscapeModel
+﻿@model AutomationForm.Models.LandscapeViewModel
 
 @{
     ViewBag.Title = "Landscape details";
@@ -11,31 +11,95 @@
 </fluent-breadcrumb>
 
 <div class="text-center">
-    <h2>Workload zone details</h2>
+    <h2>@Model.Landscape.Id</h2>
 </div>
 
-<div>
-    <hr />
-    <dl class="dl-horizontal">
-        @foreach (var prop in ViewData.ModelMetadata.Properties)
+<table class="details-table">
+    <caption>@Model.Landscape.Id parameter details</caption>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+            <th>Section</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ bool everyOther = true; }
+        @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
         {
-            string value = Html.DisplayText(prop.PropertyName);
-
-            if (value.Length != 0)
+            @foreach (Grouping g in pg.Groupings)
             {
-                <dt>
-                    @Html.DisplayName(prop.GetDisplayName())
-                </dt>
+                bool firstRow = true;
+                @foreach (ParameterModel p in g.Parameters)
+                {
+                    var value = Model.Landscape.GetType().GetProperty(p.Name).GetValue(Model.Landscape);
+                    <tr>                    
+                        <td>@p.Name</td>
 
-                <dd>
-                    @value
-                </dd>
+                        @if (value == null)
+                        {
+                            <td> </td>
+                        }
+                        else
+                        {
+                            @if (value.GetType() == typeof(Image))
+                            {
+                                Image img = (Image)value;
+                                if (img.os_type         != null ||
+                                    img.source_image_id != null ||
+                                    img.publisher       != null ||
+                                    img.offer           != null ||
+                                    img.sku             != null ||
+                                    img.version         != null)
+                                {
+                                    <td>
+                                        os_type:         @img.os_type <br>
+                                        source_image_id: @img.source_image_id <br>
+                                        publisher:       @img.publisher <br>
+                                        offer:           @img.offer <br>
+                                        sku:             @img.sku <br>
+                                        version:         @img.version
+                                    </td>
+                                }
+                                else {
+                                    <td> </td>
+                                }
+                            }
+                            else
+                            {
+                                <td>
+                                    @if (p.Type == "list")
+                                    {
+                                        var tmp = (string[])value;
+                                        foreach (var t in tmp)
+                                        {
+                                            @t <br>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @value.ToString()
+                                    }
+                                </td>
+                            }
+                        }
+                        @if (firstRow)
+                        {
+                            <td rowspan="@g.Parameters.Length" class="details-section" style="@(everyOther ? "background: #eee" : "background: none")">
+                                @g.Section
+                            </td>
+                            firstRow = false;
+                            everyOther = !everyOther;
+                        }
+                    </tr>
+                }
             }
         }
-    </dl>
-</div>
+    </tbody>
+</table>
+
 <p>
-    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "Landscape", new { id = Model.Id })">
+    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "Landscape", new { id = Model.Landscape.Id })">
         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
     </fluent-anchor>
     <fluent-anchor href="@Url.Action("Index", "Landscape")">

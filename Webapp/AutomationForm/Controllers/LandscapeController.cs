@@ -276,7 +276,10 @@ namespace AutomationForm.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id)
         {
-            return View(await _landscapeService.GetByIdAsync(id));
+            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
+            if (landscape == null) return NotFound();
+            landscapeView.Landscape = landscape;
+            return View(landscapeView);
         }
 
         [ActionName("Download")]
