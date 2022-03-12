@@ -60,8 +60,8 @@
     - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdiag/lv_sybase_sapdiag',        path: '/sybase/{{ db_sid|upper }}/sapdiag'     }
   register:  sybase_filesystem_mounts
   when:
-    - item.node_tier == "SYBASE"
-    - item.lv in lvexists
+    - item.node_tier == "sybase"
+
 # Debug for testing
 - name:                                "Sybase: Print Sybase filesystems"
   ansible.builtin.debug:

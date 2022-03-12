@@ -53,13 +53,64 @@ SYSAM_NOTIFICATION_EMAIL_SEVERITY=NONE
 
 #Configure New Servers
 #---------------------
-SY_CONFIG_ASE_SERVER=false
+SY_CONFIG_ASE_SERVER=true
 SY_CONFIG_HADR_SERVER=false
 SY_CONFIG_BS_SERVER=false
 SY_CONFIG_XP_SERVER=false
 SY_CONFIG_JS_SERVER=false
 SY_CONFIG_BALDR_OPTION=false
-SY_CONFIG_SM_SERVER=false
+SY_CONFIG_SM_SERVER=true
 SY_CONFIG_WS_SERVER=false
 SY_CONFIG_SCC_SERVER=false
 SY_CONFIG_TXT_SERVER=false
+
+#Configure Servers with Different User Account
+#---------------------------------------------
+SY_CFG_USER_ACCOUNT_CHANGE=no
+
+#User Configuration Data Directory
+#---------------------------------
+SY_CFG_USER_DATA_DIRECTORY={{_rsp_install_folder}}/sapdata
+
+#Configure New SAP ASE
+#---------------------
+SY_CFG_ASE_SERVER_NAME={{ db_sid|upper }}
+SY_CFG_ASE_HOST_NAME={{ ansible_hostname }}.{{ sap_fqdn }}
+SY_CFG_ASE_PORT_NUMBER=5000
+SY_CFG_ASE_APPL_TYPE=OLTP
+SY_CFG_ASE_PAGESIZE=4k
+SY_CFG_ASE_PASSWORD={{ main_password }}
+SY_CFG_ASE_MASTER_DEV_NAME={{_rsp_install_folder}}/sybsystem/master.dat
+SY_CFG_ASE_MASTER_DEV_SIZE=52
+SY_CFG_ASE_MASTER_DB_SIZE=26
+SY_CFG_ASE_SYBPROC_DEV_NAME={{_rsp_install_folder}}/sybsystem/sysprocs.dat
+SY_CFG_ASE_SYBPROC_DEV_SIZE=196
+SY_CFG_ASE_SYBPROC_DB_SIZE=196
+SY_CFG_ASE_SYBTEMP_DEV_NAME={{_rsp_install_folder}}/sybsystem/sybsysdb.dat
+SY_CFG_ASE_SYBTEMP_DEV_SIZE=6
+SY_CFG_ASE_SYBTEMP_DB_SIZE=6
+SY_CFG_ASE_ERROR_LOG={{_rsp_install_folder}}/ASE-16_0/install/{{ db_sid|upper }}.log
+CFG_REMOTE_AND_CONTROL_AGENT=false
+ENABLE_COCKPIT_MONITORING=true
+COCKPIT_TECH_USER=tech_user
+COCKPIT_TECH_USER_PASSWORD={{ main_password }}
+SY_CFG_ASE_PCI_ENABLE=false
+SY_CFG_ASE_PCI_DEV_NAME=$NULL$
+SY_CFG_ASE_PCI_DEV_SIZE=$NULL$
+SY_CFG_ASE_PCI_DB_SIZE=$NULL$
+SY_CFG_ASE_AMC_ENABLE=false
+SY_CFG_ASE_AMC_PORT_NUMBER=$NULL$
+SY_CFG_ASE_TEMP_DEV_NAME={{_rsp_install_folder}}/sybtemp/data/tempdbdev.dat
+SY_CFG_ASE_TEMP_DEV_SIZE=100
+SY_CFG_ASE_TEMP_DB_SIZE=100
+SY_CFG_ASE_OPT_ENABLE=false
+SY_CFG_ASE_CPU_NUMBER=$NULL$
+SY_CFG_ASE_MEMORY=$NULL$
+SY_CFG_ASE_LANG=$NULL$
+SY_CFG_ASE_CHARSET=$NULL$
+SY_CFG_ASE_SORTORDER=$NULL$
+SY_CFG_ASE_SAMPLE_DB=false
+
+#Configure Self Management
+SY_CFG_SM_USER_NAME=sa
+SY_CFG_SM_PASSWORD={{ main_password }}

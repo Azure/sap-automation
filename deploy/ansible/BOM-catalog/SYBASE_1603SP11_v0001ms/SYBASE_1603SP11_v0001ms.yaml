@@ -29,20 +29,20 @@ materials:
     
     # Kernel
     - name:         "Kernel Part I (753) ; OS: Linux on x86_64 64bit ; DB: Database independent"
-      archive:      SAPEXE_801-80002573.SAR
-      checksum:     c1efbbd12cb16134720b251fd18cab4fdbc8a0a3ee93b54c2ee41671bc3048fc
+      archive:      SAPEXE_900-80002573.SAR
+      checksum:     f5755f3df7be0bd0f1f07c959bc55c806a51ba3131287c568c2535bd8fdf713d
       extract:      false
       download:     true
       path:         download_basket
-      url:          https://softwaredownloads.sap.com/file/0020000000937192021
+      url:          https://softwaredownloads.sap.com/file/0020000001557032021
 
-    - name:         "Kernel Part II (753) ; OS: Linux on x86_64 64bit ; DB: SAP HANA database"
-      archive:      SAPEXEDB_801-80002572.SAR
-      checksum:     cea354d096aeca009ffcc81d0830956626fbb0b3c65e7507798256a18318bc5e
+    - name:         "Kernel Part II (753) ; OS: Linux on x86_64 64bit ; DB: SAP ASE database"
+      archive:      SAPEXEDB_900-80002616.SAR
+      checksum:     98beb5532ce000d102c6460cf2519f5996e12099237c9961dca4486955cfcbad
       extract:      false
       download:     true
       path:         download_basket
-      url:          https://softwaredownloads.sap.com/file/0020000000937602021
+      url:          https://softwaredownloads.sap.com/file/0020000001557642021
 
     # SAP Host Agent
     - name:         "SAP HOST AGENT 7.21 SP51 ; OS: Linux on x86_64 64bit"
