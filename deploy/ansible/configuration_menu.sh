@@ -98,10 +98,11 @@ PS3='Please select playbook: '
 # all_playbooks array defined below
 options=(
         # Specific playbook entries
-        "Base OS Config"
-        "SAP specific OS Config"
+        "Validate parameters"
+        "Base Operating System configuration"
+        "SAP specific Operating System configuration"
         "BOM Processing"
-        "DB Install"
+        "Database Instance installation"
         "SCS Install"
         "DB Load"
         "PAS Install"
@@ -112,9 +113,8 @@ options=(
 
         # Special menu entries
         "BOM Download"
-        "Tester"
-        "Install SAP (1-7)"
-        "Post SAP Install (8-10)"
+        "Configure and install SAP (1-7)"
+        "Post SAP Installation tasks (8-10)"
         "All Playbooks"
         "Quit"
 )
@@ -122,6 +122,7 @@ options=(
 # List of all possible playbooks
 all_playbooks=(
         # Basic/Minimal SAP Install Steps
+        ${cmd_dir}/playbook_00_validate_parameters.yaml
         ${cmd_dir}/playbook_01_os_base_config.yaml
         ${cmd_dir}/playbook_02_os_sap_specific_config.yaml
         ${cmd_dir}/playbook_03_bom_processing.yaml
@@ -137,8 +138,9 @@ all_playbooks=(
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
         ${cmd_dir}/playbook_04_00_01_db_ha.yaml
-        ${cmd_dir}/playbook_bom_downloader
-        ${cmd_dir}/playbook_tester.yaml
+        ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
+        ${cmd_dir}/playbook_bom_downloader.yaml
+        ${cmd_dir}/playbook_07_00_00_post_installation.yaml
 )
 
 # Set of options that will be passed to the ansible-playbook command
@@ -168,9 +170,9 @@ do
         "${options[-2]}")   # Run through all playbooks
                 playbooks+=( "${all_playbooks[@]}" );;
         "${options[-3]}")   # Run through post installation playbooks
-                playbooks+=( "${all_playbooks[@]:7:3}" );;
+                playbooks+=( "${all_playbooks[@]:8:3}" );;
         "${options[-4]}")   # Run through first 7 playbooks i.e.  SAP installation
-                playbooks+=( "${all_playbooks[@]:0:7}" );;
+                playbooks+=( "${all_playbooks[@]:0:8}" );;
         *)
                 # If not a numeric reply
                 if ! [[ "${REPLY}" =~ ^[0-9]{1,2}$ ]]; then

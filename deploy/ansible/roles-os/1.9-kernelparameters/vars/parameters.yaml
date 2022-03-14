@@ -6,7 +6,7 @@
 # +------------------------------------4--------------------------------------*/
 # Derived and adopted from the os-package rewrite done by rtamalin
 #
-# For each supported 'distro_id' we want a list of dictionary entries that
+# For each supported 'distribution_id' we want a list of dictionary entries that
 # specify the associated parameter name, parameter value and whether we
 # want the parameter to be set (present).
 #
@@ -17,7 +17,7 @@
 # time allowing us to specify new parameters and override existing one at a
 # OS distribution level.
 #
-# See the definition of 'distro_id' to determine what to use when creating
+# See the definition of 'distribution_id' to determine what to use when creating
 # an entry for a new distribution.
 
 parameters:

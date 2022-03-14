@@ -11,7 +11,7 @@
 #             parameters.yaml                  - parameter file
 #
 #   Internal:
-#             getparamlistforapply             - object to store the params
+#             get_parameters_to_apply             - object to store the params
 #                                                applicable for a host
 #
 #   Created:
@@ -35,32 +35,32 @@
 # <Comment Header>
 #
 # -------------------------------------+---------------------------------------8
-- name:                                Ensure parameters are available
+- name:                                "1.9 Kernel parameters - Ensure parameters are available"
   ansible.builtin.include_vars:        parameters.yaml
 
 # ----------------------------------------
 # BEGIN
 # ----------------------------------------
 
-- name:                                Gather list of parameters which need to be applied
+- name:                                "1.9 Kernel parameters - Gather list of parameters which need to be applied"
   ansible.builtin.set_fact:
-    getparamlistforapply:              '{{
+    get_parameters_to_apply:           '{{
                                           (
                                             parameters["common"]
                                             +
                                             (
-                                              parameters[distro_id]|default([])
+                                              parameters[distribution_id]|default([])
                                             )
                                           ) | unique
                                         }}'
 
 # print only when -vv, otherwise you will have terminal nausea
-- name:                                Display parameters which will be applied
+- name:                                "1.9 Kernel parameters - Display parameters which will be applied"
   ansible.builtin.debug:
-    var:                               getparamlistforapply
+    var:                               get_parameters_to_apply
     verbosity:                         2
 
-- name:                                Set relevant kernel parameters
+- name:                                "1.9 Kernel parameters - Set relevant kernel parameters"
   become:                              true
   ansible.builtin.sysctl:
     name:                              "{{ item.name }}"
@@ -69,7 +69,7 @@
     sysctl_set:                        true
     reload:                            true
     ignoreerrors:                      true
-  loop:                                "{{ getparamlistforapply }}"
+  loop:                                "{{ get_parameters_to_apply }}"
   when:
     - item.tier in ["all", tier]
 

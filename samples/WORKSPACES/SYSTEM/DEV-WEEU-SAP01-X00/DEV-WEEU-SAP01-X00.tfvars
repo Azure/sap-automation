@@ -14,26 +14,6 @@ environment = "DEV"
 # The location valus is a mandatory field, it is used to control where the resources are deployed
 location = "westeurope"
 
-# RESOURCEGROUP
-# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
-# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
-# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
-#resourcegroup_name=""
-#resourcegroup_arm_id=""
-# custom_prefix defines the prefix that will be added to the resource names
-#custom_prefix=""
-# use_prefix defines if a prefix will be added to the resource names
-#use_prefix=true
-
-
-# PPG
-# The proximity placement group names and arm_ids are optional can be used to control the naming and the creation of the proximity placement groups
-# The proximityplacementgroup_names list value is optional, it can be used to override the name of the proximity placement groups that will be provisioned
-# The proximityplacementgroup_arm_ids list value is optional, it can be used to provide an existing proximity placement groups for the deployment
-#proximityplacementgroup_names=[]
-#proximityplacementgroup_arm_ids=[]
-
-
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #
@@ -112,7 +92,7 @@ database_vm_image = {
 # }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
-#database_vm_zones=["1"]
+database_vm_zones=["1"]
 
 # database_nodes provides a way to specify more than one database node, i.e. a scaleout scenario
 
@@ -151,7 +131,7 @@ database_vm_image = {
 # sid is a mandatory field that defines the SAP Application SID
 sid = "X00"
 
-app_tier_vm_sizing = "Production"
+app_tier_vm_sizing = "Optimized"
 
 
 # app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
@@ -174,7 +154,7 @@ app_tier_use_DHCP = true
 # Application Servers
 
 # application_server_count defines how many application servers to deploy
-application_server_count = 3
+application_server_count=2
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
 #application_server_zones=["1","2","3"]
@@ -229,7 +209,7 @@ scs_server_count = 1
 scs_high_availability = false
 
 # scs_instance_number
-scs_instance_number = "00"
+scs_instance_number = "01"
 
 # ers_instance_number
 ers_instance_number = "02"
@@ -251,7 +231,7 @@ ers_instance_number = "02"
 #scs_server_tags={},
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-#scs_server_zones=["1","2","3"]
+scs_server_zones=["1"]
 
 # The vm_image defines the Virtual machine image to use for the application servers, 
 # if source_image_id is specified the deployment will use the custom image provided, 
@@ -337,6 +317,26 @@ webdispatcher_server_count = 0
 
 # nsg_asg_with_vnet if set controls where the Application Security Groups are created
 #nsg_asg_with_vnet=false
+
+
+# RESOURCEGROUP
+# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
+# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
+# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+#resourcegroup_name=""
+#resourcegroup_arm_id=""
+# custom_prefix defines the prefix that will be added to the resource names
+#custom_prefix=""
+# use_prefix defines if a prefix will be added to the resource names
+#use_prefix=true
+
+
+# PPG
+# The proximity placement group names and arm_ids are optional can be used to control the naming and the creation of the proximity placement groups
+# The proximityplacementgroup_names list value is optional, it can be used to override the name of the proximity placement groups that will be provisioned
+# The proximityplacementgroup_arm_ids list value is optional, it can be used to provide an existing proximity placement groups for the deployment
+#proximityplacementgroup_names=[]
+#proximityplacementgroup_arm_ids=[]
 
 #########################################################################################
 #                                                                                       #
@@ -465,9 +465,6 @@ network_logical_name = "SAP01"
 #anchor_vm_nic_ips=["","",""]
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 #anchor_vm_use_DHCP=true
-
-
-
 
 #########################################################################################
 #                                                                                       #

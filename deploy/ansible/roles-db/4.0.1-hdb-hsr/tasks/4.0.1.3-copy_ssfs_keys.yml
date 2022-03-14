@@ -8,7 +8,7 @@
 
 - name:                                "HSR - SYNC the Primary node SSFS files"
   become: true
-  ansible.builtin.command: "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
+  ansible.builtin.command:             "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
   loop:
     - { file: 'SSFS_{{ db_sid | upper }}.DAT', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/security/rsecssfs/data/' }
     - { file: 'SSFS_{{ db_sid | upper }}.KEY', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/security/rsecssfs/key/' }
@@ -28,7 +28,7 @@
 
 - name:                                "HSR - SYNC the Primary node XSA files"
   become: true
-  ansible.builtin.command: "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
+  ansible.builtin.command:             "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
   loop:
     - { file: 'SSFS_{{ db_sid | upper }}.DAT', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/xsa/security/ssfs/data/' }
     - { file: 'SSFS_{{ db_sid | upper }}.KEY', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/xsa/security/ssfs/key/' }

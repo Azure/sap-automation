@@ -6,22 +6,24 @@
 ---
 
 - hosts:                               localhost
-  name:                                Preparation activities
-  gather_facts:                        true
+  name:                                "SAP OS configuration playbook: - Initialization"
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            Create Progress folder
+
+    - name:                            "SAP OS configuration playbook: - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
-        state:                          directory
+        state:                         directory
         mode:                          0755
 
-    - name:                            Remove sap-os-configuration-done flag
+    - name:                            "SAP OS configuration playbook: - Remove sap-os-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
         state:                          absent
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -51,84 +53,84 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            Setting the sapos tier facts
+    - name:                            "SAP OS configuration playbook: - Set sapos fact"
       ansible.builtin.set_fact:
         tier:                          sapos                                     # Actions for HANA DB Serve
       tags:
         - always
 
     - block:
-        - name:                        Include 2.4-hosts-file role
+        - name:                        "SAP OS configuration playbook: - Create hosts file"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.4-hosts-file
       tags:
         - 2.4-hosts-file
 
     - block:
-        - name:                        Include 1.3-repository role
+        - name:                        "SAP OS configuration playbook: - Ensure the repositories are registered"
           ansible.builtin.include_role:
             name:                      roles-os/1.3-repository
       tags:
         - 1.3-repository
 
     - block:
-        - name:                        Include 1.11-accounts role
+        - name:                        "SAP OS configuration playbook: - Configure accounts"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
       tags:
         - 1.11-accounts
 
     - block:
-        - name:                        Include 1.4-packages role
+        - name:                        "SAP OS configuration playbook: - Ensure the packages are registered"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
       tags:
         - 1.4-packages
 
     - block:
-        - name:                        Include 1.5-disk-setup role
+        - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
           ansible.builtin.include_role:
             name:                      roles-os/1.5-disk-setup
       tags:
         - 1.5-disk-setup
 
     - block:
-        - name:                        Include 1.9-kernelparameters role
+        - name:                        "SAP OS configuration playbook: - Ensure the kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
       tags:
         - 1.9-kernelparameters
 
     - block:
-        - name:                        Include 2.5-sap-users role
+        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.5-sap-users
       tags:
         - 2.5-sap-users
 
     - block:
-        - name:                        Include 2.3-sap-exports role
+        - name:                        "SAP OS configuration playbook: - configure exports"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.3-sap-exports
       tags:
         - 2.3-sap-exports
 
     - block:
-        - name:                        Include 1.16-services role
+        - name:                        "SAP OS configuration playbook: - Ensure the needed services are started"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
       tags:
         - 1.16-services
 
     - block:
-        - name:                        Include 2.6-sap-mounts role
+        - name:                        "SAP OS configuration playbook: - Create SAP mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
       tags:
         - 2.6-sap-mounts
 
     - block:
-        - name:                        Include 2.10-sap-notes role
+        - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.10-sap-notes
       tags:
@@ -140,18 +142,12 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               localhost
-  name:                                Log results
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                           Create sap-os-configuration-done flag
+    - name:                            "SAP OS configuration playbook: - Create sap-os-install-done flag"
+      delegate_to:                     localhost
       ansible.builtin.file:
-        path:                         "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
-        state:                        touch
-        mode:                         0755
+        path:                          "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
+        state:                         touch
+        mode:                          0755
 
 ...
 # /*----------------------------------------------------------------------------8

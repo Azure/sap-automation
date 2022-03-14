@@ -4,7 +4,7 @@
 #
 # Description:  Validation for Prerequisites
 #
-- name:                                Check required variables are present and not empty
+- name:                                "0.1 BoM Validator: - Check required variables are present and not empty"
   ansible.builtin.assert:
     that:
       - "sapbits_location_base_path is defined"                                 # Has the variable been defined
@@ -17,7 +17,7 @@
       - "target_media_location | trim | length != 0"                            #   and given a value
     fail_msg:                          "Please ensure that the storage account details are provided"
 
-- name:                                Check required variables are present and not empty (bom)
+- name:                                "0.1 BoM Validator: - Check required variables are present and not empty (bom)"
   ansible.builtin.assert:
     that:
       - "bom_base_name is defined"                                              # Has the variable been defined
@@ -25,7 +25,7 @@
       - "bom_base_name | trim | length > 1"                                     #   and given a value
     fail_msg:                          "Please ensure that the BOM details are provided"
 
-- name:                                Check required variables are present and not empty (kv)
+- name:                                "0.1 BoM Validator: - Check required variables are present and not empty (kv)"
   ansible.builtin.assert:
     that:
 
@@ -36,7 +36,7 @@
     fail_msg:                          "Please ensure that the key vault details are provided"
 
 
-- name:                                Check S User are present and not empty
+- name:                                "0.1 BoM Validator: - Check S User are present and not empty"
   ansible.builtin.assert:
     that:
       - "s_user is defined"                    # Has the variable been defined
@@ -44,7 +44,7 @@
       - "s_user | string | length != 0 "       # Detect null values
     fail_msg:                          "Please define the s_user either as a parameter or in the deployer key vault"
 
-- name:                                Check S User password is present and not empty
+- name:                                "0.1 BoM Validator: - Check S User password is present and not empty"
   ansible.builtin.assert:
     that:
       - "s_password is defined"                    # Has the variable been defined

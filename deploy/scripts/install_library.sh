@@ -269,25 +269,32 @@ else
             echo "#                     The state is already migrated to Azure!!!                         #"
             echo "#                                                                                       #"
             echo "#########################################################################################"
-            read -p "Do you want to red bootstrap the SAP library Y/N?"  ans
-            answer=${ans^^}
-            if [ $answer == 'Y' ]; then
-                terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
-                return_value=$?
-                if [ 0 != $return_value ] ; then
-                    echo ""
-                    echo "#########################################################################################"
-                    echo "#                                                                                       #"
-                    echo -e "#                          $boldreduscore Errors during the init phase $resetformatting                               #"    
-                    echo "#                                                                                       #"
-                    echo "#########################################################################################"
-                    echo ""
-                    unset TF_DATA_DIR
-                    exit $return_value
-                fi
+
+            if [ $approve == "--auto-approve" ] ; then
+                terraform -chdir="${terraform_module_directory}" init -upgrade=true  -backend-config "path=${param_dirname}/terraform.tfstate"
+                terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
             else
-                unset TF_DATA_DIR
-                exit 0
+
+                read -p "Do you want to re bootstrap the SAP library Y/N?"  ans
+                answer=${ans^^}
+                if [ $answer == 'Y' ]; then
+                    terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
+                    return_value=$?
+                    if [ 0 != $return_value ] ; then
+                        echo ""
+                        echo "#########################################################################################"
+                        echo "#                                                                                       #"
+                        echo -e "#                          $boldreduscore Errors during the init phase $resetformatting                               #"    
+                        echo "#                                                                                       #"
+                        echo "#########################################################################################"
+                        echo ""
+                        unset TF_DATA_DIR
+                        exit $return_value
+                    fi
+                else
+                    unset TF_DATA_DIR
+                    exit 0
+                fi
             fi
         else
             terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"

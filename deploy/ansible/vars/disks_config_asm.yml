@@ -8,28 +8,9 @@ disktypes: >-
       map(attribute='type') | sort | unique |
       list }}
 
-
-
-debug:
-  var:
-   
-    - disktypes
-    - vgs
-    
-verbosity:                         2
-
-
 # Dynamically determine list of volume groups associated with
 # the current node.
 volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
-
-ansible.builtin.debug:
-  var:
-    - volume_groups
-    - vgs
-  
-verbosity:                         2
-
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
@@ -75,10 +56,10 @@ disk_type_to_name_map:
 #       additional options, if any, that should be passed to the
 #       mkfs command when formatting the file system.
 #
-  
+
 #Adding Tier and disk types for Oracle installation ASM.
 logical_volumes:
-  
+
   - tier:       'ora'
     node_tier:  'oracle-asm'
     vg:         'vg_oracle'
@@ -93,7 +74,7 @@ logical_volumes:
     size:       '64g'
     fstype:     'xfs'
 
-    
+
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs
 # in associated with the associated VG.

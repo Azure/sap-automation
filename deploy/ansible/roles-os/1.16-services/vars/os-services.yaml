@@ -5,10 +5,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# For each supported 'distro_id' we want a list of dictionary entries that
+# For each supported 'distribution_id' we want a list of dictionary entries that
 # specify the associated tier (or 'all' to always match), the service name,
 # and whether we want the service to be enabled and started or disabled
-# and stopped. See the definition of 'distro_id' to determine what to use when
+# and stopped. See the definition of 'distribution_id' to determine what to use when
 # creating an entry for a new distribution.
 # In this list one can specify the custom list of services to be enabled,disabled
 # OR started, stopped
@@ -27,8 +27,6 @@ services:
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
     - { tier: 'sapos',       service: 'rpcbind',      node_tier: 'scs',     state: 'started'   }
-    - { tier: 'sapos',       service: 'nfs',          node_tier: 'scs',     state: 'started'   }
-    - { tier: 'sapos',       service: 'nfs',          node_tier: 'scs',     state: 'enabled'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'enabled'   }
 
@@ -37,18 +35,12 @@ services:
     - { tier: 'os',          service: 'oddjobd',      node_tier: 'all',     state: 'disabled'  }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
-    - { tier: 'sapos',       service: 'nfs-server',   node_tier: 'scs',     state: 'started'   }
-    - { tier: 'sapos',       service: 'nfs-server',   node_tier: 'scs',     state: 'enabled'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'started'   }
     - { tier: 'ha',          service: 'pcsd',         node_tier: 'all',     state: 'enabled'   }
 
   sles_sap12:
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'started' }
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
 
   sles_sap15:
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'started' }
-    - { tier: 'sapos',       service: 'nfsserver',    node_tier: 'scs',     state: 'enabled'   }
 
   oraclelinux8:
     - { tier: 'os',          service: 'auditd',       node_tier: 'all',     state: 'started'   }
@@ -56,8 +48,4 @@ services:
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'firewalld',    node_tier: 'all',     state: 'disabled'  }
     - { tier: 'os',          service: 'waagent',      node_tier: 'all',     state: 'restarted' }  #Ensure the service is restarted and swap space is available in case the handler is not called in 1.1/swap.
-    - { tier: 'sapos',       service: 'rpcbind',      node_tier: 'scs',     state: 'restarted' }  
-    - { tier: 'sapos',       service: 'nfs-server',   node_tier: 'scs',     state: 'enabled'   }  
-    - { tier: 'sapos',       service: 'nfs-server',   node_tier: 'scs',     state: 'restarted' }  
-    - { tier: 'preparation', service: 'nfs-server',   node_tier: 'scs',     state: 'restarted' }
-
+    - { tier: 'sapos',       service: 'rpcbind',      node_tier: 'scs',     state: 'restarted' }

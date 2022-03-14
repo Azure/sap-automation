@@ -1,5 +1,5 @@
 # Inputs:
-#   bom_name              - Nmae of BOM (ex: S41909SPS03_v0001ms)
+#   bom_name              - Name of BOM (ex: S41909SPS03_v0001ms)
 #
 #
 # Outputs:
@@ -13,67 +13,89 @@
 #               If not, download from storage account location.
 #
 
-- name:                                Check for Microsoft Supplied BOM ({{ bom_name }})
-  ansible.builtin.stat:
-    path:                              BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml
-  register:                            microsoft_supplied_bom
-  delegate_to:                         localhost
+- name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
+  ansible.builtin.uri:
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+    status_code:                       [200, 403, 404, 409]
+    method:                            HEAD
+  register:                            blob_exists
 
-- name:                                Check for Microsoft Supplied BOM ({{ bom_base_name }}) result
-  ansible.builtin.debug:
-    var:                               microsoft_supplied_bom
-    verbosity:                         2
-
-- name:                                Check for Microsoft Supplied BOM ({{ bom_name }}) in archives
-  ansible.builtin.stat:
-    path:                              BOM-catalog/archives/{{ bom_name }}/{{ bom_name }}.yaml
-  register:                            microsoft_supplied_bom_archive
-  delegate_to:                         localhost
-
-# If Microsoft supplied BOM found
-- name:                                Register Microsoft Supplied BOM {{ bom_name }}
-  ansible.builtin.include_vars:
-    file:                              "{% if microsoft_supplied_bom.stat.exists %}{{ microsoft_supplied_bom.stat.path }}{% else %}{{ microsoft_supplied_bom_archive.stat.path }}{% endif %}"
-    name:                              bom
-  when:                                microsoft_supplied_bom.stat.exists or microsoft_supplied_bom_archive.stat.exists
-
-- name:                                Register Microsoft Supplied BOM {{ bom_name }} path
-  ansible.builtin.set_fact:
-    bom_file:                          "{% if microsoft_supplied_bom.stat.exists %}{{ microsoft_supplied_bom.stat.path }}{% else %}{{ microsoft_supplied_bom_archive.stat.path }}{% endif %}"
-  when:                                microsoft_supplied_bom.stat.exists or microsoft_supplied_bom_archive.stat.exists
-
-
-# If Microsoft supplied BOM not found
-
-- name:                                Retrieve BOM ({{ bom_name }}) from Storage Account
-  ansible.builtin.debug:
-    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
-    verbosity:                         2
-  when:                                bom is not defined
-
-# If Microsoft supplied BOM not found
-- name:                                Retrieve BOM ({{ bom_name }}) from Storage Account
+- name:                                "BOM: Download BOM ({{ bom_name }}) from Storage Account"
   block:
-
-    - name:                            Download BOM ({{ bom_name }}) from Storage Account
+    - name:                            "{{ task_prefix }} Download BOM ({{ bom_name }}) from Storage Account"
       ansible.builtin.get_url:
         url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
         dest:                          "{{ inventory_dir }}/{{ bom_name }}.yaml"
         mode:                          0644
       register:                        result
       until:                           result is succeeded
-      retries:                         10
-      delay:                           6
+      retries:                         2
+      delay:                           10
       delegate_to:                     localhost                                               # Causes action to occur on the Ansible Controller
       become:                          true
-
-    - name:                            Register downloaded BOM ({{ bom_name }})
+    
+    - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"
       ansible.builtin.include_vars:
         file:                          "{{ inventory_dir }}/{{ bom_name }}.yaml"
         name:                          bom
+      when:                            result is succeeded
 
+    - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
+      ansible.builtin.set_fact:
+        bom_file:                      "{{ inventory_dir }}/{{ bom_name }}.yaml"
 
-  when:                                bom is not defined
+  when:                                blob_exists.status != 404
+
 # -------------------------------------+---------------------------------------8
+
+- name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }})"
+  block:
+    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }})"
+      ansible.builtin.stat:
+        path:                          BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml
+      register:                        microsoft_supplied_bom
+      delegate_to:                     localhost
+    
+    - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
+      ansible.builtin.debug:
+        msg:                           "BOM Exists: {{ microsoft_supplied_bom.stat.exists }}"                           
+        verbosity:                     2
+
+    - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }}"
+      ansible.builtin.include_vars:
+        file:                          "{{ microsoft_supplied_bom.stat.path }}"
+        name:                          bom
+      when:                            microsoft_supplied_bom.stat.exists
+
+    - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
+      ansible.builtin.set_fact:
+        bom_file:                      "{{ microsoft_supplied_bom.stat.path }}"
+      when:                            microsoft_supplied_bom.stat.exists
+
+    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
+      block:
+
+        - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
+          ansible.builtin.stat:
+            path:                      BOM-catalog/archives/{{ bom_name }}/{{ bom_name }}.yaml
+          register:                    microsoft_supplied_bom_archive
+          delegate_to:                 localhost
+
+        - name:                        "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }} from archives"
+          ansible.builtin.include_vars:
+            file:                      "{{ microsoft_supplied_bom_archive.path }}"
+            name:                      bom
+          when:                        microsoft_supplied_bom_archive
+
+        - name:                        "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
+          ansible.builtin.set_fact:
+            bom_file:                  "{{ microsoft_supplied_bom_archive.stat.path }}"
+          when:                        microsoft_supplied_bom_archive.stat.exists
+
+      when:                            not microsoft_supplied_bom.stat.exists
+
+  when:                                blob_exists.status == 404
+
+# If Microsoft supplied BOM not found
 
 ...

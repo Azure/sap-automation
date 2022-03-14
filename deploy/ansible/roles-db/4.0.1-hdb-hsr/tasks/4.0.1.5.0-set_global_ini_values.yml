@@ -9,35 +9,33 @@
   ansible.builtin.debug:
     msg:                               "{{ path_global_ini }}"
 
-- name:                                Adjust global.ini on each cluster node
-  become_user:                         "{{ db_sid_admin_user }}"
-  become:                              true
-  ansible.builtin.blockinfile:
-    path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
-    block: |
-                                       [inifile_checker]
-                                       enable = true
-                                       interval = 3600
-                                       replicate = true
-                                       fixed_exclusion_global.ini/SYSTEM = storage/*, persistence/*path*, internal_hostname_resolution/*, public_hostname_resolution/*, system_replication*, multidb/mode, system_landscape_hostname_virtualization/sldsystemhome
-  when:                                ansible_hostname == primary_instance_name
+# - name:                                Adjust global.ini on each cluster node
+#   ansible.builtin.blockinfile:
+#     path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+#     block: |
+#                                        [inifile_checker]
+#                                        enable = true
+#                                        interval = 3600
+#                                        replicate = true
+#                                        fixed_exclusion_global.ini/SYSTEM = storage/*, persistence/*path*, internal_hostname_resolution/*, public_hostname_resolution/*, system_replication*, multidb/mode, system_landscape_hostname_virtualization/sldsystemhome
+#     marker:                            "# {mark} ANSIBLE MANAGED BLOCK"
+#   vars:
+#     ansible_python_interpreter:        python3
 
-#
-#
-#- name:                                HSR - Ensure options set in section [inifile_checker] of global.ini.
-#  become_user:                         "{{ db_sid_admin_user }}"
-#   ansible.builtin.ini_file:
-#    path:                              "{{ path_global_ini }}"
-#    section:                           inifile_checker
-#    state:                             present
-#    mode:                              0644
-#    option:                            "{{ item.option }}"
-#    value:                             "{{ item.value }}"
-#  loop:
-#    - { option: enable,                            value: "true" }
-#    - { option: interval,                          value: "3600" }
-#    - { option: replicate,                         value: "true" }
-#    - { option: fixed_exclusion_global.ini/SYSTEM, value: "storage/*, persistence/*path*, internal_hostname_resolution/*,
-#                                                           public_hostname_resolution/*, system_replication*, multidb/mode, system_landscape_hostname_virtualization/sldsystemhome" }
-#  when:                                ansible_hostname == primary_instance_name #and not hana_system_replication_enabled
-#
+- name:                                HSR - Ensure options set in section [inifile_checker] of global.ini.
+  become_user:                         "{{ db_sid_admin_user }}"
+  ansible.builtin.ini_file:
+    path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+    section:                           inifile_checker
+    state:                             present
+    mode:                              0644
+    option:                            "{{ item.option }}"
+    value:                             "{{ item.value }}"
+  loop:
+    - { option: enable,                            value: "true" }
+    - { option: interval,                          value: "3600" }
+    - { option: replicate,                         value: "true" }
+    - { option: fixed_exclusion_global.ini/SYSTEM, value: "storage/*, persistence/*path*, internal_hostname_resolution/*,
+                                                          public_hostname_resolution/*, system_replication*, multidb/mode, system_landscape_hostname_virtualization/sldsystemhome" }
+#  when:                                ansible_hostname == primary_instance_name and not hana_system_replication_needed
+# #

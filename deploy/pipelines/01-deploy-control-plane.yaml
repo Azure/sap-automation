@@ -1,11 +1,11 @@
 ---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |               This pipeline prepares the control plane                     |
+# |               This pipeline deploys the control plane                      |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: "Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
+name: Deploying the control plane defined in $(deployerfolder) $(libraryfolder)
 
 parameters:
   - name:                              deployer
@@ -18,26 +18,30 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-trigger: none
+  - name:                              environment
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    type:                              string
+    default:                           MGMT
+trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage:                             ubuntu-latest
 
 variables:
-  - group: "SAP-deployment-variables-general"
-  - group: "SAP-deployment-variables-specific"
-  - name: deployerfolder
-    value: ${{ parameters.deployer }}
-  - name: deployerconfig
-    value: ${{ parameters.deployer }}.tfvars
-  - name: libraryfolder
-    value: ${{ parameters.library }}
-  - name: libraryconfig
-    value: ${{ parameters.library }}.tfvars
-  - name: log
-    value: logfile_$(Build.BuildId)
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
+  - name:                              deployerfolder
+    value:                             ${{ parameters.deployer }}
+  - name:                              deployerconfig
+    value:                             ${{ parameters.deployer }}.tfvars
+  - name:                              libraryfolder
+    value:                             ${{ parameters.library }}
+  - name:                              libraryconfig
+    value:                             ${{ parameters.library }}.tfvars
+  - name:                              log
+    value:                             logfile_$(Build.BuildId)
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
   - stage:                             Deploy_controlplane
@@ -45,12 +49,12 @@ stages:
     jobs:
       - job:                           Deploy_controlplane
         displayName:                   Deploy the control plane
+        workspace:
+          clean:                       all
         steps:
-          - checkout:                  self
-            persistCredentials:        true
           - script: |
               #!/bin/bash
-              echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)  $(Date:yyyyMMdd)"
+              echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Install Terraform ---$reset"
@@ -61,10 +65,15 @@ stages:
                   exit 2
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                rm terraform_$(tf_version)_linux_amd64.zip
 
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                export                 HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                export          ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
+                export             LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    ${LOCATION}
+
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
@@ -107,13 +116,18 @@ stages:
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 az extension add --name storage-blob-preview > /dev/null
+              echo -e "$green--- Pull the latest content from DevOps ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
+                git checkout -q $(Branch)
+                git pull
 
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
 
-              echo -e "$green--- Deploys the Control Plane ---$reset"
+              echo -e "$green--- Deploy the Control Plane ---$reset"
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -121,41 +135,39 @@ stages:
                 fi
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                cd $(Build.Repository.LocalPath)
-                git checkout $(Branch)
-                git pull
-                export ENV=$(echo $(deployerfolder)  | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENV
-                export LOCA=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCA
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
                 added=0
-                if [ -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA} ]; then
-                  git add    $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}
+                cd $HOME
+                git pull
+
+                if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                  git add    .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-                  git add $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENV}${LOCA}.md
+
+                if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                  git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
+
+                if [ -f DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
+                  git add -f DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
-                  git add -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+
+                if [ -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
+                  git add -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
                   added=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars ]; then
-                  git add $(Deployment_Configuration_Path)/LIBRARY/$(libraryfolder)/backend-config.tfvars
-                  added=1
-                fi
+
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
-                if [ -f $HOME/.sap_deployment_automation/${ENV}${LOCA}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENV}${LOCA}.md"
+
+                if [ -f $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                 fi
+
                 exit $return_code
             displayName:               Deploy control plane
             env:
@@ -165,4 +177,5 @@ stages:
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr:              false
+
 ...
