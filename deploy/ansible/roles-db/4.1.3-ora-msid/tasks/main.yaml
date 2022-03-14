@@ -1,3 +1,4 @@
+---
 #   SAP: Register BOM
 #   Install Oracle for Multi-SID installation.
 #   1778431 - SAP Installations using Shared Oracle Homes
@@ -5,35 +6,27 @@
 #   Run the Oracle universal installer in silent mode. Refer to SAP Note : 2660017 Oracle Software Installation on Unix
 #
 
-
----
-
-- name:  
-  ansible.builtin.set_fact:
-    dir_params:                   "{{ target_media_location }}/.params"
-
-
-- name:     "Create run flag directory"
-  become:         yes
-  become_user:    root
+- name:                                "ORACLE: Create sap_deployment_automation folder"
   ansible.builtin.file:
-    path:   /etc/sap_deployment_automation
-    state:  directory
-    mode:   0755
-    owner:  oracle
-    group:  oinstall
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 
 
 - name:              "Make oracle:oinstall as owners"          
-  become:         yes
+  become:             true
   become_user:    root
   ansible.builtin.shell: | 
                       chown -R oracle:oinstall /oracle                      
   args:
     creates:          /etc/sap_deployment_automation/oracleowner.txt
 
+
 - name:                                Create shareddbinstalled.txt
-  become:         yes
+  become:         true
   become_user:    root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracleowner.txt
@@ -41,7 +34,7 @@
     mode:                              0755
 
 - name:              "Permissions for installation folders"          
-  become:         yes
+  become:                              true
   become_user:    root
   ansible.builtin.shell: | 
                       chmod -R 777 /usr/sap/install/                    
@@ -49,7 +42,7 @@
     creates:          /etc/sap_deployment_automation/installfolderperm.txt
 
 - name:                                Create installfolderperm.txt
-  become:         yes
+  become:                              true
   become_user:    root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/installfolderperm.txt
@@ -67,7 +60,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:               "Install IHRDBMS - Database executables"
-  become:         yes
+  become:                              true
   become_user:    oracle
   ansible.builtin.shell: |
                       set -o errexit
@@ -99,7 +92,7 @@
 #STEP2 RUN THE INSTALLATION - EXECUTE per SID.
 
 - name:               "Execute RUNINSTALLER"
-  become:         yes
+  become:                              true
   become_user:    oracle
   ansible.builtin.shell: |
                       set -o errexit
