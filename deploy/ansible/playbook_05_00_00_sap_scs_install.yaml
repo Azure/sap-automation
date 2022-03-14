@@ -44,7 +44,8 @@
       vars:
         tier:                          fencing
       tags:
-        - 0.2-kv-secrets
+        - kv-secrets
+      when:                            platform != "ORACLE"
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
       include_role:
@@ -52,6 +53,40 @@
         public:                        true
       tags:
         - kv-sap-installation-media-storage-details
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |   Playbook for SAP OS USERS and Groups Creation for Standalone SCS         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid|upper }}_SCS:
+                                        {{ sap_sid|upper }}_ERS"
+  serial:                               1
+  name:                                SAP Generic OS Groups and User Creation
+  remote_user:                         "{{ orchestration_ansible_user }}"                
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
+      ansible.builtin.set_fact:
+        tier:                      generic
+        # main_password:             "{{ hostvars.localhost.sap_password }}"
+        # scs_high_availability:     "{{ scs_high_availability }}"
+        # sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+        # sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+      tags:
+        - always  
+
+    - name:                            Generic Users and Groups for SAP Installation
+      ansible.builtin.include_role:
+        name:                          roles-sap-os/2.5-sap-users/user_nw.yaml
+      tags:
+        - 2.5-sap-users
+
 
 
 # /*---------------------------------------------------------------------------8
@@ -155,6 +190,7 @@
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

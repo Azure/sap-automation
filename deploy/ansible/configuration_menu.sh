@@ -104,12 +104,12 @@ options=(
         "BOM Processing"
         "Database Instance installation"
         "SCS Install"
-        "Database Load"
-        "Primary Application Server installation"
-        "Application Server installations"
-        "Web Dispatcher installations"
-        "Database High Availability Setup"
-        "HCMT"
+        "DB Load"
+        "PAS Install"
+        "Oracle HA Setup"
+        "APP Install"
+        "WebDisp Install"
+        "Database HA Setup"
 
         # Special menu entries
         "BOM Download"
@@ -130,6 +130,9 @@ all_playbooks=(
         ${cmd_dir}/playbook_05_00_00_sap_scs_install.yaml
         ${cmd_dir}/playbook_05_01_sap_dbload.yaml
         ${cmd_dir}/playbook_05_02_sap_pas_install.yaml
+        ${cmd_dir}/playbook_04_02_00_oracle_ha_setup.yaml
+
+
 
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml

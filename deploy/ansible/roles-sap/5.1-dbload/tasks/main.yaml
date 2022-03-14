@@ -13,6 +13,7 @@
     path:                              /etc/sap_deployment_automation
     state:                             directory
     mode:                              0755
+  when:                                node_tier != "oracle"
 
 - name:                                "DBLoad: -  reset"
   ansible.builtin.file:
@@ -138,6 +139,7 @@
 
   when:
     - not dbload_installed.stat.exists
+    - platform == "ORACLE"
 
 - name:                                "DBLoad: - status"
   ansible.builtin.debug:
