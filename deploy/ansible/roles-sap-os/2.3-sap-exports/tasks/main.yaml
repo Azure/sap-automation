@@ -1,149 +1,171 @@
 ---
 
-- name:                               "Exports: Create SAP Directories"
-  ansible.builtin.file:
-    path:                             "{{ item.path }}"
-    state:                            directory
-    mode:                             0755
-  loop:
-    - { path: '/usr/sap/install' }
-    - { path: '/usr/sap/trans' }
-    - { path: '/sapmnt/{{ sap_sid|upper }}' }
+- name:                               "2.3 SAP Exports: - Create SAP Directories (install)"
+  block:
+
+    - name:                           "2.3 SAP Exports: - Create SAP Directories (install)"
+      ansible.builtin.file:
+        path:                         "{{ item.path }}"
+        state:                        directory
+        mode:                         0755
+      loop:
+        - { path: '/usr/sap/install' }
+
+    - name:                           "2.3 SAP Exports: - NFS Server Config on Suse (install)"
+      ansible.builtin.lineinfile:
+        path:                         "{{ item.path }}"
+        regexp:                       "{{ item.regexp }}"
+        line:                         "{{ item.line }}"
+        owner:                        root
+        group:                        root
+        mode:                         0644
+      loop:
+        - { path: '/etc/exports',       regexp: '^/usr/sap/install',            line: '/usr/sap/install *(rw,sync,no_wdelay,no_root_squash)' }
+          # - { tier: 'preparation', path: '/etc/sysconfig/nfs', regexp: '^NFS3_SERVER_SUPPORT=',        line: 'NFS3_SERVER_SUPPORT="no"' }
+        - { path: '/etc/sysconfig/nfs', regexp: '^NFS3_SERVER_SUPPORT=',        line: 'NFS3_SERVER_SUPPORT="yes"'                            }
+        - { path: '/etc/sysconfig/nfs', regexp: '^NFS4_SUPPORT=',               line: 'NFS4_SUPPORT="yes"'                                   }
+      when:
+        - (ansible_os_family|upper == "SUSE" or (ansible_os_family|lower ~ ansible_distribution_major_version) == "redhat7")
+
+    - name:                            "2.3 SAP Exports: - NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }}"
+      ansible.builtin.lineinfile:
+        path:                          "{{ item.path }}"
+        regexp:                        "{{ item.regexp }}"
+        line:                          "{{ item.line }}"
+        owner:                         root
+        group:                         root
+        mode:                          0644
+      loop:
+        - { path: '/etc/exports',       regexp: '^/usr/sap/install',            line: '/usr/sap/install *(rw,sync,no_wdelay,no_root_squash)'            }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=y'                                                        }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
+      when:
+        - distribution_id == "redhat8"
+
   when:
     - node_tier == 'scs'
+    - usr_sap_install_mountpoint is not defined
 
-- name:                               "Exports: NFS Server Config on Suse (install)"
-  ansible.builtin.lineinfile:
-    path:                             "{{ item.path }}"
-    regexp:                           "{{ item.regexp }}"
-    line:                             "{{ item.line }}"
-    owner:                            root
-    group:                            root
-    mode:                             0644
-  loop:
-    - { path: '/etc/exports',       regexp: '^/usr/sap/install',            line: '/usr/sap/install *(rw,sync,no_wdelay,no_root_squash)' }
-      # - { tier: 'preparation', path: '/etc/sysconfig/nfs', regexp: '^NFS3_SERVER_SUPPORT=',        line: 'NFS3_SERVER_SUPPORT="no"' }
-    - { path: '/etc/sysconfig/nfs', regexp: '^NFS3_SERVER_SUPPORT=',        line: 'NFS3_SERVER_SUPPORT="yes"' }
-    - { path: '/etc/sysconfig/nfs', regexp: '^NFS4_SUPPORT=',               line: 'NFS4_SUPPORT="yes"' }
-  when:
-    - (ansible_os_family|upper == "SUSE" or (ansible_os_family|lower ~ ansible_distribution_major_version) == "redhat7")
-    - node_tier == 'scs'
-    - not use_AFS 
+- name:                                "2.3 SAP Exports: - Create SAP Directories (sapmnt)"
+  block:
 
-- name:                               "Exports: NFS Server Config on Suse (sapmnt)"
-  ansible.builtin.lineinfile:
-    path:                             "{{ item.path }}"
-    regexp:                           "{{ item.regexp }}"
-    line:                             "{{ item.line }}"
-    owner:                            root
-    group:                            root
-    mode:                             0644
-  loop:
-    - { path: '/etc/exports',       regexp: '^/sapmnt/{{ sap_sid|upper }}', line: '/sapmnt/{{ sap_sid|upper }} *(rw,sync,no_wdelay,no_root_squash)' }
+    - name:                            "2.3 SAP Exports: - Create SAP Directories (sapmnt)"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          0755
+      loop:
+        - { path: '/sapmnt/{{ sap_sid|upper }}' }
+
+    - name:                           "2.3 SAP Exports: - NFS Server Config on Suse (sapmnt)"
+      ansible.builtin.lineinfile:
+        path:                         "{{ item.path }}"
+        regexp:                       "{{ item.regexp }}"
+        line:                         "{{ item.line }}"
+        owner:                        root
+        group:                        root
+        mode:                         0644
+      loop:
+        - { path: '/etc/exports',       regexp: '^/sapmnt/{{ sap_sid|upper }}', line: '/sapmnt/{{ sap_sid|upper }} *(rw,sync,no_wdelay,no_root_squash)' }
+        - { path: '/etc/sysconfig/nfs', regexp: '^# RPCNFSDARGS=',              line: 'RPCNFSDARGS="-N 2 -N 3 -U"'                                      }
+        - { path: '/etc/sysconfig/nfs', regexp: '^# RPCMOUNTDOPTS=',            line: 'RPCMOUNTDOPTS="-N 2 -N 3"'                                       }
+      when:
+        - (ansible_os_family|upper == "SUSE" or (ansible_os_family|lower ~ ansible_distribution_major_version) == "redhat7")
+
+    - name:                            "2.3 SAP Exports: - NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }} (sapmnt)"
+      ansible.builtin.lineinfile:
+        path:   "{{ item.path }}"
+        regexp: "{{ item.regexp }}"
+        line:   "{{ item.line }}"
+        owner:  root
+        group:  root
+        mode:   0644
+      loop:
+        - { path: '/etc/exports',       regexp: '^/sapmnt/{{ sap_sid|upper }}', line: '/sapmnt/{{ sap_sid|upper }} *(rw,sync,no_wdelay,no_root_squash)' }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=y'                                                        }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
+      when:
+        - distribution_id == "redhat8"
+
   when:
-    - (ansible_os_family|upper == "SUSE" or (ansible_os_family|lower ~ ansible_distribution_major_version) == "redhat7")
     - node_tier == 'scs'
     - sap_mnt is not defined
 
-- name:                                "Exports: NFS Server Config on  : {{ ansible_distribution|lower ~ ansible_distribution_major_version }}"
-  ansible.builtin.lineinfile:
-    path:                              "{{ item.path }}"
-    regexp:                            "{{ item.regexp }}"
-    line:                              "{{ item.line }}"
-    owner:                             root
-    group:                             root
-    mode:                              0644
-  loop:
-    - { path: '/etc/exports',       regexp: '^/usr/sap/trans',              line: '/usr/sap/trans *(rw,sync,no_wdelay,no_root_squash)' }
+- name:                                "2.3 SAP Exports: - Create SAP Directories (saptrans)"
+  block:
+
+    - name:                           "2.3 SAP Exports: - Exports: Create SAP Directories (saptrans)"
+      ansible.builtin.file:
+        path:                         "{{ item.path }}"
+        state:                        directory
+        mode:                         0755
+      loop:
+        - { path: '/usr/sap/trans' }
+
+    - name:                            "Exports: NFS Server Config on  : {{ ansible_distribution|lower ~ ansible_distribution_major_version }}"
+      ansible.builtin.lineinfile:
+        path:                          "{{ item.path }}"
+        regexp:                        "{{ item.regexp }}"
+        line:                          "{{ item.line }}"
+        owner:                         root
+        group:                         root
+        mode:                          0644
+      loop:
+        - { path: '/etc/exports',       regexp: '^/usr/sap/trans',              line: '/usr/sap/trans *(rw,sync,no_wdelay,no_root_squash)' }
+        - { path: '/etc/sysconfig/nfs', regexp: '^# RPCNFSDARGS=',              line: 'RPCNFSDARGS="-N 2 -N 3 -U"'                               }
+        - { path: '/etc/sysconfig/nfs', regexp: '^# RPCMOUNTDOPTS=',            line: 'RPCMOUNTDOPTS="-N 2 -N 3"'                                }
+      when:
+        - (ansible_os_family|upper == "SUSE" or (ansible_os_family|lower ~ ansible_distribution_major_version) == "redhat7")
+
+    - name:                            "Exports: NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }}"
+      ansible.builtin.lineinfile:
+        path:                          "{{ item.path }}"
+        regexp:                        "{{ item.regexp }}"
+        line:                          "{{ item.line }}"
+        owner:                         root
+        group:                         root
+        mode:                          0644
+      loop:
+        - { path: '/etc/exports',       regexp: '^/usr/sap/trans',              line: '/usr/sap/trans *(rw,sync,no_wdelay,no_root_squash)'       }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=y'                                                        }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
+        - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
+      when:
+        - distribution_id == "redhat8"
+
   when:
-    - (ansible_os_family|upper == "SUSE" or (ansible_os_family|lower ~ ansible_distribution_major_version) == "redhat7")
     - node_tier == 'scs'
     - sap_trans is not defined
 
-- name:                                "Exports: NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }}"
-  ansible.builtin.lineinfile:
-    path:                              "{{ item.path }}"
-    regexp:                            "{{ item.regexp }}"
-    line:                              "{{ item.line }}"
-    owner:                             root
-    group:                             root
-    mode:                              0644
-  loop:
-    - { path: '/etc/exports',       regexp: '^/usr/sap/install',            line: '/usr/sap/install *(rw,sync,no_wdelay,no_root_squash)'            }
-    - { path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=y'                                                        }
-    - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
-    - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
-  when:
-    - distro_id == "redhat8"
-    - node_tier == 'scs'
-    - not use_AFS 
+- name:                                "2.3 SAP Exports: - Local NFS"
+  block:
+    - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
+      ansible.builtin.set_fact:
+        nfs_service:                   'nfsserver'
+    
+    - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
+      ansible.builtin.set_fact:
+        nfs_service:                   "nfs-server"
+      when:                            "'redhat8' == distribution_id"
+    
+    - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
+      ansible.builtin.set_fact:
+        nfs_service:                   'nfs'
+      when:                            "'redhat7' == distribution_id"
+    
+    - name:                            "2.3 SAP Exports: - NFS Ensure the NFS service is started"
+      ansible.builtin.systemd:
+        name:                          "{{ nfs_service }}"
+        state:                         started
+        enabled:                       true
 
-- name:                                "Exports: NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }}"
-  ansible.builtin.lineinfile:
-    path:                              "{{ item.path }}"
-    regexp:                            "{{ item.regexp }}"
-    line:                              "{{ item.line }}"
-    owner:                             root
-    group:                             root
-    mode:                              0644
-  loop:
-    - { path: '/etc/exports',       regexp: '^/usr/sap/install',            line: '/usr/sap/install *(rw,sync,no_wdelay,no_root_squash)'     }
-    - { path: '/etc/sysconfig/nfs', regexp: '^# RPCNFSDARGS=',              line: 'RPCNFSDARGS="-N 2 -N 3 -U"'                               }
-    - { path: '/etc/sysconfig/nfs', regexp: '^# RPCMOUNTDOPTS=',            line: 'RPCMOUNTDOPTS="-N 2 -N 3"'                                }
+    - name:                            "2.3 SAP Exports: - NFS Ensure the NFS service is started"
+      ansible.builtin.systemd:
+        name:                          "{{ nfs_service }}"
+        state:                         restarted
 
   when:
-    - distro_id == "redhat7"
     - node_tier == 'scs'
-    - not use_AFS
-
-- name:                               "Exports: NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }} (sapmnt)"
-  ansible.builtin.lineinfile:
-    path:   "{{ item.path }}"
-    regexp: "{{ item.regexp }}"
-    line:   "{{ item.line }}"
-    owner:  root
-    group:  root
-    mode:   0644
-  loop:
-    - { path: '/etc/exports',       regexp: '^/sapmnt/{{ sap_sid|upper }}', line: '/sapmnt/{{ sap_sid|upper }} *(rw,sync,no_wdelay,no_root_squash)' }
-  when:
-    - distro_id == "redhat8"
-    - node_tier == 'scs'
-    - sap_mnt is not defined
-
-- name:                               "Exports: NFS Server Config on  : {{ ansible_os_family|lower ~ ansible_distribution_major_version }} (saptrans)"
-  ansible.builtin.lineinfile:
-    path:   "{{ item.path }}"
-    regexp: "{{ item.regexp }}"
-    line:   "{{ item.line }}"
-    owner:  root
-    group:  root
-    mode:   0644
-  loop:
-    - { path: '/etc/exports',       regexp: '^/usr/sap/trans',              line: '/usr/sap/trans *(rw,sync,no_wdelay,no_root_squash)'              }
-  when:
-    - distro_id == "redhat8"
-    - node_tier == 'scs'
-    - sap_trans is not defined
-
-
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
-  ansible.builtin.set_fact:
-    nfs_service:                       'nfsserver'
-
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
-  ansible.builtin.set_fact:
-    nfs_service:                       "nfs-server"
-  when:                                "'redhat8' == distro_id"
-
-- name:                                "Exports: Set the NFS Service name {{ distro_id }}"
-  ansible.builtin.set_fact:
-    nfs_service:                       'nfs'
-  when:                                "'redhat7' == distro_id"
-
-- name:                               "Exports: NFS Ensure the NFS service is restarted"
-  ansible.builtin.systemd:
-    name:                             "{{ nfs_service }}"
-    state:                             restarted
-  when:
-    - node_tier == 'scs'
+    - (sap_trans is not defined) or (usr_sap_install_mountpoint is not defined) or (sap_mnt is not defined)

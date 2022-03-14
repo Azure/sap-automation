@@ -1,0 +1,86 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Post installation activities             |
+# |                                                                            |
+# +------------------------------------4---------------------------------------*/
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Retrieving the SPN details                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               localhost
+  name:                                Get SPN from KeyVault
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml      # API Input template with defaults
+
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+
+  tasks:
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            Remove post-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/post-install-done"
+        state:                         absent
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for SAP SCS Install                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_SCS"
+
+  name:                                Post Installation
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - block:
+        - name:                    Include 7.0.0-post-install role
+          ansible.builtin.include_role:
+            name:                  roles-sap/7.0.0-post-install
+      tags:
+        - 7.0.0-post-install
+
+
+- hosts:                               localhost
+  name:                                Log results
+  gather_facts:                        false
+
+  tasks:
+
+    - name:                            Ensure the post-install-done file exists
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/post-install-done"
+        state:                         touch
+        mode:                          0755
+...
+
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

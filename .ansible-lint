@@ -1,15 +1,7 @@
+
 exclude_paths:
-  # FIXME: Use non-existing roles
-  - deploy/ansible/sap_playbook.yml
-  - deploy/ansible/retire_playbook_process_bom.yml
-  - deploy/ansible/retire_playbook_install_scs.yml
-  # FIXME: Empty playbook
-  - deploy/ansible/playbook_00_transition_start_for_sap_install_refactor.yaml
-  # No need to check:
-  - deploy/ansible/XXroles/
-  - .pipeline/
-  - PoC/
-  - .github/
+  - deploy/pipelines
+  - deploy/terraform
 
 warn_list:
   # FIXME: Experimental violations should be fixed in separate PR
@@ -28,3 +20,5 @@ skip_list:
   - braces
   - hyphens
   - role-name
+  - var-naming
+  - no-changed-when

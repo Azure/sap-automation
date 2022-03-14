@@ -38,7 +38,7 @@ resource "azurerm_storage_account_network_rules" "shared" {
   storage_account_id = azurerm_storage_account.shared[0].id
 
   default_action = "Deny"
-  ip_rules       = [var.Agent_IP]
+  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
       try(var.landscape_tfstate.admin_subnet_id, ""),

@@ -98,8 +98,6 @@
         fail_msg:                      "Unable to determine if HSR Hook is working"
   when:                                inventory_hostname == primary_instance_name
 
-
-
 - name:                                Verify the hook Installation
   ansible.builtin.debug:
     var:                               saphanasr

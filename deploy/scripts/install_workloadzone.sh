@@ -57,9 +57,10 @@ landscape_tfstate_key_parameter=""
 
 deployment_system="sap_landscape"
 
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+
 echo "Deployer environment: $deployer_environment"
 if [ 1 == $called_from_ado ] ; then
-    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
     echo "Agent IP: $this_ip"
 fi
@@ -145,6 +146,15 @@ fi
 
 echo "Workload configuration file: $workload_config_information"
 
+if [ "${force}" == 1 ]
+then
+    if [ -f "${workload_config_information}" ]
+    then
+        rm "${workload_config_information}"
+    fi
+    rm -Rf .terraform terraform.tfstate*
+fi
+
 if [ ! -f "${workload_config_information}" ]
 then
     # Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
@@ -188,9 +198,9 @@ then
             load_config_vars "${deployer_config_information}" "tfstate_resource_id"
             load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
             load_config_vars "${deployer_config_information}" "subscription"
-            echo "tfstate_id $tfstate_resource_id"
+            echo "tfstate_resource_id $tfstate_resource_id"
             save_config_vars "${workload_config_information}" \
-                tfstate_resource_id
+            tfstate_resource_id
             
             save_config_vars "${workload_config_information}" \
             keyvault \
@@ -201,19 +211,11 @@ then
         fi
     fi
 else
-    echo "tfstate_id $tfstate_resource_id"
+    echo "tfstate_resource_id $tfstate_resource_id"
     save_config_vars "${workload_config_information}" \
-            tfstate_resource_id
+    tfstate_resource_id
 fi
 
-if [ "${force}" == 1 ]
-then
-    if [ -f "${workload_config_information}" ]
-    then
-        rm "${workload_config_information}"
-    fi
-    rm -Rf .terraform terraform.tfstate*
-fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
 
@@ -242,7 +244,7 @@ then
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
         echo "Valid subscription format"
         save_config_vars "${workload_config_information}" \
-            STATE_SUBSCRIPTION
+        STATE_SUBSCRIPTION
     else
         printf -v val %-40.40s "$STATE_SUBSCRIPTION"
         echo "#########################################################################################"
@@ -319,13 +321,13 @@ then
     REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
     REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
     STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
-
+    
     save_config_vars "${workload_config_information}" \
     REMOTE_STATE_SA \
     REMOTE_STATE_RG \
     STATE_SUBSCRIPTION
 else
-    get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
+    get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
 fi
 
 if [ -n "$STATE_SUBSCRIPTION" ]
@@ -351,10 +353,6 @@ then
             REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
             REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
             STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
-        else
-            get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
-            load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
-            load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
         fi
     fi
     
@@ -362,7 +360,6 @@ then
 else
     if [ -z "$REMOTE_STATE_RG" ]
     then
-        
         get_and_store_sa_details "${REMOTE_STATE_SA}" "${workload_config_information}"
         load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
         load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
@@ -412,8 +409,8 @@ then
     then
         rm kv.log
     fi
-    
 fi
+
 if [ -z "${deployer_tfstate_key}" ]
 then
     load_config_vars "${workload_config_information}" "deployer_tfstate_key"
@@ -440,7 +437,7 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
     then
         if [ $account_set == 0 ]
         then
-            $(az account set --sub "${STATE_SUBSCRIPTION}")
+            az account set --sub "${STATE_SUBSCRIPTION}"
             account_set=1
         fi
     fi
@@ -502,7 +499,7 @@ check_output=0
 
 if [ $account_set == 0 ]
 then
-    $(az account set --sub "${STATE_SUBSCRIPTION}")
+    az account set --sub "${STATE_SUBSCRIPTION}"
     account_set=1
 fi
 
@@ -575,7 +572,7 @@ then
         echo ""
         
         deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output automation_version)
-        if [ ! -n "${deployed_using_version}" ]; then
+        if [ -z "${deployed_using_version}" ]; then
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"
@@ -612,6 +609,34 @@ then
         fi
     fi
 fi
+
+# ip_saved=0
+# if [ 1 == $called_from_ado ] ; then
+    
+#     load_config_vars "${workload_config_information}" "azure_files_transport_storage_account_id"
+#     echo "Transport SA: " ${azure_files_transport_storage_account_id}
+#     if [ -n "${azure_files_transport_storage_account_id}" ]; then
+#         RG=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f5)
+#         SA=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f9)
+#         SUB=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f3)
+#         az storage account network-rule add --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}"  --ip-address $this_ip
+#         echo "Wait 60 seconds for network rule"
+#         sleep 60
+#     else
+#         azure_files_transport_storage_account_id=$(terraform -chdir="${terraform_module_directory}"  output azure_files_transport_storage_account_id | tr -d \")
+#         echo "Transport SA: " ${azure_files_transport_storage_account_id}
+#         RG=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f5)
+#         SA=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f9)
+#         SUB=$(echo "$azure_files_transport_storage_account_id" | cut -d / -f3)
+#         if [ -n "${SA}" ]; then
+#             az storage account network-rule add --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}" --ip-address $this_ip
+#             echo "Wait 60 seconds for network rule"
+#             sleep 60
+#             ip_saved=1
+#             save_config_var "azure_files_transport_storage_account_id" "${workload_config_information}"
+#         fi
+#     fi
+# fi
 
 echo ""
 echo "#########################################################################################"
@@ -669,6 +694,9 @@ if [ 0 == $return_value ] ; then
     workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
     save_config_var "workloadkeyvault" "${workload_config_information}"
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
+    
+    azure_files_transport_storage_account_id=$(terraform -chdir="${terraform_module_directory}"  output azure_files_transport_storage_account_id | tr -d \")
+    save_config_var "azure_files_transport_storage_account_id" "${workload_config_information}"
     ok_to_proceed=0
 fi
 
@@ -713,9 +741,42 @@ if [ 1 == $ok_to_proceed ]; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+
+    parallelism=10
+
+    #Provide a way to limit the number of parallell tasks for Terraform
+    if [[ -n "${TF_PARALLELLISM}" ]]; then
+        parallelism=$TF_PARALLELLISM
+    fi
+
+    if [ 1 == $called_from_ado ] ; then
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  2>error.log
+    else
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  2>error.log
+    fi
+
     return_value=$?
+
+    if [ 0 != $return_value ] ; then
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        if [ -f error.log ]; then
+            cat error.log
+            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
+            if [ 1 == $called_from_ado ] ; then
+                echo "##vso[task.logissue type=error]$LASTERROR"
+            fi
+            rm error.log
+        fi
+        unset TF_DATA_DIR
+        exit $return_value
+    fi
+
 fi
 
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
@@ -760,6 +821,12 @@ if [ 0 == $return_value ] ; then
     fi
     
 fi
+
+# if [ 1 == $ip_saved ] ; then
+    
+#     az storage account network-rule remove --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}" --ip-address $this_ip
+# fi
+
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md
