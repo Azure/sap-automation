@@ -292,3 +292,20 @@ function overrulesHandler(source, target) {
         target.disabled = false;
     }
 }
+
+// ====================
+// FILTER PARAMETERS
+// ====================
+
+function filterResults(searchText) {
+    if (searchText == "") {
+        $(".grouping").show();
+        $(".ms-TextField").show();
+    }
+    else {
+        $(".grouping").hide();
+        $(".grouping").has("label[for*='" + searchText + "']").show();
+        $(".ms-TextField").hide();
+        $(".ms-TextField").has("label[for*='" + searchText + "']").show();
+    }
+};

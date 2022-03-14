@@ -99,8 +99,13 @@ fluent-breadcrumb {
         margin: 20px 0;
     }
 
-.grouping {
+#searchbar {
+    width: 25%;
+}
+
+.grouping > h2 {
     color: #007bff;
+    font-size: 20px;
 }
 
 .parameters {
@@ -179,6 +184,16 @@ label.required:after {
 
     .text-center {
         padding: 0px 1vh 1vh 1vh;
+    }
+}
+
+@media screen and (max-width: 992px) {
+
+    #searchbar {
+        width: 90%;
+        display: block;
+        margin: auto;
+        text-align: center;
     }
 }
 
