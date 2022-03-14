@@ -183,14 +183,12 @@ logical_volumes:
     size:       '64g'
     fstype:     'xfs'
 
-<<<<<<< HEAD
   - tier:       'sapos'
     node_tier:  'oracle'
     vg:         'vg_orabackup'
     lv:         'lv_orabackup'
     size:       '64g'
     fstype:     'xfs'
-=======
 logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'
@@ -207,7 +205,6 @@ logical_volumes_install:
     size:       '100%FREE'
     fstype:     'xfs'
 
->>>>>>> 9d81cf717c85a30e1b556d1c03038d398f4052c1
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs
