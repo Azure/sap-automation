@@ -237,6 +237,9 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public string app_disk_sizes_filename { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public bool? use_loadbalancers_for_standalone_deployments { get; set; }
 
         // Application Servers
 

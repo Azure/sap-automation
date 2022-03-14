@@ -176,32 +176,32 @@ namespace AutomationForm.Controllers
             return RedirectToAction("Index");
         }
 
-        [ActionName("Delete")]
-        public async Task<IActionResult> DeleteAsync(string id)
-        {
-            if (id == null)
-            {
-                return BadRequest();
-            }
+        // [ActionName("Delete")]
+        // public async Task<IActionResult> DeleteAsync(string id)
+        // {
+        //     if (id == null)
+        //     {
+        //         return BadRequest();
+        //     }
 
-            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
-            if (landscape == null)
-            {
-                return NotFound();
-            }
+        //     LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
+        //     if (landscape == null)
+        //     {
+        //         return NotFound();
+        //     }
 
-            return View(landscape);
-        }
+        //     return View(landscape);
+        // }
 
-        [HttpPost]
-        [ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmedAsync(string id)
-        {
-            await _landscapeService.DeleteAsync(id);
-            TempData["success"] = "Successfully deleted landscape " + id;
-            return RedirectToAction("Index");
-        }
+        // [HttpPost]
+        // [ActionName("Delete")]
+        // [ValidateAntiForgeryToken]
+        // public async Task<IActionResult> DeleteConfirmedAsync(string id)
+        // {
+        //     await _landscapeService.DeleteAsync(id);
+        //     TempData["success"] = "Successfully deleted landscape " + id;
+        //     return RedirectToAction("Index");
+        // }
 
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id)
@@ -276,7 +276,10 @@ namespace AutomationForm.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id)
         {
-            return View(await _landscapeService.GetByIdAsync(id));
+            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
+            if (landscape == null) return NotFound();
+            landscapeView.Landscape = landscape;
+            return View(landscapeView);
         }
 
         [ActionName("Download")]

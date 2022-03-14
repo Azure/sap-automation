@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.SystemModel
+﻿@model AutomationForm.Models.SystemViewModel
 
 @{
     ViewBag.Title = "System details";
@@ -11,68 +11,95 @@
 </fluent-breadcrumb>
 
 <div class="text-center">
-    <h2>System details</h2>
+    <h2>@Model.System.Id</h2>
 </div>
 
-<div>
-    <hr />
-    <dl class="dl-horizontal">
-        @foreach (var prop in ViewData.ModelMetadata.Properties)
+<table class="details-table">
+    <caption>@Model.System.Id parameter details</caption>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+            <th>Section</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ bool everyOther = true; }
+        @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
         {
-            string value = Html.DisplayText(prop.PropertyName);
-
-            if (prop.ModelType == typeof(Image))
+            @foreach (Grouping g in pg.Groupings)
             {
-                Image img = (Image)Model.GetType().GetProperty(prop.PropertyName).GetValue(Model);
-                if (img != null && (img.os_type         != null || 
-                                    img.source_image_id != null || 
-                                    img.publisher       != null || 
-                                    img.offer           != null || 
-                                    img.sku             != null || 
-                                    img.version         != null))
+                bool firstRow = true;
+                @foreach (ParameterModel p in g.Parameters)
                 {
-                    <dt>
-                        @Html.DisplayName(prop.GetDisplayName())
-                    </dt>
+                    var value = Model.System.GetType().GetProperty(p.Name).GetValue(Model.System);
+                    <tr>                    
+                        <td>@p.Name</td>
 
-                    <dd>
-                        <p>
-                            os_type:         @img.os_type <br>
-                            source_image_id: @img.source_image_id <br>
-                            publisher:       @img.publisher <br>
-                            offer:           @img.offer <br>
-                            sku:             @img.sku <br>
-                            version:         @img.version
-                        </p>
-                    </dd>
+                        @if (value == null)
+                        {
+                            <td> </td>
+                        }
+                        else
+                        {
+                            @if (value.GetType() == typeof(Image))
+                            {
+                                Image img = (Image)value;
+                                if (img.os_type         != null ||
+                                    img.source_image_id != null ||
+                                    img.publisher       != null ||
+                                    img.offer           != null ||
+                                    img.sku             != null ||
+                                    img.version         != null)
+                                {
+                                    <td>
+                                        os_type:         @img.os_type <br>
+                                        source_image_id: @img.source_image_id <br>
+                                        publisher:       @img.publisher <br>
+                                        offer:           @img.offer <br>
+                                        sku:             @img.sku <br>
+                                        version:         @img.version
+                                    </td>
+                                }
+                                else {
+                                    <td> </td>
+                                }
+                            }
+                            else
+                            {
+                                <td>
+                                    @if (p.Type == "list")
+                                    {
+                                        var tmp = (string[])value;
+                                        foreach (var t in tmp)
+                                        {
+                                            @t <br>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @value.ToString()
+                                    }
+                                </td>
+                            }
+                        }
+                        @if (firstRow)
+                        {
+                            <td rowspan="@g.Parameters.Length" class="details-section" style="@(everyOther ? "background: #eee" : "background: none")">
+                                @g.Section
+                            </td>
+                            firstRow = false;
+                            everyOther = !everyOther;
+                        }
+                    </tr>
                 }
             }
-            else if (value.Length != 0)
-            {
-                <dt>
-                    @Html.DisplayName(prop.GetDisplayName())
-                </dt>
-
-                <dd>
-                    @if (prop.IsEnumerableType)
-                    {
-                        var tmp = (string[])Model.GetType().GetProperty(prop.PropertyName).GetValue(Model);
-                        foreach (var t in tmp)
-                        {
-                             @t <br>
-                        }
-                    }
-                    else
-                    {
-                        @value
-                    }
-                </dd>
-            }
         }
-    </dl>
-</div>
+    </tbody>
+</table>
+
 <p>
-    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "System", new { id = Model.Id })">
+    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "System", new { id = Model.System.Id })">
         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
     </fluent-anchor>
     <fluent-anchor href="@Url.Action("Index", "System")">

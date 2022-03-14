@@ -685,6 +685,27 @@
           "Type": "field",
           "Options": [],
           "Overrules": ""
+        },
+        {
+          "Name": "use_loadbalancers_for_standalone_deployments",
+          "Required": false,
+          "Description": "Used to control if standalone deployments (non HA) will have load balancers",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
         }
       ]
     },

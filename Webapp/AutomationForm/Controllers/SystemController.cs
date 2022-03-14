@@ -134,32 +134,32 @@ namespace AutomationForm.Controllers
             return RedirectToAction("Index");
         }
 
-        [ActionName("Delete")]
-        public async Task<IActionResult> DeleteAsync(string id)
-        {
-            if (id == null)
-            {
-                return BadRequest();
-            }
+        // [ActionName("Delete")]
+        // public async Task<IActionResult> DeleteAsync(string id)
+        // {
+        //     if (id == null)
+        //     {
+        //         return BadRequest();
+        //     }
 
-            SystemModel system = await _systemService.GetByIdAsync(id);
-            if (system == null)
-            {
-                return NotFound();
-            }
+        //     SystemModel system = await _systemService.GetByIdAsync(id);
+        //     if (system == null)
+        //     {
+        //         return NotFound();
+        //     }
 
-            return View(system);
-        }
+        //     return View(system);
+        // }
 
-        [HttpPost]
-        [ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmedAsync(string id)
-        {
-            await _systemService.DeleteAsync(id);
-            TempData["success"] = "Successfully deleted system " + id;
-            return RedirectToAction("Index");
-        }
+        // [HttpPost]
+        // [ActionName("Delete")]
+        // [ValidateAntiForgeryToken]
+        // public async Task<IActionResult> DeleteConfirmedAsync(string id)
+        // {
+        //     await _systemService.DeleteAsync(id);
+        //     TempData["success"] = "Successfully deleted system " + id;
+        //     return RedirectToAction("Index");
+        // }
 
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id)
@@ -234,7 +234,10 @@ namespace AutomationForm.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id)
         {
-            return View(await _systemService.GetByIdAsync(id));
+            SystemModel system = await _systemService.GetByIdAsync(id);
+            if (system == null) return NotFound();
+            systemView.System = system;
+            return View(systemView);
         }
 
         [ActionName("Download")]

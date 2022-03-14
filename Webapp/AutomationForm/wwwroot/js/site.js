@@ -69,6 +69,8 @@ function retainFormValues() {
             }
         }
         document.getElementById('loading-background').style.visibility = "hidden";
+    }).catch(function () {
+        document.getElementById('loading-background').style.visibility = "hidden";
     });
 }
 

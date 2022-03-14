@@ -16,13 +16,8 @@
           "Name": "tfstate_resource_id",
           "Required": false,
           "Description": "Azure resource identifier for the Storage account in the SAP Library that will contain the Terraform state files",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
+          "Type": "field",
+          "Options": [],
           "Overrules": ""
         }
       ]

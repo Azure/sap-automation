@@ -76,10 +76,9 @@
             <td class="wideonly">
                 @Html.DisplayFor(modelItem => system.network_logical_name)
             </td>
-            <td>
+            <td class="td-align-right">
                 @Html.ActionLink("Edit", "Edit", new { id=system.Id }) |
                 @Html.ActionLink("Details", "Details", new { id=system.Id }) |
-                @Html.ActionLink("Delete", "Delete", new { id=system.Id }) |
                 @Html.ActionLink("Download", "Download", new { id=system.Id })
                 @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment))
                 {
