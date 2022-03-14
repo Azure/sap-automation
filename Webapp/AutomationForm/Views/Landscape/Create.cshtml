@@ -72,11 +72,13 @@
             <ul class="ms-Pivot-links" style="text-align: center">
                 @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
                 {
-                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="2">
+                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="0">
                         @pg.Tab
                     </li>
                 }
             </ul>
+
+            <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
 
             @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
             {
@@ -85,38 +87,40 @@
 
                         @foreach (Grouping g in pg.Groupings)
                         {
-                            <h2 class="ms-fontSize-20 grouping"> @g.Section</h2>
-                            <div class="parameters">
+                            <div class="grouping">
+                                <h2>@g.Section</h2>
+                                <div class="parameters">
 
-                                @foreach (ParameterModel p in g.Parameters)
-                                {
-                                    var required = (@p.Required) ? "required" : "";
+                                    @foreach (ParameterModel p in g.Parameters)
+                                    {
+                                        var required = (@p.Required) ? "required" : "";
 
-                                    <div class="ms-TextField">
-                                        
-                                        <div class="left-input">
-                                            @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
-                                            <p>@p.Description</p>
+                                        <div class="ms-TextField">
+                                            
+                                            <div class="left-input">
+                                                @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
+                                                <p>@p.Description</p>
+                                            </div>
+
+                                            <div class="right-input">
+                                                @if (@p.Type == "field")
+                                                {
+                                                    @Html.TextBox(p.Name, "", new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                                }
+                                                else if (@p.Type == "lookup")
+                                                {
+                                                    @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                                }
+                                                else
+                                                {
+                                                    <p>Invalid parameter</p>
+                                                }
+
+                                                @Html.ValidationMessage(p.Name)
+                                            </div>
                                         </div>
-
-                                        <div class="right-input">
-                                            @if (@p.Type == "field")
-                                            {
-                                                @Html.TextBox(p.Name, "", new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                            }
-                                            else if (@p.Type == "lookup")
-                                            {
-                                                @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                            }
-                                            else
-                                            {
-                                                <p>Invalid parameter</p>
-                                            }
-
-                                            @Html.ValidationMessage(p.Name)
-                                         </div>
-                                    </div>
-                                }
+                                    }
+                                </div>
                             </div>
                         }
                     </fieldset>

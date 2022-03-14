@@ -7,13 +7,13 @@
             <span class="navbar-text text-dark">Hello @Context.Request.Headers["X-MS-CLIENT-PRINCIPAL-NAME"]! </span>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" href="/.auth/logout" tabindex="2">Sign out</a>
+            <a class="nav-link text-dark" href="/.auth/logout">Sign out</a>
         </li>
 }
 else
 {
         <li class="nav-item">
-            <a class="nav-link text-dark" href="/.auth/login/aad/callback" tabindex="2">Sign in</a>
+            <a class="nav-link text-dark" href="/.auth/login/aad/callback">Sign in</a>
         </li>
 }
 </ul>
