@@ -25,7 +25,7 @@
 #Create tnsnames.ora
 ###########################################START OF THE BLOCK###############################################################
 - name:                               "Create the tnsnames file"
-  become:                             yes
+  become:                             true
   become_user:                        oracle
   ansible.builtin.template:
     backup:                           yes
@@ -35,7 +35,7 @@
     force:                            true
 
 - name:                               "Create the tnsnames file"
-  become:                             yes
+  become:                             true
   become_user:                        oracle
   ansible.builtin.template:
     backup:                           yes
@@ -128,7 +128,7 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
-                                                 SAPINST_ACCEPT_INTERNAL_SIGNATURE=true
+                                                
                                        touch /etc/sap_deployment_automation/sap_deployment_dbload_{{ item.sid }}.txt
       args:
         chdir:                         /usr/sap/install/SWPM
