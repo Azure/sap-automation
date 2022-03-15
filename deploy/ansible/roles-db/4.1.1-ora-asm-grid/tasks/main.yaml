@@ -41,6 +41,7 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
+    mode:                              0755
 
 - name:                                "SAP Oracle ASM: Permission for Grid software Directory"
   ansible.builtin.file:
@@ -110,6 +111,7 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o errexit
+                                       set -o pipefail
                                        ./gridSetup.sh -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_19c_00_asm_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /oracle/installlogs/gridinstall.log
   register:                            gridinstaller_results
   #failed_when:        gridinstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
@@ -161,6 +163,7 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o errexit
+                                       set -o pipefail
                                        ./gridSetup.sh -executeConfigTools -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_19c_00_asm_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /oracle/installlogs/asm_tools_install.log
   register:                            tools_installer_results
   #failed_when:        gridinstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh

@@ -11,6 +11,18 @@
 - name:                                "ORACLE: Gather Logical volumes created in 1.5"
   ansible.builtin.include_vars:        disks_config.yml
 
+- name:                                Set the NFS Server name list
+  ansible.builtin.set_fact:
+    nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+- name:                                Set the NFS Server name
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ nfs_server_temp | first }}"
+  when:                                NFS_provider == "NONE"
+
 - name:                                "ORACLE: Check if LVs exists."
   ansible.builtin.stat:
     path:                              "{{ dev_path_from_lv_item }}"
@@ -22,9 +34,9 @@
     var:                               oravgstat
     verbosity:                         2
 
-- name:                                "ORACLE: Gather existing LVs" 
-  set_fact:
-    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}" 
+- name:                                "ORACLE: Gather existing LVs"
+  ansible.builtin.set_fact:
+    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}"
 
 - name:                                "ORACLE: Show lvexists"
   ansible.builtin.debug:
@@ -42,7 +54,7 @@
                                        {%- else -%}
                                        {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
                                        {%- endif -%}
-                                       {{- _path -}} 
+                                       {{- _path -}}
     fstype:                            "{{ item.fstype }}"
     opts:                              defaults
     state:                             mounted
@@ -66,8 +78,15 @@
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/filepermission.txt   
   register:                            oracle_permissions_set
+# Debug for testing
+- name:                                "ORACLE: Print oracle filesystems"
+  ansible.builtin.debug:
+    var:                               oracle_filesystem_mounts
+    verbosity:                         2
 
 - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -86,6 +105,7 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt   
     state:                             touch
 
+
 - name:                                "ORACLE: Make orasid:dba as owners"          
   become:                              true
   become_user:                         root
@@ -99,7 +119,6 @@
     - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
     - { path: '/usr/sap/install/oraclient', group: 'oinstall',   owner: 'oracle'}
     - { path: '/usr/sap/install/oraserver', group: 'oinstall',   owner: 'oracle'}
-  
 
 # Mount Filesystems
 - name:     "Mount SAP Filesystems on Database for installation"
@@ -114,15 +133,30 @@
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop:
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
+    #- { tier: 'ora',            type: 'xfs',    src: '/dev/vg_orabackup/lv_orabackup',    path: '/oracle/orabackup' }
+
+   # src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'
   
   when:         
     - item.tier == "ora"
 
+#Mount install file system on Observer node.
+- name:                                Mount Install folder when using AFS
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              "vers=4,minorversion=1,sec=sys"
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop:
+    - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
+  when:
+    - node_tier == 'observer'
+    - use_AFS
 
-# - name:                             "File permissions updated"
-#   ansible.builtin.file:
-#     path:                              /etc/sap_deployment_automation/filepermission.txt
-#     state:                             touch
 
 #Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"

@@ -58,7 +58,7 @@ resource "azurerm_subnet" "web" {
 // Creates anf subnet of SAP VNET
 resource "azurerm_subnet" "anf" {
   provider = azurerm.main
-  count = var.ANF_settings.use ? (
+  count = var.NFS_provider=="ANF" ? (
     local.sub_ANF_existing ? (
       0) : (
       1

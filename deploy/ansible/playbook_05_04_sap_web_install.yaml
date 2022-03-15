@@ -3,34 +3,60 @@
 # |                 Playbook for SAP Web Dispatcher Install                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
+# -------------------------------------+---------------------------------------8
+# Role: 5.4 Web Dispatcher Installation
+#
+# Description:
+#
+# -------------------------------------+---------------------------------------8
+
 ---
 
 - hosts:                               localhost
-  name:                                Get SAP Password from KeyVault
-  gather_facts:                        true
+  name:                                "WEB Installation Playbook: - Initialization"
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+
   tasks:
 
-    - name:                            Remove .step504 flag
+    - name:                            "WEB Installation Playbook: - Create Progress folder"
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step504"
-        state:                         absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
 
-    - name:                            Include 0.1 passwords role
+    - name:                            "WEB Installation Playbook: - Remove web-install-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/web-install-done"
+        state:                          absent
+
+    - name:                            "WEB Installation Playbook: - Set pas fact"
+      ansible.builtin.set_fact:
+        tier:                          pas
+
+    - name:                            "WEB Installation Playbook: - Read/Create passwords"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
       tags:
         - 0.1-passwords
 
+    - name:                            "WEB Installation Playbook: - Read storage account details"
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          pas
+      tags:
+        - kv-sap-installation-media-storage-details
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                 Playbook for SAP Web Dispatcher Install                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 
 - hosts:                               "{{ sap_sid|upper }}_WEB"
 
@@ -45,53 +71,50 @@
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
-
   tasks:
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            Set 'web' tier facts
+    - name:                            "WEB Installation Playbook: - Set 'web' tier facts"
       ansible.builtin.set_fact:
         tier:                          web
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 
-# -------------------------------------+---------------------------------------8
-# Role: 5.4 Web Dispatcher Installation
-#
-# Description:
-#
-# -------------------------------------+---------------------------------------8
-
     - block:
-        - name:                        Include 5.4-web-install
+        - name:                        "WEB Installation Playbook: - run SAPInst"
           ansible.builtin.include_role:
-            name:     roles-sap/5.4-web-install
-      tags:
-        - 5.4-web-install
+            name:                      roles-sap/5.4-web-install
+      always:
+        - name:                        "WEB Installation Playbook: - Get the Error lines from installation output"
+          ansible.builtin.set_fact:
+            error_lines:               "{{ error_lines | default([]) + [item] }}"
+          with_items:                  "{{ web_installation.stdout_lines }}"
+          when:
+            - web_installation.stdout_lines is defined
+            - '"ERROR" in item'
 
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |                       Playbook for SAP Web Logging                         |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
+        - name:                        "WEB Installation Playbook: - Show from WEB installation"
+          ansible.builtin.debug:
+            msg:                       "{{ error_lines }}"
+          when:
+            - error_lines is defined
 
 
-- hosts:                               localhost
-  name:                                Log results
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                            Create .step504 flag
+    - name:                            "WEB Installation Playbook: - Create web-install-done flag"
+      delegate_to:                     localhost
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.step504"
+        path:                          "{{ _workspace_directory }}/.progress/web-install-done"
         state:                         touch
         mode:                          0755
+
+      tags:
+        - 5.4-web-install
 
 
 ...

@@ -16,7 +16,6 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
-
 function showhelp {
     echo ""
     echo "##################################################################################################################"
@@ -94,7 +93,7 @@ function missing {
 }    
 
 
-INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:l:h --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,landscape_tfstate_key:,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n advanced_state_management -o p:s:a:k:t:n:i:l:d:h --longoptions parameterfile:,subscription:,storage_account_name:,terraform_keyfile:,type:,tf_resource_name:,azure_resource_id:,landscape_tfstate_key:,deployer_environment:,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -107,7 +106,9 @@ do
   case "$1" in
     -p | --parameterfile)                      parameterfile="$2"         ; shift 2 ;;
     -s | --subscription)                       subscription_id="$2"       ; shift 2 ;;
+    -e | --deployer_environment)               deployer_environment="$2"        ; shift 2 ;;
     -a | --storage_account_name)               storage_account_name="$2"  ; shift 2 ;;
+    -d | --deployer_environment)               deployer_environment="$2"  ; shift 2 ;;
     -l | --landscape_tfstate_key)              landscape_tfstate_key="$2" ; shift 2 ;;
     -k | --terraform_keyfile)                  key="$2"                   ; shift 2 ;;
     -t | --type)                               type="$2"                  ; shift 2 ;;
@@ -119,14 +120,15 @@ do
   esac
 done
 
-#
-# Setup some useful shell options
-#
-
-
-if [ -z "$parameterfile" ]; then
-    missing_value='parameterfile'
-    missing
+if [ ! -f "${parameterfile}" ]
+then
+    printf -v val %-35.35s "$parameterfile"
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                 $boldred  Parameter file does not exist: ${val} $resetformatting #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
     exit 2 #No such file or directory
 fi
 
@@ -149,6 +151,7 @@ then
 fi
 
 # Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -179,8 +182,10 @@ fi
 automation_config_directory=~/.sap_deployment_automation/
 system_config_information="${automation_config_directory}""${environment}""${region_code}"
 
+subscription_with_resource=$(echo "$resourceID" | cut -d / -f3)
 
-az_res=$(az resource show --ids "${resourceID}")
+az account set --sub "${subscription_with_resource}"
+az resource show --ids "${resourceID}"
 return_value=$?
 if [ 0 != $return_value ] ; then
     echo ""
@@ -195,33 +200,51 @@ if [ 0 != $return_value ] ; then
     exit $return_value
 fi
 
-if [ -n "${subscription_id}" ]
-then
-    az account set --sub "${subscription_id}"
-else
-    load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-
-    subscription_id=$STATE_SUBSCRIPTION
-
-    if [ -n "${subscription_id}" ]
-    then
-        read -p "Subscription ID containing Terraform state storage account:"  subscription_id
-    fi
-    az account set --sub "${subscription_id}"
-fi
-
 load_config_vars "${system_config_information}" "tfstate_resource_id"
+storage_account_name=$(echo "$tfstate_resource_id" | cut -d / -f9)
+STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
 
-if [ -z "${tfstate_resource_id}" ]
+if [ -z "${storage_account_name}" ]
 then
-    tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
-    fail_if_null tfstate_resource_id
+    if [ -n "${deployer_environment}" ]
+    then
+        deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
+        if [ -f "$deployer_config_information" ]
+        then
+            load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
+            load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
+            load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+            load_config_vars "${deployer_config_information}" "STATE_SUBSCRIPTION"
+            subscription_id="${STATE_SUBSCRIPTION}"
+            storage_account_name="${REMOTE_STATE_SA}"
+
+            if [[ -z $tfstate_resource_id ]]
+            then
+                az account set --sub "${STATE_SUBSCRIPTION}"
+                tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
+            fi
+            fail_if_null tfstate_resource_id
+        fi
+    fi
+
 fi
+
+if [ -z "${subscription_id}" ]
+then
+    read -p "Subscription ID containing Terraform state storage account:"  subscription_id
+    az account set --sub "${subscription_id}"
+fi
+
+
+if [ -z "${storage_account_name}" ]
+then
+    read -p "Terraform state storage account:"  storage_account_name
+    tfstate_resource_id=$(az resource list --name "${storage_account_name}" --resource-type Microsoft.Storage/storageAccounts | jq --raw-output '.[0].id')
+fi
+
 resource_group_name=$(echo $tfstate_resource_id | cut -d/ -f5 | tr -d \" | xargs)
 
 directory=$(pwd)/.terraform
-
-echo $DEPLOYMENT_REPO_PATH
 
 module_dir=$DEPLOYMENT_REPO_PATH/deploy/terraform/run/${type}
 
@@ -261,7 +284,6 @@ if [ "${type}" == sap_system ]
 then
     if [ -n "${landscape_tfstate_key}" ]; then
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-        landscape_tfstate_key_exists=true
     else
         read -p "Workload terraform statefile name :" landscape_tfstate_key
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"

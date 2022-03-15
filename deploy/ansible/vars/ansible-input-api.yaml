@@ -1,18 +1,11 @@
 ---
-# API Input template with defaults
 
-# Example of passing input YAML to ansible-playbook
-#
-#         ansible-playbook                                                                                                \
-#           --inventory   new-hosts.yaml                                                                                  \
-#           --user        azureadm                                                                                        \
-#           --private-key sshkey                                                                                          \
-#           --extra-vars="@sap-parameters.yaml"                                                                           \
-#           ~/Azure_SAP_Automated_Deployment/centiq-sap-hana/deploy/ansible/${playbook}
+# API Input template with defaults
 
 # OS Config Settings variables
 chrony_pool:                  ""
 chrony_servers:               []
+timezone:                     "Etc/GMT"
 
 # BoM Processing variables
 sapbits_bom_files:            "sapfiles"                                                # Default
@@ -23,13 +16,14 @@ check_storage_account:        true
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""
-sap_sid:                      "BPC"                                                        # REQUIRED - SAP Install
+sap_sid:                      ""                                                        # REQUIRED - SAP Install
 download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
 db_sid:                       "XDB"                                                     # Default
 hdb_instance_number:          "00"                                                      # Default
 pas_hostname:                 ""
 pas_instance_number:          "00"
+web_instance_number:          "00"
 password_hana_system:         ""
 main_password:                ""                                                        # SAP Install
 sap_fqdn:                     ""                                                        # SAP Install
@@ -38,7 +32,7 @@ sapinst_gid:                  2001
 sapsys_gid:                   2000
 
 # Oracle specific parameters
-ora_sid:                      "ORA" 
+ora_sid:                      "ORA"
 dba_gid:                      3000
 oper_gid:                     3001
 asmoper_gid:                  3002
@@ -46,12 +40,13 @@ asmadmin_gid:                 3003
 asmdba_gid:                   3004
 oinstall_gid:                 3005
 orasid_uid:                   3000
-oracle_uid:                   3001    
+oracle_uid:                   3001
 hdbshm_gid:                   2002
-
+observer_uid:                 4000
 scs_hostname:                 ""
 scs_instance_number:          "00"                                                      # SAP Install
 ers_instance_number:          "02"
+app_instance_number:          "00"
 sidadm_uid:                   2000
 hdbadm_uid:                   2200
 scs_lb_ip:                    ""                                                        # SAP HA
@@ -61,6 +56,7 @@ anydb_release:                  19
 anydb_version:                  19.0.0
 ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
+PLATFORM:                     ""
 
 password_cockpit_admin:       ""
 password_db_systemdb:         ""
@@ -77,6 +73,9 @@ deployer_kv_name_secret:      "deployer-kv-name"                                
 sapbits_location_secret:      "sapbits-location-base-path"                               # Name of secret containing the SAP Binaries storage account container URL
 sapbits_sas_token_secret:     "sapbits-sas-token"                                        # Name of secret containing the SAP Binaries storage account SAS token
 
+# NFS
+NFS_provider:                 "NONE"
+
 sap_swap:
   - { tier: 'scs',  swap_size_mb: '4096' }
   - { tier: 'ers',  swap_size_mb: '4096' }
@@ -87,6 +86,6 @@ sap_swap:
   - { tier: 'oracle', swap_size_mb: '20480' }
   - { tier: 'oracle-asm', swap_size_mb: '20480' }
   - { tier: 'oracle-multi-sid', swap_size_mb: '20480' }
-
+  - { tier: 'observer', swap_size_mb: '2048' }
 
 ...

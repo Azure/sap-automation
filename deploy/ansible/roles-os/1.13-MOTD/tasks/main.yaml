@@ -40,7 +40,7 @@
 # Update banners - Overwrite existing ones
 #
 # -------------------------------------+---------------------------------------8
-- name:                                Update motd banners
+- name:                                "1.13 MOTD: - Update motd banners"
   ansible.builtin.copy:
     src:                               files/motd
     dest:                              /etc/motd
@@ -49,7 +49,7 @@
     mode:                              0644
   become:                              true
 
-- name:                                Update issue banners
+- name:                                "1.13 MOTD: - Update issue banners"
   ansible.builtin.copy:
     src:                               files/issue
     dest:                              /etc/issue
@@ -58,7 +58,7 @@
     mode:                              0644
   become:                              true
 
-- name:                                Update issue.net banners
+- name:                                "1.13 MOTD: - Update issue.net banners"
   ansible.builtin.copy:
     src:                               files/issue
     dest:                              /etc/issue.net
@@ -73,7 +73,7 @@
 # Update printmotd if commented. We do not change it is explicitly set to no
 # Update sshd
 # -------------------------------------+---------------------------------------8
-- name:                                Update PrintMotd when commented
+- name:                                "1.13 MOTD: - Update PrintMotd when commented"
   ansible.builtin.lineinfile:
     state:                             present
     dest:                              /etc/ssh/sshd_config
@@ -83,7 +83,7 @@
   notify:
     - restart sshd service
 
-- name:                                Update default Banner path
+- name:                                "1.13 MOTD: - Update default Banner path"
   ansible.builtin.lineinfile:
     state:                             present
     dest:                              /etc/ssh/sshd_config

@@ -37,10 +37,10 @@
 
 # -------------------------------------+---------------------------------------8
 
-- name:                                Ensure zypper repo is configured on SLE VMs
+- name:                                "1.3 Repository - Ensure zypper repo is configured on SLE VMs"
   block:
     # If there are no repos configured zypper lr will fail with rc == 6
-    - name:                            Check that zypper repos are registered
+    - name:                            "1.3 Repository - Check that zypper repos are registered"
       ansible.builtin.command:         zypper lr
       # command/shell actions always report changed even if they are
       # not making any changes; we know this command action doesn't
@@ -48,13 +48,9 @@
       changed_when:                    false
       args:
         warn:                          false  # quieten warning about using zypper directly
-
-  when:     ansible_os_family|upper == 'SUSE'
-
   rescue:
     # Attempt to configure the repos by re-registering instance
-    - name:                            Attempt to re-register SLE instance with Public Cloud \
-                                       Update Infrastructure
+    - name:                            "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure"
       ansible.builtin.shell:      |
                                        rm /etc/SUSEConnect
                                        rm -f /etc/zypp/{repos,services,credentials}.d/*
@@ -69,11 +65,12 @@
       # registercloudguest rc == 1 when successful
       failed_when:                     reg_result.rc > 1
 
-    - name:                            Verify that zypper repos are configured \
-                                       after re-registering SLE instance
+    - name:                            "1.3 Repository - Verify that zypper repos are configured after re-registering SLE instance"
       ansible.builtin.command:         zypper lr
       args:
         warn:                          false  # quieten warning about using zypper directly
+
+  when:     ansible_os_family|upper == 'SUSE'
 
 #----------------------------------------
 # END
@@ -94,9 +91,9 @@
 #                  'command' or 'shell'?
 #----------------------------------------
 
-- name:                                Ensure yum repos are configured on Redhat VMs
+- name:                                "1.3 Repository - Ensure yum repos are configured on Redhat VMs"
   block:
-    - name:                            Check that yum repos are registered
+    - name:                            "1.3 Repository - Check that yum repos are registered"
       ansible.builtin.command:         yum repolist
       args:
         warn:                          false  # quieten warning about using yum directly
@@ -121,9 +118,9 @@
 #                  'command' or 'shell'?
 #----------------------------------------
 
-- name:                                Ensure yum repos are configured on OEL VMs
+- name:                                "1.3 Repository - Ensure yum repos are configured on OEL VMs"
   block:
-    - name:                            Check that yum repos are registered
+    - name:                            "1.3 Repository - Check that yum repos are registered"
       command:                         yum repolist
       args:
         warn:                          false  # quieten warning about using yum directly
@@ -149,9 +146,9 @@
 #                  'command' or 'shell'?
 #----------------------------------------
 
-- name:                                Ensure yum repos are configured on Oracle Linux VMs
+- name:                                "1.3 Repository - Ensure yum repos are configured on Oracle Linux VMs"
   block:
-    - name:                            Check that yum repos are registered
+    - name:                            "1.3 Repository - Check that yum repos are registered"
       command:                         yum repolist
       args:
         warn:                          false  # quieten warning about using yum directly
@@ -161,13 +158,10 @@
 #----------------------------------------
 # END
 
-
-
-
-- name:                                Ensure additional zypper repo is configured on SLE VMs
+- name:                                "1.3 Repository - Ensure additional zypper repo is configured on SLE VMs"
   block:
     # If there are no repos configured zypper lr will fail with rc == 6
-    - name:                            Check that zypper repos are registered
+    - name:                            "1.3 Repository - Check that zypper repos are registered"
       ansible.builtin.command:         zypper lr
       # command/shell actions always report changed even if they are
       # not making any changes; we know this command action doesn't
@@ -185,25 +179,28 @@
 #----------------------------------------
 
 
-- name:                                1.3 - Import repo list
+- name:                                "1.3 Repos:  - Import repo list"
   ansible.builtin.include_vars:        repos.yaml
 
 # Analyse the repo list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
-- name:                                "Determine repos appropriate for tier {{ distro_full_id }}"
+- name:                                "1.3 Repository - Determine repos appropriate for tier {{ distribution_full_id }}"
   ansible.builtin.set_fact:
-    repos_for_tier:                    "{{ repos[distro_full_id] |
+    repos_for_tier:                    "{{ repos[distribution_full_id] |
                                              selectattr('tier', 'in', ['all', tier]) |
                                              list }}"
 
 # Print list of matching repos if verbosity it 1 or greater
-- name:                                Print matching repos
+- name:                                "1.3 Repos: Print matching repos"
   ansible.builtin.debug:
     var:                               "{{ repos_for_tier }}"
-    verbosity: 2
+    verbosity:                         2
+  when:                                
+   - repos_for_tier is defined
+   - repos_for_tier | length > 0
 
 # Add repositories
-- name:                                Add the repositories
+- name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
   ansible.builtin.zypper_repository:
     repo:                              "{{ item.repo }}"
     state:                             "{{ item.state }}"
@@ -218,7 +215,18 @@
     - zypresult.rc != 4
   when:     ansible_os_family|upper == 'SUSE'
 
-- name:                                Add the repositories result
+- name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
+  ansible.builtin.yum_repository:
+    name:                              "{{ item.repo }}"
+    description:                       "{{ item.repo }}"
+    baseurl:                           "{{ item.url }}"
+    state:                             "{{ item.state }}"
+  loop:                                "{{ repos_for_tier }}"
+  register:                            zypresult
+  ignore_errors:                       true
+  when:     ansible_os_family|upper != 'SUSE'
+
+- name:                                "1.3 Repos: Add the repositories result"
   ansible.builtin.debug:
     var:                               zypresult
     verbosity:                         2

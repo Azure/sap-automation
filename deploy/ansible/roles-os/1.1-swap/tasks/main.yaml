@@ -11,7 +11,7 @@
 # -------------------------------------+---------------------------------------8
 
 
-- name:                                Ensure /mnt/resource directory exists
+- name:                                "1.1 Swap: - Ensure /mnt/resource directory exists"
   ansible.builtin.file:
     path:                              "/mnt/resource"
     state:                             directory
@@ -20,7 +20,7 @@
     - Restart waagent
 
 
-- name:                                Ensure waagent file is configured with proper parameters
+- name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
   ansible.builtin.lineinfile:
     dest:                              /etc/waagent.conf
     state:                             "{{ item.state }}"
