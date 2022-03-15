@@ -61,7 +61,7 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         '{{ sidadm_uid }}'
+        owner:                         "{{ sap_sid | lower}}adm" 
         group:                         sapsys
       loop:
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
@@ -131,7 +131,7 @@
     - name:                            "5.6 SCSERS - RHEL - ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         '{{ sidadm_uid }}'
+        owner:                         "{{ sap_sid | lower}}adm" 
         group:                         sapsys
         state:                         directory
       loop:

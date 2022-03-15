@@ -74,14 +74,3 @@
     # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
   when:     item.tier == "all" or
             item.tier == tier
-
-#   <sid>adm - SAP admin user for SID.
-- name:                                "2.5 SAP Users: - Create {{ sap_sid | lower }}adm"
-  user:
-    name:                              '{{ sap_sid | lower }}adm'
-    comment:                           "SAP admin user for SID - {{ sap_sid }}"
-    uid:                               '{{ sidadm_uid }}'
-    group:                             '{{ sapsys_gid }}'
-    password:                          "{{ main_password }}"
-  when:
-    - node_tier in ['scs'] # ,'ers'

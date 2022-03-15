@@ -114,13 +114,46 @@
             - skip_ansible_lint
           when:                        node_tier == 'scs'
       rescue:
-        - name:                            "RESCUE - SCS HA Install: - SCS - Assign ownership"
+        # ToDO: cleanup file systems on failed install.
+        # until then we validate if cretain files and folders exist and take
+        # actions based on them
+        - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
+          ansible.builtin.stat:
+            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+          register:                    stat_sys_exe_uc
+          when:                        node_tier == 'scs'
+
+        - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
+          ansible.builtin.find:
+            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+            patterns:                  "*"
+            file_type:                 directory
+          register:                    find_sys_exe_uc_result
+          when:
+            - node_tier == 'scs'
+            - stat_sys_exe_uc.stat.exists
+
+        # At this stage the DIR_CT_RUN,'/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'
+        # is expected to be empty so we delete it.
+        # nw.directoryIsNotEmptyUnattended
+        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'"
           ansible.builtin.file:
-            path:                          "{{ item.path }}"
-            owner:                         "{{ sap_sid | lower }}adm"
-            group:                         sapsys
-            recurse:                       true
-            state:                         directory
+            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+            state:                     "{{ item }}"
+          with_items:
+            - absent
+            - directory
+          when:
+            - node_tier == 'scs'
+            - find_sys_exe_uc_result.examined != 0
+
+        - name:                        "RESCUE - SCS HA Install: - SCS - Assign ownership"
+          ansible.builtin.file:
+            path:                      "{{ item.path }}"
+            owner:                     "{{ sap_sid | lower }}adm"
+            group:                     sapsys
+            recurse:                   true
+            state:                     directory
           loop:
             -  { path: '/sapmnt/{{ sap_sid | upper }}' }
             -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }

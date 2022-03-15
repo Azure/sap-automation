@@ -89,7 +89,7 @@
     - name:                            "ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}"
+        owner:                         "{{ sap_sid | lower}}adm" 
         group:                         sapsys
         recurse:                       true
         state:                         directory
@@ -128,6 +128,12 @@
           tags:
             - skip_ansible_lint
       rescue:
+        - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
+          ansible.builtin.stat:
+            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+          register:                    stat_sys_exe_uc
+          when:                        node_tier == 'ers'
+
         - name:                            "RESCUE - ERS Install: Assign ownership"
           ansible.builtin.file:
             path:                          "{{ item.path }}"
@@ -186,8 +192,8 @@
   ansible.builtin.debug:
     msg:                               "ERS is already installed"
   when:
-    - "'scs' in supported_tiers"
-    -  scs_installed.stat.exists
+    - "'ers' in supported_tiers"
+    -  ers_installed.stat.exists
 
 # *====================================4=======================================8
 

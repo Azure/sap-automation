@@ -48,7 +48,7 @@
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       vars:
-        tier:                          pas
+        tier:                          web
       tags:
         - kv-sap-installation-media-storage-details
 
@@ -61,10 +61,9 @@
 - hosts:                               "{{ sap_sid|upper }}_WEB"
 
   name:                                SAP Installation - WebDispatcher
+  become:                              true
   remote_user:                         "{{ orchestration_ansible_user }}"
   serial:                              1                                       # /usr/sap/install is an NFS and we share SID/instance number
-                                                                               # - must be ran serially
-  become:                              true
   become_user:                         root
   gather_facts:                        true
 
