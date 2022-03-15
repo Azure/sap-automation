@@ -62,8 +62,9 @@
 - hosts:                               "{{ sap_sid|upper }}_PAS"
                                         
   name:                                SAP Generic OS Groups and User Creation
-  serial:                               1
-  remote_user:                         "{{ orchestration_ansible_user }}"                
+  serial:                              1
+  become:                              true
+  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -73,15 +74,21 @@
     - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
       ansible.builtin.set_fact:
         tier:                          generic
-        # main_password:                 "{{ hostvars.localhost.sap_password }}"
-        # sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-        # sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 
     - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
-        name:                          roles-sap-os/2.5-sap-users/user_nw.yaml
+        name:                          roles-sap-os/2.5-sap-users
+        tasks_from:                    user_nw.yaml
+      vars:
+        tier:                          generic
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - 2.5-sap-users
 
@@ -118,6 +125,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
       tags:
         - always
 
@@ -160,6 +168,9 @@
                 path:                  "{{ _workspace_directory }}/.progress/pas-install-done"
                 state:                 touch
                 mode:                  0755
+              when:                    
+                - pas_installation.rc is defined
+                - pas_installation.rc == 0
           always:
             - name:                    "PAS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
@@ -175,9 +186,8 @@
               vars:
                 suffix:                "_PAS"
                 prefix:                "{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-                path:                  '/INSTALL/HA/ABAP/APP1'
+                path:                  "{{ file_path }}"
                 tier:                  'pas'
-              when:                    db_high_availability
 
             - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
               ansible.builtin.debug:

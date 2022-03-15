@@ -56,21 +56,33 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
+<<<<<<< HEAD
 # |   Playbook for SAP OS USERS and Groups Creation for Standalone SCS         |
+=======
+# |   Playbook for SAP OS USERS and Groups Creation for ASCS/ERS               |
+>>>>>>> 41defa571e697d8941cc0d7e57cd9ff8cc40c099
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_SCS:
                                         {{ sap_sid|upper }}_ERS"
+<<<<<<< HEAD
   serial:                               1
   name:                                SAP Generic OS Groups and User Creation
   remote_user:                         "{{ orchestration_ansible_user }}"                
+=======
+  serial:                              1
+  name:                                SAP Generic OS Groups and User Creation
+  become:                              true
+  become_user:                         root
+>>>>>>> 41defa571e697d8941cc0d7e57cd9ff8cc40c099
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
 
+<<<<<<< HEAD
     - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
       ansible.builtin.set_fact:
         tier:                      generic
@@ -88,6 +100,20 @@
         - 2.5-sap-users
 
 
+=======
+    - name:                            Generic Users and Groups for SAP Installation
+      ansible.builtin.include_role:
+        name:                          roles-sap-os/2.5-sap-users
+        tasks_from:                    user_nw.yaml
+      vars:
+        tier:                          generic
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      tags:
+        - 2.5-sap-users
+
+>>>>>>> 41defa571e697d8941cc0d7e57cd9ff8cc40c099
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -150,7 +176,7 @@
             - name:                    "SCS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
-                
+
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
               ansible.builtin.file:
@@ -288,6 +314,12 @@
                 name:                  roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
+      when:
+        - scs_high_availability
+        - "'scs' in supported_tiers or 'ers' in supported_tiers "
+
+    - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
+      block:
 
         - block:
             - name:                    "SCS HA Installation Playbook: - Configure Pacemaker and ASCS/ERS"
@@ -312,9 +344,9 @@
                 prefix:                "{{ scs_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
-              when:                    
-               - scs_bom_id is defined
-               - node_tier == 'scs'
+              when:
+                - scs_bom_id is defined
+                - node_tier == 'scs'
 
 
             - name:                    "SCS HA Installation Playbook: - Run post installation routines ERS"
@@ -325,9 +357,9 @@
                 prefix:                "{{ ers_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
-              when:                    
-               - ers_bom_id is defined
-               - node_tier == 'ers'
+              when:
+                - ers_bom_id is defined
+                - node_tier == 'ers'
 
             - name:                    "SCS HA Installation Playbook: - Get the Error lines from installation output (SCS)"
               ansible.builtin.set_fact:

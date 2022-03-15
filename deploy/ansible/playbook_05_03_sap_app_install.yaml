@@ -52,8 +52,9 @@
 - hosts:                               "{{ sap_sid|upper }}_APP"
   
   name:                                SAP Generic OS Groups and User Creation
-  serial:                               1
-  remote_user:                         "{{ orchestration_ansible_user }}"                
+  serial:                              1
+  become:                              true
+  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -63,13 +64,19 @@
     - name:                            Set 'app' tier facts
       ansible.builtin.set_fact:
         tier:                          generic                                     # SAP Install phase: APP - Application Server
-        # main_password:                 "{{ hostvars.localhost.sap_password }}"
-        # sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-        # sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
 
     - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
-        name:                          roles-sap-os/2.5-sap-users/user_nw.yaml
+        name:                          roles-sap-os/2.5-sap-users
+        tasks_from:                    user_nw.yaml
+      vars:
+        tier:                          generic
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - 2.5-sap-users
 
@@ -104,6 +111,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
 
     - block:
         - name:                        Include 2.6-sap-mounts role
@@ -122,6 +130,9 @@
             path:                      "{{ _workspace_directory }}/.progress/app-install-done"
             state:                     touch
             mode:                      0755
+          when:                    
+            - app_installation.rc is defined
+            - app_installation.rc == 0
       always:
         - name:                        Get the error lines
           ansible.builtin.set_fact:
@@ -137,20 +148,8 @@
           vars:
             suffix:                    "_APP"
             prefix:                    "{{ app_bom_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-            path:                      '/INSTALL/HA/ABAP/APPX'
+            path:                      "{{ file_path }}"
             tier:                      'app'
-          when:                        scs_high_availability
-
-        - name:                        Include 7.0.0-post-install role
-          ansible.builtin.include_role:
-            name:                      roles-sap/7.0.0-post-install
-          vars:
-            suffix:                    "_APP"
-            prefix:                    "{{ app_bom_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-            path:                      '/INSTALL/DISTRIBUTED/ABAP/APPX'
-            tier:                      'app'
-          when:                        not scs_high_availability
-
 
         - name:                    Errors from APP installation
           ansible.builtin.debug:

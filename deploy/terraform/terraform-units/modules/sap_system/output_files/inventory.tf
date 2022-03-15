@@ -101,6 +101,8 @@ resource "local_file" "sap-parameters_yml" {
     )
     NFS_provider        = var.NFS_provider
     pas_instance_number = local.pas_instance_number
+
+    oracle = local.oracle
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)
