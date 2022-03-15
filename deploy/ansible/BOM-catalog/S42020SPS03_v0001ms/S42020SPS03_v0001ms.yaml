@@ -20,7 +20,9 @@ product_ids:
 
 materials:
   dependencies:
-    - name: "HANA_2_00_055_v0006ms" 
+    - name:     HANA_2_00_055_v0006ms
+    - name:     SWPM20SP10_latest
+    
 
   media:
 
@@ -33,16 +35,6 @@ materials:
       url:          https://softwaredownloads.sap.com/file/0020000002208852020
 
     # kernel components
-
-    - name: "SAP HANA CLIENT Version 2.11"
-      archive: "IMDB_CLIENT20_011_14-80002082.SAR"
-      url: "https://softwaredownloads.sap.com/file/0020000001770092021"
-      path: download_basket
-
-    - name: "Revision 2.00.060.0 (SPS06) for HANA DB 2.0"
-      archive: "IMDB_SERVER20_060_0-80002031.SAR"
-      url: "https://softwaredownloads.sap.com/file/0020000001739942021"
-      path: download_basket
 
     - name: "Kernel Part II (781)"
       archive: "SAPEXEDB_200-70005282.SAR"
@@ -62,14 +54,6 @@ materials:
     - name: "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP12"
       archive: "SUM20SP12_4-80002456.SAR"
       url: "https://softwaredownloads.sap.com/file/0020000001731572021"
-      path: download_basket
-
-    - name: "SWPM20SP10"
-      archive: "SWPM20SP10_2-80003424.SAR"
-      override_target_filename: "SWPM.SAR"
-      extract: true
-      extractDir: SWPM
-      url: "https://softwaredownloads.sap.com/file/0020000001662762021"
       path: download_basket
 
     - name: "Installation for SAP IGS integrated in SAP Kernel"
