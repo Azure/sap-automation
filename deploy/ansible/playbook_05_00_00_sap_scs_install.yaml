@@ -83,7 +83,8 @@
 
     - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
-        name:                          roles-sap-os/2.5-sap-users/user_nw.yaml
+        name:                          roles-sap-os/2.5-sap-users/tasks/user_nw.yaml
+      when:                           PLATFORM != "ORACLE"
       tags:
         - 2.5-sap-users
 

@@ -113,7 +113,7 @@
     - node_tier == 'scs'
     - MULTI_SIDS is defined
 
-- name:                                Mount local filesystems (when not using AFS)
+
 - name:                                "2.6 SAP Mounts: - Mount local install file systems (when not using AFS)"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
@@ -147,7 +147,6 @@
   when:                                NFS_provider == "NONE"
 
 # Mount Filesystems
-- name:                                Mount local sapmnt (scs)
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt on (scs) {{ ansible_hostname }}"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
