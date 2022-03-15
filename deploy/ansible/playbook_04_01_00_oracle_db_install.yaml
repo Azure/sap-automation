@@ -20,6 +20,14 @@
       tags:
         - 0.1-passwords
 
+    - name:                            Run the sap-installation-media-storage-details role
+      include_role:
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
+      vars:
+        tier:                          ora
+      tags:
+        - kv-sap-installation-media-storage-details
 
 # Steps:
 #   01) NFS: Mount
@@ -28,7 +36,7 @@
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
   name:                                DB Installation prechecks - Oracle
-  remote_user:                         "{{ orchestration_ansible_user }}"                
+  remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
   gather_facts:                        true
@@ -39,14 +47,16 @@
   tasks:
 # -------------------------------------+---------------------------------------8
 #
-# Build the list of tasks to be executed in order here. 
+# Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
 
     - name:                            Setting the DB facts
       ansible.builtin.set_fact:
-        tier:                            "ora"                                    # Actions for Oracle DB Servers
+        tier:                          "ora"                                    # Actions for Oracle DB Servers
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 
@@ -54,7 +64,7 @@
 # Role: oracle-users
 #
 # Description: Create oracle users and groups.
-#              
+#
 #
     - block:
         - name:                        Include 1.11-accounts
@@ -62,7 +72,7 @@
             name:                      roles-os/1.11-accounts
       tags:
         - 1.11-accounts
-      
+
 # -------------------------------------+---------------------------------------8
 # -------------------------------------+---------------------------------------8
 # Role: sap-mounts
@@ -84,7 +94,7 @@
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
   name:                                DB Installation - Oracle
-  remote_user:                         "{{ orchestration_ansible_user }}"                
+  remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         "oracle"
   gather_facts:                        true
@@ -97,20 +107,20 @@
       ansible.builtin.set_fact:
         tier:                          ora                                    # Actions for Oracle DB Servers
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 
     - name:                            Installing Oracle
       ansible.builtin.include_role:
         name:                          roles-db/4.1.0-ora-install
-      
-
 
 # # Oracle Post installation scripts
 # - hosts:          "{{ sap_sid|upper }}_DB"
 
 #   name:           DB Installation - Oracle
-#   remote_user:    "{{ orchestration_ansible_user }}"                
+#   remote_user:    "{{ orchestration_ansible_user }}"
 #   become:         yes
 #   become_user:    root
 #   gather_facts:   true
@@ -120,5 +130,3 @@
 #   tasks:
 #   - include_role:
 #       name:     roles-db/4.1.0-ora-post-install
-
-

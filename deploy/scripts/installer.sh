@@ -25,7 +25,7 @@ VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
     showhelp
 fi
-
+called_from_ado=0
 eval set -- "$INPUT_ARGUMENTS"
 while :
 do
@@ -142,14 +142,10 @@ if [ 1 == $called_from_ado ] ; then
     echo "Agent IP: $this_ip"
 fi
 
-
-deployer_tfstate_key_parameter=''
-landscape_tfstate_key_parameter=''
-
 parallelism=10
 
 #Provide a way to limit the number of parallell tasks for Terraform
-if [ -n "${TF_PARALLELLISM}" ]; then
+if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
@@ -172,7 +168,7 @@ then
     deployer_tfstate_key=${key}.terraform.tfstate
 fi
 
-if [ -n "${REMOTE_STATE_SA}" ];
+if [[ -z $REMOTE_STATE_SA ]];
 then
     echo "Loading the State file information"
     load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
@@ -186,21 +182,73 @@ fi
 echo "Terraform state file storage:" "${REMOTE_STATE_SA}"
 echo "Terraform state subscription:" "${STATE_SUBSCRIPTION}"
 
-if [ -z $deployer_tfstate_key ];
+deployer_tfstate_key_parameter=''
+
+if [[ -z $deployer_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
+    echo "Deployer state file name:" "${deployer_tfstate_key}"
     save_config_vars "${system_config_information}" deployer_tfstate_key
 fi
 
-if [ -z "$landscape_tfstate_key" ];
+if [ "${deployment_system}" != sap_deployer ]
+then
+    if [ -z ${deployer_tfstate_key} ]; then
+        if [ 1 != $called_from_ado ]; then
+            read -p "Deployer terraform statefile name :" landscape_tfstate_key
+            deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+            save_config_var "deployer_tfstate_key" "${system_config_information}"
+        else
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#                          $boldreduscore!Deployer state file name is missing!$resetformatting                        #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+            unset TF_DATA_DIR
+            exit 2
+        fi
+    else
+        deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+    fi
+fi
+
+landscape_tfstate_key_parameter=''
+
+if [[ -z $landscape_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "landscape_tfstate_key"
 else
+    echo "Workload zone file name:" "${landscape_tfstate_key}"
     save_config_vars "${system_config_information}" landscape_tfstate_key
 fi
 
-if [ -z "$STATE_SUBSCRIPTION" ];
+if [ "${deployment_system}" == sap_system ]
+then
+    if [ -z ${landscape_tfstate_key} ]; then
+        if [ 1 != $called_from_ado ]; then
+            read -p "Workload terraform statefile name :" landscape_tfstate_key
+            landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+            save_config_var "landscape_tfstate_key" "${system_config_information}"
+        else
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#                     $boldred Workload zone terraform statefile name is missing $resetformatting               #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+            unset TF_DATA_DIR
+            exit 2
+        fi
+    else
+        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+    fi
+fi
+
+if [[ -z $STATE_SUBSCRIPTION ]];
 then
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
@@ -224,7 +272,7 @@ account_set=0
 #setting the user environment variables
 set_executing_user_environment_variables "none"
 
-if [ -n "${subscription}" ]; then
+if [[ -n ${subscription} ]]; then
     if is_valid_guid "${subscription}" ; then
         echo "Valid subscription format"
     else
@@ -239,7 +287,7 @@ if [ -n "${subscription}" ]; then
     export ARM_SUBSCRIPTION_ID="${subscription}"
 fi
 
-if [ -n "$STATE_SUBSCRIPTION" ];
+if [[ -n $STATE_SUBSCRIPTION ]];
 then
     echo ""
     echo "#########################################################################################"
@@ -255,8 +303,7 @@ load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
 load_config_vars "${system_config_information}" "tfstate_resource_id"
 
-
-if [ -z "${REMOTE_STATE_SA}" ]; then
+if [[ -z ${REMOTE_STATE_SA} ]]; then
     if [ 1 != $called_from_ado ]; then
         read -p "Terraform state storage account name:"  REMOTE_STATE_SA
         
@@ -269,74 +316,32 @@ fi
 
 echo "Terraform state storage " "${REMOTE_STATE_SA}"
 
-if [ -z "${REMOTE_STATE_SA}" ]; then
+if [ -z ${REMOTE_STATE_SA} ]; then
     option="REMOTE_STATE_SA"
     missing
     exit 1
 fi
 
-if [ -z "${REMOTE_STATE_RG}" ]; then
+if [[ -z ${REMOTE_STATE_RG} ]]; then
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
 fi
 
-if [ -z "${tfstate_resource_id}" ]; then
+if [[ -z ${tfstate_resource_id} ]]; then
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
     
 fi
-
-tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 
 if [ "${deployment_system}" != sap_deployer ]
 then
-    
-    if [ -z "${deployer_tfstate_key}" ]; then
-        deployer_tfstate_key_parameter=" "
-    else
-        if [ "${deployment_system}" != sap_system ] ; then
-            deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-        else
-            deployer_tfstate_key_parameter=" "
-        fi
-    fi
-    
+    tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 else
     tfstate_parameter=" "
-    
-    save_config_vars "${system_config_information}" deployer_tfstate_key
-fi
-
-if [ "${deployment_system}" == sap_system ]
-then
-    if [ -n "${landscape_tfstate_key}" ]; then
-        landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-        landscape_tfstate_key_exists=true
-    else
-        if [ 1 != $called_from_ado ]; then
-            read -p "Workload terraform statefile name :" landscape_tfstate_key
-            landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-            save_config_var "landscape_tfstate_key" "${system_config_information}"
-            landscape_tfstate_key_exists=true
-        else 
-            export last_error="Workload terraform statefile name is missing"
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                       $boldred Workload terraform statefile name is missing $resetformatting                  #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-            unset TF_DATA_DIR
-            exit 1
-
-        fi
-    fi
-else
-    landscape_tfstate_key_parameter=""
 fi
 
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
@@ -785,7 +790,11 @@ if [ $ok_to_proceed ]; then
     
     allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}  "${approve}"" )
     
-    terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+    if [ 1 == $called_from_ado ] ; then
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings $allParams  2>error.log
+    else
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+    fi
     return_value=$?
     
     if [ 0 != $return_value ] ; then
@@ -796,8 +805,14 @@ if [ $ok_to_proceed ]; then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        cat error.log
-        rm error.log
+        if [ -f error.log ]; then
+            cat error.log
+            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
+            if [ 1 == $called_from_ado ] ; then
+                echo "##vso[task.logissue type=error]$LASTERROR"
+            fi
+            rm error.log
+        fi
         unset TF_DATA_DIR
         exit $return_value
     fi

@@ -7,61 +7,91 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
-- name:                                Set dbload facts
-  ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
 
-- name:                                "Create run flag directory"
+- name:                                "DBLoad: -  Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     state:                             directory
     mode:                              0755
+  when:                                node_tier != "oracle"
 
-- name:                                "SAP DBLOAD reset"
+- name:                                "DBLoad: -  reset"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
     state:                             absent
   when:                                reinstall
 
-- name:                                "SAP DBLOAD: check if installed"
+- name:                                "DBLoad: - check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
   register:                            dbload_installed
 
-- name:                                "DBLOAD Install"
+- name:                                "DBLoad: -  Set the SCS Server name list"
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+- name:                                "DBLoad: - Set dbload facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+
+- name:                                "DBLoad: - Show the SCS Server name"
+  ansible.builtin.debug:
+    msg: 
+      - "SCS : {{ scs_server }}"
+    verbosity:                         2
+
+- name:                                "DBLoad: - Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    tier:                              "{{ tier }}"
+    task_prefix:                       "DBLoad: "
+
+- name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-template
+  vars:
+    task_prefix:                       "DBLoad: "
+    bom_name:                          "{{ bom_base_name }}"
+    sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+    sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
+    sap_cd_package_cd2:
+    sap_cd_package_cd3:
+    sap_cd_package_cd4:
+    sap_cd_package_cd5:
+    sap_ciInstanceNumber:
+    app_instance_number:
+    sap_ciDialogWPNumber:
+    sap_ciBtcWPNumber:
+    sap_installSAPHostAgent:
+    sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
+    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+    sap_ciVirtualHostname:
+    sap_appVirtualHostname:
+    tier:                              "{{ tier }}"
+  tags:
+    - skip_ansible_lint
+
+- name:                                "DBLoad: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ dbload_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.dbl }}"
+      - "INSTANCE:   {{ hdb_instance_number }}"
+      - "SCSHOST:    {{ scs_server }}"
+
+- name:                                "DBLoad: - Install"
   block:
-
-    - name:                            Include 3.3.1-bom-utility role for registering the BoM
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-
-    - name:                            Include 3.3.1-bom-utility role
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
-      vars:
-        sap_cd_package_hdbclient:      /usr/sap/install/CD_HDBCLIENT/SAP_HANA_CLIENT
-        sap_cd_package_cd1:            /usr/sap/install/CD_EXPORT
-        sap_cd_package_cd2:
-        sap_cd_package_cd3:
-        sap_cd_package_cd4:
-        sap_cd_package_cd5:
-        sap_ciInstanceNumber:
-        app_instance_number:
-        sap_ciDialogWPNumber:
-        sap_ciBtcWPNumber:
-        sap_installSAPHostAgent:
-        sap_profile_dir:               /sapmnt/{{ sap_sid|upper }}/profile
-        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-        sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
-        sap_ciVirtualHostname:
-        sap_appVirtualHostname:
-      tags:
-        - skip_ansible_lint
 
 # *====================================4=======================================8
 #   SAP DBLOAD: Install
@@ -69,15 +99,7 @@
 #
 # *====================================4=======================================8
 
-
-    - name:                            SAP DBLOAD variables
-      ansible.builtin.debug:
-        msg:
-          - "{{ sap_inifile }}"
-          - "{{ bom.product_ids.dbl }}"
-        verbosity:                     2
-
-    - name:                            "SAP DBLOAD"
+    - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
@@ -88,12 +110,28 @@
         creates:                       /etc/sap_deployment_automation/sap_deployment_dbload.txt
       environment:
         TMPDIR:                        /usr/sap/install
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+
       register:                        dbload
       failed_when:                     dbload.rc > 0
       tags:
         - skip_ansible_lint
 
-    - name:                            "SAP DBLOAD flag"
+
+    - name:                            "DBLoad: Installation results"
+      ansible.builtin.debug:
+        var:                           dbload
+      when:                            
+        - dbload is defined
+        - dbload.rc > 0
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "DBLoad Installation succeeded"
+      when:                            dbload.rc == 0
+
+
+    - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_dbload.txt
         state:                         touch
@@ -101,6 +139,14 @@
 
   when:
     - not dbload_installed.stat.exists
+    - platform == "ORACLE"
+
+- name:                                "DBLoad: - status"
+  ansible.builtin.debug:
+    msg:                               "DBLoad is already performed"
+  when:
+    -  dbload_installed.stat.exists
+
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -93,7 +93,7 @@ variable "network_resource_group" {
   default     = ""
 }
 
-variable   "order_deployment" {
+variable "order_deployment" {
   description = "psuedo condition for ordering deployment"
   default     = ""
 }
@@ -116,7 +116,7 @@ locals {
 
   sizes = jsondecode(file(local.file_name))
 
-  faults = jsondecode(file(format("%s%s", path.module, "/../../../../../configs/max_fault_domain_count.json")))
+  faults            = jsondecode(file(format("%s%s", path.module, "/../../../../../configs/max_fault_domain_count.json")))
   resource_suffixes = var.naming.resource_suffixes
 
   //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
@@ -159,9 +159,14 @@ locals {
   )
   sub_app_prefix = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
 
-  sub_web_defined = length(try(var.infrastructure.vnets.sap.subnet_web, {})) > 0
-  sub_web_arm_id  = try(var.infrastructure.vnets.sap.subnet_web.arm_id, try(var.landscape_tfstate.web_subnet_id, ""))
-  sub_web_exists  = length(local.sub_web_arm_id) > 0
+
+  sub_web_arm_id = try(var.infrastructure.vnets.sap.subnet_web.arm_id, try(var.landscape_tfstate.web_subnet_id, ""))
+  sub_web_exists = length(local.sub_web_arm_id) > 0
+  sub_web_defined = local.sub_web_exists ? (
+    true) : (
+    length(try(var.infrastructure.vnets.sap.subnet_web, {})) > 0
+  )
+
   sub_web_name = local.sub_web_exists ? (
     try(split("/", var.infrastructure.vnets.sap.subnet_web.arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_web.name, "")) > 0 ? (
@@ -204,14 +209,17 @@ locals {
     local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg_app[0] : azurerm_network_security_group.nsg_app[0]), null
   )
 
-  firewall_exists = length(var.firewall_id) > 0
+  firewall_exists          = length(var.firewall_id) > 0
   enable_deployment        = var.application.enable_deployment
   scs_instance_number      = var.application.scs_instance_number
   ers_instance_number      = var.application.ers_instance_number
   scs_high_availability    = var.application.scs_high_availability
   application_server_count = var.application.application_server_count
   scs_server_count         = var.application.scs_server_count * (local.scs_high_availability ? 2 : 1)
-  enable_scs_lb_deployment = local.scs_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || local.scs_server_count > 1)
+  enable_scs_lb_deployment = local.enable_deployment ? (
+    local.scs_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || local.scs_server_count > 1)
+    ) : (
+  false)
 
   webdispatcher_count      = var.application.webdispatcher_count
   enable_web_lb_deployment = local.webdispatcher_count > 0 && (var.use_loadbalancers_for_standalone_deployments || local.webdispatcher_count > 1)
@@ -229,7 +237,7 @@ locals {
   scs_size = length(var.application.scs_sku) > 0 ? var.application.scs_sku : local.app_size
   web_size = length(var.application.web_sku) > 0 ? var.application.web_sku : local.app_size
 
-  vm_sizing = length(var.application.vm_sizing) > 0 ? var.application.vm_sizing : length(local.app_size) > 0 ? "Production" : "Default"
+  vm_sizing = length(var.application.vm_sizing) > 0 ? var.application.vm_sizing : length(local.app_size) > 0 ? "Optimized" : "Default"
 
 
   // OS image for all Application Tier VMs
@@ -437,7 +445,6 @@ locals {
   app_no_ppg = var.application.app_no_ppg
   scs_no_ppg = var.application.scs_no_ppg
   web_no_ppg = var.application.web_no_ppg
-
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")

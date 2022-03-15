@@ -1,0 +1,53 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                             S User secret                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- name:                                "0.2 Key Vault - S-User: - Retrieve S User details"
+  block:
+    - name:                            "BoM Secrets: Retrieve S User detail secret"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ deployer_kv_name }}
+          --name "S-Username"
+      changed_when:                    false
+      register:                        keyvault_secret_show_s_user
+
+    - name:                            "0.2 Key Vault - S-User: - Extract S User secret details"
+      ansible.builtin.set_fact:
+        s_user: >-
+          {{ (keyvault_secret_show_s_user.stdout | from_json).value }}
+      no_log:                          true
+
+  when:
+    - s_user is not defined
+
+- name:                                "0.2 Key Vault - S-User: - Show S User"
+  ansible.builtin.debug:
+    var:                               s_user
+    verbosity:                         2
+
+- name:                                "0.2 Key Vault - S-User: - BoM Secrets: Retrieve S Password details"
+  block:
+    - name:                            "0.2 Key Vault - S-User: - BoM Secrets: Retrieve S Password detail secret"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ deployer_kv_name }}
+          --name "S-Password"
+      changed_when:                    false
+      register:                        keyvault_secret_show_s_password
+      no_log:                          true
+
+    - name:                            "0.2 Key Vault - S-User: - BoM Secrets: Extract S User Password secret details"
+      ansible.builtin.set_fact:
+        s_password: >-
+          {{ (keyvault_secret_show_s_password.stdout | from_json).value }}
+      no_log:                          true
+
+  when:
+    - s_password is not defined
+
+...
