@@ -12,11 +12,12 @@ product_ids:
   dbl:         NW_ABAP_DB:S4HANA2020.CORE.HDB.ABAP
   pas:         NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAP
   pas_ha:      NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAPHA
-  app:
+  app:         NW_DI:S4HANA2020.CORE.HDB.PD
   app_ha:
   web:
   ers:
   ers_ha:
+  generic:     NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:
