@@ -56,33 +56,20 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-<<<<<<< HEAD
-# |   Playbook for SAP OS USERS and Groups Creation for Standalone SCS         |
-=======
 # |   Playbook for SAP OS USERS and Groups Creation for ASCS/ERS               |
->>>>>>> 41defa571e697d8941cc0d7e57cd9ff8cc40c099
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_SCS:
                                         {{ sap_sid|upper }}_ERS"
-<<<<<<< HEAD
   serial:                               1
   name:                                SAP Generic OS Groups and User Creation
   remote_user:                         "{{ orchestration_ansible_user }}"                
-=======
-  serial:                              1
-  name:                                SAP Generic OS Groups and User Creation
-  become:                              true
-  become_user:                         root
->>>>>>> 41defa571e697d8941cc0d7e57cd9ff8cc40c099
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-
   tasks:
 
-<<<<<<< HEAD
     - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
       ansible.builtin.set_fact:
         tier:                      generic
@@ -94,26 +81,6 @@
         - always  
 
     - name:                            Generic Users and Groups for SAP Installation
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.5-sap-users/user_nw.yaml
-      tags:
-        - 2.5-sap-users
-
-
-=======
-    - name:                            Generic Users and Groups for SAP Installation
-      ansible.builtin.include_role:
-        name:                          roles-sap-os/2.5-sap-users
-        tasks_from:                    user_nw.yaml
-      vars:
-        tier:                          generic
-        main_password:                 "{{ hostvars.localhost.sap_password }}"
-        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-      tags:
-        - 2.5-sap-users
-
->>>>>>> 41defa571e697d8941cc0d7e57cd9ff8cc40c099
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -125,7 +92,6 @@
 - hosts:                               "{{ sap_sid|upper }}_SCS  :
                                         {{ sap_sid|upper }}_DB"
 
-  name:                                "SCS Installation Playbook: - SCS"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
