@@ -133,7 +133,6 @@
 
   when:
     - not dbload_installed.stat.exists
-    - platform == "ORACLE"
 
 - name:                                "DBLoad: - status"
   ansible.builtin.debug:
