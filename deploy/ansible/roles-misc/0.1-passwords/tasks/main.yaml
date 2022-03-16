@@ -60,7 +60,7 @@
 
     - name:                            "0.1 Password: - Construct SAP system password"
       ansible.builtin.set_fact:
-        sap_password:                  "S3{{ lookup('password', '/tmp/sappasswordfile length=10 chars=ascii_letters,digits') }}"
+        sap_password:                  "S3{{ lookup('password', '/tmp/sappasswordfile length=10 chars=ascii_lowercase,ascii_uppercase,digits') }}"
 
     - name:                            "0.1 Password: - Show SAP Password"
       ansible.builtin.debug:

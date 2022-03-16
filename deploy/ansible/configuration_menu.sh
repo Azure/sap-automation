@@ -104,17 +104,18 @@ options=(
         "BOM Processing"
         "Database Instance installation"
         "SCS Install"
-        "DB Load"
-        "PAS Install"
-        "Oracle HA Setup"
-        "APP Install"
-        "WebDisp Install"
-        "Database HA Setup"
+        "Database High Availability Setup"
+        "Database Load"
+        "Primary Application Server installation"
+        "Oracle High Availability Setup"
+        "Application Server installations"
+        "Web Dispatcher installations"
+        "HCMT"
 
         # Special menu entries
         "BOM Download"
-        "Configure and install SAP (1-7)"
-        "Post SAP Installation tasks (8-10)"
+        "Configure and install SAP (1-9)"
+        "Post SAP Installation tasks (10-11)"
         "All Playbooks"
         "Quit"
 )
@@ -128,6 +129,7 @@ all_playbooks=(
         ${cmd_dir}/playbook_03_bom_processing.yaml
         ${cmd_dir}/playbook_04_00_00_db_install.yaml
         ${cmd_dir}/playbook_05_00_00_sap_scs_install.yaml
+        ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_05_01_sap_dbload.yaml
         ${cmd_dir}/playbook_05_02_sap_pas_install.yaml
         ${cmd_dir}/playbook_04_02_00_oracle_ha_setup.yaml
@@ -137,7 +139,6 @@ all_playbooks=(
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
-        ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
         ${cmd_dir}/playbook_bom_downloader.yaml
         ${cmd_dir}/playbook_07_00_00_post_installation.yaml
@@ -170,9 +171,9 @@ do
         "${options[-2]}")   # Run through all playbooks
                 playbooks+=( "${all_playbooks[@]}" );;
         "${options[-3]}")   # Run through post installation playbooks
-                playbooks+=( "${all_playbooks[@]:8:3}" );;
+                playbooks+=( "${all_playbooks[@]:9:2}" );;
         "${options[-4]}")   # Run through first 7 playbooks i.e.  SAP installation
-                playbooks+=( "${all_playbooks[@]:0:8}" );;
+                playbooks+=( "${all_playbooks[@]:0:9}" );;
         *)
                 # If not a numeric reply
                 if ! [[ "${REPLY}" =~ ^[0-9]{1,2}$ ]]; then

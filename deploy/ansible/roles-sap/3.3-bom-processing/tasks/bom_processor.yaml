@@ -48,6 +48,7 @@
     mode:                              0755
   become:                              true
   become_user:                         root
+  delegate_to:                         localhost
   loop:
     - path: "{{ download_directory }}"
     - path: "{{ download_directory }}/tmp"
@@ -97,7 +98,7 @@
     verbosity:                         2
   loop:       "{{ bom.materials.media|flatten(levels=1) }}"
   when:
-    - item.download is undefined or item.download != false
+    - item.download is undefined or item.download
 # ------------------</DEBUGGING>------------------
 
 - name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
@@ -131,7 +132,7 @@
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     tmp_dest:                          "{{ target_media_location }}/tmp"
-    checksum:                          "sha256:{{ item.checksum | upper }}"
+    checksum:                          "{% if item.checksum is defined %}sha256:{{ item.checksum | upper }}{% endif %}"
     validate_certs:                    true
   register:                            result
   until:                               result is succeeded
@@ -141,7 +142,7 @@
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
   when:
-    - item.download is undefined or item.download != false
+    - item.download is undefined or item.download
     - "distribution_id == 'suse15' or distribution_id == 'redhat8'"
 
 - name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
@@ -160,7 +161,7 @@
   delay:                               5
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   when:
-    - item.download is undefined or item.download != false
+    - item.download is undefined or item.download
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
 

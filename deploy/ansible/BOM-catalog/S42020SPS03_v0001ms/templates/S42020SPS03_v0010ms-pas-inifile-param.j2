@@ -1,14 +1,9 @@
-#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
-#   2393060 - SAPinst Framework 749 Central Note
+############################################################################################################################################################################################################################
+#
+# Installation service 'SAP S/4HANA Server 2020 > SAP HANA Database > Installation > Application Server ABAP > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAP' #
+#
+############################################################################################################################################################################################################################
 
-########################################################################################################################################################################################################
-#                                                                                                                                                                                                      #
-# Installation service 'SAP S/4HANA Server 1909 > SAP HANA Database > Installation > Application Server ABAP
-#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAP' #
-#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:S4HANA1909.CORE.HDB.ABAP' #
-#                       > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:S4HANA1909.CORE.HDB.ABAP' #
-#                                                                                                                                                                                                      #
-########################################################################################################################################################################################################
 
 # Location of Export CD
 SAPINST.CD.PACKAGE.HDBCLIENT                                         = {{ sap_cd_package_hdbclient }}
@@ -36,7 +31,6 @@ NW_SCS_Instance.scsVirtualHostname                                   = {{ sap_sc
 
 NW_adaptProfile.skipSecurityProfileSettings                          = true
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
-
 
 HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
