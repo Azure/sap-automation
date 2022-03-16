@@ -36,7 +36,8 @@
                        {{ sap_sid|upper }}_PAS :
                        {{ sap_sid|upper }}_ERS :
                        {{ sap_sid|upper }}_APP :
-                       {{ sap_sid|upper }}_WEB"
+                       {{ sap_sid|upper }}_WEB :
+                       {{ sap_sid|upper }}_OBSERVER_DB"
 
   name:               OS - Base Configuration
   remote_user:        "{{ orchestration_ansible_user }}"

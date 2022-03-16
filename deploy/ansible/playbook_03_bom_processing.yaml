@@ -9,7 +9,7 @@
 
 - hosts:                               localhost
   name:                                Get Storage account details from KeyVault
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:

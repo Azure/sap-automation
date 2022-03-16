@@ -45,6 +45,8 @@
         tier:                          fencing
       tags:
         - 0.2-kv-secrets
+      when:                            platform != "ORACLE"
+      
 
     - name:                            "Database Installation Playbook: - Read storage account details"
       include_role:
@@ -191,6 +193,7 @@
             - name:                    "Database Installation Playbook: - Install Pacemaker"
               ansible.builtin.include_role:
                 name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+              when:                    node_tier != 'oracle'
           tags:
             - 1.17-generic-pacemaker
 

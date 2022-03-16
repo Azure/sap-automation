@@ -6,12 +6,12 @@
 #[1] Create the SAP cluster resources
 #If using enqueue server 1 architecture (ENSA1), define the resources as follows:
 
-- name:                                "SAP Resources - Cluster Configuration after Install "
+- name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install "
   block:
     # - name:                            "Set the cluster on maintenace mode"
     #   ansible.builtin.command:         pcs property set maintenance-mode=true
 
-    - name:                            "Configure SAP ASCS/SCS resources"
+    - name:                            "5.6 SCSERS - RHEL - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}" \
@@ -23,10 +23,10 @@
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 
-    - name:                            "Set the ASCS resource stickiness"
+    - name:                            "5.6 SCSERS - RHEL - Set the ASCS resource stickiness"
       ansible.builtin.command:         pcs resource meta g-{{ sap_sid }}_ASCS resource-stickiness=3000
 
-    - name:                            "Configure SAP ERS resources"
+    - name:                            "5.6 SCSERS - RHEL - Configure SAP ERS resources"
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
@@ -38,7 +38,7 @@
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
-    - name:                            "Configure Co-location Constraints"
+    - name:                            "5.6 SCSERS - RHEL - Configure Co-location Constraints"
       ansible.builtin.shell: |
                                        pcs constraint colocation add g-{{ sap_sid }}_ERS with g-{{ sap_sid }}_ASCS -5000
                                        pcs constraint location rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} rule score=2000 runs_ers_{{ sap_sid }} eq 1
@@ -46,10 +46,10 @@
       register:                        co_location
       failed_when :                    co_location.rc > 1
 
-    - name:                            "Bring Primary node online"
+    - name:                            "5.6 SCSERS - RHEL - Bring Primary node online"
       ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
 
-    - name:                            "Set the Cluster out of maintenance mode"
+    - name:                            "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
   when:
@@ -57,12 +57,12 @@
 
 # Use the following if using ENSA2
 
-- name:                                "SAP Resources - Cluster Configuration after Install"
+- name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install"
   block:
     # - name:                            "Set the cluster on maintenace mode"
     #   ansible.builtin.command:         pcs property set maintenance-mode=true
 
-    - name:                            "Configure SAP ASCS/SCS resources"
+    - name:                            "5.6 SCSERS - RHEL - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}" \
@@ -74,10 +74,10 @@
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 
-    - name:                            "Set the ASCS resource stickiness"
+    - name:                            "5.6 SCSERS - RHEL - Set the ASCS resource stickiness"
       ansible.builtin.command:         pcs resource meta g-{{ sap_sid }}_ASCS resource-stickiness=3000
 
-    - name:                            "Configure SAP ERS resources"
+    - name:                            "5.6 SCSERS - RHEL - Configure SAP ERS resources"
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
@@ -89,10 +89,10 @@
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
-    - name:                            "Set the ERS resource stickiness"
+    - name:                            "5.6 SCSERS - RHEL - Set the ERS resource stickiness"
       ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}  resource-stickiness=3000
 
-    - name:                            "Configure Co-location Constraints"
+    - name:                            "5.6 SCSERS - RHEL - Configure Co-location Constraints"
       ansible.builtin.command: |
                                        pcs constraint colocation add g-{{ sap_sid }}_ERS with g-{{ sap_sid }}_ASCS -5000
                                        pcs constraint order start g-{{ sap_sid }}_ASCS then start g-{{ sap_sid }}_ERS kind=Optional symmetrical=false
@@ -100,7 +100,7 @@
       register:                        co_location
       failed_when:                     co_location.rc > 1
 
-    - name:                            "Set the Cluster out of maintenance mode"
+    - name:                            "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
       ansible.builtin.command:         pcs property set maintenance-mode=false
 
   when:
