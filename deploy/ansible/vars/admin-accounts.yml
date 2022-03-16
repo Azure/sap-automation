@@ -41,6 +41,35 @@ admin_groups:
     enabled:      true
     node_tier:    all
 
+  #Admin groups for DB2
+  - name:         sysadm
+    gid:          "{{ db2sysadm_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         sysctrl
+    gid:          "{{ db2sysctrl_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         sysmaint
+    gid:          "{{ db2sysmaint_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         sysmon
+    gid:          "{{ db2sysmon_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
   #Admin groups for Oracle Non-ASM
   - name:         dba
     gid:          "{{ dba_gid }}"

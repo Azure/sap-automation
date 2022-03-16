@@ -40,6 +40,14 @@ sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
 
+# DB2 specific parameters
+db2_sid:                      "DB6"
+db2sysadm_gid:                    3000
+db2sysctrl_gid:                   3001
+db2sysmaint_gid:                  3002
+db2sysmon_gid :                   3003
+
+
 # Oracle specific parameters
 ora_sid:                      "ORA"
 dba_gid:                      3000
