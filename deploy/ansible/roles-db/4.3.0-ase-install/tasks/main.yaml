@@ -36,6 +36,12 @@
     mode:                              0755
     state:                             directory
 
+- name:                                "Sybase: Create data folder inside sybtemp folder"
+  ansible.builtin.file:
+    path:                              /sybase/{{ db_sid|upper }}/sybtemp/data
+    mode:                              0755
+    state:                             directory
+    
 - name:                                "Sybase: Create sybsystem folder"
   ansible.builtin.file:
     path:                              /sybase/{{ db_sid|upper }}/sybsystem

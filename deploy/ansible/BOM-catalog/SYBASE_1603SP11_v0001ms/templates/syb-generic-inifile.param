@@ -1,0 +1,90 @@
+####################################################################################################################################################
+#                                                                                                                                                  #
+# Installation service 'Generic Options > SAP ASE > Preparations > Operating System Users and Groups', product id 'NW_Users_Create:GENERIC.SYB.PD' #
+#                                                                                                                                                  #
+####################################################################################################################################################
+# IMPORTANT DO NOT DELETE!!! SAPInstDes25Hash=$bFopMb8Cd7qN$isOMucaduY7GyQzp5pWkWKuksXz1HJVPyo3mZ/vMkR9eGgpfH/8Wjd0GfTFjdFGPW5r0BgapTVt+4rzuKHuHSsYWPs8ykZDl
+
+# Password for the Diagnostics Agent specific <dasid>adm user. Provided value may be encoded.
+# DiagnosticsAgent.dasidAdmPassword =
+
+# Windows domain in which the Diagnostics Agent users must be created. This is an optional property (Windows only).
+# DiagnosticsAgent.domain =
+
+# Windows only: Password for the Diagnostics Agent specific 'SAPService<DASID>' user.
+# DiagnosticsAgent.sapServiceDASIDPassword =
+
+# Specify whether the all operating system users are to be removed from group 'sapinst' after the execution of Software Provisioning Manager has completed.
+# NW_Delete_Sapinst_Users.removeUsers = false
+
+# The database system ID (DBSID)
+NW_Users_Create.dbsid = AS2
+
+# Specify whether you are preparing for an SAP sytem based on AS ABAP.
+NW_Users_Create.hasABAP = true
+
+# Specify whether you are preparing for an SAP sytem based on AS Java.
+# NW_Users_Create.hasJava = false
+
+# Create OS user accounts for the SAP Host Agent
+# NW_Users_Create.hostAgentOnly = false
+
+# Specify whether database users are to be installed.
+NW_Users_Create.installDBUsers = true
+
+# SAP system ID
+NW_Users_Create.sid = AS2
+
+# Create OS user accounts 'ora<dbsid>' or 'oracle'.
+# NW_Users_Create.whichOSUser = isAll
+
+# Type of SAP ASE
+# SYB.NW_DB.databaseType =
+
+# Windows only: The domain of the SAP Host Agent user
+# hostAgent.domain =
+
+# Password for the 'sapadm' user of the SAP Host Agent
+# hostAgent.sapAdmPassword =
+
+# Which database. Must be one of ada,db2,db4,db6,hdb,inf,mss,ora,syb. Needed, if NW_Users_Create.installDBUsers is set to true.
+nwUsers.dbtype = syb
+
+# Windows only: The domain of all users of this SAP system. Leave empty for default.
+# nwUsers.sapDomain =
+
+# Windows only: The password of the 'SAPServiceSID' user
+# nwUsers.sapServiceSIDPassword =
+
+# UNIX only: The user ID of the 'sapadm' user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sapadmUID = 2100
+
+# UNIX only: The group id of the 'sapsys' group, leave empty for default. The ID is ignored if the group already exists.
+nwUsers.sapsysGID = 2000
+
+# UNIX only: The user id of the <sapsid>adm user, leave empty for default. The ID is ignored if the user already exists.
+nwUsers.sidAdmUID = 2021
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword = des25(fsXcNYw04feDmpXH0YyFNMZJE2M=)
+
+# User ID of the OS user for database administration
+nwUsers.syb.sybsidId = 2020
+
+# Password of the OS user for database administration
+nwUsers.syb.sybsidPassword = des25(Bclrt5qh1Ez/eKTGTKFdv8Ea2s0=)
+
+# Install Container DB CDB
+# ora.isCDBONLY = false
+
+# Master password
+# storageBasedCopy.masterPassword =
+
+# ABAP schema
+# storageBasedCopy.ora.ABAPSchema = SAPSR3
+
+# Oracle clientVersion
+# storageBasedCopy.ora.clientVersion = 122
+
+# Oracle server version
+# storageBasedCopy.ora.serverVersion = 18
