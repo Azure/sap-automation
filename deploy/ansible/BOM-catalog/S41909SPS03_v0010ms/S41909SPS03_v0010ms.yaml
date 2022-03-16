@@ -17,6 +17,7 @@ product_ids:
   web:       NW_Webdispatcher:NW750.IND.PD
   ers:       NW_ERS:S4HANA1909.CORE.HDB.ABAP
   ers_ha:    NW_ERS:S4HANA1909.CORE.HDB.ABAPHA
+  generic:   NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:

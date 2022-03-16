@@ -1,7 +1,11 @@
 ---
 name:    'SWPM10SP34'
 target:  'SWPM10SP34'
+<<<<<<< HEAD
 version: 2
+=======
+version: 1
+>>>>>>> 92062ed3f8504417674c961006e699d0099c7ed6
 
 materials:
 
@@ -13,4 +17,10 @@ materials:
       extract:      true
       extractDir:   SWPM
       creates:      SIGNATURE.SMF
+<<<<<<< HEAD
       url:          https://softwaredownloads.sap.com/file/0020000000289652022
+=======
+      url:          https://softwaredownloads.sap.com/file/0020000000289652022
+
+...
+>>>>>>> 92062ed3f8504417674c961006e699d0099c7ed6

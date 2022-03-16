@@ -227,5 +227,7 @@ locals {
     "02") : (
     "00"
   )
+  
+  oracle = upper(var.platform)== "ORACLE" ? format("ora_release: \nora_version: \n:oracle_sbp_patch: \n") : ""
 
 }

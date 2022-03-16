@@ -99,15 +99,21 @@
       register:                        hana_installation
       failed_when:                     hana_installation.rc > 0
 
-    - name:                            "SAP HANA: Debug: Installation results"
+    - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
-        var:                           hana_installation
-        verbosity:                     2
+        msg: 
+         - "HANA Installation failed"
+         - "HDBLCM output: {{ hana_installation }}"
+      when:                            
+       - hana_installation.rc is defined
+       - hana_installation.rc > 0
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
-        var:                           hana_installation
-      when:                            hana_installation.rc > 0
+        msg:                           "HANA Installation succeeded"
+      when:                            
+       - hana_installation.rc is defined
+       - hana_installation.rc == 0
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
