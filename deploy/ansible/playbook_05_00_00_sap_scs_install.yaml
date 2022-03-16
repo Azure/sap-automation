@@ -62,25 +62,28 @@
 
 - hosts:                               "{{ sap_sid|upper }}_SCS:
                                         {{ sap_sid|upper }}_ERS"
-  serial:                               1
+  serial:                              1
   name:                                SAP Generic OS Groups and User Creation
-  remote_user:                         "{{ orchestration_ansible_user }}"                
+  become:                              true
+  become_user:                         root
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+
   tasks:
 
-    - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
-      ansible.builtin.set_fact:
-        tier:                      generic
-        # main_password:             "{{ hostvars.localhost.sap_password }}"
-        # scs_high_availability:     "{{ scs_high_availability }}"
-        # sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-        # sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-      tags:
-        - always  
-
     - name:                            Generic Users and Groups for SAP Installation
+      ansible.builtin.include_role:
+        name:                          roles-sap-os/2.5-sap-users
+        tasks_from:                    user_nw.yaml
+      vars:
+        tier:                          generic
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      tags:
+        - 2.5-sap-users
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -92,6 +95,7 @@
 - hosts:                               "{{ sap_sid|upper }}_SCS  :
                                         {{ sap_sid|upper }}_DB"
 
+  name:                                "SCS Installation Playbook: - SCS"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
@@ -182,7 +186,6 @@
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
