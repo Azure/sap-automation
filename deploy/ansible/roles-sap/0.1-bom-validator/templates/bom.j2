@@ -17,7 +17,11 @@ materials:
 {{'    - name: \"%s\"' | format(media.name | trim) }}
 {% for key,value in media.items() %}
 {% if key != 'name' %}
+{% if key == 'permissions' %}
+{{'      %s:' | format(key | trim) }}{{' \'%s\'' | format(value | trim) }}
+{% else %}
 {{'      %s:' | format(key | trim) }}{{' %s' | format(value | trim) }}
+{% endif %}
 {% endif %}
 {% endfor %}
 {% endfor %}

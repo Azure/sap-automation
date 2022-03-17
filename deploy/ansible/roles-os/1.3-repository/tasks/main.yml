@@ -9,6 +9,22 @@
 # <Comment Header>
 #
 # -------------------------------------+---------------------------------------8
+# TODO: 20210127 Review
+
+#----------------------------------------
+# BEGIN - OLD CODE
+#----------------------------------------
+
+# - name: Check configurations on HANA VMs
+#   any_errors_fatal: true
+#   block:
+#     - import_tasks: hostname_validation.yml
+#     - import_tasks: repo_validation.yml
+
+#----------------------------------------
+# END - OLD CODE
+#----------------------------------------
+
 
 #----------------------------------------
 # BEGIN
