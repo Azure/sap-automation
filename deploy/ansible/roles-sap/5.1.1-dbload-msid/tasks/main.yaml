@@ -48,7 +48,7 @@
   ansible.builtin.template:
     backup:                           yes
     src:                              tnsnames.j2
-    dest:                             "/oracle/RDBMS/{{ anydb_version }}/network/admin/tnsnames.ora"
+    dest:                             "/oracle/RDBMS/{{ ora_version }}/network/admin/tnsnames.ora"
     mode:                             0644
     force:                            true
 
@@ -58,7 +58,7 @@
   ansible.builtin.template:
     backup:                           yes
     src:                              listener.j2
-    dest:                             "/oracle/RDBMS/{{ anydb_version }}/network/admin/listener.ora"
+    dest:                             "/oracle/RDBMS/{{ ora_version }}/network/admin/listener.ora"
     mode:                             0644
     force:                            true
 

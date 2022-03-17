@@ -138,7 +138,7 @@
 - name:                                "Oracle Post Processing - Run root.sh"
   become:                              true
   become_user:                         root
-  ansible.builtin.command  :             /oracle/{{ db_sid }}/{{ anydb_version }}/root.sh
+  ansible.builtin.command  :             /oracle/{{ db_sid }}/{{ ora_version }}/root.sh
   register:                            rootscript_results
   args:
     creates:                           /etc/sap_deployment_automation/rootscripts_executed.txt
@@ -154,7 +154,7 @@
 
 - name:                                Permissions
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/{{ anydb_version }}/bin/oracle
+    path:                              /oracle/{{ db_sid|upper }}/{{ ora_version }}/bin/oracle
     state:                             file
     mode:                              6751
   tags:
@@ -186,13 +186,13 @@
 
 - name:                                Check if "OPatch.bck" exists
   ansible.builtin.stat:
-    path:                              /oracle/{{ db_sid | upper }}/{{ anydb_version }}/OPatch.bck
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
   register:                            opatch_stat
 
 - name:                                backup OPatch
   ansible.builtin.copy:
-    src:                               /oracle/{{ db_sid | upper }}/{{ anydb_version }}/OPatch
-    dest:                              /oracle/{{ db_sid | upper }}/{{ anydb_version }}/OPatch.bck
+    src:                               /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
     remote_src:                        true
     mode:                              0777
   when:
@@ -200,7 +200,7 @@
 
 - name:                                remove old OPatch
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid | upper }}/{{ anydb_version }}/OPatch
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
     state:                             absent
   when:
     - not opatch_stat.stat.exists
@@ -210,7 +210,7 @@
   become_user:                         "oracle"
   ansible.builtin.copy:
     src:                               /usr/sap/install/SBP/OPATCH/OPatch
-    dest:                              /oracle/{{ db_sid | upper }}/{{ anydb_version }}
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                        true
     mode:                              0777
 
@@ -219,7 +219,7 @@
   become_user:                         "oracle"
   ansible.builtin.copy:
     src:                               "{{ mopatch_path }}"
-    dest:                              /oracle/{{ db_sid | upper }}/{{ anydb_version }}
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                        true
     mode:                              0777
 
@@ -231,9 +231,9 @@
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
-    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ anydb_version }}"
-    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ anydb_version }}"
-    RDBMS:                             "/oracle/{{ db_sid | upper }}/{{ anydb_version }}"
+    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    RDBMS:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
   register:                            sbpscript_results
   failed_when:                         sbpscript_results.rc >= 2
   args:
@@ -264,7 +264,7 @@
     insertafter: 'fi '
     block: |
         #User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ anydb_release }}
+        export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_release }}
         export ORACLE_SID={{ db_sid }} 
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
@@ -284,7 +284,7 @@
     marker_end:   "-- END"
     block: |
         #User Specific environment
-        setenv  ORACLE_HOME /oracle/{{ db_sid }}/{{ anydb_release }}
+        setenv  ORACLE_HOME /oracle/{{ db_sid }}/{{ ora_release }}
         setenv  ORACLE_SID  {{ db_sid }} 
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib

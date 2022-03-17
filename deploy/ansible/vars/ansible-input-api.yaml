@@ -53,8 +53,8 @@ hdbadm_uid:                   2200
 scs_lb_ip:                    ""                                                        # SAP HA
 db_lb_ip:                     ""                                                        # SAP HA
 reinstall:                    false                                                     # Provide a way to override the idempotency flags for SAP tasks
-anydb_release:                  19
-anydb_version:                  19.0.0
+ora_release:                  19
+ora_version:                  19.0.0
 ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
 PLATFORM:                     ""
