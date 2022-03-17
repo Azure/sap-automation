@@ -1,10 +1,8 @@
 ---
 
-name: "SAP_S4HANA_2020"
-target: "ABAP PLATFORM 2020"
-
-defaults:
-  target_location: "{{ target_media_location }}/download_basket"
+name:    "SAP S4HANA 2020 SPS 3"
+target:  "ABAP PLATFORM 2020"
+version: 1
 
 product_ids:
   scs:         NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAP
