@@ -25,6 +25,7 @@
     creates:          /etc/sap_deployment_automation/oracleowner.txt
 
 
+
 - name:                                Create shareddbinstalled.txt
   become:         true
   become_user:    root

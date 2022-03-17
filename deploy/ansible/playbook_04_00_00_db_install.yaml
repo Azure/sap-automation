@@ -208,6 +208,46 @@
         - db_high_availability
         - node_tier == 'hana'
 
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Oracle DB Install 
+# |                      CREATE USERS for SAP Installation                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid|upper }}_DB"
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "root"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install Oracle"
+      block:
+
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        "Configure accounts for ora-msid"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+      when:                            
+        - node_tier == 'oracle-multi-sid'
+        - platform == 'ORACLE' 
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -220,7 +260,7 @@
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "root"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -274,6 +314,11 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
+        
+
+        - name:                        Include 1.5.2-disk-setup-ora-msid role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-ora-msid
 
         - name:                        Check for file system mounts
           ansible.builtin.include_role:

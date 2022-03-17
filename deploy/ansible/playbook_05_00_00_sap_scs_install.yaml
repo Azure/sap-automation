@@ -81,7 +81,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-      when:                            PLATFORM != "ORACLE"
+      when:                                platform != "ORACLE"
       tags:
         - 2.5-sap-users
 

@@ -89,6 +89,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      when:                            platform != 'ORACLE'
       tags:
         - 2.5-sap-users
 
@@ -163,14 +164,10 @@
                 instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
               when:       MULTI_SIDS is undefined
 
-            - name:     roles-sap/5.2-pas-install
-              when:       MULTI_SIDS is undefined
-            - name:                        Include 5.2.1-pas-msid-install
+            - name:                    "PAS Installation Playbook: - for MULTI-SID Deployment"
               ansible.builtin.include_role:
-                name:     roles-sap/5.2.1-pas-msid-install
+                name:                  roles-sap/5.2.1-pas-msid-install
               when:       MULTI_SIDS is defined
-          tags:
-            - 5.2.1-pas-msid-install
 
             - name:                    "PAS Installation Playbook: - Create pas-install-done flag"
               delegate_to:             localhost
