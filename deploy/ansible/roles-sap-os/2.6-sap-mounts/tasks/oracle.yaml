@@ -59,11 +59,20 @@
     opts:                              defaults
     state:                             mounted
   loop:                                "{{ logical_volumes |sort(attribute='lv') }}"
-  register:  oracle_filesystem_mounts
-  when:
-    - item.node_tier == "oracle"
-    - item.lv in lvexists
-    - tier == 'sapos'
+  register:  oraclefilesystemmounts
+  when:         
+    - item.node_tier == "oracle" 
+    - item.lv in  lvexists
+
+- name:                                "ORACLE: Create sap_deployment_automation folder"          
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
 
 # Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"
@@ -71,20 +80,7 @@
     var:                               oracle_filesystem_mounts
     verbosity:                         2
 
-
-- name:                                "ORACLE: Create sap_deployment_automation folder"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
-    mode:                              0755
-    state:                             directory
-
-
-# - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"
-#   ansible.builtin.stat:
-#     path:                              /etc/sap_deployment_automation/filepermission.txt
-#   register:                            oracle_permissions_set
-
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
   become:                              true
   become_user:                         root
   ansible.builtin.file:
@@ -94,21 +90,16 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/oracle',                group: 'oinstall',   owner: 'oracle'}
-    - { path: '/usr/sap/install/SBP',   group: 'oinstall',   owner: 'oracle'}
+    - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
   when:
-    - node_tier == 'oracle'
+     - not oracle_permissions_set.stat.exists
 
-- name:                                "ORACLE: Create directory structure for symlinks "
-  block:
-    # Create directory structure for symlinks
-    - name:                            Create /usr/sap/{{ sap_sid|upper }} if it does not exist
-      ansible.builtin.file:
-        path:                          /usr/sap/{{ sap_sid|upper }}
-        state:                         directory
-        mode:                          '0755'
-        owner:                         '{{ sidadm_uid }}'
-        group:                         sapsys
+- name:                                "ORACLE: Create filepermission.txt"          
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    state:                             touch
 
     - name:                            Create /usr/sap/{{ sap_sid|upper }}/SYS if it does not exist
       ansible.builtin.file:
@@ -118,22 +109,60 @@
         owner:                         '{{ sidadm_uid }}'
         group:                         sapsys
 
-    # Create Symlinks for better installation experience
-    - name:                            Create symlink for sapmnt global
-      ansible.builtin.file:
-        src:                           /sapmnt/{{ sap_sid|upper }}/global
-        dest:                          /usr/sap/{{ sap_sid|upper }}/SYS/global
-        owner:                         '{{ sidadm_uid }}'
-        group:                         sapsys
-        state:                         link
+- name:                                "ORACLE: Make orasid:dba as owners"          
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+  loop:
+    - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install/oraclient', group: 'oinstall',   owner: 'oracle'}
+    - { path: '/usr/sap/install/oraserver', group: 'oinstall',   owner: 'oracle'}
 
-    - name:                            Create symlink for sapmnt profile
-      ansible.builtin.file:
-        src:                           /sapmnt/{{ sap_sid|upper }}/profile
-        dest:                          /usr/sap/{{ sap_sid|upper }}/SYS/profile
-        owner:                         '{{ sidadm_uid }}'
-        group:                         sapsys
-        state:                         link
+# Mount Filesystems
+- name:     "Mount SAP Filesystems on Database for installation"
+  mount:
+    src:    "{{ item.src }}"
+    path:   "{{ item.path }}"
+    fstype: "{{ item.type }}"
+    opts:   defaults
+    state:  mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop:
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
+    #- { tier: 'ora',            type: 'xfs',    src: '/dev/vg_orabackup/lv_orabackup',    path: '/oracle/orabackup' }
+
+   # src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'
+  
+  when:         
+    - item.tier == "ora"
+
+#Mount install file system on Observer node.
+- name:                                Mount Install folder when using AFS
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              "vers=4,minorversion=1,sec=sys"
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop:
+    - { type: 'nfs4', src: '{{ usr_sap_install_path }}', path: '/usr/sap/install' }
   when:
-    - node_tier in ['pas', 'oracle']
-    - tier == 'dbload'
+    - node_tier == 'observer'
+    - use_AFS
+
+
+#Debug for testing
+- name:                                "ORACLE: Print oracle filesystems"
+  ansible.builtin.debug:
+    var:                               oraclefilesystemmounts
+    verbosity:                         2

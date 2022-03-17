@@ -44,7 +44,8 @@
       vars:
         tier:                          fencing
       tags:
-        - 0.2-kv-secrets
+        - kv-secrets
+      when:                            platform != "ORACLE"
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
       include_role:
@@ -52,6 +53,36 @@
         public:                        true
       tags:
         - kv-sap-installation-media-storage-details
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |   Playbook for SAP OS USERS and Groups Creation for ASCS/ERS               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid|upper }}_SCS:
+                                        {{ sap_sid|upper }}_ERS"
+  serial:                              1
+  name:                                SAP Generic OS Groups and User Creation
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            Generic Users and Groups for SAP Installation
+      ansible.builtin.include_role:
+        name:                          roles-sap-os/2.5-sap-users
+        tasks_from:                    user_nw.yaml
+      vars:
+        tier:                          generic
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      tags:
+        - 2.5-sap-users
 
 
 # /*---------------------------------------------------------------------------8
@@ -115,6 +146,14 @@
             - name:                    "SCS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
+
+            - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
+                state:                 touch
+                mode:                  0755
+
           always:
             - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
@@ -142,7 +181,6 @@
 
           tags:
             - 5.0.0-scs-install
-
           vars:
             tier:                      "{{ tier }}"
       when:
@@ -245,12 +283,26 @@
                 name:                  roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
+      when:
+        - scs_high_availability
+        - "'scs' in supported_tiers or 'ers' in supported_tiers "
+
+    - name:                            "SCS HA Installation Playbook: - HA SCS Setup"
+      block:
 
         - block:
             - name:                    "SCS HA Installation Playbook: - Configure Pacemaker and ASCS/ERS"
               include_role:
                 name:                  roles-sap/5.6-scsers-pacemaker
                 public:                true
+
+            - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
+                state:                 touch
+                mode:                  0755
+
           always:
 
             - name:                    "SCS HA Installation Playbook: - Run post installation routines SCS"
@@ -261,9 +313,9 @@
                 prefix:                "{{ scs_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
-              when:                    
-               - scs_bom_id is defined
-               - node_tier == 'scs'
+              when:
+                - scs_bom_id is defined
+                - node_tier == 'scs'
 
 
             - name:                    "SCS HA Installation Playbook: - Run post installation routines ERS"
@@ -274,9 +326,9 @@
                 prefix:                "{{ ers_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
-              when:                    
-               - ers_bom_id is defined
-               - node_tier == 'ers'
+              when:
+                - ers_bom_id is defined
+                - node_tier == 'ers'
 
             - name:                    "SCS HA Installation Playbook: - Get the Error lines from installation output (SCS)"
               ansible.builtin.set_fact:
@@ -315,17 +367,6 @@
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
 
-- hosts:                               localhost
-  name:                                Log results
-  gather_facts:                        false
-
-  tasks:
-
-    - name:                            "SCS Installation Playbook: - Ensure scs-install-done flag exists"
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/scs-install-done"
-        state:                         touch
-        mode:                          0755
 ...
 
 # /*----------------------------------------------------------------------------8

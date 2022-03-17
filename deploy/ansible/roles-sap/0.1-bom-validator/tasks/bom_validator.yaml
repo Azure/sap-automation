@@ -34,41 +34,14 @@
 #   02) Download media                                                         |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                Run the bom-register
+- name:                                "0.1 BoM Validator: - Run the bom-register"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
     task_prefix:                       "Validation: "
-
-- name:                                "BoM Initial file"
-  ansible.builtin.copy:
-    dest:                              "{{ download_directory }}/readme.md"
-    content:                           "This is the container with the SAP media"
-    mode:                              0755
-  register:                            readme_file
-  become:                              true
-  become_user:                         root
-
-- name:                                "BOM: Check storage account container"
-  ansible.builtin.command: >-
-                                       az storage blob upload
-                                         --account-name {{ account }}
-                                         --account-key {{ sapbits_access_key }}
-                                         --container-name {{ container }}
-                                         --name readme.md
-                                         --file {{ readme_file.dest }}
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            azresult
-  ignore_errors:                       true
-  changed_when:                        false
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobAlreadyExists") == -1
+    source:                            "disk"
 
 # ------------------<DEBUGGING>-------------------
 # - name:                                "Show BOM Info"
@@ -93,13 +66,17 @@
 #   02) Validate media from SAP
 #   Loop through BOM media URLs
 
-- name:                                "BOM: {{ bom_name }} Check and Download Files"
+- name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
   include_tasks:                       bom_download.yaml
 
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   no_log:                              false
 
-- name:                                "BOM: {{ bom_name }} Upload Folder"
+- name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Folder"
+  ansible.builtin.debug:
+    msg:                               "FOLDERNAME : {{ bom_file.rpartition('/')[0] }}"
+
+- name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Upload Folder"
   vars:
     bom_container_name:               "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms"
   ansible.builtin.command: >-
@@ -107,17 +84,18 @@
                                          --account-name {{ account }}
                                          --account-key {{ sapbits_access_key }}
                                          --destination {{ bom_container_name }}/{{ bom_name }}
-                                         --source {{ playbook_dir }}/{{ bom_file.rpartition('/')[0] }}
+                                         --source {{ bom_file.rpartition('/')[0] }}
+                                         --overwrite true
                                          --if-none-match "*"
                                          --no-progress
   delegate_to:                         localhost
-  register:                            bomazresult
+  register:                            bom_upload_azresult
   changed_when:                        false
   ignore_errors:                       true
   failed_when:
-    - bomazresult.rc != 0
-    - bomazresult.stderr is defined
-    - bomazresult.stderr.find("BlobAlreadyExists") == -1
+    - bom_upload_azresult.rc != 0
+    - bom_upload_azresult.stderr is defined
+    - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
 
 # ------------------<DEBUGGING>-------------------
 # - name: "List error codes"

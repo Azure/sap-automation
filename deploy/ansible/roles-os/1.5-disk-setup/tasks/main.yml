@@ -70,20 +70,19 @@
   when:
     - tier == "sapos"
 
+- name:                                "1.5 Disk setup - Print vgcreated details"
+  ansible.builtin.debug:
+    msg:                               "VOLUME GROUPS: {{ vgscreated | json_query('results[*].item') }}"
+    verbosity:                         2
+  when:
+    - tier == "sapos"
+    - vgscreated is defined
+
 - name:                                "1.5 Disk setup - Filter the volume group names from vgscreated results"
   ansible.builtin.set_fact:
     vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
   when:
     - tier == "sapos"
-
-# Debug for testing
-- name:                                "1.5 Disk setup - Print vgcreated details"
-  ansible.builtin.debug:
-    var:                               vgscreated.results
-    verbosity:                         2
-  when:
-    - tier == "sapos"
-    - vgscreated is defined
 
 
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
@@ -118,7 +117,6 @@
   when:
     - tier == "sapos"
 
-
 - name:                                "1.5 Disk setup - Filesystem creation"
   ansible.builtin.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
@@ -132,13 +130,18 @@
     - item.fstype is defined
     - item.lv in lvcreatedlist
 
+- name:                                "1.5 Disk setup - Filter the filesystem created results"
+  ansible.builtin.set_fact:
+    fscreatedlist_tmp:                 "{{ filesystemscreated.results | rejectattr('skipped', 'defined') | list }}"
+  when:
+    - tier == "sapos"
+
 - name:                                "1.5 Disk setup - Debug disk information"
   ansible.builtin.debug:
     msg: 
       - "Created Volume Groups:    {{ vgcreatedlist }} "                              
-      - "Logical Volumes:          {{ lvscreated }} "                              
       - "Created Logical Volumes:  {{ lvcreatedlist }} "                              
-      - "Created Filesystems:      {{ filesystemscreated }} "                              
+      - "Created Filesystems:      {{ fscreatedlist_tmp }} "                              
     verbosity:                         2
   when:
     - tier == "sapos"

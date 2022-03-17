@@ -17,11 +17,12 @@ product_ids:
   web:                                 NW_Webdispatcher:NW750.IND.PD
   ers:                                 NW_ERS:NW750.HDB.ABAP
   ers_ha:                              NW_ERS:NW750.HDB.ABAPHA
+  generic:                             NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:
     - name:                            HANA_2_00_055_v0006ms
-    - name:                            SWPM10SP33_latest
+    - name:                            SWPM10SP34_latest
     - name:                            SUM20SP12_latest
 
   media:

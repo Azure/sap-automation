@@ -50,7 +50,6 @@
       ansible.builtin.debug:
         msg:
           - "FILE: {{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_passwords.xml"
-          - "PWD:  {{ main_password }}"
         verbosity:                     2
 
 #   SAP HANA: deploy hdblcm password file
@@ -102,19 +101,24 @@
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
-        var:                           hana_installation
-        verbosity:                     2
+        msg: 
+         - "HANA Installation failed"
+         - "HDBLCM output: {{ hana_installation }}"
+      when:                            
+       - hana_installation.rc is defined
+       - hana_installation.rc > 0
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
-        var:                           hana_installation
-      when:                            hana_installation.rc > 0
+        msg:                           "HANA Installation succeeded"
+      when:                            
+       - hana_installation.rc is defined
+       - hana_installation.rc == 0
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
         msg:                           "HANA Installation succeeded"
       when:                            hana_installation.rc == 0
-
 
     - name:                            "SAP HANA: remove install password file"
       ansible.builtin.file:

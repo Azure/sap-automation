@@ -60,9 +60,6 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'libselinux-python3',                                       state: 'present' }
-    - { tier: 'ha',    package: 'sap-cluster-connector',              node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-cluster-connector',              node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-cluster-connector',              node_tier: 'hana',    state: 'present' }
     # ------------------------- End - Packages required for Clustering -----------------------------------------8
   redhat7.4:
     # Install Right Version of Azure Fence Agent
@@ -130,9 +127,6 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-cluster-connector',              node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-cluster-connector',              node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-cluster-connector',              node_tier: 'hana',    state: 'present' }
 
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
   redhat8.1:
@@ -219,9 +213,10 @@ packages:
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8
+  sles_sap15.1:
   sles_sap15.2:
   sles_sap15.3:
 

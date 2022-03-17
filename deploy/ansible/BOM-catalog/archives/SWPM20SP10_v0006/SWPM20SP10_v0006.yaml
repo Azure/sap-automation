@@ -8,9 +8,9 @@ materials:
   media:
    # SWPM
     - name:         "SWPM20SP10; OS: Linux on x86_64 64bit"
-      archive:      SWPM20SP10_5-80003424.SAR
-      checksum:     6e3f1904d3232af3c9edc86963e517d32d3c5db7c717889f257a1816d6fe2fea
+      archive:      SWPM20SP10_6-80003424.SAR
+      checksum:     4b90647dd193ad2aaaec7bbb59eb306bff4ad38fad400aa4d0b06305f9e91de2
       extract:      true
       extractDir:   SWPM
       creates:      SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000088472022
+      url:          https://softwaredownloads.sap.com/file/0020000000170072022

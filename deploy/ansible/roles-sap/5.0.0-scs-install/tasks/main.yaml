@@ -63,6 +63,7 @@
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "SCS Install: "
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -111,7 +112,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
-        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
@@ -128,11 +129,28 @@
         msg:                           "SCS Installation succeeded"
       when:                            scs_installation.rc == 0
 
+    - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.','/').replace('/ABAP','').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
+        file_type:                     file
+        patterns:                      'installationSuccesfullyFinished.dat'
+        recurse:                       true
+      register:                        scs_installed_according_to_sapinst
+
+    - name:                            "SCS Install: show"
+      ansible.builtin.debug:
+        var:                           scs_installed_according_to_sapinst
+
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
         state:                         touch
         mode:                          0755
+      when:
+        - scs_installation.rc == 0
+        - scs_installed_according_to_sapinst is defined
+        - scs_installed_according_to_sapinst | length > 0
+
 
   when:
     - "'scs' in supported_tiers"

@@ -21,8 +21,10 @@ download_basket_dir:          "{{ target_media_location }}/download_basket"
 hdb_hostname:                 ""
 db_sid:                       "XDB"                                                     # Default
 hdb_instance_number:          "00"                                                      # Default
+hana_schema:                  "SAPHANADB"
 pas_hostname:                 ""
 pas_instance_number:          "00"
+web_instance_number:          "00"
 password_hana_system:         ""
 main_password:                ""                                                        # SAP Install
 sap_fqdn:                     ""                                                        # SAP Install
@@ -41,7 +43,7 @@ oinstall_gid:                 3005
 orasid_uid:                   3000
 oracle_uid:                   3001
 hdbshm_gid:                   2002
-
+observer_uid:                 4000
 scs_hostname:                 ""
 scs_instance_number:          "00"                                                      # SAP Install
 ers_instance_number:          "02"
@@ -55,6 +57,7 @@ ora_release:                  19
 ora_version:                  19.0.0
 ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
+PLATFORM:                     ""
 
 password_cockpit_admin:       ""
 password_db_systemdb:         ""
@@ -83,5 +86,6 @@ sap_swap:
   - { tier: 'hana', swap_size_mb: '2048' }
   - { tier: 'oracle', swap_size_mb: '20480' }
   - { tier: 'oracle-asm', swap_size_mb: '20480' }
+  - { tier: 'observer', swap_size_mb: '2048' }
 
 ...
