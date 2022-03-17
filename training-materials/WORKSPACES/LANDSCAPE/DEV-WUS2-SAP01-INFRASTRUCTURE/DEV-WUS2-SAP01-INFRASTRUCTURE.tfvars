@@ -228,12 +228,16 @@ enable_purge_control_for_keyvaults=false
 
 #########################################################################################
 #                                                                                       #
-#  Azure NetApp files support                                                           #                                                                                       #
+#  NFS support                                                                          #                                                                                       #
 #                                                                                       #
 #########################################################################################
-# use_ANF is a boolean flag controlling if Azure NetApp files is used for storage
 
-use_ANF=false
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+
+NFS_provider = "NONE"
 
 # ANF_account_arm_id is the Azure resource identifier for an existing Netapp Account
 # ANF_account_arm_id=""

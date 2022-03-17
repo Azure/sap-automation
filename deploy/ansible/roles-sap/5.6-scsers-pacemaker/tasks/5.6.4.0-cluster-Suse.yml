@@ -7,6 +7,7 @@
  # [1] Create a virtual IP resource and health-probe for the ASCS instance
 
 - name:                                "5.6 SCSERS - SCS - Cluster Configuration before Install "
+  throttle:                            1
   block:
     - name :                           "Put Secondary host on standby"
       ansible.builtin.command:         crm node standby {{ secondary_instance_name }}
@@ -42,11 +43,11 @@
       register:                        ascs_hp
       failed_when:                     ascs_hp.rc > 1
 
-# [1] Install SAP NetWeaver ASCS - here we can call the SCS installation playbook -
+    # [1] Install SAP NetWeaver ASCS - here we can call the SCS installation playbook -
     - name:                            "5.6 SCSERS - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         '{{ sidadm_uid }}'
+        owner:                         "{{ sap_sid | lower}}adm" 
         group:                         sapsys
         recurse:                       true
         state:                         directory
@@ -66,6 +67,7 @@
 # [1] Create a virtual IP resource and health-probe for the ERS instance
 
 - name:                                "5.6 SCSERS - ERS - Cluster Configuration before Install"
+  throttle:                            1
   block:
     - name:                            "5.6 SCSERS - ERS - Bring Secondary host online"
       ansible.builtin.command:         crm node online {{ secondary_instance_name }}
@@ -108,32 +110,30 @@
       register:                        ers_hp
       failed_when:                     ers_hp.rc > 1
 
-  when: inventory_hostname == secondary_instance_name
+    # [2] Install SAP NetWeaver ERS - Create a new playbook for Installation of ERS - done
+    - name:                                "5.6 SCSERS - ERS - Install on Secondary host"
+      throttle:                            1
+      block:
+        - name:                            "5.6 SCSERS - ERS - Assign ownership"
+          ansible.builtin.file:
+            path:                          "{{ item.path }}"
+            owner:                         "{{ sap_sid | lower}}adm" 
+            group:                         sapsys
+            recurse:                       true
+            state:                         directory
+          loop:
+            -  { path: '/sapmnt/{{ sap_sid|upper }}' }
+            -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
+            -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
-# [2] Install SAP NetWeaver ERS - Create a new playbook for Installation of ERS - done
-
-- name:                                "5.6 SCSERS - ERS - Install on Secondary host"
-  block:
-    - name:                            "5.6 SCSERS - ERS - Assign ownership"
-      ansible.builtin.file:
-        path:                          "{{ item.path }}"
-        owner:                         '{{ sidadm_uid }}'
-        group:                         sapsys
-        recurse:                       true
-        state:                         directory
-      loop:
-        -  { path: '/sapmnt/{{ sap_sid|upper }}' }
-        -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
-        -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
-
-    - name:                            "5.6 SCSERS - ERS - Install on Secondary host"
-      include_role:
-        name:                          roles-sap/5.0.2-ers-ha-install
-
-    - name:                            "5.6 SCSERS - ERS - Bring Primary host online"
-      ansible.builtin.command:         "crm node online {{ primary_instance_name }}"
-      register:                        primary_online
-      changed_when:                    primary_online.rc != 0
+        - name:                            "5.6 SCSERS - ERS - Install on Secondary host"
+          include_role:
+            name:                          roles-sap/5.0.2-ers-ha-install
+      always:
+        - name:                            "5.6 SCSERS - ERS - Bring Primary host online"
+          ansible.builtin.command:         "crm node online {{ primary_instance_name }}"
+          register:                        primary_online
+          changed_when:                    primary_online.rc != 0
 
   when: inventory_hostname == secondary_instance_name
 

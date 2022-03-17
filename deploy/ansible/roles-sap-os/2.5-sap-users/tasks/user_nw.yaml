@@ -8,61 +8,61 @@
 
 ---
 
-- name:                                "SCS Install: Set the SCS Server name list"
+- name:                                "User Creation: Set the Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') }}"
 
-- name:                                "SCS Install: Set the SCS Server name"
+- name:                                "User Creation: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ scs_server_temp | first }}"
 
-- name:                                "SCS Install: Create run flag directory"
+- name:                                "User Creation: Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     state:                             directory
     mode:                              0755
 
-- name:                                "SCS Install: reset"
+- name:                                "User Creation: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
+    path:                              /etc/sap_deployment_automation/user_created.txt
     state:                             absent
   when:                                reinstall
 
-- name:                                "SCS Install: check if installed"
+- name:                                "User Creation: check if Completed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
-  register:                            scs_installed
-  when:                                "'scs' in supported_tiers"
+    path:                              /etc/sap_deployment_automation/user_created.txt
+  register:                            users_created
 
-- name:                                "SCS Install: check if installed"
+- name:                                "User Creation: check if installed"
   ansible.builtin.debug:
-    var:                               scs_installed
+    var:                               users_created
     verbosity:                         2
 
-- name:                                "SCS Install: Set BOM facts"
+- name:                                "User Creation: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-scs-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
+    sap_inifile:                       "{{ bom_base_name }}-generic-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-generic-inifile-param.j2"
 # Returns bom object
 
-- name:                                "SCS Install: Include 3.3.1-bom-utility role"
+- name:                                "User Creation: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
-    task_prefix:                       "SCS Install: "
+    task_prefix:                       "GENERIC: "
 
-- name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "User Creation: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
   vars:
-    task_prefix:                       "SCS Install: "
+    task_prefix:                       "GENERIC: "
     bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
@@ -80,21 +80,18 @@
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
   tags:
     - skip_ansible_lint
 
-- name:                                "SCS Install: install variables"
+- name:                                "User Creation: install variables"
   ansible.builtin.debug:
     msg:                          
-      - "INSTALLED:  {{ scs_installed.stat.exists }}"
+      - "INSTALLED:  {{ users_created.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
-      - "PRODUCT ID: {{ bom.product_ids.scs }}"
-      - "INSTANCE:   {{ scs_instance_number }}"
+      - "PRODUCT ID: {{ bom.product_ids.generic }}"
     verbosity:                         2
 
-
-- name:                                "SCS Install"
+- name:                                "User Creation"
   block:
 
 # *====================================4=======================================8
@@ -102,66 +99,47 @@
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
 
-    - name:                            "SCS Install: SAP SCS Install on {{ scs_virtual_hostname }}"
+    - name:                            "User Creation: SAP OS USERS and Group Creation {{ scs_virtual_hostname }}"
       ansible.builtin.command: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
+        creates:                       /etc/sap_deployment_automation/user_created.txt
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
-      register:                        scs_installation
-      failed_when:                     scs_installation.rc > 0
+      register:                        generic_user_creation
+      failed_when:                     generic_user_creation.rc > 0
       tags:
         - skip_ansible_lint
 
-    - name:                            "SCS Install: Installation results"
+    - name:                            "User Creation: Installation results"
       ansible.builtin.debug:
-        var:                           scs_installation
-      when:                            scs_installation.rc > 0
+        var:                           generic_user_creation
+      when:                            generic_user_creation.rc > 0
 
-    - name:                            "SCS Install: Installation results"
+    - name:                            "User Creation: Installation results"
       ansible.builtin.debug:
-        msg:                           "SCS Installation succeeded"
-      when:                            scs_installation.rc == 0
+        msg:                           "User Creation succeeded"
+      when:                            generic_user_creation.rc == 0
 
-    - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
-      ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.','/').replace('/ABAP','').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
-        file_type:                     file
-        patterns:                      'installationSuccesfullyFinished.dat'
-        recurse:                       true
-      register:                        scs_installed_according_to_sapinst
-
-    - name:                            "SCS Install: show"
-      ansible.builtin.debug:
-        var:                           scs_installed_according_to_sapinst
-
-    - name:                            "SCS Install: flag"
+    - name:                            "User Creation: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
+        path:                          /etc/sap_deployment_automation/user_created.txt
         state:                         touch
         mode:                          0755
-      when:
-        - scs_installation.rc == 0
-        - scs_installed_according_to_sapinst is defined
-        - scs_installed_according_to_sapinst | length > 0
-
 
   when:
-    - "'scs' in supported_tiers"
-    - not scs_installed.stat.exists
+    - not users_created.stat.exists
 
-- name:                                "SCS Install status"
+- name:                                "User creation status"
   ansible.builtin.debug:
-    msg:                               "SCS is already installed"
+    msg:                               "Users already created"
   when:
-    - "'scs' in supported_tiers"
-    -  scs_installed.stat.exists
+    -  users_created.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

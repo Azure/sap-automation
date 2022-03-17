@@ -89,7 +89,7 @@
     - name:                            "ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sidadm_uid }}"
+        owner:                         "{{ sap_sid | lower}}adm" 
         group:                         sapsys
         recurse:                       true
         state:                         directory
@@ -116,7 +116,8 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
-                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
+                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                               \
+                                                 IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
             creates:                   /etc/sap_deployment_automation/sap_deployment_ers.txt
@@ -127,6 +128,12 @@
           tags:
             - skip_ansible_lint
       rescue:
+        - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
+          ansible.builtin.stat:
+            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+          register:                    stat_sys_exe_uc
+          when:                        node_tier == 'ers'
+
         - name:                            "RESCUE - ERS Install: Assign ownership"
           ansible.builtin.file:
             path:                          "{{ item.path }}"
@@ -139,13 +146,17 @@
             -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
             -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
+        # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
+        # name <host> is not a valid virtual host on the local host
+        # SAP Note# 2279110
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
-                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
+                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                               \
+                                                 IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
             creates:                   /etc/sap_deployment_automation/sap_deployment_ers.txt
@@ -181,8 +192,8 @@
   ansible.builtin.debug:
     msg:                               "ERS is already installed"
   when:
-    - "'scs' in supported_tiers"
-    -  scs_installed.stat.exists
+    - "'ers' in supported_tiers"
+    -  ers_installed.stat.exists
 
 # *====================================4=======================================8
 

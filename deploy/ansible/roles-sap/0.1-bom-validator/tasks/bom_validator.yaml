@@ -41,6 +41,7 @@
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
     task_prefix:                       "Validation: "
+    source:                            "disk"
 
 # ------------------<DEBUGGING>-------------------
 # - name:                                "Show BOM Info"
@@ -84,6 +85,7 @@
                                          --account-key {{ sapbits_access_key }}
                                          --destination {{ bom_container_name }}/{{ bom_name }}
                                          --source {{ bom_file.rpartition('/')[0] }}
+                                         --overwrite true
                                          --if-none-match "*"
                                          --no-progress
   delegate_to:                         localhost
