@@ -47,7 +47,9 @@
   register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
-  when:                                distribution_id in ['suse15', 'redhat8']
+  when:                                
+   - distribution_id in ['suse15', 'redhat8']
+   - not always_upload_jinja_templates
 
 - name:                                "BOM2: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
@@ -60,6 +62,7 @@
   when:
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
+    - not always_upload_jinja_templates
 
 - name:                                "BOM: Download BOM ({{ bom_name }}) from Storage Account"
   block:
@@ -73,6 +76,7 @@
       
   when:                                
     - result is succeeded or result is skipped
+    - not always_upload_jinja_templates
 
 # -------------------------------------+---------------------------------------8
 #
@@ -120,7 +124,8 @@
           when:                        microsoft_supplied_bom_template_archive.stat.exists
       when:                            not microsoft_supplied_bom_template.stat.exists
 
-  when:                                result is failed
+  when:                                result is failed or always_upload_jinja_templates
+
 
 
 # -------------------------------------+---------------------------------------8
