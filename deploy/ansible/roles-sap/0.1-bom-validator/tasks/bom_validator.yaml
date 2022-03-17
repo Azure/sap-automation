@@ -43,6 +43,11 @@
     task_prefix:                       "Validation: "
     source:                            "disk"
 
+- name:                                "Combine dependent BoMs"  
+  ansible.builtin.set_fact:
+    root_media_list:                   "{{ root_media_list + bom.materials.media|flatten(levels=1) }}"
+  when: root_media_list is defined
+
 # ------------------<DEBUGGING>-------------------
 # - name:                                "Show BOM Info"
 #   ansible.builtin.debug:
@@ -96,6 +101,8 @@
     - bom_upload_azresult.rc != 0
     - bom_upload_azresult.stderr is defined
     - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
+  when:
+    - upload
 
 # ------------------<DEBUGGING>-------------------
 # - name: "List error codes"

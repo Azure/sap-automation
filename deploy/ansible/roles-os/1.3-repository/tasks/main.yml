@@ -9,22 +9,6 @@
 # <Comment Header>
 #
 # -------------------------------------+---------------------------------------8
-# TODO: 20210127 Review
-
-#----------------------------------------
-# BEGIN - OLD CODE
-#----------------------------------------
-
-# - name: Check configurations on HANA VMs
-#   any_errors_fatal: true
-#   block:
-#     - import_tasks: hostname_validation.yml
-#     - import_tasks: repo_validation.yml
-
-#----------------------------------------
-# END - OLD CODE
-#----------------------------------------
-
 
 #----------------------------------------
 # BEGIN
@@ -52,7 +36,7 @@
     # Attempt to configure the repos by re-registering instance
     - name:                            "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure"
       ansible.builtin.shell:      |
-                                       rm /etc/SUSEConnect
+                                       rm -f /etc/SUSEConnect
                                        rm -f /etc/zypp/{repos,services,credentials}.d/*
                                        rm -f /usr/lib/zypp/plugins/services/*
                                        sed -i '/^# Added by SMT reg/,+1d' /etc/hosts
