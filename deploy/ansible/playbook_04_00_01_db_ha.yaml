@@ -26,18 +26,18 @@
             state:                      absent
 
         - name:                        Initialize facts
-          set_fact:
+          ansible.builtin.set_fact:
             tier:                      fencing
 
         - name:                        Run the misc/password role
-          include_role:
+          ansible.builtin.include_role:
             name:                      roles-misc/0.1-passwords
             public:                    true
           tags:
             - 0.1-passwords
 
         - name:                        Run the keyvault role
-          include_role:
+          ansible.builtin.include_role:
             name:                      roles-misc/0.2-kv-secrets
           tags:
             - kv-secrets

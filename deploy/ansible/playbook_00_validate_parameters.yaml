@@ -155,19 +155,19 @@
       when:                            (ansible_play_hosts_all | length) == 1
 
     - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.command:         df -h 
+      ansible.builtin.command:         df -h
       register:                        mounts
 
     - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.debug:         
+      ansible.builtin.debug:
         var:                           mounts.stdout_lines
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command:         cat /etc/hosts
-      register:                        hosts   
+      register:                        hosts
 
     - name:                            "0.0 Validations - Show Hosts"
-      ansible.builtin.debug:         
+      ansible.builtin.debug:
         var:                           hosts.stdout_lines
 
 
