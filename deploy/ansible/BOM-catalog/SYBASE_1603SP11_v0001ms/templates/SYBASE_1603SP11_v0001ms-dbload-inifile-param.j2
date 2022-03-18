@@ -10,7 +10,7 @@
 ###############################################################################################################################################################################
 
 # Location of Export CD
-SAPINST.CD.PACKAGE.ASECLI                                               = /usr/sap/install/CD_SYBCLIENT
+SAPINST.CD.PACKAGE.ASE                                                  = /usr/sap/install/CD_SYBSERVER
 SAPINST.CD.PACKAGE.CD1                                                  = /usr/sap/install/CD_EXPORT/DATA_UNITS/EXP1
 SAPINST.CD.PACKAGE.CD2                                                  = /usr/sap/install/CD_EXPORT/DATA_UNITS/EXP2
 SAPINST.CD.PACKAGE.CD3                                                  = /usr/sap/install/CD_EXPORT/DATA_UNITS/EXP3
@@ -20,6 +20,7 @@ NW_readProfileDir.profilesAvailable                                     = false
 nwUsers.sapadmUID                                                       = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                       = {{ sapsys_gid }}
 nwUsers.sidAdmUID                                                       = {{ sidadm_uid }}
+nwUsers.syb.sybsidId                                                    = {{ sybsid_uid }}
 
 NW_Delete_Sapinst_Users.removeUsers                                     = true
 NW_GetMasterPassword.masterPwd                                          = {{ main_password }}
@@ -27,6 +28,7 @@ NW_GetSidNoProfiles.sid                                                 = {{ sap
 NW_getFQDN.FQDN                                                         = {{ sap_fqdn }}
 hostAgent.sapAdmPassword                                                = {{ main_password }}
 nwUsers.sidadmPassword                                                  = {{ main_password }}
+nwUsers.syb.sybsidPassword                                              = {{ main_password }}
 NW_readProfileDir.profileDir                                            = {{ sap_profile_dir }}
 
 

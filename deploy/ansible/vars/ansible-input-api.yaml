@@ -31,6 +31,7 @@ sap_fqdn:                     ""                                                
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
+sybsid_uid:                   2021
 
 # Oracle specific parameters
 ora_sid:                      "ORA"
