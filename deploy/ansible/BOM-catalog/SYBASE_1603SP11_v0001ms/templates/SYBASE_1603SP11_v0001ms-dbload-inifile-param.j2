@@ -17,12 +17,9 @@ SAPINST.CD.PACKAGE.CD3                                                  = /usr/s
 
 archives.downloadBasket                                                 = /usr/sap/install/download_basket
 NW_readProfileDir.profilesAvailable                                     = false
-NW_Users_Create.hasABAP                                                 = true
-NW_Users_Create.installDBUsers                                          = false
 nwUsers.sapadmUID                                                       = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                       = {{ sapsys_gid }}
 nwUsers.sidAdmUID                                                       = {{ sidadm_uid }}
-nwUsers.syb.sybsidId                                                    = {{ sybsid_uid }}
 
 NW_Delete_Sapinst_Users.removeUsers                                     = true
 NW_GetMasterPassword.masterPwd                                          = {{ main_password }}
@@ -30,7 +27,6 @@ NW_GetSidNoProfiles.sid                                                 = {{ sap
 NW_getFQDN.FQDN                                                         = {{ sap_fqdn }}
 hostAgent.sapAdmPassword                                                = {{ main_password }}
 nwUsers.sidadmPassword                                                  = {{ main_password }}
-nwUsers.syb.sybsidPassword                                              = {{ main_password }}
 NW_readProfileDir.profileDir                                            = {{ sap_profile_dir }}
 
 
