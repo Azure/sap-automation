@@ -113,10 +113,10 @@ This block describes the variables for the deployer OS section block in the json
 variable "deployer_image" {
   default = {
     "source_image_id" = ""
-    "publisher"       = "Canonical"
-    "offer"           = "0001-com-ubuntu-server-focal"
-    "sku"             = "20_04-lts"
-    "version"         = "latest"
+    "publisher"       ="Canonical"
+    "offer"           ="UbuntuServer"
+    "sku"             ="18.04-LTS"
+    "version"         ="latest"
   }
 }
 
