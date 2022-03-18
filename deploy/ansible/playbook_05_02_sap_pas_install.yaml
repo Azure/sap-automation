@@ -169,8 +169,7 @@
                 state:                 touch
                 mode:                  0755
               when:                    
-                - pas_installation.rc is defined
-                - pas_installation.rc == 0
+                - pas_already_installed or (pas_installation.rc is defined and pas_installation.rc == 0)
           always:
             - name:                    "PAS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:

@@ -145,8 +145,15 @@
     - not app_installed.stat.exists
 
 - name:                                "APP Install: - status"
-  ansible.builtin.debug:
-    msg:                               "APP Installation is already performed"
+  block:
+    
+    - name:                            "APP Install: - status"
+      ansible.builtin.debug:
+        msg:                           "APP Installation is already performed"
+    
+    - name:                            "APP Install: - return value"
+      ansible.builtin.set_fact:
+        app_already_installed:         true     
   when:
     -  app_installed.stat.exists
 

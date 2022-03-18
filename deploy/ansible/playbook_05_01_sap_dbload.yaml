@@ -103,8 +103,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - dbload.rc is defined
-                - dbload.rc == 0
+                - dbload_already_performed or (dbload.rc is defined and dbload.rc == 0)
 
           always:
 

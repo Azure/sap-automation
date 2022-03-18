@@ -131,8 +131,7 @@
             state:                     touch
             mode:                      0755
           when:                    
-            - app_installation.rc is defined
-            - app_installation.rc == 0
+            - app_already_installed or (app_installation.rc is defined and app_installation.rc == 0)
       always:
         - name:                        Get the error lines
           ansible.builtin.set_fact:

@@ -134,8 +134,15 @@
     - not dbload_installed.stat.exists
 
 - name:                                "DBLoad: - status"
-  ansible.builtin.debug:
-    msg:                               "DBLoad is already performed"
+  block:
+    
+    - name:                            "DBLoad: - status"
+      ansible.builtin.debug:
+        msg:                           "DBLoad is already performed"
+    
+    - name:                            "DBLoad: - return value"
+      ansible.builtin.set_fact:
+        dbload_already_performed:      true     
   when:
     -  dbload_installed.stat.exists
 

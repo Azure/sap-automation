@@ -147,9 +147,17 @@
   when:
     - not hana_installed.stat.exists
 
+
 - name:                                "HANA Install status"
-  ansible.builtin.debug:
-    msg:                               "HANA is already installed"
+  block:
+    
+    - name:                            "HANA Install status"
+      ansible.builtin.debug:
+        msg:                           "HANA is already installed"
+    
+    - name:                            "HANA: - return value"
+      ansible.builtin.set_fact:
+        hana_already_installed:         true     
   when:
     -  hana_installed.stat.exists
 

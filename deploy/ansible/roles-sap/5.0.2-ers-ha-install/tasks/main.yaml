@@ -189,8 +189,15 @@
     - not ers_installed.stat.exists
 
 - name:                                "ERS Install status"
-  ansible.builtin.debug:
-    msg:                               "ERS is already installed"
+  block:
+    
+    - name:                            "ERS Install status"
+      ansible.builtin.debug:
+        msg:                           "ERS is already installed"
+    
+    - name:                            "ERS: - return value"
+      ansible.builtin.set_fact:
+        ers_already_installed:         true     
   when:
     - "'ers' in supported_tiers"
     -  ers_installed.stat.exists

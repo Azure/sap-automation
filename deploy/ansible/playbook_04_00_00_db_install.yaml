@@ -100,12 +100,16 @@
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
+
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/db-install-done"
                 state:                 touch
                 mode:                  0755
+              when:
+                - hana_already_installed or (hana_installation.rc is defined and hana_installation.rc == 0)
+
           always:
             - name:                    "Database Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:

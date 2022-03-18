@@ -24,6 +24,11 @@
         path:                          "{{ _workspace_directory }}/.progress/scs-install-done"
         state:                          absent
 
+    - name:                            "SCS Installation Playbook: - Remove ers-install-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/ers-install-done"
+        state:                          absent
+
 
     - name:                            "SCS Installation Playbook: - Set scs fact"
       ansible.builtin.set_fact:
@@ -153,6 +158,8 @@
                 path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
                 state:                 touch
                 mode:                  0755
+              when:
+                - scs_already_installed or (scs_installation.rc is defined and scs_installation.rc == 0)
 
           always:
             - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
@@ -302,6 +309,17 @@
                 path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
                 state:                 touch
                 mode:                  0755
+              when:
+                - scs_already_installed or (scs_installation.rc is defined and scs_installation.rc == 0)
+
+            - name:                    "ERS Installation Playbook: - Ensure ers-install-done flag exists"
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/ers-install-done"
+                state:                 touch
+                mode:                  0755
+              when:
+                - ers_already_installed or (ers_installation.rc is defined and ers_installation.rc == 0)
 
           always:
 
