@@ -195,7 +195,6 @@
         - not scs_high_availability
         - "'scs' in supported_tiers"
 
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |              Playbook for SAP SCS HA and Pacemaker Resources               |

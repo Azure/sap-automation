@@ -1,10 +1,8 @@
 ---
 
-name: "SAP_S4HANA_2020"
-target: "ABAP PLATFORM 2020"
-
-defaults:
-  target_location: "{{ target_media_location }}/download_basket"
+name:    "SAP S4HANA 2020 SPS 3"
+target:  "ABAP PLATFORM 2020"
+version: 1
 
 product_ids:
   scs:         NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAP
@@ -12,11 +10,12 @@ product_ids:
   dbl:         NW_ABAP_DB:S4HANA2020.CORE.HDB.ABAP
   pas:         NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAP
   pas_ha:      NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAPHA
-  app:
-  app_ha:
+  app:         NW_DI:S4HANA2020.CORE.HDB.PD
+  app_ha:      NW_DI:S4HANA2020.CORE.HDB.ABAPHA
   web:
-  ers:
-  ers_ha:
+  ers:         NW_ERS:S4HANA2020.CORE.HDB.ABAP
+  ers_ha:      NW_ERS:S4HANA2020.CORE.HDB.ABAPHA
+  generic:     NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:
