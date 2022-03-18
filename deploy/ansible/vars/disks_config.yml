@@ -26,7 +26,6 @@ disk_type_to_name_map:
   origlogb:  '{{ node_tier | lower }}_origlogB'
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
-<<<<<<< HEAD
   oraarch:   '{{ node_tier | lower }}_oraarch'
   # ------------------- Begin - disktypes required for Sybase -------------------8
   sapdata:   '{{ node_tier | lower }}_sapdata'
@@ -35,10 +34,8 @@ disk_type_to_name_map:
   saptemp:  '{{ node_tier | lower }}_saptemp'
   sapdiag:   '{{ node_tier | lower }}_sapdiag'
    # ------------------- End - disktypes required for Sybase ---------------------8
-=======
   oraarch: '{{ node_tier | lower }}_oraarch'
   #orabackup: '{{ node_tier | lower }}_orabackup'
->>>>>>> 92062ed3f8504417674c961006e699d0099c7ed6
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -200,9 +197,15 @@ logical_volumes:
     lv:         'lv_oracle'
     size:       '64g'
     fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_orabackup'
+    lv:         'lv_orabackup'
+    size:       '64g'
+    fstype:     'xfs'    
 # ---------------- End - disks required for Oracle(non-ASM) ----------------8
 
-<<<<<<< HEAD
 # --------------------- Begin - disks required for Sybase ---------------------8
 # Adding Tier and disk types for sybase installation.
   - tier:       'sapos'
@@ -253,14 +256,7 @@ logical_volumes:
 
 
 # ---------------------- Begin - disks required for SCS ---------------------8
-=======
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_orabackup'
-    lv:         'lv_orabackup'
-    size:       '64g'
-    fstype:     'xfs'
->>>>>>> 92062ed3f8504417674c961006e699d0099c7ed6
+
 logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'
