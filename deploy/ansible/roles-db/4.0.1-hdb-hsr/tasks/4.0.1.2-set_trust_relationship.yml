@@ -6,21 +6,48 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "HANA HSR: - Ensure the primary node public key is on the secondary node"
-  ansible.builtin.authorized_key:
-    user:                              "root"
-    key:                                "{{ lookup('file','/tmp/{{ primary_instance_name }}-id_rsa.pub') }} "
-  when: ansible_hostname == secondary_instance_name
-  tags:
-    - skip_ansible_lint
+- name:                                "HANA HSR: -  Check for existence of id_rsa.pub file"
+  become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "~/.ssh/id_rsa.pub"
+  register:                            id_rsa_file_pub_status
+  failed_when:                         false
 
-- name:                                "HANA HSR: - Ensure the secondary node public key is on the primary node"
+- name:                                "HANA HSR: -  Ensure ssh keys on both nodes"
+  block:
+    - name:                            "HANA HSR: - Ensure key pair files exist"
+      become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
+      ansible.builtin.shell: >
+                                       ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N ""
+      changed_when:                    true
+
+    - name:                            "HANA HSR: - Ensure there is a public key for the user SSH key"
+      become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
+      ansible.builtin.shell:           ssh-keygen -f ~/.ssh/id_rsa -y > ~/.ssh/id_rsa.pub
+
+  when: not id_rsa_file_pub_status.stat.exists
+
+- name:                                "HANA HSR: - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
+  become_user:                         "{{ db_sid_admin_user }}"
+  become:                              true
+  ansible.builtin.command:             cat ~/.ssh/id_rsa.pub
+  register:                            hana_public_ssh_key
+  changed_when:                        false
+
+- name:                                "HANA HSR - Ensure the Primary Node public key is authorized on all nodes"
   ansible.builtin.authorized_key:
-    user:                              "root"
-    key:                                "{{ lookup('file','/tmp/{{ secondary_instance_name }}-id_rsa.pub') }} "
-  when: ansible_hostname == primary_instance_name
-  tags:
-    - skip_ansible_lint
+    user:                              "{{ db_sid_admin_user }}"
+    key:                               "{{ hostvars[primary_instance_name].hana_public_ssh_key.stdout }}"
+  when:                                ansible_hostname != primary_instance_name
+
+- name:                                "HANA HSR - Ensure the Secondary Node public key is authorized on all nodes"
+  ansible.builtin.authorized_key:
+    user:                              "{{ db_sid_admin_user }}"
+    key:                               "{{ hostvars[secondary_instance_name].hana_public_ssh_key.stdout }}"
+  when:                                ansible_hostname != secondary_instance_name
 
 - name:                                "HANA HSR: - Ensure trust relationship is working from primary to secondary"
   ansible.builtin.command:             ssh -oStrictHostKeyChecking=no {{ secondary_instance_ip_db }} "hostname -s"

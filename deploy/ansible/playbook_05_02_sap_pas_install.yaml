@@ -60,7 +60,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_PAS"
-                                        
+
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   become:                              true
