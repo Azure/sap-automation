@@ -174,7 +174,6 @@
         - name:                        "DBLoad Playbook: - Run DBLoad"
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-<<<<<<< HEAD
       when:                            platform == 'ORACLE'
 
 # /*----------------------------------------------------------------------------8
@@ -231,7 +230,6 @@
         path:                          "{{ _workspace_directory }}/.progress/db-load-done"
         state:                         touch
         mode:                          0755
-=======
         - name:                        "DBLoad Playbook: - Create db-load-done flag"
           delegate_to:                 localhost
           ansible.builtin.file:
@@ -241,7 +239,6 @@
           when:
             - dbload.rc is defined
             - dbload.rc == 0
->>>>>>> 92062ed3f8504417674c961006e699d0099c7ed6
 
       when:                            platform == 'ORACLE'
 ...
