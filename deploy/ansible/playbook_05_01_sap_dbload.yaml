@@ -226,12 +226,12 @@
 
   tasks:
     - name:                        "DBLoad Playbook: - Create db-load-done flag"
-          delegate_to:                 localhost
-          ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db-load-done"
-            state:                     touch
-            mode:                      0755
-          when:
+      delegate_to:                 localhost
+      ansible.builtin.file:
+        path:                      "{{ _workspace_directory }}/.progress/db-load-done"
+        state:                     touch
+        mode:                      0755
+      when:
             - dbload.rc is defined
             - dbload.rc == 0
     - name:                            "DBLoad Playbook: - Ensure scs-install-done flag exists"
