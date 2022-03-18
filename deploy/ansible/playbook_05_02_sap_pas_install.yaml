@@ -45,7 +45,7 @@
         - 0.2-kv-secrets
 
     - name:                            "PAS Installation Playbook: - Read storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       vars:

@@ -111,7 +111,7 @@
 
         - block:
             - name:                    Run the hana sudoers role
-              include_role:
+              ansible.builtin.include_role:
                 name:                  roles-os/1.11-accounts
                 tasks_from:            setup_hanausers_sudoers.yml
               when:                    1==2
@@ -119,7 +119,7 @@
             - 1.11-accounts
         - block:
             - name:                    Run the Pacemaker role
-              include_role:
+              ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
               when:                    db_high_availability
           tags:

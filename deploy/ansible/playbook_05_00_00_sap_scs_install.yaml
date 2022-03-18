@@ -53,7 +53,7 @@
       when:                            platform != "ORACLE"
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       tags:
@@ -226,7 +226,7 @@
 
 
         - name:                        "SCS HA Installation Playbook: - Initialize facts"
-          set_fact:
+          ansible.builtin.set_fact:
             tier:                      ha
             password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -271,7 +271,7 @@
 
         - block:
             - name:                    "SCS HA Installation Playbook: - Ensure the correct accounts are set"
-              include_role:
+              ansible.builtin.include_role:
                 name:                  roles-os/1.11-accounts
                 tasks_from:            setup_hanausers_sudoers.yml
           tags:
@@ -299,7 +299,7 @@
 
         - block:
             - name:                    "SCS HA Installation Playbook: - Configure Pacemaker and ASCS/ERS"
-              include_role:
+              ansible.builtin.include_role:
                 name:                  roles-sap/5.6-scsers-pacemaker
                 public:                true
 
