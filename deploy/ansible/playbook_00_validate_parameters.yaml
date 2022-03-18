@@ -26,13 +26,13 @@
         tier:                          fencing
 
     - name:                            "0.0 Validations - Retrieve the Fencing SPN details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
       tags:
         - kv-secrets
 
     - name:                            "0.0 Validations - Retrieve the storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       tags:
@@ -156,7 +156,7 @@
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h 
-      register:                        mounts   
+      register:                        mounts
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:         
