@@ -159,7 +159,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - scs_already_installed or (scs_installation.rc is defined and scs_installation.rc == 0)
+                - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
           always:
             - name:                    "SCS Installation Playbook: - Get the Error lines from installation output"
@@ -310,7 +310,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - scs_already_installed or (scs_installation.rc is defined and scs_installation.rc == 0)
+                - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
             - name:                    "ERS Installation Playbook: - Ensure ers-install-done flag exists"
               delegate_to:             localhost
@@ -319,7 +319,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - ers_already_installed or (ers_installation.rc is defined and ers_installation.rc == 0)
+                - ers_already_installed is defined or (ers_installation.rc is defined and ers_installation.rc == 0)
 
           always:
 
@@ -334,7 +334,6 @@
               when:
                 - scs_bom_id is defined
                 - node_tier == 'scs'
-
 
             - name:                    "SCS HA Installation Playbook: - Run post installation routines ERS"
               ansible.builtin.include_role:

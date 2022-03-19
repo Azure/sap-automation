@@ -103,7 +103,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - dbload_already_performed or (dbload.rc is defined and dbload.rc == 0)
+                - dbload_already_performed is defined or (dbload.rc is defined and dbload.rc == 0)
 
           always:
 
@@ -184,6 +184,7 @@
             - dbload.rc == 0
 
       when:                            platform == 'ORACLE'
+
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
