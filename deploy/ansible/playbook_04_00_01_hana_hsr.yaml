@@ -7,47 +7,44 @@
 
 - hosts:                               localhost
   name:                                Get SAP Password from KeyVault
-  gather_facts:                        false
+  gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
 
     - name:                            Initialization
       block:
-        - name:                        Create Progress folder
-          ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress"
-            state:                     directory
-            mode:                      0755
-
-        - name:                        Remove db-ha-done flag
-          ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
-            state:                      absent
-
-        - name:                        Initialize facts
+        - name:                            Initialize facts
           ansible.builtin.set_fact:
-            tier:                      fencing
+            tier:                          fencing
 
-        - name:                        Run the misc/password role
+        - name:                            Run the misc/password role
           ansible.builtin.include_role:
-            name:                      roles-misc/0.1-passwords
-            public:                    true
+            name:                          roles-misc/0.1-passwords
+            public:                        true
           tags:
             - 0.1-passwords
 
-        - name:                        Run the keyvault role
+        - name:                            Run the keyvault role
           ansible.builtin.include_role:
-            name:                      roles-misc/0.2-kv-secrets
+            name:                          roles-misc/0.2-kv-secrets
           tags:
             - kv-secrets
 
+        - name:                            Ensure step file is removed
+          ansible.builtin.file:
+            path:                          "{{ _workspace_directory }}/.step401"
+            state:                         absent
       when:                            db_high_availability
 
 
+# Steps:
+#   01) Hana DB system replication
+#
+
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
-  name:                                DB HA Configuration
+  name:                                HANA HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
@@ -68,17 +65,15 @@
           ansible.builtin.set_fact:
             tier:                      hdb                                      # Actions for HANA DB Servers
             primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-            primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
-            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"        # Setting up Secondary Instance Name
             main_password:             "{{ hostvars.localhost.sap_password }}"
 
-        # - block:
-        #     - name:                    Include 1.4-packages role
-        #       ansible.builtin.include_role:
-        #         name:                  roles-os/1.4-packages
-        #   tags:
-        #     - 1.4-packages
+        - block:
+            - name:                    Include 1.4-packages role
+              ansible.builtin.include_role:
+                name:                  roles-os/1.4-packages
+          tags:
+            - 1.4-packages
 
         - block:
             - name:                    Run the db/hdb-hsr role
@@ -86,10 +81,7 @@
                 name:                  roles-db/4.0.1-hdb-hsr
           tags:
             - 4.0.1-hdb-hsr
-
-      when:
-        - db_high_availability
-        - node_tier == 'hana'
+      when:                            db_high_availability
 
     - name:                            "Install HANA Pacemaker resources"
       block:
@@ -100,9 +92,7 @@
             password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
             main_password:             "{{ hostvars.localhost.sap_password }}"
             primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
             sap_hana_fencing_spn_client_id:  "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
             sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
             sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
@@ -125,18 +115,16 @@
           tags:
             - 5.5-hanadb-pacemaker
 
-      when:
-        - db_high_availability
-        - node_tier == 'hana'
+      when:                            db_high_availability
 
 - hosts:                               localhost
   name:                                Log results
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
-    - name:                            Ensure db-ha-done file exists
+    - name:                            Ensure step file exists
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/db-ha-done"
+        path:                          "{{ _workspace_directory }}/.step401"
         state:                         touch
         mode:                          0755
       when:                            db_high_availability

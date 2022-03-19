@@ -47,7 +47,7 @@
     - name:                            "5.6 SCSERS - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower}}adm" 
+        owner:                         "{{ sap_sid | lower }}adm" 
         group:                         sapsys
         recurse:                       true
         state:                         directory
@@ -117,7 +117,7 @@
         - name:                            "5.6 SCSERS - ERS - Assign ownership"
           ansible.builtin.file:
             path:                          "{{ item.path }}"
-            owner:                         "{{ sap_sid | lower}}adm" 
+            owner:                         "{{ sap_sid | lower }}adm" 
             group:                         sapsys
             recurse:                       true
             state:                         directory
