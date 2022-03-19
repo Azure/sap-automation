@@ -38,7 +38,7 @@
         - 0.1-passwords
 
     - name:                            "DBLoad Playbook: - Read storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       tags:
@@ -70,7 +70,7 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "DBLoad Playbook: - Load the SAP parameters"
-      include_vars:                    "{{ _workspace_directory }}/sap-parameters.yaml"
+      ansible.builtin.include_vars:    "{{ _workspace_directory }}/sap-parameters.yaml"
 
     - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
       block:
@@ -103,8 +103,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - dbload.rc is defined
-                - dbload.rc == 0
+                - dbload_already_performed is defined or (dbload.rc is defined and dbload.rc == 0)
 
           always:
 
@@ -185,6 +184,7 @@
             - dbload.rc == 0
 
       when:                            platform == 'ORACLE'
+
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

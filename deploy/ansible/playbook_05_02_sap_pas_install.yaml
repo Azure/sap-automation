@@ -45,7 +45,7 @@
         - 0.2-kv-secrets
 
     - name:                            "PAS Installation Playbook: - Read storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       vars:
@@ -60,7 +60,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_PAS"
-                                        
+
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   become:                              true
@@ -169,8 +169,7 @@
                 state:                 touch
                 mode:                  0755
               when:                    
-                - pas_installation.rc is defined
-                - pas_installation.rc == 0
+                - pas_already_installed is defined or (pas_installation.rc is defined and pas_installation.rc == 0)
           always:
             - name:                    "PAS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
