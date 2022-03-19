@@ -74,6 +74,10 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"          
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/filepermission.txt   
+  register:                            oracle_permissions_set
 # Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"
   ansible.builtin.debug:

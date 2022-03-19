@@ -64,19 +64,80 @@
     - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
 
-- name:                                "BOM: Download BOM ({{ bom_name }}) from Storage Account"
+- name:                                "BOM: Create ini files ({{ bom_name }})"
   block:
 
-    - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
+    - name:                            "Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
         dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
+        remote_src:                    yes
         mode:                          0644
         force:                         true
       
   when:                                
     - result is succeeded or result is skipped
-    - not always_upload_jinja_templates
+    - MULTI_SIDS is undefined
+
+- name:                                "BOM: Create ini files ({{ bom_name }}) for Multi-SID for SCS"
+  block:
+
+    - name:                            "Create SCS ini file {{ sap_inifile }}"
+      ansible.builtin.template:
+        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params
+        mode:                          0644
+        force:                         true
+      loop:                                 "{{ MULTI_SIDS }}"
+  when:                                
+    - result is succeeded or result is skipped
+    - MULTI_SIDS is defined
+    - node_tier == "scs"
+
+- name:                                "BOM: Create ini files ({{ bom_name }}) for Multi-SID  for Multi-SID for DB Load"
+  block:
+
+    - name:                            "Create DBLoad ini file {{ sap_inifile }}"
+      ansible.builtin.template:
+        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params
+        mode:                          0644
+        force:                         true
+      loop:                                 "{{ MULTI_SIDS }}"
+  when:                                
+    - result is succeeded or result is skipped
+    - MULTI_SIDS is defined
+    - node_tier == "oracle-multi-sid"
+
+- name:                                "BOM: Create ini files ({{ bom_name }}) from Storage Account for Multi-SID for PAS"
+  block:
+
+    - name:                            "Create PAS ini file {{ sap_inifile }}"
+      ansible.builtin.template:
+        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params
+        mode:                          0644
+        force:                         true
+      loop:                                 "{{ MULTI_SIDS }}"
+  when:                                
+    - result is succeeded or result is skipped
+    - MULTI_SIDS is defined
+    - node_tier == "pas"
+
+- name:                                "BOM:  Create ini files ({{ bom_name }}) from Storage Account for Multi-SID for APP"
+  block:
+
+    - name:                            "Create APP ini file {{ sap_inifile }}"
+      ansible.builtin.template:
+        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params
+        mode:                          0644
+        force:                         true
+      loop:                                 "{{ MULTI_SIDS }}"
+  when:                                
+    - result is succeeded or result is skipped
+    - MULTI_SIDS is defined
+    - node_tier == "app"
 
 # -------------------------------------+---------------------------------------8
 #
