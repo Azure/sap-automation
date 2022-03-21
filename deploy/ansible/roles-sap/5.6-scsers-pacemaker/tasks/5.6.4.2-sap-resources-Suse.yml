@@ -6,12 +6,12 @@
 
 #[1] Create the SAP cluster resources - if using ENSA1 -
 
-- name:                               "SAP Resources - Cluster Configuration after Install "
+- name:                                "5.6 SCSERS - SUSE - SAP Resources - Cluster Configuration after Install "
   block:
     # - name:                           "Set the cluster on maintenace mode"
     #   ansible.builtin.command:        crm configure property maintenance-mode="true"
 
-    - name:                           "Configure SAP ASCS/SCS resources"
+    - name:                            "5.6 SCSERS - SUSE - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
                                        operations \$id=rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}-operations \
@@ -24,7 +24,7 @@
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 
-    - name:                           "Configure SAP ERS resources"
+    - name:                            "5.6 SCSERS - SUSE - Configure SAP ERS resources"
       ansible.builtin.command: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        operations \$id=rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}-operations \
@@ -36,14 +36,14 @@
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
-    - name:                           "Modify SCS and ERS groups"
+    - name:                            "5.6 SCSERS - SUSE - Modify SCS and ERS groups"
       ansible.builtin.shell: |
                                       crm configure modgroup g-{{ sap_sid }}_ASCS add rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}
                                       crm configure modgroup g-{{ sap_sid }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
       register:                       scs_ers_group
       failed_when:                    scs_ers_group.rc > 1
 
-    - name:                           "Configure Co-location Constraints"
+    - name:                           "5.6 SCSERS - SUSE - Configure Co-location Constraints"
       ansible.builtin.shell: |
                                       crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_ASCS
                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
@@ -54,7 +54,7 @@
     # - name:                           " Bring primary node online "
     #   ansible.builtin.command:        crm node online {{ primary_instance_name }}
 
-    - name:                           "Set the Cluster out of maintenance mode"
+    - name:                           "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
       ansible.builtin.command:        crm configure property maintenance-mode="false"
 
   when:
@@ -65,24 +65,24 @@
 #   sudo crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_ASCS
 #   sudo crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_ASCS00:start rsc_sap_{{ sap_sid }}_ERS01:stop symmetrical=false
 
-- name:                               "SAP Resources - Cluster Configuration after Install"
+- name:                               "5.6 SCSERS - SUSE - SAP Resources - Cluster Configuration after Install"
   block:
-    - name:                           "Set the cluster on maintenance mode"
-      ansible.builtin.command:        crm configure property maintenance-mode="true"
+    - name:                            "5.6 SCSERS - SUSE - Set the cluster on maintenance mode"
+      ansible.builtin.command:         crm configure property maintenance-mode="true"
 
-    - name:                           "Configure SAP ASCS/SCS resources"
+    - name:                            "5.6 SCSERS - SUSE - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
-                                      crm configure primitive rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
-                                      operations \$id=rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}-operations \
-                                      op monitor interval=11 timeout=60 on-fail=restart \
-                                      params InstanceName={{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} \
-                                      START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}" \
-                                      AUTOMATIC_RECOVER=false \
-                                      meta resource-stickiness=5000
-      register:                       ascs_rsc_sap
-      failed_when:                    ascs_rsc_sap.rc > 1
+                                       crm configure primitive rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
+                                       operations \$id=rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}-operations \
+                                       op monitor interval=11 timeout=60 on-fail=restart \
+                                       params InstanceName={{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }} \
+                                       START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}" \
+                                       AUTOMATIC_RECOVER=false \
+                                       meta resource-stickiness=5000
+      register:                        ascs_rsc_sap
+      failed_when:                     ascs_rsc_sap.rc > 1
 
-    - name:                           "Configure SAP ERS resources"
+    - name:                            "5.6 SCSERS - SUSE - Configure SAP ERS resources"
       ansible.builtin.shell: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        operations \$id=rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}-operations \
@@ -93,7 +93,7 @@
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
-    - name:                           "Modify SCS and ERS groups"
+    - name:                            "5.6 SCSERS - SUSE - Modify SCS and ERS groups"
       ansible.builtin.shell: |
                                        crm configure modgroup g-{{ sap_sid }}_ASCS add rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}
                                        crm configure modgroup g-{{ sap_sid }}_ERS add rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}
@@ -101,24 +101,23 @@
       failed_when:                     scs_ers_group.rc > 1
 # +------------------------------------4---------------------------------------*|
 
-    - name:                           "Configure Co-location Constraints"
+    - name:                            "5.6 SCSERS - SUSE - Configure Co-location Constraints"
       ansible.builtin.shell: |
-                                      crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_ASCS
-                                      crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
-                                      crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
-      register:                       co_location
-      failed_when:                    co_location.rc > 1
+                                       crm configure colocation col_sap_{{ sap_sid }}_no_both -5000: g-{{ sap_sid }}_ERS g-{{ sap_sid }}_ASCS
+                                       crm configure location loc_sap_{{ sap_sid }}_failover_to_ers rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} rule 2000: runs_ers_{{ sap_sid }} eq 1
+                                       crm configure order ord_sap_{{ sap_sid }}_first_start_ascs Optional: rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }}:start rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}:stop symmetrical=false
+      register:                        co_location
+      failed_when:                     co_location.rc > 1
 
-    - name:                           "Bring primary node online "
-      ansible.builtin.command:        crm node online {{ primary_instance_name }}
+    - name:                            "5.6 SCSERS - SUSE - Bring primary node online "
+      ansible.builtin.command:         crm node online {{ primary_instance_name }}
 
-    - name:                           "Set the Cluster out of maintenance mode"
-      ansible.builtin.command:        crm configure property maintenance-mode="false"
+    - name:                            "Set the Cluster out of maintenance mode"
+      ansible.builtin.command:         crm configure property maintenance-mode="false"
 
   when:
     - inventory_hostname == primary_instance_name
     - ensa1 is not defined
-
 
 #End of SAP Resources Cluster configuration
 ...

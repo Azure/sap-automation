@@ -5,10 +5,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# For each supported 'distro_id' we want a list of dictionary entries that
+# For each supported 'distribution_id' we want a list of dictionary entries that
 # specify the associated tier (or 'all' to always match), the package name,
 # and whether we want the package to be installed (present) or removed
-# (absent). See the definition of 'distro_id' to determine what to use when
+# (absent). See the definition of 'distribution_id' to determine what to use when
 # creating an entry for a new distribution.
 packages:
   redhat7:
@@ -142,13 +142,19 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-selinux',                    node_tier: 'hana',    state: 'present' }
+
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
   redhat8.1:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
   redhat8.2:
+    - { tier: 'ha',    package: 'python3-libselinux',                 node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'libselinux-python3',                 node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
   redhat8.4:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
+    - { tier: 'ha',    package: 'python3-libselinux',                 node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'libselinux-python3',                 node_tier: 'hana',    state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                                   state: 'present' }
     - { tier: 'os',    package: 'glibc',                                                    state: 'present' }
@@ -167,6 +173,7 @@ packages:
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs-utils',                                                state: 'present' }
+    - { tier: 'sapos', package: 'nfs-client',                                               state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
     - { tier: 'sapos', package: 'saptune',                                                  state: 'present' }
     - { tier: 'sapos', package: 'libgcc_s1',                                                state: 'present' }
@@ -180,7 +187,7 @@ packages:
     - { tier: 'ha',    package: 'fence-agents>=4.4.0',                                      state: 'present' }
     - { tier: 'ha',    package: 'cloud-netconfig-azure>=1.3',                               state: 'present' }
   # Assumption: Public_Cloud_Module_x86_64 already available
-    - { tier: 'ha',    package: 'python-azure-mgmt-compute=4.6.2',                          state: 'present' }
+    - { tier: 'ha',    package: 'python-azure-mgmt-compute',                                state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'scs',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
   sles_sap12.4:
@@ -207,6 +214,10 @@ packages:
     - { tier: 'os',    package: 'unzip',                              node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                        node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
+    - { tier: 'os',    package: 'cloud-regionsrv-client',                                   state: 'present' }
+    - { tier: 'os',    package: 'cloud-regionsrv-client-plugin-azure',                      state: 'present' }
+    - { tier: 'os',    package: 'regionServiceClientConfigAzure',                           state: 'present' }
+    - { tier: 'os',    package: 'regionServiceCertsAzure',                                  state: 'present' }
     - { tier: 'sapos', package: 'autofs',                                                   state: 'present' }
     - { tier: 'sapos', package: 'nfs-utils',                                                state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                                           state: 'present' }
@@ -232,14 +243,45 @@ packages:
   # [2] sudo zypper search --requires -n python3-azure-mgmt-compute=4.6.2
   # identify requirements for azure-cli-vm which allows the restart of VMs
   # [3]  sudo zypper search --requires -n azure-cli-vm=2.2.2
-    - { tier: 'ha',    package: 'azure-cli=2.0.45',                   node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'azure-cli=2.0.45',                   node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'azure-cli=2.0.45',                   node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute=4.6.2',   node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'sap-suse-cluster-connector>=3.1.1',  node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'azure-cli',                          node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'azure-cli',                          node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'azure-cli',                          node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',         node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-suse-cluster-connector',         node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8
+  sles_sap15.1:
   sles_sap15.2:
   sles_sap15.3:
+#    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
+    #Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
+    #Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
+  oraclelinux8:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c', state: 'present' }
+    - { tier: 'os',    package: 'sudo',                           state: 'present' }
+    - { tier: 'os',    package: 'tcsh',                           state: 'present' }
+    - { tier: 'os',    package: 'nfs-utils',                      state: 'present' }
+    - { tier: 'os',    package: 'rsyslog',                        state: 'present' }
+    - { tier: 'os',    package: 'openssl',                        state: 'present' }
+    - { tier: 'os',    package: 'xorg-x11-xauth',                 state: 'present' }
+    - { tier: 'os',    package: 'net-tools',                      state: 'present' }
+    - { tier: 'os',    package: 'bind-utils',                     state: 'present' }
+    - { tier: 'os',    package: 'xfsprogs',                       state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                          state: 'present' }
+    - { tier: 'os',    package: 'lvm2',                           state: 'present' }
+    - { tier: 'os',    package: 'cifs-utils',                     state: 'present' }
+    - { tier: 'os',    package: 'uuidd',                          state: 'present' }
+    - { tier: 'os',    package: 'csh',                            state: 'present' }
+    - { tier: 'ha',    package: 'jq',                             state: 'present' }
+    - { tier: 'os',    package: 'unzip',                          state: 'present' }
+    - { tier: 'os',    package: 'oracleasm',                      state: 'present' }
+
+  oraclelinux8.1:
+
+  oraclelinux8.2:
+
+  oraclelinux8.3:
+
+  oraclelinux8.4:

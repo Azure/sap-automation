@@ -98,22 +98,24 @@ PS3='Please select playbook: '
 # all_playbooks array defined below
 options=(
         # Specific playbook entries
+        "Validate parameters"
         "Base Operating System configuration"
         "SAP specific Operating System configuration"
         "BOM Processing"
         "Database Instance installation"
         "SCS Install"
+        "Database High Availability Setup"
         "Database Load"
         "Primary Application Server installation"
+        "Oracle High Availability Setup"
         "Application Server installations"
         "Web Dispatcher installations"
-        "Database High Availability Setup"
         "HCMT"
 
         # Special menu entries
         "BOM Download"
-        "Configure and install SAP (1-7)"
-        "Post SAP Installation tasks (8-10)"
+        "Configure and install SAP (1-9)"
+        "Post SAP Installation tasks (10-11)"
         "All Playbooks"
         "Quit"
 )
@@ -121,18 +123,22 @@ options=(
 # List of all possible playbooks
 all_playbooks=(
         # Basic/Minimal SAP Install Steps
+        ${cmd_dir}/playbook_00_validate_parameters.yaml
         ${cmd_dir}/playbook_01_os_base_config.yaml
         ${cmd_dir}/playbook_02_os_sap_specific_config.yaml
         ${cmd_dir}/playbook_03_bom_processing.yaml
         ${cmd_dir}/playbook_04_00_00_db_install.yaml
         ${cmd_dir}/playbook_05_00_00_sap_scs_install.yaml
+        ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_05_01_sap_dbload.yaml
         ${cmd_dir}/playbook_05_02_sap_pas_install.yaml
+        ${cmd_dir}/playbook_04_02_00_oracle_ha_setup.yaml
+
+
 
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml
         ${cmd_dir}/playbook_05_04_sap_web_install.yaml
-        ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_04_00_02_db_hcmt.yaml
         ${cmd_dir}/playbook_bom_downloader.yaml
         ${cmd_dir}/playbook_07_00_00_post_installation.yaml
@@ -165,9 +171,9 @@ do
         "${options[-2]}")   # Run through all playbooks
                 playbooks+=( "${all_playbooks[@]}" );;
         "${options[-3]}")   # Run through post installation playbooks
-                playbooks+=( "${all_playbooks[@]:7:3}" );;
+                playbooks+=( "${all_playbooks[@]:9:2}" );;
         "${options[-4]}")   # Run through first 7 playbooks i.e.  SAP installation
-                playbooks+=( "${all_playbooks[@]:0:7}" );;
+                playbooks+=( "${all_playbooks[@]:0:9}" );;
         *)
                 # If not a numeric reply
                 if ! [[ "${REPLY}" =~ ^[0-9]{1,2}$ ]]; then

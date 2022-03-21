@@ -37,6 +37,7 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
 recover=0
+ado_flag=""
 
 INPUT_ARGUMENTS=$(getopt -n prepare_region -o d:l:s:c:p:t:a:ifohrv --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,auto-approve,force,only_deployer,help,recover,ado -- "$@")
 VALID_ARGUMENTS=$?
@@ -66,6 +67,8 @@ do
         --) shift; break ;;
     esac
 done
+
+echo "ADO flag ${ado_flag}"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
@@ -551,9 +554,9 @@ if [ 5 == $step ]; then
     account_key=$(az keyvault secret show --vault-name "${keyvault}" --name "sapbits-access-key" | jq -r .value)
     end=$(date -u -d "180 days" '+%Y-%m-%dT%H:%MZ')
     
-    sas=$(az storage container generate-sas --permissions rl --account-name $REMOTE_STATE_SA --name sapbits --https-only  --expiry $end -o tsv --account-key "${account_key}")
-    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "?${sas}"
-    
+    sas=?$(az storage container generate-sas --permissions rl --account-name $REMOTE_STATE_SA --name sapbits --https-only  --expiry $end -o tsv --account-key "${account_key}")
+    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
+
     step=6
     save_config_var "step" "${deployer_config_information}"
 fi

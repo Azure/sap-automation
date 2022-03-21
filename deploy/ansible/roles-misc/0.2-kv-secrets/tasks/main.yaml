@@ -19,10 +19,10 @@
 # -------------------------------------+---------------------------------------8
 #
 
-- name:                                "BoM Secrets: Retrieve Deployer Keyvault details"  
+- name:                                "0.2 Key Vault: - Retrieve Deployer Keyvault details"
   block:
 
-    - name:                            Check required variables are present and not empty
+    - name:                            "0.2 Key Vault: - Check required variables are present and not empty"
       ansible.builtin.assert:
         that:
           - "kv_name is defined"                    # Has the variable been defined
@@ -30,7 +30,7 @@
           - "kv_name | string | length != 0 "       # Detect null values
         fail_msg:                      "Please define the kv_name parameter"
 
-    - name:                            Get Deployer Keyvault name from keyvault
+    - name:                            "0.2 Key Vault: - Get Deployer key vault name from workload zone key vault"
       ansible.builtin.command: >-
                                        az keyvault secret show
                                          --vault-name {{ kv_name }}
@@ -39,27 +39,28 @@
       register:                        deployer_kv_name_secret
       when:                            bom_processing is not defined
 
-    - name:                            Save Deployer Keyvault name
+    - name:                            "0.2 Key Vault: - Save Deployer key vault name"
       ansible.builtin.set_fact:
         deployer_kv_name: >-
                                        {{ (deployer_kv_name_secret.stdout | from_json).value }}
   when: deployer_kv_name is not defined
 
-- name:                                Show Key Vault
+- name:                                "0.2 Key Vault: - Show Deployer key vault name"
   ansible.builtin.debug:
-    var:                               kv_name
+    var:                               deployer_kv_name
   when:
     - tier == "bom"
 
-- name:                                Import S user tasks
+- name:                                "0.2 Key Vault: - Import S User tasks"
   ansible.builtin.import_tasks:        "s_user.yaml"
   when:
     - tier == "bom"
 
-- name:                                Import Fencing secrets
+- name:                                "0.2 Key Vault: - Import Fencing secrets"
   ansible.builtin.import_tasks:        "fencing.yaml"
   when:
     - tier == "fencing"
+    - scs_high_availability or db_high_availability
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -26,6 +26,7 @@ disk_type_to_name_map:
   mirrloga:        '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:        '{{ node_tier | lower }}_mirrlogB'
   oraarch:         '{{ node_tier | lower }}_oraarch'
+  #orabackup: '{{ node_tier | lower }}_orabackup'
   # ------------------- Begin - disktypes required for DB2 -------------------8
   sapdata:         '{{ node_tier | lower }}_sapdata'
   log_dir:         '{{ node_tier | lower }}_logdir'
@@ -66,7 +67,7 @@ disk_type_to_name_map:
 logical_volumes:
   # --------------------- Begin - disks required for usrsap -------------------8
   - tier:       'sapos'
-    node_tier:  'all'
+    node_tier:  "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
     vg:         'vg_sap'
     lv:         'lv_usrsap'
     size:       '32g'
@@ -191,6 +192,13 @@ logical_volumes:
     node_tier:  'oracle'
     vg:         'vg_oracle'
     lv:         'lv_oracle'
+    size:       '64g'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_orabackup'
+    lv:         'lv_orabackup'
     size:       '64g'
     fstype:     'xfs'
   # ---------------- End - disks required for Oracle(non-ASM) ----------------8

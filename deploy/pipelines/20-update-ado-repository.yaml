@@ -5,7 +5,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  Update Azure DevOps repository from GitHub $(branch) branch [$(Date:yyyyMMdd)]
+name:                                  Update Azure DevOps repository from GitHub $(branch) branch
 
 parameters:
   - name:                              repository
@@ -16,12 +16,12 @@ parameters:
   - name:                              branch
     displayName:                       Source branch to update from
     type:                              string
-    default:                           private-preview
+    default:                           main
 
   - name:                              force
     displayName:                       Force the update
     type:                              boolean
-    default:                           False
+    default:                           false
 
 trigger:                               none
 
@@ -55,19 +55,24 @@ stages:
               git config --global pull.ff false
               git config --global pull.rebase false
 
-              git checkout $(branch) > /tmp/$(log) 2>&1
+              git checkout -q $(branch) 
+              git pull -q
+              
               git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
-              git pull >> /tmp/$(log) 2>&1
-              git pull remote-repo $(branch) >> /tmp/$(log) 2>&1
+              
+              git pull -q --commit remote-repo $(branch) 
 
               if [[ "$(force)" == "True" ]]; then
-                echo "running git push to ADO with force option" >> /tmp/$(log) 2>&1
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch) >> /tmp/$(log) 2>&1
+                echo "running git push to ADO with force option" 
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch)  >> /tmp/$(log) 2>&1
               else
-                echo "running git push to ADO" >> /tmp/$(log) 2>&1
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(branch) >> /tmp/$(log) 2>&1
+                echo "running git push to ADO" 
+                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  >> /tmp/$(log) 2>&1
               fi
+              return_code=$?
               cat /tmp/$(log)
+              exit $return_code
+              
             displayName:               Update ADO repository
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)

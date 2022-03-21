@@ -10,7 +10,7 @@
     - name:                            "BOM: {{ bom_name }} Check is file {{ item.archive }} is already downloaded"
       ansible.builtin.uri:
         url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
-        status_code:                   [200, 403, 404]
+        status_code:                   [200, 403, 404, 409]
         method:                        HEAD
       register:                        blob_exists
 
@@ -28,7 +28,7 @@
       ansible.builtin.set_fact:
         proceed:                       false
       when:                            blob_exists.status != 404
-  when:                                check_storage_account
+  when:                                check_storage_account | bool
 
 - name:                                "BOM: Debug {{ bom_name }} Download File {{ item.archive }}"
   ansible.builtin.debug:
@@ -37,23 +37,51 @@
 
 - name:                                "BOM: Download File {{ item.archive }}"
   block:
-    - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
-      ansible.builtin.get_url:
-        url:                           "{{ item.url }}"
-        dest:                          "{{ download_directory }}/files/{{ item.archive }}"
-        tmp_dest:                      "{{ download_directory }}/tmp"
-        url_username:                  "{{ s_user }}"
-        url_password:                  "{{ s_password }}"
-        force_basic_auth:              true
-        http_agent:                    'SAP Software Download'
+    - name:                            "BOM: {{ bom_name }} Download File"
+      block:
+        - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
+          ansible.builtin.get_url:
+            url:                       "{{ item.url | string | trim }}"
+            dest:                      "{{ download_directory }}/files/{{ item.archive }}"
+            tmp_dest:                  "{{ download_directory }}/tmp"
+            url_username:              "{{ s_user }}"
+            url_password:              "{{ s_password }}"
+            force_basic_auth:          true
+            http_agent:                'SAP Software Download'
+            timeout:                   60
+          become:                      true
+          become_user:                 root
+          register:                    result
+          until:                       result is succeeded or not result.changed
+          retries:                     2
+          delay:                       1
+          no_log:                      false
+      rescue:
+        - name:                        "BOM: Ensure URL is correct"
+          ansible.builtin.set_fact:
+            file_url:                  "{{ item.url | lower | urlsplit('scheme') }}://{{ item.url | lower | urlsplit('hostname') }}/{{ item.url | lower | urlsplit('path') | replace('\"','') }}"
 
-      become:                          true
-      become_user:                     root
-      register:                        result
-      until:                           result is succeeded or not result.changed
-      retries:                         2
-      delay:                           1
-      no_log:                          false
+        - name:                        "BOM: Ensure URL is correct"
+          ansible.builtin.debug:
+            msg:
+              - "file_url: '{{ file_url }}"
+        - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
+          ansible.builtin.get_url:
+            url:                       "{{ file_url | trim }}"
+            dest:                      "{{ download_directory }}/files/{{ item.archive }}"
+            tmp_dest:                  "{{ download_directory }}/tmp"
+            url_username:              "{{ s_user }}"
+            url_password:              "{{ s_password }}"
+            force_basic_auth:          true
+            http_agent:                'SAP Software Download'
+            timeout:                   60
+          become:                      true
+          become_user:                 root
+          register:                    result
+          until:                       result is succeeded or not result.changed
+          retries:                     2
+          delay:                       1
+          no_log:                      false
 
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
       ansible.builtin.debug:

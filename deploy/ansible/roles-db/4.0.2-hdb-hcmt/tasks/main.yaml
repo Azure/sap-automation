@@ -35,11 +35,12 @@
 
     - name:                            Execute HCMT
       ansible.builtin.command:         ./hcmt -v -p config/executionplan.json
+      changed_when:                    false      
       args:
         chdir:                         "{{ target_media_location }}/hcmt/setup"
 
     - name:                            Find HCMT test result file
-      ansible.builtin.find: 
+      ansible.builtin.find:
         paths:                         "{{ target_media_location }}/hcmt/setup"
         patterns:                      "hcmtresult-*.zip"
         recurse:                       false

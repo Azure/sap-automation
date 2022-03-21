@@ -557,7 +557,7 @@ variable "use_spn" {
 }
 
 variable "NFS_provider" {
-  type = string
+  type    = string
   default = "NONE"
 }
 

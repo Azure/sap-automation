@@ -8,7 +8,7 @@ product_ids:
   dbl:    NW_ABAP_DB:NW750.ORA.ABAP
   pas:    NW_ABAP_CI:NW750.ORA.ABAP
   app:    NW_DI:NW750.ORA.PD
-  web:   
+  web:
 
 materials:
   dependencies:
@@ -23,8 +23,8 @@ materials:
       download:     true
       url:          https://softwaredownloads.sap.com/file/0020000002208852020               #Note update the links
 
-#SAP Oracle executables, SWMP and Installation exports 
-    
+# SAP Oracle executables, SWMP and Installation exports
+
     - name:         "DB Independent Kernel Files"
       archive:      SAPEXE_801-80002573.SAR
       checksum:     c1efbbd12cb16134720b251fd18cab4fdbc8a0a3ee93b54c2ee41671bc3048fc
@@ -33,8 +33,7 @@ materials:
       path:         download_basket
       #creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000937192021
-    
-    
+
     - name:         "Oracle DB specific kernel files"
       archive:      SAPEXEDB_801-80002605.SAR
       checksum:     3682acc6bbc9b5a122af422835217875e01cecd372b04649ef0659fcade3163e
@@ -44,7 +43,6 @@ materials:
       #creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000937422021
 
-    
     - name:         "Oracle DBATOOLS"
       archive:      DBATL740O11_46-80002605.SAR
       checksum:     31a4aed609605084dc711bb6d42fe7c5f08b68c88a221b06c754c33c4d9b00b3
@@ -54,7 +52,6 @@ materials:
       #creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000816512021
 
-    
       # SWPM
     - name:         "SWPM20SP09 OS: Linux on x86_64 64bit"
       archive:      SWPM10SP32_5-20009701.SAR
@@ -74,7 +71,6 @@ materials:
       path:        download_basket
       #creates:    SIGNATURE.SMF
       url:        https://softwaredownloads.sap.com/file/0030000000635092016
-    
 
     - name:         "SAP Host Agent"
       archive:      SAPHOSTAGENT53_53-80004822.SAR
@@ -108,14 +104,12 @@ materials:
       download:     true
       url:          https://public-yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64/getPackage/oracleasm-support-2.1.12-1.el8.x86_64.rpm
 
-
     - name:         "Oracle ASMLIB RPM"
       archive:      oracleasmlib-2.0.17-1.el8.x86_64.rpm
       extract:      false
       download:     true
       url:          https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.17-1.el8.x86_64.rpm
 
-    
     - name:         "Oracle compact-lib"
       archive:      compat-libcap1-1.10-7.el7.x86_64.rpm
       extract:      false

@@ -1,0 +1,250 @@
+---
+- name:                                Set the NFS Server name
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+
+# # Set Primary and Secondary node names.
+# - name:                                "Set the  Server names"
+#   ansible.builtin.set_fact:
+#     ora_primary:                       "{{ sap_sid|upper }}_DB[0]"
+#     ora_secondary:                     "{{ sap_sid|upper }}_DB[1]"
+#     current_host:                      "{{ ansible_hostname }}"
+
+
+# Mount Filesystems
+
+- name:                                Mount Filesystems block
+  block:
+    - name:                            Mount Filesystems when not using external NFS (on observer)
+      ansible.builtin.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          defaults
+        state:                         mounted
+      loop:
+        - { type: 'nfs4',  src: '{{ nfs_server }}:/usr/sap/install',  path: '/usr/sap/install' }
+      when:
+        - node_tier == 'observer'
+        - sap_mnt is undefined
+
+- name:                                "CHANGE GUID for oinstall"
+  ansible.builtin.group:
+    name:                               oinstall
+    gid:                                "{{ oinstall_gid }}"
+
+- name:                                "CHANGE GUID for dba"
+  ansible.builtin.group:
+    name:                               dba
+    gid:                                "{{ dba_gid }}"
+
+- name:                                "CHANGE UID for Oracle user"
+  ansible.builtin.user:
+    name:                               oracle
+    uid:                                "{{ oracle_uid }}"
+    group:                              oinstall
+    groups:                             dba,racdba,oper,backupdba,dgdba,kmdba
+
+- name:                                "ORACLE: Create sap_deployment_automation folder"
+  become:                               true
+  become_user:                          root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "Create ORACLE directory"
+  ansible.builtin.file:
+    path:                              /oracle
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+
+- name:                                "Execute RUNINSTALLER"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       ./RUNINSTALLER  -ignorePrereqWarnings -silent |tee -a /etc/sap_deployment_automation/install.log
+  register:                            orainstall_results
+  failed_when:                         orainstall_results.rc >= 3
+  environment:
+    DB_SID:                            "{{ db_sid|upper }}"
+    CV_ASSUME_DISTID:                  OL7
+  args:
+    executable:                        /bin/csh        
+    chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:                           /etc/sap_deployment_automation/oracleinstalled.txt
+
+- name:                                Create oracleinstalled.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/oracleinstalled.txt
+    state:                             touch
+    mode:                              0755
+
+  #Create SQLNET.ORA .
+
+- name: Copy TNSNAMES.ORA TO OBSERVER
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:  /usr/sap/install/downloads/sqlnet.ora
+    dest: /oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora
+    remote_src:                         yes
+    owner: oracle
+    group: oinstall
+
+
+- name: Copy TNSNAMES.ORA TO OBSERVER
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:  /usr/sap/install/downloads/tnsnames.ora
+    dest: /oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora
+    remote_src:                         yes
+    owner: oracle
+    group: oinstall
+  
+  
+- name:                                "Add environment variables to the Bash profile"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    path: /home/oracle/.bashrc
+    insertafter: 'fi '
+    block: |
+        #User Specific environment
+        export ORACLE_HOME=/oracle/{{ db_sid|upper }}/{{ ora_version }}
+        export ORACLE_SID={{ db_sid|upper }} 
+        export ORACLE_BASE=/oracle
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID={{ db_sid|upper }}
+        PATH="$PATH:$ORACLE_HOME/bin"
+        export PATH
+  
+- name:                                "create .cshrc"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create: yes
+    path: /home/oracle/.cshrc
+    marker_begin: "-- BEGIN"
+    marker_end:   "-- END"
+    block: |
+        #User Specific environment
+        setenv  ORACLE_HOME /oracle/{{ db_sid|upper }}/{{ ora_release }}
+        setenv  ORACLE_SID  {{ db_sid|upper }} 
+        setenv  ORACLE_BASE /oracle
+        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv  DB_SID {{ db_sid|upper }}
+        set path = ($path $ORACLE_HOME/bin)
+    mode: 0755
+
+#Check if tnsping is working to reach Primary and Secondary databases.
+
+# TNSPING FOR PRIMARY
+- name:                               "TNSPING FOR PRIMARY"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               tnsping {{ db_sid|upper }} |tee /etc/sap_deployment_automation/tnsping_primary.txt
+  register:                            tnsping_primary_results
+  args:
+    chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
+    executable:                        /bin/csh
+
+# TNSPING FOR SECONDARY
+- name:                               "TNSPING FOR SECONDARY"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               tnsping {{ db_sid|upper }}_STDBY |tee /etc/sap_deployment_automation/tnsping_secondary.txt
+  register:                            tnsping_primary_results
+  args:
+    chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
+    executable:                        /bin/csh
+
+# ENABLE FSFO
+
+#Create the DGMGRL Config file
+
+- name:                               "Create ENABLEFSFO.DGMGRL FILE"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.template:
+    backup:                           yes
+    src:                              enablefsfo.j2
+    dest:                             "/etc/sap_deployment_automation/enablefsfo.dgmgrl"
+    mode:                             0644
+    force:                            true
+
+- name:                                " PREP FOR FSFO " 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  @enablefsfo.dgmgrl |tee /etc/sap_deployment_automation/fsfoprep.log
+  register:                            fsfo_results
+  failed_when:                         fsfo_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/fsfoprep.txt
+    chdir:                             /etc/sap_deployment_automation/
+    executable:                        /bin/csh
+
+- name:                                Create fsfoprep.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/fsfoprep.txt
+    state:                             touch
+    mode:                              0755
+
+- name:                                " ENABLE FSFO " 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  "ENABLE FAST_START FAILOVER" |tee /etc/sap_deployment_automation/fsfoenable.log
+  register:                            fsfo_results
+  failed_when:                         fsfo_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/fsfoenable.txt
+    chdir:                             /etc/sap_deployment_automation/
+    executable:                        /bin/csh
+
+- name:                                Create fsfoenable.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/fsfoenable.txt
+    state:                             touch
+    mode:                              0755
+
+
+- name:                                " START FSFO OBSERVER " 
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  "START OBSERVER" &
+  register:                            observer_results
+  failed_when:                         observer_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/observerstarted.txt
+    chdir:                             /etc/sap_deployment_automation/
+    executable:                        /bin/csh
+
+- name:                                Create observerstarted.txt
+  become:                              true
+  become_user:                         "oracle" 
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/observerstarted.txt
+    state:                             touch
+    mode:                              0755
+
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

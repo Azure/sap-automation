@@ -18,13 +18,13 @@
 #     if not provided, and retrieve from there when needed.
 #
 # -------------------------------------+---------------------------------------8
-
-- name:                                Include top-level admin accounts definitions
+ 
+- name:                                "1.11 Accounts - Include top-level admin accounts definitions"
   include_vars:                        "admin-accounts.yml"
 
 # Need to create groups first, if they are going to be referenced
 # by the following user actions
-- name:                                "Create specified admin groups if needed tier: {{ tier }}"
+- name:                                "1.11 Accounts - Create specified admin groups if needed tier: {{ tier }}"
   ansible.builtin.group:
     name:                              "{{ item.name }}"
     gid:                               "{{ item.gid }}"
@@ -39,7 +39,7 @@
     - (item.state | default('present')) == "present"
 
 # Create or delete users as needed
-- name:                                Manage specified admin users
+- name:                                "1.11 Accounts - Manage specified admin users"
   ansible.builtin.user:
     name:                              "{{ item.name }}"
     comment:                           "{{ item.comment | default('') }}"
@@ -68,8 +68,8 @@
 # corresponding /etc/sudoers.d/<username> entry. Unfortunately the
 # block action doesn't support iteration, otherwise it would be
 # the way to handle this.
-- name:                                Manage associated per-user /etc/sudoers.d/ files for
-                                       given sudoers role
+- name:                                "1.11 Accounts - Manage associated per-user /etc/sudoers.d/ files for
+                                       given sudoers role"
   include_tasks:                       setup_user_sudoers.yml
   vars:
     sudoers_user:                      "{{ item.name }}"
@@ -85,7 +85,7 @@
 
 # Remove groups after user action has removed the users that may have
 # referenced them
-- name:                                Remove specified admin groups
+- name:                                "1.11 Accounts - Remove specified admin groups"
   ansible.builtin.group:
     name:                              "{{ item.name }}"
     state:                             "{{ item.state | default('present') }}"

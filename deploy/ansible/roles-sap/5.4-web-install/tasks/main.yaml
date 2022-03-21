@@ -28,43 +28,68 @@
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_web.txt
   register:                            web_installed
-  when:                                node_tier == 'web'
 
-- name:                                "Web Install: check if installed"
+- name:                                "Web Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                      "{{ bom_base_name }}-web-{{ ansible_hostname }}.params"
+    sap_inifile_template:             "{{ bom_base_name }}-web-inifile-param.j2"
+
+- name:                                "Web Install: Get the SCS Server name list"
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+- name:                                "Web Install: Set the SCS Server name"
+  ansible.builtin.set_fact:
+    scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+
+
+# Returns bom object
+
+- name:                                "Web Install: Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "Web Install: "
+
+- name:                                "Web Install: Include roles-sap/3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-template
+  vars:  
+    task_prefix:                       "Web Install: "
+    bom_name:                          "{{ bom_base_name }}"
+    web_instance_number:               "00" # "{{ web_instance_number }}"
+    sap_ciInstanceNumber:              "00"
+    sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
+    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_webVirtualHostname:            "{{ inventory_hostname }}"
+    sap_installSAPHostAgent:           false
+  tags:
+    - skip_ansible_lint
+
+- name:                                "Web install: register variables"
+  ansible.builtin.set_fact:
+    web_bom_id:                        "{{ bom.product_ids.web }}"
+
+- name:                                "DBLoad: install variables"
   ansible.builtin.debug:
-    var:                               web_installed
+    msg:                          
+      - "INSTALLED:  {{ web_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "SID:        {{ web_sid }}"
+      - "SAPSID:     {{ sap_sid }}"
+      - "PRODUCT ID: {{ web_bom_id }}"
+      - "INSTANCE:   {{ web_instance_number }}"
+      - "SCSHOST:    {{ scs_server }}"
+
 
 - name:                                "Web Install"
   block:
-
-    - name:                                Initialize facts
-      set_fact:
-        sap_inifile:                  "{{ bom_base_name }}-web-{{ ansible_hostname }}.params"
-        sap_inifile_template:         "{{ bom_base_name }}-web-inifile-param.j2"
-
-# Returns bom object
-    - name:                            "Web Install: Include 3.3.1-bom-utility role"
-      include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-register
-      vars:
-        bom_name:                      "{{ bom_base_name }}"
-
-    - name:                            "Web Install: Include 3.3.1-bom-utility role"
-      include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
-      vars:
-        web_instance_number:           '00'
-        sap_ciInstanceNumber:          '00'
-        sap_installSAPHostAgent:       "false"
-        sap_profile_dir:               /sapmnt/{{ sap_sid|upper }}/profile
-        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-        sap_ciVirtualHostname:         "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') | first }}"
-        sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
-        sap_webVirtualHostname:        "{{ inventory_hostname }}"
-      tags:
-        - skip_ansible_lint
 
 # *====================================4=======================================8
 #   SAP Web Dispatcher: Install
@@ -80,12 +105,23 @@
         chdir:                         /usr/sap/install/SWPM
         creates:                       /etc/sap_deployment_automation/sap_deployment_web.txt
       environment:
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        /usr/sap/install
-      register:                        scs_installation
-      failed_when:                     scs_installation.rc > 0
+      register:                        web_installation
+      failed_when:                     web_installation.rc > 0
       tags:
         - skip_ansible_lint
       when:                            node_tier == 'web'
+
+    - name:                            "WEB Install: Installation results"
+      ansible.builtin.debug:
+        var:                           web_installation
+      when:                            web_installation.rc > 0
+
+    - name:                            "WEB Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "WEB Installation succeeded"
+      when:                            web_installation.rc == 0
 
     - name:                            "Web Install: flag"
       ansible.builtin.file:
@@ -96,7 +132,6 @@
   when:
     - node_tier == 'web'
     - not web_installed.stat.exists
-
 
 # *====================================4=======================================8
 
