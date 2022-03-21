@@ -28,6 +28,7 @@ override.tf.json
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
 **/.terraform.lock.hcl
+<<<<<<< HEAD
 
 # Local History for Visual Studio Code
 .history/
@@ -40,3 +41,6 @@ override.tf.json
 .vscode/launch.json
 .vscode/extensions.json
 .vscode/*.code-snippets
+=======
+.vscode/settings.json
+>>>>>>> 823d7f47cda779f1ecbc8ecd99bb20db2e728654

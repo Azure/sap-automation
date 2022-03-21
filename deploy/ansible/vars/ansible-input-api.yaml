@@ -6,8 +6,11 @@
 chrony_pool:                  ""
 chrony_servers:               []
 timezone:                     "Etc/GMT"
+<<<<<<< HEAD
 # -------------------- End - OS Config Settings variables --------------------8
 
+=======
+>>>>>>> 823d7f47cda779f1ecbc8ecd99bb20db2e728654
 
 # --------------------- Begin - BOM Processing variables ---------------------8
 # BoM Processing variables
@@ -16,6 +19,10 @@ target_media_location:        "/usr/sap/install"                      # Default
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
 # ---------------------- End - BOM Processing variables ----------------------8
+
+always_upload_jinja_templates: true
+
+
 
 always_upload_jinja_templates: true
 
