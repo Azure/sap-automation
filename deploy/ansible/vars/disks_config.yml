@@ -34,7 +34,7 @@ disk_type_to_name_map:
   saptemp:  '{{ node_tier | lower }}_saptemp'
   sapdiag:   '{{ node_tier | lower }}_sapdiag'
    # ------------------- End - disktypes required for Sybase ---------------------8
-  oraarch: '{{ node_tier | lower }}_oraarch'
+  #oraarch: '{{ node_tier | lower }}_oraarch'
   #orabackup: '{{ node_tier | lower }}_orabackup'
 #
 # Table of possible logical volumes that need to be managed.

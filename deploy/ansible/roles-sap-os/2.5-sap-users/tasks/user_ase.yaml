@@ -10,14 +10,14 @@
 
 - name:                                "User Creation: Set the server name list"
   ansible.builtin.set_fact:
-    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+    db_server_temp:                   "{{ db_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
   when:                                 node_tier == "sybase"
 
-- name:                                "User Creation: Set the SCS Server name"
+- name:                                "User Creation: Set the DB Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{{ scs_server_temp | first }}"
+    db_server:                        "{{ db_server_temp | first }}"
 
 - name:                                "User Creation: Create run flag directory"
   ansible.builtin.file:
@@ -93,7 +93,7 @@
   block:
 
 # *====================================4=======================================8
-# |  SAP SCS: Install                                                          |
+# |  SAP Generic: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
 

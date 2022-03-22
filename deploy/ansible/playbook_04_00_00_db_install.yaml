@@ -266,7 +266,28 @@
 # |                      Playbook for Sybase DB Install                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
+- name:                        "SAP Generic OS Groups and User Creation for DB hosts"
+  hosts:                       "{{ sap_sid|upper }}_DB"
+  serial:                      1
+  become:                     true
+  become_user:                root
+  gather_facts:               true
+  vars_files:
+    - vars/ansible-input-api.yaml
+  tasks:
+          
+    - name:                   DB User Creation
+      ansible.builtin.include_role:
+        name:                     roles-sap-os/2.5-sap-users
+        tasks_from:               user_ase.yaml
+      vars:
+        tier:                          ase
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        tags:
+          - 2.5-sap-users
+        when:                         platform == 'SYBASE'
 
 - hosts:                               "{{ sap_sid|upper }}_DB"
   name:                                DB Installation - Sybase
@@ -311,7 +332,7 @@
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
             mode:                      0755
-          when:                            platform == 'SYBASE'
+          when:                         platform == 'SYBASE'
 
 ...
 # /*----------------------------------------------------------------------------8

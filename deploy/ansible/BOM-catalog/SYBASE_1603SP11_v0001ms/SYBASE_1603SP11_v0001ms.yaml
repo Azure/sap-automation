@@ -7,11 +7,12 @@ target:  'Sybase 1603 SP11'
 version: 1
 
 product_ids:
-  scs:    NW_ABAP_ASCS:NW750.SYB.ABAP
-  dbl:    NW_ABAP_DB:NW750.SYB.ABAP
-  pas:    NW_ABAP_CI:NW750.SYB.ABAP
-  app:    NW_DI:NW750.SYB.PD
-  web:    NW_Webdispatcher:NW750.IND.PD
+  scs:      NW_ABAP_ASCS:NW750.SYB.ABAP
+  dbl:      NW_ABAP_DB:NW750.SYB.ABAP
+  pas:      NW_ABAP_CI:NW750.SYB.ABAP
+  app:      NW_DI:NW750.SYB.PD
+  web:      NW_Webdispatcher:NW750.IND.PD
+  generic:  NW_Users_Create:GENERIC.SYB.PD
 
 materials:
   dependencies:
