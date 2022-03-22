@@ -76,13 +76,13 @@
     DB_SID:                            "{{ db_sid|upper }}"
     CV_ASSUME_DISTID:                  OL7
   args:
-    executable:                        /bin/csh        
+    executable:                        /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /etc/sap_deployment_automation/oracleinstalled.txt
 
 - name:                                "Oracle Data Guard - Observer: Create oracleinstalled.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracleinstalled.txt
     state:                             touch
@@ -110,8 +110,8 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
-  
-  
+
+
 - name:                                "Oracle Data Guard - Observer: Add environment variables to the Bash profile"
   become:                              true
   become_user:                         "oracle"
@@ -121,14 +121,14 @@
     block: |
         #User Specific environment
         export ORACLE_HOME=/oracle/{{ db_sid|upper }}/{{ ora_version }}
-        export ORACLE_SID={{ db_sid|upper }} 
+        export ORACLE_SID={{ db_sid|upper }}
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
         export DB_SID={{ db_sid|upper }}
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
-  
+
 - name:                                "Oracle Data Guard - Observer: create .cshrc"
   become:                              true
   become_user:                         "oracle"
@@ -140,7 +140,7 @@
     block: |
         #User Specific environment
         setenv  ORACLE_HOME /oracle/{{ db_sid|upper }}/{{ ora_release }}
-        setenv  ORACLE_SID  {{ db_sid|upper }} 
+        setenv  ORACLE_SID  {{ db_sid|upper }}
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
@@ -184,7 +184,7 @@
     mode:                              0644
     force:                             true
 
-- name:                                "Oracle Data Guard - Observer: Prepare for FSFO" 
+- name:                                "Oracle Data Guard - Observer: Prepare for FSFO"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  @enablefsfo.dgmgrl |tee /etc/sap_deployment_automation/fsfoprep.log
@@ -197,13 +197,13 @@
 
 - name:                                "Oracle Data Guard - Observer: Create fsfo_prepared.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/fsfo_prepared.txt
     state:                             touch
     mode:                              0755
 
-- name:                                "Oracle Data Guard - Observer: Enable FSFO" 
+- name:                                "Oracle Data Guard - Observer: Enable FSFO"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  "ENABLE FAST_START FAILOVER" |tee /etc/sap_deployment_automation/fsfoenable.log
@@ -216,13 +216,13 @@
 
 - name:                                "Oracle Data Guard - Observer: Create fsfo_enabled.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/fsfo_enabled.txt
     state:                             touch
     mode:                              0755
 
-- name:                                "Oracle Data Guard - Observer: Start FSFO Observer" 
+- name:                                "Oracle Data Guard - Observer: Start FSFO Observer"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  "START OBSERVER" &
@@ -235,7 +235,7 @@
 
 - name:                                "Oracle Data Guard - Observer: Create observerstarted.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/observerstarted.txt
     state:                             touch

@@ -4,13 +4,13 @@
   include_vars: disks_config_ora_msid.yml
 
 - name: Load logical volumes
-  set_fact: 
+  set_fact:
     logical_volume_groups: "{{ lookup ('template', 'roles-os/1.5.2-disk-setup-ora-multi-sid/templates/logical_volume_group.j2') }}"
 
 # - debug:
 #     var:    "{{ lv_groups }}"
 
-# - fail: msg="mount-error-here"                      
+# - fail: msg="mount-error-here"
 
 - name: Check if LVs exists.
   stat:
@@ -21,7 +21,7 @@
 - debug:
     var:                         oravgstat
 
-- name: Gather existing LVs 
+- name: Gather existing LVs
   set_fact:
     lvexists: "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}"
 
@@ -42,7 +42,7 @@
   loop:
     - { node_tier: 'oracle-multi-sid',  type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',      path: '/oracle'         }
     - { node_tier: 'oracle-multi-sid',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',      path: '/usr/sap'         }
-  when:         
+  when:
     -  item.node_tier == "oracle-multi-sid"
 
 
@@ -58,14 +58,14 @@
         {%- else -%}
         {%- set _path = ['/oracle/' ~ lv_parts[-1] | upper  ~ '/' ~ lv_parts[-2]] | join('/') -%}
         {%- endif -%}
-        {{- _path -}} 
+        {{- _path -}}
     fstype: "{{ item.fstype }}"
     opts:   defaults
     state:  mounted
   loop: "{{ logical_volume_groups |sort(attribute='lv') }}"
-  when:         
+  when:
               #- item.tier == "ora"
-              - item.node_tier == "oracle-multi-sid" 
+              - item.node_tier == "oracle-multi-sid"
               - item.lv in  lvexists
               - item.lv != 'lv_usrsap'
               - item.lv != 'lv_oracle'
@@ -86,8 +86,8 @@
   loop:
     - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',               path: '{{ target_media_location }}' }                # Special Install Structure; Destroy on Completion
-  when:         
-                item.tier == "sapos" or 
+  when:
+                item.tier == "sapos" or
                 item.tier == "ora"
 
 
@@ -102,7 +102,7 @@
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop: "{{ MULTI_SIDS }}"
-  when:         
+  when:
     - node_tier == "oracle-multi-sid"
 
 
@@ -118,15 +118,15 @@
     group:  oinstall
 
 
-# ORACLE should be the owner of the file systems /oracle directories. 
+# ORACLE should be the owner of the file systems /oracle directories.
 #.PARAMS folder is not required for oracle install as we are not passing any parameters files.
 
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"          
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            oracle_permissions_set
 
-- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"          
+- name:                                "ORACLE: Make orasid:dba as owners for Oracle directories"
   become:                              true
   become_user:                         root
   ansible.builtin.file:
@@ -140,11 +140,11 @@
   when:
      - not oracle_permissions_set.stat.exists
 
-- name:                                "ORACLE: Create filepermission.txt"          
+- name:                                "ORACLE: Create filepermission.txt"
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt   
+    path:                              /etc/sap_deployment_automation/filepermission.txt
     state:                             touch
 
 #Debug for testing

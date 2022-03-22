@@ -14,35 +14,35 @@
     ora_primary:           "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
     ora_secondary:         "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:          "{{ ansible_hostname }}"
-  when:                     
+  when:
     - node_tier == "oracle"
     - action == 1
 
 
 
 - include_tasks: "ora-dg-secondary-prep.yaml"
-  when:   
+  when:
     - node_tier == "oracle"
     - action == 0
 
 - name:            "Prepare and Restore"
   block:
     - include_tasks: "ora-dg-prep.yaml"
-      
+
     - include_tasks: "ora-dg-setup-primary.yaml"
-      when:   
+      when:
         - current_host == ora_primary
-    
+
     - include_tasks: "ora-dg-setup-secondary.yaml"
-      when:   
+      when:
         - current_host == ora_secondary
-  when: 
+  when:
     - action == 1
     - node_tier == "oracle"
     - node_tier != "observer"
 
 - include_tasks: "ora-dg-postprocessing.yaml"
-  when:   
+  when:
     - node_tier == "oracle"
     - node_tier != "observer"
     - action       == 2
@@ -50,12 +50,12 @@
 
 # FSFO is enabled from the Observer.
 - include_tasks: "ora-dg-observer-setup.yaml"
-  when:   
+  when:
     - node_tier == "observer"
     - action    == 3
 
 
- 
+
 
 ...
 # /*---------------------------------------------------------------------------8

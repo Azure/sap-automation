@@ -23,14 +23,14 @@
 
 - name:                                Create lsnrctl_started_sec.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
     state:                             touch
     mode:                              0755
   #when:                                current_host == ora_primary
 
-- name:                                " STARTUP DG Broker on PRIMARY " 
+- name:                                " STARTUP DG Broker on PRIMARY "
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
@@ -44,7 +44,7 @@
 
 - name:                                Create enabledgbroker.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
     state:                             touch
@@ -52,7 +52,7 @@
   #when:                                current_host == ora_primary
 
 
-- name:                                " DGMGRL CREATE CONFIG ON PRIMARY " 
+- name:                                " DGMGRL CREATE CONFIG ON PRIMARY "
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl / as sysdba @dgconfig.dgmgrl  | tee /etc/sap_deployment_automation/dgscripts/dgcreate.log
@@ -66,14 +66,14 @@
 
 - name:                                Create dgconfig.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/dgconfig.txt
     state:                             touch
     mode:                              0755
  # when:                                current_host == ora_primary
 
-- name:                                " DGMGRL ENABLE Configuration " 
+- name:                                " DGMGRL ENABLE Configuration "
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl / as sysdba "ENABLE CONFIGURATION"  | tee /etc/sap_deployment_automation/dgscripts/dgenable.log
@@ -87,7 +87,7 @@
 
 - name:                                Create dgenable.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/dgenable.txt
     state:                             touch
