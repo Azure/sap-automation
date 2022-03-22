@@ -139,6 +139,7 @@
             scs_high_availability:     "{{ scs_high_availability }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            always_upload_jinja_templates: false
           tags:
             - always
 
@@ -239,6 +240,7 @@
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             scs_virtual_hostname:      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
             ecs_virtual_hostname:      "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+            always_upload_jinja_templates: false
           tags:
             - always
         - block:
