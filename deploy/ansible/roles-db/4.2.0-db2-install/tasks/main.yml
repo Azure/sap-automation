@@ -14,30 +14,30 @@
 ---
 
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
-- name:                                  "SAP DB2 Install: Set BOM facts"  
+- name:                                "SAP DB2 Install: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                        "{{ bom_base_name }}-db2-{{ ansible_hostname }}.params"
-    sap_inifile_template:        "{{ bom_base_name }}-db2-inifile-param.j2"
+    sap_inifile:                       "{{ bom_base_name }}-db2-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-db2-inifile-param.j2"
 
-- name:                                  "SAP DB2: Create run flag directory"
+- name:                                "SAP DB2: Create run flag directory"
   ansible.builtin.file:
-    path:                                   /etc/sap_deployment_automation
-    state:                                  directory
-    mode:                                 0755
+    path:                              /etc/sap_deployment_automation
+    state:                             directory
+    mode:                              0755
 
-- name:                                   "SAP DB2: Install reset"
+- name:                                "SAP DB2: Install reset"
   ansible.builtin.file:
-    path:                                   /etc/sap_deployment_automation/sap_deployment_db2.txt
-    state:                                  absent
-  when:                                   reinstall
+    path:                              /etc/sap_deployment_automation/sap_deployment_db2.txt
+    state:                             absent
+  when:                                reinstall
 
-- name:                                  "SAP DB2: check if installed"
+- name:                                "SAP DB2: check if installed"
   ansible.builtin.stat:
-    path:                                  /etc/sap_deployment_automation/sap_deployment_db2.txt
-  register:                               DB2_installed
-  when:                                  node_tier == 'db2'
+    path:                              /etc/sap_deployment_automation/sap_deployment_db2.txt
+  register:                            DB2_installed
+  when:                                node_tier == 'db2'
 
-- name:                                  "DB2 Install"
+- name:                                "DB2 Install"
   block:
     - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
@@ -51,19 +51,20 @@
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
       vars:
-        db2_cd_package_exportcd:      /usr/sap/install/sapdb2_software/DATA_UNITS
-        db2_cd_package_db2client:     /usr/sap/install/sapdb2_client/DB2_Linux_x86_client
-        db2_cd_package_software:      /usr/sap/install/sapdb2_software/DB2_Linux_X86_Software/LINUXX86_64
-        db2_cd_package_kernel:          /usr/sap/install/sapdb2_software/
-        sap_db_hostname:                    "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+        db2_archive_path:              /usr/sap/install/sapdb2_software
+        db2_cd_package_exportcd:       "{{ db2_archive_path }}/erpexports"
+        db2_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
+        db2_cd_package_software:       "{{ db2_archive_path }}/db2server/LINUXX86_64"
+        db2_cd_package_kernel:         /usr/sap/install/download_basket/
+        sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
         db2_encryption_algo_type:      "AES"
         db2_ase_encryption_length:     "256"
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
-        db2_sslencryption_label:           "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
+        db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
       tags:
         - skip_ansible_lint
 # +------------------------------------4--------------------------------------*/
-    
+
     - name:                            "SAP DB2 install: variables"
       ansible.builtin.debug:
         msg:
@@ -72,7 +73,7 @@
         verbosity:                     2
 # *====================================4=======================================8
 #   SAP DB2: Install
-# 2230669 - System Provisioning Using a Parameter Input File
+#   2230669 - System Provisioning Using a Parameter Input File
 #
 
     - name:                            "SAP DB2 Install"
@@ -87,8 +88,8 @@
         creates:                       /etc/sap_deployment_automation/sap_deployment_db2.txt
       environment:
         TMPDIR:                        /usr/sap/install
-      register:                            db2_installation
-      failed_when:                    db2_installation.rc > 0
+      register:                        db2_installation
+      failed_when:                     db2_installation.rc > 0
       tags:
         - skip_ansible_lint
 

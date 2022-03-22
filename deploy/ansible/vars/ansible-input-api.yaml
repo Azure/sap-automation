@@ -6,11 +6,8 @@
 chrony_pool:                  ""
 chrony_servers:               []
 timezone:                     "Etc/GMT"
-<<<<<<< HEAD
 # -------------------- End - OS Config Settings variables --------------------8
 
-=======
->>>>>>> 823d7f47cda779f1ecbc8ecd99bb20db2e728654
 
 # --------------------- Begin - BOM Processing variables ---------------------8
 # BoM Processing variables
@@ -21,12 +18,6 @@ check_storage_account:        true
 # ---------------------- End - BOM Processing variables ----------------------8
 
 always_upload_jinja_templates: true
-
-
-
-always_upload_jinja_templates: true
-
-
 
 # SAP Configuration for templates and install
 aas_hostname:                 ""
@@ -48,11 +39,12 @@ sapinst_gid:                  2001
 sapsys_gid:                   2000
 
 # DB2 specific parameters
-db2_sid:                      "DB6"
-db2sysadm_gid:                    3000
-db2sysctrl_gid:                   3001
-db2sysmaint_gid:                  3002
-db2sysmon_gid :                   3003
+# db2_sid:                      "DB6"
+db2sysadm_gid:                3000
+db2sysctrl_gid:               3001
+db2sysmaint_gid:              3002
+db2sysmon_gid :               3003
+db2sidadm_uid:                3000
 
 
 # Oracle specific parameters

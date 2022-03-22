@@ -4,37 +4,32 @@
 #                                                                                                                                                                                                                                                      #
 ########################################################################################################################################################################################################################################################
 
-NW_Unpack.sapExeDbSar = /usr/sap/install/download_basket/SAPEXEDB_900-80002603.SAR
-NW_Unpack.sapExeSar = /usr/sap/install/download_basket/SAPEXE_900-80002573.SAR
-archives.downloadBasket = /usr/sap/install/download_basket
-SAPINST.CD.PACKAGE.CD1                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP1
+NW_Unpack.sapExeDbSar                                                = {{ db2_cd_package_kernel }}/SAPEXEDB_900-80002603.SAR
+NW_Unpack.sapExeSar                                                  = {{ db2_cd_package_kernel }}/SAPEXE_900-80002573.SAR
+archives.downloadBasket                                              = {{ db2_archive_path }}
+SAPINST.CD.PACKAGE.CD1                                               = {{ db2_cd_package_exportcd }}
 
-NW_ABAP_Import_Dialog.dbCodepage = 4103
+NW_ABAP_Import_Dialog.dbCodepage                                     = 4103
+NW_ABAP_Import_Dialog.migmonJobNum                                   = 20
+NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast LOAD:COMPRESS_ALL:DEF_CRT
 
-NW_ABAP_Import_Dialog.migmonJobNum = 10
+NW_DB6_DB.db6.abap.connect.user                                      = sap{{ sap_sid|lower }}
+NW_DB6_DB.db6.abap.schema                                            = sap{{ sap_sid|lower }}
 
-NW_ABAP_Import_Dialog.migmonLoadArgs = -stop_on_error -loadprocedure fast LOAD:COMPRESS_ALL:DEF_CRT
 
-NW_DB6_DB.db6.abap.connect.user = sap{{ sap_sid|lower }}
+NW_GetMasterPassword.masterPwd                         = {{ main_password }}
+NW_GetSidNoProfiles.sapdrive                           = undefined
+NW_GetSidNoProfiles.sid                                = {{ sap_sid|upper }}
 
-NW_DB6_DB.db6.abap.schema = sap{{ sap_sid|lower }}
+NW_getDBInfoGeneric.dbhost                             = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                              = {{ db_sid|upper }}
 
-db6.DB2SoftwarePath = /db2/db2{{ db_sid|lower }}/db2_software
-
-NW_GetMasterPassword.masterPwd = {{ main_password }}
-NW_GetSidNoProfiles.sapdrive = undefined
-NW_GetSidNoProfiles.sid = {{ sap_sid|upper }}
-
-NW_getDBInfoGeneric.dbhost = {{ sap_db_hostname }}
-
-NW_getDBInfoGeneric.dbsid = {{ db_sid|upper }}
-
-NW_getFQDN.FQDN = {{ sap_fqdn }}
-
-NW_getLoadType.loadType = SAP
+NW_getFQDN.FQDN                                        = {{ sap_fqdn }}
+NW_getLoadType.loadType                                = SAP
 
 NW_readProfileDir.profilesAvailable = false
 
+db6.DB2SoftwarePath                                    = /db2/db2{{ db_sid|lower }}/db2_software
 # Calaculate the memory it should be 80% of total avaialble memory
 db6.DatabaseMemory = 42980
 

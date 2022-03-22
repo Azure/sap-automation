@@ -348,16 +348,14 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 - hosts:                               "{{ sap_sid|upper }}_DB"
-  name:                                DB Installation - SAP DB2
+  name:                                "DB Installation - SAP DB2"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "tbd" #check the user required for installation
+  become_user:                         root
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -365,7 +363,6 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-
     - name:                            "Install SAP DB2"
       block:
 
@@ -385,7 +382,10 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.2.0-db2-install
           when:                        platform == 'DB2'
+      
       when:                            platform == 'DB2'
+
+# add platform in sap-parameters.yaml to execute tasks for DB2, ORACLE, MSSQL, SYBASE
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
