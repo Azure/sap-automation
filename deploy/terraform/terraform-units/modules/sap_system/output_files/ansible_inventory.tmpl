@@ -79,3 +79,17 @@ ${sid}_WEB:
   vars:
     node_tier             : web
     supported_tiers       : [web]
+
+${sid}_OBSERVER_DB:
+  hosts:
+%{~ for idx,ip_observer in ips_observers }
+    ${observers[idx]}:
+      ansible_host        : ${ip_observer}
+      ansible_user        : ${ansible_user}
+      ansible_connection  : ${dbconnection} 
+      connection_type     : ${dbconnectiontype} 
+
+%{~ endfor }
+  vars:
+    node_tier             : observer
+    supported_tiers       : [observer]
