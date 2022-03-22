@@ -92,7 +92,7 @@ resource "azurerm_key_vault" "kv_user" {
       )) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.deployer_subnet_mgmt_id] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? [local.deployer_subnet_management_id] : []
   }
 
 }

@@ -245,5 +245,6 @@ module "output_files" {
   tfstate_resource_id   = var.tfstate_resource_id
   install_path          = module.common_infrastructure.install_path
   NFS_provider          = var.NFS_provider
-
+  observer_ips          = module.anydb_node.observer_ips
+  observer_vms          = module.anydb_node.observer_vms
 }
