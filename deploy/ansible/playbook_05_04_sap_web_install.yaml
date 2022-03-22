@@ -63,7 +63,7 @@
   name:                                SAP Installation - WebDispatcher
   become:                              true
   remote_user:                         "{{ orchestration_ansible_user }}"
-  serial:                              1                                       # /usr/sap/install is an NFS and we share SID/instance number
+  serial:                              1                                       # "{{ target_media_location }} is an NFS and we share SID/instance number
   become_user:                         root
   gather_facts:                        true
 
@@ -82,6 +82,8 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        always_upload_jinja_templates: false
+
       tags:
         - always
 

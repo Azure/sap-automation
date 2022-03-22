@@ -14,37 +14,33 @@
     owner:                             oracle
     group:                             oinstall
 
-
-
-- name:              "Make oracle:oinstall as owners"          
-  become:             true
-  become_user:    root
+- name:                                "Make oracle:oinstall as owners"          
+  become:                              true
+  become_user:                         root
   ansible.builtin.shell: | 
                       chown -R oracle:oinstall /oracle                      
   args:
-    creates:          /etc/sap_deployment_automation/oracleowner.txt
-
-
+    creates:                           /etc/sap_deployment_automation/oracleowner.txt
 
 - name:                                Create shareddbinstalled.txt
-  become:         true
-  become_user:    root
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracleowner.txt
     state:                             touch
     mode:                              0755
 
-- name:              "Permissions for installation folders"          
+- name:                                "Permissions for installation folders"          
   become:                              true
-  become_user:    root
+  become_user:                         root
   ansible.builtin.shell: | 
-                      chmod -R 777 /usr/sap/install/                    
+                      chmod -R 777 {{ target_media_location }}
   args:
-    creates:          /etc/sap_deployment_automation/installfolderperm.txt
+    creates:                           /etc/sap_deployment_automation/installfolderperm.txt
 
 - name:                                Create installfolderperm.txt
   become:                              true
-  become_user:    root
+  become_user:                         root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/installfolderperm.txt
     state:                             touch
@@ -60,9 +56,9 @@
 # | Step 1 run the Installation for Shared RDBMS                                      |
 # +------------------------------------4--------------------------------------*/
 
-- name:               "Install IHRDBMS - Database executables"
+- name:                                "Install IHRDBMS - Database executables"
   become:                              true
-  become_user:    oracle
+  become_user:                         oracle
   ansible.builtin.shell: |
                       set -o errexit
                       ./RUNINSTALLER -shared -create_link no -orabasetab no -silent |tee /etc/sap_deployment_automation/rdbms.log
@@ -73,7 +69,7 @@
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh        
-    chdir:                            "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
+    chdir:                            "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                          /etc/sap_deployment_automation/shareddbinstalled.txt
   tags:
     - skip_ansible_lint
@@ -85,16 +81,16 @@
     mode:                              0755
 
 #Debug for testing
-- name:                           "installer prechecks ouput"
+- name:                                "installer prechecks ouput"
   debug:
-    var:                           orainstall_results
+    var:                               orainstall_results
 
 
 #STEP2 RUN THE INSTALLATION - EXECUTE per SID.
 
-- name:               "Execute RUNINSTALLER"
+- name:                                "Execute RUNINSTALLER"
   become:                              true
-  become_user:    oracle
+  become_user:                         oracle
   ansible.builtin.shell: |
                       set -o errexit
                       ./RUNINSTALLER -shared -ohsapcfg |tee -a /etc/sap_deployment_automation/"{{ item.sid }}"_install.log
@@ -105,11 +101,11 @@
     CV_ASSUME_DISTID:                  OL7
   loop:    "{{ MULTI_SIDS }}"
   args:
-    executable:       /bin/csh        
-    chdir:            "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
-    creates:          /etc/sap_deployment_automation/oracleinstall.txt
+    executable:                        /bin/csh        
+    chdir:                             "{{ target_media_location }}_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:                           /etc/sap_deployment_automation/oracleinstall.txt
 
-- name:            "create after a sucessfull install"
+- name:                                "create after a sucessfull install"
   ansible.builtin.shell: |                    
                       touch /etc/sap_deployment_automation/oracleinstall.txt
 
@@ -170,7 +166,7 @@
 
 - name:                                Find MOPatch
   ansible.builtin.find:
-    paths:                             /usr/sap/install/SBP/SAPSBP
+    paths:                             "{{ target_media_location }}/SBP/SAPSBP"
     patterns:                          ["MOPatch"]
     file_type:                         directory
     recurse:                           true
@@ -211,7 +207,7 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.copy:
-    src:                               /usr/sap/install/SBP/OPATCH/OPatch
+    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
     dest:                              /oracle/RDBMS/{{ ora_version }}
     remote_src:                        true
     mode:                              0777
@@ -229,7 +225,7 @@
 - name:                                "Oracle Post Processing - SBP Patching"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/{{ oracle_sbp_patch }} |tee -a /etc/sap_deployment_automation/sbp.log
+  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s "{{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee -a /etc/sap_deployment_automation/sbp.log
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -240,7 +236,7 @@
   failed_when:                         sbpscript_results.rc >= 2
   args:
     creates:                           /etc/sap_deployment_automation/sbpinstalled.txt
-    chdir:                             /usr/sap/install/SBP/
+    chdir:                             "{{ target_media_location }}/SBP"
     executable:                        /bin/csh
 
 - name:                                "Post processing installer output"

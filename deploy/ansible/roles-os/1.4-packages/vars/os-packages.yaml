@@ -118,7 +118,6 @@ packages:
     - { tier: 'os',    package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'numad',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'unrar',                                        node_tier: 'all',     state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
@@ -142,8 +141,6 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-selinux',                              node_tier: 'hana',    state: 'present' }
-
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
   redhat8.1:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
@@ -160,7 +157,7 @@ packages:
     - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'libyui-qt-pkg7',                               node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'numad',                                        node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'ntp',                                          node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'ntp',                                          node_tier: 'all',     state: 'absent' }
     - { tier: 'os',    package: 'systemd',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tuned',                                        node_tier: 'all',     state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
@@ -200,7 +197,7 @@ packages:
     - { tier: 'os',    package: 'systemd',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tuned',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'numad',                                        node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'ntp',                                          node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'ntp',                                          node_tier: 'all',     state: 'absent' }
     - { tier: 'os',    package: 'unrar',                                        node_tier: 'all',     state: 'present' }
     # TODO(rtamalin): Ensure SLE 15 SP2 uses /usr/bin/python3 rather
     # than /usr/bin/python.

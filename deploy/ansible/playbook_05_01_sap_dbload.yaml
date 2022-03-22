@@ -167,6 +167,7 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            always_upload_jinja_templates: false
           tags:
             - always
 
@@ -177,7 +178,7 @@
         
         - name:                        Include 5.1.1-dbload role
           ansible.builtin.include_role:
-            name:                      roles-sap/5.1.1-dbload-msid
+            name:                      roles-sap/5.1.1-multi-sid-dbload
           when:                        
             - MULTI_SIDS is defined
             - node_tier == 'oracle-multi-sid'

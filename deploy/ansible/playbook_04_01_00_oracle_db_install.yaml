@@ -137,12 +137,14 @@
       ansible.builtin.set_fact:
         tier:                          ora                                    # Actions for Oracle DB Servers
         main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       tags:
         - always
 
     - name:                            Installing Oracle
       ansible.builtin.include_role:
-        name:                          roles-db/4.1.3-ora-msid
+        name:                          roles-db/4.1.3-ora-multi-sid
       when:                        
             - MULTI_SIDS is defined
             - node_tier == 'oracle-multi-sid'

@@ -1,11 +1,11 @@
 ---
 
-- name: Gather Logical volumes created in 1.5.2-disk-setup-ora-msid
+- name: Gather Logical volumes created in 1.5.2-disk-setup-ora-multi-sid
   include_vars: disks_config_ora_msid.yml
 
 - name: Load logical volumes
   set_fact: 
-    logical_volume_groups: "{{ lookup ('template', 'roles-os/1.5.2-disk-setup-ora-msid/templates/logical_volume_group.j2') }}"
+    logical_volume_groups: "{{ lookup ('template', 'roles-os/1.5.2-disk-setup-ora-multi-sid/templates/logical_volume_group.j2') }}"
 
 # - debug:
 #     var:    "{{ lv_groups }}"
@@ -85,7 +85,7 @@
     nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   loop:
     - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/usr/sap/install',               path: '/usr/sap/install' }                # Special Install Structure; Destroy on Completion
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',               path: '{{ target_media_location }}' }                # Special Install Structure; Destroy on Completion
   when:         
                 item.tier == "sapos" or 
                 item.tier == "ora"
