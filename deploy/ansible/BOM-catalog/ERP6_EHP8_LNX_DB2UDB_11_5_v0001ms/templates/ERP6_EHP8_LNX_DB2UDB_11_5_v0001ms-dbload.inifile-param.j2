@@ -17,62 +17,44 @@ NW_DB6_DB.db6.abap.connect.user                                      = sap{{ sap
 NW_DB6_DB.db6.abap.schema                                            = sap{{ sap_sid|lower }}
 
 
-NW_GetMasterPassword.masterPwd                         = {{ main_password }}
-NW_GetSidNoProfiles.sapdrive                           = undefined
-NW_GetSidNoProfiles.sid                                = {{ sap_sid|upper }}
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
+NW_GetSidNoProfiles.sapdrive                                         = undefined
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid|upper }}
 
-NW_getDBInfoGeneric.dbhost                             = {{ sap_db_hostname }}
-NW_getDBInfoGeneric.dbsid                              = {{ db_sid|upper }}
+NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                            = {{ db_sid|upper }}
 
-NW_getFQDN.FQDN                                        = {{ sap_fqdn }}
-NW_getLoadType.loadType                                = SAP
+NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
+NW_getLoadType.loadType                                              = SAP
 
-NW_readProfileDir.profilesAvailable = false
+NW_readProfileDir.profilesAvailable                                  = false
 
-db6.DB2SoftwarePath                                    = /db2/db2{{ db_sid|lower }}/db2_software
+db6.DB2SoftwarePath                                                  = /db2/db2{{ db_sid|lower }}/db2_software
 # Calaculate the memory it should be 80% of total avaialble memory
-db6.DatabaseMemory = 42980
-
-db6.TablespacePoolSizes = SAPSID#DATA{20}
-
-db6.UseStandardTablespacePool = true
-
-db6.cluster.ClusterType = HADR (High Availability Disaster Recovery)
-
-db6.createTablespacesUsingSapinst = true
-
-db6.gid_sysadm = {{ db2sysadm_gid }}
-
-db6.gid_sysctrl = {{ db2sysctrl_gid }}
-
-db6.gid_sysmaint = {{ db2sysmaint_gid }}
-
-db6.gid_sysmon = {{ db2sysmon_gid }}
-
-db6.minimizeDatabaseSizeCompression = true
-
-db6.numPathsForSapdatas = 4
-
-db6.numPathsForSaptmps = 4
-
-db6.useAutoStorage = true
-
-db6.useExtraSapdataSaptmpDirLayout = false
-
-nwUsers.db6.db2sidPassword = {{ main_password }}
-nwUsers.db6.db2sidUid = 3000
-nwUsers.db6.sapsidPassword = {{ main_password }}
-
-nwUsers.db6.sapsidUid = {{ db2sapsid_uid }}
+db6.DatabaseMemory                                                   = 42980
+db6.TablespacePoolSizes                                              = SAPSID#DATA{20}
+db6.UseStandardTablespacePool                                        = true
+db6.cluster.ClusterType                                              = HADR (High Availability Disaster Recovery)
+db6.createTablespacesUsingSapinst                                    = true
+db6.gid_sysadm                                                       = {{ db2sysadm_gid }}
+db6.gid_sysctrl                                                      = {{ db2sysctrl_gid }}
+db6.gid_sysmaint                                                     = {{ db2sysmaint_gid }}
+db6.gid_sysmon                                                       = {{ db2sysmon_gid }}
+db6.minimizeDatabaseSizeCompression                                  = true
+db6.numPathsForSapdatas                                              = 4
+db6.numPathsForSaptmps                                               = 4
+db6.useAutoStorage                                                   = true
+db6.useExtraSapdataSaptmpDirLayout                                   = false
+nwUsers.db6.db2sidPassword                                           = {{ main_password }}
+nwUsers.db6.db2sidUid                                                = {{ db2sidadm_uid }}
+nwUsers.db6.sapsidPassword                                           = {{ main_password }}
+nwUsers.db6.sapsidUid                                                = {{ db2sapsid_uid }}
 
 nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
 nwUsers.sidAdmUID                                                    = {{ sidadm_uid }}
+nwUsers.sidadmPassword                                               = {{ main_password }}
 
-nwUsers.sidadmPassword = {{ main_password }}
-
-storageBasedCopy.db6.CommunicationPortNumber = 63518
-
-storageBasedCopy.db6.PortRangeEnd = 63525
-
-storageBasedCopy.db6.PortRangeStart = 63519
+storageBasedCopy.db6.CommunicationPortNumber                         = 63518
+storageBasedCopy.db6.PortRangeEnd                                    = 63525
+storageBasedCopy.db6.PortRangeStart                                  = 63519
