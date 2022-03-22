@@ -45,6 +45,7 @@
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "ERS Install: "
+    always_upload_jinja_templates:     false
     bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
@@ -89,7 +90,7 @@
     - name:                            "ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower }}adm" 
+        owner:                         "{{ sap_sid | lower }}adm"
         group:                         sapsys
         recurse:                       true
         state:                         directory
@@ -108,7 +109,7 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "SCS HA Installation"
+    - name:                            "ERS HA Installation"
       block:
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
@@ -190,14 +191,14 @@
 
 - name:                                "ERS Install status"
   block:
-    
+
     - name:                            "ERS Install status"
       ansible.builtin.debug:
         msg:                           "ERS is already installed"
-    
+
     - name:                            "ERS: - return value"
       ansible.builtin.set_fact:
-        ers_already_installed:         true     
+        ers_already_installed:         true
   when:
     - "'ers' in supported_tiers"
     -  ers_installed.stat.exists
