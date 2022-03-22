@@ -52,6 +52,7 @@
   ansible.builtin.set_fact:
     packages_for_tier:                 "{{ packages[distribution_id]  |
                                           selectattr('tier', 'in', ['all', tier]) |
+                                          selectattr('node_tier', 'in', ['all', node_tier]) |
                                           list }}"
 
 # Analyse the package list for this distribution selecting only those
