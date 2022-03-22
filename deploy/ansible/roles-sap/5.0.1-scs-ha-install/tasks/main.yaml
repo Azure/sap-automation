@@ -146,6 +146,7 @@
             - directory
           when:
             - node_tier == 'scs'
+            - find_sys_exe_uc_result is defined
             - find_sys_exe_uc_result.examined != 0
 
         - name:                        "RESCUE - SCS HA Install: - SCS - Assign ownership"
