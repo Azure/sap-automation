@@ -114,6 +114,8 @@
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
+        always_upload_jinja_templates: false
+
 
     - block:
         - name:                        Include 2.6-sap-mounts role
@@ -130,7 +132,7 @@
         
         - name:                        Include 5.3-app-install for multi-sid
           ansible.builtin.include_role:
-            name:                      roles-sap/5.3.1-app-msid-install
+            name:                      roles-sap/5.3.1-app-multi-sid-install
           when:                        MULTI_SIDS is defined
 
         - name:                        "APP Installation Playbook: - Create app-install-done flag"

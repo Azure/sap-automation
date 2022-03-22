@@ -127,6 +127,7 @@
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
+        always_upload_jinja_templates: false
       tags:
         - always
 
@@ -166,7 +167,7 @@
 
             - name:                    "PAS Installation Playbook: - for MULTI-SID Deployment"
               ansible.builtin.include_role:
-                name:                  roles-sap/5.2.1-pas-msid-install
+                name:                  roles-sap/5.2.1-pas-multi-sid-install
               when:       MULTI_SIDS is defined
 
             - name:                    "PAS Installation Playbook: - Create pas-install-done flag"

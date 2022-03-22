@@ -18,7 +18,7 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       loop:
-        - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '/usr/sap/install' }
+        - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
       when:
         - tier == 'sapos'
   rescue:
@@ -33,7 +33,7 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       loop:
-        - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '/usr/sap/install' }
+        - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
       when:
         - tier == 'sapos'
   when: usr_sap_install_mountpoint is defined 
@@ -49,6 +49,7 @@
             path:                      "/saptmp"
             state:                     directory
             group:                     sapsys
+            mode:                      0755
 
   # Mount Filesystem on AFS
   # This is needed so that we can create the correct directory
@@ -109,6 +110,7 @@
             path:                      "/saptrans"
             state:                     directory
             group:                     sapsys
+            mode:                      0755
 
 # Mount Filesystem on AFS
 # This is needed so that we can create the correct directory

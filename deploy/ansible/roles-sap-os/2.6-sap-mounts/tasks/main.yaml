@@ -65,7 +65,7 @@
 
 - name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
   ansible.builtin.set_fact:
-    usr_sap_install_mount_point:        "{% if NFS_provider == 'AFS' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:/usr/sap/install{% endif %}"
+    usr_sap_install_mount_point:        "{% if NFS_provider == 'AFS' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
 
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
@@ -122,24 +122,17 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '/usr/sap/install' }
+    - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '{{ target_media_location }}' }
   when:
     - item.node_tier in supported_tiers
     - not use_AFS
 
 
-- name:                                Show NFS_provider
+- name:                                Show NFS details
   ansible.builtin.debug:
-    var:                               NFS_provider
-
-- name:                                Show usr_sap_install_path
-  ansible.builtin.debug:
-    var:                               usr_sap_install_path
-
-- name:                                Show usr_sap_install_path
-  ansible.builtin.debug:
-    var:                               use_AFS
-
+    msg:                               
+      - "NFS_provider: {{ NFS_provider }}"
+      - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
@@ -176,7 +169,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'oracle']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -195,7 +188,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers']
+        - node_tier in ['pas', 'app', 'ers', 'oracle']]
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -208,7 +201,7 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_mount_point }}', path: '/usr/sap/install' }
+    - { type: 'nfs4', src: '{{ usr_sap_install_mount_point }}', path: '{{ target_media_location }}' }
   when:
     - tier == 'sapos'
     - node_tier != 'scs'
@@ -250,7 +243,6 @@
 - import_tasks:                        "oracle.yaml"
   when:
     - node_tier == "oracle"
-    - node_tier != "oracle-asm"
 
 - import_tasks:                        "oracle-multi-sid.yaml"
   when: 
