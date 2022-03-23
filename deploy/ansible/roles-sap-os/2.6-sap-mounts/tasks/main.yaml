@@ -84,6 +84,7 @@
     state:                             mounted
   loop:
     - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
+    - { node_tier: 'sybase',  type: 'xfs',   src: '/dev/vg_sybase_system/lv_sybase_system',                 path: '/sybase/{{ db_sid|upper }}'         }
   when:
     - (item.node_tier == "all" or item.node_tier == node_tier)
     - not scs_high_availability
@@ -169,7 +170,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'sybase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -188,7 +189,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']]
+        - node_tier in ['pas', 'app', 'ers', 'sybase', 'oracle']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -249,5 +250,9 @@
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
 
+# Import this task only if the tier is Sybase.
+- import_tasks:                        "2.6.5-sybase-mounts.yaml"
+  when:
+    - node_tier == 'sybase'
 ...
 

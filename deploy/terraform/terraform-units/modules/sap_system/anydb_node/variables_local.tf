@@ -163,10 +163,10 @@ locals {
   anydb_dual_nics = try(local.anydb.dual_nics, false)
 
   // Filter the list of databases to only AnyDB platform entries
-  // Supported databases: Oracle, DB2, SQLServer, ASE 
+  // Supported databases: Oracle, DB2, SQLServer, SYBASE 
   anydb_databases = [
     for database in var.databases : database
-    if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(database.platform, "NONE")))
+    if contains(["ORACLE", "DB2", "SQLSERVER", "SYBASE"], upper(try(database.platform, "NONE")))
   ]
 
   enable_deployment = (length(local.anydb_databases) > 0) ? true : false
@@ -273,7 +273,7 @@ locals {
 
   // Ports used for specific DB Versions
   lb_ports = {
-    "ASE" = [
+    "SYBASE" = [
       "1433"
     ]
     "ORACLE" = [
@@ -330,7 +330,7 @@ locals {
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
-          write_accelerator_enabled = storage_type.write_accelerator
+          write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
@@ -350,7 +350,7 @@ locals {
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
-          write_accelerator_enabled = storage_type.write_accelerator
+          write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
