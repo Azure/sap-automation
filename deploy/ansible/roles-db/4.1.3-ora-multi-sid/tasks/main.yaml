@@ -225,13 +225,13 @@
 - name:                                "Oracle Post Processing - SBP Patching"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s "{{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee -a /etc/sap_deployment_automation/sbp.log
+  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee -a /etc/sap_deployment_automation/sbp.log
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
-    IHRDBMS:                           "/oracle/RDBMS/{{ ora_version }}"
-    ORACLE_HOME:                       "/oracle/RDBMS/{{ ora_version }}"
-    RDBMS:                             "/oracle/RDBMS/{{ ora_version }}"
+    IHRDBMS:                           /oracle/RDBMS/{{ ora_version }}
+    ORACLE_HOME:                       /oracle/RDBMS/{{ ora_version }}
+    RDBMS:                             /oracle/RDBMS/{{ ora_version }}
   register:                            sbpscript_results
   failed_when:                         sbpscript_results.rc >= 2
   args:
