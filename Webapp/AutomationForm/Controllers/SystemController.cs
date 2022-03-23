@@ -49,7 +49,7 @@ namespace AutomationForm.Controllers
         public async Task<IActionResult> Index()
         {
             ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
-            return View(await _systemService.GetNAsync(10));
+            return View(await _systemService.GetNAsync(100));
         }
 
         [HttpGet]

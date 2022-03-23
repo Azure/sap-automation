@@ -55,7 +55,7 @@ namespace AutomationForm.Controllers
         public async Task<IActionResult> Index()
         {
             ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
-            return View(await _landscapeService.GetNAsync(10));
+            return View(await _landscapeService.GetNAsync(100));
         }
 
         [HttpGet]

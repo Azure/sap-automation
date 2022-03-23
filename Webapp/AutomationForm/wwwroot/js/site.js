@@ -22,6 +22,110 @@ var azureResourceIds = [
     "iscsi_subnet_nsg_arm_id",
     "anf_subnet_nsg_arm_id"
 ];
+var hanadb_sizes = [
+    {
+        "text": "Default",
+        "value": "Default"
+    },
+    {
+        "text": "S4DEMO",
+        "value": "S4DEMO"
+    },
+    {
+        "text": "M32ts",
+        "value": "M32ts"
+    },
+    {
+        "text": "M32ls",
+        "value": "M32ls"
+    },
+    {
+        "text": "M64ls",
+        "value": "M64ls"
+    },
+    {
+        "text": "M64s",
+        "value": "M64s"
+    },
+    {
+        "text": "M64ms",
+        "value": "M64ms"
+    },
+    {
+        "text": "M128s",
+        "value": "M128s"
+    },
+    {
+        "text": "M128ms",
+        "value": "M128ms"
+    },
+    {
+        "text": "M208s_v2",
+        "value": "M208s_v2"
+    },
+    {
+        "text": "M208ms_v2",
+        "value": "M208ms_v2"
+    },
+    {
+        "text": "M416s_v2",
+        "value": "M416s_v2"
+    },
+    {
+        "text": "M416ms_v2",
+        "value": "M416ms_v2"
+    }
+];
+var anydb_sizes = [
+    {
+        "text": "Default",
+        "value": "Default"
+    },
+    {
+        "text": "200 GB",
+        "value": "200"
+    },
+    {
+        "text": "500 GB",
+        "value": "500"
+    },
+    {
+        "text": "1 TB",
+        "value": "1024"
+    },
+    {
+        "text": "2 TB",
+        "value": "2048"
+    },
+    {
+        "text": "5 TB",
+        "value": "5120"
+    },
+    {
+        "text": "10 TB",
+        "value": "10240"
+    },
+    {
+        "text": "15 TB",
+        "value": "15360"
+    },
+    {
+        "text": "20 TB",
+        "value": "20480"
+    },
+    {
+        "text": "30 TB",
+        "value": "30720"
+    },
+    {
+        "text": "40 TB",
+        "value": "40960"
+    },
+    {
+        "text": "50 TB",
+        "value": "51200"
+    }
+];
 
 // initializes the model variable representing a system or landscape
 function createModel(object) {
@@ -242,6 +346,22 @@ $("#workload_zone").on("change", function () {
     }
 });
 
+$("#database_platform").on("change", function () {
+    var platform = $(this).val();
+    if (platform == "" || platform == "NONE") {
+        $("#database_size").val(null);
+        $("#database_size").empty();
+    }
+    else if (platform == "HANA") {
+        $("#database_size").empty();
+        populateAzureDropdownData("database_size", hanadb_sizes);
+    }
+    else {
+        $("#database_size").empty();
+        populateAzureDropdownData("database_size", anydb_sizes);
+    }
+});
+
 // ========================
 // TOGGLE DISABLE FUNCTIONS
 // ========================
@@ -304,8 +424,18 @@ function filterResults(searchText) {
     }
     else {
         $(".grouping").hide();
-        $(".grouping").has("label[for*='" + searchText + "']").show();
         $(".ms-TextField").hide();
-        $(".ms-TextField").has("label[for*='" + searchText + "']").show();
+
+        var matchingHeaders = $(".grouping").has("h2:Contains(" + searchText + ")");
+        matchingHeaders.show();
+        matchingHeaders.find($(".ms-TextField")).show();
+
+        $(".grouping").has("label:Contains(" + searchText + ")").show();
+        $(".ms-TextField").has("label:Contains(" + searchText + ")").show();
     }
+};
+
+// Case insensitive contains
+jQuery.expr[':'].Contains = function (a, i, m) {
+    return jQuery(a).text().toUpperCase().indexOf(m[3].toUpperCase()) >= 0;
 };
