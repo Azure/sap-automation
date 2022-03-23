@@ -1,0 +1,76 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Mount Filesystems
+
+- name:                                "Sybase ASE: Gather Logical volumes created in 1.5"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                Set the NFS Server name list
+  ansible.builtin.set_fact:
+    nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
+- name:                                Set the NFS Server name
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ nfs_server_temp | first }}"
+  when:                                NFS_provider == "NONE"
+
+- name:                                "Sybase ASE: Check if LVs exists."
+  ansible.builtin.stat:
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{ logical_volumes }}"
+  register:                            asevgstat
+
+- name:                                "Sybase ASE: Show asevgstat"
+  ansible.builtin.debug:
+    var:                               asevgstat
+    verbosity:                         2
+
+- name:                                "Sybase ASE: Gather existing LVs" 
+  set_fact:
+    lvexists:                          "{{ asevgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}" 
+
+- name:                                "Sybase ASE: Show lvexists"
+  ansible.builtin.debug:
+    var:                               lvexists
+    verbosity:                         2
+
+# Mount Filesystems
+- name:                                "2.6 Sybase Mounts: - Mount local sap file systems"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_system/lv_sybase_system',          path: '/sybase/{{ db_sid|upper }}'         }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdata/lv_sybase_sapdata',        path: '/sybase/{{ db_sid|upper }}/sapdata_1'       }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_saplog/lv_sybase_saplog',          path: '/sybase/{{ db_sid|upper }}/saplog_1'        }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_backup/lv_sybase_backup',          path: '/sybase/{{ db_sid|upper }}/backup'     }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_saptemp/lv_sybase_saptemp',        path: '/sybase/{{ db_sid|upper }}/saptemp'        }
+    - { node_tier: 'sybase', type: 'xfs',   src: '/dev/vg_sybase_sapdiag/lv_sybase_sapdiag',        path: '/sybase/{{ db_sid|upper }}/sapdiag'     }
+  register:  sybase_filesystem_mounts
+  when:
+    - item.node_tier == "sybase"
+
+# Debug for testing
+- name:                                "Sybase: Print Sybase filesystems"
+  ansible.builtin.debug:
+    var:                               sybase_filesystem_mounts
+    verbosity:                         2
+
+
+- name:                                "Sybase: Create sap_deployment_automation folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
