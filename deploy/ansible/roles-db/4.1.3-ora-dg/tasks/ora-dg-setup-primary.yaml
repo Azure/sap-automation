@@ -39,7 +39,7 @@
 
 - name:                                Create archiveenabledonprimary.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/archiveenabledonprimary.txt
     state:                             touch
@@ -52,7 +52,7 @@
   register:                            forcelogin_stat
   when:  current_host == ora_primary
 
-- name:                                "Enable enableforcelogin on Primary"  
+- name:                                "Enable enableforcelogin on Primary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @enableforcelogging.sql |tee /etc/sap_deployment_automation/dgscripts/switcharchive.log
@@ -68,7 +68,7 @@
 
 - name:                                Create enableforcelogin.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/enableforcelogin.txt
     state:                             touch
@@ -84,7 +84,7 @@
     group:                             oinstall
   when:  current_host == ora_primary
 
-- name:                                "Create standby logs for Oracle DG" 
+- name:                                "Create standby logs for Oracle DG"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @standbyredologs.sql |tee /etc/sap_deployment_automation/dgscripts/standbylogs.log
@@ -98,14 +98,14 @@
 
 - name:                                Create standbyredologs.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/standbyredologs.txt
     state:                             touch
     mode:                              0755
   when:  current_host == ora_primary
 
-- name:                                "Enable Flashback on Oracle Primary DB" 
+- name:                                "Enable Flashback on Oracle Primary DB"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @turnonflashback.sql |tee /etc/sap_deployment_automation/dgscripts/turnonflashback.log
@@ -119,7 +119,7 @@
 
 - name:                                Create turnonflashback.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/turnonflashback.txt
     state:                             touch
@@ -145,7 +145,7 @@
 
 # - name:                                Create lsnrctl_started_sec.txt
 #   become:                              true
-#   become_user:                         "oracle" 
+#   become_user:                         "oracle"
 #   ansible.builtin.file:
 #     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
 #     state:                             touch
@@ -153,7 +153,7 @@
 #   when:                                current_host == ora_primary
 
 
-# - name:                                " DGMGRL CONFIG ON PRIMARY " 
+# - name:                                " DGMGRL CONFIG ON PRIMARY "
 #   become:                              true
 #   become_user:                         "oracle"
 #   ansible.builtin.shell:               dgmgrl / as sysdba @dgconfig.dgmgrl  | tee /etc/sap_deployment_automation/dgscripts/dgcreate.log
@@ -167,7 +167,7 @@
 
 # - name:                                Create dgconfig.txt
 #   become:                              true
-#   become_user:                         "oracle" 
+#   become_user:                         "oracle"
 #   ansible.builtin.file:
 #     path:                              /etc/sap_deployment_automation/dgscripts/dgconfig.txt
 #     state:                             touch

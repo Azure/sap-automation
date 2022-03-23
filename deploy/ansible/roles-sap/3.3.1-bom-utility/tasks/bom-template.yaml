@@ -173,8 +173,8 @@
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) ini file in archive"
           ansible.builtin.stat:
             path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
-            register:                  microsoft_supplied_bom_template_archive
-            delegate_to:               localhost
+          register:                    microsoft_supplied_bom_template_archive
+          delegate_to:                 localhost
 
         - name:                        "{{ task_prefix }} Create ini file {{ sap_inifile }}"
           ansible.builtin.template:

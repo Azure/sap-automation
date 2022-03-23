@@ -16,7 +16,7 @@
 #     block: |
 #         #User Specific environment
 #         export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_version }}
-#         export ORACLE_SID={{ db_sid }} 
+#         export ORACLE_SID={{ db_sid }}
 #         export ORACLE_BASE=/oracle
 #         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
 #         export TNS_ADMIN=$ORACLE_HOME/network/admin
@@ -41,9 +41,9 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        SHUTDOWN IMMEDIATE; 
-        STARTUP MOUNT; 
-        ALTER DATABASE ARCHIVELOG; 
+        SHUTDOWN IMMEDIATE;
+        STARTUP MOUNT;
+        ALTER DATABASE ARCHIVELOG;
         ALTER DATABASE OPEN;
         exit
     mode:                              0755
@@ -73,7 +73,7 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-         ALTER DATABASE FORCE LOGGING; 
+         ALTER DATABASE FORCE LOGGING;
          ALTER SYSTEM SWITCH LOGFILE;
          exit
     mode:                              0755
@@ -164,17 +164,17 @@
             ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
             ora_secondary:             "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
             current_host:              "{{ ansible_hostname }}"
-          
+
 
 #Debug for testing
 - name:                                "Oracle Data Guard - Preparation: Debug: installer prechecks output"
   ansible.builtin.debug:
-    msg:                               
+    msg:
       primary host is {{ ora_primary }}
       secondary host is {{ ora_secondary }}
       host is {{ current_host }}
     verbosity:                         2
-  
+
 #Create Listener for primary node.
 
 - name:                               "Oracle Data Guard - Preparation: Create the Listener file for Primary"
@@ -254,7 +254,7 @@
     sap_dbp_hostname: "{{ ora_primary }}"
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host == ora_secondary
- 
+
 
 #Create sqlnet.ora for secondary node.
 
