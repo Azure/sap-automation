@@ -70,16 +70,16 @@
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/orapw{{ db_sid|upper  }}
-    dest:                              "{{ target_media_location }}/downloads/orapw{{ db_sid|upper  }}
+    dest:                              "{{ target_media_location }}/downloads/orapw{{ db_sid|upper  }}"
     remote_src:                        true
     owner:                             oracle
     group:                             dba
   #when: current_host == ora_primary
 
-- name:                                "Oracle Data Guard - Preparation (Secondary): Copy dbs folder to templocation"
+- name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
   become:                              true
-  become_user:                         "root"
-  ansible.builtin.shell:               cp -rp * "{{ target_media_location }}/downloads/dbs/.
+  become_user:                         root
+  ansible.builtin.shell:               cp -rp * {{ target_media_location }}/downloads/dbs/.
   register:                            dbscopied_results
   failed_when:                         dbscopied_results.rc >= 2
   args:
