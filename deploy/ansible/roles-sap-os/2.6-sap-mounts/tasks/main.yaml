@@ -128,11 +128,11 @@
     - not use_AFS
 
 
-- name:                                Show NFS details
-  ansible.builtin.debug:
-    msg:                               
-      - "NFS_provider: {{ NFS_provider }}"
-      - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
+# - name:                                "Show NFS details"
+#   ansible.builtin.debug:
+#     msg:                               
+#       - "NFS_provider: {{ NFS_provider }}"
+#       - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:

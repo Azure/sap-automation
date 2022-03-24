@@ -213,7 +213,7 @@
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                      Playbook for Oracle DB Install 
+# |                      Playbook for Oracle DB Install
 # |                      CREATE USERS for SAP Installation                     |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
@@ -247,9 +247,9 @@
         - name:                        "Configure accounts for ora-msid"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
-      when:                            
+      when:
         - node_tier == 'oracle-multi-sid'
-        - platform == 'ORACLE' 
+        - platform == 'ORACLE'
 
 
 # /*----------------------------------------------------------------------------8
@@ -303,7 +303,7 @@
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
             mode:                      0755
-      when:                            
+      when:
         - platform == 'ORACLE'
         - node_tier == 'oracle'
 

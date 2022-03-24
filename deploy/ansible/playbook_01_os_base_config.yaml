@@ -113,7 +113,7 @@
             node_tier == "oracle-multi-sid"
       tags:
         - 1.5.2-disk-setup-ora-msid
-    
+
     - block:
         - name:                        Include 1.7-chrony role
           ansible.builtin.include_role:

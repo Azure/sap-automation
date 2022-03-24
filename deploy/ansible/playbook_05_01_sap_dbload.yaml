@@ -176,14 +176,14 @@
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
           when:                        MULTI_SIDS is undefined
-        
+
         - name:                        Include 5.1.1-dbload role
           ansible.builtin.include_role:
             name:                      roles-sap/5.1.1-multi-sid-dbload
-          when:                        
+          when:
             - MULTI_SIDS is defined
             - node_tier == 'oracle-multi-sid'
-    
+
       when:                            platform == 'ORACLE'
 
 ...
