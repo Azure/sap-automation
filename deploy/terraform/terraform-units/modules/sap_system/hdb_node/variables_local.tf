@@ -89,7 +89,6 @@ variable "hana_dual_nics" {
   default     = true
 }
 
-
 variable "database_vm_names" {
   default = [""]
 }
@@ -113,6 +112,10 @@ variable "database_server_count" {
 variable   "order_deployment" {
   description = "psuedo condition for ordering deployment"
   default     = ""
+}
+
+variable "landscape_tfstate" {
+  description = "Landscape remote tfstate file"
 }
 
 locals {
@@ -365,5 +368,7 @@ locals {
   //PPG control flag
   no_ppg = var.databases[0].no_ppg
 
+  dns_label               = try(var.landscape_tfstate.dns_label, "")
+  dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
 
 }

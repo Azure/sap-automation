@@ -1,25 +1,22 @@
 ---
 
-# bom_base_name is the name of the SAP Application Bill of Materials file
-bom_base_name:                 ${bom}
+#############################################################################
+#                                                                           #
+#                            Infrastructure                                 #
+#                                                                           #
+#############################################################################
 
-# Set to true to instruct Ansible to update all the packages on the virtual machines
-upgrade_packages:              false 
-
-# TERRAFORM CREATED
+# sap_fqdn defines the fully qualified domain name for the systems
 sap_fqdn:                      ${dns}                      
 
-# kv_name is the name of the key vault containing the system credentials
-kv_name:                       ${kv_name}
-
-# secret_prefix is the prefix for the name of the secret stored in key vault
-secret_prefix:                 ${secret_prefix}
-
 #############################################################################
 #                                                                           #
-#                                  SCS                                      #
+#                           Application tier                                #
 #                                                                           #
 #############################################################################
+
+# bom_base_name is the name of the SAP Application Bill of Materials file
+bom_base_name:                 ${bom}
 
 # sap_sid is the application SID
 sap_sid:                       ${sid}
@@ -31,39 +28,46 @@ scs_high_availability:         ${scs_ha}
 # SCS Instance Number
 scs_instance_number:           "${scs_instance_number}"
 
-# scs_lb_ip is the SCS IP address of the load balancer in 
-# from of the SAP Central Services virtual machines
+# scs_lb_ip is the SCS IP address of the load balancer for
+# the SAP Central Services virtual machines
 scs_lb_ip:                     ${scs_lb_ip}
 
 # ERS Instance Number
 ers_instance_number:           "${ers_instance_number}"
 
+# ecs_lb_ip is the ERS IP address of the load balancer for
+# the SAP Central Services virtual machines 
+ers_lb_ip:                     ${ers_lb_ip}
+
 # PAS Instance Number
 pas_instance_number:           "${pas_instance_number}"
 
-# ecs_lb_ip is the ERS IP address of the load balancer in
-# from of the SAP Central Services virtual machines
-ers_lb_ip:                     ${ers_lb_ip}
-
 #############################################################################
 #                                                                           #
-#                                  DB                                       #
+#                              Database tier                                #
 #                                                                           #
 #############################################################################
 
 # sap_sid is the database SID
 db_sid:                        ${db_sid}
 
-# platform
+# platform defines the database platform
+# valid values are:
+# ASE
+# DB2
+# HANA
+# ORACLE
+# SQLSERVER
+
 platform:                      ${platform}
+${oracle}
 
 # db_high_availability is a boolean flag indicating if the 
 # SAP database servers are deployed using high availability
 db_high_availability:          ${db_ha}
-# db_lb_ip is the IP address of the load balancer in from of the database virtual machines
-db_lb_ip:                      ${db_lb_ip}
 
-${install_path}
+# db_lb_ip is the IP address of the load balancer for the database virtual machines
+db_lb_ip:                      ${db_lb_ip}
 
 #############################################################################
 #                                                                           #
@@ -74,12 +78,33 @@ ${install_path}
 NFS_provider:                  ${NFS_provider}
 ${sap_mnt}
 ${sap_transport}
+${install_path}
+
+#############################################################################
+#                                                                           #
+#                           Miscellaneous                                   #
+#                                                                           #
+#############################################################################
+
+# kv_name is the name of the key vault containing the system credentials
+kv_name:                       ${kv_name}
+
+# secret_prefix is the prefix for the name of the secret stored in key vault
+secret_prefix:                 ${secret_prefix}
+
+# Set to true to instruct Ansible to update all the packages on the virtual machines
+upgrade_packages:              false 
+
 
 #############################################################################
 #                                                                           #
 #                                Disks                                      #
 #                                                                           #
 #############################################################################
+
+# This dictionary lists the deployed disks and their types
+# Each "type" will create a volume group 
+# If there are multiple disks of the same type they will be placed in an LVM
 
 disks: 
 %{~ for disk in disks }

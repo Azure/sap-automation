@@ -107,6 +107,7 @@ module "hdb_node" {
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count) : (
     0
   )
+  landscape_tfstate = data.terraform_remote_state.landscape.outputs
 }
 
 # // Create Application Tier nodes
@@ -119,7 +120,7 @@ module "app_tier" {
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment ? (
       "") : (
-      coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
+      compact(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
     )
   ) : (null)
   application                                  = local.application
@@ -191,7 +192,8 @@ module "anydb_node" {
     0) : (
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count
   )
-  use_observer = var.use_observer
+  use_observer      = var.use_observer
+  landscape_tfstate = data.terraform_remote_state.landscape.outputs
 }
 # // Generate output files
 module "output_files" {
@@ -243,5 +245,6 @@ module "output_files" {
   tfstate_resource_id   = var.tfstate_resource_id
   install_path          = module.common_infrastructure.install_path
   NFS_provider          = var.NFS_provider
-
+  observer_ips          = module.anydb_node.observer_ips
+  observer_vms          = module.anydb_node.observer_vms
 }

@@ -178,6 +178,14 @@ variable "NFS_provider" {
   type = string
 }
 
+variable "observer_ips" {
+  description = "List of NICs for the Observer VMs"
+}
+
+variable "observer_vms" {
+  description = "List of Observer VMs"
+}
+
 locals {
 
   tfstate_resource_id          = try(var.tfstate_resource_id, "")
@@ -227,5 +235,6 @@ locals {
     "02") : (
     "00"
   )
+    
 
 }

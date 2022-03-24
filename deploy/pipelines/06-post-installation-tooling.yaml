@@ -7,7 +7,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  Post installation tooling [$(Date:yyyyMMdd)]
+name:                                  Post installation tooling
 
 parameters:
   - name:                              sap_system

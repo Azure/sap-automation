@@ -1,0 +1,135 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |Execute the SQL scripts  for  data guard initial configuration.             |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+# Set Primary and Secondary node names.
+- name:                        Setting the primary and Secondary DB names
+  ansible.builtin.set_fact:
+    ora_primary:           "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    ora_secondary:         "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:                  "{{ ansible_hostname }}"
+
+#Configuration on the Secondary DB
+
+- name: Copy initSID.ora to Secondary
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:  /usr/sap/install/downloads/init{{ db_sid|upper  }}.ora
+    dest: /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/init{{ db_sid|upper  }}.ora
+    remote_src:                         yes
+    owner: oracle
+    group: oinstall
+  when: current_host == ora_secondary
+
+
+- name: Copy orapwSID to Secondary
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:  /usr/sap/install/downloads/orapw{{ db_sid|upper  }}
+    dest: /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/orapw{{ db_sid|upper  }}
+    remote_src:                         yes
+    owner: oracle
+    group: dba
+  when: current_host == ora_secondary
+
+
+# Restart the Listener on Secondary node.
+
+- name:                               "RESTART LSNRCTL ON SECONDARY"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               lsnrctl start
+  register:                            lsnrctl_start_sec_results
+  failed_when:                         lsnrctl_start_sec_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:                                current_host == ora_secondary
+
+- name:                                Create lsnrctl_started_sec.txt
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
+    state:                             touch
+    mode:                              0755
+  when:                                current_host == ora_secondary
+
+- name:                                " STARTUP SECONDARY DB USING PFILE"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @secondarystartup.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+  register:                            secondarystartup_results
+  failed_when:                         secondarystartup_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/secondarystarted.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when: current_host == ora_secondary
+
+- name:                                Create secondarystartup.txt
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/secondarystarted.txt
+    state:                             touch
+    mode:                              0755
+  when:  current_host == ora_secondary
+
+
+- name:                                "Duplicate Secondary DB from Primary DB using RMAN "
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               rman TARGET sys/{{ main_password }}@{{ db_sid|upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid|upper }}_STDBY @rman-restore.rman |tee /etc/sap_deployment_automation/dgscripts/restore.log
+  register:                            rman_results
+  failed_when:                         rman_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/restorecompleted.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when: current_host == ora_secondary
+
+- name:                                Create restorecompleted.txt
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/restorecompleted.txt
+    state:                             touch
+    mode:                              0755
+  when:  current_host == ora_secondary
+
+- name:                                " STARTUP DG Broker on SECONDARY "
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
+  register:                            secondarystartup_results
+  failed_when:                         secondarystartup_results.rc > 0
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  when:                                current_host == ora_secondary
+
+- name:                                Create enabledgbroker.txt
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
+    state:                             touch
+    mode:                              0755
+  when:                                current_host == ora_secondary
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

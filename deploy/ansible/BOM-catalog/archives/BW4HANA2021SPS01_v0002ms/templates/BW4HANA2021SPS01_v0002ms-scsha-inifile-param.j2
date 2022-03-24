@@ -3,12 +3,12 @@
 
 ################################################################################################################################################################################################################
 #                                                                                                                                                                                                              #
-# Installation service 'SAP BW/4HANA 2021 > SAP BW/4HANA Server > SAP HANA Database > Installation  > Application Server ABAP > High-Availability System > ASCS Instance', product id 'NW_ABAP_ASCS:BW4HANA2021.CORE.HDB.ABAPHA' #
+# Installation service 'SAP S/4HANA Server 1909 > SAP HANA Database > Installation > Application Server ABAP > High-Availability System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAPHA' #
 #                                                                                                                                                                                                              #
 ################################################################################################################################################################################################################
 
 
-archives.downloadBasket                                              = /usr/sap/install/download_basket
+archives.downloadBasket                                              = {{ target_media_location }}/download_basket
 
 nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                    = {{ sapsys_gid }}

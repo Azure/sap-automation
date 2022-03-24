@@ -21,12 +21,12 @@ output "vnet_mgmt_id" {
 
 // Details of management subnet that is deployed/imported
 output "subnet_mgmt_id" {
-  value = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
+  value = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 }
 
 // Details of the management vnet NSG that is deployed/imported
 output "nsg_mgmt" {
-  value = local.sub_mgmt_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
+  value = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
 }
 
 // Details of the user assigned identity for deployer(s)

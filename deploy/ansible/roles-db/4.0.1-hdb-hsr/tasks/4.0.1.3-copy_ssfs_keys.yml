@@ -6,29 +6,29 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "HSR - SYNC the Primary node SSFS files"
+- name:                                "HANA HSR: - SYNC the Primary node SSFS files"
   become: true
-  ansible.builtin.command: "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
+  ansible.builtin.command:             "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
   loop:
     - { file: 'SSFS_{{ db_sid | upper }}.DAT', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/security/rsecssfs/data/' }
     - { file: 'SSFS_{{ db_sid | upper }}.KEY', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/security/rsecssfs/key/' }
   when:                                ansible_hostname == primary_instance_name
 
 
-- name:                                "HSR - Ensure the Primary node XSA SSFS_{{ db_sid | upper }}.DAT file exists"
+- name:                                "HANA HSR: - Ensure the Primary node XSA SSFS_{{ db_sid | upper }}.DAT file exists"
   ansible.builtin.stat:
     path:                              /usr/sap/{{ db_sid | upper }}/SYS/global/xsa/security/ssfs/data/SSFS_{{ db_sid | upper }}.DAT
   register:                            primary_xsa_file_result
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "HSR - Ensure the Primary node XSA SSFS_{{ db_sid | upper }}.DAT file exists"
+- name:                                "HANA HSR: - Ensure the Primary node XSA SSFS_{{ db_sid | upper }}.DAT file exists"
   ansible.builtin.debug:
     var:                               primary_xsa_file_result
     verbosity:                         2
 
-- name:                                "HSR - SYNC the Primary node XSA files"
+- name:                                "HANA HSR: - SYNC the Primary node XSA files"
   become: true
-  ansible.builtin.command: "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
+  ansible.builtin.command:             "scp {{ item.folder }}{{ item.file }} {{ secondary_instance_ip_db }}:{{ item.folder }}"
   loop:
     - { file: 'SSFS_{{ db_sid | upper }}.DAT', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/xsa/security/ssfs/data/' }
     - { file: 'SSFS_{{ db_sid | upper }}.KEY', folder: '/usr/sap/{{ db_sid | upper }}/SYS/global/xsa/security/ssfs/key/' }
