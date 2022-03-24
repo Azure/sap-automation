@@ -174,6 +174,11 @@ function retainFormValues() {
         }
         document.getElementById('loading-background').style.visibility = "hidden";
     }).catch(function () {
+        for (var prop in model) {
+            if (model[prop] != null && azureResourceIds.indexOf(prop) < 0 ) {
+                setCurrentValue(prop);
+            }
+        }
         document.getElementById('loading-background').style.visibility = "hidden";
     });
 }

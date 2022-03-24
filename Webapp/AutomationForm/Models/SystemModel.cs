@@ -8,6 +8,7 @@ using static AutomationForm.Models.CustomValidators;
 
 namespace AutomationForm.Models
 {
+    [BsonIgnoreExtraElements]
     public class SystemModel
     {
         [BsonId]
