@@ -213,7 +213,7 @@
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                      Playbook for Oracle DB Install 
+# |                      Playbook for Oracle DB Install
 # |                      CREATE USERS for SAP Installation                     |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
@@ -247,9 +247,9 @@
         - name:                        "Configure accounts for ora-msid"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
-      when:                            
+      when:
         - node_tier == 'oracle-multi-sid'
-        - platform == 'ORACLE' 
+        - platform == 'ORACLE'
 
 
 # /*----------------------------------------------------------------------------8
@@ -267,7 +267,6 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -295,7 +294,7 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.1.0-ora-install
           when:                        platform == 'ORACLE'
-        
+
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
           delegate_to:                 localhost
           become:                      true
@@ -304,10 +303,10 @@
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
             mode:                      0755
-      when:                            
+      when:
         - platform == 'ORACLE'
         - node_tier == 'oracle'
-                 
+
 
     - name:                            "Install Oracle for MSID"
       block:
@@ -317,7 +316,6 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
-        
 
         - name:                        Include 1.5.2-disk-setup-ora-msid role
           ansible.builtin.include_role:
@@ -332,7 +330,7 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.1.3-ora-msid
           when:                        node_tier == 'oracle-multi-sid'
-        
+
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
           delegate_to:                 localhost
           become:                      true
@@ -341,13 +339,9 @@
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
             mode:                      0755
-      when:                            
+      when:
         - node_tier == 'oracle-multi-sid'
         - platform == 'ORACLE'
-    
-
-
-        
 
 ...
 # /*----------------------------------------------------------------------------8

@@ -159,8 +159,8 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.3-scs-multi-sid-install
               when:                    MULTI_SIDS is defined
-            
-                
+
+
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
               ansible.builtin.file:
