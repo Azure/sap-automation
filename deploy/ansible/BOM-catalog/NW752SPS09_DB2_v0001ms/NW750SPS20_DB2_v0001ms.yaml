@@ -1,13 +1,13 @@
 ---
 
-name: "_constraints_"
-target: "        </constraints>"
+name: "NW750SPS20_DB2_v0001ms"
+target: "SAP NW750 SPS20 DB2"
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
 
 product_ids:
-  dbl:                                 NW_ABAP_DB:NW752.HDB.ABAP
+  dbl:                                 NW_ABAP_DB:NW750.DB6.ABAP
   scs:                                 NW_ABAP_ASCS:NW752.HDB.ABAP
   scs_ha:                              NW_ABAP_ASCS:NW752.HDB.ABAPHA
   pas:                                 NW_ABAP_CI:NW752.HDB.ABAP
@@ -20,25 +20,37 @@ product_ids:
 
 materials:
   dependencies:
-    - name:                            HANA_2_00_055_v0006ms
-    - name:                            SWPM10SP33_latest
+    - name:                            DB2_UDB_11_5_v0001ms
+    - name:                            SWPM10SP34_latest
     - name:                            SUM20SP12_latest
 
   media:
 
+
+    # SAPCAR 7.22
+    - name:         SAPCAR
+      archive:      SAPCAR_1010-70006178.EXE
+      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+      filename:     SAPCAR
+      permissions:  '0755'
+      url:          https://softwaredownloads.sap.com/file/0020000002208852020
+    
     # kernel components
 
-    - name:         "Kernel Part II (753)"
-      archive:      SAPEXEDB_900-80002572.SAR
-      checksum:     83eb0450e30e7cefb09aa3def0a3f7f0bdbf5b2ee1ccbe481443084f50f98e37
-      url:          https://softwaredownloads.sap.com/file/0020000001557752021
-      path:         download_basket
+    - name: "Kernel Part II (753)"
+      archive: SAPEXEDB_900-80002603.SAR
+      url: https://softwaredownloads.sap.com/file/0020000001557492021
+      path: download_basket
 
-    - name:         "Kernel Part I (753)"
-      archive:      SAPEXE_900-80002573.SAR
-      checksum:     f5755f3df7be0bd0f1f07c959bc55c806a51ba3131287c568c2535bd8fdf713d
-      url:          https://softwaredownloads.sap.com/file/0020000001557032021
-      path:         download_basket
+    - name: "Kernel Part I (753)"
+      archive: SAPEXE_900-80002573.SAR
+      url: https://softwaredownloads.sap.com/file/0020000001557032021
+      path: download_basket
+
+    - name: "SAP HOST AGENT 7.22 SP55"
+      archive: SAPHOSTAGENT55_55-80004822.SAR
+      url: https://softwaredownloads.sap.com/file/0020000000239812022
+      path: download_basket
 
     - name:         "SAP HOST AGENT 7.22 SP54"
       archive:      SAPHOSTAGENT54_54-80004822.SAR
@@ -59,6 +71,27 @@ materials:
       path:         download_basket
 
 
+# DB Export
+    - name:                            "NW 7.5 Installation Export"
+      archive:                         51050829_3.ZIP
+      checksum:                        06c3a3cd5d1ad266f61ca202552468501d94cfdc7641ffdadf0a9abad82b648a
+      extract:                         true
+      extractDir:                      CD_EXPORT
+      creates:                         CDLABEL.ASC
+      url:                             https://softwaredownloads.sap.com/file/0030000000635092016
+
+    # Languages
+    - name:                            "NW 7.5 Language 1/2"
+      archive:                         51050829_LNG1_part1.exe
+      checksum:                        4fb96950412547ea3a49e9f1488f7fea7fd6c651143113b70b32543f9b166c71
+      url:                             https://softwaredownloads.sap.com/file/0030000000635132016
+
+    - name:                            "NW 7.5 Language 2/2"
+      archive:                         51050829_LNG1_part2.rar
+      checksum:                        9fc3fa5a22c120df9d3b6aa04eff39c924dffd8bd633607116f446b46d3b5dd7
+      url:                             https://softwaredownloads.sap.com/file/0030000000635142016
+    
+    
     # other components
 
     - name:         "ST-PI 740: SP 0007"

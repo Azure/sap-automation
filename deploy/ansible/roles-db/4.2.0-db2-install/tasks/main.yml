@@ -16,8 +16,8 @@
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
 - name:                                "SAP DB2 Install: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-db2-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-db2-inifile-param.j2"
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
 
 - name:                                "SAP DB2: Create run flag directory"
   ansible.builtin.file:
@@ -34,7 +34,7 @@
 - name:                                "SAP DB2: check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_db2.txt
-  register:                            DB2_installed
+  register:                            db2_installed
   when:                                node_tier == 'db2'
 
 - name:                                "DB2 Install"
@@ -61,6 +61,8 @@
         db2_ase_encryption_length:     "256"
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
+        sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS')  | first }}"
+         
       tags:
         - skip_ansible_lint
 # +------------------------------------4--------------------------------------*/
