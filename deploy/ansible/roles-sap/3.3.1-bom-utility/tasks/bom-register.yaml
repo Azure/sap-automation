@@ -111,7 +111,7 @@
           ansible.builtin.include_vars:
             file:                      "{{ microsoft_supplied_bom_archive.path }}"
             name:                      bom
-          when:                        microsoft_supplied_bom_archive
+          when:                        microsoft_supplied_bom_archive.stat.exists
 
         - name:                        "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
           ansible.builtin.set_fact:
