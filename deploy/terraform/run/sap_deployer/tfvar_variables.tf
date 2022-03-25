@@ -213,5 +213,19 @@ variable "use_private_endpoint" {
 }
 
 variable "tf_version" {
-  default = "1.0.8"
+  default = "1.1.7"
+}
+
+variable "bastion_deployment" {
+  description = "Boolean flag indicating if an Azure bastion should be deployed"
+  default     = false
+}
+
+
+variable "bastion_subnet_arm_id" {
+  default = ""
+}
+
+variable "bastion_subnet_address_prefix" {
+  default = ""
 }

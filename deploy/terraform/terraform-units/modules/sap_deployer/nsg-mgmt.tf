@@ -43,7 +43,7 @@ resource "azurerm_network_security_rule" "nsr_ssh" {
   network_security_group_name  = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].name : azurerm_network_security_group.nsg_mgmt[0].name
   priority                     = 101
   direction                    = "Inbound"
-  access                       = "allow"
+  access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = 22
@@ -63,7 +63,7 @@ resource "azurerm_network_security_rule" "nsr_rdp" {
   network_security_group_name  = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].name : azurerm_network_security_group.nsg_mgmt[0].name
   priority                     = 102
   direction                    = "Inbound"
-  access                       = "allow"
+  access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = 3389
@@ -83,7 +83,7 @@ resource "azurerm_network_security_rule" "nsr_winrm" {
   network_security_group_name  = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].name : azurerm_network_security_group.nsg_mgmt[0].name
   priority                     = 103
   direction                    = "Inbound"
-  access                       = "allow"
+  access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_ranges      = [5985, 5986]
