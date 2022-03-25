@@ -75,7 +75,6 @@ resource "azurerm_lb_backend_address_pool" "scs" {
 resource "azurerm_lb_probe" "scs" {
   provider            = azurerm.main
   count               = local.enable_scs_lb_deployment ? (local.scs_high_availability ? 2 : 1) : 0
-  resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.scs[0].id
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes[count.index == 0 ? "scs_alb_hp" : "scs_ers_hp"])
   port                = local.hp_ports[count.index]
@@ -87,7 +86,6 @@ resource "azurerm_lb_probe" "scs" {
 resource "azurerm_lb_probe" "clst" {
   provider            = azurerm.main
   count               = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? 1 : 0
-  resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.scs[0].id
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_hp)
   port                = local.hp_ports[count.index]
@@ -99,7 +97,6 @@ resource "azurerm_lb_probe" "clst" {
 resource "azurerm_lb_probe" "fs" {
   provider            = azurerm.main
   count               = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? 1 : 0
-  resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.scs[0].id
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_hp)
   port                = local.hp_ports[count.index]
@@ -113,7 +110,6 @@ resource "azurerm_lb_probe" "fs" {
 resource "azurerm_lb_rule" "scs" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment ? 1 : 0
-  resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
   name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_scs_rule)
   protocol                       = "All"
@@ -130,7 +126,6 @@ resource "azurerm_lb_rule" "scs" {
 resource "azurerm_lb_rule" "ers" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment && local.scs_high_availability ? 1 : 0
-  resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
   name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_rule)
   protocol                       = "All"
@@ -146,7 +141,6 @@ resource "azurerm_lb_rule" "ers" {
 resource "azurerm_lb_rule" "clst" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment && local.win_ha_scs ? 0 : 0
-  resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
   name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_rule)
   protocol                       = "All"
@@ -161,7 +155,6 @@ resource "azurerm_lb_rule" "clst" {
 resource "azurerm_lb_rule" "fs" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment && local.win_ha_scs ? 0 : 0
-  resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.scs[0].id
   name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_rule)
   protocol                       = "All"
@@ -237,7 +230,6 @@ resource "azurerm_lb_backend_address_pool" "web" {
 resource "azurerm_lb_probe" "web" {
   provider            = azurerm.main
   count               = local.enable_web_lb_deployment ? 1 : 0
-  resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.web[0].id
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_hp)
   port                = 443
@@ -250,7 +242,6 @@ resource "azurerm_lb_probe" "web" {
 resource "azurerm_lb_rule" "web" {
   provider                       = azurerm.main
   count                          = local.enable_web_lb_deployment ? 1 : 0
-  resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.web[0].id
   name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_inrule)
   protocol                       = "All"
