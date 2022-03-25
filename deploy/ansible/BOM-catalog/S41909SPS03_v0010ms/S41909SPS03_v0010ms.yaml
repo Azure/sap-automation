@@ -226,11 +226,11 @@ materials:
       download:     false
       url:          https://softwaredownloads.sap.com/file/0020000000410162020
 
-    - name:         "SP12 Patch6 for UMML4HANA 1"
-      archive:      HANAUMML12_6-70001054.ZIP
-      checksum:     f103c2434f0762bb6210e8fcf26b99490bb26d13be6d6d1981a3e4bbf4f2c8be
+    - name:         "SP12 Patch5 for UMML4HANA 1"
+      archive:      HANAUMML12_5-70001054.ZIP
+      checksum:     19e79106a456e6dd7793b5822f7a02d2be7f2ab160f1e5fbe48c577d06dfbe88
       download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000000356792022
+      url:          https://softwaredownloads.sap.com/file/0020000001558912021
 
     # SPAM
     - name:         "SPAM/SAINT Update - Version 754/0077"
