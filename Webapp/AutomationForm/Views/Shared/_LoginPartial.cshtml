@@ -3,7 +3,7 @@
 <ul class="navbar-nav">
 @if (Context.Request.Headers.ContainsKey("X-MS-CLIENT-PRINCIPAL-ID"))
 {
-        <li class="nav-item wideonly">
+        <li class="nav-item super-wideonly">
             <span class="navbar-text text-dark">Hello @Context.Request.Headers["X-MS-CLIENT-PRINCIPAL-NAME"]! </span>
         </li>
         <li class="nav-item">

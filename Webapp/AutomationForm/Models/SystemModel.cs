@@ -172,12 +172,14 @@ namespace AutomationForm.Models
         // Database Tier 
 
         [BsonIgnoreIfNull]
+        [DatabasePlatformValidator]
         public string database_platform { get; set; }
 
         [BsonIgnoreIfNull]
         public bool? database_high_availability { get; set; }
 
         [BsonIgnoreIfNull]
+        [DatabaseSizeValidator]
         public string database_size { get; set; }
 
         [BsonIgnoreIfNull]

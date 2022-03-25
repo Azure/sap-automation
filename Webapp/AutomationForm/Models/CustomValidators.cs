@@ -114,6 +114,91 @@ namespace AutomationForm.Models
                 }
             }
         }
-
+        
+        public class DatabasePlatformValidator : ValidationAttribute
+        {
+            public override bool IsValid(object value)
+            {
+                string[] acceptedPlatforms = new string[] {
+                    "HANA",
+                    "DB2",
+                    "ORACLE",
+                    "ASE",
+                    "SQL SERVER",
+                    "NONE"
+                };
+                return (value == null) || acceptedPlatforms.Contains(value);
+            }
+        }
+        public class DatabaseSizeValidator : ValidationAttribute
+        {
+            protected override ValidationResult IsValid(object value, ValidationContext context)
+            {
+                string[] hanadb_sizes = new string[] {
+                    "Default",
+                    "S4DEMO",
+                    "M32ts",
+                    "M32ls",
+                    "M64ls",
+                    "M64s",
+                    "M64ms",
+                    "M128s",
+                    "M128ms",
+                    "M208s_v2",
+                    "M208ms_v2",
+                    "M416s_v2",
+                    "M416ms_v2"
+                };
+                string[] anydb_sizes = new string[] {
+                    "Default",
+                    "200",
+                    "500",
+                    "1024",
+                    "2048",
+                    "5120",
+                    "10240",
+                    "15360",
+                    "20480",
+                    "30720",
+                    "40960",
+                    "51200"
+                };
+                string size = (string)value;
+                string platform = (string)context.ObjectInstance.GetType().GetProperty("database_platform").GetValue(context.ObjectInstance);
+                if (platform == null)
+                {
+                    if (size == null || hanadb_sizes.Contains(size) || anydb_sizes.Contains(size))
+                    {
+                        return ValidationResult.Success;
+                    }
+                    else
+                    {
+                        return new ValidationResult("The field database_size is invalid.");
+                    }
+                }
+                else if (platform == "HANA")
+                {
+                    if (hanadb_sizes.Contains(size))
+                    {
+                        return ValidationResult.Success;
+                    }
+                    else
+                    {
+                        return new ValidationResult("Invalid size for HANA database platform");
+                    }
+                }
+                else
+                {
+                    if (anydb_sizes.Contains(size))
+                    {
+                        return ValidationResult.Success;
+                    } 
+                    else
+                    {
+                        return new ValidationResult($"Invalid size for {platform} database platform");
+                    }
+                }
+            }
+        }
     }
 }

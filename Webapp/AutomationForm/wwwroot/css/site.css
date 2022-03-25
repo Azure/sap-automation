@@ -195,6 +195,10 @@ label.required:after {
         margin: auto;
         text-align: center;
     }
+
+    .super-wideonly {
+        display: none;
+    }
 }
 
 @media screen and (min-width: 1200px) {
@@ -365,6 +369,27 @@ label.required:after {
 
 
 /* Table */
+.table-scroll {
+    overflow-y: auto;
+    max-height: 60vh;
+    margin-bottom: 1rem;
+    scroll-snap-type: y proximity;
+}
+
+.table-scroll table {
+    margin-bottom: 0;
+}
+
+.table-scroll thead th {
+    background: #eee;
+    position: sticky;
+    top: 0;
+}
+
+.table-scroll tr {
+    scroll-snap-align: start;
+}
+
 .details-table {
     empty-cells: show;
     border-collapse: collapse;
