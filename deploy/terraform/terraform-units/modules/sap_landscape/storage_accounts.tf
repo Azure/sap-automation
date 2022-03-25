@@ -29,7 +29,7 @@ resource "azurerm_storage_account_network_rules" "storage_bootdiag" {
       local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id,
       local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id,
       local.sub_web_existing ? local.sub_web_arm_id : azurerm_subnet.web[0].id,
-      local.deployer_subnet_mgmt_id
+      local.deployer_subnet_management_id
     ]
   )
   bypass = ["AzureServices", "Logging", "Metrics"]
@@ -95,7 +95,7 @@ resource "azurerm_storage_account_network_rules" "witness_storage" {
       local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id,
       local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id,
       local.sub_web_existing ? local.sub_web_arm_id : azurerm_subnet.web[0].id,
-      local.deployer_subnet_mgmt_id
+      local.deployer_subnet_management_id
     ]
   )
   bypass = ["AzureServices", "Logging", "Metrics"]
@@ -186,7 +186,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
       local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id,
       local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id,
       local.sub_web_existing ? local.sub_web_arm_id : azurerm_subnet.web[0].id,
-      local.deployer_subnet_mgmt_id
+      local.deployer_subnet_management_id
     ]
   )
   bypass = ["AzureServices", "Logging", "Metrics"]

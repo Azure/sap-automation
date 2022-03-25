@@ -56,7 +56,6 @@ resource "azurerm_lb_backend_address_pool" "hdb" {
 resource "azurerm_lb_probe" "hdb" {
   provider            = azurerm.main
   count               = local.enable_db_lb_deployment ? 1 : 0
-  resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.hdb[count.index].id
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_hp)
   port                = "625${var.databases[0].instance.instance_number}"
@@ -78,7 +77,6 @@ resource "azurerm_network_interface_backend_address_pool_association" "hdb" {
 resource "azurerm_lb_rule" "hdb" {
   provider                       = azurerm.main
   count                          = local.enable_db_lb_deployment ? 1 : 0
-  resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.hdb[0].id
   name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_rule)
   protocol                       = "All"

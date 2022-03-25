@@ -1,6 +1,6 @@
 output "anydb_vms" {
   value = local.enable_deployment ? (
-    coalesce(azurerm_linux_virtual_machine.dbserver[*].id, azurerm_windows_virtual_machine.dbserver[*].id)) : (
+    coalesce(azurerm_linux_virtual_machine.observer[*].id, azurerm_windows_virtual_machine.observer[*].id)) : (
     [""]
   )
 }

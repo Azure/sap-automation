@@ -26,12 +26,6 @@ resource "azurerm_key_vault" "kv_prvt" {
 
   }
 
-  lifecycle {
-    ignore_changes = [
-      soft_delete_enabled
-    ]
-  }
-
 }
 
 // Import an existing private Key Vault
@@ -73,7 +67,6 @@ resource "azurerm_key_vault" "kv_user" {
 
   lifecycle {
     ignore_changes = [
-      soft_delete_enabled,
       access_policy
     ]
   }
