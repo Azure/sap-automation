@@ -139,7 +139,7 @@
         # nw.directoryIsNotEmptyUnattended
         - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'"
           ansible.builtin.file:
-            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+            path:                      "/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64"
             state:                     "{{ item }}"
           with_items:
             - absent
