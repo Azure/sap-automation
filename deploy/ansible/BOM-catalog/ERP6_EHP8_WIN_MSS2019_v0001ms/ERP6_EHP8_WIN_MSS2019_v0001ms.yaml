@@ -21,6 +21,7 @@ product_ids:
 materials:
   dependencies:
     - name: "MSSQLSRV_2019_v0001ms"
+    - name: "SWPM10SP34_latest"
 
   media:
 
@@ -46,13 +47,13 @@ materials:
       url: https://softwaredownloads.sap.com/file/0020000001731542021
       path: download_basket
 
-    - name: "SWPM 1.0 SP33 for NW higher than 7.0x"
-      archive: SWPM10SP33_3-20009707.SAR
-      override_target_filename: "SWPM.SAR"
-      extract: true
-      extractDir: SWPM
-      url: https://softwaredownloads.sap.com/file/0020000001808982021
-      path: download_basket
+#    - name: "SWPM 1.0 SP33 for NW higher than 7.0x"
+#      archive: SWPM10SP33_3-20009707.SAR
+#      override_target_filename: "SWPM.SAR"
+#      extract: true
+#      extractDir: SWPM
+#      url: https://softwaredownloads.sap.com/file/0020000001808982021
+#      path: download_basket
 
     - name: "Installation for SAP IGS integrated in SAP Kernel"
       archive: igsexe_13-80003241.sar
