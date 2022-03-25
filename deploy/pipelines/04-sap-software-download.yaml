@@ -21,9 +21,9 @@ parameters:
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - NW752SPS09_v0001ms
-      - SWPM20SP10_latest
-      - SWPM10SP33_latest
-      - SUM20SP12_latest
+      - SWPM20SP11_latest
+      - SWPM10SP34_latest
+      - SUM20SP13_latest
       - ORACLE_19_00_v0002ms
 
   - name:                              environment
