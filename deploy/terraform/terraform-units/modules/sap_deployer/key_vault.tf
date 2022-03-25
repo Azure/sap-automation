@@ -12,12 +12,6 @@ resource "azurerm_key_vault" "kv_prvt" {
   purge_protection_enabled   = var.enable_purge_control_for_keyvaults
 
   sku_name = "standard"
-  lifecycle {
-    ignore_changes = [
-      // Ignore changes to object_id
-      soft_delete_enabled
-    ]
-  }
 }
 
 // Import an existing private Key Vault
@@ -54,12 +48,6 @@ resource "azurerm_key_vault" "kv_user" {
   purge_protection_enabled   = var.enable_purge_control_for_keyvaults
 
   sku_name = "standard"
-  lifecycle {
-    ignore_changes = [
-      // Ignore changes to object_id
-      soft_delete_enabled
-    ]
-  }
 
   network_acls {
     bypass         = "AzureServices"
