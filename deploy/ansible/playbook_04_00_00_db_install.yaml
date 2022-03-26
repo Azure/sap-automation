@@ -383,7 +383,7 @@
             name:                      roles-db/4.2.0-db2-install
           when:                        platform == 'DB2'
       
-     when:                            platform == 'DB2'
+      when:                            platform == 'DB2'
 
 # add platform in sap-parameters.yaml to execute tasks for DB2, ORACLE, MSSQL, SYBASE
 
