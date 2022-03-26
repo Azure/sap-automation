@@ -118,36 +118,36 @@
         # ToDO: cleanup file systems on failed install.
         # until then we validate if cretain files and folders exist and take
         # actions based on them
-        - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
-          ansible.builtin.stat:
-            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
-          register:                    stat_sys_exe_uc
-          when:                        node_tier == 'scs'
+        # - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
+        #   ansible.builtin.stat:
+        #     path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+        #   register:                    stat_sys_exe_uc
+        #   when:                        node_tier == 'scs'
 
-        - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
-          ansible.builtin.find:
-            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
-            patterns:                  "*"
-            file_type:                 directory
-          register:                    find_sys_exe_uc_result
-          when:
-            - node_tier == 'scs'
-            - stat_sys_exe_uc.stat.exists
+        # - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
+        #   ansible.builtin.find:
+        #     path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
+        #     patterns:                  "*"
+        #     file_type:                 directory
+        #   register:                    find_sys_exe_uc_result
+        #   when:
+        #     - node_tier == 'scs'
+        #     - stat_sys_exe_uc.stat.exists
 
         # At this stage the DIR_CT_RUN,'/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'
         # is expected to be empty so we delete it.
         # nw.directoryIsNotEmptyUnattended
-        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'"
+        - name:                        "RESCUE - SCS HA Install: Show installation result"
+          ansible.builtin.debug:
+            var:                       scs_installation
+          when:                        scs_installation is defined
+
+        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'"
           ansible.builtin.file:
-            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
-            state:                     "{{ item }}"
-          with_items:
-            - absent
-            - directory
+            path:                      "/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64"
+            state:                     absent
           when:
             - node_tier == 'scs'
-            - find_sys_exe_uc_result is defined
-            - find_sys_exe_uc_result.examined != 0
 
         - name:                        "RESCUE - SCS HA Install: - SCS - Assign ownership"
           ansible.builtin.file:
