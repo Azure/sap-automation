@@ -120,7 +120,7 @@ module "app_tier" {
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment ? (
       "") : (
-      coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
+      compact(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
     )
   ) : (null)
   application                                  = local.application
