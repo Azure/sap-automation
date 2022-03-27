@@ -80,7 +80,8 @@ bastion_subnet_address_prefix="10.10.20.128/26"
 #    "version"         ="latest"
 #}
 
-
+# deployer_diagnostics_account_arm_id defines the diagnosting storage account for the deployer
+#deployer_diagnostics_account_arm_id = ""
 /*
 This block describes the variables for the authentication section block in the json file
 */

@@ -132,11 +132,17 @@ data "azurerm_subnet" "subnet_mgmt" {
 
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
-  count                     = 1
+  count                     = length(var.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
   name                      = local.storageaccount_names
   resource_group_name       = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                  = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   account_replication_type  = "LRS"
   account_tier              = "Standard"
   enable_https_traffic_only = local.enable_secure_transfer
+}
+
+data "azurerm_storage_account" "deployer" {
+  count               = length(var.deployer_diagnostics_account_arm_id) > 0 ? 1 : 0
+  name                = split("/", var.deployer_diagnostics_account_arm_id)[8]
+  resource_group_name = split("/", var.deployer_diagnostics_account_arm_id)[4]
 }
