@@ -84,7 +84,7 @@ resource "azurerm_route" "admin" {
     azurerm_route_table.rt
   ]
   provider               = azurerm.main
-  count                  = length(local.firewall_ip) > 0 ? 1 : 0
+  count                  = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
   name                   = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.fw_route)
   resource_group_name    = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   route_table_name       = azurerm_route_table.rt[0].name
