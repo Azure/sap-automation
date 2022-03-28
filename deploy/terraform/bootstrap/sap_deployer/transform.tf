@@ -56,6 +56,7 @@ locals {
     private_ip_address = try(coalesce(var.deployer_private_ip_address, try(var.deployers[0].private_ip_address, "")),"")
 
     deployer_diagnostics_account_arm_id = var.deployer_diagnostics_account_arm_id
+  }
 
   authentication = {
     username            = coalesce(var.deployer_authentication_username, try(var.authentication.username, ""))
