@@ -24,6 +24,7 @@ module "sap_deployer" {
   app_registration_app_id            = var.app_registration_app_id
   cmdb_connection_string             = var.cmdb_connection_string
   webapp_client_secret               = var.webapp_client_secret
+  bastion_deployment                 = var.bastion_deployment
 }
 
 module "sap_namegenerator" {

@@ -189,7 +189,7 @@ scs_server_count=1
 scs_high_availability=false
 
 # scs_instance_number
-scs_instance_number="00"
+scs_instance_number = "01"
 
 # ers_instance_number
 ers_instance_number="02"

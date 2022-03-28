@@ -99,7 +99,7 @@
                                             
                                             <div class="left-input">
                                                 @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
-                                                <p>@p.Description</p>
+                                                <p>@Html.Raw(p.Description)</p>
                                             </div>
 
                                             <div class="right-input">

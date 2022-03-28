@@ -37,6 +37,9 @@ variable "tf_version" {
   default = ""
 }
 
+variable "bastion_deployment" {
+  default = false
+}
 
 // Set defaults
 locals {
@@ -51,7 +54,7 @@ locals {
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
 
   // Resource group
-  
+
   prefix = length(var.infrastructure.resource_group.name) > 0 ? var.infrastructure.resource_group.name : var.naming.prefix.DEPLOYER
 
   rg_arm_id = try(var.infrastructure.resource_group.arm_id, "")
@@ -70,75 +73,77 @@ locals {
   postfix = random_id.deployer.hex
 
   // Management vnet
-  vnet_mgmt        = try(var.infrastructure.vnets.management, {})
-  vnet_mgmt_arm_id = try(local.vnet_mgmt.arm_id, "")
+  vnet_mgmt_arm_id = try(var.infrastructure.vnets.management.arm_id, "")
   vnet_mgmt_exists = length(local.vnet_mgmt_arm_id) > 0
 
   // If resource ID is specified extract the vnet name from it otherwise read it either from input of create using the naming convention
   vnet_mgmt_name = local.vnet_mgmt_exists ? (
     split("/", local.vnet_mgmt_arm_id)[8]) : (
-    length(local.vnet_mgmt.name) > 0 ? (
-      local.vnet_mgmt.name) : (
+    length(var.infrastructure.vnets.management.name) > 0 ? (
+      var.infrastructure.vnets.management.name) : (
       format("%s%s", local.prefix, local.resource_suffixes.vnet)
     )
   )
 
-  vnet_mgmt_addr = local.vnet_mgmt_exists ? "" : try(local.vnet_mgmt.address_space, "")
+  vnet_mgmt_addr = local.vnet_mgmt_exists ? "" : try(var.infrastructure.vnets.management.address_space, "")
 
   // Management subnet
-  sub_mgmt        = try(local.vnet_mgmt.subnet_mgmt, {})
-  sub_mgmt_arm_id = try(local.sub_mgmt.arm_id, "")
-  sub_mgmt_exists = length(local.sub_mgmt_arm_id) > 0
+  management_subnet_arm_id   = try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, "")
+  management_subnet_exists   = length(local.management_subnet_arm_id) > 0
 
   // If resource ID is specified extract the subnet name from it otherwise read it either from input of create using the naming convention
-  sub_mgmt_name = local.sub_mgmt_exists ? (
-    split("/", local.sub_mgmt_arm_id)[10]) : (
-    length(local.sub_mgmt.name) > 0 ? (
-      local.sub_mgmt.name) : (
+  management_subnet_name = local.management_subnet_exists ? (
+    split("/", var.infrastructure.vnets.management.subnet_mgmt.arm_id)[10]) : (
+    length(var.infrastructure.vnets.management.subnet_mgmt.name) > 0 ? (
+      var.infrastructure.vnets.management.subnet_mgmt.name) : (
       format("%s%s", local.prefix, local.resource_suffixes.deployer_subnet)
   ))
 
-  sub_mgmt_prefix = local.sub_mgmt_exists ? "" : try(local.sub_mgmt.prefix, "")
-
-  sub_mgmt_deployed_prefixes = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
+  management_subnet_prefix = local.management_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_mgmt.prefix, "")
+  management_subnet_deployed_prefixes = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
 
   // Management NSG
-  sub_mgmt_nsg        = try(local.sub_mgmt.nsg, {})
-  sub_mgmt_nsg_arm_id = try(local.sub_mgmt_nsg.arm_id, "")
-  sub_mgmt_nsg_exists = length(local.sub_mgmt_nsg_arm_id) > 0
+  management_subnet_nsg_arm_id = try(var.infrastructure.vnets.management.subnet_mgmt.nsg.arm_id, "")
+  management_subnet_nsg_exists = length(local.management_subnet_nsg_arm_id) > 0
   // If resource ID is specified extract the nsg name from it otherwise read it either from input of create using the naming convention
-  sub_mgmt_nsg_name = local.sub_mgmt_nsg_exists ? (
-    split("/", local.sub_mgmt_nsg_arm_id)[8]) : (
-    length(local.sub_mgmt_nsg.name) > 0 ? (
-      local.sub_mgmt_nsg.name) : (
+  management_subnet_nsg_name = local.management_subnet_nsg_exists ? (
+    split("/", local.management_subnet_nsg_arm_id)[8]) : (
+    length(var.infrastructure.vnets.management.subnet_mgmt.nsg.name) > 0 ? (
+      var.infrastructure.vnets.management.subnet_mgmt.nsg.name) : (
       format("%s%s", local.prefix, local.resource_suffixes.deployer_subnet_nsg)
   ))
 
-  sub_mgmt_nsg_allowed_ips = local.sub_mgmt_nsg_exists ? (
+  management_subnet_nsg_allowed_ips = local.management_subnet_nsg_exists ? (
     []) : (
-    length(local.sub_mgmt_nsg.allowed_ips) > 0 ? (
-      local.sub_mgmt_nsg.allowed_ips) : (
+    length(var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) > 0 ? (
+      var.infrastructure.vnets.management.subnet_mgmt.nsg.allowed_ips) : (
       ["0.0.0.0/0"]
     )
   )
-  sub_mgmt_nsg_deployed = local.sub_mgmt_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
+  management_subnet_nsg_deployed = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
 
   // Firewall subnet
-  sub_fw_snet        = try(local.vnet_mgmt.subnet_fw, {})
-  sub_fw_snet_arm_id = try(local.sub_fw_snet.arm_id, "")
-  sub_fw_snet_exists = length(local.sub_fw_snet_arm_id) > 0
-  sub_fw_snet_name   = "AzureFirewallSubnet"
-  sub_fw_snet_prefix = local.sub_fw_snet_exists ? "" : try(local.sub_fw_snet.prefix, "")
+  firewall_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")
+  firewall_subnet_exists = length(local.firewall_subnet_arm_id) > 0
+  firewall_subnet_name   = "AzureFirewallSubnet"
+  firewall_subnet_prefix = local.firewall_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
 
   firewall_service_tags = format("AzureCloud.%s", var.infrastructure.region)
+
+  // Bastion subnet
+  bastion_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")
+  bastion_subnet_exists = length(local.bastion_subnet_arm_id) > 0
+  bastion_subnet_name   = "AzureBastionSubnet"
+  bastion_subnet_prefix = local.bastion_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
+
 
   enable_password = try(var.deployer.authentication.type, "key") == "password"
   enable_key      = !local.enable_password
 
   username = local.username_exist ? (
-      data.azurerm_key_vault_secret.username[0].value) : (
-      try(var.authentication.username, "azureadm")
-    )
+    data.azurerm_key_vault_secret.username[0].value) : (
+    try(var.authentication.username, "azureadm")
+  )
 
   // By default use generated password. Provide password under authentication overides it
   password = local.enable_password ? (

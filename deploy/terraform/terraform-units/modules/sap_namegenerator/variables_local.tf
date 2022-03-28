@@ -242,6 +242,8 @@ variable "resource_suffixes" {
     "app_subnet"                     = "app-subnet"
     "app_subnet_nsg"                 = "appSubnet-nsg"
     "cosmos_account"                 = "-cosmos-account"
+    "bastion_host"                   = "bastion-host"
+    "bastion_pip"                    = "bastion-pip"
     "db_alb"                         = "db-alb"
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"
@@ -367,6 +369,13 @@ variable "custom_prefix" {
   description = "Custom prefix"
   default     = ""
 }
+
+variable "use_prefix" {
+  type        = bool
+  description = "Use prefix"
+  default     = true
+}
+
 
 variable "deployer_location" {
   description = "Deployer Azure region"

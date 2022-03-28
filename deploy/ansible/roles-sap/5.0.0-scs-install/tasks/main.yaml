@@ -8,21 +8,16 @@
 
 ---
 
-- name:                            Set the SCS Server name list
+- name:                                "SCS Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
-    scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
-- name:                            Show the tier
-  ansible.builtin.debug:
-    var:                           tier
-
-- name:                            Set the SCS Server name
+- name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                    "{{ scs_server_temp | first }}"
-
+    scs_server:                        "{{ scs_server_temp | first }}"
 
 - name:                                "SCS Install: Create run flag directory"
   ansible.builtin.file:
@@ -47,25 +42,29 @@
     var:                               scs_installed
     verbosity:                         2
 
-- name:                            "SCS Install: Set BOM facts"
+- name:                                "SCS Install: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                   "{{ bom_base_name }}-scs-{{ ansible_hostname }}.params"
-    sap_inifile_template:          "{{ bom_base_name }}-scs-inifile-param.j2"
+    sap_inifile:                       "{{ bom_base_name }}-scs-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
 # Returns bom object
 
-- name:                            "SCS Install: Include 3.3.1-bom-utility role"
+- name:                                "SCS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
-    name:                          roles-sap/3.3.1-bom-utility
-    tasks_from:                    bom-register
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
   vars:
-    bom_name:                      "{{ bom_base_name }}"
-    tier:                          "{{ tier }}"
+    bom_name:                          "{{ bom_base_name }}"
+    tier:                              "{{ tier }}"
+    task_prefix:                       "SCS Install: "
 
-- name:                            "SCS Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
-    name:                          roles-sap/3.3.1-bom-utility
-    tasks_from:                    bom-template
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-template
   vars:
+    task_prefix:                       "SCS Install: "
+    always_upload_jinja_templates:     false
+    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
     sap_cd_package_cd3:
@@ -78,32 +77,26 @@
     sap_ciBtcWPNumber:
     sap_installSAPHostAgent:
     sap_profile_dir:
-    sap_scs_hostname:              "{{ scs_server }}"
+    sap_scs_hostname:                  "{{ scs_server }}"
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    tier:                          "{{ tier }}"
+    tier:                              "{{ tier }}"
   tags:
     - skip_ansible_lint
+
+- name:                                "SCS Install: install variables"
+  ansible.builtin.debug:
+    msg:                          
+      - "INSTALLED:  {{ scs_installed.stat.exists }}"
+      - "INIFILE:    {{ sap_inifile }}"
+      - "PRODUCT ID: {{ bom.product_ids.scs }}"
+      - "INSTANCE:   {{ scs_instance_number }}"
+    verbosity:                         2
 
 
 - name:                                "SCS Install"
   block:
-
-    - name:                            "SCS Install: install variables"
-      debug:
-        msg:                           "{{ sap_inifile }}"
-        verbosity:                     2
-
-    - name:                            "SCS Install: install variables"
-      debug:
-        msg:                           "{{ bom.product_ids.scs }}"
-        verbosity:                     2
-
-    - name:                            "SCS Install: instance number"
-      debug:
-        msg:                           "{{ scs_instance_number }}"
-        verbosity:                     2
 
 # *====================================4=======================================8
 # |  SAP SCS: Install                                                          |
@@ -112,29 +105,71 @@
 
     - name:                            "SCS Install: SAP SCS Install on {{ scs_virtual_hostname }}"
       ansible.builtin.command: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         /usr/sap/install/SWPM
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
       environment:
-        TMPDIR:                        /usr/sap/install
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+        TMPDIR:                        "{{ target_media_location }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:
         - skip_ansible_lint
+
+    - name:                            "SCS Install: Installation results"
+      ansible.builtin.debug:
+        var:                           scs_installation
+      when:                            scs_installation.rc > 0
+
+    - name:                            "SCS Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "SCS Installation succeeded"
+      when:                            scs_installation.rc == 0
+
+    - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.','/').replace('/ABAP','').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
+        file_type:                     file
+        patterns:                      'installationSuccesfullyFinished.dat'
+        recurse:                       true
+      register:                        scs_installed_according_to_sapinst
+
+    - name:                            "SCS Install: show"
+      ansible.builtin.debug:
+        var:                           scs_installed_according_to_sapinst
 
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
         state:                         touch
         mode:                          0755
+      when:
+        - scs_installation.rc == 0
+        - scs_installed_according_to_sapinst is defined
+        - scs_installed_according_to_sapinst | length > 0
+
 
   when:
     - "'scs' in supported_tiers"
     - not scs_installed.stat.exists
+
+
+- name:                                "SCS Install status"
+  block:
+    
+    - name:                            "SCS Install status"
+      ansible.builtin.debug:
+        msg:                           "SCS is already installed"
+    
+    - name:                            "SCS: - return value"
+      ansible.builtin.set_fact:
+        scs_already_installed:         true     
+  when:
+    - scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

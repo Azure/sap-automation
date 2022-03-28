@@ -7,6 +7,7 @@ using static AutomationForm.Models.CustomValidators;
 
 namespace AutomationForm.Models
 {
+    [BsonIgnoreExtraElements]
     public class LandscapeModel
     {
         [BsonId]

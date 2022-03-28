@@ -178,7 +178,7 @@ output "ANF_pool_settings" {
 }
 
 output "subnet_mgmt_id" {
-  value = local.deployer_subnet_mgmt_id
+  value = local.deployer_subnet_management_id
 }
 
 output "transport_storage_account_id" {

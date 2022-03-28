@@ -8,8 +8,9 @@ exit
 fi
 
 mkdir -p ~/agent; cd $_
-wget https://vstsagentpackage.azureedge.net/agent/2.196.1/vsts-agent-linux-x64-2.196.1.tar.gz -O agent.tar.gz
+wget https://aka.ms/AAftpys -O agent.tar.gz
 tar zxvf agent.tar.gz
+
 
 # run the configuration script
 ./config.sh  

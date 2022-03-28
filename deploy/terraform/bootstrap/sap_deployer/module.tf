@@ -24,6 +24,7 @@ module "sap_deployer" {
   app_registration_app_id            = var.app_registration_app_id
   cmdb_connection_string             = var.cmdb_connection_string
   webapp_client_secret               = var.webapp_client_secret
+  bastion_deployment                 = var.bastion_deployment
 }
 
 module "sap_namegenerator" {
@@ -32,7 +33,7 @@ module "sap_namegenerator" {
   deployer_environment = lower(local.infrastructure.environment)
   location             = lower(local.infrastructure.region)
   codename             = lower(local.infrastructure.codename)
-  management_vnet_name = coalesce(var.management_network_logical_name,local.vnet_mgmt_name_part)
+  management_vnet_name = coalesce(var.management_network_logical_name, local.vnet_mgmt_name_part)
   random_id            = module.sap_deployer.random_id
   deployer_vm_count    = local.deployer_vm_count
 }

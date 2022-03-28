@@ -3,10 +3,10 @@
 
 ########################################################################################################################################################################################################
 #                                                                                                                                                                                                      #
-# Installation service 'SAP BW/4HANA 2021 > SAP BW/4HANA Server > SAP HANA Database > Installation > Application Server ABAP
-#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:BW4HANA2021.CORE.HDB.ABAP'
-#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:BW4HANA2021.CORE.HDB.ABAP' #
-#                       > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:BW4HANA2021.CORE.HDB.ABAP' #
+# Installation service 'SAP S/4HANA Server 1909 > SAP HANA Database > Installation > Application Server ABAP
+#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAP' #
+#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:S4HANA1909.CORE.HDB.ABAP' #
+#                       > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:S4HANA1909.CORE.HDB.ABAP' #
 #                                                                                                                                                                                                      #
 ########################################################################################################################################################################################################
 
@@ -19,7 +19,7 @@ SAPINST.CD.PACKAGE.CD4                                               = {{ sap_cd
 SAPINST.CD.PACKAGE.CD5                                               = {{ sap_cd_package_cd5 }}
 
 
-archives.downloadBasket                                              = /usr/sap/install/download_basket
+archives.downloadBasket                                              = {{ target_media_location }}/download_basket
 
 nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
@@ -63,7 +63,7 @@ NW_readProfileDir.profileDir                                          = {{ sap_p
 
 NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
 NW_CI_Instance.ciInstanceNumber                                       = {{ sap_ciInstanceNumber }}
-NW_CI_Instance.ciMSPort                                               = 36{{ scs_instance_number }}
+NW_CI_Instance.ciMSPort                                               = 36{{ sap_ciInstanceNumber }}
 NW_CI_Instance.ciVirtualHostname                                      = {{ sap_ciVirtualHostname }}
 NW_CI_Instance.scsVirtualHostname                                     = {{ sap_scs_hostname }}
 

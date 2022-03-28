@@ -404,9 +404,14 @@
         {
           "Name": "database_size",
           "Required": false,
-          "Description": "If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename",
-          "Type": "field",
-          "Options": [],
+          "Description": "If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename. See <a href='https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
           "Overrules": ""
         },
         {
@@ -428,7 +433,7 @@
         {
           "Name": "db_disk_sizes_filename",
           "Required": false,
-          "Description": "Defines the custom disk size file",
+          "Description": "Defines the custom disk size file. See <a href='https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
           "Type": "field",
           "Options": [],
           "Overrules": ""
@@ -681,7 +686,7 @@
         {
           "Name": "app_disk_sizes_filename",
           "Required": false,
-          "Description": "If you want to customise the disk sizes for application tier use the following parameter",
+          "Description": "If you want to customise the disk sizes for application tier use the following parameter. See <a href='https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
           "Type": "field",
           "Options": [],
           "Overrules": ""
