@@ -3,7 +3,7 @@ resource "azurerm_cosmosdb_account" "cmdb" {
     name = lower(format("%s%s%s", local.prefix, local.resource_suffixes.cosmos_account, substr(random_id.post_fix.hex, 0, 3)))
     location = local.rg_library_location
     resource_group_name = local.rg_name
-    offer_type = "standard"
+    offer_type = "Standard"
     kind = "MongoDB"
 
     capabilities {
