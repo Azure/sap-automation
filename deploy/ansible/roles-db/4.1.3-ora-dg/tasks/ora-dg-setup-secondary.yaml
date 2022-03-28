@@ -107,6 +107,18 @@
     mode:                              0755
   when:  current_host == ora_secondary
 
+- name:                                Create flag for post-processing on Primary DB
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /usr/sap/install/downloads/restore_completed.txt
+    state:                             touch
+    mode:                              0755
+    owner: oracle
+    group: oinstall
+  
+
+
 - name:                                " STARTUP DG Broker on SECONDARY "
   become:                              true
   become_user:                         "oracle"

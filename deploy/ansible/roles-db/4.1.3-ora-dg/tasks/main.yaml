@@ -20,14 +20,14 @@
 
 
 
-- include_tasks: "ora-dg-secondary-prep.yaml"
+- include_tasks: "ora-dg-secondary-preparation.yaml"
   when:
     - node_tier == "oracle"
     - action == 0
 
 - name:            "Prepare and Restore"
   block:
-    - include_tasks: "ora-dg-prep.yaml"
+    - include_tasks: "ora-dg-preparation.yaml"
 
     - include_tasks: "ora-dg-setup-primary.yaml"
       when:
