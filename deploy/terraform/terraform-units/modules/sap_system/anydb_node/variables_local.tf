@@ -330,7 +330,7 @@ locals {
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
-          write_accelerator_enabled = storage_type.write_accelerator
+          write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
@@ -350,7 +350,7 @@ locals {
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
-          write_accelerator_enabled = storage_type.write_accelerator
+          write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }

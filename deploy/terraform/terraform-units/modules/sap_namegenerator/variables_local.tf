@@ -241,7 +241,12 @@ variable "resource_suffixes" {
     "app_service_plan"               = "-app-service-plan"
     "app_subnet"                     = "app-subnet"
     "app_subnet_nsg"                 = "appSubnet-nsg"
+<<<<<<< HEAD
     "cosmos_account"                 = "-cosmos-account"
+=======
+    "bastion_host"                   = "bastion-host"
+    "bastion_pip"                    = "bastion-pip"
+>>>>>>> 58978a916ceb9b9e08fab8eea765c895b9bd10ee
     "db_alb"                         = "db-alb"
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"

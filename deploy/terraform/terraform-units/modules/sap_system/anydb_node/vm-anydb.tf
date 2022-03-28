@@ -260,10 +260,10 @@ resource "azurerm_managed_disk" "disks" {
   disk_iops_read_write   = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? local.anydb_disks[count.index].disk_iops_read_write : null
   disk_mbps_read_write   = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? local.anydb_disks[count.index].disk_mbps_read_write : null
 
-  zones = local.zonal_deployment ? (
+  zone = local.zonal_deployment ? (
     upper(local.anydb_ostype) == "LINUX" ? (
-      [azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone]) : (
-      [azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone]
+      azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
+      azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
   )) : null
 
 }

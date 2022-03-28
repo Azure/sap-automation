@@ -88,6 +88,8 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
