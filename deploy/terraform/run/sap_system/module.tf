@@ -110,45 +110,6 @@ module "hdb_node" {
   landscape_tfstate = data.terraform_remote_state.landscape.outputs
 }
 
-# // Create Application Tier nodes
-module "app_tier" {
-  source = "../../terraform-units/modules/sap_system/app_tier"
-  providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
-  }
-  order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment ? (
-      "") : (
-      coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
-    )
-  ) : (null)
-  application                                  = local.application
-  infrastructure                               = local.infrastructure
-  options                                      = local.options
-  resource_group                               = module.common_infrastructure.resource_group
-  storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
-  ppg                                          = module.common_infrastructure.ppg
-  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
-  naming                                       = module.sap_namegenerator.naming
-  admin_subnet                                 = module.common_infrastructure.admin_subnet
-  custom_disk_sizes_filename                   = var.app_disk_sizes_filename
-  sid_password                                 = module.common_infrastructure.sid_password
-  sid_username                                 = module.common_infrastructure.sid_username
-  sdu_public_key                               = module.common_infrastructure.sdu_public_key
-  route_table_id                               = module.common_infrastructure.route_table_id
-  firewall_id                                  = module.common_infrastructure.firewall_id
-  sap_sid                                      = local.sap_sid
-  landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
-  terraform_template_version                   = var.terraform_template_version
-  deployment                                   = var.deployment
-  network_location                             = module.common_infrastructure.network_location
-  network_resource_group                       = module.common_infrastructure.network_resource_group
-  cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
-  license_type                                 = var.license_type
-  use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
-}
-
 # // Create anydb database nodes
 module "anydb_node" {
   source = "../../terraform-units/modules/sap_system/anydb_node"
@@ -195,6 +156,47 @@ module "anydb_node" {
   use_observer      = var.use_observer
   landscape_tfstate = data.terraform_remote_state.landscape.outputs
 }
+
+# // Create Application Tier nodes
+module "app_tier" {
+  source = "../../terraform-units/modules/sap_system/app_tier"
+  providers = {
+    azurerm.main     = azurerm
+    azurerm.deployer = azurerm.deployer
+  }
+  order_deployment = local.enable_db_deployment ? (
+    local.db_zonal_deployment ? (
+      "") : (
+      coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
+    )
+  ) : (null)
+  application                                  = local.application
+  infrastructure                               = local.infrastructure
+  options                                      = local.options
+  resource_group                               = module.common_infrastructure.resource_group
+  storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
+  ppg                                          = module.common_infrastructure.ppg
+  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
+  naming                                       = module.sap_namegenerator.naming
+  admin_subnet                                 = module.common_infrastructure.admin_subnet
+  custom_disk_sizes_filename                   = var.app_disk_sizes_filename
+  sid_password                                 = module.common_infrastructure.sid_password
+  sid_username                                 = module.common_infrastructure.sid_username
+  sdu_public_key                               = module.common_infrastructure.sdu_public_key
+  route_table_id                               = module.common_infrastructure.route_table_id
+  firewall_id                                  = module.common_infrastructure.firewall_id
+  sap_sid                                      = local.sap_sid
+  landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
+  terraform_template_version                   = var.terraform_template_version
+  deployment                                   = var.deployment
+  network_location                             = module.common_infrastructure.network_location
+  network_resource_group                       = module.common_infrastructure.network_resource_group
+  cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
+  license_type                                 = var.license_type
+  use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
+}
+
+
 # // Generate output files
 module "output_files" {
   source = "../../terraform-units/modules/sap_system/output_files"
