@@ -101,7 +101,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   }
 
   boot_diagnostics {
-    storage_account_uri = length(var.deployer_diagnostics_account_arm_id) > 0 ? (
+    storage_account_uri = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? (
       data.azurerm_storage_account.deployer[0].primary_blob_endpoint) : (
       azurerm_storage_account.deployer[0].primary_blob_endpoint
     )
