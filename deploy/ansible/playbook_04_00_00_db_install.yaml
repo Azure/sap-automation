@@ -19,11 +19,16 @@
         state:                         directory
         mode:                          0755
 
+    - name:                            "Database Installation Playbook: - Create Progress db folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "Database Installation Playbook: - Remove db-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-install-done"
         state:                          absent
-
 
     - name:                            "Database Installation Playbook: - Set hdb fact"
       ansible.builtin.set_fact:
@@ -71,7 +76,6 @@
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
-
   tasks:
 # -------------------------------------+---------------------------------------8
 #
@@ -103,7 +107,7 @@
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
               ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/db-install-done"
+                path:                  "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
                 state:                 touch
                 mode:                  0755
               when:
@@ -200,10 +204,10 @@
           tags:
             - 1.17-generic-pacemaker
 
-        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+        - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
           delegate_to:                 localhost
           ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
             state:                     touch
             mode:                      0755
 
@@ -257,13 +261,56 @@
           when:                        platform == 'ORACLE'
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          become_user:                 "root"
+          become:                      true
           delegate_to:                 localhost
           ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
 
       when:                            platform == 'ORACLE'
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                    Playbook for Validating DB Install                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_DB"
+
+  name:                                SAP Post Installation - DB
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "DB Playbook - Post Install: Check for files in progress folder" 
+      ansible.builtin.find:
+        path:                          "{{ _workspace_directory }}/.progress/db"
+        patterns:                      "*"
+      register:                        find_progress_files
+      delegate_to:                     localhost
+
+    - name:                            "DB Playbook - Post Install: - Create db-install-done flag"
+      delegate_to:                     localhost
+      become_user:                     "root"
+      become:                          true
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-install-done"
+        state:                         touch
+        mode:                          0755
+      when:                            find_progress_files.matched == (ansible_play_hosts | length)
 
 ...
 # /*----------------------------------------------------------------------------8
