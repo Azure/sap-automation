@@ -29,9 +29,9 @@
          CREATE PFILE FROM SPFILE;
          exit
     mode:                              0755
+   
 
-
-- name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY"
+- name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY" 
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @createpfile.sql
