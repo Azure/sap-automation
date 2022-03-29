@@ -43,7 +43,7 @@
     task_prefix:                       "Validation: "
     source:                            "disk"
 
-- name:                                "Combine dependent BoMs"  
+- name:                                "Combine dependent BoMs"
   ansible.builtin.set_fact:
     root_media_list:                   "{{ root_media_list + bom.materials.media|flatten(levels=1) }}"
   when: root_media_list is defined

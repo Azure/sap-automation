@@ -112,15 +112,8 @@
       ansible.builtin.debug:
         msg:                           "HANA Installation succeeded"
       when:
-       - hana_installation.rc is defined
-       - hana_installation.rc == 0
-
-    - name:                            "SAP HANA: Installation results"
-      ansible.builtin.debug:
-        msg:                           "HANA Installation succeeded"
-      when:
-       - hana_installation.rc is defined
-       - hana_installation.rc == 0
+        - hana_installation.rc is defined
+        - hana_installation.rc == 0
 
     - name:                            "SAP HANA: remove install password file"
       ansible.builtin.file:

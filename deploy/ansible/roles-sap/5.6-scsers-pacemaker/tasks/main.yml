@@ -4,7 +4,7 @@
 - import_tasks:                    5.6.3-prep_steps.yml
 
 - import_tasks:                    5.6.4-provision.yml
-  # when:                            
+  # when:
   #   - cluster_existence_check_result is defined
   #   - not cluster_existence_check_result
 - import_tasks:                    5.6.5-post_provision_report.yml

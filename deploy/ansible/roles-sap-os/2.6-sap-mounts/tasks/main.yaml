@@ -37,8 +37,8 @@
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
     msg:
-      - "NFS Provider: {{ NFS_provider }}"                             
-      - "Install path: {{ usr_sap_install_mount_point }}"                             
+      - "NFS Provider: {{ NFS_provider }}"
+      - "Install path: {{ usr_sap_install_mount_point }}"
     verbosity:                         2
 
 # Mount Filesystems

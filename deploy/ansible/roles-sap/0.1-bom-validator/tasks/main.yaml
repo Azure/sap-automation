@@ -135,6 +135,7 @@
     content:                           "{{ new_bom }}"
 #    dest:                              "{{ download_directory }}/bom/{{ bom_base_name.replace('ms','') }}.yaml"
     dest:                              "{{ download_directory }}/bom/{{ bom_base_name }}.yaml"
+    mode:                              0755
 
 - name:                                "0.1 BoM Validator: - Upload combined BoM"
   ansible.builtin.command: >-
