@@ -166,7 +166,7 @@
     mode:                              0755
     owner:                             oracle
     group:                             oinstall
-  when:                              rman_results.rc > 0  
+  when:                              rman_results.rc <= 0  
   
 - name:                                "Oracle Data Guard - Setup Secondary: Create restore_completed.txt"
   become:                              true
@@ -177,7 +177,7 @@
     mode:                              0755
     owner:                             oracle
     group:                             oinstall
-  when:                              rman_results.rc > 0
+  when:                              rman_results.rc <= 0
 
 
 - name:                                "Oracle Data Guard - Setup Secondary: STARTUP DG Broker on SECONDARY"
