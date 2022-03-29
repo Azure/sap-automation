@@ -295,7 +295,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "DB Playbook - Post Install: Check for files in progress folder" 
+    - name:                            "DB Playbook - Post Install: Check for files in progress folder"
       ansible.builtin.find:
         path:                          "{{ _workspace_directory }}/.progress/db"
         patterns:                      "*"
