@@ -89,6 +89,18 @@
           - "HOST:       {{ scs_virtual_hostname }}"
         verbosity:                     2
 
+    - name:                            "SCS HA Install: - SCS - Assign ownership"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        owner:                         "{{ sap_sid | lower }}adm"
+        group:                         sapsys
+        recurse:                       true
+        state:                         directory
+      loop:
+        -  { path: '/sapmnt/{{ sap_sid | upper }}' }
+        -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        -  { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
+
 # *====================================4=======================================8
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
@@ -116,7 +128,7 @@
           when:                        node_tier == 'scs'
       rescue:
         # ToDO: cleanup file systems on failed install.
-        # until then we validate if cretain files and folders exist and take
+        # until then we validate if certain files and folders exist and take
         # actions based on them
         - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
           ansible.builtin.stat:
@@ -137,17 +149,19 @@
         # At this stage the DIR_CT_RUN,'/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'
         # is expected to be empty so we delete it.
         # nw.directoryIsNotEmptyUnattended
-        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'"
+        - name:                        "RESCUE - SCS HA Install: Show installation result"
+          ansible.builtin.debug:
+            var:                       scs_installation
+          when:                        scs_installation is defined
+
+        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'"
           ansible.builtin.file:
-            path:                      '/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64'
-            state:                     "{{ item }}"
-          with_items:
-            - absent
-            - directory
+            path:                      "/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64"
+            state:                     absent
           when:
             - node_tier == 'scs'
             - find_sys_exe_uc_result is defined
-            - find_sys_exe_uc_result.examined != 0
+            - find_sys_exe_uc_result | length > 0
 
         - name:                        "RESCUE - SCS HA Install: - SCS - Assign ownership"
           ansible.builtin.file:
@@ -207,14 +221,14 @@
 
 - name:                                "SCS Install status"
   block:
-    
+
     - name:                            "SCS Install status"
       ansible.builtin.debug:
         msg:                           "SCS is already installed"
-    
+
     - name:                            "SCS: - return value"
       ansible.builtin.set_fact:
-        scs_already_installed:         true     
+        scs_already_installed:         true
   when:
     - node_tier == 'scs'
     - scs_installed.stat.exists
