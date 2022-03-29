@@ -61,7 +61,7 @@
   ansible.builtin.command:             ./RUNINSTALLER -ohcheck -silent
   register:                            oraprecheck_results
   failed_when:                         oraprecheck_results.rc >= 3
-  changed_when:                        (oraprecheck_results.rc < 3) | bool
+  #changed_when:                        oraprecheck_results.rc < 3
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7

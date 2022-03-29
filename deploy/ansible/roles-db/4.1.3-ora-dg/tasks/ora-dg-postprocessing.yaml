@@ -42,7 +42,7 @@
   - name:                                "Oracle Data Guard - Post Processing: Start DG Broker on Primary"
     become:                              true
     become_user:                         "oracle"
-    ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
+    ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql  | tee /etc/sap_deployment_automation/dgscripts/enabledgbroker.log
     register:                            secondarystartup_results
     failed_when:                         secondarystartup_results.rc > 0
     args:
