@@ -52,6 +52,8 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"

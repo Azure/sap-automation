@@ -252,10 +252,10 @@ resource "azurerm_managed_disk" "scs" {
   disk_size_gb           = local.scs_data_disks[count.index].disk_size_gb
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
-  zones = !local.use_scs_avset ? (
+  zone = !local.use_scs_avset ? (
     upper(local.scs_ostype) == "LINUX" ? (
-      [azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone]) : (
-      [azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone]
+      azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone) : (
+      azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone
     )) : (
     null
   )

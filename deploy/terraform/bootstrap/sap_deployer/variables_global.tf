@@ -50,7 +50,7 @@ variable "infrastructure" {
         true
       )
     )
-    error_message = "Either the arm_id or prefix of the subnet must be specified in the infrastructure.vnets.management.subnet_mgmt block."
+    error_message = "Either the arm_id or prefix of the subnet must be specified in the infrastructure.vnets.management.subnet_management block."
   }
 
 }
