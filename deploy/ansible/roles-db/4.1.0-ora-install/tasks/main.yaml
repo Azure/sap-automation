@@ -131,7 +131,7 @@
     path:                              /etc/sap_deployment_automation/oracleinstall.txt
     state:                             touch
     mode:                              0755
-    when:                              orainstaller_results.rc >= 2
+    when:                              orainstaller_results.rc <= 2
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
