@@ -6,36 +6,42 @@
 ---
 
 - hosts:                               localhost
-  name:                                Get SAP Password from KeyVault
+  name:                                "APP Playbook: Get SAP Password from KeyVault"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
   tasks:
 
-    - name:                            Create Progress folder
+    - name:                            "APP Playbook: Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
         mode:                          0755
 
-    - name:                            Remove app-install-done flag
+    - name:                            "APP Playbook: Create Progress App folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/app"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "APP Playbook: Remove app-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/app-install-done"
         state:                          absent
 
-    - name:                            Include 0.1 passwords role
+    - name:                            "APP Playbook: Include 0.1 passwords role"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
       tags:
         - 0.1-passwords
 
-    - name:                            Initialize tier
+    - name:                            "APP Playbook: Initialize tier"
       ansible.builtin.set_fact:
         tier:                          app
 
-    - name:                            Run the sap-installation-media-storage-details role
-      include_role:
+    - name:                            "APP Playbook: Run the sap-installation-media-storage-details role"
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       vars:
@@ -50,7 +56,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_APP"
-  
+
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   become:                              true
@@ -61,14 +67,15 @@
 
   tasks:
 
-    - name:                            Set 'app' tier facts
+    - name:                            "APP Playbook - User Install: Set 'app' tier facts"
       ansible.builtin.set_fact:
         tier:                          generic                                     # SAP Install phase: APP - Application Server
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        always_upload_jinja_templates: false
 
-    - name:                            Generic Users and Groups for SAP Installation
+    - name:                            "APP Playbook - User Install: Generic Users and Groups for SAP Installation"
       ansible.builtin.include_role:
         name:                          roles-sap-os/2.5-sap-users
         tasks_from:                    user_nw.yaml
@@ -105,36 +112,37 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            Set 'app' tier facts
+    - name:                            "APP Playbook - Install: Set 'app' tier facts"
       ansible.builtin.set_fact:
         tier:                          app                                     # SAP Install phase: APP - Application Server
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
+        always_upload_jinja_templates: false
 
     - block:
-        - name:                        Include 2.6-sap-mounts role
+        - name:                        "APP Playbook - Install: Include 2.6-sap-mounts role"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
       tags:
         - 2.6-sap-mounts
 
     - block:
-        - name:                        Include 5.3-app-install
+        - name:                        "APP Playbook - Install: Include 5.3-app-install"
           ansible.builtin.include_role:
             name:                      roles-sap/5.3-app-install
-        - name:                        "APP Installation Playbook: - Create app-install-done flag"
+
+        - name:                        "APP Playbook - Install: - Create app-install-done flag"
           delegate_to:                 localhost
           ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/app-install-done"
+            path:                      "{{ _workspace_directory }}/.progress/app/app-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
-          when:                    
-            - app_installation.rc is defined
-            - app_installation.rc == 0
+          when:
+            - app_already_installed is defined or (app_installation.rc is defined and app_installation.rc == 0)
       always:
-        - name:                        Get the error lines
+        - name:                        "APP Playbook - Install: Get the error lines"
           ansible.builtin.set_fact:
             error_lines:               "{{ error_lines | default([]) + [item] }}"
           with_items:                  "{{ app_installation.stdout_lines }}"
@@ -142,7 +150,7 @@
             - app_installation.stdout_lines is defined
             - '"ERROR" in item'
 
-        - name:                        Include 7.0.0-post-install role
+        - name:                        "APP Playbook - Install: Run post install activities"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
@@ -151,16 +159,53 @@
             path:                      "{{ file_path }}"
             tier:                      'app'
 
-        - name:                    Errors from APP installation
+        - name:                        "APP Playbook - Install: Errors from APP installation"
           ansible.builtin.debug:
-            msg:                   "{{ error_lines }}"
+            msg:                       "{{ error_lines }}"
           when:
             - error_lines is defined
-
 
       tags:
         - 5.3-app-install
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                  Playbook for Validating SAP APP Install                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid|upper }}_APP"
+
+  name:                                SAP Post Installation - APP
+  serial:                              1                                        # Cause App Servers to install sequentially
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "APP Playbook - Post Install: Check for files in progress folder"
+      ansible.builtin.find:
+        path:                          "{{ _workspace_directory }}/.progress/app"
+        patterns:                      "*"
+      register:                        find_progress_files
+      delegate_to:                     localhost
+
+    - name:                            "APP Playbook - Post Install: - Create app-install-done flag"
+      delegate_to:                     localhost
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/app-install-done"
+        state:                         touch
+        mode:                          0755
+      when:                            find_progress_files.matched == (ansible_play_hosts | length)
 
 ...
 # /*---------------------------------------------------------------------------8

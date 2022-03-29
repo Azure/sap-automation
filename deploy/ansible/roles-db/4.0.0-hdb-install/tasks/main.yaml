@@ -101,24 +101,19 @@
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
-        msg: 
-         - "HANA Installation failed"
-         - "HDBLCM output: {{ hana_installation }}"
-      when:                            
-       - hana_installation.rc is defined
-       - hana_installation.rc > 0
+        msg:
+          - "HANA Installation failed"
+          - "HDBLCM output: {{ hana_installation }}"
+      when:
+        - hana_installation.rc is defined
+        - hana_installation.rc > 0
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:
         msg:                           "HANA Installation succeeded"
-      when:                            
-       - hana_installation.rc is defined
-       - hana_installation.rc == 0
-
-    - name:                            "SAP HANA: Installation results"
-      ansible.builtin.debug:
-        msg:                           "HANA Installation succeeded"
-      when:                            hana_installation.rc == 0
+      when:
+        - hana_installation.rc is defined
+        - hana_installation.rc == 0
 
     - name:                            "SAP HANA: remove install password file"
       ansible.builtin.file:
@@ -147,9 +142,17 @@
   when:
     - not hana_installed.stat.exists
 
+
 - name:                                "HANA Install status"
-  ansible.builtin.debug:
-    msg:                               "HANA is already installed"
+  block:
+
+    - name:                            "HANA Install status"
+      ansible.builtin.debug:
+        msg:                           "HANA is already installed"
+
+    - name:                            "HANA: - return value"
+      ansible.builtin.set_fact:
+        hana_already_installed:         true
   when:
     -  hana_installed.stat.exists
 

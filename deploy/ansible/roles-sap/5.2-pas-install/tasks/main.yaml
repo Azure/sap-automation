@@ -40,7 +40,7 @@
   ansible.builtin.set_fact:
     scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
     instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
-    db_virtual_host:                   "{% if db_high_availability %}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
+    db_virtual_host:                   "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
 
 - name:                                "PAS Install: Include 3.3.1-bom-utility role"
@@ -83,7 +83,7 @@
 
 - name:                                "PAS Install: install variables"
   ansible.builtin.debug:
-    msg:                          
+    msg:
       - "INSTALLED:  {{ pas_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ pas_bom_id }}"
@@ -128,7 +128,7 @@
 
     - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.app.replace('.','/').replace('/ABAP','').split(':')[1] }}{{ file_path }}" 
+        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}{{ file_path }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
@@ -149,13 +149,18 @@
 
 - name:                                "PAS Install: - status"
   block:
-    
-    - name:                                "PAS Install: - status"
+
+    - name:                            "PAS Install: - status"
       ansible.builtin.debug:
         msg:                           "PAS Installation is already performed"
 
+    - name:                            "PAS Install: - return value"
+      ansible.builtin.set_fact:
+        pas_already_installed:         true
+
   when:
     -  pas_installed.stat.exists
+
 
 ...
 # /*---------------------------------------------------------------------------8

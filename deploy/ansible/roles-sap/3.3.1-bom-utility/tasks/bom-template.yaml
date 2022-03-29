@@ -47,7 +47,9 @@
   register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
-  when:                                distribution_id in ['suse15', 'redhat8']
+  when:
+    - distribution_id in ['suse15', 'redhat8']
+    - not always_upload_jinja_templates
 
 - name:                                "BOM2: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
@@ -60,6 +62,7 @@
   when:
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
+    - not always_upload_jinja_templates
 
 - name:                                "BOM: Download BOM ({{ bom_name }}) from Storage Account"
   block:
@@ -70,9 +73,10 @@
         dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
         mode:                          0644
         force:                         true
-      
-  when:                                
+
+  when:
     - result is succeeded or result is skipped
+    - not always_upload_jinja_templates
 
 # -------------------------------------+---------------------------------------8
 #
@@ -80,7 +84,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template on disk" 
+- name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template on disk"
   block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
       ansible.builtin.stat:
@@ -102,14 +106,14 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template from archive on disk" 
+    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template from archive on disk"
       block:
 
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) ini file in archive"
           ansible.builtin.stat:
             path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
-            register:                  microsoft_supplied_bom_template_archive
-            delegate_to:               localhost
+          register:                    microsoft_supplied_bom_template_archive
+          delegate_to:                 localhost
 
         - name:                        "{{ task_prefix }} Create ini file {{ sap_inifile }}"
           ansible.builtin.template:
@@ -120,10 +124,7 @@
           when:                        microsoft_supplied_bom_template_archive.stat.exists
       when:                            not microsoft_supplied_bom_template.stat.exists
 
-  when:                                result is failed
-
-
-# -------------------------------------+---------------------------------------8
+  when:                                result is failed or always_upload_jinja_templates
 
 ...
 # /*---------------------------------------------------------------------------8

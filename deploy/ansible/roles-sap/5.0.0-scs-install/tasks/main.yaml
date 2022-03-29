@@ -86,7 +86,7 @@
 
 - name:                                "SCS Install: install variables"
   ansible.builtin.debug:
-    msg:                          
+    msg:
       - "INSTALLED:  {{ scs_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.scs }}"
@@ -156,12 +156,19 @@
     - "'scs' in supported_tiers"
     - not scs_installed.stat.exists
 
+
 - name:                                "SCS Install status"
-  ansible.builtin.debug:
-    msg:                               "SCS is already installed"
+  block:
+
+    - name:                            "SCS Install status"
+      ansible.builtin.debug:
+        msg:                           "SCS is already installed"
+
+    - name:                            "SCS: - return value"
+      ansible.builtin.set_fact:
+        scs_already_installed:         true
   when:
-    - "'scs' in supported_tiers"
-    -  scs_installed.stat.exists
+    - scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

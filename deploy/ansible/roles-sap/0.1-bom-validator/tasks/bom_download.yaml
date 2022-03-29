@@ -64,7 +64,7 @@
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.debug:
             msg:
-             - "file_url: '{{ file_url }}"
+              - "file_url: '{{ file_url }}"
         - name:                        "BOM: {{ bom_name }} Download File {{ item.archive }}"
           ansible.builtin.get_url:
             url:                       "{{ file_url | trim }}"

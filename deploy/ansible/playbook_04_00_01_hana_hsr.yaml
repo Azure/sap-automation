@@ -15,18 +15,18 @@
     - name:                            Initialization
       block:
         - name:                            Initialize facts
-          set_fact:
+          ansible.builtin.set_fact:
             tier:                          fencing
 
         - name:                            Run the misc/password role
-          include_role:
+          ansible.builtin.include_role:
             name:                          roles-misc/0.1-passwords
             public:                        true
           tags:
             - 0.1-passwords
 
         - name:                            Run the keyvault role
-          include_role:
+          ansible.builtin.include_role:
             name:                          roles-misc/0.2-kv-secrets
           tags:
             - kv-secrets
@@ -62,7 +62,7 @@
     - name:                            "Install HSR"
       block:
         - name:                        Initialize facts
-          set_fact:
+          ansible.builtin.set_fact:
             tier:                      hdb                                      # Actions for HANA DB Servers
             primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"        # Setting up Secondary Instance Name
@@ -77,7 +77,7 @@
 
         - block:
             - name:                    Run the db/hdb-hsr role
-              include_role:
+              ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
           tags:
             - 4.0.1-hdb-hsr
@@ -87,7 +87,7 @@
       block:
 
         - name:                        Initialize facts
-          set_fact:
+          ansible.builtin.set_fact:
             tier:                      ha
             password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -101,7 +101,7 @@
 
         - block:
             - name:                    Run the hana sudoers role
-              include_role:
+              ansible.builtin.include_role:
                 name:                  roles-os/1.11-accounts
                 tasks_from:            setup_hanausers_sudoers.yml
               when:                    1==2
@@ -109,7 +109,7 @@
             - 1.11-accounts
         - block:
             - name:                    Run the Pacemaker role
-              include_role:
+              ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
               when:                    db_high_availability
           tags:

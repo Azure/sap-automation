@@ -45,6 +45,7 @@
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "ERS Install: "
+    always_upload_jinja_templates:     false
     bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
@@ -86,17 +87,17 @@
           - "PRODUCT ID: {{ bom.product_ids.ers_ha }}"
         verbosity:                     2
 
-    - name:                            "ERS - Assign ownership"
+    - name:                            "ERS Install: Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower}}adm" 
+        owner:                         "{{ sap_sid | lower }}adm"
         group:                         sapsys
         recurse:                       true
         state:                         directory
       loop:
         -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
-    - name:                            SAP ERS install command
+    - name:                            "ERS Install: SAP ERS install command"
       ansible.builtin.debug:
         msg:                           ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}
                                         SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }} SAPINST_SKIP_DIALOGS=true SAPINST_START_GUISERVER=false SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
@@ -108,7 +109,7 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "SCS HA Installation"
+    - name:                            "ERS HA Installation"
       block:
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
@@ -189,8 +190,15 @@
     - not ers_installed.stat.exists
 
 - name:                                "ERS Install status"
-  ansible.builtin.debug:
-    msg:                               "ERS is already installed"
+  block:
+
+    - name:                            "ERS Install status"
+      ansible.builtin.debug:
+        msg:                           "ERS is already installed"
+
+    - name:                            "ERS: - return value"
+      ansible.builtin.set_fact:
+        ers_already_installed:         true
   when:
     - "'ers' in supported_tiers"
     -  ers_installed.stat.exists
