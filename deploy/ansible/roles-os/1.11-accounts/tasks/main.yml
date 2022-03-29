@@ -70,7 +70,7 @@
 # the way to handle this.
 - name:                                "1.11 Accounts - Manage associated per-user /etc/sudoers.d/ files for
                                        given sudoers role"
-  ansible.builtin.include_tasks                       setup_user_sudoers.yml
+  ansible.builtin.include_tasks:       setup_user_sudoers.yml
   vars:
     sudoers_user:                      "{{ item.name }}"
     sudoers_role:                      "{{ item.sudoers_role }}"

@@ -91,7 +91,7 @@
 #       Enhance so a single task loops over bas bom and dependencies
 #
 - name:                                "0.1 BoM Validator: - Process main BoM"
-  ansible.builtin.include_tasks                       bom_validator.yaml
+  ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
@@ -108,7 +108,7 @@
 # Description:  Call BOM processor, passing dependent BOM names.
 #
 - name:                                "0.1 BoM Validator: - Process dependent BoMs in a loop"
-  ansible.builtin.include_tasks                       bom_validator.yaml
+  ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"

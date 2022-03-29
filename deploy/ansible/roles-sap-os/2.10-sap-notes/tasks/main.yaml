@@ -25,7 +25,7 @@
 # RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
 
 - name:             2.10.0 - SAP Note 2205917
-  ansible.builtin.include_tasks    2.10.0.yaml
+  ansible.builtin.include_tasks:    2.10.0.yaml
   when:             tier == 'HANA'
 # -------------------------------------+---------------------------------------8
 
