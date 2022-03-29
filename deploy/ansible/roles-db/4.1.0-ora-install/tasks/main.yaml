@@ -89,7 +89,7 @@
     path:                              /etc/sap_deployment_automation/oracle_pre_check_install.txt
     state:                             touch
     mode:                              0755
-    when:                              oraprecheck_results.rc < 3
+    when:                              oraprecheck_results.rc <= 3
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
