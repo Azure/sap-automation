@@ -56,5 +56,5 @@
 
 # Clustering commands are based on the Host OS
 - name:                                "1.17 Generic Pacemaker - Cluster based on {{ ansible_os_family }} on VM {{ ansible_hostname }}"
-  include_tasks:                       "1.17.2.0-cluster-{{ ansible_os_family }}.yml"
+  ansible.builtin.include_tasks                       "1.17.2.0-cluster-{{ ansible_os_family }}.yml"
   when:                                cluster_existence_check != 0

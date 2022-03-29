@@ -72,7 +72,7 @@
 #   Loop through BOM media URLs
 
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
-  include_tasks:                       bom_download.yaml
+  ansible.builtin.include_tasks                       bom_download.yaml
 
   loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
   no_log:                              false
