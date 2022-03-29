@@ -41,7 +41,7 @@
         tier:                          app
 
     - name:                            "APP Playbook: Run the sap-installation-media-storage-details role"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       vars:
@@ -200,7 +200,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "APP Playbook - Post Install: Check for files in progress folder" 
+    - name:                            "APP Playbook - Post Install: Check for files in progress folder"
       ansible.builtin.find:
         path:                          "{{ _workspace_directory }}/.progress/app"
         patterns:                      "*"
@@ -214,7 +214,7 @@
         state:                         touch
         mode:                          0755
       when:                            find_progress_files.matched == (ansible_play_hosts | length)
-            
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                    END                                     |
