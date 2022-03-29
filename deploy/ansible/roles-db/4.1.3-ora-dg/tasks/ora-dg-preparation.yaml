@@ -48,6 +48,7 @@
         exit
     mode:                              0755
 
+
 - name:                                "Oracle Data Guard - Preparation: create standbyredologs.sql"
   become:                              true
   become_user:                         "oracle"
@@ -435,7 +436,18 @@
     group:                             oinstall
   when:                                current_host == ora_secondary
 
-
+- name:                                "Oracle Data Guard - Rescue create shutdownsecondary.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/shutdownsecondary.sql 
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        SHUTDOWN ABORT;
+        exit
+    mode:                              0755
 
 
 ...

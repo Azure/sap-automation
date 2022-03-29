@@ -108,9 +108,9 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Shutdown secondary DB"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           sqlplus / as sysdba shutdown abort |tee /etc/sap_deployment_automation/dgscripts/secondary_abort_startup.log
-      register:                        secondary_abort_startup_results
-      failed_when:                     secondary_abort_startup_results.rc > 0
+      ansible.builtin.shell:           sqlplus / as sysdba @shutdownsecondary.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_shutdown.log
+      register:                        secondary_shutdown_results
+      failed_when:                     secondary_shutdown_results.rc > 0
       args:
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
@@ -122,14 +122,14 @@
       args:
         chdir:                         "{{ item.directory_to_empty }} "
       loop:
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata3' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata4' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogA' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata3/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata4/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogA/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB/' }
 
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
       become:                          true
