@@ -102,7 +102,7 @@ locals {
   ]
 
   observer_vm_names = [for idx in range(max(length(local.zones), 1)) :
-    local.zonal_deployment ? (
+    local.zonal_deployment && var.use_zonal_markers ? (
       format("%sobserver_z%s_%02d%s%s", lower(var.sap_sid), local.zones[idx % length(local.zones)], idx + var.resource_offset, local.db_oscode, local.random_id_vm_verified)) : (
       format("%sobserver%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.db_oscode, local.random_id_vm_verified)
     )
