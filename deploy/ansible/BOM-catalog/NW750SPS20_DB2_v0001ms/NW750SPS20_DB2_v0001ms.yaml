@@ -8,15 +8,16 @@ defaults:
 
 product_ids:
   dbl:                                 NW_ABAP_DB:NW750.DB6.ABAP
-  scs:                                 NW_ABAP_ASCS:NW752.HDB.ABAP
-  scs_ha:                              NW_ABAP_ASCS:NW752.HDB.ABAPHA
-  pas:                                 NW_ABAP_CI:NW752.HDB.ABAP
-  pas_ha:                              NW_ABAP_CI:NW752.HDB.ABAPHA
-  app:                                 NW_DI:NW752.HDB.PD
-  app_ha:                              NW_DI:NW752.HDB.ABAPHA
-  web:                                 NW_Webdispatcher:NW752.IND.PD
-  ers:                                 NW_ERS:NW752.HDB.ABAP
-  ers_ha:                              NW_ERS:NW752.HDB.ABAPHA
+  scs:                                 NW_ABAP_ASCS:NW750.DB6.ABAP
+  scs_ha:                              NW_ABAP_ASCS:NW750.DB6.ABAPHA
+  pas:                                 NW_ABAP_CI:NW750.DB6.ABAP
+  pas_ha:                              NW_ABAP_CI:NW750.DB6.ABAPHA
+  app:                                 NW_DI:NW750.DB6.PD
+  app_ha:                              NW_DI:NW750.DB6.ABAPHA
+  web:                                 NW_Webdispatcher:NW750.IND.PD
+  ers:                                 NW_ERS:NW750.DB6.ABAP
+  ers_ha:                              NW_ERS:NW750.DB6.ABAPHA
+  generic:                             NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:
