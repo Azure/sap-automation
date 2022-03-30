@@ -267,7 +267,7 @@
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "root"
+  become_user:                         "oracle"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -303,8 +303,6 @@
           become_user:                 "root"
           become:                      true
           delegate_to:                 localhost
-          become:                      true
-          become_user:                 root
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
             state:                     touch
