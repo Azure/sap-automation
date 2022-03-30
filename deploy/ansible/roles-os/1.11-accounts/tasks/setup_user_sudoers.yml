@@ -28,7 +28,7 @@
   ansible.builtin.getent:
     database:                          passwd
 
-- name:         Ensure that sudoers_user was specified
+- name:                                Ensure that sudoers_user was specified
   ansible.builtin.fail:
     msg: >
       Please ensure that a 'sudoers_user` is specified, is not an
