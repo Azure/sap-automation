@@ -22,8 +22,8 @@ product_ids:
 materials:
   dependencies:
     - name:     HANA_2_00_055_v0006ms
-    - name:     SWPM20SP10_latest
-    - name:     SUM20SP12_latest
+    - name:     SWPM20SP11_latest
+    - name:     SUM20SP13_latest
 
   media:
 
@@ -246,15 +246,15 @@ materials:
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000000059642016
 
-    - name:         "Attribute Change Package 21 for GBX01HR5 605"
+    - name:         "Attribute Change Package 22 for GBX01HR5 605"
       archive:      GBX01HR5605.SAR
-      checksum:     4904dd59e2d2ded2740a45355a4529f22c4fe6a6c5dceb8d246014503fe51280
+      checksum:     12d61484a6dc8a20fa4dc428b9c2b4948e60928e7abbd775cb7b21ce4898b366
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000000033172015
 
-    - name:         "Attribute Change Package 18 for GBX01HR 600"
+    - name:         "Attribute Change Package 19 for GBX01HR 600"
       archive:      GBX01HR600.SAR
-      checksum:     5f0fa65f70bac481dcc92f30ca15965530a6bd39df67ceee16f64f1869ebdf5e
+      checksum:     92e966f40681b11bad6c7bcd068387fdcf196974592aca6e0fae01267ff8a75e
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000000029982015
 
@@ -924,9 +924,9 @@ materials:
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000001469192020
 
-    - name:         "Attribute Change Package 02 for SAP_BASIS 754"
+    - name:         "Attribute Change Package 04 for SAP_BASIS 754"
       archive:      SAP_BASIS754.SAR
-      checksum:     cc1e2aa3eb4f9546ed30c6119637be82dbabab303445c51539ab91d9109b3ffe
+      checksum:     e85136db1f0dc21d2d66328887f41414ae31e3f746a7e1f993a52d24c8e7dffc
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000001496942020
 
@@ -954,9 +954,9 @@ materials:
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000001964502018
 
-    - name:         "Attribute Change Package 34 for ST-PI 740"
+    - name:         "Attribute Change Package 45 for ST-PI 740"
       archive:      ST-PI740.SAR
-      checksum:     02132b43b349c45e8fc6731ceb8a78ef406477a942637bb53b8228d9e11ad6a7
+      checksum:     8406c3d057afd459406b3d2fa500a1050eb8ac3c81be165d19af6e5834725328
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000000297212015
 
