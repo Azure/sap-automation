@@ -1,7 +1,7 @@
 ---
-name:    'HANA_2_00_055_v0006ms'
+name:    'HANA_2_00_059_v0001ms'
 target:  'HANA 2.0'
-version: 6
+version: 1
 
 materials:
 
@@ -33,29 +33,29 @@ materials:
       creates:      SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000401402022
 
-    - name:         SAP HANA AFL Rev 59.100 only for HANA 2.0 Rev 59.01
-      archive:      IMDB_AFL20_059P_100-80001894.SAR
-      checksum:     5e35a4ca42b7d98853eebe1288ed77a7209717d24bf9ae0130926fd5bacbafa3
+    - name:         SAP HANA AFL Rev 59.200 only for HANA 2.0 Rev 59.02
+      archive:      IMDB_AFL20_059P_200-80001894.SAR
+      checksum:     c20afa56076504b836a019db70cc26c3b64111bfc8f2237c5ecaa94c3f1071fa
       extract:      true
       extractDir:   CD_HDBSERVER/COMPONENTS
       creates:      COMPONENTS/SAP_HANA_AFL/packages
-      url:          https://softwaredownloads.sap.com/file/0020000000064932022
+      url:          https://softwaredownloads.sap.com/file/0020000000402062022
 
-    - name:         LCAPPS for HANA 2.00.059.00
-      archive:      IMDB_LCAPPS_2059P_100-20010426.SAR
-      checksum:     561318bf34896d97918878cb68729c7f2c6451d89182e95ea7020b1df074bc1d
+    - name:         LCAPPS for HANA 2.00.059.02
+      archive:      IMDB_LCAPPS_2059P_200-20010426.SAR
+      checksum:     b726b7ee848b9dd703fac14c1e49c0494dfc7508f542abf55092f1ca0fad22a5
       extract:      true
       extractDir:   CD_HDBSERVER/COMPONENTS
       creates:      COMPONENTS/SAP_HANA_LCAPPS/packages
-      url:          https://softwaredownloads.sap.com/file/0020000000064992022
+      url:          https://softwaredownloads.sap.com/file/0020000000402162022
 
-    - name:         VCH AFL 1909 Rev 59.100 only for HANA 2.0 Rev 59.01
-      archive:      VCH190900_2059P_100-80004631.SAR
-      checksum:     a3dff8122596b1cd461ec873d9597ac1086d75381426366b6e619b27a02369b4
+    - name:         VCH AFL 1909 Rev 59.200 only for HANA 2.0 Rev 59.02
+      archive:      VCH190900_2059P_200-80004631.SAR
+      checksum:     8c44fd3c0980e3d05146b4e15f0a740c7105f82eb1fff4d02d6fec1491dab82d
       extract:      true
       extractDir:   CD_HDBSERVER/COMPONENTS
       creates:      COMPONENTS/VCH_AFL_1909/packages
-      url:          https://softwaredownloads.sap.com/file/0020000000065082022
+      url:          https://softwaredownloads.sap.com/file/0020000000402212022
 
     - name:         AP HOST AGENT 7.22 SP54
       archive:      SAPHOSTAGENT54_54-80004822.SAR
