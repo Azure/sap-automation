@@ -28,6 +28,7 @@
     - name:                            "0.0 Validations - Retrieve the Fencing SPN details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
+      when:                            platform != "ORACLE"
       tags:
         - kv-secrets
 

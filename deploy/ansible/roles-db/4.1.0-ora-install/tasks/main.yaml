@@ -60,8 +60,8 @@
   become_user:                         "oracle"
   ansible.builtin.command:             ./RUNINSTALLER -ohcheck -silent
   register:                            oraprecheck_results
-  failed_when:                         oraprecheck_results.rc >= 3
-  changed_when:                        (oraprecheck_results.rc < 3) | bool
+  failed_when:                         oraprecheck_results.rc > 3
+  #changed_when:                        oraprecheck_results.rc < 3
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -119,7 +119,7 @@
   ansible.builtin.debug:
     var:                               orainstaller_results.stdout_lines
 
-- name:                                "ORACLE: Debug installer output"
+- name:                                "ORACLE: Debug installer output log"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/install.log
     content:                           orainstaller_results.stdout
@@ -131,7 +131,7 @@
     path:                              /etc/sap_deployment_automation/oracleinstall.txt
     state:                             touch
     mode:                              0755
-    when:                              orainstaller_results.rc >= 2
+  when:                                orainstaller_results.rc <= 2
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -253,7 +253,7 @@
 - name:                                "ORACLE: Post Processing - SBP Patching"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:             $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee  /etc/sap_deployment_automation/sbp.log
+  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee  /etc/sap_deployment_automation/sbp.log
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
