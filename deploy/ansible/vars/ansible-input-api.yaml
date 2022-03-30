@@ -45,7 +45,7 @@ db2sysctrl_gid:               3001
 db2sysmaint_gid:              3002
 db2sysmon_gid :               3003
 db2sidadm_uid:                3000
-
+db2sapsid_uid:                3001
 
 # Oracle specific parameters
 ora_sid:                      "ORA"

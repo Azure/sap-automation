@@ -51,6 +51,7 @@
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
       vars:
+        bom_name:                      "{{ bom_base_name }}"
         db2_archive_path:              /usr/sap/install/sapdb2_software
         db2_cd_package_exportcd:       "{{ db2_archive_path }}/erpexports"
         db2_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
@@ -67,12 +68,12 @@
         - skip_ansible_lint
 # +------------------------------------4--------------------------------------*/
 
-    - name:                            "SAP DB2 install: variables"
-      ansible.builtin.debug:
-        msg:
-          - "{{ sap_inifile }}"
-          - "{{ bom.product_ids.dbl }}"
-        verbosity:                     2
+    # - name:                            "SAP DB2 install: variables"
+    #   ansible.builtin.debug:
+    #     msg:
+    #       - "{{ sap_inifile }}"
+    #       - "{{ bom.product_ids.dbl }}"
+    #   verbosity:                     2
 # *====================================4=======================================8
 #   SAP DB2: Install
 #   2230669 - System Provisioning Using a Parameter Input File

@@ -370,6 +370,7 @@
           ansible.builtin.set_fact:
             tier:                      db2                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            bom_processing:            true
           tags:
             - always
 
