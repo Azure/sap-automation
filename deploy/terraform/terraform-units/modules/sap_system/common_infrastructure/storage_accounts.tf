@@ -85,7 +85,7 @@ resource "azurerm_storage_account_network_rules" "install" {
     try(var.landscape_tfstate.app_subnet_id, ""),
     try(var.landscape_tfstate.db_subnet_id, ""),
     try(var.landscape_tfstate.web_subnet_id, ""),
-    try(var.landscape_tfstate.subnet_mgmt_id, "")]
+    try(var.landscape_tfstate.subnet_management_id, "")]
   )
   bypass = ["AzureServices", "Logging", "Metrics"]
 

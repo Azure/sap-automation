@@ -57,14 +57,14 @@
 
 - name:                                Create lsnrctl_started_sec.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     state:                             touch
     mode:                              0755
   when:                                current_host == ora_secondary
 
-- name:                                " STARTUP SECONDARY DB USING PFILE" 
+- name:                                " STARTUP SECONDARY DB USING PFILE"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @secondarystartup.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
@@ -78,7 +78,7 @@
 
 - name:                                Create secondarystartup.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/secondarystarted.txt
     state:                             touch
@@ -86,7 +86,7 @@
   when:  current_host == ora_secondary
 
 
-- name:                                "Duplicate Secondary DB from Primary DB using RMAN " 
+- name:                                "Duplicate Secondary DB from Primary DB using RMAN "
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               rman TARGET sys/{{ main_password }}@{{ db_sid|upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid|upper }}_STDBY @rman-restore.rman |tee /etc/sap_deployment_automation/dgscripts/restore.log
@@ -100,14 +100,14 @@
 
 - name:                                Create restorecompleted.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/restorecompleted.txt
     state:                             touch
     mode:                              0755
   when:  current_host == ora_secondary
 
-- name:                                " STARTUP DG Broker on SECONDARY " 
+- name:                                " STARTUP DG Broker on SECONDARY "
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
@@ -121,7 +121,7 @@
 
 - name:                                Create enabledgbroker.txt
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
     state:                             touch

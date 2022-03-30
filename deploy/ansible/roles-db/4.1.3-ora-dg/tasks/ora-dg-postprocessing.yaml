@@ -9,7 +9,7 @@
 #     current_host:               "{{ ansible_hostname }}"
 
 # Restart the LSNRCTL START
-- name:                               "RESTART LSNRCTL ON PRIMARY"
+- name:                                "Oracle Data Guard - Post Processing: Restart lsnrctl on Primary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl reload
@@ -21,16 +21,16 @@
     executable:                        /bin/csh
   #when:                                current_host == ora_primary
 
-- name:                                Create lsnrctl_started_sec.txt
+- name:                                "Oracle Data Guard - Post Processing: Create lsnrctl_started_sec.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
     state:                             touch
     mode:                              0755
   #when:                                current_host == ora_primary
 
-- name:                                " STARTUP DG Broker on PRIMARY " 
+- name:                                "Oracle Data Guard - Post Processing: Start DG Broker on Primary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
@@ -42,17 +42,16 @@
     executable:                        /bin/csh
   #when:                                current_host == ora_primary
 
-- name:                                Create enabledgbroker.txt
+- name:                                "Oracle Data Guard - Post Processing: Create enabledgbroker.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/enabledgbroker.txt
     state:                             touch
     mode:                              0755
   #when:                                current_host == ora_primary
 
-
-- name:                                " DGMGRL CREATE CONFIG ON PRIMARY " 
+- name:                                "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl / as sysdba @dgconfig.dgmgrl  | tee /etc/sap_deployment_automation/dgscripts/dgcreate.log
@@ -64,16 +63,16 @@
     executable:                        /bin/csh
   #when:                                current_host == ora_primary
 
-- name:                                Create dgconfig.txt
+- name:                                "Oracle Data Guard - Post Processing: Create dgconfig.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/dgconfig.txt
     state:                             touch
     mode:                              0755
  # when:                                current_host == ora_primary
 
-- name:                                " DGMGRL ENABLE Configuration " 
+- name:                                "Oracle Data Guard - Post Processing: Enable dgmgrl configuration"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               dgmgrl / as sysdba "ENABLE CONFIGURATION"  | tee /etc/sap_deployment_automation/dgscripts/dgenable.log
@@ -85,9 +84,9 @@
     executable:                        /bin/csh
   #when:                                current_host == ora_primary
 
-- name:                                Create dgenable.txt
+- name:                                "Oracle Data Guard - Post Processing: Create dgenable.txt"
   become:                              true
-  become_user:                         "oracle" 
+  become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/dgenable.txt
     state:                             touch

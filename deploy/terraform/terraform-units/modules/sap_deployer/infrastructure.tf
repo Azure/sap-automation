@@ -111,11 +111,11 @@ data "azurerm_virtual_network" "vnet_mgmt" {
 
 // Create/Import management subnet
 resource "azurerm_subnet" "subnet_mgmt" {
-  count                = (!local.sub_mgmt_exists) ? 1 : 0
-  name                 = local.sub_mgmt_name
+  count                = (!local.management_subnet_exists) ? 1 : 0
+  name                 = local.management_subnet_name
   resource_group_name  = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
   virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
-  address_prefixes     = [local.sub_mgmt_prefix]
+  address_prefixes     = [local.management_subnet_prefix]
 
   enforce_private_link_endpoint_network_policies = true
   enforce_private_link_service_network_policies  = false
@@ -124,10 +124,10 @@ resource "azurerm_subnet" "subnet_mgmt" {
 }
 
 data "azurerm_subnet" "subnet_mgmt" {
-  count                = (local.sub_mgmt_exists) ? 1 : 0
-  name                 = split("/", local.sub_mgmt_arm_id)[10]
-  resource_group_name  = split("/", local.sub_mgmt_arm_id)[4]
-  virtual_network_name = split("/", local.sub_mgmt_arm_id)[8]
+  count                = (local.management_subnet_exists) ? 1 : 0
+  name                 = split("/", local.management_subnet_arm_id)[10]
+  resource_group_name  = split("/", local.management_subnet_arm_id)[4]
+  virtual_network_name = split("/", local.management_subnet_arm_id)[8]
 }
 
 // Creates boot diagnostics storage account for Deployer

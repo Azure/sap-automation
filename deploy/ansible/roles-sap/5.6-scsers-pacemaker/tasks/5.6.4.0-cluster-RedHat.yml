@@ -61,7 +61,7 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower}}adm" 
+        owner:                         "{{ sap_sid | lower}}adm"
         group:                         sapsys
       loop:
         -  { path: '/sapmnt/{{ sap_sid|upper }}' }
@@ -131,7 +131,7 @@
     - name:                            "5.6 SCSERS - RHEL - ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower}}adm" 
+        owner:                         "{{ sap_sid | lower}}adm"
         group:                         sapsys
         state:                         directory
       loop:
@@ -146,8 +146,11 @@
       include_role:
         name:                          roles-sap/5.0.2-ers-ha-install
 
+  always:
     - name:                            "5.6 SCSERS - RHEL - Put Primary host on line"
       ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
+      register:                        primary_online
+      changed_when:                    primary_online.rc != 0
 
   when: inventory_hostname == secondary_instance_name
 

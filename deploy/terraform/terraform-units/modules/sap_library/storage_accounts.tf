@@ -35,7 +35,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
       [length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : null]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_mgmt_id] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_management_id] : []
   }
 }
 
@@ -78,7 +78,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_tf)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
-  subnet_id           = local.subnet_mgmt_id
+  subnet_id           = local.subnet_management_id
 
   private_service_connection {
     name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_tf)
@@ -121,7 +121,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
       []
     )
 
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_mgmt_id] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_management_id] : []
   }
 }
 
@@ -130,7 +130,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_sap)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
-  subnet_id           = local.subnet_mgmt_id
+  subnet_id           = local.subnet_management_id
 
   private_service_connection {
     name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_sap)

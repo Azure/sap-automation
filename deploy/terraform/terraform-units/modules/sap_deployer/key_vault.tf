@@ -69,7 +69,7 @@ resource "azurerm_key_vault" "kv_user" {
       ) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? [local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id] : []
   }
 
 }
@@ -255,7 +255,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.keyvault_private_link)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  subnet_id           = local.sub_mgmt_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
+  subnet_id           = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 
   private_service_connection {
     name                           = format("%s%s", local.prefix, local.resource_suffixes.keyvault_private_svc)
