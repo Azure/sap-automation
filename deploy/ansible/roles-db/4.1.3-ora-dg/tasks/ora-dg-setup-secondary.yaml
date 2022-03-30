@@ -108,9 +108,9 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Shutdown secondary DB"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           sqlplus / as sysdba shutdown abort |tee /etc/sap_deployment_automation/dgscripts/secondary_abort_startup.log
-      register:                        secondary_abort_startup_results
-      failed_when:                     secondary_abort_startup_results.rc > 0
+      ansible.builtin.shell:           sqlplus / as sysdba @shutdownsecondary.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_shutdown.log
+      register:                        secondary_shutdown_results
+      failed_when:                     secondary_shutdown_results.rc > 0
       args:
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
@@ -122,14 +122,26 @@
       args:
         chdir:                         "{{ item.directory_to_empty }} "
       loop:
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata3' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata4' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogA' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata3/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata4/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogA/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB/' }
+
+    - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.shell:               sqlplus / as sysdba @secondarystartup.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+      register:                            secondary_startup_results
+      failed_when:                         secondary_startup_results.rc > 0
+      args:
+       #creates:                           /etc/sap_deployment_automation/dgscripts/secondary_startup.txt
+       chdir:                             /etc/sap_deployment_automation/dgscripts
+       executable:                        /bin/csh
+      when: current_host == ora_secondary
 
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
       become:                          true
@@ -144,14 +156,6 @@
 
   when: current_host == ora_secondary
 
-- name:                                "Oracle Data Guard - Setup Secondary: Create restore_completed.txt"
-  become:                              true
-  become_user:                         "oracle"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/restore_completed.txt
-    state:                             touch
-    mode:                              0755
-  when:  current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create flag for post-processing on Primary DB"
   become:                              true
@@ -160,8 +164,21 @@
     path:                              /usr/sap/install/downloads/restore_completed.txt
     state:                             touch
     mode:                              0755
-    owner: oracle
-    group: oinstall
+    owner:                             oracle
+    group:                             oinstall
+  when:                              rman_results.rc <= 0  
+  
+- name:                                "Oracle Data Guard - Setup Secondary: Create restore_completed.txt"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/restore_completed.txt
+    state:                             touch
+    mode:                              0755
+    owner:                             oracle
+    group:                             oinstall
+  when:                              rman_results.rc <= 0
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: STARTUP DG Broker on SECONDARY"
   become:                              true
