@@ -47,7 +47,7 @@
   register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
-  when:
+  when:                                
     - distribution_id in ['suse15', 'redhat8']
     - not always_upload_jinja_templates
 
@@ -186,6 +186,9 @@
       when:                            not microsoft_supplied_bom_template.stat.exists
 
   when:                                result is failed or always_upload_jinja_templates
+
+# -------------------------------------+---------------------------------------8
+
 
 ...
 # /*---------------------------------------------------------------------------8

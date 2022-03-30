@@ -19,8 +19,6 @@ check_storage_account:        true
 
 always_upload_jinja_templates: true
 
-always_upload_jinja_templates: true
-
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""

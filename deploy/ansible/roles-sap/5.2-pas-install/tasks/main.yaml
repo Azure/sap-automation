@@ -164,7 +164,6 @@
 
 - name:                                "PAS Install: - status"
   block:
-
     - name:                            "PAS Install: - status"
       ansible.builtin.debug:
         msg:                           "PAS Installation is already performed"
