@@ -87,6 +87,7 @@
   when:
     - (item.node_tier == "all" or item.node_tier == node_tier)
     - not scs_high_availability
+    - node_tier != 'observer'
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems"
   ansible.builtin.mount:
@@ -128,11 +129,11 @@
     - not use_AFS
 
 
-# - name:                                "Show NFS details"
-#   ansible.builtin.debug:
-#     msg:                               
-#       - "NFS_provider: {{ NFS_provider }}"
-#       - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
+- name:                                Show NFS details
+  ansible.builtin.debug:
+    msg:                               
+      - "NFS_provider: {{ NFS_provider }}"
+      - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:

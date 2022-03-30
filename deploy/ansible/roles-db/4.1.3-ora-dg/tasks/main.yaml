@@ -19,7 +19,7 @@
     - action == 1
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
-  include_tasks:                       "ora-dg-secondary-preparation.yaml"
+  ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:
     - node_tier == "oracle"
     - action == 0
@@ -27,15 +27,15 @@
 - name:                                "Oracle Data Guard: Prepare and Restore"
   block:
     - name:                            "Oracle Data Guard: Preparation tasks"
-      include_tasks:                   "ora-dg-preparation.yaml"
+      ansible.builtin.include_tasks:   "ora-dg-preparation.yaml"
 
     - name:                            "Oracle Data Guard: Setup primary"
-      include_tasks:                   "ora-dg-setup-primary.yaml"
+      ansible.builtin.include_tasks:   "ora-dg-setup-primary.yaml"
       when:
         - current_host == ora_primary
 
     - name:                            "Oracle Data Guard: Setup secondary"
-      include_tasks:                   "ora-dg-setup-secondary.yaml"
+      ansible.builtin.include_tasks:   "ora-dg-setup-secondary.yaml"
       when:
         - current_host == ora_secondary
   when:
@@ -44,7 +44,7 @@
     - node_tier != "observer"
 
 - name:                                "Oracle Data Guard: Post processing"
-  include_tasks:                       "ora-dg-postprocessing.yaml"
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing.yaml"
   when:
     - node_tier == "oracle"
     - node_tier != "observer"
@@ -52,7 +52,7 @@
 
 # FSFO is enabled from the Observer.
 - name:                                "Oracle Data Guard: Setup Observer"
-  include_tasks: "ora-dg-observer-setup.yaml"
+  ansible.builtin.include_tasks:       "ora-dg-observer-setup.yaml"
   when:
     - node_tier == "observer"
     - action    == 3

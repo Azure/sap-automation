@@ -164,22 +164,13 @@
 
 - name:                                "PAS Install: - status"
   block:
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 69ca4fd2f6ed24606c705e4e7972690da1baacf3
     - name:                            "PAS Install: - status"
       ansible.builtin.debug:
         msg:                           "PAS Installation is already performed"
 
     - name:                            "PAS Install: - return value"
       ansible.builtin.set_fact:
-<<<<<<< HEAD
-        pas_already_installed:         true     
-=======
         pas_already_installed:         true
->>>>>>> 69ca4fd2f6ed24606c705e4e7972690da1baacf3
 
   when:
     -  pas_installed.stat.exists
