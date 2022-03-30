@@ -29,6 +29,8 @@ resource "azurerm_firewall" "firewall" {
   name                = format("%s%s%s", local.prefix, var.naming.separator, "firewall")
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  sku_tier            = "Standard"
+  sku_name            = "AZFW_VNet"
 
   ip_configuration {
     name                 = "ipconfig1"

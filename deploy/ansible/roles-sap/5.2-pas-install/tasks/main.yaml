@@ -84,7 +84,7 @@
 
 - name:                                "PAS Install: install variables"
   ansible.builtin.debug:
-    msg:                          
+    msg:
       - "INSTALLED:  {{ pas_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ pas_bom_id }}"
@@ -143,7 +143,7 @@
 
     - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}{{ file_path }}" 
+        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}{{ file_path }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
@@ -164,14 +164,13 @@
 
 - name:                                "PAS Install: - status"
   block:
-    
     - name:                            "PAS Install: - status"
       ansible.builtin.debug:
         msg:                           "PAS Installation is already performed"
 
     - name:                            "PAS Install: - return value"
       ansible.builtin.set_fact:
-        pas_already_installed:         true     
+        pas_already_installed:         true
 
   when:
     -  pas_installed.stat.exists

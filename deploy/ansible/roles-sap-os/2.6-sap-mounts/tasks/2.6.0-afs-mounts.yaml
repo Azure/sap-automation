@@ -36,7 +36,7 @@
         - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
       when:
         - tier == 'sapos'
-  when: usr_sap_install_mountpoint is defined 
+  when: usr_sap_install_mountpoint is defined
 
 - name:                                "AFS Mount: Create local directories"
   block:
@@ -179,7 +179,7 @@
         - sap_mnt is defined
       tags:
         - skip_ansible_lint
-    
+
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (sapmnt)"
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
@@ -214,7 +214,7 @@
       register: is_created_now2
       tags:
         - skip_ansible_lint
-    
+
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (transport)"
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
@@ -246,7 +246,7 @@
         - { path: '/usr/sap/{{ sap_sid|upper }}/ASCS{{ scs_instance_number }}' }
         - { path: '/usr/sap/{{ sap_sid|upper }}/ERS{{ ers_instance_number }}' }
       register: is_created_now3
-    
+
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (scs & ers)"
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
@@ -262,7 +262,7 @@
     - tier == 'sapos'
     - "'scs' in supported_tiers or 'ers' in supported_tiers "
     - sap_mnt is defined
-    
+
 - name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} - Standalone"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
@@ -357,7 +357,7 @@
         fstype:                        "{{ item.type }}"
         opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
         state:                         mounted
-      
+
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
   when:
@@ -397,7 +397,7 @@
         fstype:                        "{{ item.type }}"
         opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
         state:                         mounted
-      
+
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
   when:

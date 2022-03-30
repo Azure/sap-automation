@@ -208,7 +208,7 @@ resource "azurerm_network_security_rule" "nsr_internal_db" {
   network_security_group_name  = azurerm_network_security_group.db[0].name
   priority                     = 101
   direction                    = "Inbound"
-  access                       = "allow"
+  access                       = "Allow"
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = "*"
@@ -228,7 +228,7 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
   network_security_group_name  = azurerm_network_security_group.db[0].name
   priority                     = 102
   direction                    = "Inbound"
-  access                       = "deny"
+  access                       = "Deny"
   protocol                     = "Tcp"
   source_port_range            = "*"
   destination_port_range       = "*"

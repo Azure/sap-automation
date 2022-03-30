@@ -113,11 +113,12 @@ parameters:
     - { tier: 'os',    node_tier: 'all', name: 'kernel.yama.ptrace_scope',                   value: '1',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all', name: 'net.core.bpf_jit_harden',                    value: '2',                    state: 'present' }
     - { tier: 'ha',    node_tier: 'all', name: 'net.ipv4.tcp_keepalive_time',                value: '300',                  state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'kernel.pid_max',                             value: '4194304',              state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmax',                              value: '65536',                state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmnb',                              value: '65536',                state: 'present' }
-    - { tier: 'sapos', node_tier: 'db2', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
@@ -133,11 +134,12 @@ parameters:
     - { tier: 'os',    node_tier: 'all', name: 'fs.protected_regular',                       value: '2',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all', name: 'kernel.yama.ptrace_scope',                   value: '1',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all', name: 'net.core.bpf_jit_harden',                    value: '2',                    state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'kernel.pid_max',                             value: '4194304',              state: 'present' }
+    - { tier: 'sapos', node_tier: 'all', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.swappiness',                              value: '5',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.overcommit_memory',                       value: '0',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmax',                              value: '65536',                state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmnb',                              value: '65536',                state: 'present' }
-    - { tier: 'sapos', node_tier: 'db2', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }

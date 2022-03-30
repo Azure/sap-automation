@@ -21,9 +21,9 @@ parameters:
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - NW752SPS09_v0001ms
-      - SWPM20SP10_latest
-      - SWPM10SP33_latest
-      - SUM20SP12_latest
+      - SWPM20SP11_latest
+      - SWPM10SP34_latest
+      - SUM20SP13_latest
       - ORACLE_19_00_v0002ms
 
   - name:                              environment
@@ -167,6 +167,55 @@ stages:
           - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
+          - bash: |
+              #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+
+
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                environment_file_name=$HOME/.sap_deployment_automation/$(environment_code)$(location_code)
+                cd $HOME; mkdir -p .sap_deployment_automation
+                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+
+              echo -e "$green--- Validations ---$reset"
+              if [ ! -f ${environment_file_name} ]; then
+                echo -e "$boldred--- ${environment_file_name} was not found ---$reset"
+                echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
+                exit 2
+              fi
+
+              echo -e "$green--- az login ---$reset"
+                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+
+                if [ ! -n $(ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
           - task:                      Ansible@0
             displayName:               Download software
             timeoutInMinutes:          0

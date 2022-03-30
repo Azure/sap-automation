@@ -103,6 +103,6 @@
     verbosity:                         4
 
 - name:                                "0.1 Password: - Get Cluster passwords"
-  include_tasks:                       0.1.1-ha_clusterpasswords.yaml
+  ansible.builtin.include_tasks:       0.1.1-ha_clusterpasswords.yaml
   when:                                db_high_availability or scs_high_availability
 ...

@@ -25,7 +25,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Save the Json data to a Variable as a Fact"
   ansible.builtin.set_fact:
-    json_azure_data:                          "{{ azure_metadata.stdout | from_json }}"
+    json_azure_data:                   "{{ azure_metadata.stdout | from_json }}"
   no_log:                              true
 
 - name:                                "1.17 Generic Pacemaker - Extract details"
@@ -50,6 +50,23 @@
   ansible.builtin.set_fact:
     primary_instance_ip:               "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
     secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
+
+- name:                                "1.17 Generic Pacemaker - Get subnet prefix for pacemaker configuration"
+  ansible.builtin.set_fact:
+    subnet_prefix:                     "{{ (
+                                            (hostvars[ansible_hostname]['ansible_eth0']['ipv4']['address'] | string)+'/'+
+                                            (hostvars[ ansible_hostname ]['ansible_eth0']['ipv4']['netmask'] | string)
+                                            ) 
+                                            | ipaddr('prefix') 
+                                        }}"
+  when:                                ansible_hostname == primary_instance_name
+
+# we can get this from the metadata service as well
+# - name:                                "1.17 Generic Pacemaker - Set the subnet prefix"
+#   ansible.builtin.set_fact:
+#     subnet_prefix:                     "{{ json_azure_data | 
+#                                             json_query('network.interface[0].ipv4.subnet[0].prefix') }}"
+#   when: hostname == primary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Show Subscription ID"
   ansible.builtin.debug:

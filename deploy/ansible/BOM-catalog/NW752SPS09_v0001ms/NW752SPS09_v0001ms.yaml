@@ -1,7 +1,7 @@
 ---
 
-name: "_constraints_"
-target: "        </constraints>"
+name:                                  "NW752SPS09_v0001ms"
+target:                                "NETWEAVER 7.52 SPS 09"
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
@@ -21,8 +21,8 @@ product_ids:
 materials:
   dependencies:
     - name:                            HANA_2_00_055_v0006ms
-    - name:                            SWPM10SP33_latest
-    - name:                            SUM20SP12_latest
+    - name:                            SWPM10SP34_latest
+    - name:                            SUM20SP13_latest
 
   media:
 
@@ -57,7 +57,7 @@ materials:
       checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
       url:          https://softwaredownloads.sap.com/file/0020000000703122018
       path:         download_basket
-    
+
     - name:         "SAP HANA CLIENT 2.0 for NW AS ABAP 7.52"
       archive:      51051805.ZIP
       checksum:     8dadbb7923ed7b36eaa5c1d103a2bbd216351c233de3c2d627b9e7db5755510e
@@ -72,7 +72,7 @@ materials:
       extractDir:                      CD_EXPORT
       creates:                         CDLABEL.ASC
       url:                             https://softwaredownloads.sap.com/file/0030000019659142017
-    
+
     - name:                            "NetWeaver AS ABAP 7.52 Innovation Pkg - Installation Exp 2/2"
       archive:                         51051806_part2.rar
       checksum:                        d968835cadfea8514a552ec977421043649bbb59140629a9dd897a7f0c47480b
