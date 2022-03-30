@@ -104,7 +104,7 @@
   become_user:                         "oracle"
   ansible.builtin.shell:               ./RUNINSTALLER -silent
   register:                            orainstaller_results
-  failed_when:                         orainstaller_results.rc <= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  failed_when:                         orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
