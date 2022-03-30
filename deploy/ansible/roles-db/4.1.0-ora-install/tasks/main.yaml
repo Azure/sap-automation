@@ -24,14 +24,6 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "ORACLE: Create sap_deployment_automation folder"
-  ansible.builtin.file:
-    path:                              /oracle
-    state:                             directory
-    owner:                             oracle
-    group:                             oinstall
-    recurse:                           true
-
 - name:                                "ORACLE: - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
@@ -76,6 +68,7 @@
 - name:                                "ORACLE: Debug: installer prechecks output"
   ansible.builtin.debug:
     var:                               oraprecheck_results.stdout_lines
+    verbosity:                         2
 
 - name:                                "ORACLE: Debug: installer prechecks output"
   ansible.builtin.copy:
@@ -118,6 +111,7 @@
 - name:                                "ORACLE: Debug: installer output"
   ansible.builtin.debug:
     var:                               orainstaller_results.stdout_lines
+    verbosity:                         0
 
 - name:                                "ORACLE: Debug installer output log"
   ansible.builtin.copy:
@@ -253,7 +247,7 @@
 - name:                                "ORACLE: Post Processing - SBP Patching"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee  /etc/sap_deployment_automation/sbp.log
+  ansible.builtin.command:             $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -270,6 +264,14 @@
 - name:                                "ORACLE: Post processing installer output"
   ansible.builtin.debug:
     var:                               sbpscript_results.stdout_lines
+    verbosity:                         0
+
+- name:                                "ORACLE: Post processing installer output"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/sbp.log
+    content:                           sbpscript_results.stdout
+    mode:                              0777
+  when:                                sbpscript_results.stdout is defined
 
 # - name:                                Remove SAPSBP
 #   ansible.builtin.file:
@@ -281,8 +283,9 @@
     path:                              /etc/sap_deployment_automation/sbpinstalled.txt
     state:                             touch
     mode:                              0755
+  when:                                sbpscript_results.rc < 2
 
-- name:                                "Add environment variables to the Bash profile"
+- name:                                "ORACLE: environment variables to the Bash profile"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
@@ -299,7 +302,7 @@
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
 
-- name:                                "create .cshrc"
+- name:                                "ORACLE: create .cshrc"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
