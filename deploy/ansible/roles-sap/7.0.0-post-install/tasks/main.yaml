@@ -7,6 +7,8 @@
 ---
 
 - name:                                "Post Installation: Create run logs directory"
+  become_user:                         root
+  become:                              true
   ansible.builtin.file:
     path:                              "{{ _workspace_directory }}/logs"
     state:                             directory
@@ -141,7 +143,7 @@
       when:
         - oracle_log_files is defined
   when:
-    - tier == 'hana'
+    - tier == 'oracle'
 
 ...
 # /*---------------------------------------------------------------------------8

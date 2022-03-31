@@ -117,6 +117,10 @@
         mode:                          0755
       when:                            dgconfig_results.rc == 0
      # when:                                current_host == ora_primary
+
+    - name:                            "Oracle Data Guard - Post Processing:  - Pause 10 secs"
+      ansible.builtin.pause:
+        seconds:                       10
     
     - name:                            "Oracle Data Guard - Post Processing: Enable dgmgrl configuration"
       become:                          true
