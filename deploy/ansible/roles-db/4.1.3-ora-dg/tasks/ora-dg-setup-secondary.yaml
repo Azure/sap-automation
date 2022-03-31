@@ -42,17 +42,29 @@
 
 # Restart the Listener on Secondary node.
 
-- name:                                "Oracle Data Guard - Setup Secondary: RESTART LSNRCTL ON SECONDARY"
+- name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               lsnrctl start
-  register:                            lsnrctl_start_sec_results
-  failed_when:                         lsnrctl_start_sec_results.rc > 0
+  register:                            lsnrctl_start_secondary_results
+  failed_when:                         lsnrctl_start_secondary_results.rc > 0
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:                                current_host == ora_secondary
+
+- name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
+  ansible.builtin.debug:     
+    var:                               lsnrctl_start_secondary_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/lsnrctl_start_primary.log
+    content:                           lsnrctl_start_secondary_results.stdout
+    mode:                              0777
+  when:                                lsnrctl_start_secondary_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
   become:                              true
@@ -61,7 +73,9 @@
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     state:                             touch
     mode:                              0755
-  when:                                current_host == ora_secondary
+  when:                                
+    - current_host == ora_secondary
+    - lsnrctl_start_secondary_results.rc == 0
 
 - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
   become:                              true
@@ -108,7 +122,7 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Shutdown secondary DB"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           sqlplus / as sysdba @shutdownsecondary.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_shutdown.log
+      ansible.builtin.shell:           sqlplus / as sysdba @shutdownsecondary.sql
       register:                        secondary_shutdown_results
       failed_when:                     secondary_shutdown_results.rc > 0
       args:
@@ -146,7 +160,7 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid|upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid|upper }}_STDBY @rman-restore.rman |tee /etc/sap_deployment_automation/dgscripts/restore.log
+      ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid|upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid|upper }}_STDBY @rman-restore.rman
       register:                        rman_results
       failed_when:                     rman_results.rc > 0
       args:
@@ -156,6 +170,17 @@
 
   when: current_host == ora_secondary
 
+- name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN (Debug)"
+  ansible.builtin.debug:     
+    var:                               rman_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dgscripts/restore.log
+    content:                           rman_results.stdout
+    mode:                              0777
+  when:                                rman_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create flag for post-processing on Primary DB"
   become:                              true
@@ -166,7 +191,7 @@
     mode:                              0755
     owner:                             oracle
     group:                             oinstall
-  when:                                rman_results.rc <= 0  
+  when:                                rman_results.rc == 0  
   
 - name:                                "Oracle Data Guard - Setup Secondary: Create restore_completed.txt"
   become:                              true
@@ -177,10 +202,9 @@
     mode:                              0755
     owner:                             oracle
     group:                             oinstall
-  when:                                rman_results.rc <= 0
+  when:                                rman_results.rc == 0
 
-
-- name:                                "Oracle Data Guard - Setup Secondary: STARTUP DG Broker on SECONDARY"
+- name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
@@ -192,6 +216,18 @@
     executable:                        /bin/csh
   when:                                current_host == ora_secondary
 
+- name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
+  ansible.builtin.debug:     
+    var:                               secondary_startup_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (save output)"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+    content:                           secondary_startup_results.stdout
+    mode:                              0777
+  when:                                secondary_startup_results.stdout is defined
+
 - name:                                "Oracle Data Guard - Setup Secondary: Create enable_dg_broker.txt"
   become:                              true
   become_user:                         "oracle"
@@ -199,7 +235,9 @@
     path:                              /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
     state:                             touch
     mode:                              0755
-  when:                                current_host == ora_secondary
+  when:                                
+    - current_host == ora_secondary
+    - secondary_startup_results.rc == 0
 
 ...
 # /*---------------------------------------------------------------------------8

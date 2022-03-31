@@ -292,12 +292,17 @@
         - name:                        "Database Installation Playbook: - Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
-          when:                        platform == 'ORACLE'
 
         - name:                        "Database Installation Playbook: - run Oracle installer"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.0-ora-install
-          when:                        platform == 'ORACLE'
+
+        - name:                        "Database Installation Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            tier:                      'oracle'
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
           become_user:                 "root"
