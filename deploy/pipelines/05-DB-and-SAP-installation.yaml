@@ -31,6 +31,8 @@ parameters:
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - ORACLE_19_00_v0002ms
+      - NW750SPS20_DB2_v0001ms
+      
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
