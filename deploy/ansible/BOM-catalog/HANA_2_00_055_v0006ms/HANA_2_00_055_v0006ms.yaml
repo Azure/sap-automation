@@ -7,7 +7,7 @@ materials:
 
   media:
     # SAPCAR 7.22
-    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit " 
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
       archive:      SAPCAR_1115-70006178.EXE
       checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
       filename:     SAPCAR
@@ -24,14 +24,14 @@ materials:
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000001117022021
 
-# v2_00_059
+    # v2_00_059 Revision 2.00.059.2 (SPS05) for HANA DB 2.0
     - name:         HANA Server
-      archive:      IMDB_SERVER20_059_1-80002031.SAR
-      checksum:     10ba64c4ebb65b57eddfb364a40a57431ef97e43b511db245d608834d8ecea9d
+      archive:      IMDB_SERVER20_059_2-80002031.SAR
+      checksum:     743c91d641eff6a237473bd0d7630fd0db6ac04ad9febfe50ffc6d100f3ecb80
       extract:      true
       extractDir:   CD_HDBSERVER
       creates:      SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000064362022
+      url:          https://softwaredownloads.sap.com/file/0020000000401402022
 
     - name:         SAP HANA AFL Rev 59.100 only for HANA 2.0 Rev 59.01
       archive:      IMDB_AFL20_059P_100-80001894.SAR

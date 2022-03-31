@@ -20,7 +20,7 @@ module "sap_deployer" {
   use_private_endpoint               = var.use_private_endpoint
   configure                          = false
   tf_version                         = var.tf_version
-  bastion_deployment                     = var.bastion_deployment
+  bastion_deployment                 = var.bastion_deployment
 }
 
 module "sap_namegenerator" {
@@ -29,7 +29,7 @@ module "sap_namegenerator" {
   deployer_environment = lower(local.infrastructure.environment)
   location             = lower(local.infrastructure.region)
   codename             = lower(local.infrastructure.codename)
-  management_vnet_name = coalesce(var.management_network_logical_name,local.vnet_mgmt_name_part)
+  management_vnet_name = coalesce(var.management_network_logical_name, local.vnet_mgmt_name_part)
   random_id            = module.sap_deployer.random_id
   deployer_vm_count    = local.deployer_vm_count
 }

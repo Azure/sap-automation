@@ -10,6 +10,7 @@
 
 
 # Location of Export CD
+<<<<<<< HEAD
 SAPINST.CD.PACKAGE.ORACLI                                            = {{ target_media_location }}/oraclient
 SAPINST.CD.PACKAGE.CD1                                               = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
 SAPINST.CD.PACKAGE.CD2                                               = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
@@ -17,6 +18,15 @@ SAPINST.CD.PACKAGE.CD3                                               = {{ target
 
 
 archives.downloadBasket                                              = {{ target_media_location }}/download_basket
+=======
+SAPINST.CD.PACKAGE.ORACLI                                            = /usr/sap/install/oraclient
+SAPINST.CD.PACKAGE.CD1                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP3
+
+
+archives.downloadBasket                                              = /usr/sap/install/download_basket
+>>>>>>> 600a8c7ec640434b287328ca7657dda1982dbd6d
 
 nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                    = {{ sapsys_gid }}

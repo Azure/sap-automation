@@ -26,13 +26,14 @@
         tier:                          fencing
 
     - name:                            "0.0 Validations - Retrieve the Fencing SPN details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
+      when:                            platform != "ORACLE"
       tags:
         - kv-secrets
 
     - name:                            "0.0 Validations - Retrieve the storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       tags:
@@ -101,6 +102,8 @@
           - item_to_check.parameter | trim | length > 1
         fail_msg:                      item_to_check.error
       loop:
+        - { parameter: 'ora_release', error: 'Oracle deployments requires that ora_release is provided' }
+        - { parameter: 'ora_version', error: 'Oracle deployments requires that ora_version is provided' }
         - { parameter: 'oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
       loop_control:
         loop_var: item_to_check
@@ -155,19 +158,19 @@
       when:                            (ansible_play_hosts_all | length) == 1
 
     - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.command:         df -h 
-      register:                        mounts   
+      ansible.builtin.command:         df -h
+      register:                        mounts
 
     - name:                            "0.0 Validations - Show Mounts"
-      ansible.builtin.debug:         
+      ansible.builtin.debug:
         var:                           mounts.stdout_lines
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command:         cat /etc/hosts
-      register:                        hosts   
+      register:                        hosts
 
     - name:                            "0.0 Validations - Show Hosts"
-      ansible.builtin.debug:         
+      ansible.builtin.debug:
         var:                           hosts.stdout_lines
 
 

@@ -44,6 +44,8 @@ stages:
           clean:                       all
         steps:
           - task: PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"

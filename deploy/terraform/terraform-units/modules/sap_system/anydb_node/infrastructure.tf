@@ -35,7 +35,6 @@ resource "azurerm_lb_probe" "anydb" {
   provider            = azurerm.main
   count               = local.enable_db_lb_deployment ? 1 : 0
   name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_hp)
-  resource_group_name = var.resource_group[0].name
   loadbalancer_id     = azurerm_lb.anydb[count.index].id
   port                = local.loadbalancer_ports[0].port
   protocol            = "Tcp"
@@ -47,7 +46,6 @@ resource "azurerm_lb_probe" "anydb" {
 resource "azurerm_lb_rule" "anydb" {
   provider                       = azurerm.main
   count                          = local.enable_db_lb_deployment && var.database_server_count > 0 ? 1 : 0
-  resource_group_name            = var.resource_group[0].name
   loadbalancer_id                = azurerm_lb.anydb[0].id
   name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_rule)
   protocol                       = "All"
@@ -97,7 +95,7 @@ data "azurerm_availability_set" "anydb" {
 resource "azurerm_private_dns_a_record" "db" {
   provider            = azurerm.deployer
   count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
-  name                = lower(format("%sdb%scl", local.anydb_sid, "00"))
+  name                = lower(format("%s%sdb%scl", var.sap_sid, local.anydb_sid, "00"))
   resource_group_name = local.dns_resource_group_name
   zone_name           = local.dns_label
   ttl                 = 300

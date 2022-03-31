@@ -31,7 +31,6 @@ locals {
           arm_id = try(coalesce(var.management_firewall_subnet_arm_id, try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")), "")
           prefix = try(coalesce(var.management_firewall_subnet_address_prefix, try(var.infrastructure.vnets.management.subnet_fw.prefix, "")), "")
         }
-
         subnet_bastion = {
           arm_id = var.bastion_subnet_arm_id
           prefix = var.bastion_subnet_address_prefix
@@ -53,7 +52,14 @@ locals {
       sku             = try(coalesce(var.deployer_image.sku, try(var.deployers[0].os.sku, "")), "")
       version         = try(coalesce(var.deployer_image.version, try(var.deployers[0].sku, "")), "")
     }
+<<<<<<< HEAD
     private_ip_address = try(coalesce(var.deployer_private_ip_address, try(var.deployers[0].private_ip_address, "")), "")
+=======
+    private_ip_address = try(coalesce(var.deployer_private_ip_address, try(var.deployers[0].private_ip_address, "")),"")
+    
+    deployer_diagnostics_account_arm_id = var.deployer_diagnostics_account_arm_id
+
+>>>>>>> 600a8c7ec640434b287328ca7657dda1982dbd6d
   }
 
   authentication = {

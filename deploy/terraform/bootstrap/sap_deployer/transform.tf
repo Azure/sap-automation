@@ -17,9 +17,9 @@ locals {
         address_space = try(coalesce(var.management_network_address_space, try(var.infrastructure.vnets.management.address_space, "")), "")
 
         subnet_mgmt = {
-          name   = try(coalesce(var.management_subnet_name, try(var.infrastructure.vnets.management.subnet_mgmt.name, "")), "")
-          arm_id = try(coalesce(var.management_subnet_arm_id, try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, "")), "")
-          prefix = try(coalesce(var.management_subnet_address_prefix, try(var.infrastructure.vnets.management.subnet_mgmt.prefix, "")), "")
+          name   = try(coalesce(var.management_subnet_name, try(var.infrastructure.vnets.management.subnet_management.name, "")), "")
+          arm_id = try(coalesce(var.management_subnet_arm_id, try(var.infrastructure.vnets.management.subnet_management.arm_id, "")), "")
+          prefix = try(coalesce(var.management_subnet_address_prefix, try(var.infrastructure.vnets.management.subnet_management.prefix, "")), "")
           nsg = {
             name        = try(coalesce(var.management_subnet_nsg_name, try(var.infrastructure.vnets.management.nsg_mgmt.name, "")), "")
             arm_id      = try(coalesce(var.management_subnet_nsg_arm_id, try(var.infrastructure.vnets.management.nsg_mgmt.arm_id, "")), "")
@@ -52,6 +52,8 @@ locals {
       version         = try(coalesce(var.deployer_image.version, try(var.deployers[0].sku, "")), "")
     }
     private_ip_address = try(coalesce(var.deployer_private_ip_address, try(var.deployers[0].private_ip_address, "")),"")
+
+    deployer_diagnostics_account_arm_id = var.deployer_diagnostics_account_arm_id
   }
 
   authentication = {

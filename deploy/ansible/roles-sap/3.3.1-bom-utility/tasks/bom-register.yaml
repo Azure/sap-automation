@@ -31,10 +31,11 @@
   become:                              true
   ignore_errors:                       true
   register:                            result
-
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
-  when:                                distribution_id in ['suse15', 'redhat8']
+  when:
+    - distribution_id in ['suse15', 'redhat8']
+    - not always_upload_jinja_templates
 
 - name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
@@ -48,6 +49,7 @@
   when:
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
+    - not always_upload_jinja_templates
 
 # - name:                                "BOM: Show blob status"
 #   ansible.builtin.debug:
@@ -69,6 +71,7 @@
 
   when:
     - result is succeeded or result is skipped
+    - not always_upload_jinja_templates
 
 # -------------------------------------+---------------------------------------8
 
@@ -79,12 +82,12 @@
         path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml"
       register:                        microsoft_supplied_bom
       delegate_to:                     localhost
-    
+
     - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
       ansible.builtin.debug:
-        msg:                           
-         - "BOM PATH:   BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml"
-         - "BOM Exists: {{ microsoft_supplied_bom.stat.exists }}"                           
+        msg:
+          - "BOM PATH:   BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml"
+          - "BOM Exists: {{ microsoft_supplied_bom.stat.exists }}"
         verbosity:                     2
 
     - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }}"
@@ -120,8 +123,29 @@
 
       when:                            not microsoft_supplied_bom.stat.exists
 
-  when:                                result is failed
+  when:                                result is failed or always_upload_jinja_templates
 
-# If Microsoft supplied BOM not found
+
+# Validate that BoM was found
+
+- name:                                "{{ task_prefix }} Ensure that a BoM object is created"
+  ansible.builtin.fail:
+    msg:                               "Unable to find the Bill of materials file for {{ bom_name }} "
+  when:                                bom is not defined 
+
+- name:                                "{{ task_prefix }} Show BoM details"
+  ansible.builtin.debug:
+    msg:                               
+    - "BoM name:        {{ bom.name }}"
+    - "BoM target:      {{ bom.target }}"
+    - "BoM version:     {{ bom.version }}"
+    - "BoM DB platform: {{ bom.platform }}"
+
+- name:                                "{{ task_prefix }} Ensure that a BoM object is created"
+  ansible.builtin.assert:
+    that:
+      - bom.platform is defined                    # Has the variable been defined
+      - bom.platform | upper == platform | upper
+    fail_msg:                          "The BoM {{ bom_name }} is not for platform {{ platform }}"
 
 ...

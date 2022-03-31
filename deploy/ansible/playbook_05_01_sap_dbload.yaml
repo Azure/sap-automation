@@ -38,7 +38,7 @@
         - 0.1-passwords
 
     - name:                            "DBLoad Playbook: - Read storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       tags:
@@ -70,7 +70,7 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "DBLoad Playbook: - Load the SAP parameters"
-      include_vars:                    "{{ _workspace_directory }}/sap-parameters.yaml"
+      ansible.builtin.include_vars:    "{{ _workspace_directory }}/sap-parameters.yaml"
 
     - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
       block:
@@ -81,6 +81,7 @@
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             bom_processing:            true
+            always_upload_jinja_templates: false
           tags:
             - always
 
@@ -103,8 +104,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - dbload.rc is defined
-                - dbload.rc == 0
+                - dbload_already_performed is defined or (dbload.rc is defined and dbload.rc == 0)
 
           always:
 
@@ -168,23 +168,24 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            always_upload_jinja_templates: false
           tags:
             - always
 
         - name:                        "DBLoad Playbook: - Run DBLoad"
           ansible.builtin.include_role:
             name:                      roles-sap/5.1-dbload
-        - name:                        "DBLoad Playbook: - Create db-load-done flag"
-          delegate_to:                 localhost
-          ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db-load-done"
-            state:                     touch
-            mode:                      0755
+          when:                        MULTI_SIDS is undefined
+
+        - name:                        Include 5.1.1-dbload role
+          ansible.builtin.include_role:
+            name:                      roles-sap/5.1.1-multi-sid-dbload
           when:
-            - dbload.rc is defined
-            - dbload.rc == 0
+            - MULTI_SIDS is defined
+            - node_tier == 'oracle-multi-sid'
 
       when:                            platform == 'ORACLE'
+
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
