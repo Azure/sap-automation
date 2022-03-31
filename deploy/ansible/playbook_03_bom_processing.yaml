@@ -74,6 +74,7 @@
                 name:                  roles-sap/3.3-bom-processing
               vars:
                 tier:                  bom_download
+                always_upload_jinja_templates: false
               tags:
                 - 3.3-bom-processing
 

@@ -54,7 +54,7 @@
       ansible.builtin.command:         "ha-cluster-join  -y -c {{ primary_instance_name }} --interface eth0"
       # ansible.builtin.command:         "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
 
-  when:                                
+  when:
     - ansible_hostname == secondary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"

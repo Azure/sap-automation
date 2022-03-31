@@ -47,7 +47,6 @@
     mode:                              0755
   delegate_to:                         localhost
   become:                              true
-  delegate_to:                         localhost
   become_user:                         root
   loop:
     - path: "{{ download_directory }}"
@@ -80,7 +79,7 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                                "3.3 BoM Processing: - Process main BOM"
-  include_tasks:                       "bom_processor.yaml"
+  ansible.builtin.include_tasks:       "bom_processor.yaml"
   vars:
     bom_name:                          "{{ bom_base_name }}"
 

@@ -17,7 +17,7 @@
         name: bom
 
     - name: "Check bom dict"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom"
         dict: "{{ bom }}"
@@ -26,7 +26,7 @@
       ignore_errors: true
 
     - name: "Check bom.defaults dict"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom.defaults"
         dict: "{{ bom.defaults }}"
@@ -36,7 +36,7 @@
       ignore_errors: true
 
     - name: "Check bom.product_ids dict"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom.product_ids"
         dict: "{{ bom.product_ids }}"
@@ -46,7 +46,7 @@
       ignore_errors: true
 
     - name: "Check bom.materials dict"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom.materials"
         dict: "{{ bom.materials }}"
@@ -56,7 +56,7 @@
       ignore_errors: true
 
     - name: "Check bom.materials.dependencies list"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom.materials.dependencies"
         dict: "{{ dict_item }}"
@@ -69,7 +69,7 @@
       ignore_errors: true
 
     - name: "Check bom.materials.templates list"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom.materials.templates"
         dict: "{{ dict_item }}"
@@ -82,7 +82,7 @@
       ignore_errors: true
 
     - name: "Check bom.materials.stackfiles list"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom.materials.stackfiles"
         dict: "{{ dict_item }}"
@@ -95,7 +95,7 @@
       ignore_errors: true
 
     - name: "Check bom.materials.media list"
-      include_tasks: "./validate_dict.yml"
+      ansible.builtin.include_tasks: "./validate_dict.yml"
       vars:
         reference: "bom.materials.media"
         dict: "{{ dict_item }}"
