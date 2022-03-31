@@ -192,7 +192,7 @@ locals {
     source_image_id = local.hdb_custom_image ? local.hdb.os.source_image_id : ""
     publisher       = local.hdb_custom_image ? "" : length(try(local.hdb.os.publisher, "")) > 0 ? local.hdb.os.publisher : "SUSE"
     offer           = local.hdb_custom_image ? "" : length(try(local.hdb.os.offer, "")) > 0 ? local.hdb.os.offer : "sles-sap-12-sp5"
-    sku             = local.hdb_custom_image ? "" : length(try(local.hdb.os.sku, "")) > 0 ? local.hdb.os.sku : "gen1"
+    sku             = local.hdb_custom_image ? "" : length(try(local.hdb.os.sku, "")) > 0 ? local.hdb.os.sku : "gen2"
     version         = local.hdb_custom_image ? "" : length(try(local.hdb.os.version, "")) > 0 ? local.hdb.os.version : "latest"
   }
 
