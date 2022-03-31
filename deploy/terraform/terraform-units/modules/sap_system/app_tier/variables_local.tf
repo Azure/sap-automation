@@ -146,67 +146,111 @@ locals {
     "password" = var.sid_password
   }
 
-  // APP subnet
-  sub_app_defined = length(try(var.infrastructure.vnets.sap.subnet_app, {})) > 0
-  sub_app_arm_id  = try(var.infrastructure.vnets.sap.subnet_app.arm_id, try(var.landscape_tfstate.app_subnet_id, ""))
-  sub_app_exists  = length(local.sub_app_arm_id) > 0
-  sub_app_name = local.sub_app_exists ? (
-    try(split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_app.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_app.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
-    )
-  )
-  sub_app_prefix = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
+  ##############################################################################################
+  #
+  #  App subnet - Check if locally provided or if defined in workload zone state file
+  #
+  ##############################################################################################
 
+  application_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_app, {})) > 0
+  application_subnet_prefix  = local.application_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
 
-  sub_web_arm_id = try(var.infrastructure.vnets.sap.subnet_web.arm_id, try(var.landscape_tfstate.web_subnet_id, ""))
-  sub_web_exists = length(local.sub_web_arm_id) > 0
-  sub_web_defined = local.sub_web_exists ? (
-    true) : (
-    length(try(var.infrastructure.vnets.sap.subnet_web, {})) > 0
+  application_subnet_arm_id = local.application_subnet_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")) : (
+    var.landscape_tfstate.app_subnet_id
   )
+  application_subnet_exists = length(local.application_subnet_arm_id) > 0
 
-  sub_web_name = local.sub_web_exists ? (
-    try(split("/", var.infrastructure.vnets.sap.subnet_web.arm_id)[10], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_web.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_web.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
-    )
-  )
-  sub_web_prefix = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
-  sub_web_deployed = try(local.sub_web_defined ? (
-    local.sub_web_exists ? data.azurerm_subnet.subnet_sap_web[0] : azurerm_subnet.subnet_sap_web[0]) : (
-    local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0] : azurerm_subnet.subnet_sap_app[0]), null
+  application_subnet_name = local.application_subnet_defined ? (
+    local.application_subnet_exists ? (
+      split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]) : (
+      length(var.infrastructure.vnets.sap.subnet_app.name) > 0 ? (
+        var.infrastructure.vnets.sap.subnet_app.name) : (
+        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
+    ))) : (
+    ""
   )
 
-  // APP NSG
-  sub_app_nsg_arm_id = try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, try(var.landscape_tfstate.app_nsg_id, ""))
-  sub_app_nsg_exists = length(local.sub_app_nsg_arm_id) > 0
-  sub_app_nsg_name = local.sub_app_nsg_exists ? (
-    try(split("/", local.sub_app_nsg_arm_id)[8], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
-    )
+  ##############################################################################################
+  #
+  #  Application subnet NSG - Check if locally provided or if defined in workload zone state file
+  #
+  ##############################################################################################
+
+  application_subnet_nsg_defined = length(try(var.infrastructure.vnets.sap.subnet_app.nsg, {})) > 0
+
+  application_subnet_nsg_arm_id = local.application_subnet_nsg_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, "")) : (
+    var.landscape_tfstate.app_nsg_id
   )
 
-
-  // WEB NSG
-  sub_web_nsg_arm_id = try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, try(var.landscape_tfstate.web_nsg_id, ""))
-  sub_web_nsg_exists = length(local.sub_web_nsg_arm_id) > 0
-
-  sub_web_nsg_name = local.sub_web_nsg_exists ? (
-    try(split("/", local.sub_web_nsg_arm_id)[8], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_web.nsg.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_web.nsg.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg)
-    )
+  application_subnet_nsg_exists = length(local.application_subnet_nsg_arm_id) > 0
+  application_subnet_nsg_name = local.application_subnet_nsg_defined ? (
+    local.application_subnet_nsg_exists ? (
+      split("/", var.infrastructure.vnets.sap.subnet_app.nsg.arm_id)[10]) : (
+      length(var.infrastructure.vnets.sap.subnet_app.nsg.name) > 0 ? (
+        var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
+        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
+    ))) : (
+    ""
   )
 
-  sub_web_nsg_deployed = try(local.sub_web_defined ? (
-    local.sub_web_nsg_exists ? data.azurerm_network_security_group.nsg_web[0] : azurerm_network_security_group.nsg_web[0]) : (
-    local.sub_app_nsg_exists ? data.azurerm_network_security_group.nsg_app[0] : azurerm_network_security_group.nsg_app[0]), null
+  ##############################################################################################
+  #
+  #  Web subnet - Check if locally provided or if defined in workload zone state file
+  #
+  ##############################################################################################
+
+  web_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_web, {})) > 0
+  web_subnet_prefix  = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
+
+  web_subnet_arm_id = local.web_subnet_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")) : (
+    var.landscape_tfstate.web_subnet_id
+  )
+  web_subnet_exists = length(local.web_subnet_arm_id) > 0
+
+  web_subnet_name = local.web_subnet_defined ? (
+    local.web_subnet_exists ? (
+      split("/", var.infrastructure.vnets.sap.subnet_web.arm_id)[10]) : (
+      length(var.infrastructure.vnets.sap.subnet_web.name) > 0 ? (
+        var.infrastructure.vnets.sap.subnet_web.name) : (
+        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
+    ))) : (
+    ""
+  )
+
+  ##############################################################################################
+  #
+  #  Web subnet NSG - Check if locally provided or if defined in workload zone state file
+  #
+  ##############################################################################################
+
+  web_subnet_nsg_defined = length(try(var.infrastructure.vnets.sap.subnet_web.nsg, {})) > 0
+  web_subnet_nsg_arm_id = local.web_subnet_nsg_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, "")) : (
+    var.landscape_tfstate.web_nsg_id
+  )
+
+  web_subnet_nsg_exists = length(local.web_subnet_nsg_arm_id) > 0
+  web_subnet_nsg_name = local.web_subnet_nsg_defined ? (
+    local.web_subnet_nsg_exists ? (
+      split("/", var.infrastructure.vnets.sap.subnet_web.nsg.arm_id)[10]) : (
+      length(var.infrastructure.vnets.sap.subnet_web.nsg.name) > 0 ? (
+        var.infrastructure.vnets.sap.subnet_web.nsg.name) : (
+        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg)
+    ))) : (
+    ""
+  )
+
+  web_subnet_deployed = try(local.web_subnet_defined ? (
+    local.web_subnet_exists ? data.azurerm_subnet.subnet_sap_web[0] : azurerm_subnet.subnet_sap_web[0]) : (
+    local.web_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0] : azurerm_subnet.subnet_sap_app[0]), null
+  )
+
+  web_subnet_nsg_deployed = try(local.web_subnet_defined ? (
+    local.web_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_web[0] : azurerm_network_security_group.nsg_web[0]) : (
+    local.application_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_app[0] : azurerm_network_security_group.nsg_app[0]), null
   )
 
   firewall_exists          = length(var.firewall_id) > 0
@@ -251,7 +295,7 @@ locals {
     source_image_id = local.app_custom_image ? var.application.app_os.source_image_id : ""
     publisher       = local.app_custom_image ? "" : length(try(var.application.app_os.publisher, "")) > 0 ? var.application.app_os.publisher : "SUSE"
     offer           = local.app_custom_image ? "" : length(try(var.application.app_os.offer, "")) > 0 ? var.application.app_os.offer : "sles-sap-12-sp5"
-    sku             = local.app_custom_image ? "" : length(try(var.application.app_os.sku, "")) > 0 ? var.application.app_os.sku : "gen1"
+    sku             = local.app_custom_image ? "" : length(try(var.application.app_os.sku, "")) > 0 ? var.application.app_os.sku : "gen2"
     version         = local.app_custom_image ? "" : length(try(var.application.app_os.version, "")) > 0 ? var.application.app_os.version : "latest"
   }
 
@@ -290,16 +334,16 @@ locals {
     scs_lb = 4
     scs_vm = 6
     app_vm = 10
-    web_lb = local.sub_web_defined ? (4 + 1) : 6
-    web_vm = local.sub_web_defined ? (10) : 50
+    web_lb = local.web_subnet_defined ? (4 + 1) : 6
+    web_vm = local.web_subnet_defined ? (10) : 50
   }
 
   windows_ip_offsets = {
     scs_lb = 4
     scs_vm = 6 + 2 # Windows HA SCS may require 4 IPs
     app_vm = 10 + 2
-    web_lb = local.sub_web_defined ? (4 + 1) : 6 + 2
-    web_vm = local.sub_web_defined ? (10) : 50
+    web_lb = local.web_subnet_defined ? (4 + 1) : 6 + 2
+    web_vm = local.web_subnet_defined ? (10) : 50
   }
 
   win_ha_scs = local.scs_server_count > 0 && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS")
@@ -409,15 +453,15 @@ locals {
   winha_ips = [
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
-      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 2 + local.ip_offsets.scs_lb)))
+      subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
 
     },
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
-      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 3 + local.ip_offsets.scs_lb)))
+      subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     }
   ]
@@ -426,14 +470,14 @@ locals {
   std_ips = [
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
-      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.sub_app_prefix, 0 + local.ip_offsets.scs_lb)))
+      subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     },
     {
       name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
-      subnet_id                     = local.enable_deployment ? (local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
-      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.sub_app_prefix, 1 + local.ip_offsets.scs_lb)))
+      subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
+      private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     },
   ]
