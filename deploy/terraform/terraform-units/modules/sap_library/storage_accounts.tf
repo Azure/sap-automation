@@ -22,7 +22,6 @@ resource "azurerm_storage_account" "storage_tfstate" {
   account_tier              = local.sa_tfstate_account_tier
   account_kind              = local.sa_tfstate_account_kind
   enable_https_traffic_only = local.sa_tfstate_enable_secure_transfer
-  allow_blob_public_access  = false
   blob_properties {
     delete_retention_policy {
       days = 7
@@ -35,7 +34,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
       [length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : null]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_mgmt_id] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_management_id] : []
   }
 }
 
@@ -78,7 +77,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_tf)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
-  subnet_id           = local.subnet_mgmt_id
+  subnet_id           = local.subnet_management_id
 
   private_service_connection {
     name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_tf)
@@ -110,9 +109,6 @@ resource "azurerm_storage_account" "storage_sapbits" {
   account_tier              = local.sa_sapbits_account_tier
   account_kind              = local.sa_sapbits_account_kind
   enable_https_traffic_only = local.sa_sapbits_enable_secure_transfer
-  // To support all access levels 'Blob' 'Private' and 'Container'
-  allow_blob_public_access = false
-  // TODO: soft delete for file share
 
   network_rules {
     default_action = "Allow"
@@ -121,7 +117,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
       []
     )
 
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_mgmt_id] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? [local.subnet_management_id] : []
   }
 }
 
@@ -130,7 +126,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_sap)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
-  subnet_id           = local.subnet_mgmt_id
+  subnet_id           = local.subnet_management_id
 
   private_service_connection {
     name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_sap)
@@ -166,6 +162,7 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
   count                = (local.sa_sapbits_file_share_enable && !local.sa_sapbits_file_share_exists) ? 1 : 0
   name                 = local.sa_sapbits_file_share_name
   storage_account_name = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_sapbits[0].name : azurerm_storage_account.storage_sapbits[0].name
+  quota                = 200
 }
 
 

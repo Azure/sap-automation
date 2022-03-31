@@ -17,7 +17,6 @@
 - name:                                "SAP Oracle DB ASM: Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
-
 - name:                                "SAP Oracle DB ASM: Create run MOPatch directory"
   ansible.builtin.file:
     path:                              "/oracle/stage/{{ ora_release }}/grid_home/MOPatch"
@@ -33,7 +32,6 @@
     dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_asm_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                             0644
     force:                            true
-
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -195,7 +193,7 @@
   failed_when:                         sbpscript_results.rc >= 2
   args:
     executable:                        /bin/csh
-    chdir:                             "{{ target_media_location }}/SBP/"
+    chdir:                             "{{ target_media_location }}/SBP"
     creates:                           /etc/sap_deployment_automation/oracle/sbpinstalled.txt
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"
@@ -235,14 +233,14 @@
                                        mv  /oracle/stage/{{ ora_release }}/grid_home/OPatch   /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
                                        cp -R OPATCH/OPatch  /oracle/stage/{{ ora_release }}/grid_home/.
                                        chmod 6751 /oracle/stage/{{ ora_release }}/grid_home/bin/oracle
-                                       $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/SGR19P_2108-70004550.ZIP |tee -a /oracle/installlogs/sbpgrid.log
+                                       $OHGRID/MOPatch/mopatch.sh -v -s "{{ target_media_location }}/SBP/SGR19P_2108-70004550.ZIP |tee -a /oracle/installlogs/sbpgrid.log
   register:                            sbpgscript_results
   environment:
     OHGRID:                            /oracle/stage/{{ ora_release }}/grid_home
     ORACLE_HOME:                       /oracle/stage/{{ ora_release }}/grid_home
   args:
     executable:                        /bin/csh
-    chdir:                             "{{ target_media_location }}/SBP/"
+    chdir:                             "{{ target_media_location }}/SBP/
     creates:                           /etc/sap_deployment_automation/oracle/sbpginstalled.txt
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"

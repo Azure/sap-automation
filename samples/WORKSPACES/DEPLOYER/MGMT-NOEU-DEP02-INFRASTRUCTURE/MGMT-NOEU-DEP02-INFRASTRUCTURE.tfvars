@@ -94,8 +94,8 @@ deployer_enable_public_ip=true
 # deployer_disk_type is optional and defines the virtual machine disk type
 #deployer_disk_type"="Premium_LRS"
 
-# use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-#use_DHCP=false
+# deployer_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
+#deployer_use_DHCP = true
 
 # private_ip_address if defined will provide the IP addresses for the network interface cards 
 #private_ip_address=""
@@ -112,6 +112,8 @@ deployer_enable_public_ip=true
 #    "version"         ="latest"
 #}
 
+# deployer_diagnostics_account_arm_id defines the diagnosting storage account for the deployer
+#deployer_diagnostics_account_arm_id = ""
 
 /*
 This block describes the variables for the authentication section block in the json file

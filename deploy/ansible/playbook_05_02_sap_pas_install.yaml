@@ -45,7 +45,7 @@
         - 0.2-kv-secrets
 
     - name:                            "PAS Installation Playbook: - Read storage account details"
-      include_role:
+      ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       vars:
@@ -60,7 +60,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_PAS"
-                                        
+
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   become:                              true
@@ -77,6 +77,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        always_upload_jinja_templates: false
       tags:
         - always
 
@@ -89,6 +90,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      when:                            platform != 'ORACLE'
       tags:
         - 2.5-sap-users
 
@@ -126,6 +128,7 @@
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
+        always_upload_jinja_templates: false
       tags:
         - always
 
@@ -161,6 +164,12 @@
                 name:                  roles-sap/5.2-pas-install
               vars:
                 instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
+              when:       MULTI_SIDS is undefined
+
+            - name:                    "PAS Installation Playbook: - for MULTI-SID Deployment"
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.2.1-pas-multi-sid-install
+              when:       MULTI_SIDS is defined
 
             - name:                    "PAS Installation Playbook: - Create pas-install-done flag"
               delegate_to:             localhost
@@ -168,9 +177,8 @@
                 path:                  "{{ _workspace_directory }}/.progress/pas-install-done"
                 state:                 touch
                 mode:                  0755
-              when:                    
-                - pas_installation.rc is defined
-                - pas_installation.rc == 0
+              when:
+                - pas_already_installed is defined or (pas_installation.rc is defined and pas_installation.rc == 0)
           always:
             - name:                    "PAS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:

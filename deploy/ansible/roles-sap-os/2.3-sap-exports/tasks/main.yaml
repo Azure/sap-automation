@@ -1,5 +1,44 @@
 ---
 
+- name:                               "Exports: Create SAP Directories"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:
+    - { path: '{{ target_media_location }}' }
+    - { path: '/usr/sap/trans' }
+    - { path: '/sapmnt/{{ sap_sid|upper }}' }
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is undefined
+
+- name:                               "Exports: Create SAP Directories for MSIDs"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:
+    - { path: '{{ target_media_location }}' }
+    - { path: '/usr/sap/trans' }
+    - { path: '/sapmnt' }
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is defined
+
+# Create Folders under sapmnt whilist using Local disk for Multi-SID installation.
+- name:                                Create Filesystems under sapmnt
+  block:
+    - name:                            Create Filesystems for multi-sid installation
+      ansible.builtin.file:
+        path:                          /sapmnt/{{ item.sid }}
+        state:                         directory
+        mode:                          0755
+      when:
+         - node_tier == 'scs'
+         - MULTI_SIDS is defined
+      loop: "{{ MULTI_SIDS }}"
+
 - name:                               "2.3 SAP Exports: - Create SAP Directories (install)"
   block:
 
@@ -9,7 +48,7 @@
         state:                        directory
         mode:                         0755
       loop:
-        - { path: '/usr/sap/install' }
+        - { path: '{{ target_media_location }}' }
 
     - name:                           "2.3 SAP Exports: - NFS Server Config on Suse (install)"
       ansible.builtin.lineinfile:
@@ -20,7 +59,7 @@
         group:                        root
         mode:                         0644
       loop:
-        - { path: '/etc/exports',       regexp: '^/usr/sap/install',            line: '/usr/sap/install *(rw,sync,no_wdelay,no_root_squash)' }
+        - { path: '/etc/exports',       regexp: '^{{ target_media_location }}',            line: '{{ target_media_location }} *(rw,sync,no_wdelay,no_root_squash)' }
           # - { tier: 'preparation', path: '/etc/sysconfig/nfs', regexp: '^NFS3_SERVER_SUPPORT=',        line: 'NFS3_SERVER_SUPPORT="no"' }
         - { path: '/etc/sysconfig/nfs', regexp: '^NFS3_SERVER_SUPPORT=',        line: 'NFS3_SERVER_SUPPORT="yes"'                            }
         - { path: '/etc/sysconfig/nfs', regexp: '^NFS4_SUPPORT=',               line: 'NFS4_SUPPORT="yes"'                                   }
@@ -36,7 +75,7 @@
         group:                         root
         mode:                          0644
       loop:
-        - { path: '/etc/exports',       regexp: '^/usr/sap/install',            line: '/usr/sap/install *(rw,sync,no_wdelay,no_root_squash)'            }
+        - { path: '/etc/exports',       regexp: '^{{ target_media_location }}',            line: '{{ target_media_location }} *(rw,sync,no_wdelay,no_root_squash)'            }
         - { path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=y'                                                        }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
@@ -139,22 +178,79 @@
     - node_tier == 'scs'
     - sap_trans is not defined
 
+- name: "Exports: NFS Server Config on Oracle Linux 8"
+  ansible.builtin.lineinfile:
+    path:   "{{ item.path }}"
+    regexp: "{{ item.regexp }}"
+    line:   "{{ item.line }}"
+    owner:  root
+    group:  root
+    mode:   0644
+  loop:
+    - { tier: 'preparation', path: '/etc/exports',       regexp: '^/sapmnt/{{ sap_sid|upper }}', line: '/sapmnt/{{ sap_sid|upper }} *(rw,sync,no_wdelay,no_root_squash)' }
+    - { tier: 'preparation', path: '/etc/exports',       regexp: '^/usr/sap/trans',              line: '/usr/sap/trans *(rw,sync,no_wdelay,no_root_squash)'              }
+    - { tier: 'preparation', path: '/etc/exports',       regexp: '^{{ target_media_location }}', line: '{{ target_media_location }} *(rw,sync,no_wdelay,no_root_squash)'            }
+    - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=n'                                                        }
+    - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
+    - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
+  when:     
+    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
+    - node_tier == 'scs'
+    - sap_mnt is not defined
+    - MULTI_SIDS is not defined
+
+
+- name: "Exports: NFS Server Config on Oracle Linux 8 for oracle Multi-SID installation"
+  ansible.builtin.lineinfile:
+    path:   "{{ item.path }}"
+    regexp: "{{ item.regexp }}"
+    line:   "{{ item.line }}"
+    owner:  root
+    group:  root
+    mode:   0644
+  loop:
+    - { tier: 'preparation', path: '/etc/exports',       regexp: '^/usr/sap/trans',              line: '/usr/sap/trans *(rw,sync,no_wdelay,no_root_squash)'              }
+    - { tier: 'preparation', path: '/etc/exports',       regexp: '^"{{ target_media_location }}',            line: '"{{ target_media_location }} *(rw,sync,no_wdelay,no_root_squash)'            }
+    - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=n'                                                        }
+    - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
+    - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
+  when:     
+    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
+    - node_tier == 'scs'
+    - sap_mnt is not defined
+    - MULTI_SIDS is defined
+
+
+- name: "Exports: NFS Server Config on Oracle Linux 8 for Multi-SID installation sapmnt mounts"
+  ansible.builtin.lineinfile:
+    path:   "/etc/exports"
+    regexp: "^/sapmnt/{{ item.sid|upper }}"
+    line:   "/sapmnt/{{ item.sid|upper }} *(rw,sync,no_wdelay,no_root_squash)"
+    owner:  root
+    group:  root
+    mode:   0644
+  loop: "{{ MULTI_SIDS }}"
+  when:     
+    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
+    - node_tier == 'scs'
+    - sap_mnt is not defined
+    - MULTI_SIDS is defined
 - name:                                "2.3 SAP Exports: - Local NFS"
   block:
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   'nfsserver'
-    
+
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   "nfs-server"
       when:                            "'redhat8' == distribution_id"
-    
+
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   'nfs'
       when:                            "'redhat7' == distribution_id"
-    
+
     - name:                            "2.3 SAP Exports: - NFS Ensure the NFS service is started"
       ansible.builtin.systemd:
         name:                          "{{ nfs_service }}"

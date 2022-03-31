@@ -111,10 +111,10 @@ This block describes the variables for the deployer OS section block in the json
 variable "deployer_image" {
   default = {
     "source_image_id" = ""
-    "publisher"       = "Canonical"
-    "offer"           = "0001-com-ubuntu-server-focal"
-    "sku"             = "20_04-lts"
-    "version"         = "latest"
+    "publisher"       ="Canonical"
+    "offer"           ="UbuntuServer"
+    "sku"             ="18.04-LTS"
+    "version"         ="latest"
   }
 }
 
@@ -213,14 +213,13 @@ variable "use_private_endpoint" {
 }
 
 variable "tf_version" {
-  default = "1.1.4"
+  default = "1.1.7"
 }
 
-########################################################
-#
-#                     Bastion
-#
-########################################################
+variable "bastion_deployment" {
+  description = "Boolean flag indicating if an Azure bastion should be deployed"
+  default     = false
+}
 
 
 variable "bastion_subnet_arm_id" {

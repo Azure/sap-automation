@@ -13,6 +13,8 @@ target_media_location:        "/usr/sap/install"                                
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
 
+always_upload_jinja_templates: true
+
 # SAP Configuration for templates and install
 aas_hostname:                 ""
 aas_instance_number:          ""
@@ -58,6 +60,7 @@ ora_version:                  19.0.0
 ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
 PLATFORM:                     ""
+platform:                     ""
 
 password_cockpit_admin:       ""
 password_db_systemdb:         ""
@@ -86,6 +89,7 @@ sap_swap:
   - { tier: 'hana', swap_size_mb: '2048' }
   - { tier: 'oracle', swap_size_mb: '20480' }
   - { tier: 'oracle-asm', swap_size_mb: '20480' }
+  - { tier: 'oracle-multi-sid', swap_size_mb: '20480' }
   - { tier: 'observer', swap_size_mb: '2048' }
 
 ...

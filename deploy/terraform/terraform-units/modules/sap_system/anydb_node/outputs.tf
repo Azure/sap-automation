@@ -1,10 +1,12 @@
 output "anydb_vms" {
   value = local.enable_deployment ? (
-    coalesce(azurerm_linux_virtual_machine.dbserver[*].id, azurerm_linux_virtual_machine.observer[*].id, azurerm_windows_virtual_machine.dbserver[*].id, azurerm_windows_virtual_machine.observer[*].id)) : (
+    coalesce(azurerm_linux_virtual_machine.dbserver[*].id, 
+              azurerm_windows_virtual_machine.dbserver[*].id
+            )
+    ) : (
     [""]
   )
 }
-
 output "nics_anydb" {
   value = local.enable_deployment ? azurerm_network_interface.anydb_db : []
 }
@@ -62,7 +64,17 @@ output "dbtier_disks" {
   value = local.enable_deployment ? local.db_disks_ansible : []
 }
 
-
 output "db_ha" {
   value = local.anydb_ha
+}
+
+output "observer_ips" {
+  value = local.enable_deployment && local.deploy_observer ? azurerm_network_interface.observer[*].private_ip_address : []
+}
+
+output "observer_vms" {
+  value = local.enable_deployment ? (
+    coalesce(azurerm_linux_virtual_machine.observer[*].id, azurerm_windows_virtual_machine.observer[*].id)) : (
+    [""]
+  )
 }

@@ -51,6 +51,15 @@
     primary_instance_ip:               "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
     secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
 
+- name:                                "1.17 Generic Pacemaker - Set the subnet prefix"
+  ansible.builtin.set_fact:
+    subnet_prefix:                     "{{ json_azure_data | json_query('network.interface[0].ipv4.subnet[0].prefix') }}"
+  when: hostname == primary_instance_name
+    
+- name:                                "1.17 Generic Pacemaker - Show the subnet prefix"
+  ansible.builtin.debug:
+    msg:                               "{{ subnet_prefix }}"
+
 - name:                                "1.17 Generic Pacemaker - Show Subscription ID"
   ansible.builtin.debug:
     msg:
