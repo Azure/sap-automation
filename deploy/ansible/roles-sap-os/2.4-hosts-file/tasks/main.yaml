@@ -66,5 +66,6 @@
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - db_high_availability
+    - platform == 'HANA'
 
 ...

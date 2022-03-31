@@ -376,7 +376,7 @@ sudo ${ansible_venv_bin}/pip3 install \
     argcomplete \
     'pywinrm>=0.3.0' \
     yamllint \
-    msal
+    netaddr
 
 # Create symlinks for all relevant commands that were installed in the Ansible
 # venv's bin so that they are available in the /opt/ansible/bin directory, which
