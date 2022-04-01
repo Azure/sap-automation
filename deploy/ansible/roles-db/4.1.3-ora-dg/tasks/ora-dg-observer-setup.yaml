@@ -57,6 +57,16 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "Oracle Data Guard - Observer: Create oracle folder"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /oracle
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 - name:                                "Oracle Data Guard - Observer: Execute RUNINSTALLER"
   become:                              true
   become_user:                         "oracle"
@@ -99,7 +109,7 @@
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/downloads/sqlnet.ora"
-    dest:                              /oracle/{{ db_sid }}/{{ ora_version }}/network/admin/sqlnet.ora
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
@@ -110,7 +120,7 @@
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/downloads/tnsnames.ora"
-    dest:                              /oracle/{{ db_sid }}/{{ ora_version }}/network/admin/tnsnames.ora
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
