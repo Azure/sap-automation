@@ -1,6 +1,7 @@
 ---
 name:    "DB2_UDB_11_5_v0001ms"
-target:  'DB2 11.5'
+target:  "DB2 11.5"
+platform: "DB2"
 version: 1
 
 materials:
