@@ -133,7 +133,7 @@
   ansible.builtin.debug:
     msg:                               
       - "NFS_provider: {{ NFS_provider }}"
-      - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
+      - "usr_sap_install_mountpoint: {{ usr_sap_install_mount_point }}"
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
@@ -170,7 +170,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -189,7 +189,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']]
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
