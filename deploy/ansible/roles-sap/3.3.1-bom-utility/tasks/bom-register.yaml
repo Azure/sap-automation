@@ -150,6 +150,6 @@
           - bom.platform is defined                    # Has the variable been defined
           - bom.platform | upper == platform | upper
         fail_msg:                          "The BoM {{ bom_name }} is not for platform {{ platform }}"
-  when: bom.name != search('SWPM') or bom.name != search('SUM')
+  when: bom.name is not search('SWPM*') or bom.name is not search('SUM*')
 
 ...
