@@ -136,10 +136,10 @@
 - name:                                "{{ task_prefix }} Show BoM details"
   ansible.builtin.debug:
     msg:                               
-    - "BoM name:        {{ bom.name }}"
-    - "BoM target:      {{ bom.target }}"
-    - "BoM version:     {{ bom.version }}"
-    - "BoM DB platform: {{ bom.platform }}"
+      - "BoM name:        {{ bom.name }}"
+      - "BoM target:      {{ bom.target }}"
+      - "BoM version:     {{ bom.version }}"
+      - "BoM DB platform: {{ bom.platform }}"
 
 - name:                                "{{ task_prefix }} Ensure that a BoM object is created"
   ansible.builtin.assert:
