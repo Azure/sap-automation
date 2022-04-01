@@ -1,7 +1,7 @@
 ---
 # 3015539 - SAP S/4HANA 2021: Release Information Note
-name:                                  "SAP_S4HANA_2021"
-target:                                "ABAP PLATFORM 2021"
+name:                                  "S4HANA_2021_ISS_v0001ms"
+target:                                "S/4 HANA 2021 ISS 00"
 version:                               1
 platform:                              'HANA'
 defaults:
