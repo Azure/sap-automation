@@ -143,7 +143,7 @@
       - "BoM target:      {{ bom.target }}"
       - "BoM version:     {{ bom.version }}"
       - "BoM DB platform: {{ bom.platform }}"
-  when: bom.name is not search('SWPM') or bom.name is not search('SUM')
+  when: 'SWPM' not in bom.name
 
 - name:                                "{{ task_prefix }} Ensure that a BoM object is created"
   ansible.builtin.assert:
@@ -151,6 +151,6 @@
       - bom.platform is defined                    # Has the variable been defined
       - bom.platform | upper == platform | upper
     fail_msg:                          "The BoM {{ bom_name }} is not for platform {{ platform }}"
-  when: bom.name is not search('SWPM*') or bom.name is not search('SUM*')
+  when: 'SWPM' not in bom.name
 
 ...
