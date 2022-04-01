@@ -143,8 +143,8 @@
       - "BoM target:      {{ bom.target }}"
       - "BoM version:     {{ bom.version }}"
       - "BoM DB platform: {{ bom.platform }}"
-  when: bom.name is not search('SWPM*') or bom.name is not search('SUM*')
-  
+  when: bom.name is not search('SWPM') or bom.name is not search('SUM')
+
 - name:                                "{{ task_prefix }} Ensure that a BoM object is created"
   ansible.builtin.assert:
     that:
