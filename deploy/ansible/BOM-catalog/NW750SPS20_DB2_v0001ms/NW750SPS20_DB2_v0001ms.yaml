@@ -3,6 +3,7 @@
 name:                                  "NW750SPS20_DB2_v0001ms"
 target:                                "SAP NW750 SPS20 DB2"
 platform:                              "DB2"
+version: 1
 defaults:
   target_location:                     "{{ target_media_location }}/download_basket"
 
