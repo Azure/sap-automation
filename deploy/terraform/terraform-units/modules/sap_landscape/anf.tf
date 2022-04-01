@@ -56,7 +56,7 @@ resource "azurerm_netapp_volume" "transport" {
   pool_name     = azurerm_netapp_pool.workload_netapp_pool[0].name
   volume_path   = format("%s%s", var.infrastructure.environment, local.resource_suffixes.transport_volume)
   service_level = var.ANF_settings.service_level
-  subnet_id =  local.sub_ANF_existing ? local.sub_ANF_arm_id : azurerm_subnet.anf[0].id
+  subnet_id =  local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
 
   protocols = ["NFSv4.1"]
   export_policy_rule {
