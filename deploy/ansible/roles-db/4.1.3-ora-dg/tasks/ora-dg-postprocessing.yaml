@@ -8,7 +8,7 @@
 #     ora_secondary:              "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
 #     current_host:               "{{ ansible_hostname }}"
 
-- name:                                " Check SAP Restore on secondary is completed"
+- name:                                "Oracle Data Guard -  Check SAP Restore on secondary is completed"
   ansible.builtin.stat:
     path:                              /usr/sap/install/downloads/restore_completed.txt
   register:                            secondary_completed
@@ -38,7 +38,7 @@
     - name:                            "Oracle Data Guard - Post Processing: Restart lsnrctl on Primary (save output)"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/lsnrctl_start_primary.log
-        content:                       lsnrctl_start_primary_results.stdout
+        content:                       "{{ lsnrctl_start_primary_results.stdout }}"
         mode:                          0777
       when:                            lsnrctl_start_primary_results.stdout is defined
     
@@ -64,9 +64,9 @@
         executable:                    /bin/csh
       #when:                                current_host == ora_primary
 
-    - name:                            "Oracle Data Guard - Post Processing:  - Pause 10 secs"
+    - name:                            "Oracle Data Guard - Post Processing:  - Pause 30 secs"
       ansible.builtin.pause:
-        seconds:                       10
+        seconds:                       30
 
     - name:                            "Oracle Data Guard - Post Processing: Enable DG Broker on Primary"
       ansible.builtin.debug:     
@@ -76,7 +76,7 @@
     - name:                            "Oracle Data Guard - Post Processing: Enable DG Broker on Primary (save output)"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dgscripts/dg_broker_primary.log
-        content:                       dg_broker_primary_results.stdout
+        content:                       "{{ dg_broker_primary_results.stdout }}"
         mode:                          0777
       when:                            dg_broker_primary_results.stdout is defined
   
@@ -109,7 +109,7 @@
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (save output)"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dgscripts/dg_create.log
-        content:                       dgconfig_results.stdout
+        content:                       "{{ dgconfig_results.stdout }}"
         mode:                          0777
       when:                            dgconfig_results.stdout is defined
     
@@ -142,7 +142,7 @@
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (save output)"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/dgscripts/dg_enable.log
-        content:                       enable_dgconfig_results.stdout
+        content:                       "{{ enable_dgconfig_results.stdout }}"
         mode:                          0777
       when:                            enable_dgconfig_results.stdout is defined
     

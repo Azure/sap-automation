@@ -45,7 +45,7 @@
 - name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary (save output)"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/enable_archive.log
-    content:                           enable_archive_log_results.stdout
+    content:                           "{{ enable_archive_log_results.stdout }}"
     mode:                              0777
   when:                                enable_archive_log_results.stdout is defined
 
@@ -88,7 +88,7 @@
 - name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary (save output)"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/switch_archive.log
-    content:                           enable_force_logging_results.stdout
+    content:                           "{{ enable_force_logging_results.stdout }}"
     mode:                              0777
   when:                                enable_force_logging_results.stdout is defined
 
@@ -132,7 +132,7 @@
 - name:                                "Oracle Data Guard - Setup Primary: Create standby logs for Oracle DG (save output)"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/standby_logs.log
-    content:                           standby_redo_log_results.stdout
+    content:                           "{{ standby_redo_log_results.stdout }}"
     mode:                              0777
   when:                                standby_redo_log_results.stdout is defined
 
@@ -167,7 +167,7 @@
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (save output)"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback.log
-    content:                           turn_on_flashback_results.stdout
+    content:                           "{{ turn_on_flashback_results.stdout }}"
     mode:                              0777
   when:                                turn_on_flashback_results.stdout is defined
 
