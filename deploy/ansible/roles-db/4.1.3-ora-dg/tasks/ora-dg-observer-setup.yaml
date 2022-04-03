@@ -83,13 +83,13 @@
 
 - name:                                "Oracle Data Guard - Observer: installer output"
   ansible.builtin.debug:
-    var:                               orainstall_results.stdout_lines
+    var:                               "{{ orainstall_results.stdout_lines }}"
     verbosity:                         2
 
 - name:                                "Oracle Data Guard - Observer: installer output"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/install.log
-    content:                           orainstall_results.stdout
+    content:                           "{{ orainstall_results.stdout }}"
     mode:                              0777
   when:                                orainstall_results.stdout is defined
 
@@ -182,7 +182,7 @@
 - name:                                "Oracle Data Guard - Observer: tnsping Primary output"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/tnsping_primary.log
-    content:                           tnsping_primary_results.stdout
+    content:                           "{{ tnsping_primary_results.stdout }}"
     mode:                              0777
   when:                                tnsping_primary_results.stdout is defined
 
@@ -204,7 +204,7 @@
 - name:                                "Oracle Data Guard - Observer: tnsping Secondary output"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/tnsping_secondary.log
-    content:                           tnsping_secondary_results.stdout
+    content:                           "{{ tnsping_secondary_results.stdout }}"
     mode:                              0777
   when:                                tnsping_secondary_results.stdout is defined
 
@@ -247,7 +247,7 @@
     - name:                            "Oracle Data Guard - Observer: Prepare for FSFO output"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/fsfo_prepared.log
-        content:                       fsfo_results.stdout
+        content:                       "{{ fsfo_results.stdout }}"
         mode:                          0777
       when:                            fsfo_results.stdout is defined
 
@@ -279,7 +279,7 @@
     - name:                            "Oracle Data Guard - Observer: Enable FSFO output"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/fsfo_enable.log
-        content:                       fsfo_enable_results.stdout
+        content:                       "{{ fsfo_enable_results.stdout }}"
         mode:                          0777
       when:                            fsfo_enable_results.stdout is defined
 
@@ -311,7 +311,7 @@
     - name:                            "Oracle Data Guard - Observer: Start FSFO Observer output"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/start_observer.log
-        content:                       observer_results.stdout
+        content:                       "{{ observer_results.stdout }}"
         mode:                          0777
       when:                            observer_results.stdout is defined
 
