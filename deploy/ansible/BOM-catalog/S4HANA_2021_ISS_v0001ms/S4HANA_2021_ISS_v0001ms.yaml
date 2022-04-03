@@ -7,69 +7,57 @@ platform:                              'HANA'
 defaults:
   target_location:                     "{{ target_media_location }}/download_basket"
 
+# HA product IDs need to be verified
 product_ids:
-  scs:       "None"
-  scs_ha:    "None"
-  dbl:       "None"
-  pas:       "None"
-  pas_ha:    "None"
-  app:       "None"
-  app_ha:    "None"
+  scs:       "NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAP"
+  scs_ha:    "NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAPHA"
+  dbl:       "NW_ABAP_DB:S4HANA2021.CORE.HDB.ABAP"
+  pas:       "NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAP"
+  pas_ha:    "NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAPHA"
+  app:       "NW_DI:S4HANA2021.CORE.HDB.PD"
+  app_ha:    "NW_DI:S4HANA2021.CORE.HDB.PD"
   web:       "None"
   ers:       "None"
-  ers_ha:    "None"
+  ers_ha:    "NW_ERS:S4HANA2021.CORE.HDB.ABAPHA"
+  generic:   "NW_Users_Create:GENERIC.HDB.PD"
 
 materials:
   dependencies:
-  #  - name:                            "HANA_2_00_059_v0001ms"
+    - name:                            "HANA_2_00_061_v0001ms"
     - name:                            "SWPM20SP11_latest"
     - name:                            "SUM20SP13_latest"
   media:
 
+    # SAPCAR 7.22
+    - name:                            "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:                         SAPCAR_1115-70006178.EXE
+      checksum:                        765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      filename:                        SAPCAR
+      permissions:                     '0755'
+      url:                             https://softwaredownloads.sap.com/file/0020000000098642022
+
     # kernel components
-
-    - name:                            "SP12 Patch6 for UMML4HANA 1"
-      archive:                         HANAUMML12_6-70001054.ZIP
-      checksum:                        f103c2434f0762bb6210e8fcf26b99490bb26d13be6d6d1981a3e4bbf4f2c8be
-      url:                             https://softwaredownloads.sap.com/file/0020000000356792022
-      path:                            download_basket
-
-    - name:                            "SAP HANA CLIENT Version 2.12"
-      archive:                         IMDB_CLIENT20_012_20-80002082.SAR
-      checksum:                        1e9b34913149e32735ad2bc450b56f4e143937adc75c2b1b3a49abc3071c11fe
-      url:                             https://softwaredownloads.sap.com/file/0020000000378322022
-      path:                            download_basket
-
-    - name:                            "Revision 2.00.061.0 (SPS06) for HANA DB 2.0"
-      archive:                         IMDB_SERVER20_061_0-80002031.SAR
-      checksum:                        c30944dc57d932f5f2b5f1feb409937d9dbb773d196c67e06142736976b79317
-      url:                             https://softwaredownloads.sap.com/file/0020000000198352022
-      path:                            download_basket
-
-    - name:                            "Kernel Part II (785)"
-      archive:                         SAPEXEDB_100-80005373.SAR
-      checksum:                        05a16e9ba5c6c882972fc37ee09c675ca5c06e02d56ea3cd36e39aa0bb809b37
-      url:                             https://softwaredownloads.sap.com/file/0020000000250002022
-      path:                            download_basket
-
-    - name:                            "Kernel Part I (785)"
+    # Kernel
+    - name:                            "Kernel Part I (785); OS: Linux on x86_64 64bit ; DB: Database independent"
       archive:                         SAPEXE_100-80005374.SAR
       checksum:                        31002d86645b5ed2f03a5ee5508083939b0e219116e2a7a126c3930beb642888
       url:                             https://softwaredownloads.sap.com/file/0020000000249732022
       path:                            download_basket
 
+    - name:                            "Kernel Part II (785); OS: Linux on x86_64 64bit ; DB: SAP HANA database"
+      archive:                         SAPEXEDB_100-80005373.SAR
+      checksum:                        05a16e9ba5c6c882972fc37ee09c675ca5c06e02d56ea3cd36e39aa0bb809b37
+      url:                             https://softwaredownloads.sap.com/file/0020000000250002022
+      path:                            download_basket
+
+    # SAP Host Agent
     - name:                            "SAP HOST AGENT 7.22 SP55"
       archive:                         SAPHOSTAGENT55_55-80004822.SAR
       checksum:                        9a93391c1a52dff5368e834dc0d16c84e69f99ef39d3b6bdfc58b99af6d85553
       url:                             https://softwaredownloads.sap.com/file/0020000000239812022
       path:                            download_basket
 
-    - name:                            "Predi. Analy. APL 2008 for SAP HANA 2.0 SPS03 and beyond"
-      archive:                         SAPPAAPL4_2008_0-80004547.ZIP
-      checksum:                        4cd694252c228dfd158c273a8c0d0886f543d1a138698bb6f73445c398f22e2a
-      url:                             https://softwaredownloads.sap.com/file/0020000000410162020
-      path:                            download_basket
-
+    # IGS components
     - name:                            "Installation for SAP IGS integrated in SAP Kernel"
       archive:                         igsexe_1-70005417.sar
       checksum:                        31e299129fa931c05fb93fcc53f89b568629cb199bca027ac3ee9b7986025629
@@ -82,8 +70,20 @@ materials:
       url:                             https://softwaredownloads.sap.com/file/0020000000703122018
       path:                            download_basket
 
-    # db export components
+    #MISC
+    - name:                            "SP12 Patch6 for UMML4HANA 1"
+      archive:                         HANAUMML12_6-70001054.ZIP
+      checksum:                        f103c2434f0762bb6210e8fcf26b99490bb26d13be6d6d1981a3e4bbf4f2c8be
+      url:                             https://softwaredownloads.sap.com/file/0020000000356792022
+      path:                            download_basket
 
+    - name:                            "Predi. Analy. APL 2008 for SAP HANA 2.0 SPS03 and beyond"
+      archive:                         SAPPAAPL4_2008_0-80004547.ZIP
+      checksum:                        4cd694252c228dfd158c273a8c0d0886f543d1a138698bb6f73445c398f22e2a
+      url:                             https://softwaredownloads.sap.com/file/0020000000410162020
+      path:                            download_basket
+
+    # DB Export components
     - name:                            "File on DVD - S4CORE106_INST_EXPORT_1.zip"
       archive:                         S4CORE106_INST_EXPORT_1.zip
       checksum:                        1b0701e9360078a7ac3f58c46b81d84ccdb35147732dc1b87efa54bc6d49cac4
@@ -266,7 +266,14 @@ materials:
       path:                            download_basket
 
     # other components
+    #SPAM
+    - name:                            "SPAM/SAINT Update - Version 756/0081"
+      archive:                         KD75681.SAR
+      checksum:                        cf77cad942140eb1034d6415906c6573dd4bd39ae0a01487522acd86ff42ea10
+      url:                             https://softwaredownloads.sap.com/file/0010000000247182022
+      download:                        false
 
+    # Support Packs
     - name:                            "Attribute Change Package 17 for EA-HR 608"
       archive:                         EA-HR608.SAR
       checksum:                        2a772c2fb7466b6de3b5c54354ae4b08d5e2daf5e916ce244aa2d4586ec32ad1
@@ -517,12 +524,6 @@ materials:
       archive:                         K-900AGINUIAPFI70.SAR
       checksum:                        02133769c18859ab6c5dace03b3cf67f0660219d0e3137e205dbc9e5c4fabd75
       url:                             https://softwaredownloads.sap.com/file/0010000000914092021
-      download:                        false
-
-    - name:                            "SPAM/SAINT Update - Version 756/0081"
-      archive:                         KD75681.SAR
-      checksum:                        cf77cad942140eb1034d6415906c6573dd4bd39ae0a01487522acd86ff42ea10
-      url:                             https://softwaredownloads.sap.com/file/0010000000247182022
       download:                        false
 
     - name:                            "Attribute Change Package 35 for SAP_HR 608"
