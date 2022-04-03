@@ -1,3 +1,4 @@
+### ---Terraform--- ###
 # Local .terraform directories
 **/.terraform/*
 
@@ -29,14 +30,22 @@ override.tf.json
 # example: *tfplan*
 **/.terraform.lock.hcl
 
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
 # Local History for Visual Studio Code
 .history/
 
 # Built Visual Studio Code Extensions
 *.vsix
-.vscode/*
-.vscode/settings.json
-.vscode/tasks.json
-.vscode/launch.json
-.vscode/extensions.json
-.vscode/*.code-snippets
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
