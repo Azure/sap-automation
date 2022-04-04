@@ -160,7 +160,7 @@ locals {
     var.landscape_tfstate.app_subnet_id
   )
   application_subnet_exists = length(local.application_subnet_arm_id) > 0
-
+ 
   application_subnet_name = local.application_subnet_defined ? (
     local.application_subnet_exists ? (
       split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]) : (
