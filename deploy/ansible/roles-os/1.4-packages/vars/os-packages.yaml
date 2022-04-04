@@ -49,6 +49,7 @@ packages:
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'ksh',                                          node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'mksh',                                         node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
@@ -122,6 +123,7 @@ packages:
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'ksh',                                          node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'mksh',                                         node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
@@ -165,6 +167,7 @@ packages:
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'ksh',                                          node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'mksh',                                         node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
@@ -208,6 +211,7 @@ packages:
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',    package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'ksh',                                          node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'mksh',                                         node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }

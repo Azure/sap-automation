@@ -25,10 +25,10 @@ resource "azurerm_storage_account_network_rules" "storage_bootdiag" {
   ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
-      local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
-      local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id,
-      local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id,
-      local.sub_web_existing ? local.sub_web_arm_id : azurerm_subnet.web[0].id,
+      local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id,
+      local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id,
+      local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id,
+      local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id,
       local.deployer_subnet_management_id
     ]
   )
@@ -46,12 +46,12 @@ data "azurerm_storage_account" "storage_bootdiag" {
 
 resource "azurerm_private_endpoint" "storage_bootdiag" {
   provider            = azurerm.main
-  count               = var.use_private_endpoint && local.sub_admin_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 1 : 0
+  count               = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 1 : 0
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_diag)
   resource_group_name = local.rg_name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  subnet_id = local.sub_admin_defined ? (
-    local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id) : (
+  subnet_id = local.admin_subnet_defined ? (
+    local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id) : (
     ""
   )
 
@@ -91,10 +91,10 @@ resource "azurerm_storage_account_network_rules" "witness_storage" {
   ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
-      local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
-      local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id,
-      local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id,
-      local.sub_web_existing ? local.sub_web_arm_id : azurerm_subnet.web[0].id,
+      local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id,
+      local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id,
+      local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id,
+      local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id,
       local.deployer_subnet_management_id
     ]
   )
@@ -112,12 +112,12 @@ data "azurerm_storage_account" "witness_storage" {
 
 resource "azurerm_private_endpoint" "witness_storage" {
   provider            = azurerm.main
-  count               = var.use_private_endpoint && local.sub_admin_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
+  count               = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_witness)
   resource_group_name = local.rg_name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  subnet_id = local.sub_db_defined ? (
-    local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id) : (
+  subnet_id = local.database_subnet_defined ? (
+    local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
     ""
   )
 
@@ -182,10 +182,10 @@ resource "azurerm_storage_account_network_rules" "transport" {
   ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
-      local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id,
-      local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id,
-      local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id,
-      local.sub_web_existing ? local.sub_web_arm_id : azurerm_subnet.web[0].id,
+      local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id,
+      local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id,
+      local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id,
+      local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id,
       local.deployer_subnet_management_id
     ]
   )
@@ -222,8 +222,8 @@ resource "azurerm_private_endpoint" "transport" {
   name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_transport)
   resource_group_name = local.rg_name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  subnet_id = local.sub_app_defined ? (
-    local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id) : (
+  subnet_id = local.application_subnet_defined ? (
+    local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
     ""
   )
 

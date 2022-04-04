@@ -70,8 +70,8 @@
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
     msg:
-      - "NFS Provider: {{ NFS_provider }}"                             
-      - "Install path: {{ usr_sap_install_mount_point }}"                             
+      - "NFS Provider: {{ NFS_provider }}"
+      - "Install path: {{ usr_sap_install_mount_point }}"
     verbosity:                         2
 
 # Mount Filesystems
@@ -87,6 +87,7 @@
   when:
     - (item.node_tier == "all" or item.node_tier == node_tier)
     - not scs_high_availability
+    - node_tier != 'observer'
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems"
   ansible.builtin.mount:
@@ -128,11 +129,11 @@
     - not use_AFS
 
 
-# - name:                                "Show NFS details"
-#   ansible.builtin.debug:
-#     msg:                               
-#       - "NFS_provider: {{ NFS_provider }}"
-#       - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
+- name:                                Show NFS details
+  ansible.builtin.debug:
+    msg:                               
+      - "NFS_provider: {{ NFS_provider }}"
+      - "usr_sap_install_mountpoint: {{ usr_sap_install_mount_point }}"
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
@@ -169,7 +170,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -188,7 +189,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']]
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname

@@ -25,6 +25,8 @@ parameters:
       - SWPM10SP34_latest
       - SUM20SP13_latest
       - ORACLE_19_00_v0002ms
+      - NW750SPS20_DB2_v0001ms
+      - DB2_UDB_11_5_v0001ms
 
   - name:                              environment
     displayName:                       Control Plane Environment

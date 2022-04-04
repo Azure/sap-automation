@@ -74,8 +74,13 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-
+  
   tasks:
+    
+
+    - name:                        "SCS Generic: - Initialize facts"
+      ansible.builtin.set_fact:
+        tier:                      "generic"
 
     - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
@@ -86,7 +91,9 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-      when:                                platform != "ORACLE"
+      when:                                
+        - platform != "ORACLE"  or platform != "DB2"
+        
       tags:
         - 2.5-sap-users
 

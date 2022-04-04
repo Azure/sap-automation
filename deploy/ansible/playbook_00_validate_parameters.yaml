@@ -28,6 +28,7 @@
     - name:                            "0.0 Validations - Retrieve the Fencing SPN details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
+      when:                            platform != "ORACLE"
       tags:
         - kv-secrets
 
@@ -171,7 +172,14 @@
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
         var:                           hosts.stdout_lines
-
+    
+    - name:                            "0.0 Validations - Netmask"
+      ansible.builtin.debug:
+        msg:
+          - "Netmask: {{ hostvars[ ansible_hostname ]['ansible_eth0']['ipv4']['netmask'] }}"
+          - "CIDR:    {{ ((hostvars[ansible_hostname]['ansible_eth0']['ipv4']['address'] | string)+'/'+
+                        (hostvars[ ansible_hostname ]['ansible_eth0']['ipv4']['netmask'] | string)) | ipaddr('prefix') }}"
+          - "IPV4:    {{ hostvars[ ansible_hostname ]['ansible_eth0']['ipv4'] }}"
 
 - hosts:               "{{ sap_sid|upper }}_WEB"
 

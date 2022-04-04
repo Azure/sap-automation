@@ -17,7 +17,7 @@ NW_Unpack.sapExeSar                                                 = {{ db2_cd_
 
 NW_DB6_DB.db6.abap.connect.user                                      = sap{{ db_sid |lower }}
 NW_DB6_DB.db6.abap.schema                                            = sap{{ db_sid |lower }}
-NW_GetMasterPassword.masterPwd                                       = {{ main_paasword }}
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
 NW_GetSidNoProfiles.sapdrive = undefined
 NW_GetSidNoProfiles.sid                                              = {{ sap_sid |upper }}
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
@@ -35,8 +35,8 @@ nwUsers.db6.sapsidUid                                                = {{ db2sap
 
 # Passwords for sap and db2 users
 
-nwUsers.db6.db2sidPassword                                          = {{ main_paasword }}
-nwUsers.db6.sapsidPassword                                          = {{ main_paasword }}
+nwUsers.db6.db2sidPassword                                          = {{ main_password }}
+nwUsers.db6.sapsidPassword                                          = {{ main_password }}
 nwUsers.sidadmPassword                                              = {{ main_password }}
 
 #Database Parameters

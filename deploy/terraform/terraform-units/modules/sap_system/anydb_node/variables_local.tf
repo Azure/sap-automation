@@ -187,12 +187,12 @@ locals {
 
   anydb_sku = try(local.db_size.vm_size, "Standard_E16_v3")
 
-  anydb_ha                = try(local.anydb.high_availability, false)
-  db_sid                  = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
-  loadbalancer            = try(local.anydb.loadbalancer, {})
+  anydb_ha     = try(local.anydb.high_availability, false)
+  db_sid       = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
+  loadbalancer = try(local.anydb.loadbalancer, {})
 
   # Oracle deployments do not need a load balancer
-  enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) && local.anydb_platform != "ORACLE"  && local.anydb_platform != "NONE"
+  enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) && local.anydb_platform != "ORACLE" && local.anydb_platform != "NONE"
 
   anydb_cred = try(local.anydb.credentials, {})
 
@@ -214,19 +214,19 @@ locals {
     ORACLE = {
       "publisher" = "Oracle",
       "offer"     = "Oracle-Linux",
-      "sku"       = "77",
+      "sku"       = "ol8_2-gen2"
       "version"   = "latest"
     }
     DB2 = {
       "publisher" = "SUSE",
       "offer"     = "sles-sap-12-sp5",
-      "sku"       = "gen1"
+      "sku"       = "gen2"
       "version"   = "latest"
     }
     ASE = {
       "publisher" = "SUSE",
       "offer"     = "sles-sap-12-sp5",
-      "sku"       = "gen1"
+      "sku"       = "gen2"
       "version"   = "latest"
     }
     SQLSERVER = {
@@ -252,8 +252,8 @@ locals {
   }
 
   //Observer VM
-  observer                 = try(local.anydb.observer, {})
-  
+  observer = try(local.anydb.observer, {})
+
   #If using an existing VM for observer set use_observer to false in .tfvars
   deploy_observer          = var.use_observer ? upper(local.anydb_platform) == "ORACLE" && local.anydb_ha : false
   observer_size            = "Standard_D4s_v3"
@@ -330,7 +330,7 @@ locals {
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
           caching                   = storage_type.caching,
-          write_accelerator_enabled = try(storage_type.write_accelerator, false),
+          write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
         }
