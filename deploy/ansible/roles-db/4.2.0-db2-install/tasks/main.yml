@@ -78,6 +78,7 @@
       ansible.builtin.command:         db2set DB2_AVOID_LOCK_ESCALATION=FALSE
       args:
         creates:                       /etc/sap_deployment_automation/lock_escalation_false.txt
+        executable:                    /bin/csh
       register:                        db2_lock_escalation
     
     - name:                            "Create lock escalation run flag"
