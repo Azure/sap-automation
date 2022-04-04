@@ -15,7 +15,7 @@ resource "azurerm_app_service_plan" "appserviceplan" {
 }
 
 
-# Create the web app, pass in the App Service Plan ID, and deploy code from a public GitHub repo
+# Create the app service with AD authentication and CMDB connection string
 resource "azurerm_app_service" "webapp" {
     count               = var.use_webapp ? (var.configure ? 1 : 0) : 0
     name                = lower(format("%s%s%s", local.prefix, local.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
@@ -50,4 +50,11 @@ resource "azurerm_app_service" "webapp" {
         type  = "Custom"
         value = var.cmdb_connection_string
     }
+}
+
+# Set up Vnet integration for webapp and cmdb interaction
+resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
+  count          = var.use_webapp ? (var.configure ? 1 : 0) : 0
+  app_service_id = azurerm_app_service.webapp[0].id
+  subnet_id      = azurerm_subnet.subnet_mgmt[0].id
 }

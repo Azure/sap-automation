@@ -120,7 +120,16 @@ resource "azurerm_subnet" "subnet_mgmt" {
   enforce_private_link_endpoint_network_policies = true
   enforce_private_link_service_network_policies  = false
 
-  service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]
+  service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web", "Microsoft.AzureCosmosDB"]
+  
+  delegation {
+    name = "webapp-delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
 
 data "azurerm_subnet" "subnet_mgmt" {
