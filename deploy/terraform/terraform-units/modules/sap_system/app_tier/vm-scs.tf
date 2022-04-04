@@ -9,11 +9,11 @@ resource "azurerm_network_interface" "scs" {
 
   ip_configuration {
     name      = "IPConfig1"
-    subnet_id = local.sub_app_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+    subnet_id = local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
     private_ip_address = var.application.use_DHCP ? (
       null) : (
       try(local.scs_nic_ips[count.index],
-        cidrhost(local.sub_app_exists ?
+        cidrhost(local.application_subnet_exists ?
           data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
           azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
           tonumber(count.index) + local.ip_offsets.scs_vm
