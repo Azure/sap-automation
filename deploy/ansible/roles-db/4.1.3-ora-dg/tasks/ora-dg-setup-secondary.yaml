@@ -55,7 +55,7 @@
   when:                                current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
-  ansible.builtin.debug:     
+  ansible.builtin.debug:
     var:                               lsnrctl_start_secondary_results.stdout_lines
     verbosity:                         2
 
@@ -73,7 +73,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     state:                             touch
     mode:                              0755
-  when:                                
+  when:
     - current_host == ora_secondary
     - lsnrctl_start_secondary_results.rc == 0
 
@@ -96,7 +96,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/secondary_startup.txt
     state:                             touch
     mode:                              0755
-  when:  
+  when:
     - current_host == ora_secondary
     - secondary_startup_results.rc == 0
 
@@ -120,7 +120,7 @@
   #
   #####################################################################
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN (Debug)"
-      ansible.builtin.debug:     
+      ansible.builtin.debug:
         var:                           rman_results.stdout_lines
 
     - name:                            "Oracle Data Guard - Setup Secondary: Shutdown secondary DB"
@@ -145,8 +145,6 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.command:         rm -rf {{ item.directory_to_empty }}/*
-      args:
-        chdir:                         "{{ item.directory_to_empty }} "
       loop:
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2' }
@@ -156,7 +154,7 @@
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
-      when: sap_data_exists.matched > 0
+      when: sap_data_exists.examined > 0
 
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true
@@ -183,7 +181,7 @@
   when: current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN (Debug)"
-  ansible.builtin.debug:     
+  ansible.builtin.debug:
     var:                               rman_results.stdout_lines
     verbosity:                         2
 
@@ -203,8 +201,8 @@
     mode:                              0755
     owner:                             oracle
     group:                             oinstall
-  when:                                rman_results.rc == 0  
-  
+  when:                                rman_results.rc == 0
+
 - name:                                "Oracle Data Guard - Setup Secondary: Create restore_completed.txt"
   become:                              true
   become_user:                         "root"
@@ -229,7 +227,7 @@
   when:                                current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
-  ansible.builtin.debug:     
+  ansible.builtin.debug:
     var:                               secondary_startup_results.stdout_lines
     verbosity:                         2
 
@@ -247,7 +245,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
     state:                             touch
     mode:                              0755
-  when:                                
+  when:
     - current_host == ora_secondary
     - secondary_startup_results.rc == 0
 

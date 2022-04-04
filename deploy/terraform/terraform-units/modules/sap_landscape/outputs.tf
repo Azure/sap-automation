@@ -92,65 +92,65 @@ output "witness_storage_account_key" {
 }
 
 output "admin_subnet_id" {
-  value = local.sub_admin_defined ? (
-    local.sub_admin_existing ? local.sub_admin_arm_id : azurerm_subnet.admin[0].id) : (
+  value = local.admin_subnet_defined ? (
+    local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id) : (
     ""
   )
 }
 
 output "app_subnet_id" {
-  value = local.sub_app_defined ? (
-    local.sub_app_existing ? local.sub_app_arm_id : azurerm_subnet.app[0].id) : (
+  value = local.application_subnet_defined ? (
+    local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
     ""
   )
 }
 
 output "db_subnet_id" {
-  value = local.sub_db_defined ? (
-    local.sub_db_existing ? local.sub_db_arm_id : azurerm_subnet.db[0].id) : (
+  value = local.database_subnet_defined ? (
+    local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
     ""
   )
 }
 
 output "web_subnet_id" {
-  value = local.sub_web_defined ? (
-    local.sub_web_existing ? local.sub_web_arm_id : azurerm_subnet.web[0].id) : (
+  value = local.web_subnet_defined ? (
+    local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
     ""
   )
 }
 
 
 output "anf_subnet_id" {
-  value = var.NFS_provider == "ANF" && local.sub_ANF_defined ? (
-    local.sub_ANF_existing ? local.sub_ANF_arm_id : azurerm_subnet.anf[0].id) : (
+  value = var.NFS_provider == "ANF" && local.ANF_subnet_defined ? (
+    local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id) : (
     ""
   )
 }
 
 output "admin_nsg_id" {
-  value = local.sub_admin_defined ? (
-    local.sub_admin_nsg_exists ? local.sub_admin_nsg_arm_id : azurerm_network_security_group.admin[0].id) : (
+  value = local.admin_subnet_defined ? (
+    local.admin_subnet_nsg_exists ? local.admin_subnet_nsg_arm_id : azurerm_network_security_group.admin[0].id) : (
     ""
   )
 }
 
 output "app_nsg_id" {
-  value = local.sub_app_defined ? (
-    local.sub_app_nsg_exists ? local.sub_app_nsg_arm_id : azurerm_network_security_group.app[0].id) : (
+  value = local.application_subnet_defined ? (
+    local.application_subnet_nsg_exists ? local.application_subnet_nsg_arm_id : azurerm_network_security_group.app[0].id) : (
     ""
   )
 }
 
 output "db_nsg_id" {
-  value = local.sub_db_defined ? (
-    local.sub_db_nsg_exists ? local.sub_db_nsg_arm_id : azurerm_network_security_group.db[0].id) : (
+  value = local.database_subnet_defined ? (
+    local.database_subnet_nsg_exists ? local.database_subnet_nsg_arm_id : azurerm_network_security_group.db[0].id) : (
     ""
   )
 }
 
 output "web_nsg_id" {
-  value = local.sub_web_defined ? (
-    local.sub_web_nsg_exists ? local.sub_web_nsg_arm_id : azurerm_network_security_group.web[0].id) : (
+  value = local.web_subnet_defined ? (
+    local.web_subnet_nsg_exists ? local.web_subnet_nsg_arm_id : azurerm_network_security_group.web[0].id) : (
     ""
   )
 }
@@ -166,8 +166,8 @@ output "ANF_pool_settings" {
     pool_name     = azurerm_netapp_pool.workload_netapp_pool[0].name
     service_level = azurerm_netapp_pool.workload_netapp_pool[0].service_level
     size_in_tb    = azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
-    subnet_id = local.sub_ANF_defined ? (
-      local.sub_ANF_existing ? local.sub_ANF_arm_id : azurerm_subnet.anf[0].id) : (
+    subnet_id = local.ANF_subnet_defined ? (
+      local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id) : (
       ""
     )
     resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
