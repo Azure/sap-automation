@@ -66,10 +66,8 @@ resource "azurerm_network_security_group" "admin" {
 data "azurerm_network_security_group" "admin" {
   provider            = azurerm.main
   count               = local.admin_subnet_nsg_exists && local.enable_admin_subnet ? 1 : 0
-  name                = split("/", local.admin_subnet_nsg_arm_id
-)[8]
-  resource_group_name = split("/", local.admin_subnet_nsg_arm_id
-)[4]
+  name                = split("/", local.admin_subnet_nsg_arm_id)[8]
+  resource_group_name = split("/", local.admin_subnet_nsg_arm_id)[4]
 }
 
 // Associates SAP admin nsg to SAP admin subnet

@@ -1,3 +1,4 @@
+
 exclude_paths:
   - deploy/pipelines
   - deploy/terraform
@@ -18,5 +19,6 @@ skip_list:
   - commas
   - braces
   - hyphens
+  - role-name
   - var-naming
   - no-changed-when
