@@ -209,7 +209,38 @@
       when:
         - "'pas' in supported_tiers"
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Playbook for Restting the DB2 parameters             |
+# |  2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912            |
+# +------------------------------------4--------------------------------------*/
 
+- hosts:                               "{{ sap_sid|upper }}_DB[0]"
+
+  name:                                SAP Generic OS Groups and User Creation
+  serial:                              1
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+    - name:
+      ansible.builin.stat:            
+        path:                           /etc/sap_deployment_automation/lock_escalation_false.txt
+      register:                         db2_lock_escalation
+      when:                             platform == "DB2"
+
+    - name:                            "Set LOCK variable for PAS"                  #2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+      become:                          true
+      become_user:                     db2{{ db_sid| lower }}
+      ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=
+      when:                            
+        - platform == "DB2"      
+        - db2_lock_escalation.stat.exists
+  
+     
 ...
 # /*---------------------------------------------------------------------------8
 # |                                    END                                     |

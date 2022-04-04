@@ -102,6 +102,22 @@
         state:                         touch
         mode:                          0755
 
+    - name:                            "Set LOCK variable for PAS"                  #2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+      become:                          true
+      become_user:                     db2{{ db_sid| lower }}
+      ansible.builtin.command:         db2set DB2_AVOID_LOCK_ESCALATION=FALSE
+      args:
+        creates:                       /etc/sap_deployment_automation/lock_escalation_false.txt
+      register:                        db2_lock_escalation
+    
+    - name:                            "Create lock escalation run flag"
+      ansible.builtin.file:
+        path:                          /etc/sap_deployment_automation/lock_escalation_false.txt
+        state:                         touch
+        mode:                          0755 
+      when:                            db2_lock_escalation.rc == 0
+      
+
   when:
     - not db2_installed.stat.exists
 # *====================================4=======================================8
