@@ -144,5 +144,5 @@ locals {
     object_id       = data.azurerm_client_config.current.object_id
   }
 
-  custom_names = length(var.name_overrride_file) > 0 ? jsondecode(file(format("%s/%s", path.cwd, var.name_overrride_file))) : {}
+  custom_names = length(var.name_overrride_file) > 0 ? jsondecode(file(format("%s/%s", path.cwd, var.name_overrride_file))) : null
 }
