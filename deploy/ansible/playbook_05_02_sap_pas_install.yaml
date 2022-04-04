@@ -236,8 +236,8 @@
       become:                          true
       become_user:                     db2{{ db_sid| lower }}
       ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=
-        args:
-          executable:                    /bin/csh
+      args:
+        executable:                    /bin/csh
       when:                            
         - platform == "DB2"      
         - db2_lock_escalation.stat.exists
