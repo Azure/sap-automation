@@ -227,7 +227,7 @@
 
   tasks:
     - name:
-      ansible.builin.stat:            
+      ansible.builtin.stat:            
         path:                           /etc/sap_deployment_automation/lock_escalation_false.txt
       register:                         db2_lock_escalation
       when:                             platform == "DB2"
