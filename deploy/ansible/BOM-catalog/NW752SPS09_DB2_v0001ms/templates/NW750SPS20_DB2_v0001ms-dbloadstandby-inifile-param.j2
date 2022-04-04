@@ -32,7 +32,6 @@ nwUsers.db6.db2sidUid                                                = {{ db2sid
 nwUsers.db6.sapsidPassword                                           = {{ main_password }}
 nwUsers.db6.sapsidUid                                                = {{ db2sapsid_uid }}
 
-
 # Passwords for sap and db2 users
 
 nwUsers.db6.db2sidPassword                                          = {{ main_paasword }}
@@ -61,6 +60,9 @@ db6.useExtraSapdataSaptmpDirLayout                                  = false
 storageBasedCopy.db6.CommunicationPortNumber                        = 59120
 storageBasedCopy.db6.PortRangeEnd                                   = 59170
 storageBasedCopy.db6.PortRangeStart                                 = 59140
+
+# Using System Copy Backup/Restore for preparing the set up of an HADR standby system
+# db6.usingSystemCopyBRforHADR = false
 
 # Import Parameters
 NW_ABAP_Import_Dialog.dbCodepage                                    = 4103

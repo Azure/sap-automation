@@ -1,0 +1,161 @@
+
+---
+####################  Setting DB2 HA parameters on Primary DB  #########################
+- name:                                      "DB2 - Set up HA parameters on Primary DB"
+  block:
+    - name:                                  " DB2 Primary DB - Set Fact for hadr local host and remote host "
+      ansible.builtin.set_fact:
+        db_hadr_local_host:          "{{ primary_instance_name }}"
+        db_hadr_remote_host:       "{{ secondary_instance_name }}"
+
+    - name:                                       "DB2 Primary DB- Switch user to db2<db_sid>"
+      ansible.builtin.shell:                  whoami
+      register:                                      whoami_result
+
+    - name:                                        "DB2 Primary DB - Task to capture result of whomai"
+      debug:
+        msg:                                          "Result: {{ whoami_result.stdout }}"
+
+    - name:                                            "DB2 Primary DB - Start the Primary DB"
+      ansible.builtin.shell:                       db2start 
+      args:
+        executable:                                   /bin/csh
+      environment:
+        PATH:                                           "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+
+## SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
+## HADR timeout value (HADR_TIMEOUT) = 60
+## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
+
+    - name:                                      "DB2 Primary DB - Set HA parameters "
+        - block:
+            - name:                               "DB2 Primary DB - Set HA parameters - SLES"
+              ansible.builtin.shell: |
+                db2 update db cfg for {{ db_sid }} using HADR_LOCAL_HOST {{ db_hadr_local_host }}
+                db2 update db cfg for {{ db_sid }} using HADR_LOCAL_SVC {{ db_sid }}_HADR_1
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }}
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid }}_HADR_2
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid }}
+                db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 60
+                db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC
+                db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000
+                db2 update db cfg for {{ db_sid }} using HADR_PEER_WINDOW 900
+                db2 update db cfg for {{ db_sid }} using indexrec RESTART logindexbuild ON
+              args:
+                executable: /bin/csh
+              environment:
+                PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        when:                    ansible_os_family==SLES
+
+##RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
+## HADR timeout value (HADR_TIMEOUT) = 45
+## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
+   
+        - block: 
+            - name:                               "DB2 Primary DB - Set HA parameters - RHEL"
+              ansible.builtin.shell: |
+                db2 update db cfg for {{ db_sid }} using HADR_LOCAL_HOST {{ db_hadr_local_host }}
+                db2 update db cfg for {{ db_sid }} using HADR_LOCAL_SVC {{ db_sid }}_HADR_1
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }}
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid }}_HADR_2
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid }}
+                db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 60
+                db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC
+                db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000
+                db2 update db cfg for {{ db_sid }} using HADR_PEER_WINDOW 900
+                db2 update db cfg for {{ db_sid }} using indexrec RESTART logindexbuild ON
+              args:
+                executable: /bin/csh
+              environment:
+                PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        when:                    ansible_os_family==RedHat
+
+  when:                           ansible_hostname == primary_instance_name
+  become:                       true
+  become_user:               db2{{ db_sid | lower }}
+
+#################### End of Section for Primary DB   ######################
+
+###################  Section Start for Secondary DB               ###############################
+###################  Setup DB2 HA parameters on Secondary ###############################
+
+- name:                                      "DB2 - Set up HA parameters on Secondary DB"
+  block:
+    - name:                                  " DB2 Secondary DB - Set Fact for hadr local host and remote host "
+      ansible.builtin.set_fact:
+        db_hadr_local_host:          "{{ secondary_instance_name }}"
+        db_hadr_remote_host:       "{{ primary_instance_name }}"
+
+    - name:                                       "DB2 Secondary DB- Switch user to db2<db_sid>"
+      ansible.builtin.shell:                  whoami
+      register:                                      whoami_result
+
+    - name:                                        "DB2 Secondary DB - Task to capture result of whomai"
+      debug:
+        msg:                                          "Result: {{ whoami_result.stdout }}"
+
+    - name:                                            "DB2 Secondary DB - Start the Primary DB"
+      ansible.builtin.shell:                       db2start 
+      args:
+        executable:                                   /bin/csh
+      environment:
+        PATH:                                           "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+
+## SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
+## HADR timeout value (HADR_TIMEOUT) = 60
+## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
+
+    - name:                                      "DB2 Secondary DB - Set HA parameters "
+        - block:
+            - name:                               "DB2 Secondary DB - Set HA parameters - SLES"
+              ansible.builtin.shell: |
+                db2 update db cfg for {{ db_sid }} using HADR_LOCAL_HOST {{ db_hadr_local_host }}
+                db2 update db cfg for {{ db_sid }} using HADR_LOCAL_SVC {{ db_sid }}_HADR_1
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }}
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_SVC {{ db_sid }}_HADR_2
+                db2 update db cfg for {{ db_sid }} using HADR_REMOTE_INST db2{{ db_sid }}
+                db2 update db cfg for {{ db_sid }} using HADR_TIMEOUT 60
+                db2 update db cfg for {{ db_sid }} using HADR_SYNCMODE NEARSYNC
+                db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000
+                db2 update db cfg for {{ db_sid }} using HADR_PEER_WINDOW 900
+                db2 update db cfg for {{ db_sid }} using indexrec RESTART logindexbuild ON
+              args:
+                executable: /bin/csh
+              environment:
+                PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        when:                    ansible_os_family==SLES
+
+##RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
+## HADR timeout value (HADR_TIMEOUT) = 45
+## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
+   
+        - block: 
+            - name:                               "DB2 Secondary DB - Set HA parameters - RHEL"
+              ansible.builtin.shell: |
+                db2 update db cfg for {{ db_sid}} using HADR_LOCAL_HOST {{ db_hadr_local_host }}
+                db2 update db cfg for {{ db_sid}} using HADR_LOCAL_SVC {{ db_sid}}_HADR_2
+                db2 update db cfg for {{ db_sid}} using HADR_REMOTE_HOST {{ db_hadr_remote_host }}
+                db2 update db cfg for {{ db_sid}} using HADR_REMOTE_SVC {{ db_sid}}_HADR_1
+                db2 update db cfg for {{ db_sid}} using HADR_REMOTE_INST db2{{ db_sid}}
+                db2 update db cfg for {{ db_sid}} using HADR_TIMEOUT 45
+                db2 update db cfg for {{ db_sid}} using HADR_SYNCMODE NEARSYNC
+                db2 update db cfg for {{ db_sid}} using HADR_SPOOL_LIMIT 1000
+                db2 update db cfg for {{ db_sid}} using HADR_PEER_WINDOW 240
+                db2 update db cfg for {{ db_sid}} using indexrec RESTART logindexbuild ON
+              args:
+                executable: /bin/csh
+              environment:
+                PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+          when:                    ansible_os_family==RedHat
+
+  when:                           ansible_hostname == secondary_instance_name
+  become:                       true
+  become_user:               db2{{ db_sid | lower }}
+
+#################### End of Section for Secondary DB   ######################
+
+

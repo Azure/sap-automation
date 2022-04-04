@@ -8,8 +8,10 @@ defaults:
 
 product_ids:
   dbl:                                 NW_ABAP_DB:NW750.DB6.ABAP
+  dblha:                             NW_ABAP_DB:NW750.DB6.ABAPHA
+  dbsby:                            NW_ABAP_DB:NW750.DB6.CP
   scs:                                 NW_ABAP_ASCS:NW752.HDB.ABAP
-  scs_ha:                              NW_ABAP_ASCS:NW752.HDB.ABAPHA
+  scs_ha:                           NW_ABAP_ASCS:NW752.HDB.ABAPHA
   pas:                                 NW_ABAP_CI:NW752.HDB.ABAP
   pas_ha:                              NW_ABAP_CI:NW752.HDB.ABAPHA
   app:                                 NW_DI:NW752.HDB.PD
