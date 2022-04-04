@@ -242,110 +242,163 @@ locals {
   // If subnet information is specified in the parameter file use it
   // As either of the arm_id or the prefix need to be specified to create a subnet the lack of both indicate that the subnet is to be created in the SDU
 
+  ##############################################################################################
+  #
+  #  Admin subnet - Check if locally provided 
+  #
+  ##############################################################################################
 
-  sub_admin_defined  = (length(try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_admin.prefix, ""))) > 0
-  sub_admin_arm_id   = local.sub_admin_defined ? try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "") : ""
-  sub_admin_existing = length(local.sub_admin_arm_id) > 0
-  sub_admin_name = local.sub_admin_existing ? (
-    try(split("/", local.sub_admin_arm_id)[10], "")) : (
+  admin_subnet_defined  = (length(try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_admin.prefix, ""))) > 0
+  admin_subnet_arm_id   = local.admin_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "") : ""
+  admin_subnet_existing = length(local.admin_subnet_arm_id) > 0
+  admin_subnet_name = local.admin_subnet_existing ? (
+    try(split("/", local.admin_subnet_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_admin.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_admin.name) : (
       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet)
     )
   )
-  sub_admin_prefix = local.sub_admin_defined ? try(var.infrastructure.vnets.sap.subnet_admin.prefix, "") : ""
+  admin_subnet_prefix = local.admin_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_admin.prefix, "") : ""
 
-  sub_db_defined  = (length(try(var.infrastructure.vnets.sap.subnet_db.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_db.prefix, ""))) > 0
-  sub_db_arm_id   = local.sub_db_defined ? try(var.infrastructure.vnets.sap.subnet_db.arm_id, "") : ""
-  sub_db_existing = length(local.sub_db_arm_id) > 0
-  sub_db_name = local.sub_db_existing ? (
-    try(split("/", local.sub_db_arm_id)[10], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_db.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_db.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet)
-    )
-  )
-  sub_db_prefix = local.sub_db_defined ? try(var.infrastructure.vnets.sap.subnet_db.prefix, "") : ""
+  ##############################################################################################
+  #
+  #  Admin subnet NSG - Check if locally provided 
+  #
+  ##############################################################################################
 
-  sub_app_defined  = (length(try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_app.prefix, ""))) > 0
-  sub_app_arm_id   = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.arm_id, "") : ""
-  sub_app_existing = length(local.sub_app_arm_id) > 0
-  sub_app_name = local.sub_app_existing ? (
-    try(split("/", local.sub_app_arm_id)[10], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_app.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_app.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
-    )
-
-  )
-  sub_app_prefix = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
-
-  sub_web_defined  = (length(try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_web.prefix, ""))) > 0
-  sub_web_arm_id   = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.arm_id, "") : ""
-  sub_web_existing = length(local.sub_web_arm_id) > 0
-  sub_web_name = local.sub_web_existing ? (
-    try(split("/", local.sub_web_arm_id)[10], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_web.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_web.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
-    )
-  )
-  sub_web_prefix = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
-
-  sub_ANF_defined  = (length(try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_anf.prefix, ""))) > 0
-  sub_ANF_arm_id   = local.sub_ANF_defined ? try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "") : ""
-  sub_ANF_existing = length(local.sub_ANF_arm_id) > 0
-  sub_ANF_name = local.sub_ANF_existing ? (
-    try(split("/", local.sub_ANF_arm_id)[10], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_anf.name, "")) > 0 ? (
-      var.infrastructure.vnets.sap.subnet_anf.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.anf_subnet)
-    )
-  )
-  sub_ANF_prefix = local.sub_ANF_defined ? try(var.infrastructure.vnets.sap.subnet_anf.prefix, "") : ""
-
-
-  //NSGs
-
-  sub_admin_nsg_arm_id = local.sub_admin_defined ? try(var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id, "") : ""
-  sub_admin_nsg_exists = length(local.sub_admin_nsg_arm_id) > 0
-  sub_admin_nsg_name = local.sub_admin_nsg_exists ? (
-    try(split("/", local.sub_admin_nsg_arm_id)[8], "")) : (
+  admin_subnet_nsg_arm_id = local.admin_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id, "") : ""
+  admin_subnet_nsg_exists = length(local.admin_subnet_nsg_arm_id) > 0
+  admin_subnet_nsg_name = local.admin_subnet_nsg_exists ? (
+    try(split("/", local.admin_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_admin.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg)
     )
   )
 
-  sub_db_nsg_arm_id = local.sub_db_defined ? try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, "") : ""
-  sub_db_nsg_exists = length(local.sub_db_nsg_arm_id) > 0
-  sub_db_nsg_name = local.sub_db_nsg_exists ? (
-    try(split("/", local.sub_db_nsg_arm_id)[8], "")) : (
+  ##############################################################################################
+  #
+  #  Database subnet - Check if locally provided 
+  #
+  ##############################################################################################
+
+  database_subnet_defined  = (length(try(var.infrastructure.vnets.sap.subnet_db.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_db.prefix, ""))) > 0
+  database_subnet_arm_id   = local.database_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_db.arm_id, "") : ""
+  database_subnet_existing = length(local.database_subnet_arm_id) > 0
+  database_subnet_name = local.database_subnet_existing ? (
+    try(split("/", local.database_subnet_arm_id)[10], "")) : (
+    length(try(var.infrastructure.vnets.sap.subnet_db.name, "")) > 0 ? (
+      var.infrastructure.vnets.sap.subnet_db.name) : (
+      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet)
+    )
+  )
+  database_subnet_prefix = local.database_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_db.prefix, "") : ""
+
+
+  ##############################################################################################
+  #
+  #  Database subnet NSG - Check if locally provided 
+  #
+  ##############################################################################################
+
+
+  database_subnet_nsg_arm_id = local.database_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, "") : ""
+  database_subnet_nsg_exists = length(local.database_subnet_nsg_arm_id) > 0
+  database_subnet_nsg_name = local.database_subnet_nsg_exists ? (
+    try(split("/", local.database_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_db.nsg.name, "")) > 0 ? (var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg)
     )
   )
 
-  sub_app_nsg_arm_id = local.sub_app_defined ? try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, "") : ""
-  sub_app_nsg_exists = length(local.sub_app_nsg_arm_id) > 0
-  sub_app_nsg_name = local.sub_app_nsg_exists ? (
-    try(split("/", local.sub_app_nsg_arm_id)[8], "")) : (
+  ##############################################################################################
+  #
+  #  Application subnet - Check if locally provided 
+  #
+  ##############################################################################################
+
+  application_subnet_defined  = (length(try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_app.prefix, ""))) > 0
+  application_subnet_arm_id   = local.application_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_app.arm_id, "") : ""
+  application_subnet_existing = length(local.application_subnet_arm_id) > 0
+  application_subnet_name = local.application_subnet_existing ? (
+    try(split("/", local.application_subnet_arm_id)[10], "")) : (
+    length(try(var.infrastructure.vnets.sap.subnet_app.name, "")) > 0 ? (
+      var.infrastructure.vnets.sap.subnet_app.name) : (
+      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
+    )
+
+  )
+  application_subnet_prefix = local.application_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
+
+  ##############################################################################################
+  #
+  #  Application subnet NSG - Check if locally provided 
+  #
+  ##############################################################################################
+
+  application_subnet_nsg_arm_id = local.application_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, "") : ""
+  application_subnet_nsg_exists = length(local.application_subnet_nsg_arm_id) > 0
+  application_subnet_nsg_name = local.application_subnet_nsg_exists ? (
+    try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
     )
   )
 
-  sub_web_nsg_arm_id = local.sub_web_defined ? try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, "") : ""
-  sub_web_nsg_exists = length(local.sub_web_nsg_arm_id) > 0
+  ##############################################################################################
+  #
+  #  Web subnet - Check if locally provided 
+  #
+  ##############################################################################################
 
-  sub_web_nsg_name = local.sub_web_nsg_exists ? (
-    try(split("/", local.sub_web_nsg_arm_id)[8], "")) : (
+  web_subnet_defined  = (length(try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_web.prefix, ""))) > 0
+  web_subnet_arm_id   = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.arm_id, "") : ""
+  web_subnet_existing = length(local.web_subnet_arm_id) > 0
+  web_subnet_name = local.web_subnet_existing ? (
+    try(split("/", local.web_subnet_arm_id)[10], "")) : (
+    length(try(var.infrastructure.vnets.sap.subnet_web.name, "")) > 0 ? (
+      var.infrastructure.vnets.sap.subnet_web.name) : (
+      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
+    )
+  )
+  web_subnet_prefix = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
+
+  ##############################################################################################
+  #
+  #  Web subnet NSG - Check if locally provided 
+  #
+  ##############################################################################################
+
+  web_subnet_nsg_arm_id = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, "") : ""
+  web_subnet_nsg_exists = length(local.web_subnet_nsg_arm_id) > 0
+
+  web_subnet_nsg_name = local.web_subnet_nsg_exists ? (
+    try(split("/", local.web_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_web.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_web.nsg.name) : (
       format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg)
     )
   )
+
+  ##############################################################################################
+  #
+  #  ANF subnet - Check if locally provided 
+  #
+  ##############################################################################################
+
+
+  ANF_subnet_defined  = (length(try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_anf.prefix, ""))) > 0
+  ANF_subnet_arm_id   = local.ANF_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_anf.arm_id, "") : ""
+  ANF_subnet_existing = length(local.ANF_subnet_arm_id) > 0
+  ANF_subnet_name = local.ANF_subnet_existing ? (
+    try(split("/", local.ANF_subnet_arm_id)[10], "")) : (
+    length(try(var.infrastructure.vnets.sap.subnet_anf.name, "")) > 0 ? (
+      var.infrastructure.vnets.sap.subnet_anf.name) : (
+      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.anf_subnet)
+    )
+  )
+  ANF_subnet_prefix = local.ANF_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_anf.prefix, "") : ""
 
   # Store the Deployer KV in workload zone KV
   deployer_kv_user_name = try(var.deployer_tfstate.deployer_kv_user_name, "")
