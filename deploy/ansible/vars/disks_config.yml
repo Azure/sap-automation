@@ -26,7 +26,8 @@ disk_type_to_name_map:
   origlogb:  '{{ node_tier | lower }}_origlogB'
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
-  oraarch:   '{{ node_tier | lower }}_oraarch'
+  oraarch: '{{ node_tier | lower }}_oraarch'
+  #orabackup: '{{ node_tier | lower }}_orabackup'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -182,6 +183,12 @@ logical_volumes:
     size:       '64g'
     fstype:     'xfs'
 
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_orabackup'
+    lv:         'lv_orabackup'
+    size:       '64g'
+    fstype:     'xfs'
 logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'
