@@ -393,59 +393,58 @@
           when:                        platform == 'DB2'
       
       when:
-        - db_high_availability == false
         - platform == 'DB2'
 
 
-# /*----------------------------------------------------------------------------8
-# |                                                                                                        |
-# |                      Playbook for DB2 DB Install   - High Availability   |
-# |                                                                                                         |
-# +------------------------------------4--------------------------------------*/
+# # /*----------------------------------------------------------------------------8
+# # |                                                                                                        |
+# # |                      Playbook for DB2 DB Install   - High Availability   |
+# # |                                                                                                         |
+# # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
-  name:                                "DB Installation - SAP DB2"
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         root
-  gather_facts:                        false
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+# - hosts:                               "{{ sap_sid|upper }}_DB"
+#   name:                                "DB Installation - SAP DB2"
+#   remote_user:                         "{{ orchestration_ansible_user }}"
+#   become:                              true
+#   become_user:                         root
+#   gather_facts:                        false
+#   vars_files:
+#     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
-  tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
-    - name:                            "Install SAP DB2"
-      block:
+#   tasks:
+# # -------------------------------------+---------------------------------------8
+# #
+# # Build the list of tasks to be executed in order here.
+# #
+# # -------------------------------------+---------------------------------------8
+#     - name:                            "Install SAP DB2"
+#       block:
 
-        - name:                        Setting the DB facts
-          ansible.builtin.set_fact:
-            tier:                                      db2                                    # Actions for DB2 Servers
-            primary_instance_name :     "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-            primary_instance_ip_db:      "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
-            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            secondary_instance_ip_db:   "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
-            main_password:                    "{{ hostvars.localhost.sap_password }}"
+#         - name:                        Setting the DB facts
+#           ansible.builtin.set_fact:
+#             tier:                                      db2                                    # Actions for DB2 Servers
+#             primary_instance_name :     "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+#             primary_instance_ip_db:      "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+#             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+#             secondary_instance_ip_db:   "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+#             main_password:                    "{{ hostvars.localhost.sap_password }}"
             
-          tags:
-            - always
+#           tags:
+#             - always
 
-        - name:                        Check for file system mounts
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-          when:                        platform == 'DB2'
+#         - name:                        Check for file system mounts
+#           ansible.builtin.include_role:
+#             name:                      roles-sap-os/2.6-sap-mounts
+#           when:                        platform == 'DB2'
 
-        - name:                        Installing DB2
-          ansible.builtin.include_role:
-            name:                      roles-db/4.2.0-db2-install
-          when:                        platform == 'DB2'
+#         - name:                        Installing DB2
+#           ansible.builtin.include_role:
+#             name:                      roles-db/4.2.0-db2-install
+#           when:                        platform == 'DB2'
       
-      when:
-        - db_high_availability == false
-        - platform == 'DB2'
+#       when:
+#         - db_high_availability == false
+#         - platform == 'DB2'
 
 # add platform in sap-parameters.yaml to execute tasks for DB2, ORACLE, MSSQL, SYBASE
 
