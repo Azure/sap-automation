@@ -13,6 +13,10 @@ resource "azurerm_cosmosdb_account" "cmdb" {
       id = local.subnet_management_id
     }
 
+    virtual_network_rule {
+      id = local.subnet_cmdb_id
+    }
+
     # Allow access from Azure portal
     ip_range_filter = "51.4.229.218,139.217.8.252,52.244.48.71,104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
 

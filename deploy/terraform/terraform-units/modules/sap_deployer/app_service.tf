@@ -52,9 +52,36 @@ resource "azurerm_app_service" "webapp" {
     }
 }
 
+// Create/Import cmdb subnet
+resource "azurerm_subnet" "cmdb" {
+    count                = var.use_webapp && !local.cmdb_subnet_exists ? 1 : 0
+    name                 = local.cmdb_subnet_name
+    resource_group_name  = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
+    virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
+    address_prefixes     = [local.cmdb_subnet_prefix]
+
+    delegation {
+        name = "webapp-delegation"
+
+        service_delegation {
+            name    = "Microsoft.Web/serverFarms"
+            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+        }
+    }
+    
+    service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web", "Microsoft.AzureCosmosDB"]
+}
+
+data "azurerm_subnet" "cmdb" {
+    count                = var.use_webapp && local.cmdb_subnet_exists ? 1 : 0
+    name                 = split("/", local.cmdb_subnet_arm_id)[10]
+    resource_group_name  = split("/", local.cmdb_subnet_arm_id)[4]
+    virtual_network_name = split("/", local.cmdb_subnet_arm_id)[8]
+}
+
 # Set up Vnet integration for webapp and cmdb interaction
 resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
-  count          = var.use_webapp ? (var.configure ? 1 : 0) : 0
-  app_service_id = azurerm_app_service.webapp[0].id
-  subnet_id      = azurerm_subnet.subnet_mgmt[0].id
+    count          = var.use_webapp ? (var.configure ? 1 : 0) : 0
+    app_service_id = azurerm_app_service.webapp[0].id
+    subnet_id      = local.cmdb_subnet_exists ? data.azurerm_subnet.cmdb[0].id : azurerm_subnet.cmdb[0].id
 }

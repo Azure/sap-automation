@@ -251,3 +251,11 @@ variable "webapp_client_secret" {
   type = string
   default = ""
 }
+
+variable "cmdb_subnet_arm_id" {
+  default = ""
+}
+
+variable "cmdb_subnet_address_prefix" {
+  default = ""
+}
