@@ -27,17 +27,17 @@ output "ppg" {
 
 output "admin_subnet" {
   value = local.enable_admin_subnet ? (
-    local.sub_admin_exists ? data.azurerm_subnet.admin[0] : azurerm_subnet.admin[0]) : (
+    local.admin_subnet_exists ? data.azurerm_subnet.admin[0] : azurerm_subnet.admin[0]) : (
     null
   )
 }
 
 output "db_subnet" {
   value = local.enable_db_deployment ? (
-    local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
+    local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]) : (
     null
   )
-  #local.sub_db_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
+  #local.database_subnet_exists ? data.azurerm_subnet.db[0] : azurerm_subnet.db[0]
 }
 
 output "network_location" {
