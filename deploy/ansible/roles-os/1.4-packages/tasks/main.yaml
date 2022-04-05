@@ -12,7 +12,7 @@
 - name:                                "1.4 Packages - Activate public cloud extension"
   ansible.builtin.shell: |
                                        SUSEConnect -p sle-module-public-cloud/12/x86_64
-  when:                                
+  when:
     - ansible_distribution_major_version == "12"
     - tier == 'os'
 
@@ -20,21 +20,21 @@
 - name:                                "1.4 Packages - Activate public cloud extension"
   ansible.builtin.shell: |
                                        SUSEConnect -p sle-module-public-cloud/15.1/x86_64
-  when:                                
+  when:
     - distribution_full_id == "sles_sap15.1"
     - tier == 'os'
 
 - name:                                "1.4 Packages - Activate public cloud extension"
   ansible.builtin.shell: |
                                        SUSEConnect -p sle-module-public-cloud/15.2/x86_64
-  when:                                
+  when:
     - distribution_full_id == "sles_sap15.2"
     - tier == 'os'
 
 - name:                                "1.4 Packages - Activate public cloud extension"
   ansible.builtin.shell: |
                                        SUSEConnect -p sle-module-public-cloud/15.3/x86_64
-  when:                                
+  when:
     - distribution_full_id == "sles_sap15.3"
     - tier == 'os'
 
@@ -69,8 +69,8 @@
 - name:                                "1.4 Packages: - Show packages"
   ansible.builtin.debug:
     msg:
-      - "Packages for {{ distribution_id }} : {{ packages_for_tier }}"                               
-      - "Packages for {{ distribution_full_id }} : {{ packages_for_specific_tier }}"                               
+      - "Packages for {{ distribution_id }} : {{ packages_for_tier }}"
+      - "Packages for {{ distribution_full_id }} : {{ packages_for_specific_tier }}"
     verbosity:                         2
   when:                                packages_for_tier is defined
 

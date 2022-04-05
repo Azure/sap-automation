@@ -3,6 +3,7 @@
 name:    "SAP S4HANA 2020 SPS 3"
 target:  "ABAP PLATFORM 2020"
 version: 1
+platform: HANA
 
 product_ids:
   scs:         NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAP
@@ -19,9 +20,8 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     HANA_2_00_055_v0006ms
-    - name:     SWPM20SP10_latest
-    
+    - name:     HANA_2_00_059_v0001ms
+    - name:     SWPM20SP11_latest
 
   media:
 

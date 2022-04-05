@@ -47,9 +47,9 @@
   register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
-  when:                                
-   - distribution_id in ['suse15', 'redhat8']
-   - not always_upload_jinja_templates
+  when:
+    - distribution_id in ['suse15', 'redhat8']
+    - not always_upload_jinja_templates
 
 - name:                                "BOM2: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
@@ -74,8 +74,8 @@
         #remote_src:                    yes
         mode:                          0644
         force:                         true
-      
-  when:                                
+
+  when:
     - result is succeeded or result is skipped
     - MULTI_SIDS is undefined
 
@@ -145,7 +145,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template on disk" 
+- name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template on disk"
   block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
       ansible.builtin.stat:
@@ -167,7 +167,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template from archive on disk" 
+    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template from archive on disk"
       block:
 
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) ini file in archive"
@@ -186,10 +186,6 @@
       when:                            not microsoft_supplied_bom_template.stat.exists
 
   when:                                result is failed or always_upload_jinja_templates
-
-
-
-# -------------------------------------+---------------------------------------8
 
 ...
 # /*---------------------------------------------------------------------------8

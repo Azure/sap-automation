@@ -31,16 +31,16 @@ data "azurerm_virtual_network" "vnet_sap" {
 // Creates admin subnet of SAP VNET
 resource "azurerm_subnet" "admin" {
   provider             = azurerm.main
-  count                = !local.sub_admin_exists && local.enable_admin_subnet ? 1 : 0
-  name                 = local.sub_admin_name
+  count                = !local.admin_subnet_exists && local.enable_admin_subnet ? 1 : 0
+  name                 = local.admin_subnet_name
   resource_group_name  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name = data.azurerm_virtual_network.vnet_sap.name
-  address_prefixes     = [local.sub_admin_prefix]
+  address_prefixes     = [local.admin_subnet_prefix]
 }
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider       = azurerm.main
-  count          = !local.sub_admin_exists && local.enable_admin_subnet && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0
+  count          = !local.admin_subnet_exists && local.enable_admin_subnet && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0
   subnet_id      = azurerm_subnet.admin[0].id
   route_table_id = var.landscape_tfstate.route_table_id
 }
@@ -49,36 +49,37 @@ resource "azurerm_subnet_route_table_association" "admin" {
 // Imports data of existing SAP admin subnet
 data "azurerm_subnet" "admin" {
   provider             = azurerm.main
-  count                = local.sub_admin_exists && local.enable_admin_subnet ? 1 : 0
-  name                 = split("/", local.sub_admin_arm_id)[10]
-  resource_group_name  = split("/", local.sub_admin_arm_id)[4]
-  virtual_network_name = split("/", local.sub_admin_arm_id)[8]
+  count                = local.admin_subnet_exists && local.enable_admin_subnet ? 1 : 0
+  name                 = split("/", local.admin_subnet_arm_id)[10]
+  resource_group_name  = split("/", local.admin_subnet_arm_id)[4]
+  virtual_network_name = split("/", local.admin_subnet_arm_id)[8]
 }
 
 // Creates db subnet of SAP VNET
 resource "azurerm_subnet" "db" {
   provider             = azurerm.main
-  count                = local.enable_db_deployment ? (local.sub_db_exists ? 0 : 1) : 0
-  name                 = local.sub_db_name
+  count                = local.enable_db_deployment ? (local.database_subnet_exists ? 0 : 1) : 0
+  name                 = local.database_subnet_name
   resource_group_name  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name = data.azurerm_virtual_network.vnet_sap.name
-  address_prefixes     = [local.sub_db_prefix]
-}
-
-resource "azurerm_subnet_route_table_association" "db" {
-  provider       = azurerm.main
-  count          = !local.sub_db_exists && local.enable_db_deployment && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0
-  subnet_id      = azurerm_subnet.db[0].id
-  route_table_id = var.landscape_tfstate.route_table_id
+  address_prefixes     = [local.database_subnet_prefix]
 }
 
 // Imports data of existing db subnet
 data "azurerm_subnet" "db" {
   provider             = azurerm.main
-  count                = local.enable_db_deployment ? (local.sub_db_exists ? 1 : 0) : 0
-  name                 = split("/", local.sub_db_arm_id)[10]
-  resource_group_name  = split("/", local.sub_db_arm_id)[4]
-  virtual_network_name = split("/", local.sub_db_arm_id)[8]
+  count                = local.enable_db_deployment ? (local.database_subnet_exists ? 1 : 0) : 0
+  name                 = split("/", local.database_subnet_arm_id)[10]
+  resource_group_name  = split("/", local.database_subnet_arm_id)[4]
+  virtual_network_name = split("/", local.database_subnet_arm_id)[8]
+}
+
+
+resource "azurerm_subnet_route_table_association" "db" {
+  provider       = azurerm.main
+  count          = !local.database_subnet_exists && local.enable_db_deployment && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0
+  subnet_id      = azurerm_subnet.db[0].id
+  route_table_id = var.landscape_tfstate.route_table_id
 }
 
 // Scale out on ANF
