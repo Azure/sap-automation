@@ -171,9 +171,9 @@
 - name:                                "Oracle Data Guard - Preparation: Debug: installer prechecks output"
   ansible.builtin.debug:
     msg:
-      primary host is {{ ora_primary }}
-      secondary host is {{ ora_secondary }}
-      host is {{ current_host }}
+      - "primary host is {{ ora_primary }}"
+      - "secondary host is {{ ora_secondary }}"
+      - "host is {{ current_host }}"
     verbosity:                         2
   
 #Create Listener for primary node.
