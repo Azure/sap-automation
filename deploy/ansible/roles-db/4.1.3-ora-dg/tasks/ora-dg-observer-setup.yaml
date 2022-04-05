@@ -83,7 +83,7 @@
 
 - name:                                "Oracle Data Guard - Observer: installer output"
   ansible.builtin.debug:
-    var:                               "{{ orainstall_results.stdout_lines }}"
+    var:                               orainstall_results.stdout_lines
     verbosity:                         2
 
 - name:                                "Oracle Data Guard - Observer: installer output"
