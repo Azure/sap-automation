@@ -141,7 +141,7 @@
             name:                      roles-sap/5.3.1-app-multi-sid-install
           when:                        MULTI_SIDS is defined
 
-        - name:                        "APP Installation Playbook: - Create app-install-done flag"
+        - name:                        "APP Playbook - Install: - Create app-install-done flag"
           delegate_to:                 localhost
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/app/app-install-done{{ ansible_hostname }}"

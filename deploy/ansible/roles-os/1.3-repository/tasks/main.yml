@@ -224,7 +224,9 @@
   loop:                                "{{ repos_for_tier }}"
   register:                            zypresult
   ignore_errors:                       true
-  when:     ansible_os_family|upper != 'SUSE'
+  when:     
+    - ansible_os_family|upper != 'SUSE'
+    - item.node_tier == node.tier
 
 - name:                                "1.3 Repos: Add the repositories result"
   ansible.builtin.debug:
