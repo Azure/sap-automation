@@ -212,19 +212,15 @@ variable "use_private_endpoint" {
   default = false
 }
 
-variable "use_webapp" {
-  default = false
-}
-
 variable "tf_version" {
   default = "1.1.7"
 }
+
 
 variable "bastion_deployment" {
   description = "Boolean flag indicating if an Azure bastion should be deployed"
   default     = false
 }
-
 
 variable "bastion_subnet_arm_id" {
   default = ""
@@ -239,6 +235,14 @@ variable "deployer_diagnostics_account_arm_id" {
   default = ""
 }
 
+/*
+This block describes the variables for use with the web app and cosmos db
+*/
+
+variable "use_webapp" {
+  default = false
+}
+
 variable "app_registration_app_id" {
   default = ""
 }
@@ -250,5 +254,13 @@ variable "cmdb_connection_string" {
 
 variable "webapp_client_secret" {
   type = string
+  default = ""
+}
+
+variable "cmdb_subnet_arm_id" {
+  default = ""
+}
+
+variable "cmdb_subnet_address_prefix" {
   default = ""
 }

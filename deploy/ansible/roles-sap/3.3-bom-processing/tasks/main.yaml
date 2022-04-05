@@ -79,7 +79,7 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                                "3.3 BoM Processing: - Process main BOM"
-  include_tasks:                       "bom_processor.yaml"
+  ansible.builtin.include_tasks:       "bom_processor.yaml"
   vars:
     bom_name:                          "{{ bom_base_name }}"
 

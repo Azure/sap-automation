@@ -105,6 +105,7 @@ locals {
   deployer_msi_principal_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_uai.principal_id, local.deployer_tfstate.deployer_uai) : ""
 
   subnet_management_id = local.deployer_defined ? local.deployer_tfstate.subnet_mgmt_id : ""
+  subnet_cmdb_id       = local.deployer_defined ? local.deployer_tfstate.subnet_cmdb_id : ""
 
   deployer_public_ip_address = local.deployer_defined ? local.deployer_tfstate.deployer_public_ip_address : ""
 
