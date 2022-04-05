@@ -26,7 +26,7 @@ output "subnet_mgmt_id" {
 
 // Deatils of cmdb subnet that is deployed/imported
 output "subnet_cmdb_id" {
-  value = local.cmdb_subnet_exists ? data.azurerm_subnet.cmdb[0].id : azurerm_subnet.cmdb[0].id
+  value = var.use_webapp ? (local.cmdb_subnet_exists ? data.azurerm_subnet.cmdb[0].id : azurerm_subnet.cmdb[0].id) : ""
 }
 
 // Details of the management vnet NSG that is deployed/imported
