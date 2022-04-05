@@ -1,8 +1,9 @@
 ---
 name:    'Oracle19_v0002ms'
 target:  'Oracle 19'
-version: 2
 platform: "ORACLE"
+version: 2
+
 
 materials:
 

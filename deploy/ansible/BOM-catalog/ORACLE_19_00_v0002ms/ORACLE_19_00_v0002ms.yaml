@@ -1,7 +1,8 @@
 name:    'ORACLE_19_00_v0002ms'
 target:  'Oracle 19c'
-version: 1
 platform: "ORACLE"
+version: 1
+
 
 product_ids:
   scs:    NW_ABAP_ASCS:NW750.ORA.ABAP
