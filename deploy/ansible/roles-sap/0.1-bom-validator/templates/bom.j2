@@ -1,6 +1,7 @@
-name :    {{ root_bom.name }}
-target:   {{ root_bom.target }}
-version:  {{ root_bom.version }}
+name :     {{ root_bom.name }}
+target:    {{ root_bom.target }}
+version:   {{ root_bom.version }}
+platform:  {% if root_bom.product_ids is defined %}{{ root_bom.platform }}{% endif %}
 
 product_ids:
 {% if root_bom.product_ids is defined %}

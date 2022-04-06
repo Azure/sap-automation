@@ -147,5 +147,8 @@
       - bom.platform is defined                    # Has the variable been defined
       - bom.platform | upper == platform | upper
     fail_msg:                          "The BoM {{ bom_name }} is not for platform {{ platform }}"
+  when:                                
+    - operation is defined
+    - operation != 'SoftwareAcquisition'
 
 ...
