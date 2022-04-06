@@ -2,6 +2,7 @@
 name:    'ORACLE_19_00_ORA_MSID_v0001ms'
 target:  'Oracle 19c'
 version: 1
+platform: "ORACLE"
 
 product_ids:
   scs:    NW_ABAP_ASCS:NW750.ORA.ABAP
@@ -12,7 +13,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     Oracle19_v0002ms
+    - name:     Oracle19_v0003ms
     - name:     SWPM10SP34_latest
 
   media:
