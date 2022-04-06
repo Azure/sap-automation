@@ -132,6 +132,7 @@ module "anydb_node" {
   ppg                                          = module.common_infrastructure.ppg
   sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
   naming                                       = length(var.name_overrride_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   db_subnet                                    = module.common_infrastructure.db_subnet
   anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
@@ -178,7 +179,6 @@ module "app_tier" {
   ppg                                          = module.common_infrastructure.ppg
   sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
   naming                                       = length(var.name_overrride_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   custom_disk_sizes_filename                   = var.app_disk_sizes_filename
   sid_password                                 = module.common_infrastructure.sid_password
