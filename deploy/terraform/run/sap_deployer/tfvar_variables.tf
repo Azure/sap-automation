@@ -230,11 +230,6 @@ variable "bastion_subnet_address_prefix" {
   default = ""
 }
 
-variable "bastion_deployment" {
-  type    = bool
-  default = false
-}
-
 variable "name_overrride_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
   default = ""
