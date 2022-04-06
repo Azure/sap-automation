@@ -42,7 +42,7 @@ locals {
     try(split("/", local.rg_arm_id)[4], "")) : (
     length(local.var_infra.resource_group.name) > 0 ? (
       local.var_infra.resource_group.name) : (
-      format("%s%s", local.prefix, local.resource_suffixes.library_rg)
+      format("%s%s%s", local.resource_prefixes.library_rg, local.prefix, local.resource_suffixes.library_rg)
     )
   )
 
@@ -120,7 +120,6 @@ locals {
   rg_library_location           = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
   storagecontainer_sapbits_name = local.sa_sapbits_blob_container_enable ? local.sa_sapbits_blob_container_name : null
   fileshare_sapbits_name        = local.sa_sapbits_file_share_enable ? local.sa_sapbits_file_share_name : null
-
 
   deployer_kv_user_arm_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_kv_user_arm_id, "") : ""
 
