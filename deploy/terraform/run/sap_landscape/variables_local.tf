@@ -108,4 +108,7 @@ locals {
     size_in_tb    = var.ANF_pool_size
 
   }
+
+  custom_names = length(var.name_overrride_file) > 0 ? jsondecode(file(format("%s/%s", path.cwd, var.name_overrride_file))) : null
+
 }

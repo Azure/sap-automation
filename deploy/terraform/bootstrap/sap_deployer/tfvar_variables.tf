@@ -230,3 +230,7 @@ variable "deployer_diagnostics_account_arm_id" {
   default = ""
 }
 
+variable "name_overrride_file" {
+  description = "If provided, contains a json formatted file defining the name overrides"
+  default = ""
+}

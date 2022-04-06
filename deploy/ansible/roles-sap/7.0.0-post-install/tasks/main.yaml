@@ -108,8 +108,8 @@
 
 
 - name:                                "Post Installation: ORACLE"
-  become:                               true
-  become_user:                          "root"
+  become:                              true
+  become_user:                         "root"
   block:
 
     - name:                            "Post Installation: Find the log files (Oracle)"
