@@ -244,7 +244,12 @@
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   "nfs-server"
-      when:                            "'redhat8' == distribution_id" or "'oraclelinux8' == distribution_id"
+      when:                            "'redhat8' == distribution_id"
+
+    - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
+      ansible.builtin.set_fact:
+        nfs_service:                   "nfs-server"
+      when:                            "'oraclelinux8' == distribution_id"
 
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
