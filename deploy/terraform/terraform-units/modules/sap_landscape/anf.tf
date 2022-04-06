@@ -1,12 +1,11 @@
 resource "azurerm_netapp_account" "workload_netapp_account" {
   provider = azurerm.main
   count    = var.ANF_settings.use && length(var.ANF_settings.arm_id) == 0 ? 1 : 0
-  name     = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.netapp_account)
+  name     = format("%s%s%s%s", local.resource_prefixes.netapp_account, local.prefix, var.naming.separator, local.resource_suffixes.netapp_account)
 
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
 }
-
 
 data "azurerm_netapp_account" "workload_netapp_account" {
   provider            = azurerm.main
@@ -18,7 +17,7 @@ data "azurerm_netapp_account" "workload_netapp_account" {
 resource "azurerm_netapp_pool" "workload_netapp_pool" {
   provider = azurerm.main
   count    = var.ANF_settings.use ? 1 : 0
-  name     = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.netapp_pool)
+  name     = format("%s%s%s%s", local.resource_prefixes.netapp_pool, local.prefix, var.naming.separator, local.resource_suffixes.netapp_pool)
   account_name = var.ANF_settings.use && length(var.ANF_settings.arm_id) > 0 ? (
     data.azurerm_netapp_account.workload_netapp_account[0].name) : (
     azurerm_netapp_account.workload_netapp_account[0].name
@@ -39,7 +38,7 @@ resource "azurerm_netapp_pool" "workload_netapp_pool" {
 resource "azurerm_netapp_volume" "transport" {
   provider = azurerm.main
   count    = var.ANF_settings.use ? 1 : 0
-  name     = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.transport_volume)
+  name     = format("%s%s%s%s", local.resource_prefixes.transport_volume, local.prefix, var.naming.separator, local.resource_suffixes.transport_volume)
 
   resource_group_name = length(var.ANF_settings.arm_id) > 0 ? (
     data.azurerm_netapp_account.workload_netapp_account[0].resource_group_name) : (
@@ -54,7 +53,7 @@ resource "azurerm_netapp_volume" "transport" {
     azurerm_netapp_account.workload_netapp_account[0].name
   )
   pool_name     = azurerm_netapp_pool.workload_netapp_pool[0].name
-  volume_path   = format("%s%s", var.infrastructure.environment, local.resource_suffixes.transport_volume)
+  volume_path   = format("%s%s%s", local.resource_prefixes.transport_volume, var.infrastructure.environment, local.resource_suffixes.transport_volume)
   service_level = var.ANF_settings.service_level
   subnet_id =  local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
 

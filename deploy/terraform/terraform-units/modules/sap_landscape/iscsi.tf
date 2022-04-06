@@ -52,7 +52,7 @@ data "azurerm_network_security_group" "iscsi" {
 resource "azurerm_network_interface" "iscsi" {
   provider            = azurerm.main
   count               = local.iscsi_count
-  name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.nic)
+  name                = format("%s%s%s%s%s", local.resource_prefixes.nic, local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.nic)
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
 
@@ -76,7 +76,7 @@ resource "azurerm_network_interface_security_group_association" "iscsi" {
 resource "azurerm_linux_virtual_machine" "iscsi" {
   provider                        = azurerm.main
   count                           = local.iscsi_count
-  name                            = format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.vm)
+  name                            = format("%s%s%s%s%s", local.resource_prefixes.vm, local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.vm)
   computer_name                   = local.virtualmachine_names[count.index]
   location                        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   resource_group_name             = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
@@ -89,7 +89,7 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   //custom_data = try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
 
   os_disk {
-    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+    name                 = format("%s%s%s%s%s", local.resource_prefixes.osdisk, local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }

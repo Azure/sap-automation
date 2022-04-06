@@ -111,7 +111,7 @@ locals {
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     length(try(var.infrastructure.resource_group.name, "")) > 0 ? (
       var.infrastructure.resource_group.name) : (
-      format("%s%s", local.prefix, local.resource_suffixes.vnet_rg)
+      format("%s%s%s", local.resource_prefixes.vnet_rg, local.prefix, local.resource_suffixes.vnet_rg)
     )
   )
 
@@ -126,7 +126,7 @@ locals {
     {
       "publisher" = try(var.infrastructure.iscsi.os.publisher, "SUSE")
       "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-12-sp5")
-      "sku"       = try(var.infrastructure.iscsi.os.sku, "gen1")
+      "sku"       = try(var.infrastructure.iscsi.os.sku, "gen2")
       "version"   = try(var.infrastructure.iscsi.os.version, "latest")
   })
 
@@ -157,8 +157,14 @@ locals {
   // SAP vnet
   vnet_sap_arm_id = try(var.infrastructure.vnets.sap.arm_id, "")
   vnet_sap_exists = length(local.vnet_sap_arm_id) > 0
-  vnet_sap_name   = local.vnet_sap_exists ? try(split("/", local.vnet_sap_arm_id)[8], "") : coalesce(var.infrastructure.vnets.sap.name, format("%s%s", local.prefix, local.resource_suffixes.vnet))
-  vnet_sap_addr   = local.vnet_sap_exists ? "" : try(var.infrastructure.vnets.sap.address_space, "")
+  vnet_sap_name = local.vnet_sap_exists ? (
+    try(split("/", local.vnet_sap_arm_id)[8], "")) : (
+    coalesce(
+      var.infrastructure.vnets.sap.name,
+      format("%s%s%s", local.resource_prefixes.vnet, local.prefix, local.resource_suffixes.vnet)
+    )
+  )
+  vnet_sap_addr = local.vnet_sap_exists ? "" : try(var.infrastructure.vnets.sap.address_space, "")
 
   // By default, Ansible ssh key for SID uses generated public key. Provide sshkey.path_to_public_key and path_to_private_key overides it
 
@@ -171,7 +177,10 @@ locals {
   sub_iscsi_exists = length(local.sub_iscsi_arm_id) > 0
   sub_iscsi_name = local.sub_iscsi_exists ? (
     try(split("/", local.sub_iscsi_arm_id)[10], "")) : (
-    length(try(var.infrastructure.vnets.sap.subnet_iscsi.name, "")) > 0 ? var.infrastructure.vnets.sap.subnet_iscsi.name : format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.iscsi_subnet)
+    length(try(var.infrastructure.vnets.sap.subnet_iscsi.name, "")) > 0 ? (
+      var.infrastructure.vnets.sap.subnet_iscsi.name) : (
+      format("%s%s%s%s", local.resource_prefixes.iscsi_subnet, local.prefix, var.naming.separator, local.resource_suffixes.iscsi_subnet)
+    )
   )
   sub_iscsi_prefix = local.sub_iscsi_exists ? "" : try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, "")
 
@@ -181,14 +190,14 @@ locals {
   sub_iscsi_nsg_exists = length(local.sub_iscsi_nsg_arm_id) > 0
   sub_iscsi_nsg_name = local.sub_iscsi_nsg_exists ? (
     try(split("/", local.sub_iscsi_nsg_arm_id)[8], "")) : (
-    try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.name, format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.iscsi_subnet_nsg))
+    try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.name, format("%s%s%s%s", local.resource_prefixes.iscsi_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.iscsi_subnet_nsg))
   )
 
   // Current service principal
   service_principal = try(var.service_principal, {})
 
   full_iscsiserver_names = flatten([for vm in local.virtualmachine_names :
-    format("%s%s%s%s", local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]
+    format("%s%s%s%s%s", local.resource_prefixes.vm, local.prefix, var.naming.separator, vm, local.resource_suffixes.vm)]
   )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
@@ -255,7 +264,7 @@ locals {
     try(split("/", local.admin_subnet_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_admin.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_admin.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet)
+      format("%s%s%s%s", local.resource_prefixes.admin_subnet, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet)
     )
   )
   admin_subnet_prefix = local.admin_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_admin.prefix, "") : ""
@@ -272,7 +281,7 @@ locals {
     try(split("/", local.admin_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_admin.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg)
+      format("%s%s%s%s", local.resource_prefixes.admin_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg)
     )
   )
 
@@ -289,7 +298,7 @@ locals {
     try(split("/", local.database_subnet_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_db.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_db.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet)
+      format("%s%s%s%s", local.resource_prefixes.db_subnet, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet)
     )
   )
   database_subnet_prefix = local.database_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_db.prefix, "") : ""
@@ -307,7 +316,7 @@ locals {
   database_subnet_nsg_name = local.database_subnet_nsg_exists ? (
     try(split("/", local.database_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_db.nsg.name, "")) > 0 ? (var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg)
+      format("%s%s%s%s", local.resource_prefixes.db_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg)
     )
   )
 
@@ -324,7 +333,7 @@ locals {
     try(split("/", local.application_subnet_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_app.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_app.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
+      format("%s%s%s%s", local.resource_prefixes.app_subnet, local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
     )
 
   )
@@ -342,7 +351,7 @@ locals {
     try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
+      format("%s%s%s%s", local.resource_prefixes.app_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
     )
   )
 
@@ -359,7 +368,7 @@ locals {
     try(split("/", local.web_subnet_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_web.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_web.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
+      format("%s%s%s%s", local.resource_prefixes.web_subnet, local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
     )
   )
   web_subnet_prefix = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
@@ -377,7 +386,7 @@ locals {
     try(split("/", local.web_subnet_nsg_arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_web.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_web.nsg.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg)
+      format("%s%s%s%s", local.resource_prefixes.web_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg)
     )
   )
 
@@ -395,7 +404,7 @@ locals {
     try(split("/", local.ANF_subnet_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_anf.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_anf.name) : (
-      format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.anf_subnet)
+      format("%s%s%s%s", local.resource_prefixes.anf_subnet, local.prefix, var.naming.separator, local.resource_suffixes.anf_subnet)
     )
   )
   ANF_subnet_prefix = local.ANF_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_anf.prefix, "") : ""
