@@ -295,3 +295,8 @@ variable "Agent_IP" {
   type    = string
   default = ""
 }
+
+variable "name_overrride_file" {
+  description = "If provided, contains a json formatted file defining the name overrides"
+  default = ""
+}
