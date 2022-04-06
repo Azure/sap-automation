@@ -92,7 +92,8 @@
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       when:                                
-        - platform != "ORACLE"  or platform != "DB2"
+        - platform != "ORACLE"
+        - platform != "DB2"
         
       tags:
         - 2.5-sap-users
