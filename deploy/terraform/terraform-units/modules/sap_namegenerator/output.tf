@@ -71,6 +71,7 @@ output "naming" {
     db_avset_names  = local.db_avset_names
 
     resource_suffixes = var.resource_suffixes
+    resource_prefixes = var.resource_prefixes
 
     separator = length(var.custom_prefix) > 0 ? "" : local.separator
   }
