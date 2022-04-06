@@ -91,11 +91,22 @@
         - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
           ansible.builtin.include_role:
             name:                      roles-os/1.5-disk-setup
+          when:       ( node_tier != "oracle-multi-sid" or node_tier != "oracle-asm" )
       tags:
         - 1.5-disk-setup
 
     - block:
-        - name:                        "SAP OS configuration playbook: - Ensure the kernel parameters are set"
+        - name:                        Include 1.5.2-disk-setup-ora-msid role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-ora-msid
+          when:
+            node_tier == "oracle-multi-sid"
+      tags:
+        - 1.5.2-disk-setup-ora-msid
+
+
+    - block:
+        - name:                        Include 1.9-kernelparameters role
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
       tags:
@@ -116,18 +127,19 @@
         - 2.3-sap-exports
 
     - block:
-        - name:                        "SAP OS configuration playbook: - Ensure the needed services are started"
+        - name:                        Include 2.6-sap-mounts role
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        node_tier != "oracle-asm"
+      tags:
+        - 2.6-sap-mounts
+
+    - block:
+        - name:                        Include 1.16-services role
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
       tags:
         - 1.16-services
-
-    - block:
-        - name:                        "SAP OS configuration playbook: - Create SAP mounts"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-      tags:
-        - 2.6-sap-mounts
 
     - block:
         - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"

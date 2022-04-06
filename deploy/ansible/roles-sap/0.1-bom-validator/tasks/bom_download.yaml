@@ -79,8 +79,6 @@
           become_user:                 root
           register:                    result
           until:                       result is succeeded or not result.changed
-          retries:                     2
-          delay:                       1
           no_log:                      false
 
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
