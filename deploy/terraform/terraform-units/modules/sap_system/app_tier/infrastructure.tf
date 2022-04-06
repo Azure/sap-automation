@@ -76,7 +76,7 @@ resource "azurerm_lb_probe" "scs" {
   provider            = azurerm.main
   count               = local.enable_scs_lb_deployment ? (local.scs_high_availability ? 2 : 1) : 0
   loadbalancer_id     = azurerm_lb.scs[0].id
-  name                = format("%s%s%s%s", local.resource_prefixes[count.index == 0 ? "scs_alb_hp" : "scs_ers_hp"], local.prefix, var.naming.separator, local.resource_suffixes[count.index == 0 ? "scs_alb_hp" : "scs_ers_hp"])
+  name                = format("%s%s%s%s", var.naming.resource_prefixes[count.index == 0 ? "scs_alb_hp" : "scs_ers_hp"], local.prefix, var.naming.separator, local.resource_suffixes[count.index == 0 ? "scs_alb_hp" : "scs_ers_hp"])
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
