@@ -123,7 +123,7 @@ output "dns_info_loadbalancers" {
           )) : (
           ""
         ),
-        local.enable_web_lb_deployment ? format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb) : ""
+        local.enable_web_lb_deployment ? format("%s%s%s%s", local.resource_prefixes.web_alb, local.prefix, var.naming.separator, local.resource_suffixes.web_alb) : ""
       ]),
       compact([
         local.enable_scs_lb_deployment ? try(azurerm_lb.scs[0].private_ip_addresses[0], "") : "",
@@ -164,7 +164,6 @@ output "app_tier_os_types" {
 output "apptier_disks" {
   value = local.enable_deployment ? compact(concat(local.app_disks_ansible, local.scs_disks_ansible, local.web_disks_ansible)) : []
 }
-
 output "scs_ha" {
   value = local.scs_high_availability
 }
