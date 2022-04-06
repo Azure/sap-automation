@@ -33,7 +33,7 @@
   block:
     
     - name:                           " DB2 Backup - Stop the primary system"
-      ansible.builtin.shell:>
+      ansible.builtin.shell: >
                                             db2stop
 
     - name:                            "DB2 HA: - Backup DB2 database for System Identifier {{ db_sid }}"
