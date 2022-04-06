@@ -151,14 +151,14 @@
       become_user:                     "oracle"
       ansible.builtin.shell:           rm -rf {{ item.directory_to_empty }}/*
       loop:
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1/' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2/' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata3/' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata4/' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogA/' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB/' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA/' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB/' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata3' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata4' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogA' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
+        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
 
     - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
       become:                              true
