@@ -11,7 +11,7 @@ module "sap_deployer" {
   ssh-timeout                        = var.ssh-timeout
   authentication                     = local.authentication
   key_vault                          = local.key_vault
-  naming                             = module.sap_namegenerator.naming
+  naming                             = length(var.name_overrride_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   firewall_deployment                = local.firewall_deployment
   assign_subscription_permissions    = local.assign_subscription_permissions
   bootstrap                          = true
