@@ -42,7 +42,7 @@ locals {
     try(split("/", local.rg_arm_id)[4], "")) : (
     length(local.var_infra.resource_group.name) > 0 ? (
       local.var_infra.resource_group.name) : (
-      format("%s%s%s", local.resource_prefixes.library_rg, local.prefix, local.resource_suffixes.library_rg)
+      format("%s%s%s", var.naming.resource_prefixes.library_rg, local.prefix, local.resource_suffixes.library_rg)
     )
   )
 

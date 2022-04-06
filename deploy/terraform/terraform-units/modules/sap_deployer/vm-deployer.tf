@@ -12,7 +12,7 @@ data "azurerm_client_config" "current" {}
 // Public IP addresse and nic for Deployer
 resource "azurerm_public_ip" "deployer" {
   count               = local.enable_deployer_public_ip ? 1 : 0
-  name                = format("%s%s%s%s%s", local.resource_prefixes.pip, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.pip)
+  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.pip, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.pip)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   allocation_method   = "Static"
@@ -21,7 +21,7 @@ resource "azurerm_public_ip" "deployer" {
 
 resource "azurerm_network_interface" "deployer" {
   count               = 1
-  name                = format("%s%s%s%s%s", local.resource_prefixes.nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.nic)
+  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.nic)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
 
@@ -44,7 +44,7 @@ resource "azurerm_network_interface" "deployer" {
 resource "azurerm_user_assigned_identity" "deployer" {
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  name                = format("%s%s%s", local.resource_prefixes.msi, local.prefix, local.resource_suffixes.msi)
+  name                = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, local.resource_suffixes.msi)
 }
 
 # // Add role to be able to deploy resources
@@ -58,7 +58,7 @@ resource "azurerm_role_assignment" "sub_contributor" {
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                           = 1
-  name                            = format("%s%s%s%s%s", local.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.vm)
+  name                            = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.vm)
   computer_name                   = var.naming.virtualmachine_names.DEPLOYER[0]
   resource_group_name             = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                        = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -69,7 +69,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   disable_password_authentication = var.deployer.authentication.type != "password" ? true : false
 
   os_disk {
-    name                   = format("%s%s%s%s%s", local.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.osdisk)
+    name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.DEPLOYER[0], local.resource_suffixes.osdisk)
     caching                = "ReadWrite"
     storage_account_type   = var.deployer.disk_type
     disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)

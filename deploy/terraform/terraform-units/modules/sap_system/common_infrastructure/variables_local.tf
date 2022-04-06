@@ -101,7 +101,7 @@ locals {
   // Resource group
   rg_name = local.rg_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", local.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
+    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", var.naming.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
 
   )
 
@@ -241,7 +241,7 @@ locals {
   var_ppg     = try(var.infrastructure.ppg, {})
   ppg_arm_ids = try(var.infrastructure.ppg.arm_ids, [])
   ppg_exists  = length(local.ppg_arm_ids) > 0 ? true : false
-  ppg_names   = try(local.var_ppg.names, [format("%s%s%s", local.resource_prefixes.ppg, local.prefix, local.resource_suffixes.ppg)])
+  ppg_names   = try(local.var_ppg.names, [format("%s%s%s", var.naming.resource_prefixes.ppg, local.prefix, local.resource_suffixes.ppg)])
 
   isHANA = try(upper(local.db.platform), "NONE") == "HANA"
 
@@ -267,7 +267,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_admin.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_admin.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_admin.name) : (
-        format("%s%s%s%s", local.resource_prefixes.admin_subnet, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet)
+        format("%s%s%s%s", var.naming.resource_prefixes.admin_subnet, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet)
     ))) : (
     ""
   )
@@ -290,7 +290,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_admin.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
-        format("%s%s%s%s", local.resource_prefixes.admin_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg)
+        format("%s%s%s%s", var.naming.resource_prefixes.admin_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg)
     ))) : (
     ""
   )
@@ -315,7 +315,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_db.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_db.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_db.name) : (
-        format("%s%s%s%s", local.resource_prefixes.db_subnet, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet)
+        format("%s%s%s%s", var.naming.resource_prefixes.db_subnet, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet)
     ))) : (
     ""
   )
@@ -338,7 +338,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_db.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
-        format("%s%s%s%s", local.resource_prefixes.db_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg)
+        format("%s%s%s%s", var.naming.resource_prefixes.db_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg)
     ))) : (
     ""
   )
@@ -387,7 +387,7 @@ locals {
     try(split("/", local.sub_storage_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_storage.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_storage.name) : (
-      format("%s%s%s%s", local.resource_prefixes.storage_subnet, local.prefix, var.naming.separator, local.resource_suffixes.storage_subnet)
+      format("%s%s%s%s", var.naming.resource_prefixes.storage_subnet, local.prefix, var.naming.separator, local.resource_suffixes.storage_subnet)
     )
 
   )
@@ -399,7 +399,7 @@ locals {
     try(split("/", var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_storage.nsg.name) : (
-      format("%s%s%s%s", local.resource_prefixes.storage_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.storage_subnet_nsg)
+      format("%s%s%s%s", var.naming.resource_prefixes.storage_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.storage_subnet_nsg)
     )
   )
 

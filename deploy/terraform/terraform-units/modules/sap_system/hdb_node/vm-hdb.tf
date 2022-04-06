@@ -14,7 +14,7 @@ HANA DB Linux Server private IP range: .10 -
 resource "azurerm_network_interface" "nics_dbnodes_admin" {
   provider = azurerm.main
   count    = local.enable_deployment && var.hana_dual_nics ? var.database_server_count : 0
-  name     = format("%s%s%s%s%s", local.resource_prefixes.admin_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.admin_nic)
+  name     = format("%s%s%s%s%s", var.naming.resource_prefixes.admin_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.admin_nic)
 
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
@@ -39,7 +39,7 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
 resource "azurerm_network_interface" "nics_dbnodes_db" {
   provider = azurerm.main
   count    = local.enable_deployment ? var.database_server_count : 0
-  name     = format("%s%s%s%s%s", local.resource_prefixes.db_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.db_nic)
+  name     = format("%s%s%s%s%s", var.naming.resource_prefixes.db_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.db_nic)
 
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
@@ -72,7 +72,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
 resource "azurerm_network_interface" "nics_dbnodes_storage" {
   provider = azurerm.main
   count    = local.enable_deployment && local.enable_storage_subnet ? var.database_server_count : 0
-  name     = format("%s%s%s%s%s", local.resource_prefixes.storage_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.storage_nic)
+  name     = format("%s%s%s%s%s", var.naming.resource_prefixes.storage_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.storage_nic)
 
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
@@ -102,7 +102,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   provider      = azurerm.main
   depends_on    = [var.anchor_vm]
   count         = local.enable_deployment ? var.database_server_count : 0
-  name          = format("%s%s%s%s%s", local.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.vm)
+  name          = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.vm)
   computer_name = var.naming.virtualmachine_names.HANA_COMPUTERNAME[count.index]
 
   resource_group_name = var.resource_group[0].name
@@ -164,7 +164,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
     iterator = disk
     for_each = range(length(local.os_disk))
     content {
-      name                   = format("%s%s%s%s%s", local.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.osdisk)
       caching                = local.os_disk[0].caching
       storage_account_type   = local.os_disk[0].storage_account_type
       disk_size_gb           = local.os_disk[0].disk_size_gb
@@ -209,7 +209,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 resource "azurerm_managed_disk" "data_disk" {
   provider             = azurerm.main
   count                = local.enable_deployment ? length(local.data_disk_list) : 0
-  name                 = format("%s%s%s%s%s", local.resource_prefixes.disk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[local.data_disk_list[count.index].vm_index], local.data_disk_list[count.index].suffix)
+  name                 = format("%s%s%s%s%s", var.naming.resource_prefixes.disk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[local.data_disk_list[count.index].vm_index], local.data_disk_list[count.index].suffix)
   location             = var.resource_group[0].location
   resource_group_name  = var.resource_group[0].name
   create_option        = "Empty"

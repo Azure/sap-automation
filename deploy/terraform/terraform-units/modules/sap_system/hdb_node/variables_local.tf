@@ -149,7 +149,7 @@ locals {
   rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.rg_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", local.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
+    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", var.naming.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
   )
 
   hdb_list = [

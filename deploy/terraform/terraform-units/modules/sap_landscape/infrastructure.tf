@@ -73,7 +73,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 resource "azurerm_route_table" "rt" {
   provider                      = azurerm.main
   count                         = local.vnet_sap_exists ? 0 : 1
-  name                          = format("%s%s%s%s", local.resource_prefixes.routetable, local.prefix, var.naming.separator, local.resource_suffixes.routetable)
+  name                          = format("%s%s%s%s", var.naming.resource_prefixes.routetable, local.prefix, var.naming.separator, local.resource_suffixes.routetable)
   resource_group_name           = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   location                      = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].location : azurerm_virtual_network.vnet_sap[0].location
   disable_bgp_route_propagation = false
@@ -85,7 +85,7 @@ resource "azurerm_route" "admin" {
   ]
   provider               = azurerm.main
   count                  = length(local.firewall_ip) > 0 ? local.vnet_sap_exists ? 0 : 1 : 0
-  name                   = format("%s%s%s%s", local.resource_prefixes.fw_route, local.prefix, var.naming.separator, local.resource_suffixes.fw_route)
+  name                   = format("%s%s%s%s", var.naming.resource_prefixes.fw_route, local.prefix, var.naming.separator, local.resource_suffixes.fw_route)
   resource_group_name    = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   route_table_name       = azurerm_route_table.rt[0].name
   address_prefix         = "0.0.0.0/0"
@@ -96,7 +96,7 @@ resource "azurerm_route" "admin" {
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider              = azurerm.deployer
   count                 = length(var.dns_label) > 0 ? 1 : 0
-  name                  = format("%s%s%s%s", local.resource_prefixes.dns_link, local.prefix, var.naming.separator, local.resource_suffixes.dns_link)
+  name                  = format("%s%s%s%s", var.naming.resource_prefixes.dns_link, local.prefix, var.naming.separator, local.resource_suffixes.dns_link)
   resource_group_name   = var.dns_resource_group_name
   private_dns_zone_name = var.dns_label
   virtual_network_id    = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id

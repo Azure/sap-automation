@@ -123,7 +123,7 @@ output "dns_info_loadbalancers" {
           )) : (
           ""
         ),
-        local.enable_web_lb_deployment ? format("%s%s%s%s", local.resource_prefixes.web_alb, local.prefix, var.naming.separator, local.resource_suffixes.web_alb) : ""
+        local.enable_web_lb_deployment ? format("%s%s%s%s", var.naming.resource_prefixes.web_alb, local.prefix, var.naming.separator, local.resource_suffixes.web_alb) : ""
       ]),
       compact([
         local.enable_scs_lb_deployment ? try(azurerm_lb.scs[0].private_ip_addresses[0], "") : "",

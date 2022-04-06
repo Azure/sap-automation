@@ -74,13 +74,13 @@ resource "azurerm_storage_container" "storagecontainer_ansible" {
 
 resource "azurerm_private_endpoint" "storage_tfstate" {
   count               = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
-  name                = format("%s%s%s", local.resource_prefixes.storage_private_link_tf, local.prefix, local.resource_suffixes.storage_private_link_tf)
+  name                = format("%s%s%s", var.naming.resource_prefixes.storage_private_link_tf, local.prefix, local.resource_suffixes.storage_private_link_tf)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
   subnet_id           = local.subnet_management_id
 
   private_service_connection {
-    name                           = format("%s%s%s", local.resource_prefixes.storage_private_svc_tf, local.prefix, local.resource_suffixes.storage_private_svc_tf)
+    name                           = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_tf, local.prefix, local.resource_suffixes.storage_private_svc_tf)
     is_manual_connection           = false
     private_connection_resource_id = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
     subresource_names = [
@@ -123,13 +123,13 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_private_endpoint" "storage_sapbits" {
   count               = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
-  name                = format("%s%s%s", local.resource_prefixes.storage_private_link_sap, local.prefix, local.resource_suffixes.storage_private_link_sap)
+  name                = format("%s%s%s", var.naming.resource_prefixes.storage_private_link_sap, local.prefix, local.resource_suffixes.storage_private_link_sap)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.library[0].name : azurerm_resource_group.library[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
   subnet_id           = local.subnet_management_id
 
   private_service_connection {
-    name                           = format("%s%s%s", local.resource_prefixes.storage_private_svc_sap, local.prefix, local.resource_suffixes.storage_private_svc_sap)
+    name                           = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_sap, local.prefix, local.resource_suffixes.storage_private_svc_sap)
     is_manual_connection           = false
     private_connection_resource_id = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_sapbits[0].id : azurerm_storage_account.storage_sapbits[0].id
     subresource_names = [

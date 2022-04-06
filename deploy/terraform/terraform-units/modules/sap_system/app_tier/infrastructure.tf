@@ -47,7 +47,7 @@ data "azurerm_subnet" "subnet_sap_web" {
 resource "azurerm_lb" "scs" {
   provider            = azurerm.main
   count               = local.enable_scs_lb_deployment ? 1 : 0
-  name                = format("%s%s%s%s", local.resource_prefixes.scs_alb, local.prefix, var.naming.separator, local.resource_suffixes.scs_alb)
+  name                = format("%s%s%s%s", var.naming.resource_prefixes.scs_alb, local.prefix, var.naming.separator, local.resource_suffixes.scs_alb)
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
   sku                 = "Standard"
@@ -68,7 +68,7 @@ resource "azurerm_lb" "scs" {
 resource "azurerm_lb_backend_address_pool" "scs" {
   provider        = azurerm.main
   count           = local.enable_scs_lb_deployment ? 1 : 0
-  name            = format("%s%s%s%s", local.resource_prefixes.scs_alb_bepool, local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_bepool)
+  name            = format("%s%s%s%s", var.naming.resource_prefixes.scs_alb_bepool, local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_bepool)
   loadbalancer_id = azurerm_lb.scs[0].id
 }
 
@@ -87,7 +87,7 @@ resource "azurerm_lb_probe" "clst" {
   provider            = azurerm.main
   count               = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? 1 : 0
   loadbalancer_id     = azurerm_lb.scs[0].id
-  name                = format("%s%s%s%s", local.resource_prefixes.scs_clst_hp, local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_hp)
+  name                = format("%s%s%s%s", var.naming.resource_prefixes.scs_clst_hp, local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_hp)
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
@@ -111,11 +111,11 @@ resource "azurerm_lb_rule" "scs" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment ? 1 : 0
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = format("%s%s%s%s", local.resource_prefixes.scs_scs_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_scs_rule)
+  name                           = format("%s%s%s%s", var.naming.resource_prefixes.scs_scs_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_scs_rule)
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
-  frontend_ip_configuration_name = format("%s%s%s%s", local.resource_prefixes.scs_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
+  frontend_ip_configuration_name = format("%s%s%s%s", var.naming.resource_prefixes.scs_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                       = azurerm_lb_probe.scs[0].id
   enable_floating_ip             = true
@@ -127,11 +127,11 @@ resource "azurerm_lb_rule" "ers" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment && local.scs_high_availability ? 1 : 0
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = format("%s%s%s%s", local.resource_prefixes.scs_ers_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_rule)
+  name                           = format("%s%s%s%s", var.naming.resource_prefixes.scs_ers_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_rule)
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
-  frontend_ip_configuration_name = format("%s%s%s%s", local.resource_prefixes.scs_ers_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
+  frontend_ip_configuration_name = format("%s%s%s%s", var.naming.resource_prefixes.scs_ers_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                       = azurerm_lb_probe.scs[1].id
   enable_floating_ip             = true
@@ -142,11 +142,11 @@ resource "azurerm_lb_rule" "clst" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment && local.win_ha_scs ? 0 : 0
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = format("%s%s%s%s", local.resource_prefixes.scs_clst_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_rule)
+  name                           = format("%s%s%s%s", var.naming.resource_prefixes.scs_clst_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_rule)
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
-  frontend_ip_configuration_name = format("%s%s%s%s", local.resource_prefixes.scs_clst_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
+  frontend_ip_configuration_name = format("%s%s%s%s", var.naming.resource_prefixes.scs_clst_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                       = azurerm_lb_probe.clst[0].id
   enable_floating_ip             = true
@@ -156,11 +156,11 @@ resource "azurerm_lb_rule" "fs" {
   provider                       = azurerm.main
   count                          = local.enable_scs_lb_deployment && local.win_ha_scs ? 0 : 0
   loadbalancer_id                = azurerm_lb.scs[0].id
-  name                           = format("%s%s%s%s", local.resource_prefixes.scs_fs_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_rule)
+  name                           = format("%s%s%s%s", var.naming.resource_prefixes.scs_fs_rule, local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_rule)
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
-  frontend_ip_configuration_name = format("%s%s%s%s", local.prefix, local.resource_prefixes.scs_fs_feip, var.naming.separator, local.resource_suffixes.scs_fs_feip)
+  frontend_ip_configuration_name = format("%s%s%s%s", local.prefix, var.naming.resource_prefixes.scs_fs_feip, var.naming.separator, local.resource_suffixes.scs_fs_feip)
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                       = azurerm_lb_probe.fs[0].id
   enable_floating_ip             = true
@@ -204,13 +204,13 @@ resource "azurerm_availability_set" "app" {
 resource "azurerm_lb" "web" {
   provider            = azurerm.main
   count               = local.enable_web_lb_deployment ? 1 : 0
-  name                = format("%s%s%s%s", local.resource_prefixes.web_alb, local.prefix, var.naming.separator, local.resource_suffixes.web_alb)
+  name                = format("%s%s%s%s", var.naming.resource_prefixes.web_alb, local.prefix, var.naming.separator, local.resource_suffixes.web_alb)
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
   sku                 = "Standard"
 
   frontend_ip_configuration {
-    name      = format("%s%s%s%s", local.resource_prefixes.web_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_feip)
+    name      = format("%s%s%s%s", var.naming.resource_prefixes.web_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_feip)
     subnet_id = local.web_subnet_deployed.id
     private_ip_address = var.application.use_DHCP ? (
       null) : (
@@ -223,7 +223,7 @@ resource "azurerm_lb" "web" {
 resource "azurerm_lb_backend_address_pool" "web" {
   provider        = azurerm.main
   count           = local.enable_web_lb_deployment ? 1 : 0
-  name            = format("%s%s%s%s", local.resource_prefixes.web_alb_bepool, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_bepool)
+  name            = format("%s%s%s%s", var.naming.resource_prefixes.web_alb_bepool, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_bepool)
   loadbalancer_id = azurerm_lb.web[0].id
 }
 
@@ -231,7 +231,7 @@ resource "azurerm_lb_probe" "web" {
   provider            = azurerm.main
   count               = local.enable_web_lb_deployment ? 1 : 0
   loadbalancer_id     = azurerm_lb.web[0].id
-  name                = format("%s%s%s%s", local.resource_prefixes.web_alb_hp, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_hp)
+  name                = format("%s%s%s%s", var.naming.resource_prefixes.web_alb_hp, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_hp)
   port                = 443
   protocol            = "Tcp"
   interval_in_seconds = 5
@@ -243,7 +243,7 @@ resource "azurerm_lb_rule" "web" {
   provider                       = azurerm.main
   count                          = local.enable_web_lb_deployment ? 1 : 0
   loadbalancer_id                = azurerm_lb.web[0].id
-  name                           = format("%s%s%s%s", local.resource_prefixes.web_alb_inrule, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_inrule)
+  name                           = format("%s%s%s%s", var.naming.resource_prefixes.web_alb_inrule, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_inrule)
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
@@ -281,7 +281,7 @@ resource "azurerm_availability_set" "web" {
 resource "azurerm_application_security_group" "app" {
   provider            = azurerm.main
   count               = local.enable_deployment ? 1 : 0
-  name                = format("%s%s%s%s", local.resource_prefixes.app_asg, local.prefix, var.naming.separator, local.resource_suffixes.app_asg)
+  name                = format("%s%s%s%s", var.naming.resource_prefixes.app_asg, local.prefix, var.naming.separator, local.resource_suffixes.app_asg)
   resource_group_name = var.options.nsg_asg_with_vnet ? var.network_resource_group : var.resource_group[0].name
   location            = var.options.nsg_asg_with_vnet ? var.network_location : var.resource_group[0].location
 }
@@ -289,7 +289,7 @@ resource "azurerm_application_security_group" "app" {
 resource "azurerm_application_security_group" "web" {
   provider            = azurerm.main
   count               = local.webdispatcher_count > 0 ? 1 : 0
-  name                = format("%s%s%s%s", local.resource_prefixes.web_asg, local.prefix, var.naming.separator, local.resource_suffixes.web_asg)
+  name                = format("%s%s%s%s", var.naming.resource_prefixes.web_asg, local.prefix, var.naming.separator, local.resource_suffixes.web_asg)
   resource_group_name = var.options.nsg_asg_with_vnet ? var.network_resource_group : var.resource_group[0].name
   location            = var.options.nsg_asg_with_vnet ? var.network_location : var.resource_group[0].location
 }

@@ -129,7 +129,7 @@ data "azurerm_proximity_placement_group" "ppg" {
 
 resource "azurerm_application_security_group" "db" {
   provider = azurerm.main
-  name     = format("%s%s%s%s", local.resource_prefixes.db_asg, local.prefix, var.naming.separator, local.resource_suffixes.db_asg)
+  name     = format("%s%s%s%s", var.naming.resource_prefixes.db_asg, local.prefix, var.naming.separator, local.resource_suffixes.db_asg)
   resource_group_name = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.resource_group_name) : (
     (local.rg_exists ? (
