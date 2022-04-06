@@ -160,18 +160,6 @@
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
 
-    - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
-      become:                              true
-      become_user:                         "oracle"
-      ansible.builtin.shell:               sqlplus / as sysdba @secondarystartup.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
-      register:                            secondary_startup_results
-      failed_when:                         secondary_startup_results.rc > 0
-      args:
-       #creates:                           /etc/sap_deployment_automation/dgscripts/secondary_startup.txt
-       chdir:                             /etc/sap_deployment_automation/dgscripts
-       executable:                        /bin/csh
-      when: current_host == ora_secondary
-
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true
       become_user:                     "oracle"
