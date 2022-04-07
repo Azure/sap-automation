@@ -171,7 +171,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider     = azurerm.deployer
   count        = length(local.deployer_kv_user_arm_id) > 0 ? 1 : 0
   name         = "sapbits-access-key"
-  value        = local.sa_sapbits_exists ? data.azurerm_storage_account.storage_sapbits[0].primary_access_key : azurerm_storage_account.storage_sapbits[0].primary_access_key
+  value        = local.sa_sapbits_blob_container_exists ? data.azurerm_storage_account.storage_sapbits[0].primary_access_key : azurerm_storage_account.storage_sapbits[0].primary_access_key
   key_vault_id = local.deployer_kv_user_arm_id
 }
 
@@ -179,7 +179,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   provider = azurerm.deployer
   count    = length(local.deployer_kv_user_arm_id) > 0 ? 1 : 0
   name     = "sapbits-location-base-path"
-  value = local.sa_sapbits_exists ? (
+  value = local.sa_sapbits_blob_container_exists ? (
     data.azurerm_storage_container.storagecontainer_sapbits[0].id) : (
     azurerm_storage_container.storagecontainer_sapbits[0].id
   )
