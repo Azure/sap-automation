@@ -13,9 +13,9 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Name of Bill of Materials (BoM)
     type: string
-    default:                           S41909SPS03_v0010ms
+    default:                           
     values:
-      - S41909SPS03_v0010ms
+      - S41909SPS03_v0011ms
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
       - HANA_2_00_055_v0006ms
@@ -25,6 +25,7 @@ parameters:
       - SWPM10SP34_latest
       - SUM20SP13_latest
       - ORACLE_19_00_v0002ms
+      - ORACLE_19_00_ORA_MSID_v0001ms
 
   - name:                              environment
     displayName:                       Control Plane Environment
@@ -49,7 +50,7 @@ variables:
   - group:                             "SDAF-General"
   - group:                             SDAF-${{ parameters.environment }}
   - name:                              bom
-    value:                             ${{ parameters.bom_base_name }}
+    value:                             $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
   - name:                              environment_code
     value:                             ${{ parameters.environment }}
   - name:                              location_code
@@ -122,7 +123,9 @@ stages:
 
                 kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}')
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
-
+              
+              echo -e "$green--- BoM $(bom) ---$reset"
+              
               echo -e "$green--- Save BOM ---$reset"
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
@@ -226,6 +229,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               ANSIBLE_CALLBACK_WHITELIST: profile_tasks
 
 ...
