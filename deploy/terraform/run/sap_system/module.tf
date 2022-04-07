@@ -248,4 +248,5 @@ module "output_files" {
   NFS_provider          = var.NFS_provider
   observer_ips          = module.anydb_node.observer_ips
   observer_vms          = module.anydb_node.observer_vms
+  shared_home           = var.shared_home
 }
