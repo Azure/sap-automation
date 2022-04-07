@@ -35,11 +35,10 @@ locals {
   prefix = length(local.var_infra.resource_group.name) > 0 ? local.var_infra.resource_group.name : trimspace(var.naming.prefix.LIBRARY)
 
   // Resource group
-  rg_arm_id = try(var.infrastructure.resource_group.arm_id, "")
-  rg_exists = length(local.rg_arm_id) > 0
+  rg_exists = length(var.infrastructure.resource_group.arm_id) > 0
 
   rg_name = local.rg_exists ? (
-    try(split("/", local.rg_arm_id)[4], "")) : (
+    try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     length(local.var_infra.resource_group.name) > 0 ? (
       local.var_infra.resource_group.name) : (
       format("%s%s%s", var.naming.resource_prefixes.library_rg, local.prefix, local.resource_suffixes.library_rg)

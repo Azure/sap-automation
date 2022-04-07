@@ -50,19 +50,12 @@ locals {
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
 
   // Resource group
-  prefix = length(var.naming.prefix.DEPLOYER) > 0 ? (
-    var.naming.prefix.DEPLOYER) : (
-    length(var.infrastructure.resource_group.name) > 0 ? (
-      var.infrastructure.resource_group.name) : (
-      "sapdeployer"
-    )
-  )
+  prefix = var.naming.prefix.DEPLOYER
 
-  rg_arm_id = try(var.infrastructure.resource_group.arm_id, "")
-  rg_exists = length(local.rg_arm_id) > 0
+  rg_exists = length(var.infrastructure.resource_group.arm_id) > 0
   // If resource ID is specified extract the resourcegroup name from it otherwise read it either from input of create using the naming convention
   rg_name = local.rg_exists ? (
-    split("/", local.rg_arm_id)[4]) : (
+    split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     length(var.infrastructure.resource_group.name) > 0 ? (
       var.infrastructure.resource_group.name) : (
       format("%s%s%s", var.naming.resource_prefixes.deployer_rg, local.prefix, local.resource_suffixes.deployer_rg)
