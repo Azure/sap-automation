@@ -326,9 +326,9 @@
           tags:
             - always
 
-        - name:                        Include 1.5.2-disk-setup-ora-msid role
+        - name:                        Include 1.5.2-disk-setup-ora-multi-sid role
           ansible.builtin.include_role:
-            name:                      roles-os/1.5.2-disk-setup-ora-msid
+            name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
 
         - name:                        Check for file system mounts
           ansible.builtin.include_role:
