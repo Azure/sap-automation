@@ -140,6 +140,7 @@ packages:
     - { tier: 'ha',    package: 'pacemaker',                                                state: 'present' }
     - { tier: 'ha',    package: 'nmap-ncat',                                                state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                                   state: 'present' }
+    - { tier: 'ha',    package: 'resource-agents',                                          state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap-hana',           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                node_tier: 'ers',     state: 'present' }

@@ -321,7 +321,7 @@ admin_users:
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall
-    groups:       ["oper","sapsys","sapinst","asmdba","dba","asmadmin","asmoper"]
+    groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
     sudoers_role: "admin_no_password"
     password:     "{{ main_password }}"
     shell:        /bin/csh

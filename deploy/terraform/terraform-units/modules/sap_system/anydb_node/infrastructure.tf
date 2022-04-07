@@ -5,14 +5,14 @@ Load balancer front IP address range: .4 - .9
 resource "azurerm_lb" "anydb" {
   provider = azurerm.main
   count    = local.enable_db_lb_deployment ? 1 : 0
-  name     = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb)
+  name     = format("%s%s%s%s", var.naming.resource_prefixes.db_alb, local.prefix, var.naming.separator, local.resource_suffixes.db_alb)
   sku      = "Standard"
 
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
 
   frontend_ip_configuration {
-    name      = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_feip)
+    name      = format("%s%s%s%s", var.naming.resource_prefixes.db_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.db_alb_feip)
     subnet_id = var.db_subnet.id
 
     private_ip_address = var.databases[0].use_DHCP ? (
@@ -27,14 +27,14 @@ resource "azurerm_lb" "anydb" {
 
 resource "azurerm_lb_backend_address_pool" "anydb" {
   count           = local.enable_db_lb_deployment ? 1 : 0
-  name            = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_bepool)
+  name            = format("%s%s%s%s", var.naming.resource_prefixes.db_alb_bepool, local.prefix, var.naming.separator, local.resource_suffixes.db_alb_bepool)
   loadbalancer_id = azurerm_lb.anydb[count.index].id
 }
 
 resource "azurerm_lb_probe" "anydb" {
   provider            = azurerm.main
   count               = local.enable_db_lb_deployment ? 1 : 0
-  name                = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_hp)
+  name                = format("%s%s%s%s", var.naming.resource_prefixes.db_alb_hp, local.prefix, var.naming.separator, local.resource_suffixes.db_alb_hp)
   loadbalancer_id     = azurerm_lb.anydb[count.index].id
   port                = local.loadbalancer_ports[0].port
   protocol            = "Tcp"
@@ -47,11 +47,11 @@ resource "azurerm_lb_rule" "anydb" {
   provider                       = azurerm.main
   count                          = local.enable_db_lb_deployment && var.database_server_count > 0 ? 1 : 0
   loadbalancer_id                = azurerm_lb.anydb[0].id
-  name                           = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_rule)
+  name                           = format("%s%s%s%s", var.naming.resource_prefixes.db_alb_rule, local.prefix, var.naming.separator, local.resource_suffixes.db_alb_rule)
   protocol                       = "All"
   frontend_port                  = 0
   backend_port                   = 0
-  frontend_ip_configuration_name = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb_feip)
+  frontend_ip_configuration_name = format("%s%s%s%s", var.naming.resource_prefixes.db_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.db_alb_feip)
   probe_id                       = azurerm_lb_probe.anydb[0].id
   enable_floating_ip             = true
   idle_timeout_in_minutes        = 30
