@@ -78,7 +78,7 @@
   become:                              true
   become_user:                         oracle
   ansible.builtin.unarchive:
-    src:                               /usr/sap/install/oraserver/LINUX_X86_64/grid_home/LINUX.X64_193000_grid_home.zip
+    src:                               "{{ target_media_location }}/oraserver/LINUX_X86_64/grid_home/LINUX.X64_193000_grid_home.zip"
     dest:                              /oracle/stage/{{ ora_release }}/grid_home
   args:
     chdir:                             /oracle/stage

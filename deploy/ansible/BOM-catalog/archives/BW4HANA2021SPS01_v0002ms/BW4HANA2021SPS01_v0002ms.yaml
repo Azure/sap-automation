@@ -1,0 +1,523 @@
+---
+name: "BW4HANA2021SPS01_v0001ms"
+target: "SAP BW/4HANA 2021"
+
+defaults:
+  target_location: "{{ target_media_location }}/download_basket"
+
+product_ids:
+  dbl: NW_ABAP_DB:BW4HANA2021.CORE.HDB.ABAP
+  scs: NW_ABAP_ASCS:BW4HANA2021.CORE.HDB.ABAP
+  scs_ha:
+  pas: NW_ABAP_CI:BW4HANA2021.CORE.HDB.ABAP
+  pas_ha:
+  app: NW_DI:BW4HANA2021.CORE.HDB.PD
+  app_ha:
+  web:
+  ers:
+  ers_ha:
+
+materials:
+  dependencies:
+    - name:         HANA_2_00_055_v0006ms
+
+  media:
+    # SAPCAR 7.22
+    - name:         SAPCAR
+      archive:      SAPCAR_1010-70006178.EXE
+      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+      filename:     SAPCAR
+      permissions:  "0755"
+      url:          https://softwaredownloads.sap.com/file/0020000002208852020
+
+    # kernel components
+
+    - name:         Kernel Part II (785)"
+      archive:      SAPEXEDB_50-80005373.SAR
+      checksum:     e5559e4447c70fa1af1f5fc70aa998b79db07fd2aa7f6e72fdc2c26771aeff86
+      url:          https://softwaredownloads.sap.com/file/0020000001450532021
+      path:         download_basket
+
+    - name:         Kernel Part I (785)"
+      archive:      SAPEXE_50-80005374.SAR
+      checksum:     bcb44551377b72a00a87ce6a61aa67be060574606d624dde2639d025c3c52ac3
+      url:          https://softwaredownloads.sap.com/file/0020000001450632021
+      path:         download_basket
+
+    - name:         SAP HOST AGENT 7.22 SP54"
+      archive:      SAPHOSTAGENT54_54-80004822.SAR
+      checksum:     5899a0934bd8d37a887d0d67de6ac0520f907a66ff7c3bc79176fff99171a878
+      url:          https://softwaredownloads.sap.com/file/0020000001542872021
+      path:         download_basket
+
+    - name:         "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP12 ; OS: Linux on x86_64 64bit"
+      archive:      SUM20SP12_4-80002456.SAR
+      checksum:     dd1b677342bbda47d9585fffc6a7107f845b41b3d114f895d954c19d70987087
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000001731572021
+
+    - name:         "SWPM 20 SP 10; OS: Linux on x86_64 64bit"
+      archive:      SWPM20SP10_2-80003424.SAR
+      checksum:     565443f535a5af02ff6feadb6200d69989065c0c89459257ab26f3604196cae1
+      extract:      true
+      extractDir:   SWPM
+      creates:      SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000001662762021
+
+    - name:         Installation for SAP IGS integrated in SAP Kernel
+      archive:      igsexe_1-70005417.sar
+      checksum:     31e299129fa931c05fb93fcc53f89b568629cb199bca027ac3ee9b7986025629
+      url:          https://softwaredownloads.sap.com/file/0020000000535042021
+      path:         download_basket
+
+    - name:         SAP IGS Fonts and Textures"
+      archive:      igshelper_17-10010245.sar
+      checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
+      url:          https://softwaredownloads.sap.com/file/0020000000703122018
+      path:         download_basket
+
+    # db export components
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_1.zip"
+      archive:      BW4HANA300_INST_EXPORT_1.zip
+      checksum:     eb0dde3c57a5cde657badd17b944e28e55337c19636e9a64b93b9bfa9e6f2218
+      url:          https://softwaredownloads.sap.com/file/0030000001509582021
+      path:         download_basket
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_2.zip"
+      archive:      BW4HANA300_INST_EXPORT_2.zip
+      checksum:     9ce1cd9b8bde689cfb4780aebd8611a4f4a0aba648acad0eb33777d782904b17
+      url:          https://softwaredownloads.sap.com/file/0030000001509592021
+      path:         download_basket
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_3.zip"
+      archive:      BW4HANA300_INST_EXPORT_3.zip
+      checksum:     15ceaa468fc350f87e4da477c1c15d9606fd1332612db096a7a8e93e6f235c3b
+      url:          https://softwaredownloads.sap.com/file/0030000001509602021
+      path:         download_basket
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_4.zip"
+      archive:      BW4HANA300_INST_EXPORT_4.zip
+      checksum:     d16a144feed13068fe70e94fb73419688b21ab85e10ceef461fbac5499a7326b
+      url:          https://softwaredownloads.sap.com/file/0030000001509622021
+      path:         download_basket
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_5.zip"
+      archive:      BW4HANA300_INST_EXPORT_5.zip
+      url:          https://softwaredownloads.sap.com/file/0030000001509632021
+      checksum:     430346f15f91209d721cafa852ec4ed28c8fa263b7ece0da66ce480fe0e06234
+      path:         download_basket
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_6.zip"
+      archive:      BW4HANA300_INST_EXPORT_6.zip
+      checksum:     6a4dd12ecd7d3313fac30c83fa3021f6cad9f05c937927760ad64d88a2f7c6ac
+      url:          https://softwaredownloads.sap.com/file/0030000001509662021
+      path:         download_basket
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_7.zip"
+      archive:      BW4HANA300_INST_EXPORT_7.zip
+      checksum:     665c4970423c9cfbed5e92a055da5018863a6bf8023284ec955988bfcf450bb2
+      url:          https://softwaredownloads.sap.com/file/0030000001509692021
+      path:         download_basket
+
+    - name:         "File on DVD - BW4HANA300_INST_EXPORT_8.zip"
+      archive:      BW4HANA300_INST_EXPORT_8.zip
+      checksum:     e52026f914578b09ef059a75b2a1f16cedd9bae3fac83877b613ff093aede38f
+      url:          https://softwaredownloads.sap.com/file/0030000001509712021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_AR.SAR
+      archive:      BW4HANA300_NW_LANG_AR.SAR
+      checksum:     ba8464fd031cc015c2e0034674b8946fd72d5382d16ad613a84f354d3faf3109
+      url:          https://softwaredownloads.sap.com/file/0030000001509722021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_BG.SAR
+      archive:      BW4HANA300_NW_LANG_BG.SAR
+      checksum:     c99d2f23551f7021cb21ef12e6780325c292d0286a0e8af3c579823bf4717901
+      url:          https://softwaredownloads.sap.com/file/0030000001509732021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_CA.SAR
+      archive:      BW4HANA300_NW_LANG_CA.SAR
+      checksum:     26befbad156e16c71e65edc65cd16feb63daa52451ec5bdb293807c14037ece9
+      url:          https://softwaredownloads.sap.com/file/0030000001509742021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_CS.SAR
+      archive:      BW4HANA300_NW_LANG_CS.SAR
+      checksum:     61f63b3e672c5a2d0a24babed745e0047630c00d304dff423cffd10f1ee867ba
+      url:          https://softwaredownloads.sap.com/file/0030000001509752021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_DA.SAR
+      archive:      BW4HANA300_NW_LANG_DA.SAR
+      checksum:     373805a72629d86fbdb67e0318984c2da723ce71d48196dc356f536c43deb4d8
+      url:          https://softwaredownloads.sap.com/file/0030000001509762021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_DE.SAR
+      archive:      BW4HANA300_NW_LANG_DE.SAR
+      checksum:     8c61ba487a8fbeca14afb61cc7b0397eb82600e7d5291c7042a4e2965dd3bbb7
+      url:          https://softwaredownloads.sap.com/file/0030000001509772021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_EL.SAR
+      archive:      BW4HANA300_NW_LANG_EL.SAR
+      checksum:     07a69fb137ef16605ae565f9a1a178f9ef4c0b9238d1a4a1d021a24211347808
+      url:          https://softwaredownloads.sap.com/file/0030000001509782021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_EN.SAR
+      archive:      BW4HANA300_NW_LANG_EN.SAR
+      checksum:     c142d70c4ef1826b5e40260b90f916c923d5360f79f2d2cddb12c9996f865741
+      url:          https://softwaredownloads.sap.com/file/0030000001509792021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_ES.SAR
+      archive:      BW4HANA300_NW_LANG_ES.SAR
+      checksum:     c7a0ee2569e413281659bbc79eada4cd6ff5ef27758cdc3c3b382184fe012455
+      url:          https://softwaredownloads.sap.com/file/0030000001509802021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_ET.SAR
+      archive:      BW4HANA300_NW_LANG_ET.SAR
+      checksum:     83e70b464b8ba9a63bca6109692e31de081779bde9967e01dea294b68ee87f26
+      url:          https://softwaredownloads.sap.com/file/0030000001509812021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_FI.SAR
+      archive:      BW4HANA300_NW_LANG_FI.SAR
+      checksum:     b4688b1a7efe9f89cc1376d237bf17cd2f7bad9f2686356c030c1a59db584aff
+      url:          https://softwaredownloads.sap.com/file/0030000001509822021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_FR.SAR
+      archive:      BW4HANA300_NW_LANG_FR.SAR
+      checksum:     e8fb03b5114f2f26e14ff6da192894bba3049285eece06649f77b1d6bc72931b
+      url:          https://softwaredownloads.sap.com/file/0030000001509832021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_HE.SAR
+      archive:      BW4HANA300_NW_LANG_HE.SAR
+      checksum:     0a03702518aaee710c3333542c96aa97cf6596d636d5d56b33837a4cf3f28cb6
+      url:          https://softwaredownloads.sap.com/file/0030000001509842021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_HI.SAR
+      archive:      BW4HANA300_NW_LANG_HI.SAR
+      checksum:     c23b0c0258ddedc70fdf07da91418e573735e9c8a5b4175044b52caeea41e8e0
+      url:          https://softwaredownloads.sap.com/file/0030000001509852021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_HR.SAR
+      archive:      BW4HANA300_NW_LANG_HR.SAR
+      checksum:     d398368fa6700d8c834ef45a5cc0ce51e9e348d0ea55d4fadae23fd5f391f6ae
+      url:          https://softwaredownloads.sap.com/file/0030000001509862021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_HU.SAR
+      archive:      BW4HANA300_NW_LANG_HU.SAR
+      checksum:     6f948280dbd9c0fd7ba73ca13a1057441ef244eb6889e29677bf67f9a87983b8
+      url:          https://softwaredownloads.sap.com/file/0030000001509872021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_IT.SAR
+      archive:      BW4HANA300_NW_LANG_IT.SAR
+      checksum:     8bf0b3fb404efa15bfb767ef4928bcea83931fbde9d0f524146d45a17af962f0
+      url:          https://softwaredownloads.sap.com/file/0030000001509882021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_JA.SAR
+      archive:      BW4HANA300_NW_LANG_JA.SAR
+      checksum:     b374fbe2eef1a5e1ca150b9d7431223e77768e46fe43c5d66fe3bd3a481aa1c9
+      url:          https://softwaredownloads.sap.com/file/0030000001509902021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_KK.SAR
+      archive:      BW4HANA300_NW_LANG_KK.SAR
+      checksum:     92ff7d6707b7d116f190eadfe985182427761399ca337e55730fba0dd7a53e38
+      url:          https://softwaredownloads.sap.com/file/0030000001509912021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_KO.SAR
+      archive:      BW4HANA300_NW_LANG_KO.SAR
+      checksum:     8aabf928aaa2ffb51a2f99eb40a32ce71b633693c48ddb5aa683bd157ed44528
+      url:          https://softwaredownloads.sap.com/file/0030000001509922021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_LT.SAR
+      archive:      BW4HANA300_NW_LANG_LT.SAR
+      checksum:     734262b8a213a2781ac2ef5168ceed328ba9e1dfd30f41185d22075cec017f9f
+      url:          https://softwaredownloads.sap.com/file/0030000001509932021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_LV.SAR
+      archive:      BW4HANA300_NW_LANG_LV.SAR
+      checksum:     f12e92af61836e14879febe7eb94ed235a4c7ec706eaf61ee367c0e45d82a1f7
+      url:          https://softwaredownloads.sap.com/file/0030000001509942021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_NL.SAR
+      archive:      BW4HANA300_NW_LANG_NL.SAR
+      checksum:     996b064475d3721d33c6d8b3118c3b42ada1ab39c58c3c6ca8d90490111b5f83
+      url:          https://softwaredownloads.sap.com/file/0030000001509962021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_NO.SAR
+      archive:      BW4HANA300_NW_LANG_NO.SAR
+      checksum:     dffd00baa044d1379db6f3b8914675d75e87ba744dd194a22cdac40483f87088
+      url:          https://softwaredownloads.sap.com/file/0030000001509972021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_PL.SAR
+      archive:      BW4HANA300_NW_LANG_PL.SAR
+      checksum:     1e9aa91ffe40469ba10d8f9796e1bdf3ee4f4c44cb486f880f1db5e90b1f533b
+      url:          https://softwaredownloads.sap.com/file/0030000001509982021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_PT.SAR
+      archive:      BW4HANA300_NW_LANG_PT.SAR
+      checksum:     9d31887347f06bb5ab0d12326736c9199b7c592feb8e648b53dcd365b75dd23a
+      url:          https://softwaredownloads.sap.com/file/0030000001510002021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_RO.SAR
+      archive:      BW4HANA300_NW_LANG_RO.SAR
+      checksum:     5dce93ef5d872a39f6b3e68dd87942234eb9027ad78edf795dbd586b2d005cb3
+      url:          https://softwaredownloads.sap.com/file/0030000001510012021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_RU.SAR
+      archive:      BW4HANA300_NW_LANG_RU.SAR
+      checksum:     e9221cae7ff17d56b5737cf4c73381355b7b24cd332b9a031d7eb992edd8a42e
+      url:          https://softwaredownloads.sap.com/file/0030000001510022021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_SH.SAR
+      archive:      BW4HANA300_NW_LANG_SH.SAR
+      checksum:     7e871c95abb813d4052b085f16950dfdf5035db1f4cb73573b88290fc642116a
+      url:          https://softwaredownloads.sap.com/file/0030000001510032021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_SK.SAR
+      archive:      BW4HANA300_NW_LANG_SK.SAR
+      checksum:     2b22e97a88d4339118d521ca9864372230324aad80c76cfffdb041f308eba9cd
+      url:          https://softwaredownloads.sap.com/file/0030000001510042021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_SL.SAR
+      archive:      BW4HANA300_NW_LANG_SL.SAR
+      checksum:     e004ef83539de7d9b6bfacdfc13f2406231e55671030bf4607cc207d1089973e
+      url:          https://softwaredownloads.sap.com/file/0030000001510062021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_SV.SAR
+      archive:      BW4HANA300_NW_LANG_SV.SAR
+      checksum:     ce32b409303558d5da50b44184aeba9e8951adb67543d97a592eed966e19d6f1
+      url:          https://softwaredownloads.sap.com/file/0030000001510072021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_TH.SAR
+      archive:      BW4HANA300_NW_LANG_TH.SAR
+      checksum:     3f824688eb0ddef925ae1dbc97e256eca3fe4eb78db86e65e55a34d67023b4ed
+      url:          https://softwaredownloads.sap.com/file/0030000001509952021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_TR.SAR
+      archive:      BW4HANA300_NW_LANG_TR.SAR
+      checksum:     127185199839919101c045c7b6b5989789e7b3e65f7913af77bd911df41e134f
+      url:          https://softwaredownloads.sap.com/file/0030000001510082021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_UK.SAR
+      archive:      BW4HANA300_NW_LANG_UK.SAR
+      checksum:     78fd66d81e33f498cf16582f42437d85d75f5dcf43880ac537f8ae23795200c2
+      url:          https://softwaredownloads.sap.com/file/0030000001510092021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_VI.SAR
+      archive:      BW4HANA300_NW_LANG_VI.SAR
+      checksum:     156ee5d1cf0102ce36cd777147ce717d0b03ceab0a9e3231f5acba0ee68a5e1c
+      url:          https://softwaredownloads.sap.com/file/0030000001510102021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_ZF.SAR
+      archive:      BW4HANA300_NW_LANG_ZF.SAR
+      checksum:     14b6d3142f2ff8f2a6e2c6e44326411b94e5a7b34cc91d5e41f87d48eb77210a
+      url:          https://softwaredownloads.sap.com/file/0030000001510112021
+      path:         download_basket
+
+    - name:         File on DVD - BW4HANA300_NW_LANG_ZH.SAR
+      archive:      BW4HANA300_NW_LANG_ZH.SAR
+      checksum:     d7c83f501a1b0fe343c2767fc41f4f7247ea9625c57b04f122ee230d0a772c60
+      url:          https://softwaredownloads.sap.com/file/0030000001510122021
+      path:         download_basket
+
+    # other components
+
+    - name:         Attribute Change Package 01 for BW4CONT 200
+      archive:      BW4CONT200.SAR
+      checksum:     2e091aa1e32f237f3d989c14d53bbb308bb7e2440cdbcec1efac593d3030cb1f
+      url:          https://softwaredownloads.sap.com/file/0010000000910122021
+      download:     false
+
+    - name:         Attribute Change Package 01 for BW4CONTB 200
+      archive:      BW4CONTB200.SAR
+      checksum:     578c17d5c5190129560689b20302fb42df8810a5e1601d8cb16540d38708c645
+      url:          https://softwaredownloads.sap.com/file/0010000000910142021
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0001"
+      archive:      K-20001INBW4CONT.SAR
+      checksum:     be6078e669a8ee512e83691d18e54e41fa72c2ef6bf398dbbf6288afc74fe8a4
+      url:          https://softwaredownloads.sap.com/file/0010000001432792019
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0001"
+      archive:      K-20001INBW4CONTB.SAR
+      checksum:     1e3c03c1642bca705151be66f4afef4a3f669b78468a345b73391d7ce7f45b2e
+      url:          https://softwaredownloads.sap.com/file/0010000001432932019
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0002"
+      archive:      K-20002INBW4CONT.SAR
+      checksum:     269fedeb3dc475653e9d5e8580f66b6439f362f581cbf89781c2141562985daa
+      url:          https://softwaredownloads.sap.com/file/0010000001978032019
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0002"
+      archive:      K-20002INBW4CONTB.SAR
+      checksum:     e284b241b454378c7ab756a9a7471d783575012c1a252f695f80130f41ca8197
+      url:          https://softwaredownloads.sap.com/file/0010000001978062019
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0003"
+      archive:      K-20003INBW4CONT.SAR
+      checksum:     40afa28b6e921403a8a151ec78904f8f50308bf27d2f9873ad55a4abd7e328dc
+      url:          https://softwaredownloads.sap.com/file/0010000000296202020
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0003"
+      archive:      K-20003INBW4CONTB.SAR
+      checksum:     be4c523e07639bc1f4b6f1610a71fe8d0881b09bb873ce71477a52e6da35384a
+      url:          https://softwaredownloads.sap.com/file/0010000000296262020
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0004"
+      archive:      K-20004INBW4CONT.SAR
+      checksum:     3ffe6d5be58f38f986a91153cf69ae009586e8cc25ece3526b7ce0de9e4db955
+      url:          https://softwaredownloads.sap.com/file/0010000000720162020
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0004"
+      archive:      K-20004INBW4CONTB.SAR
+      checksum:     992d00fb8a80ac6c49c41a5f77a987882fa110758f2a180c8c32a5357de93112
+      url:          https://softwaredownloads.sap.com/file/0010000000720192020
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0005"
+      archive:      K-20005INBW4CONT.SAR
+      checksum:     d24608e5fd2a44b1d2ab0cbfac0c8a765b28eca02b0e367b76e760602a68b3db
+      url:          https://softwaredownloads.sap.com/file/0010000001253432020
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0005"
+      archive:      K-20005INBW4CONTB.SAR
+      checksum:     15f53e6354d2fe457c68ffd50d62d833682c224eaabe65c0fc13a350dc0c7f22
+      url:          https://softwaredownloads.sap.com/file/0010000001253482020
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0006"
+      archive:      K-20006INBW4CONT.SAR
+      checksum:     d3fbfc38fb64b9dbecbe03c7b88a8e07f567d07327f348b3337d2788d8e75066
+      url:          https://softwaredownloads.sap.com/file/0010000001982702020
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0006"
+      archive:      K-20006INBW4CONTB.SAR
+      checksum:     edf85bed69cbaa0d34ae99bf78085f5ca95471343cd362d4566096d89663af00
+      url:          https://softwaredownloads.sap.com/file/0010000001982712020
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0007"
+      archive:      K-20007INBW4CONT.SAR
+      checksum:     f0b1f3ee2e19926b2dbb77bca3f2875438e1498250a2d2285fe2ca7e106d2787
+      url:          https://softwaredownloads.sap.com/file/0010000000470272021
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0007"
+      archive:      K-20007INBW4CONTB.SAR
+      checksum:     9d491a4628f21a6b47333520d355d0d537ad41fafa317db7b6bab669153350bb
+      url:          https://softwaredownloads.sap.com/file/0010000000470292021
+      download:     false
+
+    - name:         "BW4CONT 200: SP 0008"
+      archive:      K-20008INBW4CONT.SAR
+      checksum:     ee8ffda50b4f3b404468d5b257380089ad95647f347a81b58043b8d4ac9492fd
+      url:          https://softwaredownloads.sap.com/file/0010000001071462021
+      download:     false
+
+    - name:         "BW4CONTB 200: SP 0008"
+      archive:      K-20008INBW4CONTB.SAR
+      checksum:     2e51a6a51e4bd7a47c0ce5787a9c1faa87dc4b32c0b784b777638287afa7dbba
+      url:          https://softwaredownloads.sap.com/file/0010000001071492021
+      download:     false
+
+    - name:         "BW4CONT 200 Installation: Meta-Commandfile"
+      archive:      K-200AHINBW4CONT.SAR
+      checksum:     aa58699016a68c0a0cefba942ce2267d5f2a1ce7d1e02dc2086352e0f1397b39
+      url:          https://softwaredownloads.sap.com/file/0010000000670422019
+      download:     false
+
+    - name:         "BW4CONTB 200 Installation: Meta-Commandfile"
+      archive:      K-200AHINBW4CONTB.SAR
+      checksum:     3c4012ad56742a9d12128e3987c1e995828524eb4753e437bb70570bb1b99a07
+      url:          https://softwaredownloads.sap.com/file/0010000000670362019
+      download:     false
+
+    - name:         "ST-PI 740: SP 0016"
+      archive:      K-74016INSTPI.SAR
+      checksum:     0d5a3c74f813dad48345023c7acd146dc9ef84c121c6d854292cb534006c40a5
+      url:          https://softwaredownloads.sap.com/file/0010000001454472021
+      download:     false
+
+    - name:         SPAM/SAINT Update - Version 756/0079"
+      archive:      KD75679.SAR
+      checksum:     57a884c93377a126281051f02c2b40a0c1aa73fe4ea5755a11fd0e5bcf8f259d
+      url:          https://softwaredownloads.sap.com/file/0010000001277492021
+      download:     false
+
+  templates:
+    - name:         SAP_BW4HANA_2021 ini file
+      file:         "SAP_BW4HANA_2021.inifile.params"
+      override_target_location:        "{{ target_media_location }}/config"
+
+  stackfiles:
+    - name:         Download Basket JSON Manifest
+      file:         "download.json"
+      override_target_location:        "{{ target_media_location }}/config"
+
+    - name:         Download Basket Spreadsheet
+      file:         "MP_Excel.xls"
+      override_target_location:        "{{ target_media_location }}/config"
+
+    - name:         Download Basket Plan
+      file:         "MP_Plan_MP_Excel.xls_.pdf"
+      override_target_location:        "{{ target_media_location }}/config"
+
+    - name:         Download Basket Stack text
+      file:         "MP_Stack_MP_Excel.xls_.txt"
+      override_target_location:        "{{ target_media_location }}/config"
+
+    - name:         Download Basket Stack text
+      file:         "MP_Stack_MP_Excel.xls_.txt"
+      override_target_location:        "{{ target_media_location }}/config"
+
+    - name:         Download Basket Stack XML
+      file:         "MPstackfile.xml"
+      override_target_location:        "{{ target_media_location }}/config"
+
+    - name:         Download Basket permalinks
+      file:         "myDownloadBasketFiles.txt"
+      override_target_location:        "{{ target_media_location }}/config"

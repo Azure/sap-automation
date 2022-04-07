@@ -27,7 +27,7 @@ resource "azurerm_key_vault_access_policy" "kv_prvt_msi" {
   count        = (!local.prvt_kv_exist) ? 0 : 0
   key_vault_id = azurerm_key_vault.kv_prvt[0].id
 
-  tenant_id = data.azurerm_client_config.deployer.tenant_id
+  tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
   object_id = azurerm_user_assigned_identity.deployer.principal_id
 
   secret_permissions = [
@@ -43,7 +43,7 @@ resource "azurerm_key_vault" "kv_user" {
   name                       = local.keyvault_names.user_access
   resource_group_name        = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                   = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  tenant_id                  = data.azurerm_client_config.deployer.tenant_id
+  tenant_id                  = azurerm_user_assigned_identity.deployer.tenant_id
   soft_delete_retention_days = 7
   purge_protection_enabled   = var.enable_purge_control_for_keyvaults
 
@@ -74,7 +74,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 
   key_vault_id = azurerm_key_vault.kv_user[0].id
 
-  tenant_id = data.azurerm_client_config.deployer.tenant_id
+  tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
   object_id = azurerm_user_assigned_identity.deployer.principal_id
 
   secret_permissions = [
@@ -94,7 +94,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   count        = (!local.user_kv_exist) ? 1 : 0
   key_vault_id = azurerm_key_vault.kv_user[0].id
 
-  tenant_id = data.azurerm_client_config.deployer.tenant_id
+  tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
   # If running as a normal user use the object ID of the user otherwise use the object_id from AAD
   object_id = coalesce(data.azurerm_client_config.deployer.object_id, data.azurerm_client_config.deployer.client_id, var.arm_client_id)
   #application_id = data.azurerm_client_config.deployer.client_id
@@ -240,13 +240,13 @@ data "azurerm_key_vault_secret" "pwd" {
 
 resource "azurerm_private_endpoint" "kv_user" {
   count               = var.use_private_endpoint && !local.user_kv_exist ? 1 : 0
-  name                = format("%s%s", local.prefix, local.resource_suffixes.keyvault_private_link)
+  name                = format("%s%s%s", var.naming.resource_prefixes.keyvault_private_link, local.prefix, local.resource_suffixes.keyvault_private_link)
   resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   subnet_id           = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 
   private_service_connection {
-    name                           = format("%s%s", local.prefix, local.resource_suffixes.keyvault_private_svc)
+    name                           = format("%s%s%s", var.naming.resource_prefixes.keyvault_private_svc, local.prefix, local.resource_suffixes.keyvault_private_svc)
     is_manual_connection           = false
     private_connection_resource_id = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
     subresource_names = [

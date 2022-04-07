@@ -3,7 +3,7 @@
 resource "azurerm_network_interface" "app" {
   provider                      = azurerm.main
   count                         = local.enable_deployment ? local.application_server_count : 0
-  name                          = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.nic)
+  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.nic)
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
@@ -37,7 +37,7 @@ resource "azurerm_network_interface_application_security_group_association" "app
 resource "azurerm_network_interface" "app_admin" {
   provider                      = azurerm.main
   count                         = local.enable_deployment && var.application.dual_nics ? local.application_server_count : 0
-  name                          = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.admin_nic)
+  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.admin_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.admin_nic)
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
@@ -61,7 +61,7 @@ resource "azurerm_network_interface" "app_admin" {
 resource "azurerm_linux_virtual_machine" "app" {
   provider            = azurerm.main
   count               = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? local.application_server_count : 0) : 0
-  name                = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.vm)
   computer_name       = var.naming.virtualmachine_names.APP_COMPUTERNAME[count.index]
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
@@ -127,7 +127,7 @@ resource "azurerm_linux_virtual_machine" "app" {
     )
 
     content {
-      name                   = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.osdisk)
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
       disk_size_gb           = disk.value.size_gb
@@ -161,7 +161,7 @@ resource "azurerm_linux_virtual_machine" "app" {
 resource "azurerm_windows_virtual_machine" "app" {
   provider            = azurerm.main
   count               = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? local.application_server_count : 0) : 0
-  name                = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.vm)
   computer_name       = var.naming.virtualmachine_names.APP_COMPUTERNAME[count.index]
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
@@ -215,7 +215,7 @@ resource "azurerm_windows_virtual_machine" "app" {
     )
 
     content {
-      name                   = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.osdisk)
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
       disk_size_gb           = disk.value.size_gb
@@ -250,7 +250,7 @@ resource "azurerm_windows_virtual_machine" "app" {
 resource "azurerm_managed_disk" "app" {
   provider               = azurerm.main
   count                  = local.enable_deployment ? length(local.app_data_disks) : 0
-  name                   = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[local.app_data_disks[count.index].vm_index], local.app_data_disks[count.index].suffix)
+  name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.disk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[local.app_data_disks[count.index].vm_index], local.app_data_disks[count.index].suffix)
   location               = var.resource_group[0].location
   resource_group_name    = var.resource_group[0].name
   create_option          = "Empty"

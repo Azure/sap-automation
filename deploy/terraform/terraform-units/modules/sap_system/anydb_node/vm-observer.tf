@@ -3,7 +3,7 @@
 resource "azurerm_network_interface" "observer" {
   provider                      = azurerm.main
   count                         = local.deploy_observer ? 1 : 0
-  name                          = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.nic)
+  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.nic)
   resource_group_name           = var.resource_group[0].name
   location                      = var.resource_group[0].location
   enable_accelerated_networking = false
@@ -29,7 +29,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
   count               = local.deploy_observer && upper(local.anydb_ostype) == "LINUX" ? 1 : 0
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
-  name                = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.vm)
   computer_name       = var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME[count.index]
 
   admin_username                  = var.sid_username
@@ -54,7 +54,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
   custom_data = var.deployment == "new" ? var.cloudinit_growpart_config : null
 
   os_disk {
-    name                   = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.osdisk)
+    name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.osdisk)
     caching                = "ReadWrite"
     storage_account_type   = "Premium_LRS"
     disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
@@ -85,7 +85,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
 resource "azurerm_windows_virtual_machine" "observer" {
   provider            = azurerm.main
   count               = local.deploy_observer && upper(local.anydb_ostype) == "WINDOWS" ? 1 : 0
-  name                = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.vm)
+  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.vm)
   computer_name       = var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME[count.index]
   resource_group_name = var.resource_group[0].name
   location            = var.resource_group[0].location
@@ -100,7 +100,7 @@ resource "azurerm_windows_virtual_machine" "observer" {
   admin_password = var.sid_password
 
   os_disk {
-    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.osdisk)
+    name                 = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index], local.resource_suffixes.osdisk)
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }

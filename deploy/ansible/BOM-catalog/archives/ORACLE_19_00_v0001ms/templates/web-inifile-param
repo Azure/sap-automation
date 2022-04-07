@@ -39,7 +39,7 @@ NW_GetSidNoProfiles.sid = X00
 # NW_GetSidNoProfiles.unicode = true
 
 # DEPRECATED, DO NOT USE!
-# NW_SAPCrypto.SAPCryptoFile = /usr/sap/install/download_basket/SAPWEBDISP_SP_121-70005393.SAR
+# NW_SAPCrypto.SAPCryptoFile = {{ target_media_location }}/download_basket/SAPWEBDISP_SP_121-70005393.SAR
 
 # SAP INTERNAL USE ONLY
 # NW_System.installSAPHostAgent = true
@@ -136,7 +136,7 @@ NW_webdispatcher_Instance.wdVirtualHostname = x00web01l8ad
 # OS4.DestinationASP =
 
 # The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
-archives.downloadBasket = /usr/sap/install/download_basket/SAPWEBDISP_SP_121-70005393.SAR
+archives.downloadBasket = {{ target_media_location }}/download_basket/SAPWEBDISP_SP_121-70005393.SAR
 
 # Windows only: The domain of the SAP Host Agent user
 # hostAgent.domain =

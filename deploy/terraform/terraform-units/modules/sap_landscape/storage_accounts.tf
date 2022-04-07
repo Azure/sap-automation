@@ -47,7 +47,7 @@ data "azurerm_storage_account" "storage_bootdiag" {
 resource "azurerm_private_endpoint" "storage_bootdiag" {
   provider            = azurerm.main
   count               = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 1 : 0
-  name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_diag)
+  name                = format("%s%s%s", var.naming.resource_prefixes.storage_private_link_diag, local.prefix, local.resource_suffixes.storage_private_link_diag)
   resource_group_name = local.rg_name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   subnet_id = local.admin_subnet_defined ? (
@@ -56,7 +56,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
   )
 
   private_service_connection {
-    name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_diag)
+    name                           = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_diag, local.prefix, local.resource_suffixes.storage_private_svc_diag)
     is_manual_connection           = false
     private_connection_resource_id = length(var.witness_storage_account.arm_id) > 0 ? data.azurerm_storage_account.storage_bootdiag[0].id : azurerm_storage_account.storage_bootdiag[0].id
     subresource_names = [
@@ -113,7 +113,7 @@ data "azurerm_storage_account" "witness_storage" {
 resource "azurerm_private_endpoint" "witness_storage" {
   provider            = azurerm.main
   count               = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
-  name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_witness)
+  name                = format("%s%s%s", var.naming.resource_prefixes.storage_private_link_witness, local.prefix, local.resource_suffixes.storage_private_link_witness)
   resource_group_name = local.rg_name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   subnet_id = local.database_subnet_defined ? (
@@ -122,7 +122,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
   )
 
   private_service_connection {
-    name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_witness)
+    name                           = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_witness, local.prefix, local.resource_suffixes.storage_private_svc_witness)
     is_manual_connection           = false
     private_connection_resource_id = length(var.witness_storage_account.arm_id) > 0 ? var.witness_storage_account.arm_id : azurerm_storage_account.witness_storage[0].id
     subresource_names = [
@@ -219,7 +219,7 @@ resource "azurerm_private_endpoint" "transport" {
     )) : (
     0
   )
-  name                = format("%s%s", local.prefix, local.resource_suffixes.storage_private_link_transport)
+  name                = format("%s%s%s", var.naming.resource_prefixes.storage_private_link_transport, local.prefix, local.resource_suffixes.storage_private_link_transport)
   resource_group_name = local.rg_name
   location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   subnet_id = local.application_subnet_defined ? (
@@ -228,7 +228,7 @@ resource "azurerm_private_endpoint" "transport" {
   )
 
   private_service_connection {
-    name                           = format("%s%s", local.prefix, local.resource_suffixes.storage_private_svc_transport)
+    name                           = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_transport, local.prefix, local.resource_suffixes.storage_private_svc_transport)
     is_manual_connection           = false
     private_connection_resource_id = length(var.azure_files_transport_storage_account_id) > 0 ? data.azurerm_storage_account.transport[0].id : azurerm_storage_account.transport[0].id
     subresource_names = [
