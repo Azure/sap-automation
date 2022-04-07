@@ -89,7 +89,6 @@
   ansible.builtin.debug:
     var:                               orainstaller_results.stdout_lines
     verbosity:                         0
-  when:                                orainstaller_results >= 2
 
 - name:                                "ORACLE (sharedHome): Debug installer output log"
   ansible.builtin.copy:
