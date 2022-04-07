@@ -2,40 +2,40 @@
 # Creates app subnet of SAP VNET
 resource "azurerm_subnet" "subnet_sap_app" {
   provider             = azurerm.main
-  count                = local.enable_deployment ? (local.sub_app_exists ? 0 : 1) : 0
-  name                 = local.sub_app_name
+  count                = local.enable_deployment ? (local.application_subnet_exists ? 0 : 1) : 0
+  name                 = local.application_subnet_name
   resource_group_name  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
- address_prefixes     = [local.sub_app_prefix]
+ address_prefixes     = [local.application_subnet_prefix]
 }
 
 
 # Imports data of existing SAP app subnet
 data "azurerm_subnet" "subnet_sap_app" {
   provider             = azurerm.main
-  count                = local.enable_deployment ? (local.sub_app_exists ? 1 : 0) : 0
-  name                 = split("/", local.sub_app_arm_id)[10]
-  resource_group_name  = split("/", local.sub_app_arm_id)[4]
-  virtual_network_name = split("/", local.sub_app_arm_id)[8]
+  count                = local.enable_deployment ? (local.application_subnet_exists ? 1 : 0) : 0
+  name                 = split("/", local.application_subnet_arm_id)[10]
+  resource_group_name  = split("/", local.application_subnet_arm_id)[4]
+  virtual_network_name = split("/", local.application_subnet_arm_id)[8]
 }
 
 # Creates web dispatcher subnet of SAP VNET
 resource "azurerm_subnet" "subnet_sap_web" {
   provider             = azurerm.main
-  count                = local.enable_deployment && local.sub_web_defined ? (local.sub_web_exists ? 0 : 1) : 0
-  name                 = local.sub_web_name
+  count                = local.enable_deployment && local.web_subnet_defined ? (local.web_subnet_exists ? 0 : 1) : 0
+  name                 = local.web_subnet_name
   resource_group_name  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
-  address_prefixes     = [local.sub_web_prefix]
+  address_prefixes     = [local.web_subnet_prefix]
 }
 
 # Imports data of existing SAP web dispatcher subnet
 data "azurerm_subnet" "subnet_sap_web" {
   provider             = azurerm.main
-  count                = local.enable_deployment ? (local.sub_web_exists ? 1 : 0) : 0
-  name                 = split("/", local.sub_web_arm_id)[10]
-  resource_group_name  = split("/", local.sub_web_arm_id)[4]
-  virtual_network_name = split("/", local.sub_web_arm_id)[8]
+  count                = local.enable_deployment ? (local.web_subnet_exists ? 1 : 0) : 0
+  name                 = split("/", local.web_subnet_arm_id)[10]
+  resource_group_name  = split("/", local.web_subnet_arm_id)[4]
+  virtual_network_name = split("/", local.web_subnet_arm_id)[8]
 }
 
 /*
@@ -211,10 +211,10 @@ resource "azurerm_lb" "web" {
 
   frontend_ip_configuration {
     name      = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_alb_feip)
-    subnet_id = local.sub_web_deployed.id
+    subnet_id = local.web_subnet_deployed.id
     private_ip_address = var.application.use_DHCP ? (
       null) : (
-      try(local.web_lb_ips[0], cidrhost(local.sub_web_deployed.address_prefixes[0], local.ip_offsets.web_lb))
+      try(local.web_lb_ips[0], cidrhost(local.web_subnet_deployed.address_prefixes[0], local.ip_offsets.web_lb))
     )
     private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
   }
@@ -296,14 +296,14 @@ resource "azurerm_application_security_group" "web" {
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
   provider       = azurerm.main
-  count          = !local.sub_app_exists && local.enable_deployment && length(var.route_table_id) > 0 ? 1 : 0
+  count          = !local.application_subnet_exists && local.enable_deployment && length(var.route_table_id) > 0 ? 1 : 0
   subnet_id      = azurerm_subnet.subnet_sap_app[0].id
   route_table_id = var.route_table_id
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
   provider       = azurerm.main
-  count          = local.enable_deployment && local.enable_deployment && local.sub_web_defined && length(var.route_table_id) > 0 ? (local.sub_web_exists ? 0 : 1) : 0
+  count          = local.enable_deployment && local.enable_deployment && local.web_subnet_defined && length(var.route_table_id) > 0 ? (local.web_subnet_exists ? 0 : 1) : 0
   subnet_id      = azurerm_subnet.subnet_sap_web[0].id
   route_table_id = var.route_table_id
 }
