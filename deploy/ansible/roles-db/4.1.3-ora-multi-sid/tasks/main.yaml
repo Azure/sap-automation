@@ -21,7 +21,6 @@
                       chown -R oracle:oinstall /oracle
   args:
     creates:                           /etc/sap_deployment_automation/oracleowner.txt
-  
 
 - name:                                "ORACLE (sharedHome): Create oracleowner.txt"
   become:                              true
@@ -33,6 +32,12 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "ORACLE (sharedHome): Permissions for installation folders"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}"
+    state:                             directory
+    mode:                              0777
+    recurse:                           true
 
 #  START OF ORACLE SOFTWARE INSTALLATION USING SAP RUNINSTALLER WRAPPER.
 # /*---------------------------------------------------------------------------8
@@ -84,7 +89,7 @@
     path:                              /etc/sap_deployment_automation/shared_db_installed.txt
     state:                             touch
     mode:                              0755
-
+  when:                                orainstall_results.rc < 2
 
 #STEP2 RUN THE INSTALLATION - EXECUTE per SID.
 
@@ -99,15 +104,15 @@
   environment:
     DB_SID:                            "{{ item.sid }}"
     CV_ASSUME_DISTID:                  OL7
-  loop:    "{{ MULTI_SIDS }}"
+  loop:                                "{{ MULTI_SIDS }}"
   args:
     executable:                        /bin/csh
-    chdir:                             "{{ target_media_location }}_location }}/oraserver/LINUX_X86_64/db_home/SAP"
-    creates:                           /etc/sap_deployment_automation/oracleinstall.txt
+    chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:                           /etc/sap_deployment_automation/oracle_installed.txt
 
 - name:                                "ORACLE (sharedHome): create after a successful install"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/oracleinstall.txt
+    path:                              /etc/sap_deployment_automation/oracle_installed.txt
     state:                             touch
     mode:                              0755
 
@@ -154,7 +159,7 @@
   ansible.builtin.shell  :             /oracle/RDBMS/{{ ora_version }}/root.sh
   register:                            rootscript_results
   args:
-    creates:                           /etc/sap_deployment_automation/rootscripts_executed.txt
+    creates:                           /etc/sap_deployment_automation/root_scripts_executed.txt
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
@@ -173,7 +178,7 @@
 
 - name:                                "ORACLE (sharedHome): Create rootscripts_executed.txt"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/rootscripts_executed.txt
+    path:                              /etc/sap_deployment_automation/root_scripts_executed.txt
     state:                             touch
     mode:                              0755
 
@@ -251,7 +256,7 @@
 - name:                                "ORACLE (sharedHome): Post Processing - SBP Patching"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee -a /etc/sap_deployment_automation/sbp.log
+  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -265,14 +270,17 @@
     chdir:                             "{{ target_media_location }}/SBP"
     executable:                        /bin/csh
 
-- name:                                "Post processing installer output"
+- name:                                "ORACLE (sharedHome): Post processing installer output"
   ansible.builtin.debug:
     var:                               sbpscript_results.stdout_lines
+    verbosity:                         2
 
-# - name:                                Remove SAPSBP
-#   ansible.builtin.file:
-#     path:                              "{{ mopatch_path }}"
-#     state:                             absent
+- name:                                "ORACLE (sharedHome): Post processing installer output"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/sbp.log
+    content:                           "{{ sbpscript_results.stdout }}"
+    mode:                              0777
+  when:                                sbpscript_results.stdout is defined
 
 - name:                                "ORACLE (sharedHome): Create sbpinstalled.txt"
   ansible.builtin.file:
@@ -280,7 +288,7 @@
     state:                             touch
     mode:                              0755
 
-- name:                                "Add environment variables to the Bash profile"
+- name:                                "ORACLE (sharedHome): Add environment variables to the Bash profile"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
