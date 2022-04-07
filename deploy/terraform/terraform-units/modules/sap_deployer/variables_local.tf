@@ -54,7 +54,7 @@ locals {
     var.naming.prefix.DEPLOYER) : (
     length(var.infrastructure.resource_group.name) > 0 ? (
       var.infrastructure.resource_group.name) : (
-      "sap-deployer"
+      "sapdeployer"
     )
   )
 
@@ -188,10 +188,10 @@ locals {
   pwd_exist      = try(length(local.input_password_secret_name) > 0, false)
   username_exist = try(length(local.input_username_secret_name) > 0, false)
 
-  ppk_secret_name      = local.key_exist ? local.input_private_key_secret_name : format("%s-sshkey", local.prefix)
-  pk_secret_name       = local.key_exist ? local.input_public_key_secret_name : format("%s-sshkey-pub", local.prefix)
-  pwd_secret_name      = local.pwd_exist ? local.input_password_secret_name : format("%s-password", local.prefix)
-  username_secret_name = local.username_exist ? local.input_username_secret_name : format("%s-username", local.prefix)
+  ppk_secret_name      = local.key_exist ? local.input_private_key_secret_name : format("%s-sshkey", length(local.prefix) > 0 ? local.prefix : "DEP00")
+  pk_secret_name       = local.key_exist ? local.input_public_key_secret_name : format("%s-sshkey-pub", length(local.prefix) > 0 ? local.prefix : "DEP00")
+  pwd_secret_name      = local.pwd_exist ? local.input_password_secret_name : format("%s-password", length(local.prefix) > 0 ? local.prefix : "DEP00")
+  username_secret_name = local.username_exist ? local.input_username_secret_name : format("%s-username", length(local.prefix) > 0 ? local.prefix : "DEP00")
 
   // Extract information from the specified key vault arm ids
   user_kv_name    = local.user_kv_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access
