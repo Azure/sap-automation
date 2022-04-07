@@ -584,3 +584,9 @@ variable "name_overrride_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
   default = ""
 }
+
+
+variable "shared_home" {
+  description = "If defined provides shared-home support"
+  default = false
+}
