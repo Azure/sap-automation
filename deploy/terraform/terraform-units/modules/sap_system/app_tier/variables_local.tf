@@ -133,7 +133,7 @@ locals {
   rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.rg_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s", local.prefix, local.resource_suffixes.sdu_rg))
+    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", var.naming.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
   )
 
   sid_auth_type        = upper(local.app_ostype) == "LINUX" ? try(var.application.authentication.type, "key") : "password"
@@ -166,7 +166,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_app.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_app.name) : (
-        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
+        format("%s%s%s%s", var.naming.resource_prefixes.app_subnet, local.prefix, var.naming.separator, local.resource_suffixes.app_subnet)
     ))) : (
     ""
   )
@@ -190,7 +190,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_app.nsg.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_app.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
-        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
+        format("%s%s%s%s", var.naming.resource_prefixes.app_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.app_subnet_nsg)
     ))) : (
     ""
   )
@@ -215,7 +215,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_web.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_web.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_web.name) : (
-        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
+        format("%s%s%s%s", var.naming.resource_prefixes.web_subnet, local.prefix, var.naming.separator, local.resource_suffixes.web_subnet)
     ))) : (
     ""
   )
@@ -238,7 +238,7 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_web.nsg.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_web.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_web.nsg.name) : (
-        format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg)
+        format("%s%s%s%s", var.naming.resource_prefixes.web_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.web_subnet_nsg)
     ))) : (
     ""
   )
@@ -452,14 +452,14 @@ locals {
 
   winha_ips = [
     {
-      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
+      name                          = format("%s%s%s%s", var.naming.resource_prefixes.scs_clst_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_clst_feip)
       subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
 
     },
     {
-      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
+      name                          = format("%s%s%s%s", var.naming.resource_prefixes.scs_fs_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_fs_feip)
       subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
@@ -469,13 +469,13 @@ locals {
 
   std_ips = [
     {
-      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
+      name                          = format("%s%s%s%s", var.naming.resource_prefixes.scs_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_alb_feip)
       subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[0], cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     },
     {
-      name                          = format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
+      name                          = format("%s%s%s%s", var.naming.resource_prefixes.scs_ers_feip, local.prefix, var.naming.separator, local.resource_suffixes.scs_ers_feip)
       subnet_id                     = local.enable_deployment ? (local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id) : ""
       private_ip_address            = var.application.use_DHCP ? (null) : (try(local.scs_lb_ips[1], cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb)))
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
