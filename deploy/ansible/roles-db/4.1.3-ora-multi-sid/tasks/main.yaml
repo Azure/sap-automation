@@ -14,7 +14,7 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "Make oracle:oinstall as owners"
+- name:                                "ORACLE (sharedHome): Make oracle:oinstall as owners"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
@@ -23,7 +23,7 @@
     creates:                           /etc/sap_deployment_automation/oracleowner.txt
   
 
-- name:                                Create oracleowner.txt
+- name:                                "ORACLE (sharedHome): Create oracleowner.txt"
   become:                              true
   become_user:                         root
   ansible.builtin.file:
@@ -48,29 +48,42 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                       set -o errexit
-                      ./RUNINSTALLER -shared -create_link no -orabasetab no -silent |tee /etc/sap_deployment_automation/rdbms.log
-  register:                           orainstall_results
-  failed_when:                        orainstall_results.rc >= 2
+                      ./RUNINSTALLER -shared -create_link no -orabasetab no -silent
+  register:                            orainstaller_results
+  failed_when:                         orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
-    chdir:                            "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
-    creates:                          /etc/sap_deployment_automation/shared_db_installed.txt
+    chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+    creates:                           /etc/sap_deployment_automation/shared_db_installed.txt
   tags:
     - skip_ansible_lint
+
+- name:                                "ORACLE (sharedHome): Debug: installer output"
+  ansible.builtin.debug:
+    var:                               orainstaller_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "ORACLE (sharedHome): Debug: installer output"
+  ansible.builtin.debug:
+    var:                               orainstaller_results.stdout_lines
+    verbosity:                         0
+  when:                                orainstaller_results >= 2
+
+- name:                                "ORACLE (sharedHome): Debug installer output log"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/rdbms.log
+    content:                           "{{ orainstaller_results.stdout }}"
+    mode:                              0777
+  when:                                orainstaller_results.stdout is defined
 
 - name:                                "ORACLE (sharedHome): Create shared_db_installed.txt"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/shared_db_installed.txt
     state:                             touch
     mode:                              0755
-
-#Debug for testing
-- name:                                "ORACLE (sharedHome): installer prechecks output"
-  debug:
-    var:                               orainstall_results
 
 
 #STEP2 RUN THE INSTALLATION - EXECUTE per SID.
@@ -81,8 +94,8 @@
   ansible.builtin.shell: |
                       set -o errexit
                       ./RUNINSTALLER -shared -ohsapcfg |tee -a /etc/sap_deployment_automation/"{{ item.sid }}"_install.log
-  register:           orainstaller_results
-  failed_when:        orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  register:                            orainstaller_results
+  failed_when:                         orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ item.sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -109,13 +122,25 @@
 - name:                                "ORACLE (sharedHome): Post Processing - Run orainstRoot.sh"
   become:                              true
   become_user:                         root
-  ansible.builtin.shell:               /oracle/oraInventory/orainstRoot.sh |tee -a /etc/sap_deployment_automation/orainstRoot.log
+  ansible.builtin.shell:               /oracle/oraInventory/orainstRoot.sh
   register:                            orainstRoot_results
   args:
     creates:                           /etc/sap_deployment_automation/orainstRoot_executed.txt
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
+
+- name:                                "ORACLE (sharedHome): Debug: orainstRoot output"
+  ansible.builtin.debug:
+    var:                               orainstRoot_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "ORACLE (sharedHome): Debug installer output log"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/orainstRoot.log
+    content:                           "{{ orainstRoot_results.stdout }}"
+    mode:                              0777
+  when:                                orainstRoot_results.stdout is defined
 
 - name:                                "ORACLE (sharedHome): Create orainstRoot_executed.txt"
   ansible.builtin.file:
@@ -126,13 +151,25 @@
 - name:                                "ORACLE (sharedHome): Post Processing - Run root.sh"
   become:                              true
   become_user:                         root
-  ansible.builtin.shell  :             /oracle/RDBMS/{{ ora_version }}/root.sh |tee -a /etc/sap_deployment_automation/rootscript.log
+  ansible.builtin.shell  :             /oracle/RDBMS/{{ ora_version }}/root.sh
   register:                            rootscript_results
   args:
     creates:                           /etc/sap_deployment_automation/rootscripts_executed.txt
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
+
+- name:                                "ORACLE (sharedHome): Debug: rootscript output"
+  ansible.builtin.debug:
+    var:                               rootscript_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "ORACLE (sharedHome): Debug rootscript output log"
+  ansible.builtin.copy:
+    dest:                              /etc/sap_deployment_automation/rootscript.log
+    content:                           "{{ rootscript_results.stdout }}"
+    mode:                              0777
+  when:                                rootscript_results.stdout is defined
 
 - name:                                "ORACLE (sharedHome): Create rootscripts_executed.txt"
   ansible.builtin.file:
