@@ -19,7 +19,7 @@
 
 - name:                                "SAP Oracle DB ASM: Create run MOPatch directory"
   ansible.builtin.file:
-    path:                              /oracle/stage/{{ ora_release }}/grid_home/MOPatch
+    path:                              "/oracle/stage/{{ ora_release }}/grid_home/MOPatch"
     state:                             directory
     owner:                             oracle
     group:                             oinstall
