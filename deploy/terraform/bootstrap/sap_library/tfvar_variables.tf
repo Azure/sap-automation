@@ -166,6 +166,12 @@ variable "enable_purge_control_for_keyvaults" {
 variable "use_private_endpoint" {
   default = false
 }
+  
+variable "name_overrride_file" {
+  description = "If provided, contains a json formatted file defining the name overrides"
+  default = ""
+}
+
 
 variable "use_webapp" {
   default = false

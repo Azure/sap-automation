@@ -1,4 +1,3 @@
-
 exclude_paths:
   - deploy/pipelines
   - deploy/terraform

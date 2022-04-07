@@ -186,6 +186,11 @@ variable "observer_vms" {
   description = "List of Observer VMs"
 }
 
+variable "shared_home" {
+  description = "If defined provides shared-home support"
+}
+
+
 locals {
 
   tfstate_resource_id          = try(var.tfstate_resource_id, "")

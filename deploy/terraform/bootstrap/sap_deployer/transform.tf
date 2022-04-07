@@ -30,12 +30,10 @@ locals {
           arm_id = try(coalesce(var.management_firewall_subnet_arm_id, try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")), "")
           prefix = try(coalesce(var.management_firewall_subnet_address_prefix, try(var.infrastructure.vnets.management.subnet_fw.prefix, "")), "")
         }
-
         subnet_bastion = {
           arm_id = var.bastion_subnet_arm_id
           prefix = var.bastion_subnet_address_prefix
         }
-        
         subnet_cmdb = {
           arm_id = var.cmdb_subnet_arm_id
           prefix = var.cmdb_subnet_address_prefix

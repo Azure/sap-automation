@@ -26,6 +26,7 @@ locals {
             allowed_ips = try(coalesce(var.management_subnet_nsg_allowed_ips, try(var.management_subnet_nsg_arm_id, "")), [])
           }
         }
+
         subnet_fw = {
           arm_id = try(coalesce(var.management_firewall_subnet_arm_id, try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")), "")
           prefix = try(coalesce(var.management_firewall_subnet_address_prefix, try(var.infrastructure.vnets.management.subnet_fw.prefix, "")), "")

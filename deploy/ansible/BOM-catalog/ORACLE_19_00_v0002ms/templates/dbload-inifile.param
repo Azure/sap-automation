@@ -135,7 +135,7 @@ NW_getLoadType.loadType = SAP
 # NW_readProfileDir.profileDir = 
 
 # Enter the path of the existing 'profile' directory.
-NW_readProfileDir.profilesAvailable = false
+NW_readProfileDir.profilesAvailable = true
 
 # Windows only: The drive to use
 # NW_readProfileDir.sapdrive = 

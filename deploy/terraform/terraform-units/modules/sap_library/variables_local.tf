@@ -46,14 +46,13 @@ locals {
     try(split("/", local.rg_arm_id)[4], "")) : (
     length(local.var_infra.resource_group.name) > 0 ? (
       local.var_infra.resource_group.name) : (
-      format("%s%s", local.prefix, local.resource_suffixes.library_rg)
+      format("%s%s%s", var.naming.resource_prefixes.library_rg, local.prefix, local.resource_suffixes.library_rg)
     )
   )
 
   // Storage account for sapbits
-  sa_sapbits_arm_id = try(var.storage_account_sapbits.arm_id, "")
-  sa_sapbits_exists = length(local.sa_sapbits_arm_id) > 0 ? true : false
-  sa_sapbits_name   = local.sa_sapbits_exists ? split("/", local.sa_sapbits_arm_id)[8] : local.storageaccount_names.library_storageaccount_name
+  sa_sapbits_exists = length(var.storage_account_sapbits.arm_id) > 0 ? true : false
+  sa_sapbits_name   = local.sa_sapbits_exists ? split("/", var.storage_account_sapbits.arm_id)[8] : local.storageaccount_names.library_storageaccount_name
 
   sa_sapbits_account_tier             = local.sa_sapbits_exists ? "" : try(var.storage_account_sapbits.account_tier, "Standard")
   sa_sapbits_account_replication_type = local.sa_sapbits_exists ? "" : try(var.storage_account_sapbits.account_replication_type, "LRS")
@@ -125,7 +124,6 @@ locals {
   rg_library_location           = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
   storagecontainer_sapbits_name = local.sa_sapbits_blob_container_enable ? local.sa_sapbits_blob_container_name : null
   fileshare_sapbits_name        = local.sa_sapbits_file_share_enable ? local.sa_sapbits_file_share_name : null
-
 
   deployer_kv_user_arm_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_kv_user_arm_id, "") : ""
 

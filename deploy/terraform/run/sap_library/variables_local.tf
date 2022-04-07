@@ -16,7 +16,7 @@ locals {
   version_label   = trimspace(file("${path.module}/../../../configs/version.txt"))
   deployer_prefix = module.sap_namegenerator.naming.prefix.DEPLOYER
   // If custom names are used for deployer, providing resource_group_name and msi_name will override the naming convention
-  deployer_rg_name = try(local.deployer.resource_group_name, format("%s%s", local.deployer_prefix, module.sap_namegenerator.naming.resource_suffixes.deployer_rg))
+  deployer_rg_name = try(local.deployer.resource_group_name, format("%s%s%s", module.sap_namegenerator.naming.resource_prefixes.deployer_rg, local.deployer_prefix, module.sap_namegenerator.naming.resource_suffixes.deployer_rg))
 
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
@@ -48,5 +48,6 @@ locals {
     object_id       = data.azurerm_client_config.current.object_id
   }
 
+  custom_names = length(var.name_overrride_file) > 0 ? jsondecode(file(format("%s/%s", path.cwd, var.name_overrride_file))) : null
 
 }
