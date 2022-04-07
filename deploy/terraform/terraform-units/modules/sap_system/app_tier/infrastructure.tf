@@ -6,7 +6,7 @@ resource "azurerm_subnet" "subnet_sap_app" {
   name                 = local.application_subnet_name
   resource_group_name  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
- address_prefixes     = [local.application_subnet_prefix]
+  address_prefixes     = [local.application_subnet_prefix]
 }
 
 
@@ -185,7 +185,7 @@ resource "azurerm_availability_set" "scs" {
 # Create the Application Availability Set
 resource "azurerm_availability_set" "app" {
   provider                     = azurerm.main
-  count                        = local.enable_deployment && local.use_app_avset  && length(var.application.avset_arm_ids) == 0 ? max(length(local.app_zones), 1) : 0
+  count                        = local.enable_deployment && local.use_app_avset && length(var.application.avset_arm_ids) == 0 ? max(length(local.app_zones), 1) : 0
   name                         = format("%s%s%s", local.prefix, var.naming.separator, var.naming.app_avset_names[count.index])
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name
@@ -210,10 +210,15 @@ resource "azurerm_lb" "web" {
   sku                 = "Standard"
 
   frontend_ip_configuration {
+    name      = format("%s%s%s%s", var.naming.resource_prefixes.web_alb_feip, local.prefix, var.naming.separator, local.resource_suffixes.web_alb_feip)
     subnet_id = local.web_subnet_deployed.id
+    private_ip_address = var.application.use_DHCP ? (
+      null) : (
+      try(local.web_lb_ips[0], cidrhost(local.web_subnet_deployed.address_prefixes[0], local.ip_offsets.web_lb))
     )
     private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
   }
+
 }
 
 resource "azurerm_lb_backend_address_pool" "web" {
