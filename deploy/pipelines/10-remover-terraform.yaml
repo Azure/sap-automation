@@ -113,28 +113,23 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-
               echo -e "$green--- az login ---$reset"
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_SECRET) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_TENANT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -173,7 +168,6 @@ stages:
                   git rm -q -f -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
                   changed=1
                 fi
-
                 if [ -f  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
                   git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                   changed=1
@@ -238,7 +232,6 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-
               echo -e "$green--- az login ---$reset"
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
@@ -294,12 +287,10 @@ stages:
                   git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
                   changed=1
                 fi
-
                 if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
                   git rm -q -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                   changed=1
                 fi
-
                 if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
                   git rm -q -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                   changed=1
@@ -344,7 +335,6 @@ stages:
                 fi
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
-
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
@@ -357,22 +347,18 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_CLIENT_SECRET) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-
                 if [ ! -n $(ARM_TENANT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -381,7 +367,6 @@ stages:
                   exit $return_code
                 fi
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
@@ -424,7 +409,6 @@ stages:
                   git rm -q -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
                   changed=1
                 fi
-
                 if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate" ]; then
                   git rm -q -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate
                   changed=1
@@ -434,7 +418,6 @@ stages:
                   git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate
                   changed=1
                 fi
-
                 if [ -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate ]; then
                   git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate
                   changed=1

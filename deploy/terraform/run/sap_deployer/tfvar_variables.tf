@@ -230,7 +230,6 @@ variable "bastion_subnet_address_prefix" {
   default = ""
 }
 
-
 variable "deployer_diagnostics_account_arm_id" {
   default = ""
 }
