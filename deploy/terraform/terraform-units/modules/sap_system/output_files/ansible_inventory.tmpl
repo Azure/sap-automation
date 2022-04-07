@@ -8,7 +8,7 @@ ${sid}_DB:
       connection_type     : ${dbconnectiontype} 
 %{~ endfor }
   vars:
-    node_tier             : ${platform_ext}
+    node_tier             : ${platform}
     supported_tiers       : [${db_supported_tiers}]
 
 ${sid}_SCS:
