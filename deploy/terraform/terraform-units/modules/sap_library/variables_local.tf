@@ -46,9 +46,8 @@ locals {
   )
 
   // Storage account for sapbits
-  sa_sapbits_arm_id = try(var.storage_account_sapbits.arm_id, "")
-  sa_sapbits_exists = length(local.sa_sapbits_arm_id) > 0 ? true : false
-  sa_sapbits_name   = local.sa_sapbits_exists ? split("/", local.sa_sapbits_arm_id)[8] : local.storageaccount_names.library_storageaccount_name
+  sa_sapbits_exists = length(var.storage_account_sapbits.arm_id) > 0 ? true : false
+  sa_sapbits_name   = local.sa_sapbits_exists ? split("/", var.storage_account_sapbits.arm_id)[8] : local.storageaccount_names.library_storageaccount_name
 
   sa_sapbits_account_tier             = local.sa_sapbits_exists ? "" : try(var.storage_account_sapbits.account_tier, "Standard")
   sa_sapbits_account_replication_type = local.sa_sapbits_exists ? "" : try(var.storage_account_sapbits.account_replication_type, "LRS")
