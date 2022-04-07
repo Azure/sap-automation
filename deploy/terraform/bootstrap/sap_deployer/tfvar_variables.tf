@@ -210,13 +210,15 @@ variable "use_private_endpoint" {
 }
 
 variable "tf_version" {
-  default = "1.1.7"
+  default = "1.1.4"
 }
 
-variable "bastion_deployment" {
-  description = "Boolean flag indicating if an Azure bastion should be deployed"
-  default     = false
-}
+########################################################
+#
+#                     Bastion
+#
+########################################################
+
 
 variable "bastion_subnet_arm_id" {
   default = ""
@@ -224,6 +226,11 @@ variable "bastion_subnet_arm_id" {
 
 variable "bastion_subnet_address_prefix" {
   default = ""
+}
+
+variable "bastion_deployment" {
+  description = "Boolean flag indicating if an Azure bastion should be deployed"
+  default     = false
 }
 
 variable "deployer_diagnostics_account_arm_id" {

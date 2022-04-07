@@ -156,7 +156,6 @@ stages:
                 cd $(Build.Repository.LocalPath)
                 git pull
                 added=0
-
                 if [ -f ${workload_environment_file_name} ]; then
                   git add ${workload_environment_file_name}
                   added=1
