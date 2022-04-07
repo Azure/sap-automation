@@ -16,7 +16,6 @@
 
 ---
 
-<<<<<<< HEAD
 - name:                                "ORACLE: Create sap_deployment_automation folder"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
@@ -46,8 +45,6 @@
   
 
 
-=======
->>>>>>> 947774b559157feb4cced866a5e58ea15fc6c4f5
 - name:                                "ORACLE: - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
