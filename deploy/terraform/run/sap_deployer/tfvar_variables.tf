@@ -221,7 +221,6 @@ variable "bastion_deployment" {
   default     = false
 }
 
-
 variable "bastion_subnet_arm_id" {
   default = ""
 }
@@ -234,7 +233,7 @@ variable "deployer_diagnostics_account_arm_id" {
   default = ""
 }
 
-variable "name_overrride_file" {
+variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
   default = ""
 }

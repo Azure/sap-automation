@@ -12,7 +12,7 @@ module "sap_landscape" {
   infrastructure                           = local.infrastructure
   options                                  = local.options
   authentication                           = local.authentication
-  naming                                   = length(var.name_overrride_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  naming                                   = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   service_principal                        = var.use_spn ? local.service_principal : local.account
   key_vault                                = local.key_vault
   deployer_tfstate                         = try(data.terraform_remote_state.deployer[0].outputs, [])

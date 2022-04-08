@@ -50,19 +50,12 @@ locals {
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
 
   // Resource group
-  prefix = length(var.naming.prefix.DEPLOYER) > 0 ? (
-    var.naming.prefix.DEPLOYER) : (
-    length(var.infrastructure.resource_group.name) > 0 ? (
-      var.infrastructure.resource_group.name) : (
-      "sap-deployer"
-    )
-  )
+  prefix = var.naming.prefix.DEPLOYER
 
-  rg_arm_id = try(var.infrastructure.resource_group.arm_id, "")
-  rg_exists = length(local.rg_arm_id) > 0
+  rg_exists = length(var.infrastructure.resource_group.arm_id) > 0
   // If resource ID is specified extract the resourcegroup name from it otherwise read it either from input of create using the naming convention
   rg_name = local.rg_exists ? (
-    split("/", local.rg_arm_id)[4]) : (
+    split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     length(var.infrastructure.resource_group.name) > 0 ? (
       var.infrastructure.resource_group.name) : (
       format("%s%s%s", var.naming.resource_prefixes.deployer_rg, local.prefix, local.resource_suffixes.deployer_rg)
@@ -188,10 +181,10 @@ locals {
   pwd_exist      = try(length(local.input_password_secret_name) > 0, false)
   username_exist = try(length(local.input_username_secret_name) > 0, false)
 
-  ppk_secret_name      = local.key_exist ? local.input_private_key_secret_name : format("%s-sshkey", local.prefix)
-  pk_secret_name       = local.key_exist ? local.input_public_key_secret_name : format("%s-sshkey-pub", local.prefix)
-  pwd_secret_name      = local.pwd_exist ? local.input_password_secret_name : format("%s-password", local.prefix)
-  username_secret_name = local.username_exist ? local.input_username_secret_name : format("%s-username", local.prefix)
+  ppk_secret_name      = local.key_exist ? local.input_private_key_secret_name : replace(format("%s-sshkey", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
+  pk_secret_name       = local.key_exist ? local.input_public_key_secret_name : replace(format("%s-sshkey-pub", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
+  pwd_secret_name      = local.pwd_exist ? local.input_password_secret_name : replace(format("%s-password", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
+  username_secret_name = local.username_exist ? local.input_username_secret_name : replace(format("%s-username", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
 
   // Extract information from the specified key vault arm ids
   user_kv_name    = local.user_kv_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access
