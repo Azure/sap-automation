@@ -309,7 +309,6 @@
   loop:                                "{{ MULTI_SIDS }}"
   when:
     - not scs_high_availability
-    - node_tier != 'hana' or node_tier == 'oracle-multi-sid'
     - sap_mnt is defined
     - MULTI_SIDS is defined
 
