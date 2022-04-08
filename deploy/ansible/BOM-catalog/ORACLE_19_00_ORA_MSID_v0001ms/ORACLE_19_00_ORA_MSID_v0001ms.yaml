@@ -46,13 +46,13 @@ materials:
       url:          https://softwaredownloads.sap.com/file/0020000000937422021
 
     - name:         "Oracle DBATOOLS"
-      archive:      DBATL740O11_47-70001657.SAR
+      archive:      DBATL740O11_46-80002605.SAR
       checksum:     31a4aed609605084dc711bb6d42fe7c5f08b68c88a221b06c754c33c4d9b00b3
       extract:      false
       #download:     true
       path:         download_basket
       #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000001291502021
+      url:          https://softwaredownloads.sap.com/file/0020000000816512021
                     
     #   # SWPM
     # - name:         "SWPM20SP09 OS: Linux on x86_64 64bit"
