@@ -86,6 +86,10 @@ variable "library_sapmedia_arm_id" {
   default = ""
 }
 
+variable "library_sapmedia_name" {
+  default = ""
+}
+
 variable "library_sapmedia_account_tier" {
   default = "Standard"
 }
@@ -128,6 +132,10 @@ This block describes the variables for the "TFState" storage account
 
 
 variable "library_terraform_state_arm_id" {
+  default = ""
+}
+
+variable "library_terraform_state_name" {
   default = ""
 }
 

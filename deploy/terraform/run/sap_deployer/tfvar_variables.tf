@@ -221,7 +221,6 @@ variable "bastion_deployment" {
   default     = false
 }
 
-
 variable "bastion_subnet_arm_id" {
   default = ""
 }
