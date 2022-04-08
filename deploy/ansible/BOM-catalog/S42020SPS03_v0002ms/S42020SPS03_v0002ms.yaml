@@ -22,6 +22,7 @@ materials:
   dependencies:
     - name:     HANA_2_00_059_v0001ms
     - name:     SWPM20SP11_latest
+    - name:     SUM20SP13_latest
 
   media:
 
@@ -49,11 +50,6 @@ materials:
     - name: "SAP HOST AGENT 7.22 SP54"
       archive: "SAPHOSTAGENT54_54-80004822.SAR"
       url: "https://softwaredownloads.sap.com/file/0020000001542872021"
-      path: download_basket
-
-    - name: "Patch 4 for SOFTWARE UPDATE MANAGER 2.0 SP12"
-      archive: "SUM20SP12_4-80002456.SAR"
-      url: "https://softwaredownloads.sap.com/file/0020000001731572021"
       path: download_basket
 
     - name: "Installation for SAP IGS integrated in SAP Kernel"
@@ -934,39 +930,5 @@ materials:
       archive: "SAP_UI755.SAR"
       url: "https://softwaredownloads.sap.com/file/0010000000211202021"
       download: false
-
-  templates:
-    - name: "SAP_S4HANA_2020 ini file"
-      file: "SAP_S4HANA_2020.inifile.params"
-      override_target_location: "{{ target_media_location }}/config"
-
-  stackfiles:
-    - name: "Download Basket JSON Manifest"
-      file: "download.json"
-      override_target_location: "{{ target_media_location }}/config"
-
-    - name: "Download Basket Spreadsheet"
-      file: "MP_Excel_2001243769_20211213_SWC.xls"
-      override_target_location: "{{ target_media_location }}/config"
-
-    - name: "Download Basket Plan"
-      file: "MP_Plan_2001243769_20211213_.pdf"
-      override_target_location: "{{ target_media_location }}/config"
-
-    - name: "Download Basket Stack text"
-      file: "MP_Stack_2001243769_20211213_.txt"
-      override_target_location: "{{ target_media_location }}/config"
-
-    - name: "Download Basket Stack text"
-      file: "MP_Stack_2001243769_20211213_.txt"
-      override_target_location: "{{ target_media_location }}/config"
-
-    - name: "Download Basket Stack XML"
-      file: "MP_Stack_2001243769_20211213_.xml"
-      override_target_location: "{{ target_media_location }}/config"
-
-    - name: "Download Basket permalinks"
-      file: "myDownloadBasketFiles.txt"
-      override_target_location: "{{ target_media_location }}/config"
 
 ...
