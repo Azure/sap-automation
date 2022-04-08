@@ -102,7 +102,6 @@
     path:                              /etc/sap_deployment_automation/shared_db_installed.txt
     state:                             touch
     mode:                              0755
-  when:                                orainstall_results.rc < 2
 
 #STEP2 RUN THE INSTALLATION - EXECUTE per SID.
 
