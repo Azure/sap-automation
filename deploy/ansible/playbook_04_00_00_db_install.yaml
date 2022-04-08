@@ -335,7 +335,7 @@
 
         - name:                        Installing Oracle
           ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-msid
+            name:                      roles-db/4.1.3-ora-multi-sid
           when:                        node_tier == 'oracle-multi-sid'
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
