@@ -91,7 +91,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
 
-  count        = (!local.user_kv_exist) ? 0 : 0
+  count        = (!local.user_kv_exist) ? 1 : 0
   key_vault_id = azurerm_key_vault.kv_user[0].id
 
   tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
