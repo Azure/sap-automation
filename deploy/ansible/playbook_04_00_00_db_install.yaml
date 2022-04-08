@@ -291,7 +291,7 @@
 
         - name:                        "Database Installation Playbook: - Check for file system mounts"
           become:                      true
-          become_user:                 root
+          become_user:                 "root"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
@@ -332,7 +332,7 @@
 
         - name:                        Check for file system mounts
           become:                      true
-          become_user:                 root
+          become_user:                 "root"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
           when:                        node_tier == 'oracle-multi-sid'
