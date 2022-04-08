@@ -206,6 +206,8 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
   quota = 1024
 }
 
+
+#ToDo Fix later
 resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider = azurerm.deployer
   count    = length(local.deployer_kv_user_arm_id) > 0 ? 1 : 0
@@ -227,3 +229,4 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   )
   key_vault_id = local.deployer_kv_user_arm_id
 }
+

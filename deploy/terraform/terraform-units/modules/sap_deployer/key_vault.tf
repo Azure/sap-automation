@@ -111,12 +111,12 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
     "Purge"
   ]
 
-  lifecycle {
-    ignore_changes = [
-      // Ignore changes to object_id
-      object_id
-    ]
-  }
+  # lifecycle {
+  #   ignore_changes = [
+  #     // Ignore changes to object_id
+  #     object_id
+  #   ]
+  # }
 }
 
 // Comment out code with users.object_id for the time being.
