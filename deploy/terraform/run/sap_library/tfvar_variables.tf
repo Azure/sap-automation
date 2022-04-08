@@ -86,6 +86,10 @@ variable "library_sapmedia_arm_id" {
   default = ""
 }
 
+variable "library_sapmedia_name" {
+  default = ""
+}
+
 variable "library_sapmedia_account_tier" {
   default = "Standard"
 }
@@ -131,6 +135,10 @@ variable "library_terraform_state_arm_id" {
   default = ""
 }
 
+variable "library_terraform_state_name" {
+  default = ""
+}
+
 variable "library_terraform_state_account_tier" {
   default = "Standard"
 }
@@ -163,7 +171,7 @@ variable "use_private_endpoint" {
   default = false
 }
 
-variable "name_overrride_file" {
+variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
   default = ""
 }
