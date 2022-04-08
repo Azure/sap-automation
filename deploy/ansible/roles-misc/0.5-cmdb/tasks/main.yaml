@@ -6,7 +6,3 @@
     id:         "{{ id }}"
     crud:       "{{ crud }}"
     updates:    "{{ updates }}"
-  register: testout
-- name: Dump test out
-  ansible.builtin.debug:
-    msg: "{{ testout }}"

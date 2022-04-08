@@ -41,11 +41,6 @@ options:
         required: false
         type: dict
 
-# Specify this value according to your collection
-# in format of namespace.collection.doc_fragment_name
-extends_documentation_fragment:
-    - my_namespace.my_collection.my_doc_fragment_name
-
 author:
     - William Sheehan (@wksheehan)
 '''
@@ -53,7 +48,7 @@ author:
 EXAMPLES = r'''
 # Create a new system object 
 - name: Create system
-  my_namespace.my_collection.modify_cmdb:
+  modify_cmdb:
     connStr: "mongodb://localhost:27017/"
     collection: "Systems"
     id: "DEV-WEEU-SAP-100"
@@ -62,17 +57,16 @@ EXAMPLES = r'''
 
 # Update an existing system object
 - name: Update system
-  my_namespace.my_collection.modify_cmdb:
+  modify_cmdb:
     connStr: "mongodb://localhost:27017/"
     collection: "Systems"
     id: "DEV-WEEU-SAP-100"
     crud: "update"
     updates: { "use_prefix": false }
 
-    
 # Read an existing system object
 - name: Read system
-  my_namespace.my_collection.modify_cmdb:
+  modify_cmdb:
     connStr: "mongodb://localhost:27017/"
     collection: "Systems"
     id: "DEV-WEEU-SAP-100"
@@ -80,7 +74,7 @@ EXAMPLES = r'''
 
 # Delete a system object
 - name: Delete system
-  my_namespace.my_collection.modify_cmdb:
+  modify_cmdb:
     connStr: "mongodb://localhost:27017/"
     collection: "Systems"
     id: "DEV-WEEU-SAP-100"
@@ -98,7 +92,7 @@ message:
     description: The output message that the test module generates.
     type: str
     returned: always
-    sample: 'goodbye'
+    sample: 'Successfully added DEV-WEEU-SAP-100 to Systems'
 object:
     description: A JSON representation of the object during a read operation.
     type: JSON
@@ -120,20 +114,13 @@ def run_module():
     )
 
     # seed the result dict in the object
-    # we primarily care about changed and state
-    # changed is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
     result = dict(
         changed=False,
         message='',
         object=None
     )
 
-    # the AnsibleModule object will be our abstraction working with Ansible
-    # this includes instantiation, a couple of common attr would be the
-    # args/params passed to the execution, as well as if the module
-    # supports check mode
+    # abstraction object to work with ansible
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True
@@ -145,14 +132,16 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    # ================= MY CODE HERE ======================
+    # ================= MAIN CODE HERE ======================
 
+    # capture the input values
     connStr = module.params["connStr"]
     collection = module.params["collection"]
     id = module.params["id"]
     crud = module.params["crud"].lower()
     updates = module.params["updates"]
 
+    # specify the Deployment-Objects database in the connection string
     splitIndex = connStr.find("/?ssl") + 1
     if splitIndex <= 0:
         module.fail_json(msg="Invalid connection string", **result)
@@ -160,6 +149,7 @@ def run_module():
 
     client = pymongo.MongoClient(connStr)
     db = client["Deployment-Objects"]
+    
     query = { "_id": id }
     newvalues = { "$set": updates }
     updates["_id"] = id

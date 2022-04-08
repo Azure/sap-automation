@@ -6,6 +6,7 @@ var newValues = {$set: updates};
 updates["_id"] = id;
 crud = crud.toLowerCase();
 
+// specify the Deployment-Objects database in the connection string
 splitIndex = connStr.indexOf("/?ssl") + 1;
 if (splitIndex <= 0) throw ("Invalid connection string");
 connStr = connStr.substring(0, splitIndex) + "Deployment-Objects" + connStr.substring(splitIndex, connStr.length);
