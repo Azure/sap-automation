@@ -267,7 +267,7 @@
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "root"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -337,7 +337,7 @@
 
         - name:                        Installing Oracle
           ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-msid
+            name:                      roles-db/4.1.3-ora-multi-sid
           when:                        node_tier == 'oracle-multi-sid'
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
