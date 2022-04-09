@@ -30,7 +30,6 @@ provider "azurerm" {
   features {}
   alias           = "deployer"
   subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-  version = "~> 3.0"
 }
 
 provider "azuread" {
