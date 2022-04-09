@@ -27,16 +27,29 @@ resource "azurerm_network_security_group" "db" {
 
 # Imports the SAP db subnet nsg data
 data "azurerm_network_security_group" "db" {
-  provider            = azurerm.main
-  count               = local.enable_db_deployment ? (local.database_subnet_nsg_exists ? 1 : 0) : 0
+  provider = azurerm.main
+  count = local.enable_db_deployment ? (
+    local.database_subnet_nsg_exists ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
   name                = split("/", local.database_subnet_nsg_arm_id)[8]
   resource_group_name = split("/", local.database_subnet_nsg_arm_id)[4]
 }
 
 # Associates SAP db nsg to SAP db subnet
 resource "azurerm_subnet_network_security_group_association" "db" {
-  provider                  = azurerm.main
-  count                     = local.enable_db_deployment ? signum((local.database_subnet_exists ? 0 : 1) + (local.database_subnet_nsg_exists ? 0 : 1)) : 0
+  provider = azurerm.main
+  count = local.enable_db_deployment ? (
+    signum(
+      (local.database_subnet_exists ? 0 : 1) +
+      (local.database_subnet_nsg_exists ? 0 : 1)
+    )
+    ) : (
+    0
+  )
   subnet_id                 = azurerm_subnet.db[0].id
   network_security_group_id = azurerm_network_security_group.db[0].id
 }
@@ -64,16 +77,25 @@ resource "azurerm_network_security_group" "admin" {
 
 // Imports the SAP admin subnet nsg data
 data "azurerm_network_security_group" "admin" {
-  provider            = azurerm.main
-  count               = local.admin_subnet_nsg_exists && local.enable_admin_subnet ? 1 : 0
+  provider = azurerm.main
+  count = local.admin_subnet_nsg_exists && local.enable_admin_subnet ? (
+    1) : (
+    0
+  )
   name                = split("/", local.admin_subnet_nsg_arm_id)[8]
   resource_group_name = split("/", local.admin_subnet_nsg_arm_id)[4]
 }
 
 // Associates SAP admin nsg to SAP admin subnet
 resource "azurerm_subnet_network_security_group_association" "admin" {
-  provider                  = azurerm.main
-  count                     = local.enable_admin_subnet ? (signum((local.admin_subnet_exists ? 0 : 1) + (local.admin_subnet_nsg_exists ? 0 : 1))) : 0
+  provider = azurerm.main
+  count = local.enable_admin_subnet ? (
+    signum(
+      (local.admin_subnet_exists ? 0 : 1) +
+      (local.admin_subnet_nsg_exists ? 0 : 1)
+    )
+    ) : (
+  0)
   subnet_id                 = azurerm_subnet.admin[0].id
   network_security_group_id = azurerm_network_security_group.admin[0].id
 }

@@ -1,7 +1,7 @@
-provider "azurerm" {
-  alias = "main"
-}
+# provider "azurerm" {
+#   alias = "main"
+# }
 
-provider "azurerm" {
-  alias = "deployer"
-}
+# provider "azurerm" {
+#   alias = "deployer"
+# }

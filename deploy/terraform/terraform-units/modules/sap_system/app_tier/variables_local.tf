@@ -592,8 +592,8 @@ locals {
   app_zone_count       = length(local.app_zones)
   //If we deploy more than one server in zone put them in an availability set unless specified otherwise
   use_app_avset = local.application_server_count > 0 && !var.application.app_no_avset ? (
-    true) : (
-    false
+    true && local.enable_deployment) : (
+    false && local.enable_deployment
   )
 
   scs_zones            = try(var.application.scs_zones, [])
@@ -610,7 +610,7 @@ locals {
   web_zone_count       = length(local.web_zones)
   //If we deploy more than one server in zone put them in an availability set
   use_web_avset = local.webdispatcher_count > 0 && !var.application.web_no_avset ? (
-    !local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count) : (
+    local.enable_deployment && (!local.web_zonal_deployment || local.webdispatcher_count != local.web_zone_count)) : (
     false
   )
 
@@ -726,4 +726,5 @@ locals {
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
 
+  deploy_route_table = local.enable_deployment && length(var.route_table_id) > 0
 }

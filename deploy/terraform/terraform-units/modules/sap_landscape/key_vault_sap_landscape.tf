@@ -306,7 +306,10 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
       0
     )
   )
-  key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  key_vault_id = local.user_kv_exist ? (
+    local.user_key_vault_id) : (
+    azurerm_key_vault.kv_user[0].id
+  )
 
   tenant_id = var.deployer_tfstate.deployer_uai.tenant_id
   object_id = var.deployer_tfstate.deployer_uai.principal_id
@@ -327,25 +330,49 @@ resource "azurerm_key_vault_secret" "deployer_kv_user_name" {
   content_type = ""
   name         = "deployer-kv-name"
   value        = local.deployer_kv_user_name
-  key_vault_id = local.user_kv_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  key_vault_id = local.user_kv_exist ? (
+    local.user_key_vault_id) : (
+    azurerm_key_vault.kv_user[0].id
+  )
 }
 
 
 resource "azurerm_private_endpoint" "kv_user" {
-  provider            = azurerm.main
-  count               = local.admin_subnet_defined && var.use_private_endpoint && local.enable_landscape_kv && !local.user_kv_exist ? 1 : 0
-  name                = format("%s%s%s", var.naming.resource_prefixes.keyvault_private_link, local.prefix, local.resource_suffixes.keyvault_private_link)
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+  provider = azurerm.main
+  count    = local.admin_subnet_defined && var.use_private_endpoint && local.enable_landscape_kv && !local.user_kv_exist ? 1 : 0
+  name = format("%s%s%s",
+    var.naming.resource_prefixes.keyvault_private_link,
+    local.prefix,
+    local.resource_suffixes.keyvault_private_link
+  )
+  resource_group_name = local.rg_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
+  location = local.rg_exists ? (
+    data.azurerm_resource_group.resource_group[0].location) : (
+    azurerm_resource_group.resource_group[0].location
+  )
   subnet_id = local.admin_subnet_defined ? (
-    local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id) : (
+    local.admin_subnet_existing ? (
+      local.admin_subnet_arm_id) : (
+      azurerm_subnet.admin[0].id
+    )) : (
     ""
   )
 
   private_service_connection {
-    name                           = format("%s%s%s", var.naming.resource_prefixes.keyvault_private_svc, local.prefix, local.resource_suffixes.keyvault_private_svc)
-    is_manual_connection           = false
-    private_connection_resource_id = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+    name = format("%s%s%s",
+      var.naming.resource_prefixes.keyvault_private_svc,
+      local.prefix,
+      local.resource_suffixes.keyvault_private_svc
+    )
+    is_manual_connection = false
+    private_connection_resource_id = local.user_kv_exist ? (
+      data.azurerm_key_vault.kv_user[0].id
+      ) : (
+      azurerm_key_vault.kv_user[0].id
+    )
     subresource_names = [
       "Vault"
     ]

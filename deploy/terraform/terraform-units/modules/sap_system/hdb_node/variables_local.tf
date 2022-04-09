@@ -141,7 +141,12 @@ locals {
 
   sizes = jsondecode(file(local.file_name))
 
-  faults = jsondecode(file(format("%s%s", path.module, "/../../../../../configs/max_fault_domain_count.json")))
+  faults = jsondecode(file(
+    format("%s%s",
+      path.module,
+      "/../../../../../configs/max_fault_domain_count.json"
+    )
+  ))
 
   region    = var.infrastructure.region
   sid       = upper(var.sap_sid)
@@ -298,7 +303,10 @@ locals {
     [
       for storage_type in local.db_sizing : [
         for idx, disk_count in range(storage_type.count) : {
-          suffix                    = format("-%s%02d", storage_type.name, disk_count + var.options.resource_offset)
+          suffix = format("-%s%02d",
+            storage_type.name,
+            disk_count + var.options.resource_offset
+          )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
@@ -337,7 +345,10 @@ locals {
     [
       for storage_type in local.db_sizing : [
         for idx, disk_count in range(storage_type.count) : {
-          suffix                    = format("-%s%02d", storage_type.name, disk_count + var.options.resource_offset)
+          suffix = format("-%s%02d",
+            storage_type.name,
+            disk_count + var.options.resource_offset
+          )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
@@ -353,7 +364,9 @@ locals {
     ]
   ) : []
 
-  all_data_disk_per_dbnode = distinct(concat(local.data_disk_per_dbnode, local.append_disk_per_dbnode))
+  all_data_disk_per_dbnode = distinct(
+    concat(local.data_disk_per_dbnode, local.append_disk_per_dbnode)
+  )
 
   data_disk_list = flatten([
     for vm_counter in range(var.database_server_count) : [
@@ -401,7 +414,10 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = var.database_server_count > 0 && !try(local.hdb.no_avset, false) ? !local.zonal_deployment || (var.database_server_count != local.db_zone_count) : false
+  use_avset = var.database_server_count > 0 && !try(local.hdb.no_avset, false) ? (
+    !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
+    false
+  )
 
   //PPG control flag
   no_ppg = var.databases[0].no_ppg

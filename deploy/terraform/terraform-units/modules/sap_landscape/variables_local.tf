@@ -296,8 +296,14 @@ locals {
   iscsi_pwd_exist                     = try(length(local.input_iscsi_password_secret_name) > 0, false)
   iscsi_username_exist                = try(length(local.input_iscsi_username_secret_name) > 0, false)
 
-  sid_ppk_name = local.sid_key_exist ? local.input_sid_private_key_secret_name : format("%s-sid-sshkey", local.prefix)
-  sid_pk_name  = local.sid_key_exist ? local.input_sid_public_key_secret_name : format("%s-sid-sshkey-pub", local.prefix)
+  sid_ppk_name = local.sid_key_exist ? (
+    local.input_sid_private_key_secret_name) : (
+    format("%s-sid-sshkey", local.prefix)
+  )
+  sid_pk_name = local.sid_key_exist ? (
+    local.input_sid_public_key_secret_name) : (
+    format("%s-sid-sshkey-pub", local.prefix)
+  )
 
   input_sid_username_secret_name = try(var.key_vault.kv_sid_username, "")
   input_sid_password_secret_name = try(var.key_vault.kv_sid_pwd, "")

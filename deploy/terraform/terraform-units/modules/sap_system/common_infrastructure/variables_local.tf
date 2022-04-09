@@ -204,7 +204,10 @@ locals {
 
   sizes = jsondecode(file(local.file_name))
 
-  db_sizing = local.enable_sid_deployment ? lookup(local.sizes.db, var.databases[0].size).storage : []
+  db_sizing = local.enable_sid_deployment ? (
+    lookup(local.sizes.db, var.databases[0].size).storage) : (
+    []
+  )
 
   enable_ultradisk = try(
     compact(
@@ -296,7 +299,10 @@ locals {
   )
 
   admin_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_admin, {})) > 0
-  admin_subnet_prefix  = local.admin_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_admin.prefix, "") : ""
+  admin_subnet_prefix = local.admin_subnet_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_admin.prefix, "")) : (
+    ""
+  )
   admin_subnet_arm_id = local.admin_subnet_defined ? (
     try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "")) : (
     var.landscape_tfstate.admin_subnet_id
