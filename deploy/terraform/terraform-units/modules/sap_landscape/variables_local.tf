@@ -333,6 +333,7 @@ locals {
       )
     )
   )
+
   iscsi_pk_name = local.iscsi_key_exist ? (
     local.input_iscsi_public_key_secret_name) : (
     trimprefix(
@@ -345,6 +346,20 @@ locals {
       )
     )
   )
+
+  iscsi_ppk_name = local.iscsi_key_exist ? (
+    local.input_iscsi_private_key_secret_name) : (
+    trimprefix(
+      format("%s-iscsi-sshkey",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        "-"
+      )
+    )
+  )
+
 
   iscsi_pwd_name = local.iscsi_pwd_exist ? (
     local.input_iscsi_password_secret_name) : (
