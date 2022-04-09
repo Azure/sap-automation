@@ -134,6 +134,11 @@ stages:
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from prepare_region $return_code."
+                  if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err ]; then
+                    error_message=$(cat .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
+                    echo "##vso[task.logissue type=error]Error message: $error_message."
+                  fi
+
                 fi
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
@@ -156,10 +161,26 @@ stages:
                   added=1
                 fi
 
+                if [ 0 != $return_code ]; then
+                  if [ -f DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                    git add -f DEPLOYER/$(deployerfolder)/terraform.tfstate
+                    added=1
+                  fi
+                fi
+
                 if [ -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
                   git add -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
                   added=1
                 fi
+
+                if [ 0 != $return_code ]; then
+                  if [ -f LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                    git add -f LIBRARY/$(libraryfolder)/terraform.tfstate
+                    added=1
+                  fi
+                fi
+
+
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
