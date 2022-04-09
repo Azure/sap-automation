@@ -109,7 +109,7 @@ variable "database_server_count" {
   default = 1
 }
 
-variable   "order_deployment" {
+variable "order_deployment" {
   description = "psuedo condition for ordering deployment"
   default     = ""
 }
@@ -149,7 +149,14 @@ locals {
   rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.rg_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", var.naming.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
+    coalesce(
+      try(var.infrastructure.resource_group.name, ""),
+      format("%s%s%s",
+        var.naming.resource_prefixes.sdu_rg,
+        local.prefix,
+        local.resource_suffixes.sdu_rg
+      )
+    )
   )
 
   hdb_list = [
@@ -188,12 +195,39 @@ locals {
   // If custom image is used, we do not overwrite os reference with default value
   hdb_custom_image = length(try(local.hdb.os.source_image_id, "")) > 0
   hdb_os = {
-    os_type         = "LINUX"
-    source_image_id = local.hdb_custom_image ? local.hdb.os.source_image_id : ""
-    publisher       = local.hdb_custom_image ? "" : length(try(local.hdb.os.publisher, "")) > 0 ? local.hdb.os.publisher : "SUSE"
-    offer           = local.hdb_custom_image ? "" : length(try(local.hdb.os.offer, "")) > 0 ? local.hdb.os.offer : "sles-sap-12-sp5"
-    sku             = local.hdb_custom_image ? "" : length(try(local.hdb.os.sku, "")) > 0 ? local.hdb.os.sku : "gen2"
-    version         = local.hdb_custom_image ? "" : length(try(local.hdb.os.version, "")) > 0 ? local.hdb.os.version : "latest"
+    os_type = "LINUX"
+    source_image_id = local.hdb_custom_image ? (
+      local.hdb.os.source_image_id) : (
+      ""
+    )
+    publisher = local.hdb_custom_image ? (
+      "") : (
+      length(try(local.hdb.os.publisher, "")) > 0 ? (
+        local.hdb.os.publisher) : (
+        "SUSE"
+      )
+    )
+    offer = local.hdb_custom_image ? (
+      "") : (
+      length(try(local.hdb.os.offer, "")) > 0 ? (
+        local.hdb.os.offer) : (
+        "sles-sap-12-sp5"
+      )
+    )
+    sku = local.hdb_custom_image ? (
+      "") : (
+      length(try(local.hdb.os.sku, "")) > 0 ? (
+        local.hdb.os.sku) : (
+        "gen2"
+      )
+    )
+    version = local.hdb_custom_image ? (
+      "") : (
+      length(try(local.hdb.os.version, "")) > 0 ? (
+        local.hdb.os.version) : (
+        "latest"
+      )
+    )
   }
 
   hdb_size = try(local.hdb.size, "Default")
@@ -214,9 +248,9 @@ locals {
     "username" = var.sid_username
     "password" = var.sid_password
   }
-  
-  enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1)
 
+  enable_db_lb_deployment = var.database_server_count > 0 && (
+  var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1)
 
   hdb_ins = try(local.hdb.instance, {})
   hdb_sid = try(local.hdb_ins.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
@@ -343,7 +377,11 @@ locals {
 
   db_disks_ansible = distinct(flatten([for vm in range(var.database_server_count) : [
     for idx, datadisk in local.data_disk_list :
-    format("{ host: '%s', LUN: %d, type: '%s' }", var.naming.virtualmachine_names.HANA_COMPUTERNAME[vm], datadisk.lun, datadisk.type)
+    format("{ host: '%s', LUN: %d, type: '%s' }",
+      var.naming.virtualmachine_names.HANA_COMPUTERNAME[vm],
+      datadisk.lun,
+      datadisk.type
+    )
   ]]))
 
   enable_ultradisk = try(

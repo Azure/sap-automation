@@ -133,14 +133,24 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  region    = var.infrastructure.region
-  anydb_sid = (length(local.anydb_databases) > 0) ? try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
+  region = var.infrastructure.region
+  anydb_sid = (length(local.anydb_databases) > 0) ? (
+    try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))) : (
+    lower(substr(local.anydb_platform, 0, 3))
+  )
   sid       = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
   prefix    = trimspace(var.naming.prefix.SDU)
   rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.rg_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", var.naming.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
+    coalesce(
+      try(var.infrastructure.resource_group.name, ""),
+      format("%s%s%s",
+        var.naming.resource_prefixes.sdu_rg,
+        local.prefix,
+        local.resource_suffixes.sdu_rg
+      )
+    )
   )
 
   //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
@@ -192,7 +202,12 @@ locals {
   loadbalancer = try(local.anydb.loadbalancer, {})
 
   # Oracle deployments do not need a load balancer
-  enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) && local.anydb_platform != "ORACLE" && local.anydb_platform != "NONE"
+  enable_db_lb_deployment = (
+    var.database_server_count > 0 &&
+    (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) &&
+    local.anydb_platform != "ORACLE" &&
+    local.anydb_platform != "NONE"
+  )
 
   anydb_cred = try(local.anydb.credentials, {})
 
@@ -244,11 +259,38 @@ locals {
   }
 
   anydb_os = {
-    "source_image_id" = local.anydb_custom_image ? local.anydb.os.source_image_id : ""
-    "publisher"       = try(local.anydb.os.publisher, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].publisher)
-    "offer"           = try(local.anydb.os.offer, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].offer)
-    "sku"             = try(local.anydb.os.sku, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].sku)
-    "version"         = try(local.anydb.os.version, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].version)
+    "source_image_id" = local.anydb_custom_image ? (
+      local.anydb.os.source_image_id) : (
+      ""
+    )
+    "publisher" = try(
+      local.anydb.os.publisher,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].publisher
+      )
+    )
+    "offer" = try(
+      local.anydb.os.offer,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].offer
+      )
+    )
+    "sku" = try(
+      local.anydb.os.sku,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].sku
+      )
+    )
+    "version" = try(
+      local.anydb.os.version,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].version
+      )
+    )
   }
 
   //Observer VM
