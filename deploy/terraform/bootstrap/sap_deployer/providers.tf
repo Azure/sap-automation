@@ -14,7 +14,7 @@ Description:
 */
 
 data "azurerm_client_config" "current" {
- 
+
 }
 
 provider "azurerm" {
@@ -40,7 +40,7 @@ terraform {
       source = "hashicorp/tls"
     }
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
   }
