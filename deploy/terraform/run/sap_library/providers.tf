@@ -24,7 +24,6 @@ provider "azurerm" {
   client_secret   = var.use_deployer ? local.spn.client_secret : null
   tenant_id       = var.use_deployer ? local.spn.tenant_id : null
   partner_id      = "140c3bc9-c937-4139-874f-88288bab08bb"
-  alias           = "main"
 
 }
 
