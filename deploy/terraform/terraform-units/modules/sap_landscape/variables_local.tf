@@ -316,9 +316,9 @@ locals {
         length(local.prefix) > 0 ? (
           local.prefix) : (
           var.infrastructure.environment
-        ),
-        "-"
-      )
+        )
+      ),
+      "-"
     )
   )
   sid_password_secret_name = local.sid_credentials_secret_exist ? (
@@ -328,9 +328,9 @@ locals {
         length(local.prefix) > 0 ? (
           local.prefix) : (
           var.infrastructure.environment
-        ),
-        "-"
-      )
+        )
+      ),
+      "-"
     )
   )
 
@@ -341,9 +341,9 @@ locals {
         length(local.prefix) > 0 ? (
           local.prefix) : (
           var.infrastructure.environment
-        ),
-        "-"
-      )
+        )
+      ),
+      "-"
     )
   )
 
@@ -354,9 +354,9 @@ locals {
         length(local.prefix) > 0 ? (
           local.prefix) : (
           var.infrastructure.environment
-        ),
-        "-"
-      )
+        )
+      ),
+      "-"
     )
   )
 
@@ -368,9 +368,9 @@ locals {
         length(local.prefix) > 0 ? (
           local.prefix) : (
           var.infrastructure.environment
-        ),
-        "-"
-      )
+        )
+      ),
+      "-"
     )
   )
 
@@ -381,9 +381,9 @@ locals {
         length(local.prefix) > 0 ? (
           local.prefix) : (
           var.infrastructure.environment
-        ),
-        "-"
-      )
+        )
+      ),
+      "-"
     )
   )
 
