@@ -68,48 +68,49 @@ locals {
         try(
           var.storage_account_sapbits.sapbits_blob_container.name,
           module.sap_namegenerator.naming.resource_suffixes.sapbits
+        )
       )
     }
   }
   storage_account_tfstate = {
-    arm_id                   = try(
+    arm_id = try(
       coalesce(
-        var.library_terraform_state_arm_id, 
-        try(var.storage_account_tfstate.arm_id, ""))
-        , ""
-        )
-    name                     = var.library_terraform_state_name
-    account_tier             = coalesce(
-      var.library_terraform_state_account_tier, 
+        var.library_terraform_state_arm_id,
+      try(var.storage_account_tfstate.arm_id, ""))
+      , ""
+    )
+    name = var.library_terraform_state_name
+    account_tier = coalesce(
+      var.library_terraform_state_account_tier,
       try(var.storage_account_tfstate.account_tier, "Standard")
-      )
+    )
     account_replication_type = coalesce(
-      var.library_terraform_state_account_replication_type, 
+      var.library_terraform_state_account_replication_type,
       try(var.storage_account_tfstate.account_replication_type, "ZRS")
-      )
-    account_kind             = coalesce(
-      var.library_terraform_state_account_kind, 
+    )
+    account_kind = coalesce(
+      var.library_terraform_state_account_kind,
       try(var.storage_account_tfstate.account_kind, "StorageV2")
-      )
+    )
     tfstate_blob_container = {
       is_existing = (
-        var.library_terraform_state_blob_container_is_existing || 
+        var.library_terraform_state_blob_container_is_existing ||
         try(var.storage_account_tfstate.tfstate_blob_container.is_existing, false)
-        )
-      name        = coalesce(
-        var.library_terraform_state_blob_container_name, 
+      )
+      name = coalesce(
+        var.library_terraform_state_blob_container_name,
         try(var.storage_account_tfstate.tfstate_blob_container.name, "tfstate")
-        )
+      )
     }
     ansible_blob_container = {
       is_existing = (
-        var.library_ansible_blob_container_is_existing || 
+        var.library_ansible_blob_container_is_existing ||
         try(var.storage_account_tfstate.ansible_blob_container.is_existing, false)
-        )
-      name        = coalesce(
-        var.library_ansible_blob_container_name, 
+      )
+      name = coalesce(
+        var.library_ansible_blob_container_name,
         try(var.storage_account_tfstate.ansible_blob_container.name, "ansible")
-        )
+      )
     }
   }
 
