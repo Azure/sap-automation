@@ -293,7 +293,7 @@ locals {
       data.azurerm_subnet.subnet_sap_web[0]) : (
       azurerm_subnet.subnet_sap_web[0]
     )) : (
-    local.app_subnet_exists ? (
+    local.application_subnet_exists ? (
       data.azurerm_subnet.subnet_sap_app[0]) : (
       azurerm_subnet.subnet_sap_app[0]
     )), null
