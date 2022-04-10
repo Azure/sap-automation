@@ -29,7 +29,7 @@ variable "deployer_user" {
   default     = []
 }
 
-variable "sid_kv_user_id" {
+variable "sid_keyvault_user_id" {
   description = "Details of the user keyvault for sap_system"
 }
 

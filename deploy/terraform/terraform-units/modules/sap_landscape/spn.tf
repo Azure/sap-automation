@@ -79,7 +79,7 @@ resource "azurerm_key_vault_secret" "fencing_spn_id" {
   content_type = ""
   name         = replace(format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.fencing_agent_id), "/[^A-Za-z0-9-]/", "")
   value        = azuread_service_principal.workload[0].id
-  key_vault_id = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  key_vault_id = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 resource "azurerm_key_vault_secret" "fencing_agent_pwd" {
@@ -88,7 +88,7 @@ resource "azurerm_key_vault_secret" "fencing_agent_pwd" {
   content_type = ""
   name         = replace(format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.fencing_agent_pwd), "/[^A-Za-z0-9-]/", "")
   value        = azuread_application_password.workload[0].value
-  key_vault_id = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  key_vault_id = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 resource "azurerm_key_vault_secret" "fencing_agent_tenant" {
@@ -97,7 +97,7 @@ resource "azurerm_key_vault_secret" "fencing_agent_tenant" {
   content_type = ""
   name         = replace(format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.fencing_agent_tenant), "/[^A-Za-z0-9-]/", "")
   value        = data.azurerm_subscription.primary.tenant_id
-  key_vault_id = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  key_vault_id = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 resource "azurerm_key_vault_secret" "fencing_agent_sub" {
@@ -106,5 +106,5 @@ resource "azurerm_key_vault_secret" "fencing_agent_sub" {
   content_type = ""
   name         = replace(format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.fencing_agent_sub), "/[^A-Za-z0-9-]/", "")
   value        = data.azurerm_subscription.primary.id
-  key_vault_id = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  key_vault_id = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }

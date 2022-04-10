@@ -132,28 +132,10 @@ locals {
   }
 
   authentication = {
-    username = coalesce(
-      var.automation_username,
-      try(var.authentication.username, "azureadm")
-    )
-    password = try(coalesce(
-      var.automation_password,
-      try(var.authentication.password, "")
-      ),
-      ""
-    )
-    path_to_public_key = try(coalesce(
-      var.automation_path_to_public_key,
-      try(var.authentication.path_to_public_key, "")
-      ),
-      ""
-    )
-    path_to_private_key = try(coalesce(
-      var.automation_path_to_private_key,
-      try(var.authentication.path_to_private_key, "")
-      ),
-      ""
-    )
+    username            = coalesce(var.automation_username, try(var.authentication.username, "azureadm"))
+    password            = try(coalesce(var.automation_password, try(var.authentication.password, "")), "")
+    path_to_public_key  = try(coalesce(var.automation_path_to_public_key, try(var.authentication.path_to_public_key, "")), "")
+    path_to_private_key = try(coalesce(var.automation_path_to_private_key, try(var.authentication.path_to_private_key, "")), "")
   }
   options = {
     enable_secure_transfer = true
@@ -163,48 +145,49 @@ locals {
   key_vault_temp = {
   }
 
-  user_kv_specified = (
+  user_keyvault_specified = (
     length(var.user_keyvault_id) +
     length(try(var.key_vault.kv_user_id, ""))
   ) > 0
-  user_kv = local.user_kv_specified ? (
+  user_keyvault = local.user_keyvault_specified ? (
     try(var.key_vault.kv_user_id, var.user_keyvault_id)
     ) : (
     ""
   )
 
-  prvt_kv_specified = (
-    length(var.automation_keyvault_id) +
+  automation_keyvault_specified = (
+    length(var.automation_keyvault__id) +
     length(try(var.key_vault.kv_prvt, ""))
   ) > 0
-  prvt_kv = local.prvt_kv_specified ? (
-    try(var.key_vault.kv_prvt_id, var.automation_keyvault_id)
+
+  prvt_kv = local.automation_keyvault_specified ? (
+    try(var.key_vault.kv_prvt_id, var.automation_keyvault__id)
     ) : (
     ""
   )
 
-  spn_kv_specified = (
+  spn_keyvault_specified = (
     length(var.spn_keyvault_id) +
     length(try(var.key_vault.kv_spn_id, ""))
   ) > 0
-  spn_kv = local.spn_kv_specified ? (
+  spn_kv = local.spn_keyvault_specified ? (
     try(var.key_vault.kv_spn_id, var.spn_keyvault_id)
     ) : (
     ""
   )
 
   key_vault = merge(local.key_vault_temp, (
-    local.user_kv_specified ? (
+    local.user_keyvault_specified ? (
       {
-        kv_user_id = local.user_kv
+        kv_user_id = local.user_keyvault
       }
     ) : null), (
-    local.prvt_kv_specified ? (
+    local.automation_keyvault_specified ? (
       {
         kv_prvt_id = local.prvt_kv
       }
     ) : null), (
-    local.spn_kv_specified ? (
+    local.spn_keyvault_specified ? (
       {
         kv_spn_id = local.spn_kv
       }
@@ -212,22 +195,11 @@ locals {
     )
   )
 
-
   diagnostics_storage_account = {
-    arm_id = try(coalesce(
-      var.diagnostics_storage_account_arm_id,
-      try(var.diagnostics_storage_account.arm_id, "")
-      ),
-      ""
-    )
+    arm_id = try(coalesce(var.diagnostics_storage_account_arm_id, try(var.diagnostics_storage_account.arm_id, "")), "")
   }
   witness_storage_account = {
-    arm_id = try(coalesce(
-      var.witness_storage_account_arm_id,
-      try(var.witness_storage_account.arm_id, "")
-      ),
-      ""
-    )
+    arm_id = try(coalesce(var.witness_storage_account_arm_id, try(var.witness_storage_account.arm_id, "")), "")
   }
 
   vnets = {

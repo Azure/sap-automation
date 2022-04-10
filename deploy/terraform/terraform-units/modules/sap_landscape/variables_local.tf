@@ -271,10 +271,10 @@ locals {
 
   user_key_vault_id = try(var.key_vault.kv_user_id, "")
   prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
-  user_kv_exist     = length(local.user_key_vault_id) > 0
-  prvt_kv_exist     = length(local.prvt_key_vault_id) > 0
+  user_keyvault_exist     = length(local.user_key_vault_id) > 0
+  automation_keyvault_exist     = length(local.prvt_key_vault_id) > 0
 
-  enable_landscape_kv = !local.user_kv_exist
+  enable_landscape_kv = !local.user_keyvault_exist
 
   // If the user specifies the secret name of key pair/password in input, 
   // the secrets will be imported instead of creating new secrets
@@ -388,22 +388,22 @@ locals {
   )
 
   // Extract information from the specified key vault arm ids
-  user_kv_name = local.user_kv_exist ? (
+  user_keyvault_name = local.user_keyvault_exist ? (
     split("/", local.user_key_vault_id)[8]) : (
     local.landscape_keyvault_names.user_access
   )
 
-  user_kv_rg_name = local.user_kv_exist ? (
+  user_keyvault_rg_name = local.user_keyvault_exist ? (
     split("/", local.user_key_vault_id)[4]) : (
     ""
   )
 
-  prvt_kv_name = local.prvt_kv_exist ? (
+  automation_keyvault_name = local.automation_keyvault_exist ? (
     split("/", local.prvt_key_vault_id)[8]) : (
     local.landscape_keyvault_names.private_access
   )
 
-  prvt_kv_rg_name = local.prvt_kv_exist ? (
+  automation_keyvault_rg_name = local.automation_keyvault_exist ? (
     split("/", local.prvt_key_vault_id)[4]) : (
     ""
   )
@@ -703,6 +703,6 @@ locals {
   )
 
   # Store the Deployer KV in workload zone KV
-  deployer_kv_user_name = try(var.deployer_tfstate.deployer_kv_user_name, "")
+  deployer_keyvault_user_name = try(var.deployer_tfstate.deployer_keyvault_user_name, "")
 
 }

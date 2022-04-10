@@ -31,7 +31,7 @@ variable "admin_subnet" {
 variable "db_subnet" {
   description = "Information about SAP db subnet"
 }
-variable "sid_kv_user_id" {
+variable "sid_keyvault_user_id" {
   description = "ID of the user keyvault for sap_system"
 }
 

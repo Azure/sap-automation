@@ -521,22 +521,22 @@ locals {
 
 
   // Extract information from the specified key vault arm ids
-  user_kv_name = length(local.user_key_vault_id) > 0 ? (
+  user_keyvault_name = length(local.user_key_vault_id) > 0 ? (
     split("/", local.user_key_vault_id)[8]) : (
     local.sid_keyvault_names.user_access
   )
 
-  user_kv_rg_name = length(local.user_key_vault_id) > 0 ? (
+  user_keyvault_rg_name = length(local.user_key_vault_id) > 0 ? (
     split("/", local.user_key_vault_id)[4]) : (
     local.rg_name
   )
 
-  prvt_kv_name = length(local.prvt_key_vault_id) > 0 ? (
+  automation_keyvault_name = length(local.prvt_key_vault_id) > 0 ? (
     split("/", local.prvt_key_vault_id)[8]) : (
     local.sid_keyvault_names.private_access
   )
 
-  prvt_kv_rg_name = length(local.prvt_key_vault_id) > 0 ? (
+  automation_keyvault_rg_name = length(local.prvt_key_vault_id) > 0 ? (
     split("/", local.prvt_key_vault_id)[4]) : (
     local.rg_name
   )
