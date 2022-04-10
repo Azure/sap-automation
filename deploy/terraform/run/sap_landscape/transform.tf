@@ -156,12 +156,12 @@ locals {
   )
 
   automation_keyvault_specified = (
-    length(var.automation_keyvault__id) +
+    length(var.automation_keyvault_id) +
     length(try(var.key_vault.kv_prvt, ""))
   ) > 0
 
   prvt_kv = local.automation_keyvault_specified ? (
-    try(var.key_vault.kv_prvt_id, var.automation_keyvault__id)
+    try(var.key_vault.kv_prvt_id, var.automation_keyvault_id)
     ) : (
     ""
   )
@@ -263,7 +263,7 @@ locals {
         {
           "nsg" = {
             "name"   = try(var.infrastructure.vnets.sap.subnet_db.nsg.name, var.db_subnet_nsg_name)
-            "arm_id" = try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, var.var.db_subnet_nsg_arm_id)
+            "arm_id" = try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, var.db_subnet_nsg_arm_id)
           }
         }
       ) : null

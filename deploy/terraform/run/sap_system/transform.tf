@@ -339,7 +339,7 @@ locals {
         {
           "nsg" = {
             "name"   = try(var.infrastructure.vnets.sap.subnet_db.nsg.name, var.db_subnet_nsg_name)
-            "arm_id" = try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, var.var.db_subnet_nsg_arm_id)
+            "arm_id" = try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, var.db_subnet_nsg_arm_id)
           }
         }
       ) : null
