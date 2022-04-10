@@ -145,7 +145,7 @@ stages:
                   --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                \
                   --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)                            \
                   --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" \
-                  --state_subscription "${STATE_SUBSCRIPTION}" --subscription $(ARM_SUBSCRIPTION_ID) --auto-approve --ado
+                  --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from install_workloadzone $return_code."
@@ -156,7 +156,6 @@ stages:
                 cd $(Build.Repository.LocalPath)
                 git pull
                 added=0
-
                 if [ -f ${workload_environment_file_name} ]; then
                   git add ${workload_environment_file_name}
                   added=1
