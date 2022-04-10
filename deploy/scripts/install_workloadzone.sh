@@ -171,7 +171,6 @@ then
         load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
         load_config_vars "${deployer_config_information}" "tfstate_resource_id"
         load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
-        load_config_vars "${deployer_config_information}" "subscription"
         
         save_config_vars "${workload_config_information}" \
         keyvault \
@@ -197,7 +196,6 @@ then
             load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
             load_config_vars "${deployer_config_information}" "tfstate_resource_id"
             load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
-            load_config_vars "${deployer_config_information}" "subscription"
             echo "tfstate_resource_id $tfstate_resource_id"
             save_config_vars "${workload_config_information}" \
             tfstate_resource_id
@@ -341,6 +339,11 @@ then
     echo ""
     az account set --sub "${STATE_SUBSCRIPTION}"
     account_set=1
+fi
+
+if [ -z "$subscription" ]
+then
+  subscription="${STATE_SUBSCRIPTION}"
 fi
 
 if [ -z "$REMOTE_STATE_SA" ]
@@ -499,7 +502,7 @@ check_output=0
 
 if [ $account_set == 0 ]
 then
-    az account set --sub "${STATE_SUBSCRIPTION}"
+    az account set --sub "${subscription}"
     account_set=1
 fi
 
