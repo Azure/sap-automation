@@ -124,13 +124,18 @@
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
-      when:                            dbload.rc == 0
+      when:
+        - dbload is defined
+        - dbload.rc == 0
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_dbload.txt
         state:                         touch
         mode:                          0755
+      when:
+        - dbload is defined
+        - dbload.rc > 0
 
   when:
     - not dbload_installed.stat.exists
