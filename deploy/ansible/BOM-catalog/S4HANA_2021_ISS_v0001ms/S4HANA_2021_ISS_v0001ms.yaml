@@ -9,17 +9,17 @@ defaults:
 
 # HA product IDs need to be verified
 product_ids:
-  scs:       "NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAP"
-  scs_ha:    "NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAPHA"
-  dbl:       "NW_ABAP_DB:S4HANA2021.CORE.HDB.ABAP"
-  pas:       "NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAP"
-  pas_ha:    "NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAPHA"
-  app:       "NW_DI:S4HANA2021.CORE.HDB.PD"
-  app_ha:    "NW_DI:S4HANA2021.CORE.HDB.PD"
-  web:       "None"
-  ers:       "None"
-  ers_ha:    "NW_ERS:S4HANA2021.CORE.HDB.ABAPHA"
-  generic:   "NW_Users_Create:GENERIC.HDB.PD"
+  scs:                                 "NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAP"
+  scs_ha:                              "NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAPHA"
+  dbl:                                 "NW_ABAP_DB:S4HANA2021.CORE.HDB.ABAP"
+  pas:                                 "NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAP"
+  pas_ha:                              "NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAPHA"
+  app:                                 "NW_DI:S4HANA2021.CORE.HDB.PD"
+  app_ha:                              "NW_DI:S4HANA2021.CORE.HDB.PD"
+  web:                                 "None"
+  ers:                                 "None"
+  ers_ha:                              "NW_ERS:S4HANA2021.CORE.HDB.ABAPHA"
+  generic:                             "NW_Users_Create:GENERIC.HDB.PD"
 
 materials:
   dependencies:
