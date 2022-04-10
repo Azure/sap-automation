@@ -1,0 +1,18 @@
+#TBC - 
+#Execute command as db2<sid> db2pd -hadr -db <SID>
+## and check the following values 
+## 
+ #                        HADR_ROLE = PRIMARY
+#                           REPLAY_TYPE = PHYSICAL
+#                         HADR_SYNCMODE = NEARSYNC
+#                            STANDBY_ID = 1
+#                         LOG_STREAM_ID = 0
+#                            HADR_STATE = PEER
+#                            HADR_FLAGS = TCP_PROTOCOL
+#                   PRIMARY_MEMBER_HOST = azibmdb02
+#                      PRIMARY_INSTANCE = db2ptr
+#                        PRIMARY_MEMBER = 0
+#                   STANDBY_MEMBER_HOST = azibmdb01
+#                      STANDBY_INSTANCE = db2ptr
+#                        STANDBY_MEMBER = 0
+#                   HADR_CONNECT_STATUS = CONNECTED
