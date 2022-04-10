@@ -46,13 +46,6 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "ORACLE (sharedHome): Permissions for installation folders"
-  ansible.builtin.file:
-    path:                              "{{ target_media_location }}"
-    state:                             directory
-    mode:                              0777
-    recurse:                           true
-
 #  START OF ORACLE SOFTWARE INSTALLATION USING SAP RUNINSTALLER WRAPPER.
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
