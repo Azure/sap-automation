@@ -8,7 +8,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                Check the fencing agent configuration variables are set
+#Note -  feng shui is required to change db specific naming conventions for these variables. Right now re-using the variables for DB2
+- name:                                Check the fencing agent configuration variables are set      
   ansible.builtin.assert:
     that:
       - "sap_hana_fencing_spn_subscription_id is defined"
@@ -38,27 +39,27 @@
   failed_when:                         not cluster_scripts_status_results.stat.exists
   when: ansible_os_family == 'Suse'
 
-- name:                                "HANA PCM Install: Create run flag directory"
+- name:                                "DB2 PCM Install: Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     state:                             directory
     mode:                              0755
 
-- name:                                "HANA PCM Install: reset"
+- name:                                "DB2 PCM Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
+    path:                              /etc/sap_deployment_automation/sap_deployment_db2_pcm.txt
     state:                             absent
   when:                                reinstall
 
-- name:                                "HANA PCM Install: check if deployed"
+- name:                                "DB2 PCM Install: check if deployed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
-  register:                            hana_pacemaker
+    path:                              /etc/sap_deployment_automation/sap_deployment_db2_pcm.txt
+  register:                            db2_pacemaker
 
 - name:                                Check if a cluster has already been prepared (save)
   ansible.builtin.set_fact:
-    hana_cluster_existence_check:      "{{ hana_pacemaker.stat.exists }}"
+    db2_cluster_existence_check:      "{{ db2_pacemaker.stat.exists }}"
 
 - name:                                Check if a cluster has already been prepared (show)
   ansible.builtin.debug:
-    msg:                               "Cluster check return value: {{ hana_cluster_existence_check }}"
+    msg:                               "Cluster check return value: {{ db2_cluster_existence_check }}"
