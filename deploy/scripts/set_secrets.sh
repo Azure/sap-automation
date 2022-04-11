@@ -277,6 +277,7 @@ fi
 if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
     az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
 else
     echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
@@ -315,6 +316,7 @@ secretname="${environment}"-client-id
 if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
     az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
 else
     echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
@@ -326,6 +328,7 @@ secretname="${environment}"-tenant-id
 if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
     az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
 else
     echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
@@ -337,6 +340,7 @@ secretname="${environment}"-client-secret
 if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
     az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
 else
     echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
