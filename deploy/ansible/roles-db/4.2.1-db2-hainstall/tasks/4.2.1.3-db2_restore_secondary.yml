@@ -1,13 +1,13 @@
-# /*-----------------------------------------------------------------------------------------------------8
-# |         Restore the Standby/Secondary DB with Primary DB's Backup                            |
-# |                                                                                                                                         |
-# |                                                                                                                                         |
-# |                                                                                                                                         |
-# |                                                                                                                                          |
-# |                                                                                                                                          |
-# |                                                                                                                                          |
-# |                                                                                                                                          |
-# +------------------------------------4--------------------------------------------------------------- */
+# /*---------------------------------------------------------------------------8
+# |         Restore the Standby/Secondary DB with Primary DB's Backup          |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 ---
 
 - name:                                "DB2 Restore Secondary/Standby with Primary DB backup"
@@ -49,8 +49,8 @@
 #    /db2/db2{{ db2deploy_sid | lower }}/keystore/sapdb2{{ db2deploy_sid | lower }}_db_encr.p12gsk8capicmd_64 -cert -import \
 #    -db {{ db2standby_deployment_source_keystorefile }}.p12 -target /db2/db2{{ db2deploy_sid | lower }}/keystore/sapdb2 \
 #    {{ db2deploy_sid | lower }}_db_encr.p12
-  #become: true
-  #become_user: db2id2
+#  become: true
+#  become_user: db2id2
 #  when:
 #    -  db2standby_deployment_encryption == 'true'
 
@@ -59,10 +59,10 @@
 #    db2 restore database {{ db2deploy_sid }} from {{ db2standby_deployment_backupdir }} \
 #    encrypt cipher {{ db2standby_deployment_ciphertype }} key length {{ db2standby_deployment_cipherkeylength }} master key label \
 #    sap_db2{{ db2deploy_sid | lower }}_{{ db2standby_deployment_standbyhostname }}_dbencr_000
-  #become: true
-  #become_user: db2id2
- # when:
- #   -  db2standby_deployment_encryption == 'true'
+#  become: true
+#  become_user: db2id2
+#  when:
+#   -  db2standby_deployment_encryption == 'true'
 
 ########## END of Restore with Encryption ################################
 
