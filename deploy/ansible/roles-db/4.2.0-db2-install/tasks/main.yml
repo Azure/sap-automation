@@ -39,14 +39,14 @@
 
 - name:                                "DB2 Install"
   block:
-    - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
+    - name:                            "DB2 Install - Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
 
-    - name:                            "DB2 Install: Include roles-sap/3.3.1-bom-utility role"
+    - name:                            "DB2 Install - Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
@@ -63,23 +63,22 @@
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS')  | first }}"
-         
       tags:
         - skip_ansible_lint
-# +------------------------------------4--------------------------------------*/
-
+    # +--------------------------------4--------------------------------------*/
+    #
     # - name:                            "SAP DB2 install: variables"
     #   ansible.builtin.debug:
     #     msg:
     #       - "{{ sap_inifile }}"
     #       - "{{ bom.product_ids.dbl }}"
     #   verbosity:                     2
-# *====================================4=======================================8
-#   SAP DB2: Install
-#   2230669 - System Provisioning Using a Parameter Input File
-#
+    # *================================4=======================================8
+    #   SAP DB2: Install
+    #   2230669 - System Provisioning Using a Parameter Input File
+    #
 
-    - name:                            "SAP DB2 Install"
+    - name:                            "DB2 Install - SAPINST DB2 Install"
       ansible.builtin.shell: |
                                        export TMPDIR=/usr/sap/install
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
@@ -96,13 +95,14 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            "DB2 Install: flag"
+    - name:                            "DB2 Install - flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
         state:                         touch
         mode:                          0755
 
-    - name:                            "Set LOCK variable for PAS"                  #2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+      #2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
+    - name:                            "DB2 Install - Set LOCK variable for PAS"
       become:                          true
       become_user:                     db2{{ db_sid| lower }}
       ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=FALSE
@@ -110,14 +110,13 @@
         creates:                       /etc/sap_deployment_automation/lock_escalation_false.txt
         executable:                    /bin/csh
       register:                        db2_lock_escalation
-    
-    - name:                            "Create lock escalation run flag"
+
+    - name:                            "DB2 Install - Create lock escalation run flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/lock_escalation_false.txt
         state:                         touch
-        mode:                          0755 
+        mode:                          0755
       when:                            db2_lock_escalation.rc == 0
-      
 
   when:
     - not db2_installed.stat.exists

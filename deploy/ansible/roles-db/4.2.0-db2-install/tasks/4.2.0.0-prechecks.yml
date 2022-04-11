@@ -10,15 +10,16 @@
 - name:                                "comment services using port 5912 in /etc/services"
   ansible.builtin.replace:                             
     path:                              /etc/services 
-    regexp:                            "^(.*\s5912/tcp.*)$" 
+    regexp:                            "^(.*\s+5912/tcp.*)$" 
     replace:                           '# \1'
     backup:                            yes
 
 - name:                                "comment services using port 59120 in /etc/services"
   ansible.builtin.replace:                             
     path:                              /etc/services 
-    regexp:                            "^(.*\s59120/tcp.*)$" 
+    regexp:                            "^(.*\s+59120/tcp.*)$" 
     replace:                           '# \1'
     backup:                            yes
+
 # additional checks for issues identified.
 ...

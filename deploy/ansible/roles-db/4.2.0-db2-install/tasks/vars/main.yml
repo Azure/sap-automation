@@ -5,11 +5,11 @@
 #
 # They may be overridden, if required, but normally are not
 
-db_sid_backup_dir:               "{{ target_media_location }}/db2backup"
-db_sid_admin_user:               "db2{{ db_sid | lower }}"
+db_sid_backup_dir:                     "{{ target_media_location }}/db2backup"
+db_sid_admin_user:                     "db2{{ db_sid | lower }}"
 
 # DB2 utility commands
-db2sql_command:               "db2 connect to {{ db_sid }} "
+db2sql_command:                        "db2 connect to {{ db_sid }} "
 #sapcontrol_command:                    "sapcontrol -nr {{ hdb_instance_number }}"
 
 # SQL Commands to Stop DB2 Database
@@ -17,7 +17,7 @@ db2sql_command:               "db2 connect to {{ db_sid }} "
 # SQL 
 
 # SQL to take a Offline full backup
-backup_cmd_for_db:               "db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}"
+backup_cmd_for_db:                     "db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}"
 
 #TBC - Introduce Puase here for 1 min
 
