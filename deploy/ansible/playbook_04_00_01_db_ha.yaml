@@ -320,7 +320,7 @@
   # # Build the list of tasks to be executed in order here.
   # #
   # # ---------------------------------+---------------------------------------8
-    name:                              "Install SAP DB2"
+    name:                              "DB2 HA - Install SAP DB2"
     block:
       - name:                          "DB2 HA - Setting the DB facts"
         ansible.builtin.set_fact:
@@ -332,47 +332,54 @@
           main_password:               "{{ hostvars.localhost.sap_password }}"
         tags:
           - always
+        when:
+          - db_high_availability
+          - platform == 'DB2'
 
       - name:                          "DB2 HA - Check for file system mounts"
         ansible.builtin.include_role:
           name:                        roles-sap-os/2.6-sap-mounts
-        when:                          platform == 'DB2'
+        when:
+          - db_high_availability
+          - platform == 'DB2'
 
       - name:                          "DB2 HA - Installing DB2"
         ansible.builtin.include_role:
           name:                        roles-db/4.2.1-db2-hainstall
-        when:                          platform == 'DB2'
+        when:
+          - db_high_availability
+          - platform == 'DB2'
 
-       - name:                      "Install DB2 Pacemaker resources"
-          block:
-
-          - name:                        Initialize facts
+      - name:                          "DB2 HA - Install DB2 Pacemaker resources"
+        block:                         # Why is this block needed?
+          - name:                      "DB2 HA - Pacemaker - Initialize facts"
             ansible.builtin.set_fact:
-              tier:                      ha
-              password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
-              main_password:             "{{ hostvars.localhost.sap_password }}"
-              primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-              primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
-              secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-              secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
+              tier:                            ha
+              password_ha_db_cluster:          "{{ hostvars.localhost.db_cluster_password }}"
+              main_password:                   "{{ hostvars.localhost.sap_password }}"
+              primary_instance_name:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+              primary_instance_ip_db:          "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+              secondary_instance_name:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+              secondary_instance_ip_db:        "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
               sap_hana_fencing_spn_client_id:  "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
               sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
               sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
             tags:
               - always
 
-          - block:
-              - name:                    Run the Pacemaker role
+          - block:                     # Why is this block needed?
+              - name:                  "DB2 HA - Pacemaker - Run the Pacemaker setup"
                 ansible.builtin.include_role:
-                  name:                  roles-sap/5.7-db2-pacemaker
-                when:                    db_high_availability
+                  name:                roles-sap/5.7-db2-pacemaker
+                when:                  db_high_availability
             tags:
               - 5.7-db2-pacemaker
+        when:
+          - db_high_availability
 
-
-     when:
-       - db_high_availability == true
-       - platform == 'DB2'
+    when:
+      - db_high_availability == true
+      - platform == 'DB2'
 
 
 ...
