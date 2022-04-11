@@ -23,7 +23,6 @@ provider "azurerm" {
   client_secret   = var.use_spn ? local.spn.client_secret : null
   tenant_id       = var.use_spn ? local.spn.tenant_id : null
   use_msi         = false
-  alias           = "main"
 
   partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
 
