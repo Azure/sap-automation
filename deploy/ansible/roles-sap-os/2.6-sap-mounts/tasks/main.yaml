@@ -242,7 +242,6 @@
     - node_tier != 'oracle-multi-sid'
     - sap_mnt is undefined
 
-
 # Import this task only if the tier is ora.
 - import_tasks:                        "2.6.2-oracle-mounts.yaml"
   when:

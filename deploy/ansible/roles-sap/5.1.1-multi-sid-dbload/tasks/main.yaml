@@ -25,7 +25,7 @@
 - name:                                "ORA{{ item.sid }} User creation"
   ansible.builtin.user:
     name:                              "ora{{ item.sid|lower }}"
-    uid:                               "{{ item.orasid_uid }}"
+    uid:                               "{{ item.dbsid_uid }}"
     group:                             dba
     groups:                            oper,sapinst,oinstall
     shell:                             /bin/csh
