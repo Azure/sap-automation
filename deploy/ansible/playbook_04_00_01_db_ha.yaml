@@ -235,8 +235,8 @@
           ansible.builtin.include_role:
             name:                     roles-sap/7.0.0-post-install
           vars:
-           suffix:                    "_DC_ACTION_2"
-           tier:                      'oracle'
+            suffix:                    "_DC_ACTION_2"
+            tier:                      'oracle'
       when:
         - db_high_availability
         - platform == 'ORACLE'
@@ -351,7 +351,7 @@
           - platform == 'DB2'
 
       - name:                          "DB2 HA - Install DB2 Pacemaker resources"
-        block:                         # Why is this block needed?
+        block:
           - name:                      "DB2 HA - Pacemaker - Initialize facts"
             ansible.builtin.set_fact:
               tier:                            ha
