@@ -213,7 +213,8 @@
 
       when:
         - db_high_availability
-        - node_tier == 'hana'
+        - (node_tier == 'hana') or (node_tier == 'db2')
+        
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -446,45 +447,7 @@
       when:                            find_progress_files.matched == (ansible_play_hosts | length)
 
 
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |                    Playbook for Validating DB Install                      |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
 
-
-- hosts:                               "{{ sap_sid|upper }}_DB"
-
-  name:                                SAP Post Installation - DB
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         root
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
-
-  tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
-    - name:                            "DB Playbook - Post Install: Check for files in progress folder"
-      ansible.builtin.find:
-        path:                          "{{ _workspace_directory }}/.progress/db"
-        patterns:                      "*"
-      register:                        find_progress_files
-      delegate_to:                     localhost
-
-    - name:                            "DB Playbook - Post Install: - Create db-install-done flag"
-      delegate_to:                     localhost
-      become_user:                     "root"
-      become:                          true
-      ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/db-install-done"
-        state:                         touch
-        mode:                          0755
-      when:                            find_progress_files.matched == (ansible_play_hosts | length)
 
 ...
 # /*----------------------------------------------------------------------------8
