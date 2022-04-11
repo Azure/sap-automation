@@ -1,38 +1,37 @@
-# /*-----------------------------------------------------------------------------------------------------8
-# |                                                                                                                                         |
-# |                 Perform the DB2 Instance installation                                                           |
-# |                  SAP: Register BOM                                                                                       |
-# |                  SAP DB2 :  create .params directory                                                             |
-# |                  Export  environment variables for DB2 Installation                                      |
-# |                  Run SWPM to Install DB2                                                                             |
-# |                   TODO; Mention any OSS notes here                                                            |
-# |                                                                                                                                          |
-# +------------------------------------4--------------------------------------------------------------- */
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Perform the DB2 Instance installation                      |
+# |                  SAP: Register BOM                                         |
+# |                  SAP DB2 :  create .params directory                       |
+# |                  Export  environment variables for DB2 Installation        |
+# |                  Run SWPM to Install DB2                                   |
+# |                   TODO; Mention any OSS notes here                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 # TODO: Considerations
 
 ---
 
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
-- name:                                " SAP DB2 Install: Prep work"
+- name:                                "SAP DB2 Install: Prep work"
   block:
-    
-    - name:                                "SAP DB2 Install: Set BOM facts"
+    - name:                            "SAP DB2 Install: Set BOM facts"
       ansible.builtin.set_fact:
-        sap_inifile:                       "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
-        sap_inifile_template:              "{{ bom_base_name }}-dbloadstandby-inifile-param.j2"
+        sap_inifile:                   "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
+        sap_inifile_template:          "{{ bom_base_name }}-dbloadstandby-inifile-param.j2"
 
-    - name:                                "SAP DB2: Create run flag directory"
+    - name:                            "SAP DB2: Create run flag directory"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation
-        state:                             directory
-        mode:                              0755
+        path:                          /etc/sap_deployment_automation
+        state:                         directory
+        mode:                          0755
 
-    - name:                                "SAP DB2: Install reset"
+    - name:                            "SAP DB2: Install reset"
       ansible.builtin.file:
-        path:                              /etc/sap_deployment_automation/sap_deployment_db2.txt
-        state:                             absent
-      when:                                reinstall
+        path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
+        state:                         absent
+      when:                            reinstall
 
     - name:                                "SAP DB2: check if installed"
       ansible.builtin.stat:
@@ -41,7 +40,7 @@
       when:                                node_tier == 'db2'
 
   when:                              ansible_hostname == secondary_instance_name
-  
+
 - name:                                "DB2 Install"
   block:
     - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
@@ -67,7 +66,7 @@
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS')  | first }}"
-         
+
       tags:
         - skip_ansible_lint
 # +------------------------------------4--------------------------------------*/

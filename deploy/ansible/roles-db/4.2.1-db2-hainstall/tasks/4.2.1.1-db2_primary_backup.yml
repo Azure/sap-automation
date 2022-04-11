@@ -1,19 +1,19 @@
 ---
 
 # /*---------------------------------------------------------------------------8
-# |                                                                                                      |
-# |   DB2 -  Create Primary DB backup                                                     |
-# |                                                                                                      |
+# |                                                                            |
+# |   DB2 -  Create Primary DB backup                                          |
+# |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+# hdamecharla: is this the right place to create a shared backup?
 - name:                                " DB2 Backup -  Create backup Directory in shared location"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              0755
   loop:
-    - path: "{{ target_media_location }}/db2backup"
-
+    - path:                            "{{ target_media_location }}/db2backup"
 
 - name:                                "DB2 HA: - Ensure backup directory exists for DB2 database with System Identifier {{ db_sid }}"
   ansible.builtin.file:
@@ -23,34 +23,33 @@
     mode:                              0755
 
 # /*---------------------------------------------------------------------------8
-# |                                                                                                      |
-# | DB2 - Take backup on the primary node                                     |
-# |                                                                                                      |
+# |                                                                            |
+# | DB2 - Take backup on the primary node                                      |
+# |                                                                            |
 # /*---------------------------------------------------------------------------8
 
 - name:                                "DB2 Backup:- Ensure backup is taken on primary node"
   become_user:                         "{{ db_sid_admin_user }}"
   block:
-    
-    - name:                           " DB2 Backup - Stop the primary system"
+    - name:                            "DB2 Backup - Stop the primary system"
       ansible.builtin.shell: >
-                                            db2stop
+                              db2stop
 
     - name:                            "DB2 HA: - Backup DB2 database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
-                                           "{{ backup_cmd_for_systemdb }}"
+                              "{{ backup_cmd_for_systemdb }}"
 
     - name:                            "DB2 Backup  - Waiting for backup to finish"
-     ansible.builtin.pause:
-       seconds:                       60
-    
+      ansible.builtin.pause:
+      seconds:                         60
 
- # TBC - check at what stage we need to start the primary DB    
-#    - name:                             " DB2 Backup - Start the primary system"
+
+# TBC - check at what stage we need to start the primary DB
+#    - name:                           " DB2 Backup - Start the primary system"
 #      ansible.builtin.shell: >
-#                                            db2start
-  
-     #TBC - Need a check here for the successfull backup 
+#                              db2start
+
+#TBC - Need a check here for the successfull backup
   when:
     - ansible_hostname == primary_instance_name
 
