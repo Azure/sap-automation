@@ -24,7 +24,6 @@ variable "use_private_endpoint" {
 locals {
 
   storageaccount_names = var.naming.storageaccount_names.LIBRARY
-  keyvault_names       = var.naming.keyvault_names.LIBRARY
   resource_suffixes    = var.naming.resource_suffixes
 
   // Infrastructure
@@ -94,20 +93,7 @@ locals {
     local.deployer_tfstate.deployer_public_ip_address) : (
       ""
       )
-
-  // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
-  user_key_vault_id = try(var.key_vault.kv_user_id, "")
-  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
-  user_keyvault_exist     = length(local.user_key_vault_id) > 0
-  automation_keyvault_exist     = length(local.prvt_key_vault_id) > 0
-
-  // Extract information from the specified key vault arm ids
-  user_keyvault_name    = local.user_keyvault_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access
-  user_keyvault_rg_name = local.user_keyvault_exist ? split("/", local.user_key_vault_id)[4] : ""
-
-  automation_keyvault_name    = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[8] : local.keyvault_names.private_access
-  automation_keyvault_rg_name = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[4] : ""
-
+  
   deployer_keyvault_user_arm_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_keyvault_user_arm_id, "") : ""
 
 }
