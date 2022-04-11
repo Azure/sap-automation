@@ -221,6 +221,25 @@
     - MULTI_SIDS is defined
     - not use_AFS
 
+- name:                                "2.6 SAP Mounts: - Mount SAP File systems sapmnt for oracle shared home installation"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.mount:
+    src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid|upper }}'
+    path:                              '/sapmnt/{{ item.sid|upper }}'
+    fstype:                            'nfs4'
+    opts:                              defaults
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  loop:                                "{{ MULTI_SIDS }}"
+  when:
+    - tier == 'sapos'
+    - MULTI_SIDS is defined
+    - node_tier != 'scs'
+    - node_tier != 'oracle-multi-sid'
+    - sap_mnt is undefined
 
 # Import this task only if the tier is ora.
 - import_tasks:                        "oracle.yaml"

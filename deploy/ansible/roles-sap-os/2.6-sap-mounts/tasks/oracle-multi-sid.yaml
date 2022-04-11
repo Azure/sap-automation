@@ -171,3 +171,18 @@
     - MULTI_SIDS is defined
     - node_tier != 'scs'
     - sap_mnt is undefined
+
+
+- name:                                "ORACLE: Make orasid:dba as owners"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+  loop:
+    - { path: '{{ target_media_location }}/SBP',       group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraclient', group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraserver', group: 'oinstall',   owner: 'oracle'}
