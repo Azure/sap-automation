@@ -2,8 +2,6 @@
 ---
 ####################  Activate Secondary  DB  as Standby at DB level  #########################
 - name:                                "DB2 - Activate HADR on Secondary DB "
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
   block:
     - name:                            "DB2 Secondary DB - Activate Secondary as standby "
       ansible.builtin.shell: |
@@ -15,12 +13,12 @@
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
   when:
     - ansible_hostname == secondary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
 
 ####################  Activate Primary  DB  as primary at DB level  #########################
 
 - name:                                "DB2 - Activate HADR on Primary DB"
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
   block:
     - name:                            "DB2 Secondary DB - Activate Secondary as standby "
       ansible.builtin.shell: |
@@ -32,6 +30,8 @@
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
   when:
     - ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
 
 #################### End of Section for Primary DB   ######################
 

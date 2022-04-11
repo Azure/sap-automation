@@ -2,8 +2,6 @@
 ---
 ####################  Setting DB2 HA parameters on Primary DB  #########################
 - name:                                "DB2 - Set up HA parameters on Primary DB"
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
   block:
     - name:                            " DB2 Primary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
@@ -19,7 +17,7 @@
         msg:                           "Result: {{ whoami_result.stdout }}"
 
     - name:                            "DB2 Primary DB - Start the Primary DB"
-      ansible.builtin.shell:           db2start 
+      ansible.builtin.shell:           db2start
       args:
         executable:                    /bin/csh
       environment:
@@ -54,7 +52,7 @@
       ## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
       ## HADR timeout value (HADR_TIMEOUT) = 45
       ## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
-      block: 
+      block:
         - name:                        "DB2 Primary DB - Set HA parameters - RHEL"
           ansible.builtin.shell: |
             db2 update db cfg for {{ db_sid }} using HADR_LOCAL_HOST {{ db_hadr_local_host }}
@@ -74,7 +72,8 @@
       when:   ansible_os_family==RedHat
 
   when:       ansible_hostname == primary_instance_name
-
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
 
 #################### End of Section for Primary DB   ######################
 
@@ -82,8 +81,6 @@
 ###################  Setup DB2 HA parameters on Secondary ###############################
 
 - name:                                "DB2 - Set up HA parameters on Secondary DB"
-  become:                              true
-  become_user:                         db2{{ db_sid | lower }}
   block:
     - name:                            " DB2 Secondary DB - Set Fact for hadr local host and remote host "
       ansible.builtin.set_fact:
@@ -99,7 +96,7 @@
         msg:                           "Result: {{ whoami_result.stdout }}"
 
     - name:                            "DB2 Secondary DB - Start the Primary DB"
-      ansible.builtin.shell:           db2start 
+      ansible.builtin.shell:           db2start
       args:
         executable:                    /bin/csh
       environment:
@@ -135,7 +132,7 @@
       ## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
       ## HADR timeout value (HADR_TIMEOUT) = 45
       ## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
-      block: 
+      block:
         - name:                        "DB2 Secondary DB - Set HA parameters - RHEL"
           ansible.builtin.shell: |
             db2 update db cfg for {{ db_sid}} using HADR_LOCAL_HOST {{ db_hadr_local_host }}
@@ -155,8 +152,9 @@
       when:   ansible_os_family==RedHat
 
   when:       ansible_hostname == secondary_instance_name
-
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
 
 #################### End of Section for Secondary DB   ######################
 
-
+...
