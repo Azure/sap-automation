@@ -239,6 +239,7 @@
     - tier == 'sapos'
     - MULTI_SIDS is defined
     - node_tier != 'scs'
+    - node_tier != 'oracle-multi-sid'
     - sap_mnt is undefined
 
 
