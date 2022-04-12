@@ -12,9 +12,9 @@
   ansible.builtin.debug:
     msg:
       - "SAP SID              :        {{ sap_sid }}"
-      - "Instance Number - SCS:        {{ scs_instance_number }}"
-      - "SCS Virtual Hostname :        {{ sap_scs_hostname }}"
-      - "DB Hostname          :        {{ sap_db_hostname }}"
+      - "Instance Number - SCS:        {% if scs_instance_number is defined %}{{ scs_instance_number }}{% endif %}"
+      - "SCS Virtual Hostname :        {% if sap_scs_hostname is defined %}{{ sap_scs_hostname }}{% endif %}"
+      - "DB Hostname          :        {% if sap_db_hostname is defined %}{{ sap_db_hostname }}{% endif %}"
       - "FQDN                 :        {{ sap_fqdn }}"
       - "sapadm UID           :        {{ sapadm_uid }}"
       - "sapsys GID           :        {{ sapsys_gid }}"
@@ -88,8 +88,8 @@
         dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params
         mode:                          0644
         force:                         true
-      loop:                                 "{{ MULTI_SIDS }}"
-  when:                                
+      loop:                            "{{ MULTI_SIDS }}"
+  when:
     - result is succeeded or result is skipped
     - MULTI_SIDS is defined
     - node_tier == "scs"
@@ -103,8 +103,8 @@
         dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params
         mode:                          0644
         force:                         true
-      loop:                                 "{{ MULTI_SIDS }}"
-  when:                                
+      loop:                            "{{ MULTI_SIDS }}"
+  when:
     - result is succeeded or result is skipped
     - MULTI_SIDS is defined
     - node_tier == "oracle-multi-sid"
@@ -118,8 +118,8 @@
         dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params
         mode:                          0644
         force:                         true
-      loop:                                 "{{ MULTI_SIDS }}"
-  when:                                
+      loop:                            "{{ MULTI_SIDS }}"
+  when:
     - result is succeeded or result is skipped
     - MULTI_SIDS is defined
     - node_tier == "pas"
@@ -134,7 +134,7 @@
         mode:                          0644
         force:                         true
       loop:                                 "{{ MULTI_SIDS }}"
-  when:                                
+  when:
     - result is succeeded or result is skipped
     - MULTI_SIDS is defined
     - node_tier == "app"

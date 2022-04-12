@@ -147,10 +147,15 @@ stages:
                   --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${keyvault}" --storageaccountname "${REMOTE_STATE_SA}" \
                   --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 return_code=$?
+
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from install_workloadzone $return_code."
+                  if [ -f ${workload_environment_file_name}.err ]; then
+                    error_message=$(cat ${workload_environment_file_name}.err)
+                    echo "##vso[task.logissue type=error]Error message: $error_message."
+                  fi
+
                 fi
-                # Pull changes if there are other deployment jobs
                 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)

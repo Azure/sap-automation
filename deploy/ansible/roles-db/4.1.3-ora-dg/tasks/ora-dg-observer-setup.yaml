@@ -27,7 +27,7 @@
       when:
         - node_tier == 'observer'
         - sap_mnt is undefined
-  when: 
+  when:
     - usr_sap_install_mountpoint is undefined
 
 - name:                                "Oracle Data Guard - Observer: Change group ID for oinstall"
@@ -77,9 +77,11 @@
     DB_SID:                            "{{ db_sid|upper }}"
     CV_ASSUME_DISTID:                  OL7
   args:
-    executable:                        /bin/csh        
+    executable:                        /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /etc/sap_deployment_automation/oracle_installed.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: installer output"
   ansible.builtin.debug:
@@ -113,7 +115,8 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
-
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: Copy tnsnames.ora TO Observer"
   become:                              true
@@ -124,8 +127,9 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
-  
-  
+  tags:
+    - skip_ansible_lint
+
 - name:                                "Oracle Data Guard - Observer: Add environment variables to the Bash profile"
   become:                              true
   become_user:                         "oracle"
@@ -142,7 +146,7 @@
         export DB_SID={{ db_sid|upper }}
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
-  
+
 - name:                                "Oracle Data Guard - Observer: create .cshrc"
   become:                              true
   become_user:                         "oracle"
@@ -195,6 +199,8 @@
   args:
     chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
     executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: tnsping Secondary output"
   ansible.builtin.debug:
@@ -213,11 +219,11 @@
 - name:                                "Oracle Data Guard - Observer:  Check if DB post-processing is completed"
   ansible.builtin.stat:
     path:                              /usr/sap/install/downloads/post_processing_completed.txt
-  register:                            dgenabled
- 
+  register:                            dg_enabled
+
 - name:                                "ENABLE FSFO"
   block:
-  
+
     - name:                            "Oracle Data Guard - Observer: Enable FSFO"
       become:                          true
       become_user:                     "oracle"
@@ -240,7 +246,7 @@
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Observer: Prepare for FSFO output"
-      ansible.builtin.debug:     
+      ansible.builtin.debug:
         var:                           fsfo_results.stdout_lines
         verbosity:                     2
 
@@ -272,7 +278,7 @@
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Observer: Enable FSFO output"
-      ansible.builtin.debug:     
+      ansible.builtin.debug:
         var:                           fsfo_enable_results.stdout_lines
         verbosity:                     2
 
@@ -291,7 +297,7 @@
         state:                         touch
         mode:                          0755
       when:                            fsfo_enable_results.rc == 0
-  
+
     - name:                            "Oracle Data Guard - Observer: Start FSFO Observer"
       become:                          true
       become_user:                     "oracle"
@@ -304,7 +310,7 @@
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Observer: Debug Start FSFO Observer"
-      ansible.builtin.debug:     
+      ansible.builtin.debug:
         var:                           observer_results.stdout_lines
         verbosity:                     2
 
@@ -324,7 +330,7 @@
         mode:                          0755
       when:                            observer_results.rc == 0
   when:
-  - dgenabled.stat.exists
+    - dg_enabled.stat.exists
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

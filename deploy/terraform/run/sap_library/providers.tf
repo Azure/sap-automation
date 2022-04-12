@@ -23,7 +23,7 @@ provider "azurerm" {
   client_id       = var.use_deployer ? local.spn.client_id : null
   client_secret   = var.use_deployer ? local.spn.client_secret : null
   tenant_id       = var.use_deployer ? local.spn.tenant_id : null
-  partner_id = "140c3bc9-c937-4139-874f-88288bab08bb"
+  partner_id      = "140c3bc9-c937-4139-874f-88288bab08bb"
 
 }
 
@@ -39,7 +39,7 @@ provider "azuread" {
 }
 
 terraform {
-  required_version = ">= 0.14"
+  required_version = ">= 1.0"
   required_providers {
     external = {
       source = "hashicorp/external"
@@ -57,7 +57,8 @@ terraform {
       source = "hashicorp/azuread"
     }
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
     }
   }
 }

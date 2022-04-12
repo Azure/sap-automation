@@ -16,7 +16,7 @@ materials:
       path:         download_basket
       download:     true
       url:          https://softwaredownloads.sap.com/file/0030000001424202021
-                                                           
+
 
     - name:         Oracle Software Server
       archive:      51053828.ZIP

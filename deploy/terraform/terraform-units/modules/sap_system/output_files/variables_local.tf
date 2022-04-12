@@ -86,7 +86,7 @@ variable "naming" {
   description = "Defines the names for the resources"
 }
 
-variable "sid_kv_user_id" {
+variable "sid_keyvault_user_id" {
   description = "Defines the names for the resources"
 }
 
@@ -197,7 +197,7 @@ locals {
   tfstate_storage_account_name = split("/", local.tfstate_resource_id)[8]
   ansible_container_name       = try(var.naming.resource_suffixes.ansible, "ansible")
 
-  kv_name = split("/", var.sid_kv_user_id)[8]
+  kv_name = split("/", var.sid_keyvault_user_id)[8]
 
   landscape_tfstate = var.landscape_tfstate
   ips_iscsi         = var.iscsi_private_ip
@@ -240,6 +240,6 @@ locals {
     "02") : (
     "00"
   )
-    
+
 
 }

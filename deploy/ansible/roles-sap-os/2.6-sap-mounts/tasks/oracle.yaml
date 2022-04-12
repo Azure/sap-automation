@@ -98,6 +98,7 @@
   become_user:                         root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/filepermission.txt
+    mode:                              0755
     state:                             touch
 
 # Mount Filesystems

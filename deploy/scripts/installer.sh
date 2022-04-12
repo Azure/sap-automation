@@ -75,6 +75,9 @@ then
     echo -e "#                 $boldred  Parameter file does not exist: ${val} $resetformatting #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
+
+    echo "Parameter file does not exist: ${val}" > "${system_config_information}".err
+
     exit 2 #No such file or directory
 fi
 
@@ -100,6 +103,7 @@ fi
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
+    echo "Missing exports" > "${system_config_information}".err
     exit $return_code
 fi
 
@@ -107,6 +111,7 @@ fi
 validate_dependencies
 return_code=$?
 if [ 0 != $return_code ]; then
+    echo "Missing software" > "${system_config_information}".err
     exit $return_code
 fi
 
@@ -114,6 +119,7 @@ fi
 validate_key_parameters "$parameterfile_name"
 return_code=$?
 if [ 0 != $return_code ]; then
+    echo "Missing parameters in $parameterfile_name" > "${system_config_information}".err
     exit $return_code
 fi
 
@@ -207,6 +213,8 @@ then
             echo "#                                                                                       #"
             echo "#########################################################################################"
             echo ""
+
+            echo "Deployer terraform statefile name is missing" > "${system_config_information}".err
             unset TF_DATA_DIR
             exit 2
         fi
@@ -240,6 +248,9 @@ then
             echo "#                                                                                       #"
             echo "#########################################################################################"
             echo ""
+
+            echo "Workload zone terraform statefile name is missing" > "${system_config_information}".err
+
             unset TF_DATA_DIR
             exit 2
         fi
@@ -262,6 +273,7 @@ else
         echo -e "# The provided state_subscription is not valid:$boldred ${val}$resetformatting#"
         echo "#                                                                                       #"
         echo "#########################################################################################"
+        echo "The provided subscription for Terraform remote state is not valid:${val}" > "${system_config_information}".err
         exit 65
     fi
     
@@ -282,6 +294,7 @@ if [[ -n ${subscription} ]]; then
         echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
         echo "#                                                                                       #"
         echo "#########################################################################################"
+        echo "The provided subscription is not valid:${val}" > "${system_config_information}".err
         exit 65
     fi
     export ARM_SUBSCRIPTION_ID="${subscription}"
@@ -429,6 +442,7 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
+    echo "Error when initializing Terraform" > "${system_config_information}".err
     exit $return_value
 fi
 if [ 1 == $check_output ]
@@ -525,6 +539,8 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
+    echo "Error when running Terraform plan" > "${system_config_information}".err
+
     unset TF_DATA_DIR
     exit $return_value
 fi
@@ -748,6 +764,8 @@ if [ 2 == $return_value ] ; then
         echo ""
         if [ 1 == "$called_from_ado" ]; then
             unset TF_DATA_DIR
+            echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" > "${system_config_information}".err
+
             exit 1
         fi
         
@@ -808,6 +826,8 @@ if [ $ok_to_proceed ]; then
         if [ -f error.log ]; then
             cat error.log
             export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
+            echo "$LASTERROR" > "${system_config_information}".err
+
             if [ 1 == $called_from_ado ] ; then
                 echo "##vso[task.logissue type=error]$LASTERROR"
             fi
@@ -843,6 +863,11 @@ then
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
     
 fi
+
+if [ -f "${system_config_information}".err ]; then
+    "${system_config_information}".err
+fi
+
 
 unset TF_DATA_DIR
 exit $return_value

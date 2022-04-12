@@ -11,11 +11,13 @@
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts|default([]) + [this_sid]}}{% endif %}"
+    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts|default([]) + [ this_sid ] }}{% endif %}"
 
-- name:                                "AFS Mount: Create list of all_sap_mounts to support "
+- name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
-    msg:                               "{{ all_sap_mounts }}"
+    msg:
+      - "List of all the SAP mounts: {{ all_sap_mounts }}"
+    verbosity:                         2
 
 # Mount Filesystems
 - name:                                "AFS Mount: Mount Install"
@@ -191,7 +193,7 @@
 
     - name:                            "AFS Mount: Create SAP Directories (sapmnt)"
       ansible.builtin.file:
-#        owner:                         "'{{ item.sidadm_uid }}'"
+        owner:                         "{{ item.sidadm_uid }}"
         group:                         sapsys
         mode:                          0755
         path:                          "/sapmnt/{{ item.sid }}"

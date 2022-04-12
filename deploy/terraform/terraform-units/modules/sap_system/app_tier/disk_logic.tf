@@ -1,5 +1,5 @@
 locals {
-      base_app_data_disk_per_dbnode = (local.application_server_count > 0) ? flatten(
+  base_app_data_disk_per_dbnode = (local.application_server_count > 0) ? flatten(
     [
       for storage_type in local.app_sizing.storage : [
         for idx, disk_count in range(storage_type.count) : {

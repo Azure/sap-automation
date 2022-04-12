@@ -114,23 +114,34 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "DBLoad: Install -Wait for asynchronous job to end"
+      ansible.builtin.async_status:
+        jid:                           '{{ dbload_results.ansible_job_id }}'
+      register:                        job_result
+      until:                           job_result.finished
+      retries:                         180
+      delay:                           60
+
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         var:                           dbload
       when:
-        - dbload is defined
-        - dbload.rc > 0
+        - dbload_results is defined
+        - dbload_results.rc > 0
 
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
-      when:                            dbload.rc == 0
+      when:                            dbload_results.rc == 0
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_dbload.txt
         state:                         touch
         mode:                          0755
+      when:
+        - dbload is defined
+        - dbload.rc > 0
 
   when:
     - not dbload_installed.stat.exists

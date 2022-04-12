@@ -131,26 +131,26 @@
 - name:                                "{{ task_prefix }} Ensure that a BoM object is created"
   ansible.builtin.fail:
     msg:                               "Unable to find the Bill of materials file for {{ bom_name }} "
-  when:                                bom is not defined 
+  when:                                bom is not defined
 
 - name:                                "{{ task_prefix }} Show BoM details"
   ansible.builtin.debug:
-    msg:                               
-    - "BoM name:        {{ bom.name }}"
-    - "BoM target:      {{ bom.target }}"
-    - "BoM version:     {{ bom.version }}"
-    - "BoM DB platform: {{ bom.platform }}"
+    msg:
+      - "BoM name:        {{ bom.name }}"
+      - "BoM target:      {{ bom.target }}"
+      - "BoM version:     {{ bom.version }}"
+      - "BoM DB platform: {{ bom.platform }}"
   when:
     - bom.name is not search('SWPM')
     - bom.name is not search('SUM')
-    
+
 - name:                                "{{ task_prefix }} Ensure that a BoM object is created"
   ansible.builtin.assert:
     that:
       - bom.platform is defined                    # Has the variable been defined
       - bom.platform | upper == platform | upper
     fail_msg:                          "The BoM {{ bom_name }} is not for platform {{ platform }}"
-  when:                                
+  when:
     - operation is defined
     - operation != 'SoftwareAcquisition'
 

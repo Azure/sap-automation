@@ -44,12 +44,12 @@ output "random_id" {
 }
 
 output "user_vault_name" {
-  value = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+  value = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
 }
 
 # TODO Add this back when we separate the usage
 # output "prvt_vault_name" {
-#   value = local.prvt_kv_exist ? data.azurerm_key_vault.kv_prvt[0].name : azurerm_key_vault.kv_prvt[0].name
+#   value = local.automation_keyvault_exist ? data.azurerm_key_vault.kv_prvt[0].name : azurerm_key_vault.kv_prvt[0].name
 # }
 
 // output the secret name of private key
@@ -77,8 +77,8 @@ output "deployer_user" {
 }
 */
 
-output "deployer_kv_user_arm_id" {
-  value = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+output "deployer_keyvault_user_arm_id" {
+  value = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 output "deployer_public_ip_address" {

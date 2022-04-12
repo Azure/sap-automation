@@ -47,7 +47,7 @@ materials:
 
     - name:         "Oracle DBATOOLS"
       archive:      DBATL740O11_47-70001657.SAR
-      checksum:     31a4aed609605084dc711bb6d42fe7c5f08b68c88a221b06c754c33c4d9b00b3
+      checksum:     f0dc4198bcfab1c137c8521e934092e059248739782af24138a160b1dc309d0d
       extract:      false
       #download:     true
       path:         download_basket
@@ -64,7 +64,7 @@ materials:
     #   url:          https://softwaredownloads.sap.com/file/0020000001253802021
 
 
-    - name:       "Oracle installation dump"
+    - name:        "Oracle installation dump"
       archive:     51050829_3.ZIP
       checksum:    06c3a3cd5d1ad266f61ca202552468501d94cfdc7641ffdadf0a9abad82b648a
       extract:     true

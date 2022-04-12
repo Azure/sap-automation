@@ -4,14 +4,17 @@ Description:
   Example to deploy deployer(s) using local backend.
 */
 module "sap_deployer" {
-  source                             = "../../terraform-units/modules/sap_deployer/"
-  infrastructure                     = local.infrastructure
-  deployer                           = local.deployer
-  options                            = local.options
-  ssh-timeout                        = var.ssh-timeout
-  authentication                     = local.authentication
-  key_vault                          = local.key_vault
-  naming                             = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  source         = "../../terraform-units/modules/sap_deployer/"
+  infrastructure = local.infrastructure
+  deployer       = local.deployer
+  options        = local.options
+  ssh-timeout    = var.ssh-timeout
+  authentication = local.authentication
+  key_vault      = local.key_vault
+  naming = length(var.name_override_file) > 0 ? (
+    local.custom_names) : (
+    module.sap_namegenerator.naming
+  )
   firewall_deployment                = local.firewall_deployment
   assign_subscription_permissions    = local.assign_subscription_permissions
   bootstrap                          = false
@@ -30,8 +33,11 @@ module "sap_namegenerator" {
   deployer_environment = lower(local.infrastructure.environment)
   location             = lower(local.infrastructure.region)
   codename             = lower(local.infrastructure.codename)
-  management_vnet_name = coalesce(var.management_network_logical_name,local.vnet_mgmt_name_part)
-  random_id            = module.sap_deployer.random_id
-  deployer_vm_count    = local.deployer_vm_count
+  management_vnet_name = coalesce(
+    var.management_network_logical_name,
+    local.vnet_mgmt_name_part
+  )
+  random_id         = module.sap_deployer.random_id
+  deployer_vm_count = local.deployer_vm_count
 }
 

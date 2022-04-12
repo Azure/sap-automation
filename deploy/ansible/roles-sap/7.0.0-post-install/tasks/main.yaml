@@ -126,17 +126,17 @@
       when:
         - oracle_log_files.files is defined
         - oracle_log_files.files | length > 0
-    
+
     - name:                                "Post Installation: Compress the installation log files (Oracle)"
       ansible.builtin.archive:
         path:                              "{{ oracle_list_of_files }}"
         dest:                              "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
         format:                            zip
         mode:                              0755
-    
+
       when:
         - oracle_log_files is defined
-    
+
     - name:                                "Post Installation: Copy installation logs (Oracle)"
       ansible.builtin.fetch:
         src:                               "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
