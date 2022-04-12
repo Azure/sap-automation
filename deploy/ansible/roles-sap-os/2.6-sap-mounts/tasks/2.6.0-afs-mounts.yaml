@@ -193,7 +193,7 @@
 
     - name:                            "AFS Mount: Create SAP Directories (sapmnt)"
       ansible.builtin.file:
-#        owner:                         "'{{ item.sidadm_uid }}'"
+        owner:                         "{{ item.sidadm_uid }}"
         group:                         sapsys
         mode:                          0755
         path:                          "/sapmnt/{{ item.sid }}"
