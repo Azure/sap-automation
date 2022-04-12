@@ -16,8 +16,8 @@ product_ids:
   pas_ha:                              "NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAPHA"
   app:                                 "NW_DI:S4HANA2021.CORE.HDB.PD"
   app_ha:                              "NW_DI:S4HANA2021.CORE.HDB.PD"
-  web:                                 "None"
-  ers:                                 "None"
+  web:                                 "NW_Webdispatcher:NW750.IND.PD"
+  ers:                                 "NW_ERS:S4HANA2021.CORE.HDB.ABAP"
   ers_ha:                              "NW_ERS:S4HANA2021.CORE.HDB.ABAPHA"
   generic:                             "NW_Users_Create:GENERIC.HDB.PD"
 
