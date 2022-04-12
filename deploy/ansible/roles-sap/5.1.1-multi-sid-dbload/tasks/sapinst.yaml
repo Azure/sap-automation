@@ -1,5 +1,5 @@
 - name:                                "SAP DBLOAD {{ item.sid }}"
-  ansible.builtin.debug: 
+  ansible.builtin.debug:
     msg:                               "Starting DB Load on {{ item.sid }}"
 
 - name:                                "SAP DBLOAD {{ item.sid }}"
@@ -9,7 +9,7 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
-                                                
+
                                        touch /etc/sap_deployment_automation/sap_deployment_dbload_{{ item.sid }}.txt
   args:
     chdir:                             /usr/sap/install/SWPM
@@ -22,7 +22,7 @@
   poll:                                60
   tags:
     - skip_ansible_lint
-    
+
 - name:                                "DBLoad (sharedHome): Install -Wait for asynchronous job for {{ item.sid }} to end"
   ansible.builtin.async_status:
     jid:                               '{{ dbload_results.ansible_job_id }}'

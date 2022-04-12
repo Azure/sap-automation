@@ -36,6 +36,8 @@
   when:
   #  - not archive_primary_stat.stat.exists
     - current_host == ora_primary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary (debug)"
   ansible.builtin.debug:     
@@ -79,6 +81,8 @@
   when:
   #  - not forcelogin_stat.stat.exists
     - current_host == ora_primary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary (debug)"
   ansible.builtin.debug:     
@@ -123,6 +127,8 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:  current_host == ora_primary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Create standby logs for Oracle DG (debug)"
   ansible.builtin.debug:     
@@ -158,6 +164,8 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:  current_host == ora_primary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
   ansible.builtin.debug:     

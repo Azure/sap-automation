@@ -20,17 +20,6 @@
     state:                             directory
     mode:                              0755
 
-# - name:                                "APP Install: reset"
-#   ansible.builtin.file:
-#     path:                              /etc/sap_deployment_automation/sap_deployment_app.txt
-#     state:                             absent
-#   when:                                reinstall
-
-# - name:                                "APP Install: check if installed"
-#   ansible.builtin.stat:
-#     path:                              /etc/sap_deployment_automation/sap_deployment_app.txt
-#   register:                            app_installed
-
 - name:                                "APP (sharedHome) Install: reset"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
@@ -107,7 +96,7 @@
       failed_when:                     app_installation.rc > 0
       loop:                            "{{ MULTI_SIDS }}"
       tags:
-      - skip_ansible_lint
+        - skip_ansible_lint
 
 # *====================================4=======================================8
 

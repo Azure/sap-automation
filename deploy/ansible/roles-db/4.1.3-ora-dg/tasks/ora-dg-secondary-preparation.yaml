@@ -41,6 +41,8 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/createpfile.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
   #when:  current_host == ora_primary
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create createpfile.txt"
@@ -86,6 +88,8 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
 
 ...
 # /*---------------------------------------------------------------------------8

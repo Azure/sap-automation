@@ -114,6 +114,8 @@
     executable:                        /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
     creates:                           /etc/sap_deployment_automation/oracle_installed.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "ORACLE (sharedHome): create after a successful install"
   ansible.builtin.file:
@@ -274,6 +276,8 @@
     creates:                           /etc/sap_deployment_automation/sbpinstalled.txt
     chdir:                             "{{ target_media_location }}/SBP"
     executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
 
 - name:                                "ORACLE (sharedHome): Post processing installer output"
   ansible.builtin.debug:

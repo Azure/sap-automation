@@ -80,7 +80,7 @@ admin_groups:
     tier:         ora
     enabled:      true
     node_tier:    oracle
-  
+
 # Admin groups for Oracle Non-ASM Multi-SID
   - name:         dba
     gid:          "{{ dba_gid }}"
@@ -132,35 +132,35 @@ admin_groups:
     tier:         ora
     enabled:      true
     node_tier:    observer
-  
+
   - name:         oper
     gid:          "{{ oper_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    observer
-  
+
   - name:         asmoper
     gid:          "{{ asmoper_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    observer
-  
+
   - name:         asmadmin
     gid:          "{{ asmadmin_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    observer
-  
+
   - name:         asmdba
     gid:          "{{ asmdba_gid }}"
     state:        present
     tier:         ora
     enabled:      true
     node_tier:    observer
-  
+
   - name:         oinstall
     gid:          "{{ oinstall_gid }}"
     state:        present
@@ -311,7 +311,6 @@ admin_users:
     node_tier:    observer
     enabled:      true
 
-
 #####
 # Admin users for Oracle Non-ASM Multi-SID
 
@@ -340,9 +339,6 @@ admin_users:
     tier:         ora
     node_tier:    oracle-multi-sid
     enabled:      true
-
-
-
 
 #Admin users for Oracle ASM
 

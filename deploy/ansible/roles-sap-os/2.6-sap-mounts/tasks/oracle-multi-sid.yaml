@@ -136,7 +136,7 @@
   loop:
     - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
   when:
-     - not oracle_permissions_set.stat.exists
+    - not oracle_permissions_set.stat.exists
 
 - name:                                "2.6 SAP Mounts (Oracle shared home) : Create filepermission.txt"
   become:                              true
