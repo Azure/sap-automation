@@ -58,7 +58,11 @@ locals {
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     length(var.infrastructure.resource_group.name) > 0 ? (
       var.infrastructure.resource_group.name) : (
-      format("%s%s%s", var.naming.resource_prefixes.deployer_rg, local.prefix, local.resource_suffixes.deployer_rg)
+      format("%s%s%s",
+        var.naming.resource_prefixes.deployer_rg,
+        local.prefix,
+        local.resource_suffixes.deployer_rg
+      )
     )
   )
 
@@ -74,7 +78,14 @@ locals {
     split("/", local.vnet_mgmt_arm_id)[8]) : (
     length(var.infrastructure.vnets.management.name) > 0 ? (
       var.infrastructure.vnets.management.name) : (
-      format("%s%s%s", var.naming.resource_prefixes.vnet, local.prefix, local.resource_suffixes.vnet)
+      format("%s%s%s",
+        var.naming.resource_prefixes.vnet,
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        local.resource_suffixes.vnet
+      )
     )
   )
 
@@ -89,11 +100,24 @@ locals {
     split("/", var.infrastructure.vnets.management.subnet_mgmt.arm_id)[10]) : (
     length(var.infrastructure.vnets.management.subnet_mgmt.name) > 0 ? (
       var.infrastructure.vnets.management.subnet_mgmt.name) : (
-      format("%s%s%s", var.naming.resource_prefixes.deployer_subnet, local.prefix, local.resource_suffixes.deployer_subnet)
+      format("%s%s%s",
+        var.naming.resource_prefixes.deployer_subnet,
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        local.resource_suffixes.deployer_subnet
+      )
   ))
 
-  management_subnet_prefix            = local.management_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_mgmt.prefix, "")
-  management_subnet_deployed_prefixes = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
+  management_subnet_prefix = local.management_subnet_exists ? (
+    "") : (
+    try(var.infrastructure.vnets.management.subnet_mgmt.prefix, "")
+  )
+  management_subnet_deployed_prefixes = local.management_subnet_exists ? (
+    data.azurerm_subnet.subnet_mgmt[0].address_prefixes) : (
+    azurerm_subnet.subnet_mgmt[0].address_prefixes
+  )
 
   // Management NSG
   management_subnet_nsg_arm_id = try(var.infrastructure.vnets.management.subnet_mgmt.nsg.arm_id, "")
@@ -103,7 +127,14 @@ locals {
     split("/", local.management_subnet_nsg_arm_id)[8]) : (
     length(var.infrastructure.vnets.management.subnet_mgmt.nsg.name) > 0 ? (
       var.infrastructure.vnets.management.subnet_mgmt.nsg.name) : (
-      format("%s%s%s", var.naming.resource_prefixes.deployer_subnet_nsg, local.prefix, local.resource_suffixes.deployer_subnet_nsg)
+      format("%s%s%s",
+        var.naming.resource_prefixes.deployer_subnet_nsg,
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        local.resource_suffixes.deployer_subnet_nsg
+      )
   ))
 
   management_subnet_nsg_allowed_ips = local.management_subnet_nsg_exists ? (
@@ -113,13 +144,19 @@ locals {
       ["0.0.0.0/0"]
     )
   )
-  management_subnet_nsg_deployed = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
+  management_subnet_nsg_deployed = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0]) : (
+    azurerm_network_security_group.nsg_mgmt[0]
+  )
 
   // Firewall subnet
   firewall_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")
   firewall_subnet_exists = length(local.firewall_subnet_arm_id) > 0
   firewall_subnet_name   = "AzureFirewallSubnet"
-  firewall_subnet_prefix = local.firewall_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
+  firewall_subnet_prefix = local.firewall_subnet_exists ? (
+    "") : (
+    try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
+  )
 
   firewall_service_tags = format("AzureCloud.%s", var.infrastructure.region)
 
@@ -127,8 +164,10 @@ locals {
   bastion_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")
   bastion_subnet_exists = length(local.bastion_subnet_arm_id) > 0
   bastion_subnet_name   = "AzureBastionSubnet"
-  bastion_subnet_prefix = local.bastion_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
-
+  bastion_subnet_prefix = local.bastion_subnet_exists ? (
+    "") : (
+    try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
+  )
 
   enable_password = try(var.deployer.authentication.type, "key") == "password"
   enable_key      = !local.enable_password
@@ -167,8 +206,8 @@ locals {
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
   user_key_vault_id = try(var.key_vault.kv_user_id, "")
   prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
-  user_kv_exist     = length(local.user_key_vault_id) > 0
-  prvt_kv_exist     = length(local.prvt_key_vault_id) > 0
+  user_keyvault_exist     = length(local.user_key_vault_id) > 0
+  automation_keyvault_exist     = length(local.prvt_key_vault_id) > 0
 
   // If the user specifies the secret name of key pair/password in input, the secrets will be imported instead of creating new secrets
   input_public_key_secret_name  = try(var.key_vault.kv_sshkey_pub, "")
@@ -181,20 +220,63 @@ locals {
   pwd_exist      = try(length(local.input_password_secret_name) > 0, false)
   username_exist = try(length(local.input_username_secret_name) > 0, false)
 
-  ppk_secret_name      = local.key_exist ? local.input_private_key_secret_name : replace(format("%s-sshkey", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
-  pk_secret_name       = local.key_exist ? local.input_public_key_secret_name : replace(format("%s-sshkey-pub", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
-  pwd_secret_name      = local.pwd_exist ? local.input_password_secret_name : replace(format("%s-password", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
-  username_secret_name = local.username_exist ? local.input_username_secret_name : replace(format("%s-username", length(local.prefix) > 0 ? local.prefix : "DEP00"), "/[^A-Za-z0-9]/", "")
+  ppk_secret_name = local.key_exist ? (
+    local.input_private_key_secret_name) : (
+    replace(
+      format("%s-sshkey",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+      )),
+      "/[^A-Za-z0-9]/"
+    , "")
+  )
+  pk_secret_name = local.key_exist ? (
+    local.input_public_key_secret_name) : (
+    replace(
+      format("%s-sshkey-pub",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+      ),
+      "/[^A-Za-z0-9]/",
+      ""
+    )
+  )
+  pwd_secret_name = local.pwd_exist ? (
+    local.input_password_secret_name) : (
+    replace(
+      format("%s-password",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+      ),
+      "/[^A-Za-z0-9]/"
+    , "")
+  )
+  username_secret_name = local.username_exist ? (
+    local.input_username_secret_name) : (
+    replace(
+      format("%s-username",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+      ),
+      "/[^A-Za-z0-9]/"
+    , "")
+  )
 
   // Extract information from the specified key vault arm ids
-  user_kv_name    = local.user_kv_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access
-  user_kv_rg_name = local.user_kv_exist ? split("/", local.user_key_vault_id)[4] : ""
+  user_keyvault_name    = local.user_keyvault_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access
+  user_keyvault_rg_name = local.user_keyvault_exist ? split("/", local.user_key_vault_id)[4] : ""
 
-  prvt_kv_name    = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[8] : local.keyvault_names.private_access
-  prvt_kv_rg_name = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[4] : ""
+  automation_keyvault_name    = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[8] : local.keyvault_names.private_access
+  automation_keyvault_rg_name = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[4] : ""
 
   // Tags
   tags = try(var.deployer.tags, { "Role" = "Deployer" })
-
 
 }

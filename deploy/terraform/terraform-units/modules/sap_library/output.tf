@@ -12,7 +12,7 @@ output "sapbits_storage_account_name" {
     split("/", var.storage_account_sapbits.arm_id)[8]) : (
     length(var.storage_account_sapbits.name) > 0 ? (
       var.storage_account_sapbits.name) : (
-      var.naming.storageaccount_names.LIBRARY.sapbits_storageaccount_name
+      var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
   ))
 
 }

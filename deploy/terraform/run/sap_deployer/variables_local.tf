@@ -23,6 +23,9 @@ locals {
 
   deployer_vm_count = length(var.deployers)
 
-  custom_names = length(var.name_override_file) > 0 ? jsondecode(file(format("%s/%s", path.cwd, var.name_override_file))) : null
+  custom_names = length(var.name_override_file) > 0 ? (
+    jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
+    null
+  )
 
 }

@@ -32,12 +32,9 @@ override.tf.json
 
 
 ### VisualStudioCode ###
+**/settings.json
+.vscode/settings.json
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
 
 # Local History for Visual Studio Code
 .history/
@@ -49,3 +46,5 @@ override.tf.json
 # Ignore all local history of files
 .history
 .ionide
+
+
