@@ -90,10 +90,7 @@
             state:                     directory
             mode:                      0755
           loop:                        "{{ MULTI_SIDS }}"
-<<<<<<< HEAD
           when:                        MULTI_SIDS is defined
-=======
->>>>>>> 2b29259208d0c8da98cded75d6446bb3a1f6fbd4
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
           ansible.builtin.mount:
@@ -117,10 +114,7 @@
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
           loop:                        "{{ MULTI_SIDS }}"
-<<<<<<< HEAD
           when:                        MULTI_SIDS is defined
-=======
->>>>>>> 2b29259208d0c8da98cded75d6446bb3a1f6fbd4
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
           ansible.builtin.mount:
