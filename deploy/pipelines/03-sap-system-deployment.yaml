@@ -144,6 +144,10 @@ stages:
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
+                  if [ -f ${environment_file_name}.err ]; then
+                    error_message=$(cat ${environment_file_name}.err)
+                    echo "##vso[task.logissue type=error]Error message: $error_message."
+                  fi
                 fi
                 # Pull changes if there are other deployment jobs
                 

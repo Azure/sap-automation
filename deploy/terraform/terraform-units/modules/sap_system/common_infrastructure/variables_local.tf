@@ -94,14 +94,24 @@ locals {
   anchor_computer_names       = var.naming.virtualmachine_names.ANCHOR_COMPUTERNAME
   resource_suffixes           = var.naming.resource_suffixes
   //Region and metadata
-  region    = var.infrastructure.region
-  sid       = upper(var.application.sid)
-  prefix    = length(trimspace(var.custom_prefix)) > 0 ? trimspace(var.custom_prefix) : trimspace(var.naming.prefix.SDU)
+  region = var.infrastructure.region
+  sid    = upper(var.application.sid)
+  prefix = length(trimspace(var.custom_prefix)) > 0 ? (
+    trimspace(var.custom_prefix)) : (
+    trimspace(var.naming.prefix.SDU)
+  )
   rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   // Resource group
   rg_name = local.rg_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", var.naming.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
+    coalesce(
+      try(var.infrastructure.resource_group.name, ""),
+      format("%s%s%s",
+        var.naming.resource_prefixes.sdu_rg,
+        local.prefix,
+        local.resource_suffixes.sdu_rg
+      )
+    )
 
   )
 
@@ -194,7 +204,10 @@ locals {
 
   sizes = jsondecode(file(local.file_name))
 
-  db_sizing = local.enable_sid_deployment ? lookup(local.sizes.db, var.databases[0].size).storage : []
+  db_sizing = local.enable_sid_deployment ? (
+    lookup(local.sizes.db, var.databases[0].size).storage) : (
+    []
+  )
 
   enable_ultradisk = try(
     compact(
@@ -222,15 +235,37 @@ locals {
     try(contains(local.db_list[0].zones, zone) ? local.enable_ultradisk : false, false)
   ]
 
-  anchor_custom_image = length(try(var.infrastructure.anchor_vms.os.source_image_id, "")) > 0
+  anchor_custom_image = length(
+    try(var.infrastructure.anchor_vms.os.source_image_id, "")
+  ) > 0
 
   anchor_os = local.deploy_anchor ? (
     {
-      "source_image_id" = local.anchor_custom_image ? var.infrastructure.anchor_vms.os.source_image_id : ""
-      "publisher"       = try(var.infrastructure.anchor_vms.os.publisher, local.anchor_custom_image ? "" : local.db_os.publisher)
-      "offer"           = try(var.infrastructure.anchor_vms.os.offer, local.anchor_custom_image ? "" : local.db_os.offer)
-      "sku"             = try(var.infrastructure.anchor_vms.os.sku, local.anchor_custom_image ? "" : local.db_os.sku)
-      "version"         = try(var.infrastructure.anchor_vms.os.version, local.anchor_custom_image ? "" : local.db_os.version)
+      "source_image_id" = local.anchor_custom_image ? (
+        var.infrastructure.anchor_vms.os.source_image_id) : (
+        ""
+      )
+      "publisher" = try(var.infrastructure.anchor_vms.os.publisher,
+        local.anchor_custom_image ? (
+          "") : (
+          local.db_os.publisher
+        )
+      )
+      "offer" = try(var.infrastructure.anchor_vms.os.offer,
+        local.anchor_custom_image ? (
+          "") : (
+        local.db_os.offer)
+      )
+      "sku" = try(var.infrastructure.anchor_vms.os.sku,
+        local.anchor_custom_image ? (
+          "") : (
+        local.db_os.sku)
+      )
+      "version" = try(var.infrastructure.anchor_vms.os.version,
+        local.anchor_custom_image ? (
+          "") : (
+        local.db_os.version)
+      )
     }) : (
     null
   )
@@ -241,7 +276,13 @@ locals {
   var_ppg     = try(var.infrastructure.ppg, {})
   ppg_arm_ids = try(var.infrastructure.ppg.arm_ids, [])
   ppg_exists  = length(local.ppg_arm_ids) > 0 ? true : false
-  ppg_names   = try(local.var_ppg.names, [format("%s%s%s", var.naming.resource_prefixes.ppg, local.prefix, local.resource_suffixes.ppg)])
+  ppg_names = try(local.var_ppg.names, [
+    format("%s%s%s",
+      var.naming.resource_prefixes.ppg,
+      local.prefix,
+      local.resource_suffixes.ppg
+    )
+  ])
 
   isHANA = try(upper(local.db.platform), "NONE") == "HANA"
 
@@ -251,10 +292,17 @@ locals {
   #
   ##############################################################################################
 
-  enable_admin_subnet = var.application.dual_nics || var.databases[0].dual_nics || (local.isHANA && var.hana_dual_nics)
+  enable_admin_subnet = (
+    var.application.dual_nics ||
+    var.databases[0].dual_nics ||
+    (local.isHANA && var.hana_dual_nics)
+  )
 
   admin_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_admin, {})) > 0
-  admin_subnet_prefix  = local.admin_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_admin.prefix, "") : ""
+  admin_subnet_prefix = local.admin_subnet_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_admin.prefix, "")) : (
+    ""
+  )
   admin_subnet_arm_id = local.admin_subnet_defined ? (
     try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "")) : (
     var.landscape_tfstate.admin_subnet_id
@@ -267,7 +315,15 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_admin.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_admin.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_admin.name) : (
-        format("%s%s%s%s", var.naming.resource_prefixes.admin_subnet, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet)
+        format("%s%s%s%s",
+          var.naming.resource_prefixes.admin_subnet,
+          length(local.prefix) > 0 ? (
+            local.prefix) : (
+            var.infrastructure.environment
+          ),
+          var.naming.separator,
+          local.resource_suffixes.admin_subnet
+        )
     ))) : (
     ""
   )
@@ -290,7 +346,15 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_admin.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
-        format("%s%s%s%s", var.naming.resource_prefixes.admin_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.admin_subnet_nsg)
+        format("%s%s%s%s",
+          var.naming.resource_prefixes.admin_subnet_nsg,
+          length(local.prefix) > 0 ? (
+            local.prefix) : (
+            var.infrastructure.environment
+          ),
+          var.naming.separator,
+          local.resource_suffixes.admin_subnet_nsg
+        )
     ))) : (
     ""
   )
@@ -302,7 +366,10 @@ locals {
   ##############################################################################################
 
   database_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_db, {})) > 0
-  database_subnet_prefix  = local.database_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_db.prefix, "") : ""
+  database_subnet_prefix = local.database_subnet_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_db.prefix, "")) : (
+    ""
+  )
   database_subnet_arm_id = local.database_subnet_defined ? (
     try(var.infrastructure.vnets.sap.subnet_db.arm_id, "")) : (
     var.landscape_tfstate.db_subnet_id
@@ -315,7 +382,15 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_db.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_db.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_db.name) : (
-        format("%s%s%s%s", var.naming.resource_prefixes.db_subnet, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet)
+        format("%s%s%s%s",
+          var.naming.resource_prefixes.db_subnet,
+          length(local.prefix) > 0 ? (
+            local.prefix) : (
+            var.infrastructure.environment
+          ),
+          var.naming.separator,
+          local.resource_suffixes.db_subnet
+        )
     ))) : (
     ""
   )
@@ -338,7 +413,15 @@ locals {
       split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[10]) : (
       length(var.infrastructure.vnets.sap.subnet_db.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
-        format("%s%s%s%s", var.naming.resource_prefixes.db_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.db_subnet_nsg)
+        format("%s%s%s%s",
+          var.naming.resource_prefixes.db_subnet_nsg,
+          length(local.prefix) > 0 ? (
+            local.prefix) : (
+            var.infrastructure.environment
+          ),
+          var.naming.separator,
+          local.resource_suffixes.db_subnet_nsg
+        )
     ))) : (
     ""
   )
@@ -380,18 +463,32 @@ locals {
 
   //Storage subnet
 
-  sub_storage_defined = (length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) + length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, ""))) > 0
-  sub_storage_arm_id  = try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")
-  sub_storage_exists  = length(local.sub_storage_arm_id) > 0
+  sub_storage_defined = (
+    length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) +
+    length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, ""))
+  ) > 0
+  sub_storage_arm_id = try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")
+  sub_storage_exists = length(local.sub_storage_arm_id) > 0
   sub_storage_name = local.sub_storage_exists ? (
     try(split("/", local.sub_storage_arm_id)[10], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_storage.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_storage.name) : (
-      format("%s%s%s%s", var.naming.resource_prefixes.storage_subnet, local.prefix, var.naming.separator, local.resource_suffixes.storage_subnet)
+      format("%s%s%s%s",
+        var.naming.resource_prefixes.storage_subnet,
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        var.naming.separator,
+        local.resource_suffixes.storage_subnet
+      )
     )
 
   )
-  sub_storage_prefix = local.sub_storage_defined ? try(var.infrastructure.vnets.sap.subnet_storage.prefix, "") : ""
+  sub_storage_prefix = local.sub_storage_defined ? (
+    try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) : (
+    ""
+  )
 
   //Storage NSG
   sub_storage_nsg_exists = length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, "")) > 0
@@ -399,21 +496,50 @@ locals {
     try(split("/", var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id)[8], "")) : (
     length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) > 0 ? (
       var.infrastructure.vnets.sap.subnet_storage.nsg.name) : (
-      format("%s%s%s%s", var.naming.resource_prefixes.storage_subnet_nsg, local.prefix, var.naming.separator, local.resource_suffixes.storage_subnet_nsg)
+      format("%s%s%s%s",
+        var.naming.resource_prefixes.storage_subnet_nsg,
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        var.naming.separator,
+        local.resource_suffixes.storage_subnet_nsg
+      )
     )
   )
 
-  // If the user specifies arm id of key vaults in input, the key vault will be imported instead of using the landscape key vault
-  user_key_vault_id = length(try(var.key_vault.kv_user_id, "")) > 0 ? var.key_vault.kv_user_id : var.landscape_tfstate.landscape_key_vault_user_arm_id
-  prvt_key_vault_id = length(try(var.key_vault.kv_prvt_id, "")) > 0 ? var.key_vault.kv_prvt_id : var.landscape_tfstate.landscape_key_vault_private_arm_id
+  // If the user specifies arm id of key vaults in input, 
+  // the key vault will be imported instead of using the landscape key vault
+  user_key_vault_id = length(try(var.key_vault.kv_user_id, "")) > 0 ? (
+    var.key_vault.kv_user_id) : (
+    var.landscape_tfstate.landscape_key_vault_user_arm_id
+  )
+  prvt_key_vault_id = length(try(var.key_vault.kv_prvt_id, "")) > 0 ? (
+    var.key_vault.kv_prvt_id) : (
+    var.landscape_tfstate.landscape_key_vault_private_arm_id
+  )
 
 
   // Extract information from the specified key vault arm ids
-  user_kv_name    = length(local.user_key_vault_id) > 0 ? split("/", local.user_key_vault_id)[8] : local.sid_keyvault_names.user_access
-  user_kv_rg_name = length(local.user_key_vault_id) > 0 ? split("/", local.user_key_vault_id)[4] : local.rg_name
+  user_keyvault_name = length(local.user_key_vault_id) > 0 ? (
+    split("/", local.user_key_vault_id)[8]) : (
+    local.sid_keyvault_names.user_access
+  )
 
-  prvt_kv_name    = length(local.prvt_key_vault_id) > 0 ? split("/", local.prvt_key_vault_id)[8] : local.sid_keyvault_names.private_access
-  prvt_kv_rg_name = length(local.prvt_key_vault_id) > 0 ? split("/", local.prvt_key_vault_id)[4] : local.rg_name
+  user_keyvault_rg_name = length(local.user_key_vault_id) > 0 ? (
+    split("/", local.user_key_vault_id)[4]) : (
+    local.rg_name
+  )
+
+  automation_keyvault_name = length(local.prvt_key_vault_id) > 0 ? (
+    split("/", local.prvt_key_vault_id)[8]) : (
+    local.sid_keyvault_names.private_access
+  )
+
+  automation_keyvault_rg_name = length(local.prvt_key_vault_id) > 0 ? (
+    split("/", local.prvt_key_vault_id)[4]) : (
+    local.rg_name
+  )
 
   use_local_credentials = length(var.authentication) > 0
 
@@ -427,19 +553,32 @@ locals {
 
   sid_auth_password = coalesce(
     try(var.authentication.password, ""),
-    try(data.azurerm_key_vault_secret.sid_password[0].value, random_password.password[0].result)
+    try(
+      data.azurerm_key_vault_secret.sid_password[0].value,
+      random_password.password[0].result
+    )
   )
 
   sid_public_key = local.use_local_credentials ? (
-    try(file(var.authentication.path_to_public_key), tls_private_key.sdu[0].public_key_openssh)) : (
+    try(
+      file(var.authentication.path_to_public_key),
+      tls_private_key.sdu[0].public_key_openssh
+    )) : (
     data.azurerm_key_vault_secret.sid_pk[0].value
   )
+
   sid_private_key = local.use_local_credentials ? (
-    try(file(var.authentication.path_to_private_key), tls_private_key.sdu[0].private_key_pem)) : (
+    try(
+      file(var.authentication.path_to_private_key),
+      tls_private_key.sdu[0].private_key_pem
+    )) : (
     ""
   )
 
-  password_required = try(var.databases[0].authentication.type, "key") == "password" || try(var.application.authentication.type, "key") == "password"
+  password_required = (
+    try(var.databases[0].authentication.type, "key") == "password" ||
+    try(var.application.authentication.type, "key") == "password"
+  )
 
   // Current service principal
   service_principal = try(var.service_principal, {})
@@ -452,7 +591,9 @@ locals {
 
 }
 
+# This needs more though as changing of it is a destructive action 
+# try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
 locals {
   // 'Cg==` is empty string, base64 encoded.
-  cloudinit_growpart_config = null # This needs more though as changing of it is a destructive action try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
+  cloudinit_growpart_config = null
 }

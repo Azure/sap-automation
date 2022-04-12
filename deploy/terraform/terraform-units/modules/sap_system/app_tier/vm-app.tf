@@ -1,16 +1,25 @@
 # Create Application NICs
 
 resource "azurerm_network_interface" "app" {
-  provider                      = azurerm.main
-  count                         = local.enable_deployment ? local.application_server_count : 0
-  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.nic)
+  provider = azurerm.main
+  count    = local.enable_deployment ? local.application_server_count : 0
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.nic,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.APP_VMNAME[count.index],
+    local.resource_suffixes.nic
+  )
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
 
   ip_configuration {
-    name      = "IPConfig1"
-    subnet_id = local.application_subnet_exists ? data.azurerm_subnet.subnet_sap_app[0].id : azurerm_subnet.subnet_sap_app[0].id
+    name = "IPConfig1"
+    subnet_id = local.application_subnet_exists ? (
+      data.azurerm_subnet.subnet_sap_app[0].id) : (
+      azurerm_subnet.subnet_sap_app[0].id
+    )
     private_ip_address = var.application.use_DHCP ? (
       null) : (
       try(local.app_nic_ips[count.index],
@@ -35,9 +44,18 @@ resource "azurerm_network_interface_application_security_group_association" "app
 
 # Create Application NICs
 resource "azurerm_network_interface" "app_admin" {
-  provider                      = azurerm.main
-  count                         = local.enable_deployment && var.application.dual_nics ? local.application_server_count : 0
-  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.admin_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.admin_nic)
+  provider = azurerm.main
+  count = local.enable_deployment && var.application.dual_nics ? (
+    local.application_server_count) : (
+    0
+  )
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.admin_nic,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.APP_VMNAME[count.index],
+    local.resource_suffixes.admin_nic
+  )
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
@@ -48,7 +66,8 @@ resource "azurerm_network_interface" "app_admin" {
     private_ip_address = var.application.use_DHCP ? (
       null) : (
       try(local.app_admin_nic_ips[count.index],
-        cidrhost(var.admin_subnet.address_prefixes[0],
+        cidrhost(
+          var.admin_subnet.address_prefixes[0],
           tonumber(count.index) + local.admin_ip_offsets.app_vm
         )
       )
@@ -59,9 +78,18 @@ resource "azurerm_network_interface" "app_admin" {
 
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "app" {
-  provider            = azurerm.main
-  count               = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? local.application_server_count : 0) : 0
-  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.vm)
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.app_ostype) == "LINUX" ? (
+    local.application_server_count) : (
+    0
+  )
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.vm,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.APP_VMNAME[count.index],
+    local.resource_suffixes.vm
+  )
   computer_name       = var.naming.virtualmachine_names.APP_COMPUTERNAME[count.index]
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
@@ -86,8 +114,14 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   network_interface_ids = var.application.dual_nics ? (
     var.options.legacy_nic_order ? (
-      [azurerm_network_interface.app_admin[count.index].id, azurerm_network_interface.app[count.index].id]) : (
-      [azurerm_network_interface.app[count.index].id, azurerm_network_interface.app_admin[count.index].id]
+      [
+        azurerm_network_interface.app_admin[count.index].id,
+        azurerm_network_interface.app[count.index].id
+      ]) : (
+      [
+        azurerm_network_interface.app[count.index].id,
+        azurerm_network_interface.app_admin[count.index].id
+      ]
     )
     ) : (
     [azurerm_network_interface.app[count.index].id]
@@ -127,7 +161,13 @@ resource "azurerm_linux_virtual_machine" "app" {
     )
 
     content {
-      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name = format("%s%s%s%s%s",
+        var.naming.resource_prefixes.osdisk,
+        local.prefix,
+        var.naming.separator,
+        var.naming.virtualmachine_names.APP_VMNAME[count.index],
+        local.resource_suffixes.osdisk
+      )
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
       disk_size_gb           = disk.value.size_gb
@@ -159,9 +199,18 @@ resource "azurerm_linux_virtual_machine" "app" {
 
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "app" {
-  provider            = azurerm.main
-  count               = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? local.application_server_count : 0) : 0
-  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[count.index], local.resource_suffixes.vm)
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.app_ostype) == "WINDOWS" ? (
+    local.application_server_count) : (
+    0
+  )
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.vm,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.APP_VMNAME[count.index],
+    local.resource_suffixes.vm
+  )
   computer_name       = var.naming.virtualmachine_names.APP_COMPUTERNAME[count.index]
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
@@ -248,9 +297,15 @@ resource "azurerm_windows_virtual_machine" "app" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "app" {
-  provider               = azurerm.main
-  count                  = local.enable_deployment ? length(local.app_data_disks) : 0
-  name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.disk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.APP_VMNAME[local.app_data_disks[count.index].vm_index], local.app_data_disks[count.index].suffix)
+  provider = azurerm.main
+  count    = local.enable_deployment ? length(local.app_data_disks) : 0
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.disk,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.APP_VMNAME[local.app_data_disks[count.index].vm_index],
+    local.app_data_disks[count.index].suffix
+  )
   location               = var.resource_group[0].location
   resource_group_name    = var.resource_group[0].name
   create_option          = "Empty"
@@ -269,10 +324,13 @@ resource "azurerm_managed_disk" "app" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "app" {
-  provider                  = azurerm.main
-  count                     = local.enable_deployment ? length(local.app_data_disks) : 0
-  managed_disk_id           = azurerm_managed_disk.app[count.index].id
-  virtual_machine_id        = upper(local.app_ostype) == "LINUX" ? azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].id : azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].id
+  provider        = azurerm.main
+  count           = local.enable_deployment ? length(local.app_data_disks) : 0
+  managed_disk_id = azurerm_managed_disk.app[count.index].id
+  virtual_machine_id = upper(local.app_ostype) == "LINUX" ? (
+    azurerm_linux_virtual_machine.app[local.app_data_disks[count.index].vm_index].id) : (
+    azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].id
+  )
   caching                   = local.app_data_disks[count.index].caching
   write_accelerator_enabled = local.app_data_disks[count.index].write_accelerator_enabled
   lun                       = local.app_data_disks[count.index].lun
@@ -281,8 +339,11 @@ resource "azurerm_virtual_machine_data_disk_attachment" "app" {
 
 # VM Extension 
 resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
-  provider             = azurerm.main
-  count                = local.enable_deployment ? (upper(local.app_ostype) == "LINUX" ? local.application_server_count : 0) : 0
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.app_ostype) == "LINUX" ? (
+    local.application_server_count) : (
+    0
+  )
   name                 = "MonitorX64Linux"
   virtual_machine_id   = azurerm_linux_virtual_machine.app[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
@@ -297,8 +358,11 @@ SETTINGS
 
 
 resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
-  provider             = azurerm.main
-  count                = local.enable_deployment ? (upper(local.app_ostype) == "WINDOWS" ? local.application_server_count : 0) : 0
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.app_ostype) == "WINDOWS" ? (
+    local.application_server_count) : (
+    0
+  )
   name                 = "MonitorX64Windows"
   virtual_machine_id   = azurerm_windows_virtual_machine.app[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"

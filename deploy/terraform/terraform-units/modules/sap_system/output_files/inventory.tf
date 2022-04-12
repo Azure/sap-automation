@@ -46,7 +46,7 @@ resource "local_file" "ansible_inventory_new_yml" {
     webservers          = length(local.ips_web) > 0 ? var.naming.virtualmachine_names.WEB_COMPUTERNAME : [],
     prefix              = var.naming.prefix.SDU,
     separator           = var.naming.separator,
-    platform            = var.shared_home ?  format("%s-multi-sid",lower(var.platform)) : lower(var.platform),
+    platform            = var.shared_home ? format("%s-multi-sid", lower(var.platform)) : lower(var.platform),
     dbconnection        = var.platform == "SQLSERVER" ? "winrm" : "ssh"
     scsconnection       = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
     ersconnection       = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"

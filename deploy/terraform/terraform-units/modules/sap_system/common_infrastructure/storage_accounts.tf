@@ -19,8 +19,20 @@ resource "azurerm_storage_account" "shared" {
     )) : (
     0
   )
-  name                      = replace(lower(format("%s%s", local.prefix, local.resource_suffixes.install_volume)), "/[^a-z0-9]/", "")
-  resource_group_name       = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
+  name = replace(
+    lower(
+      format("%s%s",
+        local.prefix,
+        local.resource_suffixes.install_volume
+      )
+    ),
+    "/[^a-z0-9]/",
+    ""
+  )
+  resource_group_name = local.rg_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
   location                  = var.infrastructure.region
   account_tier              = "Premium"
   account_replication_type  = "ZRS"
@@ -116,16 +128,30 @@ resource "azurerm_private_endpoint" "shared" {
     )) : (
     0
   )
-  name                = format("%s%s%s", var.naming.resource_prefixes.storage_private_link_install, local.prefix, local.resource_suffixes.storage_private_link_install)
+  name = format("%s%s%s",
+    var.naming.resource_prefixes.storage_private_link_install,
+    local.prefix,
+    local.resource_suffixes.storage_private_link_install
+  )
   resource_group_name = local.rg_name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  subnet_id           = try(var.landscape_tfstate.app_subnet_id, "")
+  location = local.rg_exists ? (
+    data.azurerm_resource_group.resource_group[0].location) : (
+    azurerm_resource_group.resource_group[0].location
+  )
+  subnet_id = try(var.landscape_tfstate.app_subnet_id, "")
 
 
   private_service_connection {
-    name                           = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_install, local.prefix, local.resource_suffixes.storage_private_svc_install)
-    is_manual_connection           = false
-    private_connection_resource_id = length(var.azure_files_storage_account_id) > 0 ? data.azurerm_storage_account.shared[0].id : azurerm_storage_account.shared[0].id
+    name = format("%s%s%s",
+      var.naming.resource_prefixes.storage_private_svc_install,
+      local.prefix,
+      local.resource_suffixes.storage_private_svc_install
+    )
+    is_manual_connection = false
+    private_connection_resource_id = length(var.azure_files_storage_account_id) > 0 ? (
+      data.azurerm_storage_account.shared[0].id) : (
+      azurerm_storage_account.shared[0].id
+    )
     subresource_names = [
       "File"
     ]

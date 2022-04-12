@@ -24,7 +24,6 @@ variable "use_private_endpoint" {
 locals {
 
   storageaccount_names = var.naming.storageaccount_names.LIBRARY
-  keyvault_names       = var.naming.keyvault_names.LIBRARY
   resource_suffixes    = var.naming.resource_suffixes
 
   // Infrastructure
@@ -32,7 +31,10 @@ locals {
 
   // Region
   region = try(local.var_infra.region, "")
-  prefix = length(local.var_infra.resource_group.name) > 0 ? local.var_infra.resource_group.name : trimspace(var.naming.prefix.LIBRARY)
+  prefix = length(local.var_infra.resource_group.name) > 0 ? (
+    local.var_infra.resource_group.name) : (
+    trimspace(var.naming.prefix.LIBRARY)
+  )
 
   // Resource group
   rg_exists = length(var.infrastructure.resource_group.arm_id) > 0
@@ -41,14 +43,24 @@ locals {
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     length(local.var_infra.resource_group.name) > 0 ? (
       local.var_infra.resource_group.name) : (
-      format("%s%s%s", var.naming.resource_prefixes.library_rg, local.prefix, local.resource_suffixes.library_rg)
+      format("%s%s%s",
+        var.naming.resource_prefixes.library_rg,
+        local.prefix,
+        local.resource_suffixes.library_rg
+      )
     )
   )
-  rg_library_location = local.rg_exists ? data.azurerm_resource_group.library[0].location : azurerm_resource_group.library[0].location
+  rg_library_location = local.rg_exists ? (
+    data.azurerm_resource_group.library[0].location) : (
+    azurerm_resource_group.library[0].location
+  )
 
   // Storage account for sapbits
   sa_sapbits_exists = length(var.storage_account_sapbits.arm_id) > 0
-  sa_sapbits_name   = local.sa_sapbits_exists ? split("/", var.storage_account_sapbits.arm_id)[8] : local.storageaccount_names.library_storageaccount_name
+  sa_sapbits_name = local.sa_sapbits_exists ? (
+    split("/", var.storage_account_sapbits.arm_id)[8]) : (
+    local.storageaccount_names.library_storageaccount_name
+  )
 
   // Storage account for tfstate
   sa_tfstate_arm_id = try(var.storage_account_tfstate.arm_id, "")
@@ -65,27 +77,23 @@ locals {
   service_principal = try(var.service_principal, {})
 
   // deployer terraform.tfstate
-  deployer_tfstate          = var.deployer_tfstate
-  deployer_defined          = length(var.deployer_tfstate) > 0
-  deployer_msi_principal_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_uai.principal_id, local.deployer_tfstate.deployer_uai) : ""
+  deployer_tfstate = var.deployer_tfstate
+  deployer_defined = length(var.deployer_tfstate) > 0
+  deployer_msi_principal_id = local.deployer_defined ? (
+    try(
+      local.deployer_tfstate.deployer_uai.principal_id,
+      local.deployer_tfstate.deployer_uai
+    )) : (
+    ""
+  )
 
   subnet_management_id = local.deployer_defined ? local.deployer_tfstate.subnet_mgmt_id : ""
 
-  deployer_public_ip_address = local.deployer_defined ? local.deployer_tfstate.deployer_public_ip_address : ""
-
-  // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
-  user_key_vault_id = try(var.key_vault.kv_user_id, "")
-  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
-  user_kv_exist     = length(local.user_key_vault_id) > 0
-  prvt_kv_exist     = length(local.prvt_key_vault_id) > 0
-
-  // Extract information from the specified key vault arm ids
-  user_kv_name    = local.user_kv_exist ? split("/", local.user_key_vault_id)[8] : local.keyvault_names.user_access
-  user_kv_rg_name = local.user_kv_exist ? split("/", local.user_key_vault_id)[4] : ""
-
-  prvt_kv_name    = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[8] : local.keyvault_names.private_access
-  prvt_kv_rg_name = local.prvt_kv_exist ? split("/", local.prvt_key_vault_id)[4] : ""
-
-  deployer_kv_user_arm_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_kv_user_arm_id, "") : ""
+  deployer_public_ip_address = local.deployer_defined ? (
+    local.deployer_tfstate.deployer_public_ip_address) : (
+      ""
+      )
+  
+  deployer_keyvault_user_arm_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_keyvault_user_arm_id, "") : ""
 
 }

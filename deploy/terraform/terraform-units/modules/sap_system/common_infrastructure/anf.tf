@@ -2,7 +2,12 @@
 resource "azurerm_netapp_volume" "sapmnt" {
 
   count = var.NFS_provider == "ANF" ? 1 : 0
-  name  = format("%s%s%s%s", var.naming.resource_prefixes.sapmnt, local.prefix, var.naming.separator, local.resource_suffixes.sapmnt)
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.sapmnt,
+    local.prefix,
+    var.naming.separator,
+    local.resource_suffixes.sapmnt
+  )
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
   location            = local.ANF_pool_settings.location

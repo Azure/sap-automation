@@ -196,7 +196,7 @@ then
             load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
             load_config_vars "${deployer_config_information}" "tfstate_resource_id"
             load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
-            echo "tfstate_resource_id $tfstate_resource_id"
+            echo "tfstate_resource_id: $tfstate_resource_id"
             save_config_vars "${workload_config_information}" \
             tfstate_resource_id
             
@@ -232,6 +232,9 @@ then
         echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
         echo "#                                                                                       #"
         echo "#########################################################################################"
+
+        echo "The provided subscription is not valid: ${val}" > "${workload_config_information}".err
+
         exit 65
     fi
 fi
@@ -250,6 +253,7 @@ then
         echo -e "#The provided state_subscription is not valid:$boldred ${val} $resetformatting#"
         echo "#                                                                                       #"
         echo "#########################################################################################"
+        echo "The provided subscription for the terraform storage is not valid: ${val}" > "${workload_config_information}".err
         exit 65
     fi
     
@@ -297,11 +301,12 @@ then
         echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
+
+        echo "The provided keyvault is not valid: ${val}" > "${workload_config_information}".err
         exit 65
     fi
     
 fi
-
 
 #setting the user environment variables
 set_executing_user_environment_variables "none"
@@ -546,6 +551,7 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
+    echo "Terraform initialization failed" > "${workload_config_information}".err
     exit $return_value
 fi
 
@@ -588,6 +594,8 @@ then
             echo "#########################################################################################"
             if [ 1 == $called_from_ado ] ; then
                 unset TF_DATA_DIR
+                echo "The environment was deployed using an older version of the Terrafrom templates, Risk for data loss" > "${workload_config_information}".err
+
                 exit 1
             fi
             
@@ -664,6 +672,7 @@ then
         rm plan_output.log
     fi
     unset TF_DATA_DIR
+    echo "Errors running Terraform plan" > "${workload_config_information}".err
     exit $return_value
 fi
 
@@ -771,6 +780,7 @@ if [ 1 == $ok_to_proceed ]; then
         if [ -f error.log ]; then
             cat error.log
             export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
+            echo $LASTERROR > "${workload_config_information}".err
             if [ 1 == $called_from_ado ] ; then
                 echo "##vso[task.logissue type=error]$LASTERROR"
             fi
@@ -846,6 +856,10 @@ Date : "${now}"
 | Keyvault Name           | ${workloadkeyvault}  |
 
 EOF
+
+if [ -f "${workload_config_information}".err ]; then
+    "${workload_config_information}".err
+fi
 
 unset TF_DATA_DIR
 
