@@ -115,7 +115,8 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
-
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: Copy tnsnames.ora TO Observer"
   become:                              true
@@ -126,7 +127,8 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
-
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Observer: Add environment variables to the Bash profile"
   become:                              true
@@ -217,7 +219,7 @@
 - name:                                "Oracle Data Guard - Observer:  Check if DB post-processing is completed"
   ansible.builtin.stat:
     path:                              /usr/sap/install/downloads/post_processing_completed.txt
-  register:                            dgenabled
+  register:                            dg_enabled
 
 - name:                                "ENABLE FSFO"
   block:
@@ -328,7 +330,7 @@
         mode:                          0755
       when:                            observer_results.rc == 0
   when:
-  - dgenabled.stat.exists
+  - dg_enabled.stat.exists
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

@@ -7,7 +7,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 # Set Primary and Secondary node names.
 - name:                                "Oracle Data Guard - Setup Secondary: Setting the primary and Secondary DB names"
   ansible.builtin.set_fact:
@@ -27,6 +26,8 @@
     owner:                             oracle
     group:                             oinstall
   when: current_host == ora_secondary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: Copy orapwSID to Secondary"
   become:                              true
@@ -38,6 +39,8 @@
     owner:                             oracle
     group:                             dba
   when: current_host == ora_secondary
+  tags:
+    - skip_ansible_lint
 
 # Restart the Listener on Secondary node.
 
