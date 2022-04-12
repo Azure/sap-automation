@@ -33,7 +33,7 @@
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/downloads/orapw{{ db_sid|upper }}"
-    dest:                              /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/orapw{{ db_sid|upper }}
+    dest:                              /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/orapw{{ db_sid|upper }}
     remote_src:                        true
     owner:                             oracle
     group:                             dba

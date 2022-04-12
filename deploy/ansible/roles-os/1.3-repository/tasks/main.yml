@@ -224,7 +224,7 @@
   loop:                                "{{ repos_for_tier }}"
   register:                            zypresult
   ignore_errors:                       true
-  when:     
+  when:
     - ansible_os_family|upper != 'SUSE'
     - item.node_tier == node.tier
 

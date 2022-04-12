@@ -87,7 +87,7 @@
 - name:                                "Oracle (sharedHome) - Debug Print details"
   ansible.builtin.debug:
     msg:
-      - "vg_created_list: {{vg_created_list}}"
+      - "vg_created_list: {{ vg_created_list }}"
       - "lv_created_list : {{ lv_created_list }}"
       - "file_systems_created : {{ file_systems_created }}"
     verbosity:                         2

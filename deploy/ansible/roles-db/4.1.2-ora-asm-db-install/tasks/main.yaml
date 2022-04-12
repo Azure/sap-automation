@@ -220,6 +220,8 @@
                                        chown -R oracle:oinstall  /oracle/stage/{{ ora_release }}/grid_home/MOPatch
   args:
     creates:                           /etc/sap_deployment_automation/oracle/gridpreinstall.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful preparation"
   ansible.builtin.file:
@@ -275,6 +277,8 @@
   args:
     chdir:                            /oracle/stage/{{ ora_release }}/grid_home/
     creates:                          /etc/sap_deployment_automation/oracle/sbpgpostprocess.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                               "SAP Oracle DB ASM: Create flag after a successful change"
   ansible.builtin.file:

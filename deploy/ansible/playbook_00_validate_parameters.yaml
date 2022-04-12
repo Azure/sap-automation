@@ -106,12 +106,12 @@
 
     - name:                            "0.0 Validations - Show ORACLE parameters"
       ansible.builtin.debug:
-        msg:                           
+        msg:
           - "ora_release: {{ ora_release }}"
           - "ora_version: {{ ora_version }}"
           - "oracle_sbp_patch: {{ oracle_sbp_patch }}"
 
-      when:                            
+      when:
         - platform == 'ORACLE'
 
 # /*---------------------------------------------------------------------------8

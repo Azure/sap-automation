@@ -115,16 +115,16 @@
     - name:                            Installing Oracle
       ansible.builtin.include_role:
         name:                          roles-db/4.1.0-ora-install
-      when:                        
-            - MULTI_SIDS is undefined
-            - node_tier != 'oracle-multi-sid'
-      
+      when:
+        - MULTI_SIDS is undefined
+        - node_tier != 'oracle-multi-sid'
+
 # Oracle installation has to be done with oracle user. Change the user to become orasid and call the installer.
 
 - hosts:                               "{{ sap_sid|upper }}_DB"
 
   name:                                DB Installation - Oracle
-  remote_user:                         "{{ orchestration_ansible_user }}"                
+  remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         "oracle"
   gather_facts:                        true
@@ -145,9 +145,9 @@
     - name:                            Installing Oracle
       ansible.builtin.include_role:
         name:                          roles-db/4.1.3-ora-multi-sid
-      when:                        
-            - MULTI_SIDS is defined
-            - node_tier == 'oracle-multi-sid'
+      when:
+        - MULTI_SIDS is defined
+        - node_tier == 'oracle-multi-sid'
 
 # # Oracle Post installation scripts
 # - hosts:          "{{ sap_sid|upper }}_DB"
