@@ -19,6 +19,18 @@ data "azurerm_subnet" "subnet_sap_app" {
   virtual_network_name = split("/", local.application_subnet_arm_id)[8]
 }
 
+resource "azurerm_subnet_route_table_association" "app" {
+  provider = azurerm.main
+  count = (
+    local.application_subnet_defined && !local.application_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
+    ) ? (
+    1) : (
+    0
+  )
+  subnet_id      = azurerm_subnet.app[0].id
+  route_table_id = var.landscape_tfstate.route_table_id
+}
+
 # Creates web dispatcher subnet of SAP VNET
 resource "azurerm_subnet" "subnet_sap_web" {
   provider             = azurerm.main

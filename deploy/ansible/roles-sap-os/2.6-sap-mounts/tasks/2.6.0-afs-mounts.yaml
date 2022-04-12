@@ -13,9 +13,11 @@
   ansible.builtin.set_fact:
     all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts|default([]) + [this_sid]}}{% endif %}"
 
-- name:                                "AFS Mount: Create list of all_sap_mounts to support "
+- name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
-    msg:                               "{{ all_sap_mounts }}"
+    msg:                               
+      - "List of all the SAP mounts: {{ all_sap_mounts }}"
+    verbosity:                         2
 
 # Mount Filesystems
 - name:                                "AFS Mount: Mount Install"
