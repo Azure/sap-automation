@@ -247,7 +247,7 @@
   when:
     - node_tier == "oracle"
 
-- import_tasks:                        "oracle-multi-sid.yaml"
+- import_tasks:                        "2.6.5-oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
