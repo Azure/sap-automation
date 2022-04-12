@@ -298,11 +298,28 @@ locals {
 
   sid_ppk_name = local.sid_key_exist ? (
     local.input_sid_private_key_secret_name) : (
-    format("%s-sid-sshkey", local.prefix)
+    trimprefix(
+      format("%s-sid-sshkey",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        )
+      ),
+      "-"
+    )
   )
+
   sid_pk_name = local.sid_key_exist ? (
     local.input_sid_public_key_secret_name) : (
-    format("%s-sid-sshkey-pub", local.prefix)
+    trimprefix(
+      format("%s-sid-sshkey-pub",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        )
+      ),
+      "-"
+    )
   )
 
   input_sid_username_secret_name = try(var.key_vault.kv_sid_username, "")
