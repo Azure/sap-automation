@@ -279,8 +279,22 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
   provider     = azurerm.main
   count        = 1
   content_type = ""
-  name         = replace(format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.witness_accesskey), "/[^A-Za-z0-9-]/", "")
-  value        = length(var.witness_storage_account.arm_id) > 0 ? data.azurerm_storage_account.witness_storage[0].primary_access_key : azurerm_storage_account.witness_storage[0].primary_access_key
+  name = replace(
+    format("%s%s%s",
+      length(local.prefix) > 0 ? (
+        local.prefix) : (
+        var.infrastructure.environment
+      ),
+      var.naming.separator,
+      local.resource_suffixes.witness_accesskey
+    ),
+    "/[^A-Za-z0-9-]/",
+    ""
+  )
+  value = length(var.witness_storage_account.arm_id) > 0 ? (
+    data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
+    azurerm_storage_account.witness_storage[0].primary_access_key
+  )
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
@@ -289,8 +303,22 @@ resource "azurerm_key_vault_secret" "witness_name" {
   provider     = azurerm.main
   count        = 1
   content_type = ""
-  name         = replace(format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.witness_name), "/[^A-Za-z0-9-]/", "")
-  value        = length(var.witness_storage_account.arm_id) > 0 ? data.azurerm_storage_account.witness_storage[0].name : azurerm_storage_account.witness_storage[0].name
+  name = replace(
+    format("%s%s%s",
+      length(local.prefix) > 0 ? (
+        local.prefix) : (
+        var.infrastructure.environment
+      ),
+      var.naming.separator,
+      local.resource_suffixes.witness_name
+    ),
+    "/[^A-Za-z0-9-]/",
+    ""
+  )
+  value = length(var.witness_storage_account.arm_id) > 0 ? (
+    data.azurerm_storage_account.witness_storage[0].name) : (
+    azurerm_storage_account.witness_storage[0].name
+  )
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
@@ -339,10 +367,18 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
 
 resource "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
-  count    = local.admin_subnet_defined && var.use_private_endpoint && local.enable_landscape_kv && !local.user_keyvault_exist ? 1 : 0
+  count = (
+    local.admin_subnet_defined &&
+    var.use_private_endpoint &&
+    local.enable_landscape_kv &&
+    !local.user_keyvault_exist
+  ) ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.keyvault_private_link,
-    local.prefix,
+    length(local.prefix) > 0 ? (
+      local.prefix) : (
+      var.infrastructure.environment
+    ),
     local.resource_suffixes.keyvault_private_link
   )
   resource_group_name = local.rg_exists ? (
@@ -364,7 +400,10 @@ resource "azurerm_private_endpoint" "kv_user" {
   private_service_connection {
     name = format("%s%s%s",
       var.naming.resource_prefixes.keyvault_private_svc,
-      local.prefix,
+      length(local.prefix) > 0 ? (
+        local.prefix) : (
+        var.infrastructure.environment
+      ),
       local.resource_suffixes.keyvault_private_svc
     )
     is_manual_connection = false
