@@ -39,7 +39,7 @@ resource "azurerm_subnet" "admin" {
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider = azurerm.main
-  count = !local.admin_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0 ? (
+  count = local.admin_subnet_defined && !local.admin_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0 ? (
     1) : (
     0
   )
@@ -80,7 +80,7 @@ data "azurerm_subnet" "db" {
 resource "azurerm_subnet_route_table_association" "db" {
   provider = azurerm.main
   count = (
-    !local.database_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
+    local.database_subnet_defined && !local.database_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
     ) ? (
     1) : (
     0

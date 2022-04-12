@@ -7,14 +7,14 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
-- name:                                Set facts for oracle multi-sid PAS
+- name:                                "APP (sharedHome) Install: Set facts oracle multi-sid PAS"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-app-inifile-param.j2"
   when:                                 MULTI_SIDS is defined
   loop:                                 "{{ MULTI_SIDS }}"
 
-- name:                                "APP Install: Create run flag directory"
+- name:                                "APP (sharedHome) Install: Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     state:                             directory
@@ -31,7 +31,7 @@
 #     path:                              /etc/sap_deployment_automation/sap_deployment_app.txt
 #   register:                            app_installed
 
-- name:                                "PAS Install: reset"
+- name:                                "APP (sharedHome) Install: reset"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
     state:                             absent
@@ -39,17 +39,17 @@
   loop:                                "{{ MULTI_SIDS }}"
 
 # Returns bom object
-- name:                                "APP Install"
+- name:                                "APP (sharedHome) Install"
   block:
 
-    - name:                            "APP Install: Include 3.3.1-bom-utility role"
+    - name:                            "APP (sharedHome) Install: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
 
-    - name:                            "APP Install: Include roles-sap/3.3.1-bom-utility role"
+    - name:                            "APP (sharedHome) Install: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
@@ -78,18 +78,18 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-    - name:                            "App install: register variables"
+    - name:                            "APP (sharedHome) Install: register variables"
       ansible.builtin.set_fact:
         app_bom_id:                    "{% if scs_high_availability %}{{ bom.product_ids.app_ha }}{% else %}{{ bom.product_ids.app }}{% endif %}"
 
-    - name:                            "APP install: debug variables"
+    - name:                            "APP (sharedHome) Install: debug variables"
       ansible.builtin.debug:
         msg:
           - "{{ sap_inifile }}"
           - "{{ app_bom_id }}"
         verbosity:                     2
 
-    - name:                            "SAP APP Install"
+    - name:                            "APP (sharedHome) Install"
       ansible.builtin.shell: |
                                        set -o errexit
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params \
@@ -109,14 +109,6 @@
       tags:
       - skip_ansible_lint
 
-  #   - name:                            "APP Install: flag"
-  #     ansible.builtin.file:
-  #       path:                          /etc/sap_deployment_automation/sap_deployment_app.txt
-  #       state:                         touch
-  #       mode:                          0755
-
-  # when:
-  #   - not app_installed.stat.exists
 # *====================================4=======================================8
 
 ...
