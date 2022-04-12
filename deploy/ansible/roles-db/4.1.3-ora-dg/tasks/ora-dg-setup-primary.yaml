@@ -40,7 +40,7 @@
     - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary (debug)"
-  ansible.builtin.debug:     
+  ansible.builtin.debug:
     var:                               enable_archive_log_results.stdout_lines
     verbosity:                         2
 
@@ -58,7 +58,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/archive_enabled_on_primary.txt
     state:                             touch
     mode:                              0755
-  when:  
+  when:
     - current_host == ora_primary
     - enable_archive_log_results.rc < 2
 
@@ -71,7 +71,7 @@
 - name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               sqlplus / as sysdba @enableforcelogging.sql |tee 
+  ansible.builtin.shell:               sqlplus / as sysdba @enableforcelogging.sql |tee
   register:                            enable_force_logging_results
   failed_when:                         enable_force_logging_results.rc >= 2
   args:
@@ -85,7 +85,7 @@
     - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary (debug)"
-  ansible.builtin.debug:     
+  ansible.builtin.debug:
     var:                               enable_force_logging_results.stdout_lines
     verbosity:                         2
 
@@ -103,7 +103,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/enable_force_login.txt
     state:                             touch
     mode:                              0755
-  when:  
+  when:
     - current_host == ora_primary
     - enable_archive_log_results.rc < 2
 
@@ -131,7 +131,7 @@
     - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Create standby logs for Oracle DG (debug)"
-  ansible.builtin.debug:     
+  ansible.builtin.debug:
     var:                               standby_redo_log_results.stdout_lines
     verbosity:                         2
 
@@ -149,7 +149,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/standby_redo_logs.txt
     state:                             touch
     mode:                              0755
-  when:  
+  when:
     - current_host == ora_primary
     - standby_redo_log_results.rc < 2
 
@@ -168,7 +168,7 @@
     - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
-  ansible.builtin.debug:     
+  ansible.builtin.debug:
     var:                               turn_on_flashback_results.stdout_lines
     verbosity:                         2
 
@@ -186,7 +186,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback.txt
     state:                             touch
     mode:                              0755
-  when:  
+  when:
     - current_host == ora_primary
     - turn_on_flashback_results.rc == 0
 

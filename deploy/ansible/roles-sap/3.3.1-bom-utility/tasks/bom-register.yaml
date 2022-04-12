@@ -136,10 +136,10 @@
 - name:                                "{{ task_prefix }} Show BoM details"
   ansible.builtin.debug:
     msg:
-    - "BoM name:        {{ bom.name }}"
-    - "BoM target:      {{ bom.target }}"
-    - "BoM version:     {{ bom.version }}"
-    - "BoM DB platform: {{ bom.platform }}"
+      - "BoM name:        {{ bom.name }}"
+      - "BoM target:      {{ bom.target }}"
+      - "BoM version:     {{ bom.version }}"
+      - "BoM DB platform: {{ bom.platform }}"
   when:
     - bom.name is not search('SWPM')
     - bom.name is not search('SUM')

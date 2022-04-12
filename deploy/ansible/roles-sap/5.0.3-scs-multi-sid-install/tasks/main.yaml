@@ -53,7 +53,7 @@
     sap_appVirtualHostname:
   tags:
     - skip_ansible_lint
-  
+
 
 - name:                                "SCS (sharedHome): Create run flag directory"
   ansible.builtin.file:

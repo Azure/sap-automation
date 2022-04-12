@@ -56,7 +56,7 @@
   become:                             true
   become_user:                        oracle
   ansible.builtin.template:
-    backup:                           yes
+    backup:                           true
     src:                              listener.j2
     dest:                             "/oracle/RDBMS/{{ ora_version }}/network/admin/listener.ora"
     mode:                             0644
