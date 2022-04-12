@@ -113,10 +113,10 @@ This block describes the variables for the deployer OS section block in the json
 variable "deployer_image" {
   default = {
     "source_image_id" = ""
-    "publisher"       ="Canonical"
-    "offer"           ="UbuntuServer"
-    "sku"             ="18.04-LTS"
-    "version"         ="latest"
+    "publisher"       = "Canonical"
+    "offer"           = "UbuntuServer"
+    "sku"             = "18.04-LTS"
+    "version"         = "latest"
   }
 }
 
@@ -239,5 +239,5 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
-  default = ""
+  default     = ""
 }

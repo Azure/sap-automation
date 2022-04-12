@@ -31,7 +31,7 @@ variable "admin_subnet" {
 variable "db_subnet" {
   description = "Information about SAP db subnet"
 }
-variable "sid_kv_user_id" {
+variable "sid_keyvault_user_id" {
   description = "ID of the user keyvault for sap_system"
 }
 
@@ -113,8 +113,11 @@ variable "landscape_tfstate" {
 locals {
   // Imports database sizing information
 
-  default_filepath = format("%s%s", path.module, "/../../../../../configs/anydb_sizes.json")
-  custom_sizing    = length(var.custom_disk_sizes_filename) > 0
+  default_filepath = format("%s%s",
+    path.module,
+    "/../../../../../configs/anydb_sizes.json"
+  )
+  custom_sizing = length(var.custom_disk_sizes_filename) > 0
 
   // Imports database sizing information
   file_name = local.custom_sizing ? (
@@ -128,22 +131,36 @@ locals {
 
   sizes = jsondecode(file(local.file_name))
 
-  faults = jsondecode(file(format("%s%s", path.module, "/../../../../../configs/max_fault_domain_count.json")))
+  faults = jsondecode(file(format("%s%s",
+    path.module,
+    "/../../../../../configs/max_fault_domain_count.json"))
+  )
 
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  region    = var.infrastructure.region
-  anydb_sid = (length(local.anydb_databases) > 0) ? try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
+  region = var.infrastructure.region
+  anydb_sid = (length(local.anydb_databases) > 0) ? (
+    try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))) : (
+    lower(substr(local.anydb_platform, 0, 3))
+  )
   sid       = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
   prefix    = trimspace(var.naming.prefix.SDU)
   rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.rg_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
-    coalesce(try(var.infrastructure.resource_group.name, ""), format("%s%s%s", var.naming.resource_prefixes.sdu_rg, local.prefix, local.resource_suffixes.sdu_rg))
+    coalesce(
+      try(var.infrastructure.resource_group.name, ""),
+      format("%s%s%s",
+        var.naming.resource_prefixes.sdu_rg,
+        local.prefix,
+        local.resource_suffixes.sdu_rg
+      )
+    )
   )
 
-  //Allowing changing the base for indexing, default is zero-based indexing, if customers want the first disk to start with 1 they would change this
+  // Allowing changing the base for indexing, default is zero-based indexing, 
+  // if customers want the first disk to start with 1 they would change this
   offset = try(var.options.resource_offset, 0)
 
   //Allowing to keep the old nic order
@@ -192,7 +209,12 @@ locals {
   loadbalancer = try(local.anydb.loadbalancer, {})
 
   # Oracle deployments do not need a load balancer
-  enable_db_lb_deployment = var.database_server_count > 0 && (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) && local.anydb_platform != "ORACLE" && local.anydb_platform != "NONE"
+  enable_db_lb_deployment = (
+    var.database_server_count > 0 &&
+    (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) &&
+    local.anydb_platform != "ORACLE" &&
+    local.anydb_platform != "NONE"
+  )
 
   anydb_cred = try(local.anydb.credentials, {})
 
@@ -244,18 +266,48 @@ locals {
   }
 
   anydb_os = {
-    "source_image_id" = local.anydb_custom_image ? local.anydb.os.source_image_id : ""
-    "publisher"       = try(local.anydb.os.publisher, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].publisher)
-    "offer"           = try(local.anydb.os.offer, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].offer)
-    "sku"             = try(local.anydb.os.sku, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].sku)
-    "version"         = try(local.anydb.os.version, local.anydb_custom_image ? "" : local.os_defaults[upper(local.anydb_platform)].version)
+    "source_image_id" = local.anydb_custom_image ? (
+      local.anydb.os.source_image_id) : (
+      ""
+    )
+    "publisher" = try(
+      local.anydb.os.publisher,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].publisher
+      )
+    )
+    "offer" = try(
+      local.anydb.os.offer,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].offer
+      )
+    )
+    "sku" = try(
+      local.anydb.os.sku,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].sku
+      )
+    )
+    "version" = try(
+      local.anydb.os.version,
+      local.anydb_custom_image ? (
+        "") : (
+        local.os_defaults[upper(local.anydb_platform)].version
+      )
+    )
   }
 
   //Observer VM
   observer = try(local.anydb.observer, {})
 
   #If using an existing VM for observer set use_observer to false in .tfvars
-  deploy_observer          = var.use_observer ? upper(local.anydb_platform) == "ORACLE" && local.anydb_ha : false
+  deploy_observer = var.use_observer ? (
+    upper(local.anydb_platform) == "ORACLE" && local.anydb_ha) : (
+    false
+  )
   observer_size            = "Standard_D4s_v3"
   observer_authentication  = local.authentication
   observer_custom_image    = local.anydb_custom_image
@@ -324,7 +376,10 @@ locals {
     [
       for storage_type in local.db_sizing : [
         for idx, disk_count in range(storage_type.count) : {
-          suffix                    = format("-%s%02d", storage_type.name, disk_count + var.options.resource_offset)
+          suffix = format("-%s%02d",
+            storage_type.name,
+            disk_count + var.options.resource_offset
+          )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
@@ -344,7 +399,10 @@ locals {
     [
       for storage_type in local.db_sizing : [
         for idx, disk_count in range(storage_type.count) : {
-          suffix                    = format("-%s%02d", storage_type.name, storage_type.lun_start + disk_count + var.options.resource_offset)
+          suffix = format("-%s%02d",
+            storage_type.name,
+            storage_type.lun_start + disk_count + var.options.resource_offset
+          )
           storage_account_type      = storage_type.disk_type,
           disk_size_gb              = storage_type.size_gb,
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
@@ -384,7 +442,11 @@ locals {
 
   db_disks_ansible = distinct(flatten([for vm in range(var.database_server_count) : [
     for idx, datadisk in local.anydb_disks :
-    format("{ host: '%s', LUN: %d, type: '%s' }", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME[vm], datadisk.lun, datadisk.type)
+    format("{ host: '%s', LUN: %d, type: '%s' }",
+      var.naming.virtualmachine_names.ANYDB_COMPUTERNAME[vm],
+      datadisk.lun,
+      datadisk.type
+    )
   ]]))
 
   enable_ultradisk = try(
@@ -410,7 +472,13 @@ locals {
   )
 
   full_observer_names = flatten([for vm in var.naming.virtualmachine_names.OBSERVER_VMNAME :
-    format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, vm, var.naming.resource_suffixes.vm)]
+    format("%s%s%s%s%s",
+      var.naming.resource_prefixes.vm,
+      local.prefix,
+      var.naming.separator,
+      vm,
+      var.naming.resource_suffixes.vm
+    )]
   )
 
   //PPG control flag

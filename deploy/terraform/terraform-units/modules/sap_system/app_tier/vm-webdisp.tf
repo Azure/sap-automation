@@ -1,8 +1,14 @@
 # Create Web dispatcher NICs
 resource "azurerm_network_interface" "web" {
-  provider                      = azurerm.main
-  count                         = local.enable_deployment ? local.webdispatcher_count : 0
-  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.WEB_VMNAME[count.index], local.resource_suffixes.nic)
+  provider = azurerm.main
+  count    = local.enable_deployment ? local.webdispatcher_count : 0
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.nic,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.WEB_VMNAME[count.index],
+    local.resource_suffixes.nic
+  )
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = local.web_sizing.compute.accelerated_networking
@@ -13,8 +19,14 @@ resource "azurerm_network_interface" "web" {
     private_ip_address = var.application.use_DHCP ? (
       null) : (
       try(local.web_nic_ips[count.index], local.web_subnet_defined ?
-        cidrhost(local.web_subnet_prefix, (tonumber(count.index) + local.ip_offsets.web_vm)) :
-        cidrhost(local.application_subnet_prefix, (tonumber(count.index) * -1 + local.ip_offsets.web_vm))
+        cidrhost(
+          local.web_subnet_prefix,
+          (tonumber(count.index) + local.ip_offsets.web_vm)
+        ) :
+        cidrhost(
+          local.application_subnet_prefix,
+          (tonumber(count.index) * -1 + local.ip_offsets.web_vm)
+        )
       )
     )
     private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
@@ -30,9 +42,18 @@ resource "azurerm_network_interface_application_security_group_association" "web
 
 # Create Application NICs
 resource "azurerm_network_interface" "web_admin" {
-  provider                      = azurerm.main
-  count                         = local.enable_deployment && var.application.dual_nics ? local.webdispatcher_count : 0
-  name                          = format("%s%s%s%s%s", var.naming.resource_prefixes.admin_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.WEB_VMNAME[count.index], local.resource_suffixes.admin_nic)
+  provider = azurerm.main
+  count = local.enable_deployment && var.application.dual_nics ? (
+    local.webdispatcher_count) : (
+    0
+  )
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.admin_nic,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.WEB_VMNAME[count.index],
+    local.resource_suffixes.admin_nic
+  )
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
@@ -43,7 +64,9 @@ resource "azurerm_network_interface" "web_admin" {
     private_ip_address = var.application.use_DHCP ? (
       null) : (
       try(local.web_admin_nic_ips[count.index],
-        cidrhost(var.admin_subnet.address_prefixes[0], tonumber(count.index) + local.admin_ip_offsets.web_vm
+        cidrhost(
+          var.admin_subnet.address_prefixes[0],
+          tonumber(count.index) + local.admin_ip_offsets.web_vm
         )
     ))
     private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
@@ -52,9 +75,18 @@ resource "azurerm_network_interface" "web_admin" {
 
 # Create the Linux Web dispatcher VM(s)
 resource "azurerm_linux_virtual_machine" "web" {
-  provider            = azurerm.main
-  count               = local.enable_deployment ? (upper(local.web_ostype) == "LINUX" ? local.webdispatcher_count : 0) : 0
-  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.WEB_VMNAME[count.index], local.resource_suffixes.vm)
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.web_ostype) == "LINUX" ? (
+    local.webdispatcher_count) : (
+    0
+  )
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.vm,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.WEB_VMNAME[count.index],
+    local.resource_suffixes.vm
+  )
   computer_name       = var.naming.virtualmachine_names.WEB_COMPUTERNAME[count.index]
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
@@ -62,25 +94,40 @@ resource "azurerm_linux_virtual_machine" "web" {
   //If no ppg defined do not put the web dispatchers in a proximity placement group
   proximity_placement_group_id = local.web_no_ppg ? (
     null) : (
-    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id
+    local.web_zonal_deployment ? (
+      var.ppg[count.index % max(local.web_zone_count, 1)].id) : (
+      var.ppg[0].id
+    )
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.use_web_avset ? azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id : null
+  availability_set_id = local.use_web_avset ? (
+    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id) : (
+    null
+  )
 
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? null : local.web_zones[count.index % max(local.web_zone_count, 1)]
 
   network_interface_ids = var.application.dual_nics ? (
     var.options.legacy_nic_order ? (
-      [azurerm_network_interface.scs_admin[count.index].id, azurerm_network_interface.scs[count.index].id]) : (
-      [azurerm_network_interface.scs[count.index].id, azurerm_network_interface.scs_admin[count.index].id]
+      [
+        azurerm_network_interface.scs_admin[count.index].id,
+        azurerm_network_interface.scs[count.index].id
+      ]) : (
+      [
+        azurerm_network_interface.scs[count.index].id,
+        azurerm_network_interface.scs_admin[count.index].id
+      ]
     )
     ) : (
     [azurerm_network_interface.web[count.index].id]
   )
 
-  size                            = length(local.web_size) > 0 ? local.web_size : local.web_sizing.compute.vm_size
+  size = length(local.web_size) > 0 ? (
+    local.web_size) : (
+    local.web_sizing.compute.vm_size
+  )
   admin_username                  = var.sid_username
   admin_password                  = local.enable_auth_key ? null : var.sid_password
   disable_password_authentication = !local.enable_auth_password
@@ -114,7 +161,13 @@ resource "azurerm_linux_virtual_machine" "web" {
     )
 
     content {
-      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.WEB_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name = format("%s%s%s%s%s",
+        var.naming.resource_prefixes.osdisk,
+        local.prefix,
+        var.naming.separator,
+        var.naming.virtualmachine_names.WEB_VMNAME[count.index],
+        local.resource_suffixes.osdisk
+      )
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
       disk_size_gb           = disk.value.size_gb
@@ -145,9 +198,18 @@ resource "azurerm_linux_virtual_machine" "web" {
 
 # Create the Windows Web dispatcher VM(s)
 resource "azurerm_windows_virtual_machine" "web" {
-  provider            = azurerm.main
-  count               = local.enable_deployment ? (upper(local.web_ostype) == "WINDOWS" ? local.webdispatcher_count : 0) : 0
-  name                = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.WEB_VMNAME[count.index], local.resource_suffixes.vm)
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.web_ostype) == "WINDOWS" ? (
+    local.webdispatcher_count) : (
+    0
+  )
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.vm,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.WEB_VMNAME[count.index],
+    local.resource_suffixes.vm
+  )
   computer_name       = var.naming.virtualmachine_names.WEB_COMPUTERNAME[count.index]
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
@@ -155,19 +217,34 @@ resource "azurerm_windows_virtual_machine" "web" {
   //If no ppg defined do not put the web dispatchers in a proximity placement group
   proximity_placement_group_id = local.web_no_ppg ? (
     null) : (
-    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id
+    local.web_zonal_deployment ? (
+      var.ppg[count.index % max(local.web_zone_count, 1)].id) : (
+      var.ppg[0].id
+    )
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.use_web_avset ? azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id : null
+  availability_set_id = local.use_web_avset ? (
+    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id) : (
+    null
+  )
 
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_web_avset ? null : local.web_zones[count.index % max(local.web_zone_count, 1)]
+  zone = local.use_web_avset ? (
+    null) : (
+    local.web_zones[count.index % max(local.web_zone_count, 1)]
+  )
 
   network_interface_ids = var.application.dual_nics ? (
     var.options.legacy_nic_order ? (
-      [azurerm_network_interface.web_admin[count.index].id, azurerm_network_interface.web[count.index].id]) : (
-      [azurerm_network_interface.web[count.index].id, azurerm_network_interface.web_admin[count.index].id]
+      [
+        azurerm_network_interface.web_admin[count.index].id,
+        azurerm_network_interface.web[count.index].id
+      ]) : (
+      [
+        azurerm_network_interface.web[count.index].id,
+        azurerm_network_interface.web_admin[count.index].id
+      ]
     )
     ) : (
     [azurerm_network_interface.web[count.index].id]
@@ -196,7 +273,13 @@ resource "azurerm_windows_virtual_machine" "web" {
     )
 
     content {
-      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.WEB_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name = format("%s%s%s%s%s",
+        var.naming.resource_prefixes.osdisk,
+        local.prefix,
+        var.naming.separator,
+        var.naming.virtualmachine_names.WEB_VMNAME[count.index],
+        local.resource_suffixes.osdisk
+      )
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
       disk_size_gb           = disk.value.size_gb
@@ -229,9 +312,15 @@ resource "azurerm_windows_virtual_machine" "web" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "web" {
-  provider               = azurerm.main
-  count                  = local.enable_deployment ? length(local.web_data_disks) : 0
-  name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.disk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.WEB_VMNAME[local.web_data_disks[count.index].vm_index], local.web_data_disks[count.index].suffix)
+  provider = azurerm.main
+  count    = local.enable_deployment ? length(local.web_data_disks) : 0
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.disk,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.WEB_VMNAME[local.web_data_disks[count.index].vm_index],
+    local.web_data_disks[count.index].suffix
+  )
   location               = var.resource_group[0].location
   resource_group_name    = var.resource_group[0].name
   create_option          = "Empty"
@@ -262,8 +351,11 @@ resource "azurerm_virtual_machine_data_disk_attachment" "web" {
 }
 
 resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
-  provider             = azurerm.main
-  count                = local.enable_deployment ? (upper(local.web_ostype) == "LINUX" ? local.webdispatcher_count : 0) : 0
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.web_ostype) == "LINUX" ? (
+    local.webdispatcher_count) : (
+    0
+  )
   name                 = "MonitorX64Linux"
   virtual_machine_id   = azurerm_linux_virtual_machine.web[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
@@ -278,8 +370,11 @@ SETTINGS
 
 
 resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
-  provider             = azurerm.main
-  count                = local.enable_deployment ? (upper(local.web_ostype) == "WINDOWS" ? local.webdispatcher_count : 0) : 0
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.web_ostype) == "WINDOWS" ? (
+    local.webdispatcher_count) : (
+    0
+  )
   name                 = "MonitorX64Windows"
   virtual_machine_id   = azurerm_windows_virtual_machine.web[count.index].id
   publisher            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"

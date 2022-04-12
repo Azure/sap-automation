@@ -51,11 +51,11 @@ output "deployer_user" {
 
 output "deployer_kv_user_arm_id" {
   sensitive = true
-  value     = module.sap_deployer.deployer_kv_user_arm_id
+  value     = module.sap_deployer.deployer_keyvault_user_arm_id
 }
 
 # TODO Add this back when we separate the usage
-# output "deployer_kv_prvt_name" {
+# output "deployer_keyvault_prvt_name" {
 #  value = module.sap_deployer.prvt_vault_name
 # }
 

@@ -14,12 +14,12 @@ output "nics_iscsi" {
 }
 
 output "kv_user" {
-  value = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  value = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 # TODO Add this back when we separate the usage
 # output "kv_prvt" {
-#   value = local.prvt_kv_exist ? data.azurerm_key_vault.kv_prvt[0].id : azurerm_key_vault.kv_prvt[0].id
+#   value = local.automation_keyvault_exist ? data.azurerm_key_vault.kv_prvt[0].id : azurerm_key_vault.kv_prvt[0].id
 # }
 
 output "sid_public_key_secret_name" {

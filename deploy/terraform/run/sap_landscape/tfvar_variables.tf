@@ -288,7 +288,7 @@ variable "use_spn" {
 
 variable "transport_volume_size" {
   description = "The volume size in GB for shared"
-  default = 128
+  default     = 128
 }
 
 variable "Agent_IP" {
@@ -298,5 +298,5 @@ variable "Agent_IP" {
 
 variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
-  default = ""
+  default     = ""
 }

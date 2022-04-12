@@ -82,7 +82,7 @@ module "hdb_node" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
-  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
+  sid_keyvault_user_id                               = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
@@ -130,7 +130,7 @@ module "app_tier" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
-  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
+  sid_keyvault_user_id                               = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   custom_disk_sizes_filename                   = var.app_disk_sizes_filename
@@ -169,7 +169,7 @@ module "anydb_node" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
-  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
+  sid_keyvault_user_id                               = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
@@ -226,7 +226,7 @@ module "output_files" {
   landscape_tfstate     = data.terraform_remote_state.landscape.outputs
   naming                = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   app_tier_os_types     = module.app_tier.app_tier_os_types
-  sid_kv_user_id        = module.common_infrastructure.sid_kv_user_id
+  sid_keyvault_user_id        = module.common_infrastructure.sid_keyvault_user_id
   disks                 = distinct(compact(concat(module.hdb_node.dbtier_disks, module.anydb_node.dbtier_disks, module.app_tier.apptier_disks)))
   use_local_credentials = module.common_infrastructure.use_local_credentials
   scs_ha                = module.app_tier.scs_ha

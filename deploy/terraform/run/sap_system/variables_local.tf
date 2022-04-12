@@ -67,8 +67,8 @@ variable "license_type" {
 }
 
 variable "use_zonal_markers" {
- type = bool
- default = true
+  type    = bool
+  default = true
 }
 
 locals {
@@ -95,19 +95,19 @@ locals {
     if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(database.platform, "NONE")))
   ]
 
-  hdb                 = try(local.hana-databases[0], {})
-  hdb_ins             = try(local.hdb.instance, {})
-  hanadb_sid          = try(local.hdb_ins.sid, "HDB") // HANA database sid from the Databases array for use as reference to LB/AS
-  anydb_platform      = try(local.anydb-databases[0].platform, "NONE")
-  anydb_sid           = (length(local.anydb-databases) > 0) ? try(local.anydb-databases[0].instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
-  db_sid              = length(local.hana-databases) > 0 ? local.hanadb_sid : local.anydb_sid
-  sap_sid             = upper(try(local.application.sid, local.db_sid))
+  hdb            = try(local.hana-databases[0], {})
+  hdb_ins        = try(local.hdb.instance, {})
+  hanadb_sid     = try(local.hdb_ins.sid, "HDB") // HANA database sid from the Databases array for use as reference to LB/AS
+  anydb_platform = try(local.anydb-databases[0].platform, "NONE")
+  anydb_sid      = (length(local.anydb-databases) > 0) ? try(local.anydb-databases[0].instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
+  db_sid         = length(local.hana-databases) > 0 ? local.hanadb_sid : local.anydb_sid
+  sap_sid        = upper(try(local.application.sid, local.db_sid))
 
   enable_db_deployment = (
     length(local.hana-databases) > 0
     || length(local.anydb-databases) > 0
   )
-  
+
   db_zonal_deployment = length(try(local.databases[0].zones, [])) > 0
 
   // Locate the tfstate storage account
@@ -120,7 +120,7 @@ locals {
   spn_key_vault_arm_id = coalesce(
     try(local.key_vault.kv_spn_id, ""),
     try(data.terraform_remote_state.landscape.outputs.landscape_key_vault_spn_arm_id, ""),
-    try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, "")
+    try(data.terraform_remote_state.deployer[0].outputs.deployer_keyvault_user_arm_id, "")
   )
 
   deployer_subscription_id = length(local.spn_key_vault_arm_id) > 0 ? split("/", local.spn_key_vault_arm_id)[2] : ""
