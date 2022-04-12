@@ -330,7 +330,7 @@
         mode:                          0755
       when:                            observer_results.rc == 0
   when:
-  - dg_enabled.stat.exists
+    - dg_enabled.stat.exists
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

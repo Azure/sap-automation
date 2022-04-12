@@ -66,17 +66,21 @@
     owner:                             oracle
     group:                             oinstall
   #when: current_host == ora_primary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to templocation"
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/orapw{{ db_sid|upper  }}
+    src:                               /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/orapw{{ db_sid|upper  }}
     dest:                              "{{ target_media_location }}/downloads/orapw{{ db_sid|upper  }}"
     remote_src:                        true
     owner:                             oracle
     group:                             dba
   #when: current_host == ora_primary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
   become:                              true
