@@ -186,7 +186,7 @@
   when:
     - sap_mnt is defined or sap_trans is defined
     - tier == 'sapos'
-    - NFS_provider == 'AFS' and NFS_Provider != 'NONE'
+    - NFS_provider == 'AFS' and NFS_provider != 'NONE'
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
