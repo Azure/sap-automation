@@ -5,7 +5,8 @@
 - name:                                "SAP DBLOAD {{ item.sid }}"
   ansible.builtin.shell: |
                                        set -o errexit
-                                           ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params \
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }}
+                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \

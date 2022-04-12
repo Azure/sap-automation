@@ -129,7 +129,7 @@
 
     - name:                            "HANA: - return value"
       ansible.builtin.set_fact:
-        hana_already_installed:         true     
+        hana_already_installed:         true
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:

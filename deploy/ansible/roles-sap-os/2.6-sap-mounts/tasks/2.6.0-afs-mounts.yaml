@@ -15,7 +15,7 @@
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
-    msg:                               
+    msg:
       - "List of all the SAP mounts: {{ all_sap_mounts }}"
     verbosity:                         2
 

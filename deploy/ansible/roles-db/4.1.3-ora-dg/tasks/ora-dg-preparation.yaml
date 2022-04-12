@@ -162,10 +162,9 @@
 # Set Primary and Secondary node names.
 - name:                                "Oracle Data Guard - Preparation: Setting the primary and Secondary DB names"
   ansible.builtin.set_fact:
-            ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
-            ora_secondary:             "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
-            current_host:              "{{ ansible_hostname }}"
-
+    ora_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:                      "{{ ansible_hostname }}"
 
 #Debug for testing
 - name:                                "Oracle Data Guard - Preparation: Debug: installer prechecks output"

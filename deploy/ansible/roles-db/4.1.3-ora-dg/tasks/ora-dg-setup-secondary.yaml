@@ -163,6 +163,8 @@
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
+      tags:
+        - skip_ansible_lint
 
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true
@@ -170,8 +172,8 @@
       ansible.builtin.shell:           sqlplus / as sysdba @secondarystartup.sql
       register:                        secondary_startup_results2
       args:
-       chdir:                          /etc/sap_deployment_automation/dgscripts
-       executable:                     /bin/csh
+        chdir:                         /etc/sap_deployment_automation/dgscripts
+        executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
       ansible.builtin.debug:

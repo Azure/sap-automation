@@ -103,6 +103,7 @@
 
     - name:                            "User Creation: SAP OS USERS and Group Creation {{ scs_virtual_hostname }}"
       ansible.builtin.command: |
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }}
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}                             \
                                                  SAPINST_SKIP_DIALOGS=true                                                            \

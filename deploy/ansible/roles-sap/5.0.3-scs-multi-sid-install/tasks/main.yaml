@@ -90,6 +90,7 @@
   ansible.builtin.shell: |
                                        set -o errexit
                                        export TMPDIR=/usr/sap/install/{{ item.sid|upper }}
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }}
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
