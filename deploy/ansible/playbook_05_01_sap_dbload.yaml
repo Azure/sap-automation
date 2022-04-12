@@ -104,7 +104,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - dbload_already_performed is defined or (dbload.rc is defined and dbload.rc == 0)
+                - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
 
           always:
 
@@ -184,7 +184,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - dbload_already_performed is defined or (dbload.rc is defined and dbload.rc == 0)
+                - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
 
           always:
 
