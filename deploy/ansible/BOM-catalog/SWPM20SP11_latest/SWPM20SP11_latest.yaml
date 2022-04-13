@@ -7,7 +7,7 @@ materials:
 
   media:
     # SWPM
-    - name:         "Patch 2 for SWPM 2.0 SP11 ; OS: Linux on x86_64 64bit"
+    - name:         "Patch 3 for SWPM 2.0 SP11 ; OS: Linux on x86_64 64bit"
       archive:      SWPM20SP11_3-80003424.SAR
       checksum:     12a2f00fc7d3d0d411d200bb469d5db2f276d03e4134b17c3965db73b95e4d05
       extract:      true
