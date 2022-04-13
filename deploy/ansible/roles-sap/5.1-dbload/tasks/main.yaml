@@ -111,6 +111,8 @@
 
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0
+      async:                               0
+      poll:                                60
       tags:
         - skip_ansible_lint
 
@@ -128,6 +130,7 @@
       when:
         - dbload_results is defined
         - dbload_results.rc > 0
+
 
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
