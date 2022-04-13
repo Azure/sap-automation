@@ -173,7 +173,6 @@ stages:
                   git add    ${SID}.md
                   added=1
                 fi
-<<<<<<< HEAD
 
                 if [ -f ${SID}_resource_names.json ]; then
                   git add    ${SID}_resource_names.json
@@ -181,8 +180,6 @@ stages:
                 fi
 
 
-=======
->>>>>>> 2b29259208d0c8da98cded75d6446bb3a1f6fbd4
                 if [ 1 == $added ]; then
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
