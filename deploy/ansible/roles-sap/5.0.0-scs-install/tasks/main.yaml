@@ -104,7 +104,7 @@
 # *====================================4=======================================8
 
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
-      ansible.builtin.command: |
+      ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }}
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
