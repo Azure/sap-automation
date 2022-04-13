@@ -320,7 +320,7 @@
   # # Build the list of tasks to be executed in order here.
   # #
   # # ---------------------------------+---------------------------------------8
-    name:                              "DB2 HA - Install SAP DB2"
+  - name:                              "DB2 HA - Install SAP DB2"
     block:
       - name:                          "DB2 HA - Setting the DB facts"
         ansible.builtin.set_fact:
