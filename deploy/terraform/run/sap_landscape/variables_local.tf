@@ -30,26 +30,6 @@ variable "deployer_tfstate_key" {
 
 }
 
-variable "ANF_account_arm_id" {
-  description = "The resource identifier (if any) for the NetApp account"
-  default     = ""
-}
-
-variable "ANF_account_name" {
-  description = "The NetApp account name (if any)"
-  default     = ""
-}
-
-variable "ANF_service_level" {
-  description = "The NetApp Service Level"
-  default     = "Standard"
-}
-
-variable "ANF_pool_size" {
-  description = "The NetApp Pool size"
-  default     = 4
-}
-
 variable "azure_files_transport_storage_account_id" {
   type    = string
   default = ""
@@ -81,7 +61,10 @@ locals {
     "")
   )
 
-  deployer_subscription_id = length(local.spn_key_vault_arm_id) > 0 ? split("/", local.spn_key_vault_arm_id)[2] : ""
+  deployer_subscription_id = length(local.spn_key_vault_arm_id) > 0 ? (
+    split("/", local.spn_key_vault_arm_id)[2]) : (
+    ""
+  )
 
 
   spn = {
@@ -106,6 +89,7 @@ locals {
   ANF_settings = {
     use           = var.NFS_provider == "ANF"
     name          = var.ANF_account_name
+    pool_name     = var.ANF_pool_name
     arm_id        = var.ANF_account_arm_id
     service_level = var.ANF_service_level
     size_in_tb    = var.ANF_pool_size

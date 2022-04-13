@@ -115,8 +115,8 @@
         - platform == 'HANA'
 
     - name:                            "PAS Install"
-      ansible.builtin.command: |
-                                       export SAPSYSTEMNAME={{ sap_sid | upper }}
+      ansible.builtin.shell: |
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ pas_bom_id }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \

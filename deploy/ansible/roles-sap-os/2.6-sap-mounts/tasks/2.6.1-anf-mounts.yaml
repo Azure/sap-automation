@@ -9,6 +9,14 @@
   ansible.builtin.set_fact:
     nfs_service:                       "{% if distribution_id == 'redhat8' %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}nfsserver{% endif %}{% endif %}"
 
+- name:                                "AFS Mount: Define this SID"
+  ansible.builtin.set_fact:
+    this_sid:                          { 'sid': '{{ sap_sid|upper }}', 'sidadm_uid': '{{ sidadm_uid }}', 'ascs_inst_no': '{{ scs_instance_number }}', 'pas_inst_no': '{{ app_instance_number }}' , 'app_inst_no': '{{ pas_instance_number }}' }
+
+- name:                                "AFS Mount: Create list of all_sap_mounts to support "
+  ansible.builtin.set_fact:
+    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts|default([]) + [ this_sid ] }}{% endif %}"
+
 - name:                                "ANF Mount: Ensure the NFS service is stopped"
   ansible.builtin.systemd:
     name:                              "{{ nfs_service }}"
@@ -144,6 +152,14 @@
     - node_tier == 'scs'
     - sap_mnt is defined
 
+    - name:                           "AFS Mount: Create SAP Directories (AFS)"
+      ansible.builtin.file:
+        path:                          "/saptmp/sapmnt{{ item.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+      loop:                            "{{ MULTI_SIDS }}"
+      when:                            MULTI_SIDS is defined
+
 - name:                                "ANF Mount: Create SAP Directories (transport)"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
@@ -191,6 +207,13 @@
     - node_tier == 'scs'
     - sap_mnt is defined
 
+- name:                                "AFS Mount: Create SAP Directories (AFS)"
+  ansible.builtin.file:
+    path:                              "/saptmp/sapmnt{{ item.sid | upper }}"
+    state:                             absent
+  loop:                                "{{ MULTI_SIDS }}"
+  when:                                MULTI_SIDS is defined
+
 - name:                                "ANF Mount: Delete locally created SAP Directories (transport)"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
@@ -201,7 +224,6 @@
     - tier == 'sapos'
     - node_tier == 'scs'
     - sap_trans is defined
-
 
 - name:                                "ANF Mount: Cleanup fstab and directory (sap_mnt)"
   ansible.builtin.mount:
@@ -228,23 +250,17 @@
     - sap_trans is defined
 
 
-# Configure shared directories
-- name:                                "ANF Mount: Create SAP Directories (sap_mnt)"
+- name:                                "AFS Mount: Create SAP Directories (sapmnt)"
   ansible.builtin.file:
-    owner:                             '{{ sidadm_uid }}'
+    owner:                             "{{ item.sidadm_uid }}"
     group:                             sapsys
     mode:                              0755
-    path:                              "{{ item.path }}"
+    path:                              "/sapmnt/{{ item.sid }}"
     state:                             directory
-  loop:
-    - { path: '/sapmnt/{{ sap_sid|upper }}'      }
-  when:
-    - tier == 'sapos'
-    - node_tier != 'hana'
-    - sap_mnt is defined
+  register: is_created_now
+  loop:                                "{{ all_sap_mounts }}"
   tags:
     - skip_ansible_lint
-  register: is_created_now
 
 - name:                                "ANF Mount: Change attribute only when we create SAP Directories (sap_mnt)"
   ansible.builtin.file:
@@ -305,6 +321,7 @@
     - tier == 'sapos'
     - node_tier in ['scs','ers']
     - sap_mnt is defined
+    - MULTI_SIDS is undefined
   register: is_created_now3
 
 - name:                                "ANF Mount: Change attribute only when we create SAP Directories (scs & ers)"
@@ -348,6 +365,21 @@
     - tier in ['sapos']
     - node_tier != 'hana'
     - sap_mnt is defined
+
+- name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} - Standalone MULTI_SIDS"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.mount:
+    src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
+    path:                              "/sapmnt/{{ item.sid }}"
+    fstype:                            'nfs4'
+    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    state:                             mounted
+  loop:                                "{{ MULTI_SIDS }}"
+  when:
+    - not scs_high_availability
+    - sap_mnt is defined
+    - MULTI_SIDS is defined
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid|upper }}"
   ansible.builtin.mount:
