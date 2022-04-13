@@ -71,7 +71,6 @@
       - "{{ bom.product_ids.pas }}"
     verbosity:                         2
 
-
 - name:                                "PAS (sharedHome): Install"
   ansible.builtin.shell: |
                                        set -o errexit
