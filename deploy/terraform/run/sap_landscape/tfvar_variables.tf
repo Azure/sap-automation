@@ -300,3 +300,30 @@ variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
   default     = ""
 }
+
+
+variable "ANF_account_arm_id" {
+  description = "The resource identifier (if any) for the NetApp account"
+  default     = ""
+}
+
+variable "ANF_account_name" {
+  description = "The NetApp account name (if any)"
+  default     = ""
+}
+
+variable "ANF_pool_name" {
+  description = "The NetApp capacity pool name (if any)"
+  default     = ""
+}
+
+
+variable "ANF_service_level" {
+  description = "The NetApp Service Level"
+  default     = "Standard"
+}
+
+variable "ANF_pool_size" {
+  description = "The NetApp Pool size"
+  default     = 4
+}
