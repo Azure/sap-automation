@@ -356,7 +356,6 @@ admin_users:
     node_tier:    observer
     enabled:      true
 
-
 #####
 # Admin users for Oracle Non-ASM Multi-SID
 
@@ -385,9 +384,6 @@ admin_users:
     tier:         ora
     node_tier:    oracle-multi-sid
     enabled:      true
-
-
-
 
 #Admin users for Oracle ASM
 

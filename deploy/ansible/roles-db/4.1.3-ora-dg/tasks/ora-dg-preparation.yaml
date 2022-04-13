@@ -162,10 +162,9 @@
 # Set Primary and Secondary node names.
 - name:                                "Oracle Data Guard - Preparation: Setting the primary and Secondary DB names"
   ansible.builtin.set_fact:
-            ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
-            ora_secondary:             "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
-            current_host:              "{{ ansible_hostname }}"
-          
+    ora_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:                      "{{ ansible_hostname }}"
 
 #Debug for testing
 - name:                                "Oracle Data Guard - Preparation: Debug: installer prechecks output"
@@ -175,7 +174,7 @@
       - "secondary host is {{ ora_secondary }}"
       - "host is {{ current_host }}"
     verbosity:                         2
-  
+
 #Create Listener for primary node.
 
 - name:                               "Oracle Data Guard - Preparation: Create the Listener file for Primary"
@@ -441,7 +440,7 @@
   become_user:                         "oracle"
   ansible.builtin.blockinfile:
     create:                            true
-    path:                              /etc/sap_deployment_automation/dgscripts/shutdownsecondary.sql 
+    path:                              /etc/sap_deployment_automation/dgscripts/shutdownsecondary.sql
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |

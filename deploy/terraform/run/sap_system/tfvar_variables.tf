@@ -585,7 +585,6 @@ variable "name_override_file" {
   default     = ""
 }
 
-
 variable "shared_home" {
   description = "If defined provides shared-home support"
   default     = false

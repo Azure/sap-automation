@@ -221,8 +221,6 @@
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
 
-
-
 - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"
   zypper:
     name:                              '*'

@@ -45,6 +45,8 @@
                       chown -R oracle:oinstall /oracle
   args:
     creates:                           /etc/sap_deployment_automation/oracleowner.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                Create oracleowner.txt
   become:                              true
@@ -338,7 +340,7 @@
             export ORACLE_BASE=/oracle
             export LD_LIBRARY_PATH=$ORACLE_HOME/lib
             export TNS_ADMIN=$ORACLE_HOME/network/admin
-            export DB_SID={{ db_sid}}
+            export DB_SID={{ db_sid }}
             PATH="$PATH:$ORACLE_HOME/bin"
             export PATH
 
@@ -357,7 +359,7 @@
             setenv  ORACLE_BASE /oracle
             setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
             setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-            setenv  DB_SID {{ db_sid}}
+            setenv  DB_SID {{ db_sid }}
             set path = ($path $ORACLE_HOME/bin)
         mode:                              0755
 

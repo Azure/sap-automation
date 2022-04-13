@@ -35,8 +35,8 @@
         state:                         directory
         mode:                          0755
       when:
-         - node_tier == 'scs'
-         - MULTI_SIDS is defined
+        - node_tier == 'scs'
+        - MULTI_SIDS is defined
       loop: "{{ MULTI_SIDS }}"
 
 - name:                               "2.3 SAP Exports: - Create SAP Directories (install)"
@@ -193,8 +193,8 @@
     - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=n'                                                        }
     - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
     - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
-  when:     
-    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
+  when:
+    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8"
     - node_tier == 'scs'
     - sap_mnt is not defined
     - MULTI_SIDS is not defined
@@ -214,8 +214,8 @@
     - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=n'                                                        }
     - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
     - { tier: 'preparation', path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
-  when:     
-    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
+  when:
+    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8"
     - node_tier == 'scs'
     - sap_mnt is not defined
     - MULTI_SIDS is defined
@@ -230,8 +230,8 @@
     group:  root
     mode:   0644
   loop: "{{ MULTI_SIDS }}"
-  when:     
-    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8" 
+  when:
+    - (ansible_distribution|lower ~ ansible_distribution_major_version) == "oraclelinux8"
     - node_tier == 'scs'
     - sap_mnt is not defined
     - MULTI_SIDS is defined

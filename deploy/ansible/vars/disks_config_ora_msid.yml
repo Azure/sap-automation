@@ -10,7 +10,7 @@ disktypes: >-
 
 multisids: >-
   {{ MULTI_SIDS |map(attribute='sid') | sort | unique |list }}
-      
+
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
   # sapdata1_sid1:  sapdata1_{{ ora_sid1 | lower }}
@@ -97,7 +97,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     lv:         'lv_usrsapinstall'
 #     size:       '100%FREE'
 #     fstype:     'xfs'
-  
+
 # #Adding Tier and disk types for Oracle multi-sid installation non-ASM.
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
@@ -106,7 +106,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     size:       '100%FREE'
 #     stripesize: 256
 #     fstype:     'xfs'
-  
+
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
 #     vg:         vg_'{{ ora_sid1| lower }}'_sapdata2
@@ -163,7 +163,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     size:       '100%FREE'
 #     stripesize: 128
 #     fstype:     'xfs'
- 
+
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid1| lower }}_oraarch'
@@ -178,7 +178,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     size:       '100%FREE'
 #     stripesize: 256
 #     fstype:     'xfs'
-  
+
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_sapdata2'
@@ -235,7 +235,7 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     size:       '100%FREE'
 #     stripesize: 128
 #     fstype:     'xfs'
- 
+
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_oraarch'
@@ -250,8 +250,6 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     lv:         'lv_oracle'
 #     size:       '64g'
 #     fstype:     'xfs'
-
-
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

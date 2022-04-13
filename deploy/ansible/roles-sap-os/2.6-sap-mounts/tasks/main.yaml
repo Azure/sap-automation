@@ -257,4 +257,3 @@
   when:
     - node_tier == "db2"
 ...
-
