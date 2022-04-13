@@ -57,7 +57,7 @@ materials:
       checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
       url:                             https://softwaredownloads.sap.com/file/0020000000703122018
       path:         download_basket
-    
+
     - name:                            "SAP HANA CLIENT 2.0 for NW AS ABAP 7.52"
       archive:      51051805.ZIP
       checksum:     8dadbb7923ed7b36eaa5c1d103a2bbd216351c233de3c2d627b9e7db5755510e
@@ -72,7 +72,7 @@ materials:
       extractDir:                      CD_EXPORT
       creates:                         CDLABEL.ASC
       url:                             https://softwaredownloads.sap.com/file/0030000019659142017
-    
+
     - name:                            "NetWeaver AS ABAP 7.52 Innovation Pkg - Installation Exp 2/2"
       archive:                         51051806_part2.rar
       checksum:                        d968835cadfea8514a552ec977421043649bbb59140629a9dd897a7f0c47480b
@@ -491,6 +491,5 @@ materials:
       override_target_filename:        "SAPCAR.EXE"
       url:                             https://softwaredownloads.sap.com/file/0020000000098642022
       path:                            download_basket
-
 
 ...

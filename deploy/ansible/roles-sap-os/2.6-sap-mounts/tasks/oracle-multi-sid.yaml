@@ -121,7 +121,7 @@
 
 - name:                                "2.6 SAP Mounts (Oracle shared home) : Make orasid:dba as owners for Oracle directories - check flag file"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
+    path:                              /etc/sap_deployment_automation/file_permission.txt
   register:                            oracle_permissions_set
 
 - name:                                "2.6 SAP Mounts (Oracle shared home) : Make orasid:dba as owners for Oracle directories"
@@ -136,14 +136,15 @@
   loop:
     - { path: '/oracle',       group: 'oinstall',   owner: 'oracle'}
   when:
-     - not oracle_permissions_set.stat.exists
+    - not oracle_permissions_set.stat.exists
 
-- name:                                "2.6 SAP Mounts (Oracle shared home) : Create filepermission.txt"
+- name:                                "2.6 SAP Mounts (Oracle shared home) : Create file_permission.txt"
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
+    path:                              /etc/sap_deployment_automation/file_permission.txt
     state:                             touch
+    mode:                              0755
 
 #Debug for testing
 - name:                                "2.6 SAP Mounts (Oracle shared home) : Print oracle filesystems"
@@ -171,7 +172,6 @@
     - MULTI_SIDS is defined
     - node_tier != 'scs'
     - sap_mnt is undefined
-
 
 - name:                                "ORACLE: Make orasid:dba as owners"
   become:                              true

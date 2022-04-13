@@ -121,6 +121,8 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/stage/{{ ora_release }}/grid_home"
     creates:                           /etc/sap_deployment_automation/oracle/gridinstall.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "SAP Oracle ASM: Create after a successful GRID install"
   ansible.builtin.file:
@@ -134,7 +136,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 - name:                                "SAP Oracle ASM: Oracle Post Processing - Run root.sh"
   become:                              true
   become_user:                         root
@@ -145,6 +146,8 @@
   args:
     executable:                        /bin/csh
     creates:                           /etc/sap_deployment_automation/oracle/gridinstall_rootscript.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "SAP Oracle ASM: creates after a successful post processing script execution"
   ansible.builtin.file:
@@ -174,6 +177,8 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/stage/{{ ora_release }}/grid_home"
     creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "SAP Oracle ASM: Create after a successful Config tool execution"
   ansible.builtin.file:
@@ -203,6 +208,8 @@
     executable:                        /bin/csh
     chdir:                             "/oracle/stage/{{ ora_release }}/grid_home/bin"
     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
+  tags:
+    - skip_ansible_lint
 
 - name:                                "SAP Oracle ASM: Created after a successful disk group creation"
   ansible.builtin.file:

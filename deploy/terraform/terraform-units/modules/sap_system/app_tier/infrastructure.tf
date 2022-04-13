@@ -27,7 +27,7 @@ resource "azurerm_subnet_route_table_association" "app" {
     1) : (
     0
   )
-  subnet_id      = azurerm_subnet.app[0].id
+  subnet_id      = azurerm_subnet.subnet_sap_app[0].id
   route_table_id = var.landscape_tfstate.route_table_id
 }
 

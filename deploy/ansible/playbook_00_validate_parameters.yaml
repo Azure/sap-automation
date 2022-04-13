@@ -106,12 +106,12 @@
 
     - name:                            "0.0 Validations - Show ORACLE parameters"
       ansible.builtin.debug:
-        msg:                           
+        msg:
           - "ora_release: {{ ora_release }}"
           - "ora_version: {{ ora_version }}"
           - "oracle_sbp_patch: {{ oracle_sbp_patch }}"
 
-      when:                            
+      when:
         - platform == 'ORACLE'
 
 # /*---------------------------------------------------------------------------8
@@ -210,8 +210,6 @@
           - web_sid | trim | length > 1
         fail_msg:                      "Please specify web_sid if you are deploying web dispatchers"
       when:                            (ansible_play_hosts_all | length) > 0
-
-
 
 ...
 # /*----------------------------------------------------------------------------8
