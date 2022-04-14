@@ -116,14 +116,6 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            "DBLoad: Install -Wait for asynchronous job to end"
-      ansible.builtin.async_status:
-        jid:                           '{{ dbload_results.ansible_job_id }}'
-      register:                        job_result
-      until:                           job_result.finished
-      retries:                         180
-      delay:                           60
-
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         var:                           dbload
