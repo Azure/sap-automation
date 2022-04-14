@@ -90,7 +90,7 @@
   failed_when:                         dbs_folder_copied_results.rc >= 2
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
