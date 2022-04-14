@@ -111,8 +111,6 @@
 
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0
-      async:                               0
-      poll:                                60
       tags:
         - skip_ansible_lint
 
