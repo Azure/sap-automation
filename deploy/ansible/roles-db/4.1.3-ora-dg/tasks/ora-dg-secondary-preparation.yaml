@@ -45,6 +45,7 @@
     - skip_ansible_lint
   #when:  current_host == ora_primary
 
+
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create createpfile.txt"
   become:                              true
   become_user:                         "oracle"
@@ -53,6 +54,12 @@
     state:                             touch
     mode:                              0755
   #when:  current_host == ora_primary
+
+
+- name:                                "Oracle Data Guard -  Pfile created check"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
+  register:                            pfile_created
 
 #Copy the initSID.ora from primary to secondary
 
@@ -65,7 +72,9 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
-  #when: current_host == ora_primary
+  when: 
+    - pfile_created.stat.exists
+  #current_host == ora_primary
   tags:
     - skip_ansible_lint
 
