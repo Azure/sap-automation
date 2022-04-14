@@ -27,7 +27,13 @@ data "azurerm_netapp_account" "workload_netapp_account" {
 
 resource "azurerm_netapp_pool" "workload_netapp_pool" {
   provider = azurerm.main
-  count    = var.ANF_settings.use ? 1 : 0
+  count = var.ANF_settings.use ? (
+    length(var.ANF_settings.pool_name) == 0 ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.netapp_pool,
     local.prefix,
@@ -50,6 +56,19 @@ resource "azurerm_netapp_pool" "workload_netapp_pool" {
   service_level = var.ANF_settings.service_level
   size_in_tb    = var.ANF_settings.size_in_tb
 }
+
+data "azurerm_netapp_pool" "workload_netapp_pool" {
+  count = var.ANF_settings.use ? (
+    length(var.ANF_settings.pool_name) == 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+  resource_group_name = split("/", var.ANF_settings.arm_id)[4]
+  name = var.ANF_settings.pool_name
+}
+
 
 resource "azurerm_netapp_volume" "transport" {
   provider = azurerm.main
