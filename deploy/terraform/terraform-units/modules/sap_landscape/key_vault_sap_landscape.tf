@@ -21,7 +21,7 @@ resource "azurerm_key_vault" "kv_prvt" {
     object_id = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
 
     secret_permissions = [
-      "get",
+      "Get",
     ]
 
   }

@@ -84,6 +84,7 @@ variable "use_private_endpoint" {
 }
 
 variable "hana_dual_nics" {
+  description = "value to indicate if dual nics are used for HANA"
 }
 
 locals {

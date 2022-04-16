@@ -65,6 +65,10 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
     )) : (
     0
   )
+  account_name = var.ANF_settings.use && length(var.ANF_settings.arm_id) > 0 ? (
+    data.azurerm_netapp_account.workload_netapp_account[0].name) : (
+    azurerm_netapp_account.workload_netapp_account[0].name
+  )
   resource_group_name = split("/", var.ANF_settings.arm_id)[4]
   name = var.ANF_settings.pool_name
 }

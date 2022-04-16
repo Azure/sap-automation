@@ -79,13 +79,6 @@ locals {
   // deployer terraform.tfstate
   deployer_tfstate = var.deployer_tfstate
   deployer_defined = length(var.deployer_tfstate) > 0
-  deployer_msi_principal_id = local.deployer_defined ? (
-    try(
-      local.deployer_tfstate.deployer_uai.principal_id,
-      local.deployer_tfstate.deployer_uai
-    )) : (
-    ""
-  )
 
   subnet_management_id = local.deployer_defined ? local.deployer_tfstate.subnet_mgmt_id : ""
 

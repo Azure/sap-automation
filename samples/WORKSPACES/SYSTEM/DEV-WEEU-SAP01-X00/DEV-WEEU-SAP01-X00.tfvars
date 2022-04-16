@@ -28,6 +28,18 @@ NFS_provider       = "NONE"
 sapmnt_volume_size = 128
 
 
+# use_ANF_for_HANA_data is a boolean flag, if defined, will create ANF volumes for HANA data
+#use_ANF_for_HANA_data = false
+
+# HANA_data_volume_size is the size of the ANF volume for HANA data
+#HANA_data_volume_size=512
+
+# use_ANF_for_HANA_log is a boolean flag, if defined, will create ANF volumes for HANA log
+#use_ANF_for_HANA_log = false
+
+# HANA_log_volume_size is the size of the ANF volume for HANA log
+#HANA_log_volume_size=512
+
 #########################################################################################
 #                                                                                       #
 #  Database tier                                                                        #                                                                                       #
@@ -106,6 +118,9 @@ database_vm_image = {
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
 database_vm_zones=["1"]
+
+# shared_home is a boolean flag controlling if the deployment is a shared home deployment, aka Multi-SID
+shared_home = false
 
 # database_nodes provides a way to specify more than one database node, i.e. a scaleout scenario
 

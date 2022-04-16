@@ -206,7 +206,7 @@
         mode:                          0755
         path:                          "/sapmnt/{{ item.sid }}"
         state:                         directory
-      register: is_created_now
+      register:                        is_created_now
       loop:                            "{{ all_sap_mounts }}"
       tags:
         - skip_ansible_lint

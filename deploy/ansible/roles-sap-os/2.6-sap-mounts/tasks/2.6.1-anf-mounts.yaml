@@ -57,200 +57,108 @@
   when:
     - id_mapping_changed is changed
 
-- name:                                "ANF Mount: Create /saptmp"
-  ansible.builtin.file:
-    path:                              "/saptmp"
-    state:                             directory
-    group:                             sapsys
-  when:
-    - node_tier == 'scs'
-    - tier == 'sapos'
-    - sap_mnt is defined
-  tags:
-    - skip_ansible_lint
-
-- name:                                "ANF Mount: Create /saptrans"
-  ansible.builtin.file:
-    path:                              "/saptrans"
-    state:                             directory
-    group:                             sapsys
-  when:
-    - node_tier == 'scs'
-    - tier == 'sapos'
-    - sap_trans is defined
-  tags:
-    - skip_ansible_lint
-
-  # Mount Filesystem on ANF
-  # This is needed so that we can create the correct directory
-- name:                                "ANF Mount: (sapmnt)"
-  block:
-    - name:                            "ANF Mount: Filesystems on ANF (sapmnt)"
-      ansible.builtin.mount:
-        src:                           "{{ sap_mnt }}"
-        path:                          "/saptmp"
-        fstype:                        "nfs4"
-        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
-        state:                         mounted
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_mnt is defined
-  rescue:
-    - name:                            "ANF Mount: Clear the cache of the nfsidmap daemon (ANF)"
-      ansible.builtin.shell: |
-                                       nfsidmap -c
-
-    - name:                            "ANF Mount: Ensure the rpcbind service is restarted"
-      ansible.builtin.systemd:
-        name:                          rpcbind
-        daemon-reload:                 true
-        state:                         restarted
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |          Mount Filesystem on ANF                                           |
-# |          This is needed so that we can create the correct directories      |
+# |         Prepare for the sap_mnt mounts                                     |
+# |         Create temporary directory structure                               |
+# |         Mount the share, create the directory structure on share           |
+# |         Unmount and clean up temporary directory structure                 |
+# |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                "ANF Mount: (transport)"
+- name:                                "ANF Mount: (sapmnt)"
   block:
-    - name:                            "ANF Mount: Filesystems on ANF (transport)"
-      ansible.builtin.mount:
-        src:                           "{{ sap_trans }}"
-        path:                          "/saptrans"
-        fstype:                        "nfs4"
-        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
-        state:                         mounted
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_trans is defined
-  rescue:
-    - name:                            "ANF Mount: Clear the cache of the nfsidmap daemon (ANF)"
-      ansible.builtin.shell: |
+    - name:                            "ANF Mount: Create /saptmp"
+      ansible.builtin.file:
+        path:                          "/saptmp"
+        state:                         directory
+        group:                         sapsys
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "ANF Mount: (sapmnt)"
+      block:
+        - name:                        "ANF Mount: Filesystems on ANF (sapmnt)"
+          ansible.builtin.mount:
+            src:                       "{{ sap_mnt }}"
+            path:                      "/saptmp"
+            fstype:                    "nfs4"
+            opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+            state:                     mounted
+      rescue:
+        - name:                        "ANF Mount: Clear the cache of the nfsidmap daemon (ANF)"
+          ansible.builtin.shell: |
                                        nfsidmap -c
+        - name:                        "ANF Mount: Ensure the rpcbind service is restarted"
+          ansible.builtin.systemd:
+            name:                      rpcbind
+            daemon-reload:             true
+            state:                     restarted
 
-    - name:                            "ANF Mount: Ensure the rpcbind service is restarted"
-      ansible.builtin.systemd:
-        name:                          rpcbind
-        state:                         restarted
-
-
-- name:                                "ANF Mount: Create SAP Directories (spmnt & usrsap)"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    mode:                              0755
-  loop:
-    - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_mnt is defined
-
-    - name:                           "AFS Mount: Create SAP Directories (AFS)"
+    - name:                            "ANF Mount: Create SAP Directories (spmnt & usrsap)"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          0755
+      loop:
+        - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
+    
+    - name:                           "ANF Mount: Create SAP Directories (ANF)"
       ansible.builtin.file:
         path:                          "/saptmp/sapmnt{{ item.sid | upper }}"
         state:                         directory
         mode:                          0755
       loop:                            "{{ MULTI_SIDS }}"
       when:                            MULTI_SIDS is defined
+    
+    - name:                            "ANF Mount: Unmount file systems (sap_mnt)"
+      ansible.builtin.mount:
+        src:                           "{{ sap_mnt }}"
+        path:                          "/saptmp"
+        state:                         unmounted
+    
+    - name:                            "ANF Mount: Delete locally created SAP Directories"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         absent
+      loop:
+        - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
+        - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
+    
+    - name:                            "ANF Mount: Remove SAP Directories (ANF)"
+      ansible.builtin.file:
+        path:                          "/saptmp/sapmnt{{ item.sid | upper }}"
+        state:                         absent
+      loop:                            "{{ MULTI_SIDS }}"
+      when:                            MULTI_SIDS is defined
 
-- name:                                "ANF Mount: Create SAP Directories (transport)"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    mode:                              0755
-  loop:
-    - { path: '/saptrans/usrsaptrans' }
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_trans is defined
+    - name:                            "ANF Mount: Cleanup fstab and directory (sap_mnt)"
+      ansible.builtin.mount:
+        src:                           "{{ sap_mnt }}"
+        path:                          "/saptmp"
+        fstype:                        "nfs4"
+        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+        state:                         absent
 
-- name:                                "ANF Mount: Unmount file systems (sap_mnt)"
-  ansible.builtin.mount:
-    src:                               "{{ sap_mnt }}"
-    path:                              "/saptmp"
-    state:                             unmounted
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_mnt is defined
-
-- name:                                "ANF Mount: Unmount file systems (transport)"
-  ansible.builtin.mount:
-    src:                               "{{ sap_trans }}"
-    path:                              "/saptrans"
-    state:                             unmounted
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_trans is defined
-
-- name:                                "ANF Mount: Delete locally created SAP Directories"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             absent
-  loop:
-    - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
-    - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
   when:
     - tier == 'sapos'
     - node_tier == 'scs'
     - sap_mnt is defined
 
-- name:                                "AFS Mount: Create SAP Directories (AFS)"
-  ansible.builtin.file:
-    path:                              "/saptmp/sapmnt{{ item.sid | upper }}"
-    state:                             absent
-  loop:                                "{{ MULTI_SIDS }}"
-  when:                                MULTI_SIDS is defined
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the sap_mnt mounts                                  |
+# |                Create directories and make them immutable                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
-- name:                                "ANF Mount: Delete locally created SAP Directories (transport)"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             absent
-  loop:
-    - { path: '/saptrans/usrsaptrans'}
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_trans is defined
-
-- name:                                "ANF Mount: Cleanup fstab and directory (sap_mnt)"
-  ansible.builtin.mount:
-    src:                               "{{ sap_mnt }}"
-    path:                              "/saptmp"
-    fstype:                            "nfs4"
-    opts:                              "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
-    state:                             absent
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_mnt is defined
-
-- name:                                "ANF Mount: Cleanup fstab and directory (transport)"
-  ansible.builtin.mount:
-    src:                               "{{ sap_trans }}"
-    path:                              "/saptrans"
-    fstype:                            "nfs4"
-    opts:                              "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
-    state:                             absent
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_trans is defined
-
-
-- name:                                "AFS Mount: Create SAP Directories (sapmnt)"
+- name:                                "ANF Mount: Create SAP Directories (sapmnt)"
   ansible.builtin.file:
     owner:                             "{{ item.sidadm_uid }}"
     group:                             sapsys
@@ -261,6 +169,10 @@
   loop:                                "{{ all_sap_mounts }}"
   tags:
     - skip_ansible_lint
+  when:
+    - tier == 'sapos'
+    - node_tier in ['app','scs','ers', 'pas']
+    - sap_mnt is defined
 
 - name:                                "ANF Mount: Change attribute only when we create SAP Directories (sap_mnt)"
   ansible.builtin.file:
@@ -268,36 +180,6 @@
     state:                             directory
     attr:                              i+
   loop: "{{ is_created_now.results }}"
-  when:
-    - tier == 'sapos'
-    - item.item is changed
-  register: set_immutable_attribute
-  tags:
-    - skip_ansible_lint
-
-- name:                                "ANF Mount: Create SAP Directories (transport)"
-  ansible.builtin.file:
-    owner:                             '{{ sidadm_uid }}'
-    group:                             sapsys
-    mode:                              0755
-    path:                              "{{ item.path }}"
-    state:                             directory
-  loop:
-    - { path: '/usr/sap/trans'                 }
-  when:
-    - tier == 'sapos'
-    - node_tier in ['app','scs','ers', 'pas']
-    - sap_trans is defined
-  register: is_created_now2
-  tags:
-    - skip_ansible_lint
-
-- name:                                "ANF Mount: Change attribute only when we create SAP Directories (transport)"
-  ansible.builtin.file:
-    path:                              "{{ item.item.path }}"
-    state:                             directory
-    attr:                              i+
-  loop: "{{ is_created_now2.results }}"
   when:
     - tier == 'sapos'
     - item.item is changed
@@ -336,20 +218,6 @@
   register: set_immutable_attribute
   tags:
     - skip_ansible_lint
-
-- name:                                "ANF Mount: (transport)"
-  ansible.builtin.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-    state:                             mounted
-  loop:
-    - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
-  when:
-    - tier == 'sapos'
-    - node_tier in ['scs','ers','pas','app']
-    - sap_trans is defined
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid|upper }} - Standalone"
   ansible.builtin.mount:
@@ -410,5 +278,38 @@
     - tier in ['sapos']
     - node_tier in ['scs','ers']
     - sap_mnt is defined
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |         Prepare for the sap_trans, install mounts                                     |
+# |         Create temporary directory structure                               |
+# |         Mount the share, create the directory structure on share           |
+# |         Unmount and clean up temporary directory structure                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "ANF Mount: sap_trans, install"
+  ansible.builtin.include_tasks:       2.6.1.1-anf-data.yaml
+  loop:     
+   - { 'type': 'trans',   'temppath' : 'saptrans',   'mount' : '{{ sap_trans }}',                  'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/usr/sap/trans',   'target_nodes' : ['app','pas', 'ers', 'scs'] }
+   - { 'type': 'install', 'temppath' : 'sapinstall', 'mount' : '{{ usr_sap_install_mountpoint }}', 'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/usr/sap/install', 'target_nodes' : ['all']}
+  vars:
+    primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  when:
+    - tier == 'sapos'
+
+- name:                                "ANF Mount: HANA data"
+  ansible.builtin.include_tasks:       2.6.1.1-anf-data.yaml
+  loop:     
+   - { 'type': 'data', 'temppath' : 'hanadata', 'mount' : '{{ hana_data_mountpoint }}', 'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/hana/data', 'target_nodes' : ['hana'] }
+   - { 'type': 'log',  'temppath' : 'hanalog',  'mount' : '{{ hana_log_mountpoint }}',  'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/hana/log' , 'target_nodes' : ['hana'] }
+  vars:
+    primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - hana_data_mountpoint is defined
+    - hana_log_mountpoint is defined
 
 ...
