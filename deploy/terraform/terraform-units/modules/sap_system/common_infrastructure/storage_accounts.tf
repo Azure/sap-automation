@@ -76,7 +76,7 @@ resource "azurerm_storage_share" "install" {
   storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.shared[0].name : ""
   enabled_protocol     = "NFS"
 
-  quota = 128
+  quota = 256
 }
 
 resource "azurerm_storage_account_network_rules" "install" {

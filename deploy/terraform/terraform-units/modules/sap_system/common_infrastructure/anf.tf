@@ -60,6 +60,5 @@ resource "azurerm_netapp_volume" "install" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = 128
-
+  storage_quota_in_gb = 256
 }
