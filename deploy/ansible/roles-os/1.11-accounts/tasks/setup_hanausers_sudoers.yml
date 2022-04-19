@@ -28,18 +28,18 @@
 
 - name:                                Create sudoers file for {{ hanasudoers_file }} with
                                        role {{ hanasudoers_role }} if required
-  debug:
+  ansible.builtin.debug:
     msg:                               "{{ sudoers_path }}/{{ hanasudoers_file }}"
     verbosity:                         2
 
 - name:                                Debug hanasudoers
-  debug:
+  ansible.builtin.debug:
     msg:                               "sudoers_{{ hanasudoers_role }}.j2"
     verbosity:                         2
 
 - name:                                Create sudoers file for {{ hanasudoers_file }} with
                                        role {{ hanasudoers_role }} if required
-  template:
+  ansible.builtin.template:
     src:                               "sudoers_{{ hanasudoers_role }}.j2"
     dest:                              "{{ sudoers_path }}/{{ hanasudoers_file }}"
     mode:                              "0440"

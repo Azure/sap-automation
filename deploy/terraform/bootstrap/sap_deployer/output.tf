@@ -28,7 +28,7 @@ output "deployer_uai" {
 
 output "deployer_kv_user_arm_id" {
   sensitive = true
-  value     = module.sap_deployer.deployer_kv_user_arm_id
+  value     = module.sap_deployer.deployer_keyvault_user_arm_id
 }
 
 output "deployer_kv_user_name" {

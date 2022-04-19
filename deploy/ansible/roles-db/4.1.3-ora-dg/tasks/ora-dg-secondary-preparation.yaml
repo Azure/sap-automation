@@ -1,0 +1,101 @@
+---
+
+# - name:                     Setting the primary and Secondary DB names
+#   ansible.builtin.set_fact:
+#     ora_primary:           "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+#     ora_secondary:         "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+#     current_host:          "{{ ansible_hostname }}"
+#   when:                     node_tier == "oracle"
+
+- name:                                "Oracle Data Guard - Preparation (Secondary): Create sap_deployment_automation folder"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
+- name:                                "Oracle Data Guard - Preparation (Secondary): create createpfile.sql"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/createpfile.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+         CREATE PFILE FROM SPFILE;
+         exit
+    mode:                              0755
+
+
+- name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               sqlplus / as sysdba @createpfile.sql
+  register:                            createpfile_results
+  failed_when:                         createpfile_results.rc >= 2
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/createpfile.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
+  #when:  current_host == ora_primary
+
+- name:                                "Oracle Data Guard - Preparation (Secondary): Create createpfile.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
+    state:                             touch
+    mode:                              0755
+  #when:  current_host == ora_primary
+
+#Copy the initSID.ora from primary to secondary
+
+- name:                                "Oracle Data Guard - Preparation (Secondary): Copy initSID.ora to temp location"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:                               /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/init{{ db_sid|upper  }}.ora
+    dest:                              "{{ target_media_location }}/downloads/init{{ db_sid|upper  }}.ora"
+    remote_src:                        true
+    owner:                             oracle
+    group:                             oinstall
+  #when: current_host == ora_primary
+  tags:
+    - skip_ansible_lint
+
+- name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to templocation"
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.copy:
+    src:                               /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/orapw{{ db_sid|upper  }}
+    dest:                              "{{ target_media_location }}/downloads/orapw{{ db_sid|upper  }}"
+    remote_src:                        true
+    owner:                             oracle
+    group:                             dba
+  #when: current_host == ora_primary
+  tags:
+    - skip_ansible_lint
+
+- name:                                "Oracle Data Guard - Preparation (Secondary)Copy dbs folder to templocation"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell:               cp -rp * {{ target_media_location }}/downloads/dbs/.
+  register:                            dbs_folder_copied_results
+  failed_when:                         dbs_folder_copied_results.rc >= 2
+  args:
+    creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
+  tags:
+    - skip_ansible_lint
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

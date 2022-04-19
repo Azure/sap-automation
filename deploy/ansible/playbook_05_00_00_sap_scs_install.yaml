@@ -86,6 +86,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      when:                                platform != "ORACLE"
       tags:
         - 2.5-sap-users
 
@@ -152,6 +153,13 @@
             - name:                    "SCS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
+              when:                    MULTI_SIDS is undefined
+
+            - name:                    Include 5.0.3-scs-multi-sid-install role
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.0.3-scs-multi-sid-install
+              when:                    MULTI_SIDS is defined
+
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
@@ -194,6 +202,7 @@
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -385,6 +394,7 @@
       when:
         - scs_high_availability
         - "'scs' in supported_tiers or 'ers' in supported_tiers "
+        -  MULTI_SIDS is undefined
 
 ...
 
