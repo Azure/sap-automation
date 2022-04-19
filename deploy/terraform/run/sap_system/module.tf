@@ -43,7 +43,7 @@ module "common_infrastructure" {
   infrastructure                     = local.infrastructure
   options                            = local.options
   key_vault                          = local.key_vault
-  naming                             = module.sap_namegenerator.naming
+  naming                             = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   service_principal                  = var.use_spn ? local.service_principal : local.account
   deployer_tfstate                   = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
@@ -82,8 +82,8 @@ module "hdb_node" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
-  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
-  naming                                       = module.sap_namegenerator.naming
+  sid_keyvault_user_id                               = module.common_infrastructure.sid_keyvault_user_id
+  naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   db_subnet                                    = module.common_infrastructure.db_subnet
@@ -99,7 +99,7 @@ module "hdb_node" {
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
-  hana_dual_nics                               = var.hana_dual_nics
+  hana_dual_nics                               = module.common_infrastructure.admin_subnet == null ? false : var.hana_dual_nics
   database_vm_names                            = var.database_vm_names
   database_vm_db_nic_ips                       = var.database_vm_db_nic_ips
   database_vm_admin_nic_ips                    = var.database_vm_admin_nic_ips
@@ -130,8 +130,8 @@ module "app_tier" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
-  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
-  naming                                       = module.sap_namegenerator.naming
+  sid_keyvault_user_id                               = module.common_infrastructure.sid_keyvault_user_id
+  naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   custom_disk_sizes_filename                   = var.app_disk_sizes_filename
   sid_password                                 = module.common_infrastructure.sid_password
@@ -169,8 +169,8 @@ module "anydb_node" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
-  sid_kv_user_id                               = module.common_infrastructure.sid_kv_user_id
-  naming                                       = module.sap_namegenerator.naming
+  sid_keyvault_user_id                               = module.common_infrastructure.sid_keyvault_user_id
+  naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   db_subnet                                    = module.common_infrastructure.db_subnet
@@ -224,9 +224,9 @@ module "output_files" {
   anydb_loadbalancers   = module.anydb_node.anydb_loadbalancers
   random_id             = module.common_infrastructure.random_id
   landscape_tfstate     = data.terraform_remote_state.landscape.outputs
-  naming                = module.sap_namegenerator.naming
+  naming                = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   app_tier_os_types     = module.app_tier.app_tier_os_types
-  sid_kv_user_id        = module.common_infrastructure.sid_kv_user_id
+  sid_keyvault_user_id        = module.common_infrastructure.sid_keyvault_user_id
   disks                 = distinct(compact(concat(module.hdb_node.dbtier_disks, module.anydb_node.dbtier_disks, module.app_tier.apptier_disks)))
   use_local_credentials = module.common_infrastructure.use_local_credentials
   scs_ha                = module.app_tier.scs_ha
@@ -248,4 +248,5 @@ module "output_files" {
   NFS_provider          = var.NFS_provider
   observer_ips          = module.anydb_node.observer_ips
   observer_vms          = module.anydb_node.observer_vms
+  shared_home           = var.shared_home
 }

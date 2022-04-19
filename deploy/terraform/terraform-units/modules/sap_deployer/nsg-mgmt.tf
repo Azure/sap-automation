@@ -6,10 +6,16 @@ Description:
 
 // Create/Import management nsg
 resource "azurerm_network_security_group" "nsg_mgmt" {
-  count               = !local.management_subnet_nsg_exists ? 1 : 0
-  name                = local.management_subnet_nsg_name
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  count = !local.management_subnet_nsg_exists ? 1 : 0
+  name  = local.management_subnet_nsg_name
+  resource_group_name = local.rg_exists ? (
+    data.azurerm_resource_group.deployer[0].name) : (
+    azurerm_resource_group.deployer[0].name
+  )
+  location = local.rg_exists ? (
+    data.azurerm_resource_group.deployer[0].location) : (
+    azurerm_resource_group.deployer[0].location
+  )
 }
 
 data "azurerm_network_security_group" "nsg_mgmt" {
@@ -26,9 +32,15 @@ resource "azurerm_subnet_network_security_group_association" "associate_nsg_mgmt
     azurerm_network_security_rule.nsr_winrm
 
   ]
-  count                     = (!local.management_subnet_exists) ? 1 : 0
-  subnet_id                 = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
-  network_security_group_id = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].id : azurerm_network_security_group.nsg_mgmt[0].id
+  count = (!local.management_subnet_exists) ? 1 : 0
+  subnet_id = local.management_subnet_exists ? (
+    data.azurerm_subnet.subnet_mgmt[0].id) : (
+    azurerm_subnet.subnet_mgmt[0].id
+  )
+  network_security_group_id = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0].id) : (
+    azurerm_network_security_group.nsg_mgmt[0].id
+  )
 }
 
 // Add SSH network security rule
@@ -37,10 +49,16 @@ resource "azurerm_network_security_rule" "nsr_ssh" {
     data.azurerm_network_security_group.nsg_mgmt,
     azurerm_network_security_group.nsg_mgmt
   ]
-  count                        = !local.management_subnet_nsg_exists ? 1 : 0
-  name                         = "ssh"
-  resource_group_name          = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name : azurerm_network_security_group.nsg_mgmt[0].resource_group_name
-  network_security_group_name  = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].name : azurerm_network_security_group.nsg_mgmt[0].name
+  count = !local.management_subnet_nsg_exists ? 1 : 0
+  name  = "ssh"
+  resource_group_name = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name) : (
+    azurerm_network_security_group.nsg_mgmt[0].resource_group_name
+  )
+  network_security_group_name = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0].name) : (
+    azurerm_network_security_group.nsg_mgmt[0].name
+  )
   priority                     = 101
   direction                    = "Inbound"
   access                       = "Allow"
@@ -57,10 +75,16 @@ resource "azurerm_network_security_rule" "nsr_rdp" {
     data.azurerm_network_security_group.nsg_mgmt,
     azurerm_network_security_group.nsg_mgmt
   ]
-  count                        = !local.management_subnet_nsg_exists ? 1 : 0
-  name                         = "rdp"
-  resource_group_name          = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name : azurerm_network_security_group.nsg_mgmt[0].resource_group_name
-  network_security_group_name  = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].name : azurerm_network_security_group.nsg_mgmt[0].name
+  count = !local.management_subnet_nsg_exists ? 1 : 0
+  name  = "rdp"
+  resource_group_name = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name) : (
+    azurerm_network_security_group.nsg_mgmt[0].resource_group_name
+  )
+  network_security_group_name = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0].name) : (
+    azurerm_network_security_group.nsg_mgmt[0].name
+  )
   priority                     = 102
   direction                    = "Inbound"
   access                       = "Allow"
@@ -77,10 +101,16 @@ resource "azurerm_network_security_rule" "nsr_winrm" {
     data.azurerm_network_security_group.nsg_mgmt,
     azurerm_network_security_group.nsg_mgmt
   ]
-  count                        = !local.management_subnet_nsg_exists ? 1 : 0
-  name                         = "winrm"
-  resource_group_name          = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name : azurerm_network_security_group.nsg_mgmt[0].resource_group_name
-  network_security_group_name  = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0].name : azurerm_network_security_group.nsg_mgmt[0].name
+  count = !local.management_subnet_nsg_exists ? 1 : 0
+  name  = "winrm"
+  resource_group_name = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name) : (
+    azurerm_network_security_group.nsg_mgmt[0].resource_group_name
+  )
+  network_security_group_name = local.management_subnet_nsg_exists ? (
+    data.azurerm_network_security_group.nsg_mgmt[0].name) : (
+    azurerm_network_security_group.nsg_mgmt[0].name
+  )
   priority                     = 103
   direction                    = "Inbound"
   access                       = "Allow"

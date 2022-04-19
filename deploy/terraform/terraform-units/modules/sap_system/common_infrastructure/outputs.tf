@@ -49,15 +49,15 @@ output "network_resource_group" {
 }
 
 
-output "sid_kv_user_id" {
+output "sid_keyvault_user_id" {
   value = local.enable_sid_deployment && local.use_local_credentials ? (
-    azurerm_key_vault.sid_kv_user[0].id) : (
+    azurerm_key_vault.sid_keyvault_user[0].id) : (
   local.user_key_vault_id)
 }
 
 output "sid_kv_prvt_id" {
   value = local.enable_sid_deployment && local.use_local_credentials ? (
-    azurerm_key_vault.sid_kv_prvt[0].id) : (
+    azurerm_key_vault.sid_keyvault_prvt[0].id) : (
   local.prvt_key_vault_id)
 }
 

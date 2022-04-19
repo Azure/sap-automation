@@ -99,7 +99,7 @@
 
     - name:                            "ERS Install: SAP ERS install command"
       ansible.builtin.debug:
-        msg:                           ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}
+        msg:                           ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}
                                         SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }} SAPINST_SKIP_DIALOGS=true SAPINST_START_GUISERVER=false SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
         verbosity:                     4
 
@@ -113,7 +113,8 @@
       block:
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
@@ -152,7 +153,8 @@
         # SAP Note# 2279110
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \

@@ -14,7 +14,7 @@ For example:
     sapbits_location_base_path:   https://npeus2saplibb546.blob.core.windows.net/sapbits
     sapbits_bom_files:            sapfiles
     bom_base_name:                S4HANA_2020_ISS_v001
-    target_media_location:        /usr/sap/install
+    target_media_location:        {{ target_media_location }}
     test_mode:                    true
 
   roles:

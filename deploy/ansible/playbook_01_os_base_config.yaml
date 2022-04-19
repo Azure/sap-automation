@@ -106,7 +106,15 @@
         - 1.5-disk-setup
 
     - block:
-        - name:                        "OS configuration playbook: - Configure chrony"
+        - name:                        Include 1.5.2-disk-setup-ora-multi-sid role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
+          when:
+            node_tier == "oracle-multi-sid"
+      tags:
+        - 1.5.2-disk-setup-ora-multi-sid
+    - block:
+        - name:                        Include 1.7-chrony role
           ansible.builtin.include_role:
             name:                      roles-os/1.7-chrony
       tags:
