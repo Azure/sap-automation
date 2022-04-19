@@ -133,9 +133,6 @@
     msg:                               "Unable to find the Bill of materials file for {{ bom_name }} "
   when:                                bom is not defined
 
-
-
-
 - name:                                "{{ task_prefix }} Show BoM details"
   ansible.builtin.debug:
     msg:

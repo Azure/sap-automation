@@ -1,9 +1,11 @@
+
+---
+
 # /*---------------------------------------------------------------------------------------------------8
 # |                                                                                                    |
 # |                      Playbook for SAP SCS HA Install and Pacemaker configuration                   |
 # |                                                                                                    |
 # +------------------------------------4--------------------------------------------------------------*/
----
 
 - hosts:                               localhost
   name:                                "SCS Installation Playbook: - Initialization"
@@ -74,9 +76,9 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-  
+
   tasks:
-    
+
 
     - name:                        "SCS Generic: - Initialize facts"
       ansible.builtin.set_fact:
@@ -91,10 +93,10 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-      when:                                
+      when:
         - platform != "ORACLE"
         - platform != "DB2"
-        
+
       tags:
         - 2.5-sap-users
 

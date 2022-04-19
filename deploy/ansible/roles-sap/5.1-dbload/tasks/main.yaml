@@ -121,7 +121,6 @@
         - dbload_results is defined
         - dbload_results.rc > 0
 
-
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"

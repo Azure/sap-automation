@@ -243,11 +243,11 @@
     - sap_mnt is undefined
 
 # Import this task only if the tier is ora.
-- import_tasks:                        "2.6.2-oracle-mounts.yaml"
+- import_tasks:                        "oracle.yaml"
   when:
     - node_tier == "oracle"
 
-- import_tasks:                        "2.6.5-oracle-multi-sid.yaml"
+- import_tasks:                        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
