@@ -1,6 +1,7 @@
 exclude_paths:
   - deploy/pipelines
   - deploy/terraform
+  - .github
 
 warn_list:
   # FIXME: Experimental violations should be fixed in separate PR
@@ -18,5 +19,9 @@ skip_list:
   - commas
   - braces
   - hyphens
+  - role-name
   - var-naming
   - no-changed-when
+
+  #csh is not supported in command
+  - command-instead-of-shell

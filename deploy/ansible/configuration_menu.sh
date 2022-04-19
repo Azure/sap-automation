@@ -107,6 +107,7 @@ options=(
         "Database High Availability Setup"
         "Database Load"
         "Primary Application Server installation"
+        "Oracle High Availability Setup"
         "Application Server installations"
         "Web Dispatcher installations"
         "HCMT"
@@ -131,6 +132,9 @@ all_playbooks=(
         ${cmd_dir}/playbook_04_00_01_db_ha.yaml
         ${cmd_dir}/playbook_05_01_sap_dbload.yaml
         ${cmd_dir}/playbook_05_02_sap_pas_install.yaml
+        ${cmd_dir}/playbook_04_02_00_oracle_ha_setup.yaml
+
+
 
         # Post SAP Install Steps
         ${cmd_dir}/playbook_05_03_sap_app_install.yaml

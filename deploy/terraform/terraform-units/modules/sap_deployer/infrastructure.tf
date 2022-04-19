@@ -145,4 +145,5 @@ data "azurerm_storage_account" "deployer" {
   count               = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 1 : 0
   name                = split("/", var.deployer.deployer_diagnostics_account_arm_id)[8]
   resource_group_name = split("/", var.deployer.deployer_diagnostics_account_arm_id)[4]
+
 }

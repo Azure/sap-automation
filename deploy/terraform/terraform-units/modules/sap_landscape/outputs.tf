@@ -14,12 +14,12 @@ output "nics_iscsi" {
 }
 
 output "kv_user" {
-  value = local.user_kv_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  value = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 # TODO Add this back when we separate the usage
 # output "kv_prvt" {
-#   value = local.prvt_kv_exist ? data.azurerm_key_vault.kv_prvt[0].id : azurerm_key_vault.kv_prvt[0].id
+#   value = local.automation_keyvault_exist ? data.azurerm_key_vault.kv_prvt[0].id : azurerm_key_vault.kv_prvt[0].id
 # }
 
 output "sid_public_key_secret_name" {
@@ -68,7 +68,10 @@ output "storage_bootdiag_endpoint" {
 
 // Output for DNS
 output "dns_info_vms" {
-  value = local.iscsi_count > 0 ? zipmap(local.full_iscsiserver_names, azurerm_network_interface.iscsi[*].private_ip_address) : null
+  value = local.iscsi_count > 0 ? (
+    zipmap(local.full_iscsiserver_names, azurerm_network_interface.iscsi[*].private_ip_address)) : (
+    null
+  )
 }
 
 output "route_table_id" {
@@ -159,19 +162,28 @@ output "web_nsg_id" {
 output "ANF_pool_settings" {
   value = var.ANF_settings.use ? {
     use_ANF = var.NFS_provider == "ANF"
-    account_name = var.ANF_settings.use && length(var.ANF_settings.arm_id) > 0 ? (
+    account_name = length(var.ANF_settings.arm_id) > 0 ? (
       data.azurerm_netapp_account.workload_netapp_account[0].name) : (
       azurerm_netapp_account.workload_netapp_account[0].name
     )
-    pool_name     = azurerm_netapp_pool.workload_netapp_pool[0].name
+    pool_name = length(var.ANF_settings.pool_name) == 0 ? (
+      azurerm_netapp_pool.workload_netapp_pool[0].name) : (
+      var.ANF_settings.pool_name
+    )
     service_level = azurerm_netapp_pool.workload_netapp_pool[0].service_level
     size_in_tb    = azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
     subnet_id = local.ANF_subnet_defined ? (
       local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id) : (
       ""
     )
-    resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-    location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+    resource_group_name = local.rg_exists ? (
+      data.azurerm_resource_group.resource_group[0].name) : (
+      azurerm_resource_group.resource_group[0].name
+    )
+    location = local.rg_exists ? (
+      data.azurerm_resource_group.resource_group[0].location) : (
+      azurerm_resource_group.resource_group[0].location
+    )
     } : {
     use_ANF = false
   }
@@ -193,10 +205,17 @@ output "transport_storage_account_id" {
 
 output "saptransport_path" {
   value = var.NFS_provider == "AFS" ? (
-    format("%s:/%s/%s", azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address, azurerm_storage_account.transport[0].name, azurerm_storage_share.transport[0].name)
+    format("%s:/%s/%s",
+      azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address,
+      azurerm_storage_account.transport[0].name,
+      azurerm_storage_share.transport[0].name
+    )
     ) : (
     var.NFS_provider == "ANF" ? (
-      format("%s:/%s", azurerm_netapp_volume.transport[0].mount_ip_addresses[0], azurerm_netapp_volume.transport[0].volume_path)
+      format("%s:/%s",
+        azurerm_netapp_volume.transport[0].mount_ip_addresses[0],
+        azurerm_netapp_volume.transport[0].volume_path
+      )
       ) : (
       ""
     )
