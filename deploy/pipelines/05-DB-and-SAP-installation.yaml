@@ -25,6 +25,10 @@ parameters:
     type:                              string
     values:
       - S41909SPS03_v0011ms
+      - S4HANA_2021_ISS_v0001ms
+      - S42020SPS03_v0002ms
+      - HANA_2_00_061_v0001ms
+      - HANA_2_00_059_v0001ms
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - ORACLE_19_00_v0002ms
@@ -672,7 +676,7 @@ stages:
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey      
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               High Availability Setup
             timeoutInMinutes:          0
