@@ -25,7 +25,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Save the Json data to a Variable as a Fact"
   ansible.builtin.set_fact:
-    json_azure_data:                          "{{ azure_metadata.stdout | from_json }}"
+    json_azure_data:                   "{{ azure_metadata.stdout | from_json }}"
   no_log:                              true
 
 - name:                                "1.17 Generic Pacemaker - Extract details"
@@ -54,19 +54,34 @@
 - name:                                "1.17 Generic Pacemaker - Set the subnet prefix"
   ansible.builtin.set_fact:
     subnet_prefix:                     "{{ json_azure_data | json_query('network.interface[0].ipv4.subnet[0].prefix') }}"
-  when: hostname == primary_instance_name
 
-- name:                                "1.17 Generic Pacemaker - Show the subnet prefix"
-  ansible.builtin.debug:
-    msg:                               "{{ subnet_prefix }}"
-
-- name:                                "1.17 Generic Pacemaker - Show Subscription ID"
+- name:                                "1.17 Generic Pacemaker - Show Details"
   ansible.builtin.debug:
     msg:
       - "SUBSCRIPTION   : {{ sap_hana_fencing_spn_subscription_id }}"
       - "RESOURCE GROUP : {{ resource_group_name }}"
+      - "SUBNET PREFIX  : {{ subnet_prefix }}"
     verbosity:                         2
-  when:                                ansible_hostname == primary_instance_name
+
+# Configure SSH Keys for inter-node communication as root
+- name:                                "1.17 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
+  ansible.builtin.command:             ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
+  args:
+    creates:                           /root/.ssh/id_rsa
+
+- name:                                "1.17 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
+  ansible.builtin.shell:               ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
+  args:
+    creates:                           /root/.ssh/id_rsa.pub
+
+- name:                                "1.17 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
+  ansible.builtin.command:             cat /root/.ssh/id_rsa.pub
+  register:                            cluster_public_ssh_key
+  changed_when:                        false
+
+- name:                                "1.17 Generic Pacemaker - Set SSH fact"
+  ansible.builtin.set_fact:
+    cluster_public_ssh_key:            "{{ cluster_public_ssh_key.stdout }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |

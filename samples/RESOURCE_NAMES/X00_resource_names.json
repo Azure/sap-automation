@@ -1,10 +1,4 @@
 {
-    "app_avset_names": [
-        "app-avset"
-    ],
-    "db_avset_names": [
-        "db-avset"
-    ],
     "keyvault_names": {
         "DEPLOYER": {
             "private_access": "DEVWEEUprvtABC",
@@ -252,9 +246,6 @@
         "witness_accesskey": "-witness-accesskey",
         "witness_name": "-witness-name"
     },
-    "scs_avset_names": [
-        "scs-avset"
-    ],
     "separator": "_",
     "storageaccount_names": {
         "DEPLOYER": "devweeudiagabc",
@@ -335,7 +326,11 @@
             "x00web00labc"
         ]
     },
-    "web_avset_names": [
-        "web-avset"
-    ]
+    "av_set_names" : {
+        "app": "app-avset",
+        "db" : "db-avset",
+        "scs": "scs-avset",
+        "web": "web-avset"
+    }
+
 }
