@@ -25,10 +25,14 @@ parameters:
     type:                              string
     values:
       - S41909SPS03_v0011ms
+      - S4HANA_2021_ISS_v0001ms
+      - S42020SPS03_v0002ms
+      - HANA_2_00_061_v0001ms
+      - HANA_2_00_059_v0001ms
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - ORACLE_19_00_v0002ms
-      - ORACLE_19_00_ORA_MSID_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0002ms
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
