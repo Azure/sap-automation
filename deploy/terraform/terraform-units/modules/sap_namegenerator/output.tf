@@ -1,25 +1,13 @@
 output "naming" {
   value = {
-    prefix = {
-      DEPLOYER = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.deployer_name)
-      SDU      = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.sdu_name)
-      VNET     = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.landscape_name)
-      LIBRARY  = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.library_name)
-    }
-    storageaccount_names = {
-      DEPLOYER = local.deployer_storageaccount_name
-      SDU      = local.sdu_storageaccount_name
-      VNET = {
-        landscape_storageaccount_name                   = local.landscape_storageaccount_name
-        witness_storageaccount_name                     = local.witness_storageaccount_name
-        landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
-      }
 
-      LIBRARY = {
-        library_storageaccount_name        = local.library_storageaccount_name
-        terraformstate_storageaccount_name = local.terraformstate_storageaccount_name
-      }
+    availabilityset_names = {
+      application = local.app_avset_names
+      db          = local.db_avset_names
+      scs         = local.scs_avset_names
+      web         = local.web_avset_names
     }
+
     keyvault_names = {
       DEPLOYER = {
         private_access = local.deployer_private_keyvault_name
@@ -36,6 +24,35 @@ output "naming" {
       VNET = {
         private_access = local.landscape_private_keyvault_name
         user_access    = local.landscape_user_keyvault_name
+      }
+    }
+
+    ppg_names = local.ppg_names
+
+    prefix = {
+      DEPLOYER = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.deployer_name)
+      SDU      = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.sdu_name)
+      VNET     = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.landscape_name)
+      LIBRARY  = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.library_name)
+    }
+
+    resource_suffixes = var.resource_suffixes
+    resource_prefixes = var.resource_prefixes
+
+    separator = length(var.custom_prefix) > 0 ? "" : local.separator
+
+    storageaccount_names = {
+      DEPLOYER = local.deployer_storageaccount_name
+      SDU      = local.sdu_storageaccount_name
+      VNET = {
+        landscape_storageaccount_name                   = local.landscape_storageaccount_name
+        witness_storageaccount_name                     = local.witness_storageaccount_name
+        landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
+      }
+
+      LIBRARY = {
+        library_storageaccount_name        = local.library_storageaccount_name
+        terraformstate_storageaccount_name = local.terraformstate_storageaccount_name
       }
     }
     virtualmachine_names = {
@@ -63,16 +80,5 @@ output "naming" {
       WEB_VMNAME               = local.web_server_vm_names
     }
 
-    ppg_names = local.ppg_names
-
-    app_avset_names = local.app_avset_names
-    scs_avset_names = local.scs_avset_names
-    web_avset_names = local.web_avset_names
-    db_avset_names  = local.db_avset_names
-
-    resource_suffixes = var.resource_suffixes
-    resource_prefixes = var.resource_prefixes
-
-    separator = length(var.custom_prefix) > 0 ? "" : local.separator
   }
 }
