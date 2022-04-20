@@ -2,9 +2,9 @@ output "naming" {
   value = {
     availabilityset_names = {
       app = local.app_avset_names
-      db          = local.db_avset_names
-      scs         = local.scs_avset_names
-      web         = local.web_avset_names
+      db  = local.db_avset_names
+      scs = local.scs_avset_names
+      web = local.web_avset_names
     }
 
     keyvault_names = {
@@ -20,7 +20,7 @@ output "naming" {
         private_access = local.sdu_private_keyvault_name
         user_access    = local.sdu_user_keyvault_name
       }
-      VNET = {
+      WORKLOAD_ZONE = {
         private_access = local.landscape_private_keyvault_name
         user_access    = local.landscape_user_keyvault_name
       }
@@ -28,10 +28,10 @@ output "naming" {
 
     ppg_names = local.ppg_names
     prefix = {
-      DEPLOYER = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.deployer_name)
-      SDU      = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.sdu_name)
-      VNET     = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.landscape_name)
-      LIBRARY  = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.library_name)
+      DEPLOYER      = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.deployer_name)
+      SDU           = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.sdu_name)
+      WORKLOAD_ZONE = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.landscape_name)
+      LIBRARY       = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.library_name)
     }
 
     resource_suffixes = var.resource_suffixes
@@ -42,7 +42,7 @@ output "naming" {
     storageaccount_names = {
       DEPLOYER = local.deployer_storageaccount_name
       SDU      = local.sdu_storageaccount_name
-      VNET = {
+      WORKLOAD_ZONE = {
         landscape_storageaccount_name                   = local.landscape_storageaccount_name
         witness_storageaccount_name                     = local.witness_storageaccount_name
         landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
