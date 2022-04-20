@@ -1,8 +1,7 @@
 output "naming" {
   value = {
-
     availabilityset_names = {
-      application = local.app_avset_names
+      app = local.app_avset_names
       db          = local.db_avset_names
       scs         = local.scs_avset_names
       web         = local.web_avset_names
