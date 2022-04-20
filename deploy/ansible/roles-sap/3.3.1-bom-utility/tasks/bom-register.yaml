@@ -139,7 +139,7 @@
       - "BoM name:        {{ bom.name }}"
       - "BoM target:      {{ bom.target }}"
       - "BoM version:     {{ bom.version }}"
-      - "BoM DB platform: {{ bom.platform }}"
+      - "BoM DB platform: {% if bom.platform is defined %}{{ bom.platform }}{% else %}Not defined{% endif %}"
   when:
     - bom.name is not search('SWPM')
     - bom.name is not search('SUM')

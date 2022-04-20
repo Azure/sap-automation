@@ -103,6 +103,8 @@
         - { parameter: 'oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
       loop_control:
         loop_var: item_to_check
+      when:
+        - platform == 'ORACLE'
 
     - name:                            "0.0 Validations - Show ORACLE parameters"
       ansible.builtin.debug:

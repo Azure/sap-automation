@@ -223,7 +223,6 @@ variable "region_mapping" {
   }
 }
 
-
 variable "resource_prefixes" {
   type        = map(string)
   description = "Prefix of resource name"
@@ -532,3 +531,4 @@ locals {
   separator = "_"
 
 }
+
