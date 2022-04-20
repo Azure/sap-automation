@@ -27,7 +27,6 @@ output "naming" {
     }
 
     ppg_names = local.ppg_names
-
     prefix = {
       DEPLOYER = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.deployer_name)
       SDU      = trimspace(length(var.custom_prefix) > 0 ? var.custom_prefix : local.sdu_name)
@@ -48,7 +47,6 @@ output "naming" {
         witness_storageaccount_name                     = local.witness_storageaccount_name
         landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
       }
-
       LIBRARY = {
         library_storageaccount_name        = local.library_storageaccount_name
         terraformstate_storageaccount_name = local.terraformstate_storageaccount_name
@@ -78,6 +76,5 @@ output "naming" {
       WEB_SECONDARY_DNSNAME    = local.web_secondary_dnsnames
       WEB_VMNAME               = local.web_server_vm_names
     }
-
   }
 }
