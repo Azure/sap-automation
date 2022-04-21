@@ -224,7 +224,7 @@ locals {
   ips_primary_anydb = var.nics_anydb
   ips_anydbnodes    = [for key, value in local.ips_primary_anydb : value.private_ip_address]
 
-  secret_prefix = var.use_local_credentials ? var.naming.prefix.SDU : var.naming.prefix.VNET
+  secret_prefix = var.use_local_credentials ? var.naming.prefix.SDU : var.naming.prefix.WORKLOAD_ZONE
   dns_label     = try(var.landscape_tfstate.dns_label, "")
 
   app_server_count = length(var.nics_app)
