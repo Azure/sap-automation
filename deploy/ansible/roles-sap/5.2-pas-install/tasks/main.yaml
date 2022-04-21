@@ -76,6 +76,7 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
+
   tags:
     - skip_ansible_lint
 
@@ -100,21 +101,6 @@
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # |                                                                            |
 # *====================================4=======================================8
-
-    - name:                            "PAS Install: Set DB Virtual Host name"
-      become_user:                     root #"{{ sap_sid|lower }}adm"
-      become:                          true
-      ansible.builtin.shell: |
-                                       /usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
-      environment:
-        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-        TMPDIR:                        "/usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
-      register:                        hdbuserstore
-      tags:
-        - skip_ansible_lint
-      when:
-        - db_high_availability
-        - platform == 'HANA'
 
     - name:                            "PAS Install: progress"
       ansible.builtin.debug:
@@ -155,6 +141,20 @@
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
       register:                        pas_installed_according_to_sapinst
+
+    - name:                            "PAS Install: Set DB Virtual Host name"
+      ansible.builtin.shell: |
+                                       /usr/sap/{{ sap_sid|upper }}/hdbclient/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+        TMPDIR:                        "/usr/sap/{{ sap_sid|upper }}/hdbclient"
+      register:                        hdbuserstore
+      tags:
+        - skip_ansible_lint
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - pas_installed_according_to_sapinst | length > 0
 
     - name:                            "PAS Install: flag"
       ansible.builtin.file:
