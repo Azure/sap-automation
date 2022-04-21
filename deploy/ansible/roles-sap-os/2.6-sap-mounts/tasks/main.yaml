@@ -33,7 +33,7 @@
 - name:                                "2.6 SAP Mounts: - Set the NFS Server name"
   ansible.builtin.set_fact:
     nfs_server:                        "{{ nfs_server_temp | first }}"
-  when:                                NFS_provider != "AFS"
+  when:                                NFS_provider != "AFS" and NFS_provider != "ANF"
 
 - name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
   ansible.builtin.set_fact:
@@ -99,18 +99,6 @@
   when:
     - item.node_tier in supported_tiers
     - not use_AFS
-
-
-- name:                                Show NFS details
-  ansible.builtin.debug:
-    msg:
-      - "NFS_provider: {{ NFS_provider }}"
-      - "usr_sap_install_mountpoint: {{ usr_sap_install_mountpoint }}"
-
-- name:                                Set the NFS Server name
-  ansible.builtin.set_fact:
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-  when:                                NFS_provider == "NONE"
 
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt on (scs) {{ ansible_hostname }}"
