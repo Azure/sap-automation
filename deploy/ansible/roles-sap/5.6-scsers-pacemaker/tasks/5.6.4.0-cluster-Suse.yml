@@ -26,7 +26,7 @@
     - name:                            "5.6 SCSERS - SCS - Create ASCS VIP - This is LB frontend ASCS/SCS IP"
       ansible.builtin.command: >
                                        crm configure primitive vip_{{ sap_sid }}_ASCS IPaddr2 \
-                                       params ip={{ scs_lb_ip }} cidr_netmask=24 \
+                                       params ip={{ scs_lb_ip }} cidr_netmask={{ subnet_prefix }} \
                                        op monitor interval="10s" timeout="20s"
       register:                        ascs_vip
       failed_when:                     ascs_vip.rc > 1
