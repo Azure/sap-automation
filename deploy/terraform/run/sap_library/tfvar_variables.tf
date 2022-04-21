@@ -65,14 +65,6 @@ variable "use_deployer" {
 This block describes the variables for the key_vault section
 */
 
-variable "user_keyvault_id" {
-  default = ""
-}
-
-variable "automation_keyvault_id" {
-  default = ""
-}
-
 variable "spn_keyvault_id" {
   default = ""
 }

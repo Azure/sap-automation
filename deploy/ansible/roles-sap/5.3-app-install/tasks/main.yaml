@@ -96,6 +96,9 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
+    - name:                            "APP Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting App Install"
 
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
@@ -132,6 +135,20 @@
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
       register:                        app_installed_according_to_sapinst
+
+    - name:                            "APP Install: Set DB Virtual Host name"
+      ansible.builtin.shell: |
+                                       /usr/sap/{{ sap_sid|upper }}/hdbclient/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+        TMPDIR:                        "/usr/sap/{{ sap_sid|upper }}/hdbclient"
+      register:                        hdbuserstore
+      tags:
+        - skip_ansible_lint
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - app_installed_according_to_sapinst | length > 0
 
     - name:                            "APP Install: flag"
       ansible.builtin.file:
