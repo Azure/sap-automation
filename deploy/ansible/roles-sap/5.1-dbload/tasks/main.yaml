@@ -95,6 +95,9 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 # *====================================4=======================================8
+    - name:                            "DBLoad: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting DBLoad"
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |

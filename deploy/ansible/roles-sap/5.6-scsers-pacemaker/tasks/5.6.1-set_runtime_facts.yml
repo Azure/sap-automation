@@ -28,18 +28,17 @@
       - "The ERS Virtual hostname is {{ ers_virtual_hostname }}"
     verbosity:                         2
 
-- name:                                "5.6 SCSERS - Get subnet prefix for pacemaker configuration"
+
+- name:                                "5.6 SCSERS - Set the subnet prefix"
   ansible.builtin.set_fact:
-    delegate_facts:                    true
-    delegate_to:                       "{{ secondary_instance_name }}"
-    cacheable:                         true
-    subnet_prefix:                     "{{ (
-                                            (hostvars[ansible_hostname]['ansible_eth0']['ipv4']['address'] | string)+'/'+
-                                            (hostvars[ ansible_hostname ]['ansible_eth0']['ipv4']['netmask'] | string)
-                                            ) 
-                                            | ipaddr('prefix') 
-                                        }}"
-  when:                                ansible_hostname == primary_instance_name
+    subnet_prefix: "{{ (
+        (hostvars[ansible_hostname]['ansible_eth0']['ipv4']['address'] | string)+'/'+
+        (hostvars[ ansible_hostname ]['ansible_eth0']['ipv4']['netmask'] | string)
+      )
+        | ipaddr('prefix')
+     }}"
+  when: ansible_hostname == primary_instance_name
+
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |

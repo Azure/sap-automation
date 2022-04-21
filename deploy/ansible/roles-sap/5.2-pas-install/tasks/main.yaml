@@ -42,6 +42,7 @@
     instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
     db_virtual_host:                   "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
+    DB:                                "{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
 
 - name:                                "PAS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -75,6 +76,7 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
+
   tags:
     - skip_ansible_lint
 
@@ -100,19 +102,9 @@
 # |                                                                            |
 # *====================================4=======================================8
 
-    - name:                            "PAS Install: Set DB Virtual Host name"
-      become_user:                     "{{ sap_sid|lower }}adm"
-      become:                          true
-      ansible.builtin.command: |
-                                       hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ hdb_sid | upper }} {{ hana_schema }} {{ main_password }}
-      environment:
-        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-      register:                        hdbuserstore
-      tags:
-        - skip_ansible_lint
-      when:
-        - db_high_availability
-        - platform == 'HANA'
+    - name:                            "PAS Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting PAS installation"
 
     - name:                            "PAS Install"
       ansible.builtin.shell: |
@@ -149,6 +141,20 @@
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
       register:                        pas_installed_according_to_sapinst
+
+    - name:                            "PAS Install: Set DB Virtual Host name"
+      ansible.builtin.shell: |
+                                       /usr/sap/{{ sap_sid|upper }}/hdbclient/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+        TMPDIR:                        "/usr/sap/{{ sap_sid|upper }}/hdbclient"
+      register:                        hdbuserstore
+      tags:
+        - skip_ansible_lint
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - pas_installed_according_to_sapinst | length > 0
 
     - name:                            "PAS Install: flag"
       ansible.builtin.file:
