@@ -24,6 +24,7 @@ module "sap_deployer" {
   configure                          = false
   tf_version                         = var.tf_version
   bastion_deployment                 = var.bastion_deployment
+  auto_configure_deployer            = var.auto_configure_deployer
 }
 
 module "sap_namegenerator" {
