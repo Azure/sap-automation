@@ -7,7 +7,7 @@ resource "azurerm_availability_set" "hdb" {
   name = format("%s%s%s",
     local.prefix,
     var.naming.separator,
-    var.naming.db_avset_names[count.index]
+    var.naming.availabilityset_names.db[count.index]
   )
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name
