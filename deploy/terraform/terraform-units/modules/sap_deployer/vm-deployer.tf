@@ -162,3 +162,26 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
   tags = local.tags
 }
+
+resource "azurerm_virtual_machine_extension" "configure" {
+
+  count = !local.enable_deployer_public_ip && var.configure && auto_configure_deployer ? 1 : 0
+
+  name                 = "configure_deployer"
+  virtual_machine_id   = azurerm_linux_virtual_machine.deployer[0].id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+  settings = <<SETTINGS
+    {
+        "script": "${base64encode(templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
+  tfversion       = var.tf_version,
+  rg_name         = local.rg_name,
+  client_id       = azurerm_user_assigned_identity.deployer.client_id,
+  subscription_id = data.azurerm_subscription.primary.subscription_id,
+  tenant_id       = data.azurerm_subscription.primary.tenant_id,
+  local_user      = local.username
+}))}"
+    }
+SETTINGS
+}
