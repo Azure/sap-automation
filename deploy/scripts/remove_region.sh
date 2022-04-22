@@ -254,7 +254,7 @@ echo "##########################################################################
 echo ""
 
 
-terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -migrate-state -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
 
 cd "${curdir}" || exit
 
@@ -302,7 +302,7 @@ echo ""
 
 #Initialize the statefile and copy to local
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
 
 extra_vars=""
 
