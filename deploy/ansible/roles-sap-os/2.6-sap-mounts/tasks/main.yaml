@@ -33,7 +33,7 @@
 - name:                                "2.6 SAP Mounts: - Set the NFS Server name"
   ansible.builtin.set_fact:
     nfs_server:                        "{{ nfs_server_temp | first }}"
-  when:                                NFS_provider == "NONE"
+  when:                                NFS_provider != "AFS" and NFS_provider != "ANF"
 
 - name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
   ansible.builtin.set_fact:

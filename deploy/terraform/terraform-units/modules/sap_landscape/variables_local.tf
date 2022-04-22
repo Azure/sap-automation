@@ -75,10 +75,10 @@ variable "Agent_IP" {
 
 locals {
   // Resources naming
-  storageaccount_name                             = var.naming.storageaccount_names.VNET.landscape_storageaccount_name
-  witness_storageaccount_name                     = var.naming.storageaccount_names.VNET.witness_storageaccount_name
-  landscape_shared_transport_storage_account_name = var.naming.storageaccount_names.VNET.landscape_shared_transport_storage_account_name
-  landscape_keyvault_names                        = var.naming.keyvault_names.VNET
+  storageaccount_name                             = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name
+  witness_storageaccount_name                     = var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
+  landscape_shared_transport_storage_account_name = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_transport_storage_account_name
+  landscape_keyvault_names                        = var.naming.keyvault_names.WORKLOAD_ZONE
   sid_keyvault_names                              = var.naming.keyvault_names.SDU
   virtualmachine_names                            = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
   resource_suffixes                               = var.naming.resource_suffixes
@@ -88,7 +88,7 @@ locals {
 
   // Region and metadata
   region = var.infrastructure.region
-  prefix = trimspace(var.naming.prefix.VNET)
+  prefix = trimspace(var.naming.prefix.WORKLOAD_ZONE)
 
   vnet_mgmt_id = try(var.deployer_tfstate.vnet_mgmt_id, try(var.deployer_tfstate.vnet_mgmt.id, ""))
   firewall_ip  = try(var.deployer_tfstate.firewall_ip, "")

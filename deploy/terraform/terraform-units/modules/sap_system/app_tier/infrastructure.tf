@@ -1,5 +1,15 @@
+  // In brownfield scenarios the subnets are often defined in the workload
+  // If subnet information is specified in the parameter file use it
+  // As either of the arm_id or the prefix need to be specified to create 
+  // a subnet the lack of both indicate that the subnet is to be created in the 
+  // SAP Infrastructure Deployment
 
-# Creates app subnet of SAP VNET
+  ##############################################################################################
+  #
+  #  Application subnet - Check if locally provided 
+  #
+  ##############################################################################################
+
 resource "azurerm_subnet" "subnet_sap_app" {
   provider             = azurerm.main
   count                = local.enable_deployment ? (local.application_subnet_exists ? 0 : 1) : 0
@@ -8,7 +18,6 @@ resource "azurerm_subnet" "subnet_sap_app" {
   virtual_network_name = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
   address_prefixes     = [local.application_subnet_prefix]
 }
-
 
 # Imports data of existing SAP app subnet
 data "azurerm_subnet" "subnet_sap_app" {
@@ -19,6 +28,11 @@ data "azurerm_subnet" "subnet_sap_app" {
   virtual_network_name = split("/", local.application_subnet_arm_id)[8]
 }
 
+  ##############################################################################################
+  #
+  #  Application route table association
+  #
+  ##############################################################################################
 resource "azurerm_subnet_route_table_association" "app" {
   provider = azurerm.main
   count = (
@@ -31,7 +45,17 @@ resource "azurerm_subnet_route_table_association" "app" {
   route_table_id = var.landscape_tfstate.route_table_id
 }
 
-# Creates web dispatcher subnet of SAP VNET
+  // In brownfield scenarios the subnets are often defined in the workload
+  // If subnet information is specified in the parameter file use it
+  // As either of the arm_id or the prefix need to be specified to create 
+  // a subnet the lack of both indicate that the subnet is to be created in the 
+  // SAP Infrastructure Deployment
+
+  ##############################################################################################
+  #
+  #  Web subnet - Check if locally provided 
+  #
+  ##############################################################################################
 resource "azurerm_subnet" "subnet_sap_web" {
   provider             = azurerm.main
   count                = local.enable_deployment && local.web_subnet_defined ? (local.web_subnet_exists ? 0 : 1) : 0
@@ -50,12 +74,12 @@ data "azurerm_subnet" "subnet_sap_web" {
   virtual_network_name = split("/", local.web_subnet_arm_id)[8]
 }
 
-/*
- SCS Load Balancer
- SCS Availability Set
-*/
+  ##############################################################################################
+  #
+  #  Create the SCS Load Balancer
+  #
+  ##############################################################################################
 
-# Create the SCS Load Balancer
 resource "azurerm_lb" "scs" {
   provider = azurerm.main
   count    = local.enable_scs_lb_deployment ? 1 : 0
@@ -140,7 +164,6 @@ resource "azurerm_lb_probe" "fs" {
   interval_in_seconds = 5
   number_of_probes    = local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS" ? 4 : 2
 }
-
 
 # Create the SCS Load Balancer Rules
 resource "azurerm_lb_rule" "scs" {
@@ -242,7 +265,11 @@ resource "azurerm_lb_rule" "fs" {
   enable_floating_ip       = true
 }
 
-# Create the SCS Availability Set
+  ##############################################################################################
+  #
+  #  Create the SCS Availability Set
+  #
+  ##############################################################################################
 resource "azurerm_availability_set" "scs" {
   count = local.enable_deployment && local.use_scs_avset ? (
     max(length(local.scs_zones), 1)) : (
@@ -251,7 +278,7 @@ resource "azurerm_availability_set" "scs" {
   name = format("%s%s%s",
     local.prefix,
     var.naming.separator,
-    var.naming.scs_avset_names[count.index]
+    var.naming.availabilityset_names.scs[count.index]
   )
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name
@@ -264,11 +291,11 @@ resource "azurerm_availability_set" "scs" {
   managed = true
 }
 
-/*
- Application Availability Set
-*/
-
-# Create the Application Availability Set
+  ##############################################################################################
+  #
+  #  Create the Application Availability Set
+  #
+  ##############################################################################################
 resource "azurerm_availability_set" "app" {
   provider = azurerm.main
   count = local.use_app_avset && length(var.application.avset_arm_ids) == 0 ? (
@@ -278,7 +305,7 @@ resource "azurerm_availability_set" "app" {
   name = format("%s%s%s",
     local.prefix,
     var.naming.separator,
-    var.naming.app_avset_names[count.index]
+    var.naming.availabilityset_names.app[count.index]
   )
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name
@@ -390,12 +417,17 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.web[0].id
 }
 
-# Create the Web dispatcher Availability Set
+  ##############################################################################################
+  #
+  #  Create the Web dispatcher Availability Set
+  #
+  ##############################################################################################
+
 resource "azurerm_availability_set" "web" {
   count = local.use_web_avset ? max(length(local.web_zones), 1) : 0
   name = format("%s%s%s",
     local.prefix, var.naming.separator,
-    var.naming.web_avset_names[count.index]
+    var.naming.availabilityset_names.web[count.index]
   )
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name
@@ -406,7 +438,11 @@ resource "azurerm_availability_set" "web" {
 }
 
 
-//ASG
+  ##############################################################################################
+  #
+  #  Create the Application Security Group
+  #
+  ##############################################################################################
 
 resource "azurerm_application_security_group" "app" {
   provider = azurerm.main

@@ -1,10 +1,10 @@
 {
-    "app_avset_names": [
-        "app-avset"
-    ],
-    "db_avset_names": [
-        "db-avset"
-    ],
+    "availabilityset_names" : {
+        "app": "app-avset",
+        "db" : "db-avset",
+        "scs": "scs-avset",
+        "web": "web-avset"
+    },
     "keyvault_names": {
         "DEPLOYER": {
             "private_access": "DEVWEEUprvtABC",
@@ -18,7 +18,7 @@
             "private_access": "DEVWEEUSAP01X00pABC",
             "user_access": "DEVWEEUSAP01X00uABC"
         },
-        "VNET": {
+        "WORKLOAD_ZONE": {
             "private_access": "DEVWEEUSAP01prvtABC",
             "user_access": "DEVWEEUSAP01userABC"
         }
@@ -30,7 +30,7 @@
         "DEPLOYER": "DEV-WEEU-",
         "LIBRARY": "DEV-WEEU",
         "SDU": "DEV-WEEU-SAP01-X00",
-        "VNET": "DEV-WEEU-SAP01"
+        "WORKLOAD_ZONE": "DEV-WEEU-SAP01"
     },
     "resource_prefixes": {
         "admin_nic": "",
@@ -252,9 +252,6 @@
         "witness_accesskey": "-witness-accesskey",
         "witness_name": "-witness-name"
     },
-    "scs_avset_names": [
-        "scs-avset"
-    ],
     "separator": "_",
     "storageaccount_names": {
         "DEPLOYER": "devweeudiagabc",
@@ -263,7 +260,7 @@
             "terraformstate_storageaccount_name": "devweeutfstateabc"
         },
         "SDU": "devweeusap01diagabc",
-        "VNET": {
+        "WORKLOAD_ZONE": {
             "landscape_shared_transport_storage_account_name": "devweeusap01sharedabc",
             "landscape_storageaccount_name": "devweeusap01diagabc",
             "witness_storageaccount_name": "devweeusap01witnessabc"
@@ -334,8 +331,6 @@
         "WEB_VMNAME": [
             "x00web00labc"
         ]
-    },
-    "web_avset_names": [
-        "web-avset"
-    ]
+    }
+
 }

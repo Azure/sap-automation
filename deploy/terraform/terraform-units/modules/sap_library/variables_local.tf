@@ -23,8 +23,8 @@ variable "use_private_endpoint" {
 
 locals {
 
-  storageaccount_names = var.naming.storageaccount_names.LIBRARY
-  resource_suffixes    = var.naming.resource_suffixes
+#  storageaccount_names = var.naming.storageaccount_names.LIBRARY
+#  resource_suffixes    = var.naming.resource_suffixes
 
   // Infrastructure
   var_infra = try(var.infrastructure, {})
@@ -37,20 +37,20 @@ locals {
   )
 
   // Resource group
-  rg_exists = length(var.infrastructure.resource_group.arm_id) > 0
+  resource_group_exists = length(var.infrastructure.resource_group.arm_id) > 0
 
-  rg_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     length(local.var_infra.resource_group.name) > 0 ? (
       local.var_infra.resource_group.name) : (
       format("%s%s%s",
         var.naming.resource_prefixes.library_rg,
         local.prefix,
-        local.resource_suffixes.library_rg
+        var.naming.resource_suffixes.library_rg
       )
     )
   )
-  rg_library_location = local.rg_exists ? (
+  resource_group_library_location = local.resource_group_exists ? (
     data.azurerm_resource_group.library[0].location) : (
     azurerm_resource_group.library[0].location
   )
@@ -59,16 +59,13 @@ locals {
   sa_sapbits_exists = length(var.storage_account_sapbits.arm_id) > 0
   sa_sapbits_name = local.sa_sapbits_exists ? (
     split("/", var.storage_account_sapbits.arm_id)[8]) : (
-    local.storageaccount_names.library_storageaccount_name
+    var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
   )
 
   // Storage account for tfstate
   sa_tfstate_arm_id = try(var.storage_account_tfstate.arm_id, "")
   sa_tfstate_exists = length(local.sa_tfstate_arm_id) > 0
 
-  // deployer
-  deployer      = try(var.deployer, {})
-  deployer_vnet = try(var.deployer.vnet, "")
 
   // Comment out code with users.object_id for the time being.
   // deployer_users_id = try(local.deployer.users.object_id, [])
@@ -76,17 +73,6 @@ locals {
   // Current service principal
   service_principal = try(var.service_principal, {})
 
-  // deployer terraform.tfstate
-  deployer_tfstate = var.deployer_tfstate
-  deployer_defined = length(var.deployer_tfstate) > 0
-
-  subnet_management_id = local.deployer_defined ? local.deployer_tfstate.subnet_mgmt_id : ""
-
-  deployer_public_ip_address = local.deployer_defined ? (
-    local.deployer_tfstate.deployer_public_ip_address) : (
-      ""
-      )
-  
-  deployer_keyvault_user_arm_id = local.deployer_defined ? try(local.deployer_tfstate.deployer_keyvault_user_arm_id, "") : ""
+  deployer_public_ip_address = try(var.deployer_tfstate.deployer_public_ip_address, "")
 
 }

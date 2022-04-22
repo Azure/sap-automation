@@ -89,7 +89,7 @@ variable "hana_dual_nics" {
 
 locals {
   // Resources naming
-  vnet_prefix                 = trimspace(var.naming.prefix.VNET)
+  vnet_prefix                 = trimspace(var.naming.prefix.WORKLOAD_ZONE)
   sid_keyvault_names          = var.naming.keyvault_names.SDU
   anchor_virtualmachine_names = var.naming.virtualmachine_names.ANCHOR_VMNAME
   anchor_computer_names       = var.naming.virtualmachine_names.ANCHOR_COMPUTERNAME
