@@ -158,3 +158,7 @@ This block describes the variables for the authentication section block in the j
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false
+
+# auto_configure_deployer is a boolean flag controlling if the automation should try to configure the deployer automatically
+# set to false if outbound internet on the deployer is not available
+auto_configure_deployer = true
