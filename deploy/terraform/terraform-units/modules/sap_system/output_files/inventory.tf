@@ -60,6 +60,9 @@ resource "local_file" "ansible_inventory_new_yml" {
     ansible_user        = var.ansible_user
     db_supported_tiers  = local.db_supported_tiers
     scs_supported_tiers = local.scs_supported_tiers
+    ips_observers       = var.observer_ips
+    observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : [],
+
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)
@@ -174,6 +177,14 @@ locals {
 
   bom = trimspace(coalesce(var.bom_name, lookup(local.itemvalues, "bom_base_name", ""), " "))
 
-  token = lookup(local.itemvalues, "sapbits_sas_token", "")
+  token            = lookup(local.itemvalues, "sapbits_sas_token", "")
+  ora_release      = lookup(local.itemvalues, "ora_release", "")
+  ora_version      = lookup(local.itemvalues, "ora_version", "")
+  oracle_sbp_patch = lookup(local.itemvalues, "oracle_sbp_patch", "")
+
+  oracle = upper(var.platform) == "ORACLE" ? (
+    format("ora_release: %s\nora_version: %s\noracle_sbp_patch: %s\n", local.ora_release, local.ora_version, local.oracle_sbp_patch)) : (
+    ""
+  )
 }
 

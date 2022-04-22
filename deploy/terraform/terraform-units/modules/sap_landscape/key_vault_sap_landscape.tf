@@ -26,12 +26,6 @@ resource "azurerm_key_vault" "kv_prvt" {
 
   }
 
-  lifecycle {
-    ignore_changes = [
-      soft_delete_enabled
-    ]
-  }
-
 }
 
 // Import an existing private Key Vault
@@ -73,7 +67,6 @@ resource "azurerm_key_vault" "kv_user" {
 
   lifecycle {
     ignore_changes = [
-      soft_delete_enabled,
       access_policy
     ]
   }
@@ -92,7 +85,7 @@ resource "azurerm_key_vault" "kv_user" {
       )) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint ? [local.deployer_subnet_mgmt_id] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? [local.deployer_subnet_management_id] : []
   }
 
 }

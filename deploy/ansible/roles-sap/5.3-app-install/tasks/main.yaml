@@ -82,7 +82,7 @@
 
 - name:                                "App Install: install variables"
   ansible.builtin.debug:
-    msg:                          
+    msg:
       - "INSTALLED:  {{ app_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.app }}"
@@ -125,7 +125,7 @@
 
     - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.app.replace('.','/').replace('/ABAP','').split(':')[1] }}/{{ file_path }}" 
+        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.app.replace('.','/').replace('/ABAP','').split(':')[1] }}/{{ file_path }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
@@ -146,14 +146,14 @@
 
 - name:                                "APP Install: - status"
   block:
-    
+
     - name:                            "APP Install: - status"
       ansible.builtin.debug:
         msg:                           "APP Installation is already performed"
-    
+
     - name:                            "APP Install: - return value"
       ansible.builtin.set_fact:
-        app_already_installed:         true     
+        app_already_installed:         true
   when:
     -  app_installed.stat.exists
 

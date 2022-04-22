@@ -232,6 +232,8 @@ stages:
       - job:                           Remove_region_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove Control Plane deployment artifacts from WORKSPACES
         steps:
+          - checkout:                  self
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
