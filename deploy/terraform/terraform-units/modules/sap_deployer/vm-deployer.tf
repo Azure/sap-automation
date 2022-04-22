@@ -165,7 +165,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 resource "azurerm_virtual_machine_extension" "configure" {
 
-  count = !local.enable_deployer_public_ip && var.configure && auto_configure_deployer ? 1 : 0
+  count = !local.enable_deployer_public_ip && var.configure && var.auto_configure_deployer ? 1 : 0
 
   name                 = "configure_deployer"
   virtual_machine_id   = azurerm_linux_virtual_machine.deployer[0].id
