@@ -37,10 +37,6 @@ resource "azurerm_storage_account_network_rules" "storage_bootdiag" {
   ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
-      local.admin_subnet_existing ? (
-        local.admin_subnet_arm_id) : (
-        azurerm_subnet.admin[0].id
-      ),
       local.application_subnet_existing ? (
         local.application_subnet_arm_id) : (
         azurerm_subnet.app[0].id
@@ -129,10 +125,6 @@ resource "azurerm_storage_account_network_rules" "witness_storage" {
   ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
-      local.admin_subnet_existing ? (
-        local.admin_subnet_arm_id) : (
-        azurerm_subnet.admin[0].id
-      ),
       local.application_subnet_existing ? (
         local.application_subnet_arm_id) : (
         azurerm_subnet.app[0].id
@@ -140,10 +132,6 @@ resource "azurerm_storage_account_network_rules" "witness_storage" {
       local.database_subnet_existing ? (
         local.database_subnet_arm_id) : (
         azurerm_subnet.db[0].id
-      ),
-      local.web_subnet_existing ? (
-        local.web_subnet_arm_id) : (
-        azurerm_subnet.web[0].id
       ),
       local.deployer_subnet_management_id
     ]
@@ -254,21 +242,9 @@ resource "azurerm_storage_account_network_rules" "transport" {
   ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
   virtual_network_subnet_ids = compact(
     [
-      local.admin_subnet_existing ? (
-        local.admin_subnet_arm_id) : (
-        azurerm_subnet.admin[0].id
-      ),
       local.application_subnet_existing ? (
         local.application_subnet_arm_id) : (
         azurerm_subnet.app[0].id
-      ),
-      local.database_subnet_existing ? (
-        local.database_subnet_arm_id) : (
-        azurerm_subnet.db[0].id
-      ),
-      local.web_subnet_existing ? (
-        local.web_subnet_arm_id) : (
-        azurerm_subnet.web[0].id
       ),
       local.deployer_subnet_management_id
     ]
