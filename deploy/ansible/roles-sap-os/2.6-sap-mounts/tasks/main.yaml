@@ -37,7 +37,7 @@
 
 - name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
   ansible.builtin.set_fact:
-    usr_sap_install_mount_point:        "{% if NFS_provider == 'AFS' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
+    usr_sap_install_mount_point:       "{% if NFS_provider == 'AFS' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
 
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
@@ -75,11 +75,11 @@
     - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'     }
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
 
-- name:                               "Exports: Create SAP Trans MSIDs"
+- name:                                "Exports: Create SAP Trans MSIDs"
   ansible.builtin.file:
-    path:                             "{{ item.path }}"
-    state:                            directory
-    mode:                             0755
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
   loop:
     - { path: '/usr/sap/trans' }
   when:

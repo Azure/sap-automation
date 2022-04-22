@@ -23,7 +23,7 @@
     verbosity:                         2
 
 - name:                                "DB2: Gather existing LVs"
-  set_fact:
+  ansible.builtin.set_fact:
     lvexists:                          "{{ db2volstat.results |
                                             selectattr(
                                               'stat.exists','equalto',true
@@ -77,6 +77,7 @@
   become_user:                         root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/filepermission.txt
+    mode:                              0644
     state:                             touch
 
 #Debug - Fail
@@ -99,7 +100,7 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/db2',       group: 'db2install',   owner: 'db2sid'}
+    - { path: '/db2',       group: 'db2install',   owner: 'db2{{ db_sid|lower }}'}
   when:
     - not db2_permissions_set.stat.exists
 
@@ -115,37 +116,48 @@
   become_user:                         root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/filepermission.txt
+    mode:                              0644
     state:                             touch
 
-#check lines from 121 to 133 - This is Oracle based 
-# - name:                                "DB2: Make db2sid:dba as owners"
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.file:
-#     path:                              "{{ item.path }}"
-#     state:                             directory
-#     owner:                             "{{ item.owner }}"
-#     group:                             "{{ item.group }}"
-#     recurse:                           true
-#   loop:
-#     - { path: '/usr/sap/install/SBP',       group: 'oinstall',   owner: 'oracle'}
-#     - { path: '/usr/sap/install/oraclient', group: 'oinstall',   owner: 'oracle'}
-#     - { path: '/usr/sap/install/oraserver', group: 'oinstall',   owner: 'oracle'}
+- name:                                "Set NFS Server variable for DB2"
+  ansible.builtin.set_fact:
+    sapmnt_nfs_mount: >-
+                                        {% if ( NFS_provider == 'AFS' or
+                                                NFS_provider == 'ANF'
+                                              ) and (sap_mnt is defined) %}
+                                          {{ sap_mnt }}/sapmnt{{ sap_sid|upper }}
+                                        {%else%}
+                                          {{ query('inventory_hostnames',
+                                                  '{{ sap_sid|upper }}_SCS') |
+                                              first }}:/sapmnt/{{ sap_sid|upper }}
+                                        {% endif %}
+
+- name:                                "Set NFS Server variable for DB2"
+  ansible.builtin.set_fact:
+    sapmnt_nfs_opts: >-
+                                        {% if ( NFS_provider == 'AFS' or
+                                                NFS_provider == 'ANF'
+                                              ) and (sap_mnt is defined) %}
+                                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+                                        {%else%}
+                                          'defaults'
+                                        {% endif %}
 
 # Mount Filesystems
-- name:     "Mount SAP Filesystems on Database for installation"
+- name:                                "Mount SAP Filesystems on Database for installation"
   mount:
-    src:    "{{ item.src }}"
-    path:   "{{ item.path }}"
-    fstype: "{{ item.type }}"
-    opts:   defaults
-    state:  mounted
-  vars:
-    # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') |
-                      first }}"
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              "{{ item.opts }}"
+    state:                             mounted
   loop:
-    - { tier: 'db2', type: 'nfs4', src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}', path: '/sapmnt/{{ sap_sid|upper }}' }
+    - {   tier: 'db2'
+          , type: 'nfs4'
+          , src: '{{ sapmnt_nfs_mount }}'
+          , path: '/sapmnt/{{ sap_sid|upper }}'
+          , opts: '{{ sapmnt_nfs_opts }}'
+    }
   when:
     - item.tier == "db2"
 
