@@ -56,11 +56,11 @@ stages:
               git config --global pull.ff false
               git config --global pull.rebase false
 
-              git checkout -q $(branch) 
+              git checkout -q $(branch)
               git pull -q
 
               git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
-              
+
               git pull -q --commit remote-repo $(branch)  >> /tmp/$(log) 2>&1
               pull_return_code=$?
 
@@ -70,25 +70,28 @@ stages:
               done
 
               if [[ "$(force)" == "True" ]]; then
-                echo "running git push to ADO with force option" 
+                echo "running git push to ADO with force option"
                 if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch)  >> /tmp/$(log) 2>&1
-                then 
+                then
                    echo -e "$red--- Failed to push ---$reset"
                    exit 1
                 fi
               else
-                echo "running git push to ADO" 
+                echo "running git push to ADO"
                 if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  >> /tmp/$(log) 2>&1
-                then 
+                then
                    echo -e "$red--- Failed to push ---$reset"
                    exit 1
                 fi
 
               fi
-              return_code=$?
-              
-              exit $return_code+$pull_return_code
-              
+              # If Pull already failed then keep that error code
+              if [ 0 != $return_code ]; then
+                return_code=$?
+              fi
+
+              exit $return_code
+
             displayName:               Update ADO repository
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
