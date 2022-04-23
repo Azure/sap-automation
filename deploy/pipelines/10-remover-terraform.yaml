@@ -53,7 +53,7 @@ parameters:
 trigger:                               none
 
 pool:
-  vmImage:                             ubuntu-latest
+  name:                                $(Agent)
 
 variables:
   - group:                             "SDAF-General"
