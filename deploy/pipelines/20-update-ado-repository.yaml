@@ -62,7 +62,7 @@ stages:
               git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
 
               git pull -q --commit remote-repo $(branch)  >> /tmp/$(log) 2>&1
-              pull_return_code=$?
+              return_code=$?
 
               grep CONFLICT /tmp/$(log) | while read -r conflict ; do
                 echo $conflict
