@@ -111,11 +111,20 @@
       environment:
         TMPDIR:                        "{{ target_media_location }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0
       tags:
         - skip_ansible_lint
+      async:                           0
+      poll:                            60
+
+    - name:                            "DBLoad Install -Wait for asynchronous job to end"
+      ansible.builtin.async_status:
+        jid:                           '{{ dbload_results.ansible_job_id }}'
+      register:                        job_result
+      until:                           job_result.finished
+      retries:                         90
+      delay:                           120
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
