@@ -64,6 +64,7 @@ variable "azure_files_transport_storage_account_id" {
 }
 
 variable "NFS_provider" {
+  description = "Describes the NFS solution used"
   type = string
 }
 
