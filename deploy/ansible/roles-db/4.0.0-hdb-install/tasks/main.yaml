@@ -50,6 +50,7 @@
       ansible.builtin.set_fact:
         sap_inifile:                   "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
         sap_inifile_template:          "HANA_2_00_055_v1_install.rsp.j2"
+        db_pwd:                        "{{ main_password }}"
 
     - name:                            "SAP HANA: remove install response file"
       ansible.builtin.file:
@@ -72,7 +73,7 @@
         _rsp_sid:                      "{{ db_sid|upper }}"
         _rsp_number:                   "{{ hdb_instance_number }}"
         _rsp_system_usage:             "custom"
-        main_password:                 " {{ main_password }}"
+        main_password:                 "{{ db_pwd }}"
 
     - name:                            "SAP HANA: Execute hdblcm on {{ ansible_hostname }}"
       ansible.builtin.command:         ./hdblcm --batch --action=install  --configfile='{{ target_media_location }}/downloads/{{ sap_inifile }}'
