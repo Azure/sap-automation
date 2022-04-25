@@ -121,6 +121,13 @@
         - 2.5-sap-users
 
     - block:
+        - name:                        "SAP OS configuration playbook: - directory permissions"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.2-sapPermissions
+      tags:
+        - 2.2-sapPermissions
+
+    - block:
         - name:                        "SAP OS configuration playbook: - configure exports"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.3-sap-exports
