@@ -90,7 +90,7 @@
       loop:                            "{{ MULTI_SIDS }}"
   when:
     - result is succeeded or result is skipped
-    - MULTI_SIDS is undefined
+    - MULTI_SIDS is defined
 
 - name:                                "BOM: Create ini files ({{ bom_name }}) for Multi-SID for SCS"
   block:
