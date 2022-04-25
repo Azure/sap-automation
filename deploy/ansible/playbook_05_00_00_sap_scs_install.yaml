@@ -163,6 +163,7 @@
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
                 state:                 touch
@@ -316,6 +317,7 @@
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
                 state:                 touch
@@ -325,6 +327,7 @@
 
             - name:                    "ERS Installation Playbook: - Ensure ers-install-done flag exists"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/ers-install-done"
                 state:                 touch

@@ -157,6 +157,7 @@
 
     - name:                            "SAP OS configuration playbook: - Create sap-os-install-done flag"
       delegate_to:                     localhost
+      become:                          false
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/sap-os-configuration-done"
         state:                         touch
