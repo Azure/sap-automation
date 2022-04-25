@@ -109,7 +109,8 @@
     - name:                            "SCS HA Installation"
       block:
         - name:                        "SCS HA Install: SAPInst"
-          ansible.builtin.command: |
+          ansible.builtin.shell: |
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
@@ -181,6 +182,7 @@
         # SAP Note# 2279110
         - name:                        "RESCUE - SCS HA Install: SAPINST"
           ansible.builtin.command: |
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \

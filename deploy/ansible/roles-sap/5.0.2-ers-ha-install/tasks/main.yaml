@@ -113,6 +113,7 @@
       block:
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
@@ -152,6 +153,7 @@
         # SAP Note# 2279110
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \

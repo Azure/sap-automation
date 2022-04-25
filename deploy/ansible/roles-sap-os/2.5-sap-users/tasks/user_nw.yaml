@@ -65,7 +65,6 @@
   vars:
     always_upload_jinja_templates:     false
     task_prefix:                       "GENERIC: "
-    always_upload_jinja_templates:     false
     bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_cd1:
     sap_cd_package_cd2:
@@ -103,7 +102,8 @@
 # *====================================4=======================================8
 
     - name:                            "User Creation: SAP OS USERS and Group Creation {{ scs_virtual_hostname }}"
-      ansible.builtin.command: |
+      ansible.builtin.shell: |
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}                             \
                                                  SAPINST_SKIP_DIALOGS=true                                                            \

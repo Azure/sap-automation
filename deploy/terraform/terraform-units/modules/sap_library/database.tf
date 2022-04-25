@@ -1,8 +1,8 @@
 resource "azurerm_cosmosdb_account" "cmdb" {
     count = var.use_webapp ? 1 : 0
-    name = lower(format("%s%s%s", local.prefix, local.resource_suffixes.cosmos_account, substr(random_id.post_fix.hex, 0, 3)))
-    location = local.rg_library_location
-    resource_group_name = local.rg_name
+    name = lower(format("%s%s%s", local.prefix, var.naming.resource_suffixes.cosmos_account, substr(random_id.post_fix.hex, 0, 3)))
+    location = local.resource_group_library_location
+    resource_group_name = local.resource_group_name
     offer_type = "Standard"
     kind = "MongoDB"
 
@@ -10,11 +10,11 @@ resource "azurerm_cosmosdb_account" "cmdb" {
     is_virtual_network_filter_enabled = true
 
     virtual_network_rule {
-      id = local.subnet_management_id
+      id = try(var.deployer_tfstate.subnet_management_id, "")
     }
 
     virtual_network_rule {
-      id = local.subnet_cmdb_id
+      id = try(var.deployer_tfstate.subnet_cmdb_id, "")
     }
 
     # Allow access from Azure portal
@@ -29,14 +29,14 @@ resource "azurerm_cosmosdb_account" "cmdb" {
     }
 
     geo_location {
-        location = local.rg_library_location
+        location = local.resource_group_library_location
         failover_priority = 0
     }
 }
 
 resource "azurerm_cosmosdb_mongo_database" "mgdb" {
     count = var.use_webapp ? 1 : 0
-    name = format("%s%s", lower(local.prefix), local.resource_suffixes.deployment_objects)
-    resource_group_name = local.rg_name
+    name = format("%s%s", lower(local.prefix), var.naming.resource_suffixes.deployment_objects)
+    resource_group_name = local.resource_group_name
     account_name = azurerm_cosmosdb_account.cmdb[0].name
 }

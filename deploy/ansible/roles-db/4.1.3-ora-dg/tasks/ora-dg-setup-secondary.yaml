@@ -7,7 +7,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 # Set Primary and Secondary node names.
 - name:                                "Oracle Data Guard - Setup Secondary: Setting the primary and Secondary DB names"
   ansible.builtin.set_fact:
@@ -27,17 +26,21 @@
     owner:                             oracle
     group:                             oinstall
   when: current_host == ora_secondary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: Copy orapwSID to Secondary"
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/downloads/orapw{{ db_sid|upper }}"
-    dest:                              /oracle/{{ db_sid|upper }}/{{ ora_release}}/dbs/orapw{{ db_sid|upper }}
+    dest:                              /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/orapw{{ db_sid|upper }}
     remote_src:                        true
     owner:                             oracle
     group:                             dba
   when: current_host == ora_secondary
+  tags:
+    - skip_ansible_lint
 
 # Restart the Listener on Secondary node.
 
@@ -52,6 +55,8 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:                                current_host == ora_secondary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
   ansible.builtin.debug:
@@ -87,6 +92,8 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when: current_host == ora_secondary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
   ansible.builtin.debug:
@@ -159,6 +166,8 @@
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
         - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
+      tags:
+        - skip_ansible_lint
 
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true
@@ -166,8 +175,8 @@
       ansible.builtin.shell:           sqlplus / as sysdba @secondarystartup.sql
       register:                        secondary_startup_results2
       args:
-       chdir:                          /etc/sap_deployment_automation/dgscripts
-       executable:                     /bin/csh
+        chdir:                         /etc/sap_deployment_automation/dgscripts
+        executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
       ansible.builtin.debug:
@@ -239,6 +248,8 @@
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
   when:                                current_host == ora_secondary
+  tags:
+    - skip_ansible_lint
 
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary (Debug)"
   ansible.builtin.debug:

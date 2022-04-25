@@ -176,5 +176,5 @@ resource_offset = 0
 
 
 #ANF
-NFS_Provider="NONE"
-sapmnt_volume_size    = 512
+NFS_Provider       = "NONE"
+sapmnt_volume_size = 512

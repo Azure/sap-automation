@@ -55,7 +55,7 @@
                                         {{ sap_sid|upper }}_SCS :
                                         {{ sap_sid|upper }}_DB"
 
-  name:                                DB Installation - HANA
+  name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
   become_user:                         root
@@ -104,7 +104,7 @@
                 state:                 touch
                 mode:                  0755
               when:
-                - dbload_already_performed is defined or (dbload.rc is defined and dbload.rc == 0)
+                - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
 
           always:
 
@@ -172,9 +172,47 @@
           tags:
             - always
 
-        - name:                        "DBLoad Playbook: - Run DBLoad"
-          ansible.builtin.include_role:
-            name:                      roles-sap/5.1-dbload
+        - block:
+            - name:                    "DBLoad Playbook: - Run DBLoad"
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.1-dbload
+
+            - name:                    "DBLoad Playbook: - Create db-load-done flag"
+              delegate_to:             localhost
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/db-load-done"
+                state:                 touch
+                mode:                  0755
+              when:
+                - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
+
+          always:
+
+            - name:                    "DBLoad Playbook: - Run post installation tasks"
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                '_DBLOAD'
+                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                tier:                  'dbload'
+
+            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ dbload.stdout_lines }}"
+              when:
+                - dbload is defined
+                - dbload.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    "DBLoad Playbook: - Show errors from DBLoad"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+          tags:
+            - 5.1-dbload
           when:                        MULTI_SIDS is undefined
 
         - name:                        Include 5.1.1-dbload role

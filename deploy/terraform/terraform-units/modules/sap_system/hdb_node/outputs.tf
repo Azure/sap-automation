@@ -26,7 +26,7 @@ output "dns_info_vms" {
     zipmap(
       concat(
         (
-          var.hana_dual_nics ? slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count)  : [""]
+          var.hana_dual_nics ? slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count) : [""]
         ),
         (
           slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, var.database_server_count)
@@ -46,7 +46,7 @@ output "dns_info_vms" {
 
 output "dns_info_loadbalancers" {
   value = local.enable_db_lb_deployment ? (
-    zipmap([format("%s%s%s", local.prefix, var.naming.separator, local.resource_suffixes.db_alb)], [azurerm_lb.hdb[0].private_ip_addresses[0]])) : (
+    zipmap([format("%s%s%s%s", var.naming.resource_prefixes.db_alb, local.prefix, var.naming.separator, local.resource_suffixes.db_alb)], [azurerm_lb.hdb[0].private_ip_addresses[0]])) : (
     null
   )
 }

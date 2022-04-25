@@ -580,7 +580,12 @@ variable "use_private_endpoint" {
   default = false
 }
 
-variable "name_overrride_file" {
+variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
-  default = ""
+  default     = ""
+}
+
+variable "shared_home" {
+  description = "If defined provides shared-home support"
+  default     = false
 }

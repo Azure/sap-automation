@@ -1,23 +1,25 @@
 ---
-name:    'Oracle19_v0001ms'
+name:    'Oracle19_v0003ms'
 target:  'Oracle 19'
-version: 1
+version: 3
+platform: "ORACLE"
+# New SBP Patch included  in this version
 
 materials:
 
   media:
     - name:         Oracle Client
-      archive:      51055071.zip
+      archive:      51055071.ZIP
       checksum:     d63ba8bf707f96782101d66cbde9677a8bc11b9cfcfc6bbd167b6728c0243806
       extract:      true
       extractDir:   oraclient
       path:         download_basket
       download:     true
       url:          https://softwaredownloads.sap.com/file/0030000001424202021
-                                                           
+
 
     - name:         Oracle Software Server
-      archive:      51053828.zip
+      archive:      51053828.ZIP
       checksum:     a12e10404572813ce78862c34ce3d1288b67ebbffa12fbd6fe758a6743773154
       extract:      true
       download:     true

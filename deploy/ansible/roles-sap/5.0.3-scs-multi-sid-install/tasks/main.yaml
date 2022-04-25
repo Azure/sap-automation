@@ -7,14 +7,14 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
-- name:                                "SCS Install: Set BOM facts"
+- name:                                "SCS (sharedHome): Install - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-scs-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
   when:                                MULTI_SIDS is undefined
 
 
-- name:                                Set SCS facts for oracle multi-sid
+- name:                                "SCS (sharedHome): Install - Set SCS facts for multi-sid"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
@@ -23,14 +23,14 @@
 
 
 # Returns bom object
-- name:                                "SCS Install: Include 3.3.1-bom-utility role"
+- name:                                "SCS (sharedHome): Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
 
-- name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"
+- name:                                "SCS (sharedHome): : Include roles-sap/3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-template
@@ -53,21 +53,21 @@
     sap_appVirtualHostname:
   tags:
     - skip_ansible_lint
-  
 
-- name:                                "SCS Install: Create run flag directory"
+
+- name:                                "SCS (sharedHome): Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     state:                             directory
     mode:                              0755
 
-- name:                                "SCS Install: reset"
+- name:                                "SCS (sharedHome): reset"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
     state:                             absent
   when:                                reinstall
 
-- name:                                SAP SCS install variables
+- name:                                "SCS (sharedHome): SCS install variables"
   ansible.builtin.debug:
     msg:
       - "{{ sap_inifile }}"
@@ -76,8 +76,6 @@
       - "{{ ansible_hostname }}"
       - "{{ MULTI_SIDS }}"
     verbosity:                         2
-
-
 
 # - name: Fail here
 #   fail:
@@ -88,10 +86,11 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 
-- name:                                "SCS Install: SAP SCS Install"
+- name:                                "SCS (sharedHome): SCS Install: SAP SCS Install"
   ansible.builtin.shell: |
                                        set -o errexit
                                        export TMPDIR=/usr/sap/install/{{ item.sid|upper }}
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
@@ -106,8 +105,6 @@
   tags:
     - skip_ansible_lint
 
-  # Skip when TRUE (test mode)
-  # when: not test_new_bom
 # *====================================4=======================================8
 
 ...

@@ -274,8 +274,15 @@ if [ -n "${result}" ]; then
     az keyvault set-policy -n "${keyvault}" --secret-permissions get list recover restore set --upn "${upn}"
 fi
 
-echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
+else
+    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+fi
 
 result=$(grep "ERROR: The user, group or application" stdout.az)
 
@@ -306,14 +313,37 @@ fi
 
 #turn off output, we do not want to show the details being uploaded to keyvault
 secretname="${environment}"-client-id
-echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+else
+    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+fi
+
 
 secretname="${environment}"-tenant-id
-echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+else
+    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+fi
+
 
 secretname="${environment}"-client-secret
-echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
+    echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+    sleep 10
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+else
+    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+fi
 

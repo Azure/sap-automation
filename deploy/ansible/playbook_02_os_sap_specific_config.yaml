@@ -36,7 +36,8 @@
                                         {{ sap_sid|upper }}_ERS :
                                         {{ sap_sid|upper }}_PAS :
                                         {{ sap_sid|upper }}_APP :
-                                        {{ sap_sid|upper }}_WEB"
+                                        {{ sap_sid|upper }}_WEB :
+                                        {{ sap_sid|upper }}_OBSERVER_DB"
 
   name:                                 OS - SAP specific configuration
   remote_user:                          "{{ orchestration_ansible_user }}"
@@ -96,13 +97,13 @@
         - 1.5-disk-setup
 
     - block:
-        - name:                        Include 1.5.2-disk-setup-ora-msid role
+        - name:                        Include 1.5.2-disk-setup-ora-multi-sid role
           ansible.builtin.include_role:
-            name:                      roles-os/1.5.2-disk-setup-ora-msid
+            name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
           when:
             node_tier == "oracle-multi-sid"
       tags:
-        - 1.5.2-disk-setup-ora-msid
+        - 1.5.2-disk-setup-ora-multi-sid
 
 
     - block:

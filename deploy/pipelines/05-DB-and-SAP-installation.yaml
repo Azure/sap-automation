@@ -23,14 +23,16 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
-    default:                           S41909SPS03_v0010ms
     values:
-      - S41909SPS03_v0010ms
-      - S41909SPS03_v0009ms
-      - S41909SPS03_v0008ms
+      - S41909SPS03_v0011ms
+      - S4HANA_2021_ISS_v0001ms
+      - S42020SPS03_v0002ms
+      - HANA_2_00_061_v0001ms
+      - HANA_2_00_059_v0001ms
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - ORACLE_19_00_v0002ms
+      - ORACLE_19_00_ORA_MSID_v0002ms
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
@@ -271,7 +273,8 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
@@ -367,7 +370,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
@@ -405,6 +409,7 @@ stages:
             displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Software Acquisition
+            timeoutInMinutes:          0
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml"
@@ -414,7 +419,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
@@ -454,6 +460,7 @@ stages:
             displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Database Installation
+            timeoutInMinutes:          0
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml"
@@ -463,7 +470,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
@@ -523,6 +531,7 @@ stages:
             displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               SCS Installation
+            timeoutInMinutes:          0
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml"
@@ -532,7 +541,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               continueOnError:           true
@@ -596,6 +606,7 @@ stages:
             displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               Database Load
+            timeoutInMinutes:          0
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml"
@@ -605,7 +616,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           true
@@ -667,6 +678,7 @@ stages:
             displayName:               Process sshkey      
           - task:                      Ansible@0
             displayName:               High Availability Setup
+            timeoutInMinutes:          0
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
@@ -676,7 +688,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           false
@@ -721,6 +733,7 @@ stages:
             displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               PAS Installation
+            timeoutInMinutes:          0
             inputs:
               ansibleInterface:        "agentMachine"
               playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml"
@@ -730,7 +743,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           true
@@ -790,6 +804,7 @@ stages:
             persistCredentials:        true
           - download:                  current
             artifact:                  ansible_data
+            timeoutInMinutes:          0
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
@@ -804,7 +819,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           true
@@ -870,7 +886,8 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              INTERPRETER_PYTHON:            auto_silent
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+
               ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
             continueOnError:           true
