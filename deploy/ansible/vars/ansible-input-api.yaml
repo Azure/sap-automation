@@ -10,9 +10,9 @@ timezone:                     "Etc/GMT"
 
 
 # --------------------- Begin - BOM Processing variables ---------------------8
-# BoM Processing variables
-sapbits_bom_files:            "sapfiles"                              # Default
-target_media_location:        "/usr/sap/install"                      # Default
+# Default BoM Processing variables
+sapbits_bom_files:            "sapfiles"
+target_media_location:        "/usr/sap/install"
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
 # ---------------------- End - BOM Processing variables ----------------------8
