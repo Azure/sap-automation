@@ -80,7 +80,7 @@ module "hdb_node" {
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment ? (
+    local.db_zonal_deployment && local.application.enable_deployment ? (
       module.app_tier.scs_vm_ids[0]
     ) : (null)
   ) : (null)
@@ -172,7 +172,7 @@ module "anydb_node" {
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment ? (
+    local.db_zonal_deployment && local.application.enable_deployment ? (
       module.app_tier.scs_vm_ids[0]
     ) : (null)
   ) : (null)
