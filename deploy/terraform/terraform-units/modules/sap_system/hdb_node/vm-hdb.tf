@@ -174,18 +174,33 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   zone = local.use_avset ? null : local.zones[count.index % max(local.db_zone_count, 1)]
 
   network_interface_ids = local.enable_storage_subnet ? (
-    [
-      azurerm_network_interface.nics_dbnodes_db[count.index].id,
-      azurerm_network_interface.nics_dbnodes_admin[count.index].id,
-      azurerm_network_interface.nics_dbnodes_storage[count.index].id
-    ]
+    var.options.legacy_nic_order ? (
+      [
+        azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+        azurerm_network_interface.nics_dbnodes_db[count.index].id,
+        azurerm_network_interface.nics_dbnodes_storage[count.index].id
+      ]
     ) : (
-    var.hana_dual_nics ?
-    (
       [
         azurerm_network_interface.nics_dbnodes_db[count.index].id,
-        azurerm_network_interface.nics_dbnodes_admin[count.index].id
-      ]) : (
+        azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+        azurerm_network_interface.nics_dbnodes_storage[count.index].id
+      ]
+    )
+  ) : (
+    var.hana_dual_nics ? (
+      var.options.legacy_nic_order ? (
+        [
+          azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+          azurerm_network_interface.nics_dbnodes_db[count.index].id
+        ]
+      ) : (
+        [
+          azurerm_network_interface.nics_dbnodes_db[count.index].id,
+          azurerm_network_interface.nics_dbnodes_admin[count.index].id
+        ]
+      )
+    ) : (
       [
         azurerm_network_interface.nics_dbnodes_db[count.index].id
       ]
