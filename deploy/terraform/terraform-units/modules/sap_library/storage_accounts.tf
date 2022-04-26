@@ -198,7 +198,7 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
 // Creates file share inside the storage account for SAP bits
 resource "azurerm_storage_share" "fileshare_sapbits" {
   provider = azurerm.main
-  count    = !var.storage_account_sapbits.file_share.is_existing ? 1 : 0
+  count    = !var.storage_account_sapbits.file_share.is_existing ? 0 : 0
   name     = var.storage_account_sapbits.file_share.name
   storage_account_name = local.sa_sapbits_exists ? (
     data.azurerm_storage_account.storage_sapbits[0].name) : (

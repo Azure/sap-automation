@@ -83,7 +83,7 @@ variable "library_sapmedia_name" {
 }
 
 variable "library_sapmedia_account_tier" {
-  default = "Standard"
+  default = "Premium"
 }
 
 variable "library_sapmedia_account_replication_type" {

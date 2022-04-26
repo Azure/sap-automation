@@ -60,6 +60,7 @@ tfversion="${tfversion}"
 client_id="${client_id}"
 subscription_id="${subscription_id}"
 tenant_id="${tenant_id}"
+local_user="${local_user}"
 
 #
 # Ansible Version settings
@@ -214,7 +215,7 @@ ansible_collections=$${ansible_base}/collections
 ansible_pip3=$${ansible_venv_bin}/pip3
 
 # Azure SAP Automated Deployment directories
-asad_home="$${HOME}/Azure_SAP_Automated_Deployment"
+asad_home="/home/$${local_user}/Azure_SAP_Automated_Deployment"
 asad_ws="$${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
 asad_dir="$${asad_home}/$(basename $${asad_repo} .git)"
@@ -445,11 +446,11 @@ echo export ARM_CLIENT_ID=$${client_id} | sudo tee -a /etc/profile.d/deploy_serv
 echo export ARM_SUBSCRIPTION_ID=$${subscription_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 echo export ARM_TENANT_ID=$${tenant_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 
-echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation' | sudo tee -a /etc/profile.d/deploy_server.sh
 
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
-echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':'$${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
 
 
 # Ensure that the user's account is logged in to Azure with specified creds
