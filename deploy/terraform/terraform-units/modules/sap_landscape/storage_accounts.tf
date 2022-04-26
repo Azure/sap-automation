@@ -16,9 +16,12 @@ resource "azurerm_storage_account" "storage_bootdiag" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  account_replication_type  = "LRS"
-  account_tier              = "Standard"
-  enable_https_traffic_only = true
+  account_replication_type        = "LRS"
+  account_tier                    = "Standard"
+  enable_https_traffic_only       = true
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
 
 }
 
@@ -111,9 +114,12 @@ resource "azurerm_storage_account" "witness_storage" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  account_replication_type  = "LRS"
-  account_tier              = "Standard"
-  enable_https_traffic_only = true
+  account_replication_type        = "LRS"
+  account_tier                    = "Standard"
+  enable_https_traffic_only       = true
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
 }
 
 resource "azurerm_storage_account_network_rules" "witness_storage" {
@@ -213,6 +219,8 @@ resource "azurerm_storage_account" "transport" {
   account_replication_type  = "ZRS"
   account_kind              = "FileStorage"
   enable_https_traffic_only = false
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
 
 }
 
