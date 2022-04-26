@@ -37,10 +37,10 @@
         group:                         root
         mode:                          0644
       loop:
-        - { path: '/etc/exports',       regexp: '^{{ target_media_location }}',            line: '{{ target_media_location }} *(rw,sync,no_wdelay,no_root_squash)'            }
-        - { path: '/etc/nfs.conf',      regexp: '^# vers3=',                    line: ' vers3=y'                                                        }
-        - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
-        - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
+        - { path: '/etc/exports',   regexp: '^{{ target_media_location }}', line: '{{ target_media_location }} *(rw,sync,no_wdelay,no_root_squash)' }
+        - { path: '/etc/nfs.conf',  regexp: '^# vers3=',                    line: ' vers3=y'                                                        }
+        - { path: '/etc/nfs.conf',  regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
+        - { path: '/etc/nfs.conf',  regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
         - distribution_id == "redhat8"
 

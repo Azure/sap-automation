@@ -73,14 +73,12 @@ resource "azurerm_key_vault" "kv_user" {
 
   network_acls {
     bypass         = "AzureServices"
-    default_action = "Allow"
+    default_action = "Deny"
     ip_rules = var.use_private_endpoint ? (
       compact
       (
         [
-          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-
+          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
         ]
       )) : (
       []
@@ -366,6 +364,10 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
 
 resource "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
+  depends_on = [
+    azurerm_key_vault_access_policy.kv_user_msi[0]
+  ]
+
   count = (
     local.admin_subnet_defined &&
     var.use_private_endpoint &&
