@@ -532,9 +532,9 @@ variable "nsg_asg_with_vnet" {
 }
 
 variable "legacy_nic_order" {
-  default = false
+  description = "If defined, will reverse the order of the NICs"
+  default     = false
 }
-
 variable "enable_purge_control_for_keyvaults" {
   default = true
 }
@@ -588,4 +588,25 @@ variable "name_override_file" {
 variable "shared_home" {
   description = "If defined provides shared-home support"
   default     = false
+}
+
+
+variable "use_ANF_for_HANA_data" {
+  description = "If defined, will create ANF volumes for HANA data"
+  default     = false
+}
+
+variable "use_ANF_for_HANA_log" {
+  description = "If defined, will create ANF volumes for HANA log"
+  default     = false
+}
+
+variable "HANA_data_volume_size" {
+  description = "If defined provides the size of the HANA data volume"
+  default = 512
+}
+
+variable "HANA_log_volume_size" {
+  description = "If defined provides the size of the HANA log volume"
+  default = 512
 }
