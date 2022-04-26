@@ -127,7 +127,7 @@
 - name:                                "Set NFS Server variable for DB2"
   ansible.builtin.set_fact:
     sapmnt_nfs_opts: >-
-                                        {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'{%else%}'defaults'{% endif %}
+                                        {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{%else%}defaults{% endif %}
 
 # Mount Filesystems
 - name:                                "Mount SAP Filesystems on Database for installation"
