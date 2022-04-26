@@ -108,7 +108,7 @@
 - name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8']
+  when:                                distribution_id in ['suse15', 'redhat8', 'sles_sap15']
 
 #   04) Download media from bom
 # Loop through BOM media files and download to correct location
@@ -143,7 +143,7 @@
     ansible_python_interpreter:        "{{ python_version }}"
   when:
     - item.download is undefined or item.download
-    - "distribution_id == 'suse15' or distribution_id == 'redhat8'"
+    - distribution_id in ['suse15', 'redhat8', 'sles_sap15' ]
 
 - name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
   ansible.builtin.get_url:
