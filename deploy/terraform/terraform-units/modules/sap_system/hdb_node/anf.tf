@@ -1,19 +1,19 @@
 
-resource "azurerm_netapp_volume" "sapmnt" {
+resource "azurerm_netapp_volume" "hanadata" {
 
-  count = var.NFS_provider == "ANF" ? 1 : 0
+  count = var.hana_ANF_data.use_ANF_for_HANA_data ? 1 : 0
   name = format("%s%s%s%s",
-    var.naming.resource_prefixes.sapmnt,
+    var.naming.resource_prefixes.hanadata,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.sapmnt
+    local.resource_suffixes.hanadata
   )
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
   location            = local.ANF_pool_settings.location
   account_name        = local.ANF_pool_settings.account_name
   pool_name           = local.ANF_pool_settings.pool_name
-  volume_path         = format("%s%s", local.sid, local.resource_suffixes.sapmnt)
+  volume_path         = format("%s%s", local.sid, local.resource_suffixes.hanadata)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
@@ -25,33 +25,28 @@ resource "azurerm_netapp_volume" "sapmnt" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.sapmnt_volume_size
+  storage_quota_in_gb = var.hana_ANF_data.HANA_data_volume_size
 
 }
 
-resource "azurerm_netapp_volume" "install" {
-  provider = azurerm.main
-  count = var.NFS_provider == "ANF" ? 1 : 0
+resource "azurerm_netapp_volume" "hanalog" {
+
+  count = var.hana_ANF_data.use_ANF_for_HANA_log ? 1 : 0
   name = format("%s%s%s%s",
-    var.naming.resource_prefixes.install_volume,
+    var.naming.resource_prefixes.hanalog,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.install_volume
+    local.resource_suffixes.hanalog
   )
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
   location            = local.ANF_pool_settings.location
   account_name        = local.ANF_pool_settings.account_name
   pool_name           = local.ANF_pool_settings.pool_name
-  volume_path = format("%s%s%s",
-    var.naming.resource_prefixes.install_volume,
-    var.infrastructure.environment,
-    local.resource_suffixes.install_volume
-  )
+  volume_path         = format("%s%s", local.sid, local.resource_suffixes.hanalog)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
-
-  protocols = ["NFSv4.1"]
+  protocols           = ["NFSv4.1"]
   export_policy_rule {
     allowed_clients     = ["0.0.0.0/0"]
     protocols_enabled   = ["NFSv4.1"]
@@ -60,5 +55,6 @@ resource "azurerm_netapp_volume" "install" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = 256
+  storage_quota_in_gb = var.hana_ANF_data.HANA_log_volume_size
+
 }

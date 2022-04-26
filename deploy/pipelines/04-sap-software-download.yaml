@@ -25,7 +25,7 @@ parameters:
       - SWPM10SP34_latest
       - SUM20SP13_latest
       - ORACLE_19_00_v0002ms
-      - ORACLE_19_00_ORA_MSID_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0002ms
 
   - name:                              environment
     displayName:                       Control Plane Environment

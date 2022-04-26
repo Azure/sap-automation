@@ -125,10 +125,11 @@
       until:                           job_result.finished
       retries:                         90
       delay:                           120
+      when:                            dbload_results.ansible_job_id is defined
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
-        var:                           dbload
+        var:                           dbload_results
       when:
         - dbload_results is defined
         - dbload_results.rc > 0
@@ -144,8 +145,8 @@
         state:                         touch
         mode:                          0755
       when:
-        - dbload is defined
-        - dbload.rc > 0
+        - dbload_results is defined
+        - dbload_results.rc > 0
 
   when:
     - not dbload_installed.stat.exists
