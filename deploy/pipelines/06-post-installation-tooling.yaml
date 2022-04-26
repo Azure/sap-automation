@@ -30,10 +30,10 @@ parameters:
     type:                              boolean
     default:                           false
 
-trigger: none
+trigger:                               none
 
 pool:
-  name: $(Agent)
+  name:                                $(Agent)
 
 variables:
   - group:                             "SDAF-General"

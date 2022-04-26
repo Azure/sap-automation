@@ -35,7 +35,6 @@ module "sap_landscape" {
   azure_files_transport_storage_account_id = var.azure_files_transport_storage_account_id
   NFS_provider                             = var.NFS_provider
   Agent_IP                                 = var.Agent_IP
-
 }
 
 module "sap_namegenerator" {
