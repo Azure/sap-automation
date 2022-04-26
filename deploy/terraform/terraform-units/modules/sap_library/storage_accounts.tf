@@ -33,6 +33,10 @@ resource "azurerm_storage_account" "storage_tfstate" {
     )
     virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
   }
+
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
 }
 
 // Imports existing storage account to use for tfstate
@@ -127,6 +131,9 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
     virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
   }
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
 }
 
 data "azurerm_storage_account" "storage_sapbits" {
