@@ -13,7 +13,7 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Name of Bill of Materials (BoM)
     type: string
-    default:                           
+    default:
     values:
       - S41909SPS03_v0011ms
       - HCMT_v0001ms
@@ -27,7 +27,7 @@ parameters:
       - ORACLE_19_00_v0002ms
       - NW750SPS20_DB2_v0001ms
       - DB2_UDB_11_5_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0002ms
 
   - name:                              environment
     displayName:                       Control Plane Environment
@@ -125,9 +125,9 @@ stages:
 
                 kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}')
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
-              
+
               echo -e "$green--- BoM $(bom) ---$reset"
-              
+
               echo -e "$green--- Save BOM ---$reset"
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"

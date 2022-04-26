@@ -186,6 +186,15 @@ else
     exit 2
 fi
 
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+
+echo "Deployer environment: $deployer_environment"
+
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+export TF_VAR_Agent_IP=$this_ip
+echo "Agent IP: $this_ip"
+
+
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 system_config_information="${automation_config_directory}"/"${environment}""${region_code}"

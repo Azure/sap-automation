@@ -140,7 +140,6 @@ resource "azurerm_storage_account_network_rules" "witness_storage" {
 
 }
 
-
 data "azurerm_storage_account" "witness_storage" {
   provider            = azurerm.main
   count               = length(var.witness_storage_account.arm_id) > 0 ? 1 : 0
@@ -271,7 +270,12 @@ resource "azurerm_storage_share" "transport" {
 }
 
 resource "azurerm_private_endpoint" "transport" {
+
   provider = azurerm.main
+  depends_on = [
+    azurerm_subnet.app
+  ]
+
   count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_transport_storage_account_id) > 0 ? (
       0) : (
@@ -279,16 +283,19 @@ resource "azurerm_private_endpoint" "transport" {
     )) : (
     0
   )
+
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_transport,
     local.prefix,
     local.resource_suffixes.storage_private_link_transport
   )
+
   resource_group_name = local.rg_name
-  location            = local.rg_exists ? (
+  location = local.rg_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
-      azurerm_resource_group.resource_group[0].location
-      )
+    azurerm_resource_group.resource_group[0].location
+  )
+
   subnet_id = local.application_subnet_defined ? (
     local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
     ""
@@ -300,11 +307,11 @@ resource "azurerm_private_endpoint" "transport" {
       local.prefix,
       local.resource_suffixes.storage_private_svc_transport
     )
-    is_manual_connection           = false
+    is_manual_connection = false
     private_connection_resource_id = length(var.azure_files_transport_storage_account_id) > 0 ? (
       data.azurerm_storage_account.transport[0].id) : (
-        azurerm_storage_account.transport[0].id
-        )
+      azurerm_storage_account.transport[0].id
+    )
     subresource_names = [
       "File"
     ]

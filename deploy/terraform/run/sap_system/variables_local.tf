@@ -99,9 +99,12 @@ locals {
   hdb_ins        = try(local.hdb.instance, {})
   hanadb_sid     = try(local.hdb_ins.sid, "HDB") // HANA database sid from the Databases array for use as reference to LB/AS
   anydb_platform = try(local.anydb-databases[0].platform, "NONE")
-  anydb_sid      = (length(local.anydb-databases) > 0) ? try(local.anydb-databases[0].instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
-  db_sid         = length(local.hana-databases) > 0 ? local.hanadb_sid : local.anydb_sid
-  sap_sid        = upper(try(local.application.sid, local.db_sid))
+  anydb_sid = (length(local.anydb-databases) > 0) ? (
+    try(local.anydb-databases[0].instance.sid, lower(substr(local.anydb_platform, 0, 3)))) : (
+    lower(substr(local.anydb_platform, 0, 3))
+  )
+  db_sid  = length(local.hana-databases) > 0 ? local.hanadb_sid : local.anydb_sid
+  sap_sid = upper(try(local.application.sid, local.db_sid))
 
   enable_db_deployment = (
     length(local.hana-databases) > 0
@@ -144,5 +147,18 @@ locals {
     object_id       = data.azurerm_client_config.current.object_id
   }
 
-  custom_names = length(var.name_override_file) > 0 ? jsondecode(file(format("%s/%s", path.cwd, var.name_override_file))) : null
+  custom_names = length(var.name_override_file) > 0 ? (
+    jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
+    null
+  )
+
+
+  hana_ANF_data = {
+    use_ANF_for_HANA_data = var.use_ANF_for_HANA_data
+    use_ANF_for_HANA_log  = var.use_ANF_for_HANA_log
+    HANA_data_volume_size = var.HANA_data_volume_size
+    HANA_log_volume_size  = var.HANA_log_volume_size
+
+  }
+
 }
