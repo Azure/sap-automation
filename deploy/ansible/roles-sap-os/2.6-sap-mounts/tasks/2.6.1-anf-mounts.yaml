@@ -121,10 +121,6 @@
         fstype:                        "nfs4"
         opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
         state:                         mounted
-  when:
-    - tier == 'sapos'
-    - node_tier == 'scs'
-    - sap_trans is defined
   rescue:
     - name:                            "ANF Mount: Clear the cache of the nfsidmap daemon (ANF)"
       ansible.builtin.shell: |
@@ -134,6 +130,10 @@
       ansible.builtin.systemd:
         name:                          rpcbind
         state:                         restarted
+  when:
+    - tier == 'sapos'
+    - node_tier == 'scs'
+    - sap_trans is defined
 
 
 - name:                                "ANF Mount: Create SAP Directories (spmnt & usrsap)"
@@ -152,13 +152,13 @@
     - node_tier == 'scs'
     - sap_mnt is defined
 
-    - name:                           "AFS Mount: Create SAP Directories (AFS)"
-      ansible.builtin.file:
-        path:                          "/saptmp/sapmnt{{ item.sid | upper }}"
-        state:                         directory
-        mode:                          0755
-      loop:                            "{{ MULTI_SIDS }}"
-      when:                            MULTI_SIDS is defined
+- name:                           "ANF Mount: Create SAP Directories (ANF)"
+  ansible.builtin.file:
+    path:                          "/saptmp/sapmnt{{ item.sid | upper }}"
+    state:                         directory
+    mode:                          0755
+  loop:                            "{{ MULTI_SIDS }}"
+  when:                            MULTI_SIDS is defined
 
 - name:                                "ANF Mount: Create SAP Directories (transport)"
   ansible.builtin.file:
