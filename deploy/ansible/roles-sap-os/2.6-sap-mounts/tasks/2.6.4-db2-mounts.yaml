@@ -119,12 +119,12 @@
     mode:                              0644
     state:                             touch
 
-- name:                                "Set NFS Server variable for DB2"
+- name:                                "DB2: Set NFS Server variable"
   ansible.builtin.set_fact:
     sapmnt_nfs_mount: >-
                                         {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}{%else%}{{ query('inventory_hostnames','{{ sap_sid|upper }}_SCS') |first }}:/sapmnt/{{ sap_sid|upper }}{% endif %}
 
-- name:                                "Set NFS Server variable for DB2"
+- name:                                "DB2: Set NFS Server options"
   ansible.builtin.set_fact:
     sapmnt_nfs_opts: >-
                                         {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{%else%}defaults{% endif %}
