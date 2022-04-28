@@ -17,7 +17,7 @@ materials:
     # HANA Client v2.12
     - name:         "SAP HANA CLIENT Version 2.12"
       archive:      IMDB_CLIENT20_012_20-80002082.SAR
-      checksum:     1e9b34913149e32735ad2bc450b56f4e143937adc75c2b1b3a49abc3071c11fe
+      checksum:     369fe916200025c5554599b675fa798df3e2578fe72afdfb9aed64de53b98545
       extract:      true
       extractDir:   CD_HDBCLIENT
       creates:      SIGNATURE.SMF
