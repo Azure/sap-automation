@@ -25,7 +25,7 @@ locals {
     name   = var.library_sapmedia_name
     account_tier = coalesce(
       var.library_sapmedia_account_tier,
-      try(var.storage_account_sapbits.account_tier, "Standard")
+      try(var.storage_account_sapbits.account_tier, "Premium")
     )
     account_replication_type = coalesce(
       var.library_sapmedia_account_replication_type,

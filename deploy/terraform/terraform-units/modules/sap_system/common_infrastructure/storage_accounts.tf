@@ -33,11 +33,14 @@ resource "azurerm_storage_account" "shared" {
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location                  = var.infrastructure.region
-  account_tier              = "Premium"
-  account_replication_type  = "ZRS"
-  account_kind              = "FileStorage"
-  enable_https_traffic_only = false
+  location                        = var.infrastructure.region
+  account_tier                    = "Premium"
+  account_replication_type        = "ZRS"
+  account_kind                    = "FileStorage"
+  enable_https_traffic_only       = false
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
 
 }
 
@@ -63,7 +66,6 @@ resource "azurerm_storage_account_network_rules" "shared" {
 
 }
 
-
 resource "azurerm_storage_share" "install" {
   count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_storage_account_id) > 0 ? (
@@ -77,7 +79,7 @@ resource "azurerm_storage_share" "install" {
   storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.shared[0].name : ""
   enabled_protocol     = "NFS"
 
-  quota = 128
+  quota = 256
 }
 
 resource "azurerm_storage_account_network_rules" "install" {

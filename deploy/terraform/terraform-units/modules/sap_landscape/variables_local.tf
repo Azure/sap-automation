@@ -64,6 +64,7 @@ variable "azure_files_transport_storage_account_id" {
 }
 
 variable "NFS_provider" {
+  description = "Describes the NFS solution used"
   type = string
 }
 
@@ -720,6 +721,6 @@ locals {
   )
 
   # Store the Deployer KV in workload zone KV
-  deployer_keyvault_user_name = try(var.deployer_tfstate.deployer_keyvault_user_name, "")
+  deployer_keyvault_user_name = try(var.deployer_tfstate.deployer_kv_user_name, "")
 
 }

@@ -53,27 +53,36 @@ parameters:
 trigger:                               none
 
 pool:
-  vmImage:                             ubuntu-latest
+  name:                                $(Agent)
 
 variables:
   - group:                             "SDAF-General"
   - group:                             SDAF-${{ parameters.environment }}
+
   - name:                              deployer_folder
     value:                             ${{ parameters.deployer }}
+
   - name:                              deployer_configuration_file
     value:                             ${{ parameters.deployer }}.tfvars
+
   - name:                              library_folder
     value:                             ${{ parameters.library }}
+
   - name:                              library_configuration_file
     value:                             ${{ parameters.library }}.tfvars
+
   - name:                              workload_zone_folder
     value:                             ${{ parameters.workload_zone }}
+
   - name:                              workload_zone_configuration_file
     value:                             ${{ parameters.workload_zone }}.tfvars
+
   - name:                              sap_system_folder
     value:                             ${{ parameters.sap_system }}
+
   - name:                              sap_system_config
     value:                             ${{ parameters.sap_system }}.tfvars
+
   - name:                              tf_url
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
@@ -94,7 +103,10 @@ stages:
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m"
-              SID=$(echo $(sap_system_folder) | cut -d'-' -f4 | xargs)
+              export                  SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo Location    $SID
+              export          ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+              export             LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
                 return_code=$?
@@ -109,10 +121,24 @@ stages:
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
 
+
               echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+
+                workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
+
+                if [ ! -f ${workload_environment_file_name} ]; then
+                  echo -e "$boldred--- $workload_environment_file_name was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Workload Zone configuration file ${workload_environment_file_name} was not found."
+                  exit 2
+                fi
+
+                export             keyvault=$(cat ${workload_environment_file_name}  | grep keyvault=   -m1      | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                export   STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+
               echo -e "$green--- az login ---$reset"
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
@@ -137,7 +163,24 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
+                ip_added=0
+
+                az account set --subscription ${STATE_SUBSCRIPTION}
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                  echo -e "$green--- Set IP ---$reset"
+                  az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --output none --only-show-errors
+                  ip_added=1
+                fi
+
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                  echo -e "$green--- Set IP ---$reset"
+                  az keyvault network-rule add --name ${workloadkeyvault} --ip-address ${this_ip}  --output none --only-show-errors
+                  ip_added=1
+                fi
 
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
@@ -232,6 +275,21 @@ stages:
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                export          ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                export             LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+
+                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
+
+                export             keyvault=$(cat ${environment_file_name}  | grep keyvault=  -m1       | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                export     workloadkeyvault=$(cat ${environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                export   STATE_SUBSCRIPTION=$(cat ${environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+
+                if [ ! -f $environment_file_name ]; then
+                  echo -e "$boldred--- $ENVIRONMENT$LOCATION was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Workload zone configuration file $ENVIRONMENT$LOCATION was not found."
+                  exit 2
+                fi
+
               echo -e "$green--- az login ---$reset"
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
@@ -256,7 +314,25 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
+                ip_added=0
+
+                az account set --subscription ${STATE_SUBSCRIPTION}
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                  echo -e "$green--- Set IP ---$reset"
+                  az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --output none --only-show-errors
+                  ip_added=1
+                fi
+
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                  echo -e "$green--- Set IP ---$reset"
+                  az keyvault network-rule add --name ${workloadkeyvault} --ip-address ${this_ip} --output none --only-show-errors
+                  ip_added=1
+                fi
+
 
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
@@ -384,8 +460,20 @@ stages:
 
                 deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
 
-                export REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                export REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                export REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                export REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                export        keyvault=$(cat ${deployer_environment_file_name}  | grep keyvault          | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+
+                ip_added=0
+
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  if [ -n ${keyvault} ]; then
+                    echo -e "$green--- Set IP ---$reset"
+                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                    az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --no-wait
+                    ip_added=1
+                  fi
+                fi
 
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh                        \
                   --deployer_parameter_file DEPLOYER/$(deployer_folder)/$(deployer_configuration_file)   \
@@ -393,6 +481,7 @@ stages:
                   --storage_account $REMOTE_STATE_SA                                                     \
                   --resource_group $REMOTE_STATE_RG                                                      \
                   --ado --auto-approve
+
                 return_code=$?
                 git pull
                 echo "Return code from remove_region $return_code."
@@ -406,20 +495,21 @@ stages:
                 changed=0
 
                 if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
+                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate"
                   changed=1
                 fi
                 if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate" ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate
+                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate"
                   changed=1
                 fi
 
-                if [ -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate
+                if [ -f "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate" ]; then
+                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate"
                   changed=1
                 fi
-                if [ -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate
+
+                if [ -f "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
+                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate"
                   changed=1
                 fi
 
