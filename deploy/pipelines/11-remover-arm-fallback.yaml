@@ -14,7 +14,7 @@ parameters:
   - name:                              cleanup_sap
     displayName:                       Remove the SAP system
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              sap_system
     displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
@@ -24,7 +24,7 @@ parameters:
   - name:                              cleanup_workload_zone
     displayName:                       Remove the SAP workload zone
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              workload_zone
     displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -34,7 +34,7 @@ parameters:
   - name:                              cleanup_control_plane
     displayName:                       Remove the control plane
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              deployer
     displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
