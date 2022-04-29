@@ -220,8 +220,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" --quiet
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --quiet
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
                 if [ -f ${workload_environment_file_name}.md ]; then
