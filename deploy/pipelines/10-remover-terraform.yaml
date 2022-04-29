@@ -227,8 +227,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ]; then
-                  git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]" --quiet
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --quiet
                 fi
 
               exit $return_code
@@ -374,8 +374,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]" --quiet
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --quiet
                 fi
 
               exit $return_code
@@ -535,8 +535,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Control Plane ${deployer_folder} removal[skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Control Plane ${deployer_folder} removal[skip ci]" --quiet
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --quiet
                 fi
               exit $return_code
             displayName:               Remove control plane
@@ -546,5 +546,5 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr:              true
+            failOnStderr:              false
 ...
