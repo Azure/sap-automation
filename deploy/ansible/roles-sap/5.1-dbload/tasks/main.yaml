@@ -115,7 +115,7 @@
       failed_when:                     dbload_results.rc > 0
       tags:
         - skip_ansible_lint
-      async:                           0
+      async:                           10800
       poll:                            60
 
     - name:                            "DBLoad Install -Wait for asynchronous job to end"
