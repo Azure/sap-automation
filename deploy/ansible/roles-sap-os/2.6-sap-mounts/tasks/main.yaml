@@ -97,7 +97,7 @@
     - { node_tier: 'scs',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsapinstall',          path: '{{ target_media_location }}' }
   when:
     - item.node_tier in supported_tiers
-    - not use_AFS
+    - usr_sap_install_mountpoint is undefined
 
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt on (scs) {{ ansible_hostname }}"
@@ -165,7 +165,7 @@
   when:
     - tier == 'sapos'
     - node_tier != 'scs'
-    - not use_AFS
+    - usr_sap_install_mountpoint is not defined
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"
