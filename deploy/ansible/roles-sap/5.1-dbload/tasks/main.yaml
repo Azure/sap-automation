@@ -10,20 +10,20 @@
 
 - name:                                "DBLoad: -  Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              0755
   when:                                node_tier != "oracle"
 
 - name:                                "DBLoad: -  reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "DBLoad: - check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
   register:                            dbload_installed
 
 - name:                                "DBLoad: -  Set the SCS Server name list"
@@ -107,7 +107,7 @@
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_dbload.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
       environment:
         TMPDIR:                        "{{ target_media_location }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
@@ -115,7 +115,7 @@
       failed_when:                     dbload_results.rc > 0
       tags:
         - skip_ansible_lint
-      async:                           0
+      async:                           7200
       poll:                            60
 
     - name:                            "DBLoad Install -Wait for asynchronous job to end"
@@ -134,6 +134,11 @@
         - dbload_results is defined
         - dbload_results.rc > 0
 
+    - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
+        state:                         absent
+
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
@@ -141,7 +146,7 @@
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_dbload.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
         state:                         touch
         mode:                          0755
       when:

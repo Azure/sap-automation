@@ -14,19 +14,19 @@
 
 - name:                                "APP Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "APP Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_app.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "APP Install: check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_app.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
   register:                            app_installed
 
 - name:                                "APP Install: Get the SCS Server name list"
@@ -109,7 +109,7 @@
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_app.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
@@ -127,6 +127,11 @@
       ansible.builtin.debug:
         msg:                           "APP Installation succeeded"
       when:                            app_installation.rc == 0
+
+    - name:                            "APP Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
+        state:                         absent
 
     - name:                            "APP Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
@@ -153,7 +158,7 @@
 
     - name:                            "APP Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_app.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
         state:                         touch
         mode:                          0755
       when:

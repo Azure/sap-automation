@@ -21,19 +21,19 @@
 
 - name:                                "SCS Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "SCS Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "SCS Install: check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
   when:                                "'scs' in supported_tiers"
 
@@ -112,7 +112,7 @@
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_scs.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
         TMPDIR:                        "{{ target_media_location }}"
@@ -120,6 +120,11 @@
       failed_when:                     scs_installation.rc > 0
       tags:
         - skip_ansible_lint
+
+    - name:                            "SCS Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
+        state:                         absent
 
     - name:                            "SCS Install: Installation results"
       ansible.builtin.debug:
@@ -145,7 +150,7 @@
 
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
         state:                         touch
         mode:                          0755
       when:

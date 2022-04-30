@@ -14,19 +14,19 @@
 
 - name:                                "ERS Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "ERS Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "ERS Install: check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
   register:                            ers_installed
   when: node_tier == 'ers'
 
@@ -122,7 +122,7 @@
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   /etc/sap_deployment_automation/sap_deployment_ers.txt
+            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
             TMPDIR:                    "{{ target_media_location }}"
@@ -162,7 +162,7 @@
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   /etc/sap_deployment_automation/sap_deployment_ers.txt
+            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
             TMPDIR:                    "{{ target_media_location }}"
@@ -170,6 +170,11 @@
           failed_when:                 ers_installation.rc > 0
           tags:
             - skip_ansible_lint
+
+    - name:                            "ERS Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
+        state:                         absent
 
     - name:                            "ERS Install: Installation results"
       ansible.builtin.debug:
@@ -183,7 +188,7 @@
 
     - name:                            "ERS Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_ers.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
         state:                         touch
         mode:                          0755
 

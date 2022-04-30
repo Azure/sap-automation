@@ -19,7 +19,7 @@
     TMPDIR:                            /usr/sap/install/{{ item.sid|upper }}
   register:                            dbload_results
   failed_when:                         dbload_results.rc > 0
-  async:                               0
+  async:                               10800
   poll:                                60
   tags:
     - skip_ansible_lint
