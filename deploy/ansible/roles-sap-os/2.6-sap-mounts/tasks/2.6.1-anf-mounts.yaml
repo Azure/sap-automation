@@ -289,19 +289,33 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "ANF Mount: sap_trans, install"
-  ansible.builtin.include_tasks:       2.6.1.1-anf-data.yaml
+- name:                                "ANF Mount: sap_trans"
+  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
   loop:     
-   - { 'type': 'trans',   'temppath' : 'saptrans',   'mount' : '{{ sap_trans }}',                  'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/usr/sap/trans',   'target_nodes' : ['app','pas', 'ers', 'scs'] }
+   - { 
+     'type': 'trans',   
+     'temppath' : 'saptrans',   
+     'mount' : '{{ sap_trans }}', 
+     'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 
+     'path' : '/usr/sap/trans',   
+     'target_nodes' : ['app','pas', 'ers', 'scs'] 
+     }
   vars:
     primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   when:
     - tier == 'sapos'
 
-- name:                                "ANF Mount: sap_trans, install"
-  ansible.builtin.include_tasks:       2.6.1.1-anf-data.yaml
+- name:                                "ANF Mount: install"
+  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
   loop:     
-   - { 'type': 'install', 'temppath' : 'sapinstall', 'mount' : '{{ usr_sap_install_mountpoint }}', 'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/usr/sap/install', 'target_nodes' : ['all']}
+   - { 
+     'type': 'install', 
+     'temppath' : 'sapinstall', 
+     'mount' : '{{ usr_sap_install_mountpoint }}', 
+     'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 
+     'path' : '/usr/sap/install', 
+     'target_nodes' : ['all']
+     }
   vars:
     primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   when:
@@ -309,10 +323,24 @@
     - usr_sap_install_mountpoint is defined
 
 - name:                                "ANF Mount: HANA data"
-  ansible.builtin.include_tasks:       2.6.1.1-anf-data.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
   loop:     
-   - { 'type': 'data', 'temppath' : 'hanadata', 'mount' : '{{ hana_data_mountpoint }}', 'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/hana/data', 'target_nodes' : ['hana'] }
-   - { 'type': 'log',  'temppath' : 'hanalog',  'mount' : '{{ hana_log_mountpoint }}',  'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 'path' : '/hana/log' , 'target_nodes' : ['hana'] }
+   - { 
+       'type': 'data', 
+       'temppath' : 'hanadata', 
+       'mount' : '{{ hana_data_mountpoint }}', 
+       'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 
+       'path' : '/hana/data', 
+       'target_nodes' : ['hana'] 
+     }
+   - { 
+       'type': 'log',  
+       'temppath' : 'hanalog',  
+       'mount' : '{{ hana_log_mountpoint }}',  
+       'opts' : 'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp', 
+       'path' : '/hana/log' , 
+       'target_nodes' : ['hana'] 
+    }
   vars:
     primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
   when:

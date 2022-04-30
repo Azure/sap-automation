@@ -93,18 +93,18 @@
 #   ansible.builtin.debug:
 #     var:                               is_created_now
 
-# - name:                                "ANF Mount: Change attribute only when we create SAP Directories ({{ item.temppath }})"
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.file:
-#     path:                              "{{ is_created_now.path }}"
-#     state:                             directory
-#     attr:                              i+
-#   when: 
-#     - node_tier in item.target_nodes or item.target_nodes == "all"
-#     - is_created_now.changed
-#   tags:
-#     - skip_ansible_lint
+- name:                                "ANF Mount: Change attribute only when we create SAP Directories ({{ item.temppath }})"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "{{ is_created_now.path }}"
+    state:                             directory
+    attr:                              i+
+  when: 
+    - node_tier in item.target_nodes or item.target_nodes == "all"
+    - is_created_now.changed
+  tags:
+    - skip_ansible_lint
 
 - name:                                "ANF Mount: ({{ item.path }} on {{ item.mount }})"
   ansible.builtin.mount:
