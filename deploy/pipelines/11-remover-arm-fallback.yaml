@@ -134,8 +134,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ]; then
-                  git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]" --quiet
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --quiet
+                  git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
             displayName:               Remove SAP System deployment artifacts from WORKSPACES
@@ -192,8 +192,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" --quiet
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --quiet
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
             displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
@@ -273,8 +273,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" --quiet
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --quiet
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
