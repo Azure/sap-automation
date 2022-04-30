@@ -64,7 +64,6 @@ module "common_infrastructure" {
     local.databases[0].high_availability ? 1 : 0,
     var.NFS_provider
   )
-  azure_files_storage_account_id = var.azure_files_storage_account_id
   Agent_IP                       = var.Agent_IP
   use_private_endpoint           = var.use_private_endpoint
   hana_dual_nics                 = var.hana_dual_nics

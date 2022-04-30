@@ -33,8 +33,10 @@ module "sap_landscape" {
   use_private_endpoint                     = var.use_private_endpoint
   transport_volume_size                    = var.transport_volume_size
   azure_files_transport_storage_account_id = var.azure_files_transport_storage_account_id
-  NFS_provider                             = var.NFS_provider
-  Agent_IP                                 = var.Agent_IP
+  azure_files_storage_account_id           = var.azure_files_storage_account_id
+
+  NFS_provider = var.NFS_provider
+  Agent_IP     = var.Agent_IP
 }
 
 module "sap_namegenerator" {

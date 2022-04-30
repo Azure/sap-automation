@@ -39,6 +39,12 @@ variable "NFS_provider" {
   default = "NONE"
 }
 
+variable "azure_files_storage_account_id" {
+  type    = string
+  default = ""
+}
+
+
 locals {
 
   version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
