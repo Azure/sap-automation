@@ -322,6 +322,15 @@
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
 
+- name:                            "ANF Mount: Create /hana folder"
+  ansible.builtin.file:
+    path:                          "/hana"
+    state:                         directory
+    group:                         sapsys
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+
 - name:                                "ANF Mount: HANA data"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
   loop:     
