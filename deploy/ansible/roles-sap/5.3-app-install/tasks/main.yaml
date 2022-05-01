@@ -11,6 +11,16 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-app-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-app-inifile-param.j2"
+    dir_params:                        "{{ target_media_location }}/.params"
+
+#   0x) Create hidden directory for parameter files
+- name:                                "APP Install: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
 
 - name:                                "APP Install: Create run flag directory"
   ansible.builtin.file:
@@ -38,7 +48,7 @@
 
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
     db_virtual_host:                   "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
 
@@ -74,6 +84,7 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') | first }}"
     sap_appVirtualHostname:            "{{ inventory_hostname }}"
+    param_directory:                   "{{ dir_params }}" 
   tags:
     - skip_ansible_lint
 
@@ -103,16 +114,16 @@
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}  \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                                \
-                                                 SAPINST_SKIP_DIALOGS=true                                                  \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                      \
+                                                 SAPINST_SKIP_DIALOGS=true                                        \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-        TMPDIR:                        "{{ target_media_location }}/{{ sap_sid|upper }}"
+        TMPDIR:                        "{{ target_media_location }}"
       register:                        app_installation
       failed_when:                     app_installation.rc > 0
       tags:
@@ -130,7 +141,7 @@
 
     - name:                            "APP Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
-        path:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
     - name:                            "APP Install: Find the installationSuccesfullyFinished.dat (SAPINST)"

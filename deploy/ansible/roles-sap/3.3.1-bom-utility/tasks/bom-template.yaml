@@ -70,7 +70,7 @@
     - name:                            "Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
+        dest:                          "{{ param_directory }}/{{ sap_inifile }}"
         #remote_src:                    yes
         mode:                          0644
         force:                         true
@@ -85,7 +85,7 @@
     - name:                            "Create SCS ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params
+        dest:                          "{{ param_directory }}/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params"
         mode:                          0644
         force:                         true
       loop:                            "{{ MULTI_SIDS }}"
@@ -100,7 +100,7 @@
     - name:                            "Create DBLoad ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params
+        dest:                          "{{ param_directory }}/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params"
         mode:                          0644
         force:                         true
       loop:                            "{{ MULTI_SIDS }}"
@@ -115,7 +115,7 @@
     - name:                            "Create PAS ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params
+        dest:                          "{{ param_directory }}/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params"
         mode:                          0644
         force:                         true
       loop:                            "{{ MULTI_SIDS }}"
@@ -130,7 +130,7 @@
     - name:                            "Create APP ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params
+        dest:                          "{{ param_directory }}/{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params"
         mode:                          0644
         force:                         true
       loop:                                 "{{ MULTI_SIDS }}"
@@ -156,7 +156,7 @@
     - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ microsoft_supplied_bom_template.stat.path }}"
-        dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
+        dest:                          "{{ param_directory }}/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
       when:                            microsoft_supplied_bom_template.stat.exists
@@ -179,7 +179,7 @@
         - name:                        "{{ task_prefix }} Create ini file {{ sap_inifile }}"
           ansible.builtin.template:
             src:                       "{{ microsoft_supplied_bom_template.stat.path }}"
-            dest:                      /usr/sap/install/downloads/{{ sap_inifile }}
+            dest:                      "{{ param_directory }}/{{ sap_inifile }}"
             mode:                      0644
             force:                     true
           when:                        microsoft_supplied_bom_template_archive.stat.exists

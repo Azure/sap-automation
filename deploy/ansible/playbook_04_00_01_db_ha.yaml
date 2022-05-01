@@ -223,7 +223,7 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.1.3-ora-dg
           vars:
-            target_media_location:     "{{ target_media_location }}/{{ sap_sid | upper }}"
+            target_media_location:     "{{ target_media_location }}/{{ bom_base_name }}"
           tags:
             - 4.1.3-ora-dg
 
@@ -274,7 +274,7 @@
       ansible.builtin.include_role:
         name:                          roles-db/4.1.3-ora-dg
       vars:
-        target_media_location:         "{{ target_media_location }}/{{ sap_sid | upper }}"
+        target_media_location:         "{{ target_media_location }}/{{ bom_base_name }}"
 
     - name:                            "Observer Playbook: - Run post installation routines"
       ansible.builtin.include_role:

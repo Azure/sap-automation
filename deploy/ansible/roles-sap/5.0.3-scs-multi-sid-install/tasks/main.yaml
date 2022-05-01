@@ -11,6 +11,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-scs-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
+    dir_params:                        "{{ target_media_location }}/.params"
   when:                                MULTI_SIDS is undefined
 
 
@@ -18,6 +19,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
+    dir_params:                        "{{ target_media_location }}/.params"
   when:                                 MULTI_SIDS is defined
   loop:                                 "{{ MULTI_SIDS }}"
 
@@ -51,6 +53,7 @@
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
+    param_directory:                   "{{ dir_params }}" 
   tags:
     - skip_ansible_lint
 
@@ -91,14 +94,14 @@
                                        set -o errexit
                                        export TMPDIR=/usr/sap/install/{{ item.sid|upper }}
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
                                                  SAPINST_ACCEPT_INTERNAL_SIGNATURE=true
                                        touch /etc/sap_deployment_automation/sap_deployment_scs_{{ item.sid }}.txt
   args:
-    chdir:                             "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
+    chdir:                             "{{ target_media_location }}/SWPM"
     creates:                           /etc/sap_deployment_automation/sap_deployment_scs_{{ item.sid }}.txt
   when:       MULTI_SIDS is defined
   loop:       "{{ MULTI_SIDS }}"

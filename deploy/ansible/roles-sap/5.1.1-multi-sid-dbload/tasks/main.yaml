@@ -11,6 +11,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    dir_params:                        "{{ target_media_location }}/.params"
   when:                                 node_tier == "oracle-multi-sid"
   loop:                                 "{{ MULTI_SIDS }}"
 
@@ -123,6 +124,7 @@
         sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
+        param_directory:               "{{ dir_params }}" 
       tags:
         - skip_ansible_lint
 

@@ -6,14 +6,14 @@
   ansible.builtin.shell: |
                                        set -o errexit
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params \
+                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
 
                                        touch /etc/sap_deployment_automation/sap_deployment_dbload_{{ item.sid }}.txt
   args:
-    chdir:                             /usr/sap/install/SWPM
+    chdir:                             "{{ target_media_location }}/SWPM"
     creates:                           /etc/sap_deployment_automation/sap_deployment_dbload_{{ item.sid }}.txt
   environment:
     TMPDIR:                            /usr/sap/install/{{ item.sid|upper }}

@@ -82,7 +82,7 @@
                                                  SAPINST_ACCEPT_INTERNAL_SIGNATURE=true
                                        touch /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
   args:
-    chdir:                             "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
+    chdir:                             "{{ target_media_location }}/SWPM"
     creates:                           /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
   environment:
     TMPDIR:                            "{{ target_media_location }}/{{ item.sid|upper }}"

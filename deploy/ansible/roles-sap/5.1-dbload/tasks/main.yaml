@@ -39,6 +39,16 @@
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
     scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
     db_virtual_host:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+    dir_params:                        "{{ target_media_location }}/.params"
+
+#   0x) Create hidden directory for parameter files
+- name:                                "DBLoad: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
 
 - name:                                "DBLoad: - Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -74,6 +84,7 @@
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     tier:                              "{{ tier }}"
+    param_directory:                   "{{ dir_params }}" 
   tags:
     - skip_ansible_lint
 
@@ -101,15 +112,15 @@
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
       environment:
-        TMPDIR:                        "{{ target_media_location }}/{{ sap_sid|upper }}"
+        TMPDIR:                        "{{ target_media_location }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0
@@ -136,7 +147,7 @@
 
     - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
-        path:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
     - name:                            "DBLoad Install: Installation results"
