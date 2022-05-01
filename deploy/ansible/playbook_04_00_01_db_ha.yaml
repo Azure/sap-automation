@@ -222,6 +222,8 @@
         - name:                        Oracle Data guard
           ansible.builtin.include_role:
             name:                      roles-db/4.1.3-ora-dg
+          vars:
+            target_media_location:     "{{ target_media_location }}/{{ sap_sid | upper }}"
           tags:
             - 4.1.3-ora-dg
 
@@ -271,6 +273,8 @@
     - name:                            "Observer Playbook: Oracle Observer setup"
       ansible.builtin.include_role:
         name:                          roles-db/4.1.3-ora-dg
+      vars:
+        target_media_location:         "{{ target_media_location }}/{{ sap_sid | upper }}"
 
     - name:                            "Observer Playbook: - Run post installation routines"
       ansible.builtin.include_role:

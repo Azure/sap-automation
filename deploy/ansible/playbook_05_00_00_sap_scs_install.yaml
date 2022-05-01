@@ -86,6 +86,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        target_media_location:         "{{ target_media_location }}/{{ sap_sid | upper }}"
       when:                                platform != "ORACLE"
       tags:
         - 2.5-sap-users
@@ -140,6 +141,7 @@
             scs_high_availability:     "{{ scs_high_availability }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            target_media_location:     "{{ target_media_location }}/{{ sap_sid | upper }}"
             always_upload_jinja_templates: false
           tags:
             - always
@@ -154,11 +156,15 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
               when:                    MULTI_SIDS is undefined
+              vars:
+                target_media_location: "{{ target_media_location }}/{{ sap_sid | upper }}"
 
             - name:                    Include 5.0.3-scs-multi-sid-install role
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.3-scs-multi-sid-install
               when:                    MULTI_SIDS is defined
+              vars:
+                target_media_location: "{{ target_media_location }}/{{ sap_sid | upper }}"
 
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"

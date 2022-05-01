@@ -89,10 +89,6 @@ variable "hana_dual_nics" {
   default     = true
 }
 
-variable "database_vm_names" {
-  default = [""]
-}
-
 variable "database_vm_db_nic_ips" {
   default = [""]
 }
