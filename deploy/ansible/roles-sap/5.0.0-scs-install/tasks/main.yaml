@@ -111,11 +111,11 @@
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         "{{ target_media_location }}/SWPM"
+        chdir:                         "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-        TMPDIR:                        "{{ target_media_location }}"
+        TMPDIR:                        "{{ target_media_location }}/{{ sap_sid|upper }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:

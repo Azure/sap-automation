@@ -121,7 +121,7 @@
                                                  SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                               \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
-            chdir:                     "{{ target_media_location }}/SWPM"
+            chdir:                     "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
@@ -161,7 +161,7 @@
                                                  SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                               \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
-            chdir:                     "{{ target_media_location }}/SWPM"
+            chdir:                     "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"

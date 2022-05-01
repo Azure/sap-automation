@@ -106,10 +106,10 @@
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         "{{ target_media_location }}/SWPM"
+        chdir:                         "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
       environment:
-        TMPDIR:                        "{{ target_media_location }}"
+        TMPDIR:                        "{{ target_media_location }}/{{ sap_sid|upper }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0

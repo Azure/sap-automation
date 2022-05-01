@@ -98,7 +98,7 @@
                                                  SAPINST_ACCEPT_INTERNAL_SIGNATURE=true
                                        touch /etc/sap_deployment_automation/sap_deployment_scs_{{ item.sid }}.txt
   args:
-    chdir:                             /usr/sap/install/SWPM
+    chdir:                             "{{ target_media_location }}/{{ sap_sid|upper }}/SWPM"
     creates:                           /etc/sap_deployment_automation/sap_deployment_scs_{{ item.sid }}.txt
   when:       MULTI_SIDS is defined
   loop:       "{{ MULTI_SIDS }}"

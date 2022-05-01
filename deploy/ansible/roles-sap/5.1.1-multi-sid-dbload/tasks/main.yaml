@@ -107,8 +107,8 @@
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
       vars:
-        sap_cd_package_hdbclient:      /usr/sap/install/CD_HDBCLIENT/SAP_HANA_CLIENT
-        sap_cd_package_cd1:            /usr/sap/install/CD_EXPORT
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/{{ sap_sid|upper }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/{{ sap_sid|upper }}/CD_EXPORT"
         sap_cd_package_cd2:
         sap_cd_package_cd3:
         sap_cd_package_cd4:
