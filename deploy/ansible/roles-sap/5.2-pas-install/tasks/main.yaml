@@ -11,7 +11,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-pas-inifile-param.j2"
-    param_directory:                   "{{ dir_params }}" 
+    dir_params:                        "{{ target_media_location }}/.params"
 
 - name:                                "PAS Install: Create run flag directory"
   ansible.builtin.file:
@@ -86,7 +86,7 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    param_directory:                   "{{ dir_params }}" 
+    param_directory:                   "{{ dir_params }}"
 
   tags:
     - skip_ansible_lint
@@ -94,6 +94,18 @@
 - name:                                "PAS Install: register variables"
   ansible.builtin.set_fact:
     pas_bom_id:                        "{{ bom.product_ids.pas }}"
+
+- name:                                "PAS Install: Set hdbuserstore path"
+  ansible.builtin.set_fact:
+    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+  when:
+    - distribution_id in ['sles_sap12', 'sles_sap15' ]
+
+- name:                                "PAS Install: Set hdbuserstore path"
+  ansible.builtin.set_fact:
+    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/hdbclient/"
+  when:
+    - distribution_id in ['redhat7', 'redhat8' ]
 
 - name:                                "PAS Install: install variables"
   ansible.builtin.debug:
@@ -160,10 +172,10 @@
 
     - name:                            "PAS Install: Set DB Virtual Host name"
       ansible.builtin.shell: |
-                                       /usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-        TMPDIR:                        "/usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        TMPDIR:                        "{{ hdbuserstore_path }}"
       register:                        hdbuserstore
       tags:
         - skip_ansible_lint
@@ -198,10 +210,10 @@
 
     - name:                            "PAS Install: Set DB Virtual Host name"
       ansible.builtin.shell: |
-                                       /usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-        TMPDIR:                        "/usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+        TMPDIR:                        "{{ hdbuserstore_path }}"
       register:                        hdbuserstore
       tags:
         - skip_ansible_lint

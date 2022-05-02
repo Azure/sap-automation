@@ -37,12 +37,20 @@
     python_version:                    'python3'
   when:                                distribution_id in ['suse15', 'redhat8']
 
+#   0x) Create hidden directory for parameter files
+- name:                                "3.3 BoM Processing: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ param_directory }}"
+    state:                             directory
+    mode:                              '0755'
+
 - name:                                "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
+    force:                             true
   delegate_to:                         localhost
   register:                            result
   vars:
@@ -57,6 +65,7 @@
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
+    force:                             true
   delegate_to:                         localhost
   register:                            result
   when:

@@ -44,12 +44,12 @@
       loop:
         - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
 
+
     - name:                            "SAP HANA: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
         sap_inifile_template:          "HANA_2_00_055_v1_install.rsp.j2"
         db_pwd:                        "{{ main_password }}"
-       
 
     - name:                            "SAP HANA: remove install response file"
       ansible.builtin.file:
@@ -73,7 +73,11 @@
         _rsp_number:                   "{{ hdb_instance_number }}"
         _rsp_system_usage:             "custom"
         main_password:                 "{{ db_pwd }}"
-        param_directory:               "{{ dir_params }}" 
+        param_directory:               "{{ dir_params }}"
+
+    - name:                            "SAP HANA: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start HANA Installation"
 
     - name:                            "SAP HANA: Execute hdblcm on {{ ansible_hostname }}"
       ansible.builtin.command:         ./hdblcm --batch --action=install  --configfile='{{ dir_params }}/{{ sap_inifile }}'
@@ -101,7 +105,7 @@
 
     - name:                            "SAP HANA: remove install response file"
       ansible.builtin.file:
-        path:                          "{{ dir_params }}/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
     - name:                            "SAP HANA: Create backup folder"

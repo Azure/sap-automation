@@ -515,6 +515,7 @@ locals {
     var.key_vault.kv_user_id) : (
     var.landscape_tfstate.landscape_key_vault_user_arm_id
   )
+  
   prvt_key_vault_id = length(try(var.key_vault.kv_prvt_id, "")) > 0 ? (
     var.key_vault.kv_prvt_id) : (
     var.landscape_tfstate.landscape_key_vault_private_arm_id

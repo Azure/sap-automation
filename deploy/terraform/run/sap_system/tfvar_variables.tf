@@ -247,13 +247,13 @@ variable "enable_purge_control_for_keyvaults" {
 
 #########################################################################################
 #                                                                                       #
-#  Authentication variables                                                             #
+#  Authentication variables, use these if you want to have SID specific credentials     #
 #                                                                                       #
 #########################################################################################
 
 variable "automation_username" {
   description = "The username for the automation account"
-  default = "azureadm"
+  default = ""
 }
 
 variable "automation_password" {

@@ -1,19 +1,19 @@
 data "azurerm_storage_account" "shared" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
       1) : (
       0
     )) : (
     0
   )
-  name                = split("/", var.azure_files_storage_account_id)[8]
-  resource_group_name = split("/", var.azure_files_storage_account_id)[4]
+  name                = split("/", var.azure_files_sapmnt_id)[8]
+  resource_group_name = split("/", var.azure_files_sapmnt_id)[4]
 }
 
 
-resource "azurerm_storage_account" "shared" {
+resource "azurerm_storage_account" "sapmnt" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -23,7 +23,7 @@ resource "azurerm_storage_account" "shared" {
     lower(
       format("%s%s",
         local.prefix,
-        local.resource_suffixes.install_volume
+        local.resource_suffixes.sapmnt
       )
     ),
     "/[^a-z0-9]/",
@@ -44,13 +44,13 @@ resource "azurerm_storage_account" "shared" {
 
 }
 
-resource "azurerm_storage_account_network_rules" "shared" {
+resource "azurerm_storage_account_network_rules" "sapmnt" {
   count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
     1) : (
     0
   )
   provider           = azurerm.main
-  storage_account_id = azurerm_storage_account.shared[0].id
+  storage_account_id = azurerm_storage_account.sapmnt[0].id
 
   default_action = "Deny"
   ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
@@ -69,7 +69,7 @@ resource "azurerm_storage_account_network_rules" "shared" {
 
 resource "azurerm_storage_share" "sapmnt" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -77,7 +77,7 @@ resource "azurerm_storage_share" "sapmnt" {
   )
 
   name                 = format("%s", local.resource_suffixes.sapmnt)
-  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.shared[0].name : ""
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
   enabled_protocol     = "NFS"
 
   quota = var.sapmnt_volume_size
@@ -86,16 +86,16 @@ resource "azurerm_storage_share" "sapmnt" {
 resource "azurerm_private_endpoint" "sapmnt" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
       0) : (
       1
     )) : (
     0
   )
   name = format("%s%s%s",
-    var.naming.resource_prefixes.storage_private_link_install,
+    var.naming.resource_prefixes.storage_private_link_sapmnt,
     local.prefix,
-    local.resource_suffixes.storage_private_link_install
+    local.resource_suffixes.storage_private_link_sapmnt
   )
   resource_group_name = local.rg_name
   location = local.rg_exists ? (
@@ -112,9 +112,9 @@ resource "azurerm_private_endpoint" "sapmnt" {
       local.resource_suffixes.storage_private_svc_install
     )
     is_manual_connection = false
-    private_connection_resource_id = length(var.azure_files_storage_account_id) > 0 ? (
-      data.azurerm_storage_account.shared[0].id) : (
-      azurerm_storage_account.shared[0].id
+    private_connection_resource_id = length(var.azure_files_sapmnt_id) > 0 ? (
+      var.azure_files_sapmnt_id) : (
+      azurerm_storage_account.sapmnt[0].id
     )
     subresource_names = [
       "File"

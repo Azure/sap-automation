@@ -29,5 +29,6 @@
     jid:                               '{{ dbload_results.ansible_job_id }}'
   register:                            job_result
   until:                               job_result.finished
-  retries:                             90
+  retries:                             900
   delay:                               120
+  when:                                dbload_results.ansible_job_id is defined
