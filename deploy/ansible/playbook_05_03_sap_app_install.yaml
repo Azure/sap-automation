@@ -138,12 +138,12 @@
 
         - name:                        Include 5.3-app-install for multi-sid
           ansible.builtin.include_role:
-            name:                      roles-sap/5.3-app-install   
+            name:                      roles-sap/5.3-app-install
           vars:
             pas_instance_number:   "{{ item.pas_inst_no }}"
             sapadm_uid:            "{{ item.dbsid_uid }}"
             sap_sid:                   "{{ item.sid }}"
-            scs_instance_number:       "{{ item.ascs_inst_no }}" 
+            scs_instance_number:       "{{ item.ascs_inst_no }}"
             app_instance_number:       "{{ item.app_inst_no }}"
           when:                        MULTI_SIDS is defined
           loop:                        "{{ MULTI_SIDS }}"

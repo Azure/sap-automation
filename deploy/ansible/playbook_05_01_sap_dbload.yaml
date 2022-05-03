@@ -220,9 +220,9 @@
             name:                      roles-sap/5.1-dbload
           vars:
             sap_sid:                   "{{ item.sid }}"
-            scs_instance_number:       "{{ item.ascs_inst_no }}" 
-            sapadm_uid:                "{{ item.dbsid_uid }}" 
-            sidadm_uid:                "{{ item.sidadm_uid }}" 
+            scs_instance_number:       "{{ item.ascs_inst_no }}"
+            sapadm_uid:                "{{ item.dbsid_uid }}"
+            sidadm_uid:                "{{ item.sidadm_uid }}"
           loop:                        "{{ MULTI_SIDS }}"
           when:
             - MULTI_SIDS is defined

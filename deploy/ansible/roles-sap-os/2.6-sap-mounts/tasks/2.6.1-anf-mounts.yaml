@@ -79,7 +79,7 @@
   ansible.builtin.lineinfile:
     path:                              /etc/modprobe.d/nfs.conf
     line:                              'options nfs nfs4_disable_idmapping=Y'
-    create:                            yes
+    create:                            true
   when:
     - tier == 'sapos'
 
@@ -384,8 +384,8 @@
                                           for the NetApp configuration settings"
       ansible.builtin.blockinfile:
         path:                            "/etc/sysctl.d/netapp-hana.conf"
-        backup:                          yes
-        create:                          yes
+        backup:                          true
+        create:                          true
         marker:                          "# {mark} HANA NetApp configuration"
         block: |
           net.core.rmem_max = 16777216
@@ -408,8 +408,8 @@
                                           with additional optimization settings"
       ansible.builtin.blockinfile:
         path:                            "/etc/sysctl.d/ms-az.conf"
-        backup:                          yes
-        create:                          yes
+        backup:                          true
+        create:                          true
         marker:                          "# {mark} HANA NetApp optimizations"
         block: |
           net.ipv6.conf.all.disable_ipv6 = 1
@@ -428,8 +428,8 @@
                                           of RPC requests for the NFS session"
       ansible.builtin.blockinfile:
         path:                            "/etc/modprobe.d/sunrpc.conf"
-        backup:                          yes
-        create:                          yes
+        backup:                          true
+        create:                          true
         marker:                          "# {mark} NFS RPC Connections"
         block:                           "options sunrpc tcp_max_slot_table_entries=128"
       when:

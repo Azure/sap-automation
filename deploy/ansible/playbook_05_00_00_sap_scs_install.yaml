@@ -161,9 +161,9 @@
               when:                    MULTI_SIDS is defined
               vars:
                 sap_sid:               "{{ item.sid }}"
-                scs_instance_number:   "{{ item.ascs_inst_no }}" 
-                sapadm_uid:            "{{ item.dbsid_uid }}" 
-                sidadm_uid:            "{{ item.sidadm_uid }}" 
+                scs_instance_number:   "{{ item.ascs_inst_no }}"
+                sapadm_uid:            "{{ item.dbsid_uid }}"
+                sidadm_uid:            "{{ item.sidadm_uid }}"
               loop:                    "{{ MULTI_SIDS }}"
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
