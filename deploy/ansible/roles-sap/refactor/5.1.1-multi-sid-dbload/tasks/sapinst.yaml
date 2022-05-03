@@ -16,7 +16,8 @@
     chdir:                             "{{ target_media_location }}/SWPM"
     creates:                           /etc/sap_deployment_automation/sap_deployment_dbload_{{ item.sid }}.txt
   environment:
-    TMPDIR:                            /usr/sap/install/{{ item.sid|upper }}
+    TMPDIR:                            "{{ tmp_directory }}"
+
   register:                            dbload_results
   failed_when:                         dbload_results.rc > 0
   async:                               10800

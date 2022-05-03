@@ -66,7 +66,6 @@
             tier:                      preparation
             sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-            target_media_location:     "{{ target_media_location }}/{{ bom_base_name }}"
 
         - name:                        3.3-bom-processing role
           block:

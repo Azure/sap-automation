@@ -120,7 +120,7 @@
 
 - name:                               "3.3 BoM Processing: - Creates temporary download directory"
   file:
-    path:                             '/mnt/resource/tmp_dest'
+    path:                             '/mnt/resource'
     state:                            directory
     mode:                             0775
 

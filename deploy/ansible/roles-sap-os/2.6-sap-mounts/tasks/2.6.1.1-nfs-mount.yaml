@@ -103,6 +103,7 @@
   when:
     - node_tier in item.target_nodes or item.target_nodes == "all"
     - is_created_now.changed
+    - item.set_chattr_on_dir
   tags:
     - skip_ansible_lint
 

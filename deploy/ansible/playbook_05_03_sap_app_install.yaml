@@ -73,7 +73,6 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        target_media_location:         "{{ target_media_location }}/{{ bom_base_name }}"
         always_upload_jinja_templates: false
 
     - name:                            "APP Playbook - User Install: Generic Users and Groups for SAP Installation"
@@ -121,7 +120,6 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        target_media_location:         "{{ target_media_location }}/{{ bom_base_name }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
         always_upload_jinja_templates: false
 
@@ -140,8 +138,15 @@
 
         - name:                        Include 5.3-app-install for multi-sid
           ansible.builtin.include_role:
-            name:                      roles-sap/5.3.1-app-multi-sid-install
+            name:                      roles-sap/5.3-app-install   
+          vars:
+            pas_instance_number:   "{{ item.pas_inst_no }}"
+            sapadm_uid:            "{{ item.dbsid_uid }}"
+            sap_sid:                   "{{ item.sid }}"
+            scs_instance_number:       "{{ item.ascs_inst_no }}" 
+            app_instance_number:       "{{ item.app_inst_no }}"
           when:                        MULTI_SIDS is defined
+          loop:                        "{{ MULTI_SIDS }}"
 
         - name:                        "APP Playbook - Install: - Create app-install-done flag"
           delegate_to:                 localhost

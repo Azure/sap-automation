@@ -11,7 +11,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-ers-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-ers-inifile-param.j2"
-    dir_params:                        "{{ target_media_location }}/.params"
+    dir_params:                        "{{ tmp_directory }}/.params"
 
 #   0x) Create hidden directory for parameter files
 - name:                               "ERS Install: Create hidden directory"
@@ -136,7 +136,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ target_media_location }}"
+            TMPDIR:                    "{{ tmp_directory }}"
           register:                    ers_installation
           tags:
             - skip_ansible_lint
@@ -176,7 +176,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ target_media_location }}"
+            TMPDIR:                    "{{ tmp_directory }}"
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
           tags:

@@ -80,7 +80,6 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-            target_media_location:     "{{ target_media_location }}/{{ bom_base_name }}"
             bom_processing:            true
             always_upload_jinja_templates: false
           tags:
@@ -169,8 +168,6 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-            target_media_location:     "{{ target_media_location }}/{{ bom_base_name }}"
-
             always_upload_jinja_templates: false
           tags:
             - always
@@ -218,12 +215,17 @@
             - 5.1-dbload
           when:                        MULTI_SIDS is undefined
 
-        - name:                        Include 5.1.1-dbload role
+        - name:                        "DBLoad Playbook: - Run DBLoad (shared home)"
           ansible.builtin.include_role:
-            name:                      roles-sap/5.1.1-multi-sid-dbload
+            name:                      roles-sap/5.1-dbload
+          vars:
+            sap_sid:                   "{{ item.sid }}"
+            scs_instance_number:       "{{ item.ascs_inst_no }}" 
+            sapadm_uid:                "{{ item.dbsid_uid }}" 
+            sidadm_uid:                "{{ item.sidadm_uid }}" 
+          loop:                        "{{ MULTI_SIDS }}"
           when:
             - MULTI_SIDS is defined
-            - node_tier == 'oracle-multi-sid'
 
       when:                            platform == 'ORACLE'
 

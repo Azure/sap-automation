@@ -33,7 +33,7 @@
 # +------------------------------------4--------------------------------------*/
     - name:                            "SAP HANA: Set dir_params fact"
       ansible.builtin.set_fact:
-        dir_params:                    "{{ target_media_location }}/.params"
+        dir_params:                    "{{ tmp_directory }}/.params"
 
 #   0x) Create hidden directory for parameter files
     - name:                            "SAP HANA: Create hidden directory"
