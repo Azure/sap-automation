@@ -53,7 +53,7 @@ resource "azurerm_storage_account_network_rules" "sapmnt" {
   storage_account_id = azurerm_storage_account.sapmnt[0].id
 
   default_action = "Deny"
-  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
+  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : [""]
   virtual_network_subnet_ids = compact(
     [
       try(var.landscape_tfstate.admin_subnet_id, ""),
