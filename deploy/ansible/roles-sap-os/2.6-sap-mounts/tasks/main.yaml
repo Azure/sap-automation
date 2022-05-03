@@ -169,7 +169,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']]
+        - node_tier in ['pas', 'app', 'ers', 'oracle']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
