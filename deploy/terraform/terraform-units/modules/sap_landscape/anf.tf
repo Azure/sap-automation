@@ -147,8 +147,8 @@ resource "azurerm_netapp_volume" "install" {
     var.infrastructure.environment,
     local.resource_suffixes.install_volume
   )
-  service_level       = local.ANF_pool_settings.service_level
-  subnet_id           = local.ANF_pool_settings.subnet_id
+  service_level = var.ANF_settings.service_level
+  subnet_id     = local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
 
   protocols = ["NFSv4.1"]
   export_policy_rule {

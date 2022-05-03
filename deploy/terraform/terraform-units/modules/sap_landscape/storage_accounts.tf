@@ -255,28 +255,6 @@ data "azurerm_storage_account" "transport" {
   resource_group_name = split("/", var.azure_files_transport_storage_account_id)[4]
 }
 
-resource "azurerm_storage_account_network_rules" "transport" {
-  count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
-    1) : (
-    0
-  )
-  provider           = azurerm.main
-  storage_account_id = azurerm_storage_account.transport[0].id
-
-  default_action = "Deny"
-  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : [""]
-  virtual_network_subnet_ids = compact(
-    [
-      local.application_subnet_existing ? (
-        local.application_subnet_arm_id) : (
-        azurerm_subnet.app[0].id
-      ),
-      local.deployer_subnet_management_id
-    ]
-  )
-  bypass = ["AzureServices", "Logging", "Metrics"]
-
-}
 resource "azurerm_storage_share" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
@@ -308,7 +286,7 @@ resource "azurerm_storage_account_network_rules" "transport" {
   storage_account_id = azurerm_storage_account.transport[0].id
 
   default_action = "Deny"
-  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : null
+  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : [""]
   virtual_network_subnet_ids = compact(
     [
       local.application_subnet_existing ? (

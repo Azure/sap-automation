@@ -17,10 +17,6 @@ output "random_id" {
   value = random_id.random_id.hex
 }
 
-output "iscsi_private_ip" {
-  value = try(var.landscape_tfstate.iscsi_private_ip, [])
-}
-
 output "ppg" {
   value = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg : azurerm_proximity_placement_group.ppg
 }
@@ -56,9 +52,10 @@ output "sid_keyvault_user_id" {
 }
 
 output "sid_kv_prvt_id" {
-  value = local.enable_sid_deployment && local.use_local_credentials ? (
-    azurerm_key_vault.sid_keyvault_prvt[0].id) : (
-  local.prvt_key_vault_id)
+  value = ""
+  # value = local.enable_sid_deployment && local.use_local_credentials ? (
+  #   azurerm_key_vault.sid_keyvault_prvt[0].id) : (
+  # local.prvt_key_vault_id)
 }
 
 output "storage_subnet" {
@@ -110,8 +107,8 @@ output "cloudinit_growpart_config" {
 output "sapmnt_path" {
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-      azurerm_private_endpoint.shared[0].private_service_connection[0].private_ip_address,
-      azurerm_storage_account.shared[0].name, azurerm_storage_share.sapmnt[0].name
+      azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address,
+      azurerm_storage_account.sapmnt[0].name, azurerm_storage_share.sapmnt[0].name
     )
     ) : (
     var.NFS_provider == "ANF" ? (
