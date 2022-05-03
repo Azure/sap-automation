@@ -19,7 +19,7 @@
 
 ##########################################################################################
 #                                                                                        #
-# This sample defines an Distributed deployment                                          #
+# This sample defines a database only deployment                                         #
 #                                                                                        #
 ##########################################################################################
 
@@ -35,7 +35,7 @@
 #########################################################################################
 
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment = "QA"
+environment = "DEV"
 
 # The location valus is a mandatory field, it is used to control where the resources are deployed
 location = "westeurope"
@@ -142,13 +142,13 @@ database_vm_zones=["1"]
 app_tier_vm_sizing = "Optimized"
 
 # enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
-# enable_app_tier_deployment=false
+enable_app_tier_deployment=false
 
 # app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 app_tier_use_DHCP = true
 
 # sid is a mandatory field that defines the SAP Application SID
-sid = "Q00"
+sid = "D00"
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
 #use_loadbalancers_for_standalone_deployments=false
@@ -319,8 +319,8 @@ webdispatcher_server_count = 0
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider       = "AFS"
-sapmnt_volume_size = 64
+NFS_provider       = "NONE"
+sapmnt_volume_size = 128
 
 #########################################################################################
 #                                                                                       #
@@ -398,8 +398,8 @@ sapmnt_volume_size = 64
 #########################################################################################
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-##network_name ="SAP05"
-network_logical_name = "SAP05"
+##network_name ="SAP01"
+network_logical_name = "SAP01"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix

@@ -38,7 +38,7 @@
 environment = "QA"
 
 # The location valus is a mandatory field, it is used to control where the resources are deployed
-location = "westeurope"
+location = "eastus2"
 
 #########################################################################################
 #                                                                                       #
@@ -98,27 +98,27 @@ database_vm_use_DHCP = true
 #}
 
 #SUSE 12 SP5
-database_vm_image = {
-  os_type         = ""
-  source_image_id = ""
-  publisher       = "SUSE"
-  offer           = "sles-sap-12-sp5"
-  sku             = "gen2"
-  version         = "latest"
-}
-
-#RedHat
-# database_vm_image={
-#   os_type="linux"
-#   source_image_id=""
-#   publisher="RedHat"
-#   offer="RHEL-SAP-HA"
-#   sku="82sapha-gen2"
-#   version="8.2.2021040902"
+# database_vm_image = {
+#   os_type         = ""
+#   source_image_id = ""
+#   publisher       = "SUSE"
+#   offer           = "sles-sap-12-sp5"
+#   sku             = "gen2"
+#   version         = "latest"
 # }
 
+#RedHat
+database_vm_image = {
+  os_type         = "linux"
+  source_image_id = ""
+  publisher       = "RedHat"
+  offer           = "RHEL-SAP-HA"
+  sku             = "82sapha-gen2"
+  version         = "8.2.2021040902"
+}
+
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
-database_vm_zones=["1"]
+database_vm_zones = ["1"]
 
 # Optional, Defines the default authentication model for the Database VMs (key/password)
 #database_vm_authentication_type="key"
@@ -148,7 +148,7 @@ app_tier_vm_sizing = "Optimized"
 app_tier_use_DHCP = true
 
 # sid is a mandatory field that defines the SAP Application SID
-sid = "Q00"
+sid = "Q01"
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
 #use_loadbalancers_for_standalone_deployments=false
@@ -172,7 +172,7 @@ scs_instance_number = "01"
 ers_instance_number = "02"
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-scs_server_zones=["1"]
+scs_server_zones = ["1"]
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku="Standard_D4s_v3"
@@ -180,12 +180,13 @@ scs_server_zones=["1"]
 # The vm_image defines the Virtual machine image to use for the application servers, 
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
-scs_server_image= {
- os_type=""
- source_image_id=""
- publisher="SUSE"
- offer="sles-sap-15-sp3"
- sku="gen2"
+scs_server_image = {
+  os_type         = "linux"
+  source_image_id = ""
+  publisher       = "RedHat"
+  offer           = "RHEL-SAP-HA"
+  sku             = "82sapha-gen2"
+  version         = "8.2.2021040902"
 }
 
 # scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
@@ -216,7 +217,7 @@ scs_server_image= {
 #########################################################################################
 
 # application_server_count defines how many application servers to deploy
-application_server_count=2
+application_server_count = 2
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
 #application_server_zones=["1","2","3"]
@@ -256,10 +257,10 @@ application_server_count=2
 application_server_image = {
   os_type         = ""
   source_image_id = ""
-  publisher       = "SUSE"
-  offer           = "sles-sap-12-sp5"
-  sku             = "gen2"
-  version         = "latest"
+  publisher       = "RedHat"
+  offer           = "RHEL-SAP-HA"
+  sku             = "82sapha-gen2"
+  version         = "8.2.2021040902"
 }
 
 ############################################################################################
@@ -319,8 +320,8 @@ webdispatcher_server_count = 0
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider       = "AFS"
-sapmnt_volume_size = 64
+NFS_provider       = "NONE"
+sapmnt_volume_size = 128
 
 #########################################################################################
 #                                                                                       #
@@ -398,8 +399,8 @@ sapmnt_volume_size = 64
 #########################################################################################
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-##network_name ="SAP05"
-network_logical_name = "SAP05"
+##network_name ="SAP01"
+network_logical_name = "SAP03"
 
 # ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix
