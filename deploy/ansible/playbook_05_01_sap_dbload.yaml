@@ -69,9 +69,6 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "DBLoad Playbook: - Load the SAP parameters"
-      ansible.builtin.include_vars:    "{{ _workspace_directory }}/sap-parameters.yaml"
-
     - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
       block:
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
