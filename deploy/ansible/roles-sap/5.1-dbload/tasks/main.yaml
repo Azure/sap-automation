@@ -112,7 +112,7 @@
 # *====================================4=======================================8
     - name:                            "DBLoad: progress"
       ansible.builtin.debug:
-        msg:                           "Starting DBLoad, for {{ sap_sid | upper }}. Please wait"
+        msg:                           "Starting DBLoad for {{ sap_sid | upper }}. Please wait"
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |

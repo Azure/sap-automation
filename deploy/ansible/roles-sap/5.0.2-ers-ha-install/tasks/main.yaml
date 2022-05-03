@@ -74,7 +74,7 @@
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     sap_scs_hostname:                  "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-    param_directory:                   "{{ dir_params }}" 
+    param_directory:                   "{{ dir_params }}"
   tags:
     - skip_ansible_lint
 
