@@ -35,6 +35,7 @@ resource "azurerm_lb" "anydb" {
       )
     )
     private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    zones = ["1", "2", "3"]
   }
 }
 
