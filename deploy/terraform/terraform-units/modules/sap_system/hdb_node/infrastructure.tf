@@ -69,6 +69,7 @@ resource "azurerm_lb" "hdb" {
         )
       )
     )
+    zones = ["1", "2", "3"]
   }
 
 }
