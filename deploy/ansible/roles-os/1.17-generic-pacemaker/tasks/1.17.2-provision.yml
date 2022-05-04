@@ -36,8 +36,8 @@
   ansible.builtin.authorized_key:
     user:                              root
     key:                               "{{ hostvars[secondary_instance_name].cluster_public_ssh_key }}"
-  when:                                
-   - ansible_hostname != secondary_instance_name
+  when:
+    - ansible_hostname != secondary_instance_name
 
 # Clustering commands are based on the Host OS
 - name:                                "1.17 Generic Pacemaker - Cluster based on {{ ansible_os_family }} on VM {{ ansible_hostname }}"

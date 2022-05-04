@@ -8,6 +8,12 @@
 
 ---
 
+- name:                                "User Creation: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile_template:              "{{ bom_base_name }}-generic-inifile-param.j2"
+    sap_inifile:                       "{{ bom_base_name }}-generic-{{ sap_sid | lower }}-{{ ansible_hostname }}.params"
+    dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | lower }}-params"
+
 - name:                                "User Creation: Set the Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
@@ -21,33 +27,36 @@
   ansible.builtin.set_fact:
     scs_server:                        "{{ scs_server_temp | first }}"
 
+#   0x) Create hidden directory for parameter files
+- name:                                "User Creation: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
+
 - name:                                "User Creation: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | lower }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "User Creation: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/user_created.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | lower }}/user_created.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "User Creation: check if Completed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/user_created.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | lower }}/user_created.txt"
   register:                            users_created
 
 - name:                                "User Creation: check if installed"
   ansible.builtin.debug:
     var:                               users_created
     verbosity:                         2
-
-- name:                                "User Creation: Set BOM facts"
-  ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-generic-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}-generic-inifile-param.j2"
-# Returns bom object
 
 - name:                                "User Creation: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -82,6 +91,7 @@
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
+    param_directory:                   "{{ dir_params }}"
   tags:
     - skip_ansible_lint
 
@@ -100,20 +110,23 @@
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
+    - name:                            "User Creation: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start user creation"
 
     - name:                            "User Creation: SAP OS USERS and Group Creation {{ scs_virtual_hostname }}"
       ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }} \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}                             \
                                                  SAPINST_SKIP_DIALOGS=true                                                            \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/user_created.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | lower }}/user_created.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-        TMPDIR:                        "{{ target_media_location }}"
+        TMPDIR:                        "{{ tmp_directory }}"
       register:                        generic_user_creation
       failed_when:                     generic_user_creation.rc > 0
       tags:
@@ -129,11 +142,17 @@
         msg:                           "User Creation succeeded"
       when:                            generic_user_creation.rc == 0
 
+    - name:                            "User Creation: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
+
     - name:                            "User Creation: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/user_created.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | lower }}/user_created.txt"
         state:                         touch
         mode:                          0755
+      when:                            generic_user_creation.rc == 0
 
   when:
     - not users_created.stat.exists

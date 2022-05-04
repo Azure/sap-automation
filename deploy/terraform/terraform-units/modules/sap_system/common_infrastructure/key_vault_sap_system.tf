@@ -35,7 +35,7 @@ data "azurerm_key_vault_secret" "sid_password" {
 // Create private KV with access policy
 resource "azurerm_key_vault" "sid_keyvault_prvt" {
   provider = azurerm.main
-  count    = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
+  count    = local.enable_sid_deployment && local.use_local_credentials ? 0 : 0
   name     = local.automation_keyvault_name
   location = var.infrastructure.region
   resource_group_name = local.rg_exists ? (
@@ -52,7 +52,7 @@ resource "azurerm_key_vault" "sid_keyvault_prvt" {
     object_id = local.service_principal.object_id
 
     secret_permissions = [
-      "get",
+      "Get",
     ]
   }
 
@@ -61,7 +61,7 @@ resource "azurerm_key_vault" "sid_keyvault_prvt" {
 // Import an existing private Key Vault
 data "azurerm_key_vault" "sid_keyvault_prvt" {
   provider            = azurerm.main
-  count               = local.enable_sid_deployment && length(local.prvt_key_vault_id) > 0 ? 1 : 0
+  count               = local.enable_sid_deployment && length(local.prvt_key_vault_id) > 0 ? 0 : 0
   name                = local.automation_keyvault_name
   resource_group_name = local.automation_keyvault_rg_name
 }

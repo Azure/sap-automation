@@ -214,8 +214,6 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
   quota = 1024
 }
 
-
-#ToDo Fix later
 resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider = azurerm.deployer
   count    = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0

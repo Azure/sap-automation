@@ -11,46 +11,44 @@
 
 
 # Location of Export CD
-SAPINST.CD.PACKAGE.ORACLI                                            = /usr/sap/install/oraclient
-SAPINST.CD.PACKAGE.CD1                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.ORACLI                                            = {{ target_media_location }}/oraclient
+SAPINST.CD.PACKAGE.CD1                                               = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                               = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                               = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
 
 
-archives.downloadBasket                                              = /usr/sap/install/download_basket
+archives.downloadBasket                                              = {{ target_media_location }}/download_basket
 NW_readProfileDir.profilesAvailable                                  = false
 nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
-nwUsers.sidAdmUID                                                    = {{ item.sidadm_uid }}
+nwUsers.sidAdmUID                                                    = {{ sidadm_uid }}
 
 NW_Delete_Sapinst_Users.removeUsers                                  = true
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
-NW_GetSidNoProfiles.sid                                              = {{ item.sid|upper }}
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid|upper }}
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
 hostAgent.sapAdmPassword                                             = {{ main_password }}
 nwUsers.sidadmPassword                                               = {{ main_password }}
-#NW_readProfileDir.profileDir                                         = /sapmnt/{{ item.sid|upper }}/profile
-
-
+#NW_readProfileDir.profileDir                                         = /sapmnt/{{ sap_sid|upper }}/profile
 
 #Oracle Database parameters
 
 NW_ABAP_Import_Dialog.migmonJobNum                                   = 10
 NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast
-NW_getDBInfoGeneric.dbhost                                         = {{ sap_db_hostname }}
-NW_getDBInfoGeneric.dbsid                                            = {{ item.sid|upper }}
+NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                            = {{ sap_sid|upper }}
 NW_getLoadType.loadType                                              = SAP
 ora.SysPassword                                                      = {{ main_password }}
 ora.SystemPassword                                                   = {{ main_password }}
 ora.createStatisticsCodeABAP                                         = CREATE
-ora.dbhome                                                           = /oracle/{{ item.sid|upper }}/19
+ora.dbhome                                                           = /oracle/{{ sap_sid |upper }}/19
 #ora.oraclePassword                                                  = {{ main_password }}
 # ora.orasidPassword                                                 = {{ main_password }}
 storageBasedCopy.abapSchemaPassword                                  = {{ main_password }}
 storageBasedCopy.javaSchemaPassword                                  = {{ main_password }}
 # ora.hasTDE                                                         = false
 ora.multitenant.installMT                                            = FALSE
-ora.multitenant.pdbsid                                               = {{ item.sid|upper }}
+ora.multitenant.pdbsid                                               = {{ sap_sid|upper }}
 storageBasedCopy.ora.ABAPSchema                                     = SAPSR3
 ora.InstallSW                                                       = false
 ora.SharedOracleHome                                                = /oracle/RDBMS

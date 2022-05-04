@@ -85,18 +85,6 @@ data "azurerm_key_vault" "kv_user" {
   resource_group_name = local.user_keyvault_rg_name
 }
 
-// Using TF tls to generate SSH key pair for iscsi devices and store in user KV
-resource "tls_private_key" "iscsi" {
-  count = (
-    local.enable_landscape_kv
-    && local.enable_iscsi_auth_key
-    && !local.iscsi_key_exist
-    && try(file(var.authentication.path_to_public_key), null) == null
-  ) ? 1 : 0
-  algorithm = "RSA"
-  rsa_bits  = 2048
-}
-
 resource "azurerm_key_vault_access_policy" "kv_user" {
   provider     = azurerm.main
   count        = (local.enable_landscape_kv && !local.user_keyvault_exist) ? 1 : 0
@@ -113,98 +101,6 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
     "Restore",
     "Purge"
   ]
-}
-resource "azurerm_key_vault_secret" "iscsi_ppk" {
-  depends_on = [
-    azurerm_key_vault_access_policy.kv_user
-  ]
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
-  content_type = ""
-  name         = local.iscsi_ppk_name
-  value        = local.iscsi_private_key
-  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-}
-
-resource "azurerm_key_vault_secret" "iscsi_pk" {
-  depends_on = [
-    azurerm_key_vault_access_policy.kv_user
-  ]
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
-  content_type = ""
-  name         = local.iscsi_pk_name
-  value        = local.iscsi_public_key
-  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-}
-
-resource "azurerm_key_vault_secret" "iscsi_username" {
-  depends_on = [
-    azurerm_key_vault_access_policy.kv_user
-  ]
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
-  content_type = ""
-  name         = local.iscsi_username_name
-  value        = local.iscsi_auth_username
-  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-}
-
-resource "azurerm_key_vault_secret" "iscsi_password" {
-  depends_on = [
-    azurerm_key_vault_access_policy.kv_user
-  ]
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
-  content_type = ""
-  name         = local.iscsi_pwd_name
-  value        = local.iscsi_auth_password
-  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-}
-
-// Generate random password if password is set as authentication type and user doesn't specify a password, and save in KV
-resource "random_password" "iscsi_password" {
-  count = (
-    local.enable_landscape_kv
-    && local.enable_iscsi_auth_password
-    && !local.iscsi_pwd_exist
-  && try(var.authentication.password, null) == null) ? 1 : 0
-
-  length           = 32
-  min_upper        = 2
-  min_lower        = 2
-  min_numeric      = 2
-  special          = true
-  override_special = "_%@"
-}
-
-// Import secrets about iSCSI
-data "azurerm_key_vault_secret" "iscsi_pk" {
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
-  name         = local.iscsi_pk_name
-  key_vault_id = local.user_key_vault_id
-}
-
-data "azurerm_key_vault_secret" "iscsi_ppk" {
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
-  name         = local.iscsi_ppk_name
-  key_vault_id = local.user_key_vault_id
-}
-
-data "azurerm_key_vault_secret" "iscsi_password" {
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password && local.iscsi_pwd_exist) ? 1 : 0
-  name         = local.iscsi_pwd_name
-  key_vault_id = local.user_key_vault_id
-}
-
-data "azurerm_key_vault_secret" "iscsi_username" {
-  provider     = azurerm.main
-  count        = (local.enable_landscape_kv && local.enable_iscsi && local.iscsi_username_exist) ? 1 : 0
-  name         = local.iscsi_username_name
-  key_vault_id = local.user_key_vault_id
 }
 
 // Using TF tls to generate SSH key pair for SID

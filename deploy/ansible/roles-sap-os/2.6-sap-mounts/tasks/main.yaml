@@ -21,7 +21,8 @@
 
 - name:                                "2.6 SAP Mounts: - choose the shared disk"
   ansible.builtin.set_fact:
-    sharedpath:                       "{% if shareddisk == '1' %}/dev/vg_hana_shared/lv_hana_shared{% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
+    sharedpath:                        "{% if shareddisk == '1' %}/dev/vg_hana_shared/lv_hana_shared\
+                                        {% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
 
 - name:                                "2.6 SAP Mounts: - Set the NFS Server name list"
   ansible.builtin.set_fact:
@@ -36,7 +37,7 @@
 
 - name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
   ansible.builtin.set_fact:
-    usr_sap_install_mount_point:        "{% if NFS_provider == 'AFS' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
+    usr_sap_install_mount_point:       "{% if NFS_provider in ['AFS','ANF']  %}{% if usr_sap_install_mountpoint is defined %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
 
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
@@ -54,7 +55,7 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { node_tier: 'all',  type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                 path: '/usr/sap'         }
+    - { node_tier: 'all',  type: 'xfs', src: '/dev/vg_sap/lv_usrsap', path: '/usr/sap' }
   when:
     - (item.node_tier == "all" or item.node_tier == node_tier)
     - not scs_high_availability
@@ -68,25 +69,45 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { node_tier: 'hana', type: 'xfs',   src: "{{ sharedpath }}",                      path: '/hana/shared'     }
-    - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_data/lv_hana_data',        path: '/hana/data'       }
-    - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_log/lv_hana_log',          path: '/hana/log'        }
-    - { node_tier: 'hana', type: 'xfs',   src: '/dev/vg_hana_backup/lv_hana_backup',    path: '/hana/backup'     }
+    - { node_tier: 'hana', type: 'xfs', src: "{{ sharedpath }}",                   path: '/hana/shared' }
+    - { node_tier: 'hana', type: 'xfs', src: '/dev/vg_hana_backup/lv_hana_backup', path: '/hana/backup' }
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
 
-- name:                               "Exports: Create SAP Trans MSIDs"
+- name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
+  ansible.builtin.mount:
+    src:                               '/dev/vg_hana_data/lv_hana_data'
+    path:                              '/hana/data'
+    fstype:                            'xfs'
+    opts:                              defaults
+    state:                             mounted
+  when:
+    - node_tier == 'hana'
+    - hana_data_mountpoint is undefined
+
+- name:                                "2.6 SAP Mounts: - Mount local file systems (hana log)"
+  ansible.builtin.mount:
+    src:                               '/dev/vg_hana_log/lv_hana_log'
+    path:                              '/hana/log'
+    fstype:                            'xfs'
+    opts:                              defaults
+    state:                             mounted
+  when:
+    - node_tier == 'hana'
+    - hana_log_mountpoint is undefined
+
+- name:                                "Exports: Create SAP Trans MSIDs"
   ansible.builtin.file:
-    path:                             "{{ item.path }}"
-    state:                            directory
-    mode:                             0755
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
   loop:
     - { path: '/usr/sap/trans' }
   when:
     - node_tier == 'scs'
     - MULTI_SIDS is defined
+    - sap_trans is undefined
 
-
-- name:                                "2.6 SAP Mounts: - Mount local install file systems (when not using AFS)"
+- name:                                "2.6 SAP Mounts: - Mount local install file system on SCS (when not using AFS)"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
