@@ -136,11 +136,32 @@ stages:
                 export  deployer_tfstate_key=$(cat "${environment_file_name}"  | grep deployer_tfstate_key  | awk -F'=' '{print $2}' | xargs) ; echo 'deployer_tfstate_key' $deployer_tfstate_key
                 export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
                 export       REMOTE_STATE_SA=$(cat "${environment_file_name}"  | grep REMOTE_STATE_SA       | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                export              keyvault=$(cat "${environment_file_name}"  | grep keyvault=    -m1      | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                export      workloadkeyvault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+
+                az account set --subscription "${STATE_SUBSCRIPTION}"
+                ip_added=0
+
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                  echo -e "$green--- Set IP ${this_ip} ---$reset"
+                  az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --only-show-errors 
+                  ip_added=1
+                fi
+
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                  echo -e "$green--- Set IP ${this_ip} ---$reset"
+                  az keyvault network-rule add --name ${workloadkeyvault} --ip-address ${this_ip} --only-show-errors 
+                fi
 
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
-                --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                                \
-                --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                   \
+                 --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
+                 --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                  \
                  --ado --auto-approve
+
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from installer $return_code."
@@ -149,6 +170,25 @@ stages:
                     echo "##vso[task.logissue type=error]Error message: $error_message."
                   fi
                 fi
+
+                az account set --subscription "${STATE_SUBSCRIPTION}"
+                if [[ 1 -eq $ip_added ]]; then
+
+                  if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                    az keyvault network-rule remove --name ${keyvault} --ip-address ${this_ip} --no-wait
+                  fi
+                fi
+
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                if [[ 1 -eq $ip_added ]]; then
+
+                  if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                    az keyvault network-rule remove --name ${workloadkeyvault} --ip-address ${this_ip} --no-wait
+                  fi
+                fi
+
                 # Pull changes if there are other deployment jobs
                 
                 cd $HOME/SYSTEM/$(sap_system_folder)
@@ -183,10 +223,10 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
-                echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
+                echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure

@@ -7,10 +7,6 @@ variable "nics_dbnodes_db" {
   description = "NICs of HANA database nodes"
 }
 
-variable "iscsi_private_ip" {
-  description = "Private ips of iSCSIs"
-}
-
 variable "loadbalancers" {
   description = "List of LoadBalancers created for HANA Databases"
 }
@@ -171,10 +167,12 @@ variable "db_auth_type" {
 
 
 variable "install_path" {
+  description = "Defines the install path for mounting /usr/sap/install"
   default = ""
 }
 
 variable "NFS_provider" {
+  description = "Defines the NFS provider"
   type = string
 }
 
@@ -190,6 +188,13 @@ variable "shared_home" {
   description = "If defined provides shared-home support"
 }
 
+variable "hana_data" {  
+  description = "If defined provides the mount point for HANA data on ANF"
+}
+
+variable "hana_log" {  
+  description = "If defined provides the mount point for HANA log on ANF"
+}
 
 locals {
 
@@ -200,18 +205,8 @@ locals {
   kv_name = split("/", var.sid_keyvault_user_id)[8]
 
   landscape_tfstate = var.landscape_tfstate
-  ips_iscsi         = var.iscsi_private_ip
   ips_dbnodes_admin = [for key, value in var.nics_dbnodes_admin : value.private_ip_address]
   ips_dbnodes_db    = [for key, value in var.nics_dbnodes_db : value.private_ip_address]
-
-  iscsi = {
-    iscsi_count = length(local.ips_iscsi)
-    authentication = {
-      type     = local.landscape_tfstate.iscsi_authentication_type
-      username = local.landscape_tfstate.iscsi_authentication_username
-    }
-  }
-
 
   ips_primary_scs = var.nics_scs
   ips_primary_app = var.nics_app

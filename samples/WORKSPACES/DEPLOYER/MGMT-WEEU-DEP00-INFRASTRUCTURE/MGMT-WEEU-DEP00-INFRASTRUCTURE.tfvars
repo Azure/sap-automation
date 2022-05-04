@@ -23,7 +23,7 @@ resourcegroup_tags = {
 #
 
 #management_network_name=""
-management_network_logical_name="DEP00"
+management_network_logical_name="DEP01"
 #management_network_arm_id=""
 management_network_address_space="10.10.20.0/24"
 
@@ -94,7 +94,7 @@ deployer_enable_public_ip=true
 #deployer_disk_type"="Premium_LRS"
 
 # deployer_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
-#deployer_use_DHCP = true
+deployer_use_DHCP = true
 
 # private_ip_address if defined will provide the IP addresses for the network interface cards 
 #private_ip_address=""
@@ -102,17 +102,17 @@ deployer_enable_public_ip=true
 #
 # The deployer_image defines the Virtual machine image to use, if source_image_id is specified the deployment will use the custom image provided, in this case os_type must also be specified
 
-#deployer_image={
-#    "os_type"         = "Linux"    
-#    "source_image_id" =""
-#    "publisher"       ="Canonical"
-#    "offer"           ="UbuntuServer"
-#    "sku"             ="18.04-LTS"
-#    "version"         ="latest"
-#}
-
+deployer_image={
+    "os_type"         = "Linux"    
+    "source_image_id" =""
+    "publisher"       ="Canonical"
+    "offer"           ="UbuntuServer"
+    "sku"             ="18.04-LTS"
+    "version"         ="latest"
+}
 # deployer_diagnostics_account_arm_id defines the diagnosting storage account for the deployer
-#deployer_diagnostics_account_arm_id = ""
+# deployer_diagnostics_account_arm_id = ""
+
 /*
 This block describes the variables for the authentication section block in the json file
 */

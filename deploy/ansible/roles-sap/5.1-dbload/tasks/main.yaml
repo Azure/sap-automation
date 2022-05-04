@@ -10,20 +10,20 @@
 
 - name:                                "DBLoad: -  Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              0755
   when:                                node_tier != "oracle"
 
 - name:                                "DBLoad: -  reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "DBLoad: - check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
   register:                            dbload_installed
 
 - name:                                "DBLoad: -  Set the SCS Server name list"
@@ -35,10 +35,24 @@
 
 - name:                                "DBLoad: - Set dbload facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
+    sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sap_sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
     scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
     db_virtual_host:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+    dir_params:                        "{{ tmp_directory }}/.params"
+
+#   0x) Create hidden directory for parameter files
+- name:                                "DBLoad: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ dir_params }}"
+    state:                             directory
+    mode:                              '0755'
+
+# Import this task only if the tier is ora.
+- import_tasks:                        "oracle.yaml"
+  when:
+    - node_tier == "oracle-multi-sid"
+    - MULTI_SIDS is defined
 
 - name:                                "DBLoad: - Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -74,6 +88,7 @@
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     tier:                              "{{ tier }}"
+    param_directory:                   "{{ dir_params }}"
   tags:
     - skip_ansible_lint
 
@@ -97,32 +112,47 @@
 # *====================================4=======================================8
     - name:                            "DBLoad: progress"
       ansible.builtin.debug:
-        msg:                           "Starting DBLoad"
+        msg:                           "Starting DBLoad for {{ sap_sid | upper }}. Please wait"
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_dbload.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
       environment:
-        TMPDIR:                        "{{ target_media_location }}"
+        TMPDIR:                        "{{ tmp_directory }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-
       register:                        dbload_results
       failed_when:                     dbload_results.rc > 0
       tags:
         - skip_ansible_lint
+      async:                           7200
+      poll:                            60
+
+    - name:                            "DBLoad Install -Wait for asynchronous job to end"
+      ansible.builtin.async_status:
+        jid:                           '{{ dbload_results.ansible_job_id }}'
+      register:                        job_result
+      until:                           job_result.finished
+      retries:                         90
+      delay:                           120
+      when:                            dbload_results.ansible_job_id is defined
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
-        var:                           dbload
+        var:                           dbload_results
       when:
         - dbload_results is defined
         - dbload_results.rc > 0
+
+    - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
 
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
@@ -131,12 +161,12 @@
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_dbload.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_dbload.txt"
         state:                         touch
         mode:                          0755
       when:
-        - dbload is defined
-        - dbload.rc > 0
+        - dbload_results is defined
+        - dbload_results.rc > 0
 
   when:
     - not dbload_installed.stat.exists

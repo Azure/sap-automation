@@ -12,22 +12,32 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-scsha-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scsha-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.params"
+
+#   0x) Create hidden directory for parameter files
+- name:                               "SCS HA Install: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
 
 - name:                                "SCS HA Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "SCS HA Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "SCS HA Install: check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
@@ -64,6 +74,7 @@
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
+    param_directory:                   "{{ dir_params }}"
   tags:
     - skip_ansible_lint
 
@@ -110,18 +121,17 @@
       block:
         - name:                        "SCS HA Install: SAPInst"
           ansible.builtin.shell: |
-                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}                       \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
-                                                 SAPINST_START_GUISERVER=false                                                 \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false                                       \
                                                  SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   /etc/sap_deployment_automation/sap_deployment_scs.txt
+            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ target_media_location }}"
+            TMPDIR:                    "{{ tmp_directory }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
           tags:
@@ -183,18 +193,18 @@
         - name:                        "RESCUE - SCS HA Install: SAPINST"
           ansible.builtin.command: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}                       \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
-                                                 SAPINST_START_GUISERVER=false                                                 \
-                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                               \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs_ha }}             \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false                                       \
+                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                     \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   /etc/sap_deployment_automation/sap_deployment_scs.txt
+            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ target_media_location }}"
+            TMPDIR:                    "{{ tmp_directory }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
           tags:
@@ -211,9 +221,14 @@
         msg:                           "SCS HA Installation succeeded"
       when:                            scs_installation.rc == 0
 
+    - name:                            "SCS HA Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
+
     - name:                            "SCS HA Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
         state:                         touch
         mode:                          0755
 

@@ -69,7 +69,7 @@ variable "NFS_provider" {
   default = "NONE"
 }
 
-variable "azure_files_storage_account_id" {
+variable "azure_files_sapmnt_id" {
   type    = string
   default = ""
 }
@@ -84,6 +84,7 @@ variable "use_private_endpoint" {
 }
 
 variable "hana_dual_nics" {
+  description = "value to indicate if dual nics are used for HANA"
 }
 
 locals {
@@ -514,6 +515,7 @@ locals {
     var.key_vault.kv_user_id) : (
     var.landscape_tfstate.landscape_key_vault_user_arm_id
   )
+  
   prvt_key_vault_id = length(try(var.key_vault.kv_prvt_id, "")) > 0 ? (
     var.key_vault.kv_prvt_id) : (
     var.landscape_tfstate.landscape_key_vault_private_arm_id

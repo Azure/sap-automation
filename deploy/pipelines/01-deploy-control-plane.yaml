@@ -128,8 +128,26 @@ stages:
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
+              
+              deployer_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
+
+              if [ -f ${deployer_environment_file_name} ]; then
+                export keyvault=$(cat ${deployer_environment_file_name}  | grep keyvault | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+
+                ip_added=0
+
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  if [ -n ${keyvault} ]; then
+
+                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                    az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --no-wait
+                    ip_added=1
+                  fi
+                fi
+              fi
 
               echo -e "$green--- Deploy the Control Plane ---$reset"
+
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve
                 return_code=$?
                 if [ 0 != $return_code ]; then
@@ -140,6 +158,16 @@ stages:
                   fi
 
                 fi
+
+                if [[ 1 -eq $ip_added ]]; then
+
+                  if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                    az keyvault network-rule remove --name ${keyvault} --ip-address ${this_ip} --no-wait
+                  fi
+                fi
+
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 added=0
@@ -182,8 +210,8 @@ stages:
 
 
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
                 if [ -f $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then

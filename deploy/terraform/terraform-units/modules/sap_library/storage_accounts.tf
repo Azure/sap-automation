@@ -33,6 +33,10 @@ resource "azurerm_storage_account" "storage_tfstate" {
     )
     virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
   }
+
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
 }
 
 // Imports existing storage account to use for tfstate
@@ -127,6 +131,9 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
     virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
   }
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+
 }
 
 data "azurerm_storage_account" "storage_sapbits" {
@@ -198,7 +205,7 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
 // Creates file share inside the storage account for SAP bits
 resource "azurerm_storage_share" "fileshare_sapbits" {
   provider = azurerm.main
-  count    = !var.storage_account_sapbits.file_share.is_existing ? 1 : 0
+  count    = !var.storage_account_sapbits.file_share.is_existing ? 0 : 0
   name     = var.storage_account_sapbits.file_share.name
   storage_account_name = local.sa_sapbits_exists ? (
     data.azurerm_storage_account.storage_sapbits[0].name) : (
@@ -207,8 +214,6 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
   quota = 1024
 }
 
-
-#ToDo Fix later
 resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider = azurerm.deployer
   count    = length(var.key_vault.kv_spn_id) > 0 ? 1 : 0

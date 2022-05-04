@@ -28,3 +28,4 @@ resource "azurerm_netapp_volume" "sapmnt" {
   storage_quota_in_gb = var.sapmnt_volume_size
 
 }
+

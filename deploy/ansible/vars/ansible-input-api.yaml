@@ -34,6 +34,8 @@ sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
 
+tmp_directory:                "/tmp"
+
 # Oracle specific parameters
 ora_sid:                      "ORA"
 dba_gid:                      3000
