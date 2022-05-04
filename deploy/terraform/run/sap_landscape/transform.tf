@@ -139,7 +139,6 @@ locals {
   }
   options = {
     enable_secure_transfer = true
-    create_fencing_spn     = var.create_fencing_spn || try(var.options.create_fencing_spn, false)
     use_spn                = var.use_spn || try(var.options.use_spn, true)
   }
   key_vault_temp = {

@@ -218,8 +218,8 @@ stages:
                 fi
 
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -q & >/dev/null
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -q & >/dev/null 
                 fi
                 2> >(while read line; do (>&2 echo "STDERROR: $line"); done)
             name:                      Preparation
@@ -391,6 +391,7 @@ stages:
       )
     jobs:
       - job:                           Software_Acquisition
+        timeoutInMinutes:              0
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
@@ -442,6 +443,7 @@ stages:
     jobs:
       - job:                           Database_Installation
         displayName:                   Database Installation
+        timeoutInMinutes:              0
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
@@ -490,8 +492,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
 
@@ -513,6 +515,7 @@ stages:
     jobs:
       - job:                           SCS_Installation
         displayName:                   SCS Installation
+        timeoutInMinutes:              0
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
@@ -561,8 +564,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added logs from SCS Installation $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
 
@@ -588,6 +591,7 @@ stages:
     jobs:
       - job:                           Database_Load
         displayName:                   Database Load
+        timeoutInMinutes:              0
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
@@ -635,8 +639,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added Logs from database load $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
   - stage:                             HighAvailability_Setup
@@ -654,12 +658,12 @@ stages:
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
         in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
-        in(dependencies.Database_Load.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
     jobs:
       - job:                           HighAvailability_Setup
         displayName:                   High Availability Setup
+        timeoutInMinutes:              0
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
@@ -715,6 +719,7 @@ stages:
     jobs:
       - job:                           PAS_Installation
         displayName:                   PAS Installation
+        timeoutInMinutes:              0
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
@@ -763,8 +768,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added Logs from PAS Install $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
 
@@ -777,7 +782,6 @@ stages:
       - Database_Installation
       - SCS_Installation
       - Database_Load
-      - HighAvailability_Setup
       - PAS_Installation
     condition: |
       and
@@ -786,11 +790,13 @@ stages:
         eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
         in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
         in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
+        in(dependencies.PAS_Installation.result, 'Succeeded', 'Skipped'),
         eq(dependencies.Validate_Parameters.result, 'Succeeded')
       )
     jobs:
       - job:                           APP_Install
         displayName:                   Application Server Install
+        timeoutInMinutes:              0
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SID:                         $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
@@ -839,8 +845,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added logs from App Install $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
 
@@ -906,8 +912,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added updates from Web Dispatcher Install $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
 
@@ -950,8 +956,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops Ansible deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Copy all Logs $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"

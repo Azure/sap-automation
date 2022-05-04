@@ -106,6 +106,16 @@ resource "local_file" "sap-parameters_yml" {
     pas_instance_number = local.pas_instance_number
 
     oracle = local.oracle
+
+    hana_data = length(var.hana_data) > 0 ? (
+      format("hana_data_mountpoint:          %s", var.hana_data)) : (
+      ""
+    )
+    hana_log = length(var.hana_log) > 0 ? (
+      format("hana_log_mountpoint:           %s", var.hana_log)) : (
+      ""
+    )
+
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)

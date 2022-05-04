@@ -89,10 +89,6 @@ variable "hana_dual_nics" {
   default     = true
 }
 
-variable "database_vm_names" {
-  default = [""]
-}
-
 variable "database_vm_db_nic_ips" {
   default = [""]
 }
@@ -116,6 +112,15 @@ variable "order_deployment" {
 
 variable "landscape_tfstate" {
   description = "Landscape remote tfstate file"
+}
+
+variable "hana_ANF_data" {
+  description = "Defines HANA ANF data and log volumes"
+}
+
+variable "NFS_provider" {
+  description = "Describes the NFS solution used"
+  type = string
 }
 
 locals {
@@ -424,5 +429,11 @@ locals {
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
+
+  ANF_pool_settings = var.NFS_provider == "ANF" ? (
+    try(var.landscape_tfstate.ANF_pool_settings, null)
+    ) : (
+    null
+  )
 
 }
