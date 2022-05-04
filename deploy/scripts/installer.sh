@@ -851,6 +851,7 @@ fi
 
 if [ "${deployment_system}" == sap_system ]
 then
+    re_run=0
     database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output database_loadbalancer_ip | tr -d \")
     echo "db: $database_loadbalancer_public_ip_address"
 
@@ -861,6 +862,7 @@ then
     then
       database_loadbalancer_ips=[${database_loadbalancer_public_ip_address}]
       save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+      re_run=1
     fi
 
     scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output scs_loadbalancer_ip | tr -d \")
@@ -873,8 +875,17 @@ then
     then
       scs_server_loadbalancer_ips=[${scs_loadbalancer_public_ip_address}]
       save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+      re_run=1
     fi
 
+    if [ 1 == $re_run ] ; then
+
+        if [ 1 == $called_from_ado ] ; then
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings $allParams  2>error.log
+        else
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+        fi
+    fi
 
 
 fi
