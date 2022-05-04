@@ -26,7 +26,7 @@ resource "azurerm_network_interface" "observer" {
         )
       )
     )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.databases[0].use_DHCP ? "dynamic" : "static"
 
   }
 }

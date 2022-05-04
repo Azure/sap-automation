@@ -92,7 +92,7 @@ resource "azurerm_network_interface" "iscsi" {
         cidrhost(local.sub_iscsi_prefix, tonumber(count.index) + 4)
       )
     )
-    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "static"
+    private_ip_address_allocation = local.use_DHCP ? "dynamic" : "static"
   }
 }
 

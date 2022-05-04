@@ -68,7 +68,7 @@ resource "azurerm_lb" "hdb" {
           tonumber(count.index) + local.hdb_ip_offsets.anydb_lb
       ))
     )
-    private_ip_address_allocation = length(var.databases[0].loadbalancer.frontend_ips[0]) > 0 ? "Static" : "Dynamic"
+    private_ip_address_allocation = length(var.databases[0].loadbalancer.frontend_ips[0]) > 0 ? "static" : "dynamic"
 
   }
 

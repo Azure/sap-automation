@@ -24,8 +24,8 @@ resource "azurerm_lb" "anydb" {
       local.resource_suffixes.db_alb_feip
     )
     subnet_id = var.db_subnet.id
-    private_ip_address = length(local.anydb.loadbalancers[0]) > 0 ? (
-      local.anydb.loadbalancers[0]) : (
+    private_ip_address = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? (
+      local.anydb.loadbalancer.frontend_ips[0]) : (
       var.databases[0].use_DHCP ? (
         null) : (
         cidrhost(
@@ -33,7 +33,7 @@ resource "azurerm_lb" "anydb" {
           tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
       ))
     )
-    private_ip_address_allocation = length(local.anydb.loadbalancers[0]) > 0 ? "Static" : "Dynamic"
+    private_ip_address_allocation = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? "static" : "dynamic"
   }
 }
 
