@@ -545,4 +545,191 @@ locals {
   # Store the Deployer KV in workload zone KV
   deployer_keyvault_user_name = try(var.deployer_tfstate.deployer_kv_user_name, "")
 
+#########################################################################################
+#                                                                                       #
+#  iSCSI definitioms                                                                    #
+#                                                                                       #
+#########################################################################################
+  iscsi_count  = try(var.infrastructure.iscsi.iscsi_count, 0)
+  enable_iscsi = local.iscsi_count > 0
+  iscsi_size   = try(var.infrastructure.iscsi.size, "Standard_D2s_v3")
+
+  use_DHCP = try(var.infrastructure.iscsi.use_DHCP, false)
+
+  iscsi_os = try(var.infrastructure.iscsi.os,
+    {
+      "publisher" = try(var.infrastructure.iscsi.os.publisher, "SUSE")
+      "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-12-sp5")
+      "sku"       = try(var.infrastructure.iscsi.os.sku, "gen2")
+      "version"   = try(var.infrastructure.iscsi.os.version, "latest")
+  })
+
+  iscsi_auth_type = local.enable_iscsi ? (
+    try(var.infrastructure.iscsi.authentication.type, "key")) : (
+    ""
+  )
+  iscsi_auth_username = local.enable_iscsi ? (
+    local.iscsi_username_exist ? (
+      data.azurerm_key_vault_secret.iscsi_username[0].value) : (
+      try(var.authentication.username, "azureadm")
+    )) : (
+    ""
+  )
+  iscsi_nic_ips = local.sub_iscsi_exists ? try(var.infrastructure.iscsi.iscsi_nic_ips, []) : []
+
+  // By default, ssh key for iSCSI uses generated public key. 
+  // Provide sshkey.path_to_public_key and path_to_private_key overides it
+  enable_iscsi_auth_key = local.enable_iscsi && local.iscsi_auth_type == "key"
+  iscsi_public_key = local.enable_iscsi_auth_key ? (
+    local.iscsi_key_exist ? (
+      data.azurerm_key_vault_secret.iscsi_pk[0].value) : (
+      try(file(var.authentication.path_to_public_key), tls_private_key.iscsi[0].public_key_openssh)
+    )) : (
+    null
+  )
+  iscsi_private_key = local.enable_iscsi_auth_key ? (
+    local.iscsi_key_exist ? (
+      data.azurerm_key_vault_secret.iscsi_ppk[0].value) : (
+      try(file(var.authentication.path_to_private_key), tls_private_key.iscsi[0].private_key_pem)
+    )) : (
+    null
+  )
+
+  // By default, authentication type of iSCSI target is ssh key pair but using username/password is a potential usecase.
+  enable_iscsi_auth_password = local.enable_iscsi && local.iscsi_auth_type == "password"
+  iscsi_auth_password = local.enable_iscsi_auth_password ? (
+    local.iscsi_pwd_exist ? (
+      data.azurerm_key_vault_secret.iscsi_password[0].value) : (
+      try(var.infrastructure.iscsi.authentication.password, random_password.iscsi_password[0].result)
+    )) : (
+    null
+  )
+
+  iscsi = local.enable_iscsi ? merge(var.infrastructure.iscsi, {
+    iscsi_count = local.iscsi_count,
+    size        = local.iscsi_size,
+    os          = local.iscsi_os,
+    authentication = {
+      type     = local.iscsi_auth_type,
+      username = local.iscsi_auth_username
+    },
+    iscsi_nic_ips = local.iscsi_nic_ips
+  }) : null
+
+  // iSCSI subnet
+  enable_sub_iscsi = (
+    length(try(var.infrastructure.vnets.sap.subnet_iscsi.arm_id, "")) +
+    length(try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, ""))
+  ) > 0
+  sub_iscsi_arm_id = try(var.infrastructure.vnets.sap.subnet_iscsi.arm_id, "")
+  sub_iscsi_exists = length(local.sub_iscsi_arm_id) > 0
+  sub_iscsi_name = local.sub_iscsi_exists ? (
+    try(split("/", local.sub_iscsi_arm_id)[10], "")) : (
+    length(try(var.infrastructure.vnets.sap.subnet_iscsi.name, "")) > 0 ? (
+      var.infrastructure.vnets.sap.subnet_iscsi.name) : (
+      format("%s%s%s%s",
+        var.naming.resource_prefixes.iscsi_subnet,
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        var.naming.separator,
+        local.resource_suffixes.iscsi_subnet
+      )
+    )
+  )
+  sub_iscsi_prefix = local.sub_iscsi_exists ? "" : try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, "")
+
+  // iSCSI NSG
+  var_sub_iscsi_nsg    = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg, {})
+  sub_iscsi_nsg_arm_id = try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.arm_id, "")
+  sub_iscsi_nsg_exists = length(local.sub_iscsi_nsg_arm_id) > 0
+  sub_iscsi_nsg_name = local.sub_iscsi_nsg_exists ? (
+    try(split("/", local.sub_iscsi_nsg_arm_id)[8], "")) : (
+    try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.name,
+      format("%s%s%s%s",
+        var.naming.resource_prefixes.iscsi_subnet_nsg,
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        ),
+        var.naming.separator,
+      local.resource_suffixes.iscsi_subnet_nsg)
+    )
+
+  )
+
+
+  input_iscsi_public_key_secret_name  = try(var.key_vault.kv_iscsi_sshkey_pub, "")
+  input_iscsi_private_key_secret_name = try(var.key_vault.kv_iscsi_sshkey_prvt, "")
+  input_iscsi_password_secret_name    = try(var.key_vault.kv_iscsi_pwd, "")
+  input_iscsi_username_secret_name    = try(var.key_vault.kv_iscsi_username, "")
+  iscsi_key_exist                     = try(length(local.input_iscsi_public_key_secret_name) > 0, false)
+  iscsi_pwd_exist                     = try(length(local.input_iscsi_password_secret_name) > 0, false)
+  iscsi_username_exist                = try(length(local.input_iscsi_username_secret_name) > 0, false)
+
+  iscsi_pk_name = local.iscsi_key_exist ? (
+    local.input_iscsi_public_key_secret_name) : (
+    trimprefix(
+      format("%s-iscsi-sshkey-pub",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        )
+      ),
+      "-"
+    )
+  )
+
+  iscsi_ppk_name = local.iscsi_key_exist ? (
+    local.input_iscsi_private_key_secret_name) : (
+    trimprefix(
+      format("%s-iscsi-sshkey",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        )
+      ),
+      "-"
+    )
+  )
+
+
+  iscsi_pwd_name = local.iscsi_pwd_exist ? (
+    local.input_iscsi_password_secret_name) : (
+    trimprefix(
+      format("%s-iscsi-password",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        )
+      ),
+      "-"
+    )
+  )
+
+  iscsi_username_name = local.iscsi_username_exist ? (
+    local.input_iscsi_username_secret_name) : (
+    trimprefix(
+      format("%s-iscsi-username",
+        length(local.prefix) > 0 ? (
+          local.prefix) : (
+          var.infrastructure.environment
+        )
+      ),
+      "-"
+    )
+  )
+
+  full_iscsiserver_names = flatten([for vm in local.virtualmachine_names :
+    format("%s%s%s%s%s",
+      var.naming.resource_prefixes.vm,
+      local.prefix,
+      var.naming.separator,
+      vm,
+      local.resource_suffixes.vm
+    )]
+  )
+
+
 }
