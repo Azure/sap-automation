@@ -70,6 +70,7 @@ resource "azurerm_lb" "hdb" {
     )
     private_ip_address_allocation = length(var.databases[0].loadbalancer.frontend_ips[0]) > 0 ? "static" : "dynamic"
 
+    zones = ["1", "2", "3"]
   }
 
 }

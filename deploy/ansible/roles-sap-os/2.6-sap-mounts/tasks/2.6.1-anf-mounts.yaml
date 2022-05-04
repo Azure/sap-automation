@@ -345,7 +345,7 @@
       'mount':             '{{ sap_trans }}',
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/trans',
-      'set_chattr_on_dir': true,
+      'set_chattr_on_dir': false,
       'target_nodes':      ['app','pas', 'ers', 'scs']
     }
   vars:
