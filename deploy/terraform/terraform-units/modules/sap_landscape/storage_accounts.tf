@@ -21,6 +21,11 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   enable_https_traffic_only       = true
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 3056eb4e302e32f06350ec2255deebc6dec7525b
 }
 
 resource "azurerm_storage_account_network_rules" "storage_bootdiag" {

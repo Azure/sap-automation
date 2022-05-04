@@ -1,5 +1,44 @@
 ---
 
+- name:                               "Exports: Create SAP Directories"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:
+    - { path: '{{ target_media_location }}' }
+    - { path: '/usr/sap/trans' }
+    - { path: '/sapmnt/{{ sap_sid|upper }}' }
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is undefined
+    - sap_mnt is undefined
+    - sap_trans is undefined
+    - usr_sap_install_mountpoint is undefined
+
+- name:                               "Exports: Create SAP Directories for MSIDs"
+  ansible.builtin.file:
+    path:                             "{{ item.path }}"
+    state:                            directory
+    mode:                             0755
+  loop:
+    - { path: '/sapmnt' }
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is defined
+
+# Create Folders under sapmnt whilst using Local disk for Multi-SID installation.
+- name:                                Create Filesystems under sapmnt
+  block:
+    - name:                            Create Filesystems for multi-sid installation
+      ansible.builtin.file:
+        path:                          /sapmnt/{{ item.sid }}
+        state:                         directory
+        mode:                          0755
+      when:
+        - node_tier == 'scs'
+        - MULTI_SIDS is defined
+      loop: "{{ MULTI_SIDS }}"
 
 - name:                               "2.3 SAP Exports: - Create SAP Directories (install)"
   block:
