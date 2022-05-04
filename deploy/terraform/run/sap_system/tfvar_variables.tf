@@ -302,8 +302,8 @@ variable "database_no_ppg" {
   default = false
 }
 
-variable "database_loadbalancer_ip" {
-  default = ""
+variable "database_loadbalancer_ips" {
+  default = []
 }
 
 variable "database_tags" {

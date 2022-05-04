@@ -849,6 +849,36 @@ then
     save_config_var "deployer_public_ip_address" "${system_config_information}"
 fi
 
+if [ "${deployment_system}" == sap_system ]
+then
+    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output database_loadbalancer_ip | tr -d \")
+    echo "db: $database_loadbalancer_public_ip_address"
+
+    load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
+    database_loadbalancer_ips=$(echo ${database_loadbalancer_ips} | xargs)
+
+    if [[ -z $database_loadbalancer_ips ]];
+    then
+      database_loadbalancer_ips=[${database_loadbalancer_public_ip_address}]
+      save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+    fi
+
+    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output scs_loadbalancer_ip | tr -d \")
+    echo "scs: $scs_loadbalancer_public_ip_address"
+
+    load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
+    scs_server_loadbalancer_ips=$(echo ${scs_server_loadbalancer_ips} | xargs)
+
+    if [[ -z $scs_server_loadbalancer_ips ]];
+    then
+      scs_server_loadbalancer_ips=[${scs_loadbalancer_public_ip_address}]
+      save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+    fi
+
+
+
+fi
+
 
 if [ "${deployment_system}" == sap_landscape ]
 then

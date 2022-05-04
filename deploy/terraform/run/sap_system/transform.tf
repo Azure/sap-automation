@@ -72,7 +72,7 @@ locals {
   db_authentication_defined = (length(local.db_authentication.type) + length(local.db_authentication.username)) > 3
   avset_arm_ids             = distinct(concat(var.database_vm_avset_arm_ids, try(var.databases[0].avset_arm_ids, [])))
   db_avset_arm_ids_defined  = length(local.avset_arm_ids) > 0
-  frontend_ip               = try(coalesce(var.database_loadbalancer_ip, try(var.databases[0].loadbalancer.frontend_ip, "")), "")
+  frontend_ips              = try(coalesce(var.database_loadbalancer_ips, try(var.databases[0].loadbalancer.frontend_ip, [])), [])
   db_tags                   = try(coalesce(var.database_tags, try(var.databases[0].tags, {})), {})
 
   databases_temp = {
