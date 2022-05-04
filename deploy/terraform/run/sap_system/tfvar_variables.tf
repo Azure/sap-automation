@@ -359,9 +359,9 @@ variable "database_no_ppg" {
   default = false
 }
 
-variable "database_loadbalancer_ip" {
+variable "database_loadbalancer_ips" {
   description = "If provided, the database tier will be configured with the specified load balancer IP"
-  default = ""
+  default = []
 }
 
 variable "database_tags" {
