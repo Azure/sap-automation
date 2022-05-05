@@ -402,7 +402,14 @@ stages:
 
   - stage:                             Remove_controlplane
     displayName:                       "Remove the control plane"
-    condition:                         eq(${{ parameters.cleanup_region }}, true)
+    dependsOn:
+      - Remove_SAP_workload_zone
+    condition: |
+      and
+      (
+        eq(${{ parameters.cleanup_region }}, true),
+        in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped'),
+      )
     jobs:
       - job:                           Remove_controlplane
         displayName:                   "Remove the control plane"
