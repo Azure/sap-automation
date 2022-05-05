@@ -131,9 +131,14 @@ output "transport_storage_account_id" {
 }
 
 output "saptransport_path" {
+  description = "Mount point for transport volume"
   value = module.sap_landscape.saptransport_path
 }
 
+output "install_path" {
+  description = "Mount point for install volume"
+  value = module.sap_landscape.install_path
+}
 output "azure_files_transport_storage_account_id" {
   value = module.sap_landscape.azure_files_transport_storage_account_id
 }

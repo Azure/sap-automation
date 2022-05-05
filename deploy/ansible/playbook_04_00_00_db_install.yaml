@@ -106,6 +106,7 @@
 
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
                 state:                 touch
@@ -206,6 +207,7 @@
 
         - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
           delegate_to:                 localhost
+          become:                      false
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
             state:                     touch
@@ -305,9 +307,8 @@
             tier:                      'oracle'
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
-          become_user:                 "root"
-          become:                      true
           delegate_to:                 localhost
+          become:                      false
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
             state:                     touch
@@ -342,8 +343,7 @@
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
           delegate_to:                 localhost
-          become:                      true
-          become_user:                 root
+          become:                      false
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
@@ -382,11 +382,11 @@
         patterns:                      "*"
       register:                        find_progress_files
       delegate_to:                     localhost
+      become:                          false
 
     - name:                            "DB Playbook - Post Install: - Create db-install-done flag"
       delegate_to:                     localhost
-      become_user:                     "root"
-      become:                          true
+      become:                          false
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-install-done"
         state:                         touch

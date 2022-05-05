@@ -78,9 +78,6 @@ variable "use_loadbalancers_for_standalone_deployments" {
   default     = true
 }
 
-variable "database_vm_names" {
-  default = [""]
-}
 
 variable "database_vm_db_nic_ips" {
   default = [""]

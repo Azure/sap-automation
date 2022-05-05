@@ -118,3 +118,46 @@ resource "azurerm_netapp_volume" "transport" {
   storage_quota_in_gb = var.transport_volume_size
 
 }
+
+resource "azurerm_netapp_volume" "install" {
+  provider = azurerm.main
+  count = var.NFS_provider == "ANF" ? 1 : 0
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.install_volume,
+    local.prefix,
+    var.naming.separator,
+    local.resource_suffixes.install_volume
+  )
+
+  resource_group_name = length(var.ANF_settings.arm_id) > 0 ? (
+    data.azurerm_netapp_account.workload_netapp_account[0].resource_group_name) : (
+    azurerm_netapp_account.workload_netapp_account[0].resource_group_name
+  )
+  location = length(var.ANF_settings.arm_id) > 0 ? (
+    data.azurerm_netapp_account.workload_netapp_account[0].location) : (
+    azurerm_netapp_account.workload_netapp_account[0].location
+  )
+  account_name = length(var.ANF_settings.arm_id) > 0 ? (
+    data.azurerm_netapp_account.workload_netapp_account[0].name) : (
+    azurerm_netapp_account.workload_netapp_account[0].name
+  )
+  pool_name = azurerm_netapp_pool.workload_netapp_pool[0].name
+  volume_path = format("%s%s%s",
+    var.naming.resource_prefixes.install_volume,
+    var.infrastructure.environment,
+    local.resource_suffixes.install_volume
+  )
+  service_level = var.ANF_settings.service_level
+  subnet_id     = local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id
+
+  protocols = ["NFSv4.1"]
+  export_policy_rule {
+    allowed_clients     = ["0.0.0.0/0"]
+    protocols_enabled   = ["NFSv4.1"]
+    rule_index          = 1
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
+  storage_quota_in_gb = 256
+}
