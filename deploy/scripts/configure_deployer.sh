@@ -301,6 +301,7 @@ if [[ ! -d "${asad_dir}" ]]; then
     git clone "${asad_repo}" "${asad_dir}"
 fi
 
+chown -R "${USER}" "${asad_dir}"
 #
 # Install terraform for all users
 #

@@ -11,22 +11,32 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-ers-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-ers-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.params"
+
+#   0x) Create hidden directory for parameter files
+- name:                               "ERS Install: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
 
 - name:                                "ERS Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "ERS Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "ERS Install: check if installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
   register:                            ers_installed
   when: node_tier == 'ers'
 
@@ -64,6 +74,7 @@
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     sap_scs_hostname:                  "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+    param_directory:                   "{{ dir_params }}"
   tags:
     - skip_ansible_lint
 
@@ -99,7 +110,7 @@
 
     - name:                            "ERS Install: SAP ERS install command"
       ansible.builtin.debug:
-        msg:                           ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}
+        msg:                           ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}
                                         SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }} SAPINST_SKIP_DIALOGS=true SAPINST_START_GUISERVER=false SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}
         verbosity:                     4
 
@@ -114,18 +125,18 @@
         - name:                        "ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
-                                                 SAPINST_START_GUISERVER=false                                                 \
-                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                               \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}             \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false                                       \
+                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                     \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   /etc/sap_deployment_automation/sap_deployment_ers.txt
+            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ target_media_location }}"
+            TMPDIR:                    "{{ tmp_directory }}"
           register:                    ers_installation
           tags:
             - skip_ansible_lint
@@ -154,22 +165,27 @@
         - name:                        "RESCUE - ERS Install: SAPInst"
           ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}                       \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
-                                                 SAPINST_START_GUISERVER=false                                                 \
-                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                               \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.ers_ha }}             \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false                                       \
+                                                 SAPINST_USE_HOSTNAME={{ ers_virtual_hostname }}                     \
                                                  IS_HOST_LOCAL_USING_STRING_COMPARE=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"
-            creates:                   /etc/sap_deployment_automation/sap_deployment_ers.txt
+            creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ target_media_location }}"
+            TMPDIR:                    "{{ tmp_directory }}"
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
           tags:
             - skip_ansible_lint
+
+    - name:                            "ERS Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
 
     - name:                            "ERS Install: Installation results"
       ansible.builtin.debug:
@@ -183,7 +199,7 @@
 
     - name:                            "ERS Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_ers.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
         state:                         touch
         mode:                          0755
 

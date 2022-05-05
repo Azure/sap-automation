@@ -167,6 +167,7 @@
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h
       register:                        mounts
+      failed_when:                     false
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
