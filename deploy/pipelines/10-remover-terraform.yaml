@@ -408,7 +408,7 @@ stages:
       and
       (
         eq(${{ parameters.cleanup_region }}, true),
-        in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped'),
+        in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped')
       )
     jobs:
       - job:                           Remove_controlplane
