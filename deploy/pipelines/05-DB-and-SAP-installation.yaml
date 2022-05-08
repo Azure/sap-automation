@@ -20,6 +20,11 @@ parameters:
     type:                              string
     default:                           DEV
 
+  - name:                              validate_outbound
+    displayName:                       Validate outbound internet connectivity
+    type:                              boolean
+    default:                           false
+
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
@@ -93,6 +98,8 @@ variables:
     value:                             ${{ parameters.sap_system_configuration_name }}
   - name:                              bom
     value:                             ${{ parameters.bom_base_name }}
+  - name:                              check_internet_connection
+    value:                             ${{ parameters.validate_outbound }}
 
 pool:
   name:                                $(Agent)
@@ -268,7 +275,7 @@ stages:
               inventoriesAgentMachine: "file"
               inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
 
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
+              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) -e "check_internet_connectivity=$(check_internet_connection)"'
               failOnStderr:            false
 
             env:

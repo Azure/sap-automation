@@ -23,6 +23,10 @@
     var:                               services_to_process
     verbosity:                         2
 
+- name:                                "1.16 - Populate service facts : {{ distro_name }}"
+  ansible.builtin.service_facts:
+
+
 # Extract the list of service names whose state match the specified value and
 # pass them as the argument to the name parameter; this is the recommended
 # approach as it only calls the underlying distro specific service manager
@@ -35,6 +39,7 @@
                                          selectattr('state', 'equalto', 'started') |
                                          map(attribute='service') |
                                          list }}"
+  when:                                "{{ item }} in services"
 
 - name:                                "1.16 - Restart Services : {{ distro_name }}"
   ansible.builtin.service:
@@ -44,6 +49,7 @@
                                          selectattr('state', 'equalto', 'restarted') |
                                          map(attribute='service') |
                                          list }}"
+  when:                                "{{ item }} in services"
 
 - name:                                "1.16 - Reload Services : {{ distro_name }}"
   ansible.builtin.service:
@@ -53,6 +59,7 @@
                                          selectattr('state', 'equalto', 'reloded') |
                                          map(attribute='service') |
                                          list }}"
+  when:                                "{{ item }} in services"
 
 
 - name:                                "1.16 - Enable Services : {{ distro_name }}"
@@ -63,6 +70,7 @@
                                          selectattr('state', 'equalto', 'enabled') |
                                          map(attribute='service') |
                                          list }}"
+  when:                                "{{ item }} in services"
 
 - name:                                "1.16 - Stop Services : {{ distro_name }}"
   ansible.builtin.service:
@@ -72,6 +80,7 @@
                                            selectattr('state', 'equalto', 'stopped') |
                                            map(attribute='service') |
                                            list }}"
+  when:                                "{{ item }} in services"
 
 - name:                                "1.16 - Disable Services : {{ distro_name }}"
   ansible.builtin.service:
@@ -81,6 +90,7 @@
                                            selectattr('state', 'equalto', 'disabled') |
                                            map(attribute='service') |
                                            list }}"
+  when:                                "{{ item }} in services"
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
