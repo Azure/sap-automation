@@ -168,23 +168,32 @@
       ansible.builtin.uri:
         url:                           "{{ url_internet }}"
       when:                            check_internet_connectivity
+      tags:
+        - 0.0-internet
+
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h
       register:                        mounts
       failed_when:                     false
+      tags:
+        - 0.0-mounts
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         var:                           mounts.stdout_lines
+      when:                            mounts is defined
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command:         cat /etc/hosts
       register:                        hosts
+      tags:
+        - 0.0-hosts
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
         var:                           hosts.stdout_lines
+      when:                            hosts is defined
 
 - hosts:               "{{ sap_sid|upper }}_DB"
 
