@@ -195,7 +195,7 @@ locals {
   }
 
   sap = {
-    logical_name  = try(coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, "")), "")
+    logical_name = try(coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, "")), "")
   }
 
   subnet_admin_defined = (
@@ -499,7 +499,7 @@ locals {
     local.db_authentication_defined ? { authentication = local.db_authentication } : null), (
     local.db_avset_arm_ids_defined ? { avset_arm_ids = local.avset_arm_ids } : null), (
     length(local.db_zones_temp) > 0 ? { zones = local.db_zones_temp } : null), (
-    length(local.frontend_ip) > 0 ? { loadbalancer = { frontend_ip = local.frontend_ip } } : { loadbalancer = {} }), (
+    length(local.frontend_ips) > 0 ? { loadbalancer = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }), (
     length(local.db_tags) > 0 ? { tags = local.db_tags } : null), (
     local.db_sid_specified ? { instance = local.instance } : null)
     )
