@@ -132,7 +132,7 @@
         - ascscomment
 
     - name:                            "5.6 SCSERS - ASCS Profile- Add the right Start command to ASCS profile If Using ENSA1"
-      lineinfile:
+      ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          Start_Program_01 = local $(_EN) pf=$(_PF)
         insertafter:                   Restart_Program_01
@@ -149,7 +149,7 @@
         - erscomment
 
     - name:                            "5.6 SCSERS - ERS Profile - Change the restart command to a start command if using ENSA1"
-      lineinfile:
+      ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
         line:                          Start_Program_00 = local $(_ER) pf=$(_PFL) NR=$(SCSID)
         insertafter:                   Restart_Program_01
@@ -165,7 +165,7 @@
         - ersautostart
 
     - name:                            "5.6 SCSERS - Add the keep alive parameter, if using ENSA1"
-      lineinfile:
+      ansible.builtin.lineinfile:
         path:                          /sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
         line:                          enque/encni/set_so_keepalive = true
       tags:

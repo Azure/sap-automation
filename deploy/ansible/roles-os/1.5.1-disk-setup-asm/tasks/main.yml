@@ -252,7 +252,7 @@
 
 # Debug for testing
 - name:                                "Install ASM package ouput"
-  debug:
+  ansible.builtin.debug:
     var:                               asmpackageouput
     verbosity:                         2
 
