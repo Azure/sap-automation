@@ -1,7 +1,7 @@
 ---
 
 - name: Gather Logical volumes created in 1.5.1
-  include_vars: disks_config_asm.yml
+  ansible.builtin.include_vars: disks_config_asm.yml
 
 - name:                                Set the NFS Server name list
   ansible.builtin.set_fact:

@@ -293,12 +293,6 @@ locals {
   #
   ##############################################################################################
 
-  enable_admin_subnet = (
-    var.application.dual_nics ||
-    var.databases[0].dual_nics ||
-    (local.isHANA && var.hana_dual_nics)
-  )
-
   admin_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_admin, {})) > 0
   admin_subnet_prefix = local.admin_subnet_defined ? (
     try(var.infrastructure.vnets.sap.subnet_admin.prefix, "")) : (
@@ -307,6 +301,18 @@ locals {
   admin_subnet_arm_id = local.admin_subnet_defined ? (
     try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "")) : (
     var.landscape_tfstate.admin_subnet_id
+  )
+
+  enable_admin_subnet = (
+    (
+      var.application.dual_nics ||
+      var.databases[0].dual_nics ||
+      (local.isHANA && var.hana_dual_nics)
+    )
+    &&
+    (
+      (length(local.admin_subnet_prefix) + length(local.admin_subnet_arm_id)) > 0
+    )
   )
 
   admin_subnet_exists = length(local.admin_subnet_arm_id) > 0
@@ -515,7 +521,6 @@ locals {
     var.key_vault.kv_user_id) : (
     var.landscape_tfstate.landscape_key_vault_user_arm_id
   )
-  
   prvt_key_vault_id = length(try(var.key_vault.kv_prvt_id, "")) > 0 ? (
     var.key_vault.kv_prvt_id) : (
     var.landscape_tfstate.landscape_key_vault_private_arm_id
