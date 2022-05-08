@@ -69,7 +69,7 @@ variable "NFS_provider" {
   default = "NONE"
 }
 
-variable "azure_files_sapmnt_id" {
+variable "azure_files_storage_account_id" {
   type    = string
   default = ""
 }
