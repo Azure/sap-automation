@@ -119,7 +119,7 @@
 # deleted if the checksum does not match and will be downloaded from URL
 
 - name:                               "3.3 BoM Processing: - Creates temporary download directory"
-  file:
+  ansible.builtin.file:
     path:                             '/mnt/resource'
     state:                            directory
     mode:                             0775

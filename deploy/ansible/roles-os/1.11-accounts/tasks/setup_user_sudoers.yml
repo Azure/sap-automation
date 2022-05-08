@@ -41,7 +41,7 @@
                    (sudoers_state == "present"))))
 
 - name:                                Optionally include any vars settings for specified role
-  include_vars:                        "{{ found_var_file }}"
+  ansible.builtin.include_vars:        "{{ found_var_file }}"
   loop_control:
     # Can't safely use item here as it is being used by the looping
     # include_tasks action in main.yml
