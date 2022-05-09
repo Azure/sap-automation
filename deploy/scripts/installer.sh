@@ -854,7 +854,7 @@ then
     re_run=0
     database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
-    database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/})
+    database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
 
     load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
@@ -869,7 +869,7 @@ then
 
     scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
-    scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/})
+    scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
 
     load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
