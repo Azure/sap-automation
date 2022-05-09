@@ -355,7 +355,7 @@ resource "azurerm_lb" "web" {
         )
       )
     )
-    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.application.use_DHCP ? "dynamic" : "static"
     zones = ["1", "2", "3"]
   }
 

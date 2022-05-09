@@ -122,7 +122,7 @@ if [ 0 != $return_code ]; then
     echo "Missing parameters in $parameterfile_name" > "${system_config_information}".err
     exit $return_code
 fi
-
+region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 if valid_region_name "${region}" ; then
     # Convert the region to the correct code
     get_region_code ${region}
@@ -847,6 +847,50 @@ then
     
     save_config_var "keyvault" "${system_config_information}"
     save_config_var "deployer_public_ip_address" "${system_config_information}"
+fi
+
+if [ "${deployment_system}" == sap_system ]
+then
+    re_run=0
+    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
+    database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/})
+    echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
+
+    load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
+    database_loadbalancer_ips=$(echo ${database_loadbalancer_ips} | xargs)
+
+    if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
+    then
+      database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
+      save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+      re_run=1
+    fi
+
+    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
+    scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/})
+    echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
+
+    load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
+    scs_server_loadbalancer_ips=$(echo ${scs_server_loadbalancer_ips} | xargs)
+
+    if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
+    then
+      scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
+      save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+      re_run=1
+    fi
+
+    if [ 1 == $re_run ] ; then
+
+        if [ 1 == $called_from_ado ] ; then
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings $allParams  2>error.log
+        else
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+        fi
+    fi
+
 fi
 
 
