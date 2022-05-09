@@ -127,7 +127,10 @@ stages:
                 git checkout -q $(Branch)
                 git pull
               echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
+
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  sudo apt-get -qq install dos2unix
+                fi
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"

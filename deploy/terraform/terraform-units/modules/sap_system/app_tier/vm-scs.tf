@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "scs" {
         )
       )
     )
-    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.application.use_DHCP ? "dynamic" : "static"
   }
 }
 
@@ -71,7 +71,7 @@ resource "azurerm_network_interface" "scs_admin" {
         )
       )
     )
-    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.application.use_DHCP ? "dynamic" : "static"
   }
 }
 
