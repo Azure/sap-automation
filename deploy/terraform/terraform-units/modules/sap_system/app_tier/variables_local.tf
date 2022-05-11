@@ -634,7 +634,7 @@ locals {
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[2],"")) > 0 ? "static" : "dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[2],"")) > 0 ? "Static" : "Dynamic"
 
     },
     {
@@ -656,7 +656,7 @@ locals {
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[3],"")) > 0 ? "static" : "dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[3],"")) > 0 ? "Static" : "Dynamic"
     }
   ]
 
@@ -680,7 +680,7 @@ locals {
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[0],"")) > 0 ? "static" : "dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[0],"")) > 0 ? "Static" : "Dynamic"
     },
     {
       name = format("%s%s%s%s",
@@ -701,7 +701,7 @@ locals {
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[1],"")) > 0 ? "static" : "dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[1],"")) > 0 ? "Static" : "Dynamic"
     },
   ]
 

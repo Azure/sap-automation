@@ -27,7 +27,7 @@ resource "azurerm_public_ip" "deployer" {
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
-  allocation_method = "static"
+  allocation_method = "Static"
   sku               = "Standard"
 }
 
@@ -62,7 +62,7 @@ resource "azurerm_network_interface" "deployer" {
         cidrhost(local.management_subnet_deployed_prefixes[0], 4)
       )
     )
-    private_ip_address_allocation = var.deployer.use_DHCP ? "dynamic" : "static"
+    private_ip_address_allocation = var.deployer.use_DHCP ? "Dynamic" : "Static"
     public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[0].id : ""
   }
 }

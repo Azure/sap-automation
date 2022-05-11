@@ -33,7 +33,7 @@ resource "azurerm_lb" "anydb" {
           tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
       ))
     )
-    private_ip_address_allocation = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? "static" : "dynamic"
+    private_ip_address_allocation = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
     zones = ["1", "2", "3"]
   }
 }
