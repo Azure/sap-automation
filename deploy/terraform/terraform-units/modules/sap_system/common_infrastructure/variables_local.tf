@@ -74,11 +74,6 @@ variable "azure_files_storage_account_id" {
   default = ""
 }
 
-variable "azure_files_sapmnt_id" {
-  description = "Azure File Share ID for SAPMNT"
-  default = ""
-}
-
 variable "Agent_IP" {
   type    = string
   default = ""

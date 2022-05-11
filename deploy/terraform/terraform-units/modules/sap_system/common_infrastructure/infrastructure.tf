@@ -27,7 +27,13 @@ data "azurerm_virtual_network" "vnet_sap" {
   name                = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
   resource_group_name = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
 }
-// Creates admin subnet of SAP VNET
+
+#########################################################################################
+#                                                                                       #
+#  Admin Subnet variables                                                               #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_subnet" "admin" {
   provider             = azurerm.main
   count                = !local.admin_subnet_exists && local.enable_admin_subnet ? 1 : 0
@@ -39,7 +45,7 @@ resource "azurerm_subnet" "admin" {
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider = azurerm.main
-  count = local.admin_subnet_defined && !local.admin_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0 ? (
+  count = local.admin_subnet_defined && !local.admin_subnet_exists && local.enable_admin_subnet && length(var.landscape_tfstate.route_table_id) > 0 ? (
     1) : (
     0
   )
@@ -57,7 +63,13 @@ data "azurerm_subnet" "admin" {
   virtual_network_name = split("/", local.admin_subnet_arm_id)[8]
 }
 
-// Creates db subnet of SAP VNET
+
+#########################################################################################
+#                                                                                       #
+#  DB Subnet variables                                                               #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_subnet" "db" {
   provider             = azurerm.main
   count                = local.enable_db_deployment ? (local.database_subnet_exists ? 0 : 1) : 0
@@ -89,7 +101,13 @@ resource "azurerm_subnet_route_table_association" "db" {
   route_table_id = var.landscape_tfstate.route_table_id
 }
 
-// Scale out on ANF
+
+#########################################################################################
+#                                                                                       #
+#  Scaleout Subnet variables                                                            #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_subnet" "storage" {
   provider = azurerm.main
   count = local.enable_db_deployment && local.enable_storage_subnet ? (

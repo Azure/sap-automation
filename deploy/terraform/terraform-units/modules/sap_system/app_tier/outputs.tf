@@ -63,16 +63,35 @@ output "scs_lb_ip" {
 }
 
 output "ers_lb_ip" {
-  value = local.enable_scs_lb_deployment && local.scs_high_availability ? try(azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address, "") : ""
+  value = local.enable_scs_lb_deployment && local.scs_high_availability ? (
+    try(azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address, "")
+    ) : (
+    ""
+  )
 }
 
 output "cluster_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? try(azurerm_lb.scs[0].frontend_ip_configuration[2].private_ip_address, "") : ""
+  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? (
+    try(azurerm_lb.scs[0].frontend_ip_configuration[2].private_ip_address, "")) : (
+    ""
+  )
 }
 
 output "fileshare_lb_ip" {
-  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? try(azurerm_lb.scs[0].frontend_ip_configuration[3].private_ip_address, "") : ""
+  value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? (
+    try(azurerm_lb.scs[0].frontend_ip_configuration[3].private_ip_address, "")) : (
+      ""
+      )
 }
+
+output "scs_loadbalancer_ips" {
+  value = local.enable_scs_lb_deployment ? (
+    azurerm_lb.scs[0].frontend_ip_configuration[*].private_ip_address
+    ) : (
+    [""]
+  )
+}
+
 
 // Output for DNS
 output "dns_info_vms" {
