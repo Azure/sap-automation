@@ -263,8 +263,8 @@ module "output_files" {
   ansible_user = module.common_infrastructure.sid_username
   scs_lb_ip    = module.app_tier.scs_lb_ip
   db_lb_ip = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? (
-    module.hdb_node.db_lb_ip) : (
-    module.anydb_node.db_lb_ip
+    module.hdb_node.db_lb_ip[0]) : (
+    module.anydb_node.db_lb_ip[0]
   )
   database_admin_ips = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? (
     module.hdb_node.db_ip) : (

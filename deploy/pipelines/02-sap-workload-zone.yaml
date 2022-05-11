@@ -88,8 +88,6 @@ stages:
                 deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$LOCATION
                 workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
-                cat $workload_environment_file_name
-
                 if [ ! -f $HOME/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
                   echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
@@ -107,7 +105,9 @@ stages:
                 export      REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 export   STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
-                export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                if [ -f ${workload_environment_file_name} ]; then
+                  export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                fi
 
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
@@ -159,7 +159,9 @@ stages:
                 git pull
 
               echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
+                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
+                  sudo apt-get -qq install dos2unix
+                fi
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
 
               echo -e "$green--- Deploy the workload zone ---$reset"
@@ -171,7 +173,9 @@ stages:
                   --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 return_code=$?
 
-                export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                if [ -f ${workload_environment_file_name} ]; then
+                  export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                fi
 
                 az account set --subscription "${STATE_SUBSCRIPTION}"
                 if [[ 1 -eq $ip_added ]]; then

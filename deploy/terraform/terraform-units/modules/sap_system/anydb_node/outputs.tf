@@ -28,9 +28,12 @@ output "anydb_db_ip" {
 }
 
 output "db_lb_ip" {
-  value = local.enable_db_lb_deployment && (
-    var.use_loadbalancers_for_standalone_deployments || local.anydb_ha
-  ) ? try(azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address, "") : ""
+  value = [
+    local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments || local.anydb_ha) ? (
+    try(azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address, "")) : (
+    ""
+  )
+  ]
 }
 
 output "anydb_loadbalancers" {
@@ -48,7 +51,7 @@ output "dns_info_vms" {
         (
           slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, var.database_server_count)
         )
-      ), 
+      ),
       concat(
         (
           local.anydb_dual_nics ? slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, var.database_server_count) : [""]

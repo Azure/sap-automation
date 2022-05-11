@@ -49,6 +49,7 @@
             force_basic_auth:          true
             http_agent:                'SAP Software Download'
             timeout:                   60
+            mode:                      0644
           become:                      true
           become_user:                 root
           register:                    result
@@ -74,7 +75,8 @@
             url_password:              "{{ s_password }}"
             force_basic_auth:          true
             http_agent:                'SAP Software Download'
-            timeout:                   120
+            timeout:                   60
+            mode:                      0644
           become:                      true
           become_user:                 root
           register:                    result

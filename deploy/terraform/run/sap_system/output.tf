@@ -49,6 +49,15 @@ output "environment" {
   value = local.infrastructure.environment
 }
 
+output "database_loadbalancer_ip" {
+  value = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_ip : module.anydb_node.db_lb_ip
+}
+
+output "scs_loadbalancer_ips" {
+  description = "SCS Loadbalancer IP"
+  value = tolist(module.app_tier.scs_loadbalancer_ips)
+}
+
 output "sid" {
   value = local.application.sid
 }
