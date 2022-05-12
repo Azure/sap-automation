@@ -22,7 +22,7 @@
     name:                              "{{ nfs_service }}"
     state:                             stopped
   when:
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_mnt is not defined
     - sap_trans is not defined
 
@@ -195,7 +195,7 @@
 
   when:
     - tier == 'sapos'
-    - node_tier == 'scs'
+    - "'scs' in supported_tiers"
     - sap_mnt is defined
 
 # /*---------------------------------------------------------------------------8
@@ -218,7 +218,7 @@
     - skip_ansible_lint
   when:
     - tier == 'sapos'
-    - node_tier in ['app','scs','ers', 'pas']
+    - node_tier in ['app','scs','ers', 'pas'] or 'scs' in supported_tiers
     - sap_mnt is defined
 
 - name:                                "ANF Mount: Change attribute only when we create SAP Directories (sap_mnt)"
@@ -248,7 +248,7 @@
     - { path: '/usr/sap/{{ sap_sid|upper }}/ERS{{ ers_instance_number }}' }
   when:
     - tier == 'sapos'
-    - node_tier in ['scs','ers']
+    - node_tier in ['scs','ers'] or 'scs' in supported_tiers
     - sap_mnt is defined
     - MULTI_SIDS is undefined
   register: is_created_now3
@@ -278,7 +278,7 @@
   when:
     - not scs_high_availability
     - tier in ['sapos']
-    - node_tier != 'hana'
+    - node_tier != 'hana' 
     - sap_mnt is defined
 
 - name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} - Standalone MULTI_SIDS"
@@ -352,6 +352,12 @@
     primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
   when:
     - tier == 'sapos'
+- name:                                "ANF Mount: install:Get the Server name list"
+  ansible.builtin.set_fact:
+    first_server_temp:                 "{{ first_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
 - name:                                "ANF Mount: install"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
@@ -366,7 +372,7 @@
       'target_nodes':      ['all']
     }
   vars:
-    primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    primary_host:                     "{{ first_server_temp | first }}"
   when:
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
