@@ -15,7 +15,7 @@ resource "azurerm_network_interface" "anchor" {
       null) : (
       try(var.infrastructure.anchor_vms.nic_ips[count.index], cidrhost(local.database_subnet_exists ? data.azurerm_subnet.db[0].address_prefixes[0] : azurerm_subnet.db[0].address_prefixes[0], (count.index + 5)))
     )
-    private_ip_address_allocation = try(var.infrastructure.anchor_vms.use_DHCP, false) ? "dynamic" : "static"
+    private_ip_address_allocation = try(var.infrastructure.anchor_vms.use_DHCP, false) ? "Dynamic" : "Static"
   }
 }
 

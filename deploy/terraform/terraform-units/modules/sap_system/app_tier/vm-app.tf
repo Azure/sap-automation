@@ -30,7 +30,7 @@ resource "azurerm_network_interface" "app" {
         )
       )
     )
-    private_ip_address_allocation = var.application.use_DHCP ? "dynamic" : "static"
+    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
 
   }
 }
@@ -72,7 +72,7 @@ resource "azurerm_network_interface" "app_admin" {
         )
       )
     )
-    private_ip_address_allocation = var.application.use_DHCP ? "dynamic" : "static"
+    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
   }
 }
 

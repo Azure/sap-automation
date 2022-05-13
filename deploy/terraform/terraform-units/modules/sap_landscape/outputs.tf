@@ -206,9 +206,15 @@ output "transport_storage_account_id" {
 output "saptransport_path" {
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-      azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address,
-      azurerm_storage_account.transport[0].name,
-      azurerm_storage_share.transport[0].name
+      length(var.azure_files_transport_storage_account_id) == 0 ? (
+        azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address) : (
+        data.azurerm_private_endpoint_connection.transport[0].private_ip_address
+      ),
+      length(var.azure_files_transport_storage_account_id) == 0 ? (
+        azurerm_storage_account.transport[0].name) : (
+        split("/", var.azure_files_transport_storage_account_id)[8]
+      ),
+      try(azurerm_storage_share.transport[0].name, "")
     )
     ) : (
     var.NFS_provider == "ANF" ? (
@@ -222,15 +228,18 @@ output "saptransport_path" {
   )
 }
 
-output "azure_files_transport_storage_account_id" {
-  value = var.NFS_provider == "AFS" ? azurerm_storage_account.transport[0].id : ""
-}
-
 output "install_path" {
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-      azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address,
-      azurerm_storage_account.install[0].name, azurerm_storage_share.install[0].name
+      length(var.azure_files_storage_account_id) == 0 ? (
+        azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address) : (
+        data.azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address
+      ),
+      length(var.azure_files_storage_account_id) == 0 ? (
+        azurerm_storage_account.install[0].name) : (
+        split("/", var.azure_files_storage_account_id)[8]
+      ),
+      try(azurerm_storage_share.install[0].name, "")
     )
     ) : (
     var.NFS_provider == "ANF" ? (

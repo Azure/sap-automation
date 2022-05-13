@@ -44,6 +44,16 @@ variable "azure_files_storage_account_id" {
   default = ""
 }
 
+variable "azurerm_private_endpoint_connection_transport_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+}
+
+###############################################################################
+#                                                                             # 
+#                            Local Variables                                  # 
+#                                                                             # 
+###############################################################################
 
 locals {
 

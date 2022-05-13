@@ -273,6 +273,21 @@ resource "azurerm_storage_share" "transport" {
   quota = var.transport_volume_size
 }
 
+data "azurerm_storage_account" "transport" {
+  provider = azurerm.main
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_transport_storage_account_id) > 0 ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+  name                = split("/", var.azure_files_transport_storage_account_id)[8]
+  resource_group_name = split("/", var.azure_files_transport_storage_account_id)[4]
+}
+
+
+
 resource "azurerm_storage_account_network_rules" "transport" {
   count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
     1) : (
@@ -301,12 +316,10 @@ resource "azurerm_storage_account_network_rules" "transport" {
 }
 
 resource "azurerm_private_endpoint" "transport" {
-
   provider = azurerm.main
   depends_on = [
     azurerm_subnet.app
   ]
-
   count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_transport_storage_account_id) > 0 ? (
       0) : (
@@ -347,6 +360,20 @@ resource "azurerm_private_endpoint" "transport" {
       "File"
     ]
   }
+}
+
+data "azurerm_private_endpoint_connection" "transport" {
+  provider = azurerm.main
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azurerm_private_endpoint_connection_transport_id) > 0 ? (
+      1) : (
+      0
+    )) : (
+    1
+  )
+  name                = split("/",var.azurerm_private_endpoint_connection_transport_id)[8]
+  resource_group_name = split("/",var.azurerm_private_endpoint_connection_transport_id)[4]
+
 }
 
 ################################################################################

@@ -43,7 +43,7 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
       )
     )
 
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "dynamic" : "static"
+    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
   }
 }
 
@@ -77,7 +77,7 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
         )
       )
     )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "dynamic" : "static"
+    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
   }
 }
 
@@ -121,7 +121,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
       )
 
     )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "dynamic" : "static"
+    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
   }
 }
 
