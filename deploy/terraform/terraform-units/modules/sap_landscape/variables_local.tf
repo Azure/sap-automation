@@ -60,7 +60,17 @@ variable "transport_volume_size" {
 }
 
 variable "azure_files_transport_storage_account_id" {
-  type = string
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
+}
+variable "azurerm_private_endpoint_connection_transport_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+}
+
+variable "azure_files_storage_account_id" {
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
 }
 
 variable "NFS_provider" {
