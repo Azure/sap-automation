@@ -170,14 +170,26 @@ output "ANF_pool_settings" {
       azurerm_netapp_pool.workload_netapp_pool[0].name) : (
       var.ANF_settings.pool_name
     )
-    service_level = azurerm_netapp_pool.workload_netapp_pool[0].service_level
-    size_in_tb    = azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
+
+    service_level = var.ANF_settings.use_existing_pool ? (
+      data.azurerm_netapp_pool.workload_netapp_pool[0].service_level
+      ) : (
+      azurerm_netapp_pool.workload_netapp_pool[0].service_level
+    )
+
+    size_in_tb = var.ANF_settings.use_existing_pool ? (
+      data.azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
+      ) : (
+      azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
+    )
+
     subnet_id = local.ANF_subnet_defined ? (
       local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id) : (
       ""
     )
-    resource_group_name = local.rg_exists ? (
-      data.azurerm_resource_group.resource_group[0].name) : (
+
+    resource_group_name = var.ANF_settings.use_existing_pool ? (
+      split("/", var.ANF_settings.arm_id)[4]) : (
       azurerm_resource_group.resource_group[0].name
     )
     location = local.rg_exists ? (
@@ -208,7 +220,7 @@ output "saptransport_path" {
     format("%s:/%s/%s",
       length(var.azure_files_transport_storage_account_id) == 0 ? (
         azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address) : (
-        data.azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address
+        data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address
       ),
       length(var.azure_files_transport_storage_account_id) == 0 ? (
         azurerm_storage_account.transport[0].name) : (
@@ -219,8 +231,16 @@ output "saptransport_path" {
     ) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s",
-        azurerm_netapp_volume.transport[0].mount_ip_addresses[0],
-        azurerm_netapp_volume.transport[0].volume_path
+        var.ANF_settings.use_existing_transport_volume ? (
+          data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
+          ) : (
+          azurerm_netapp_volume.transport[0].mount_ip_addresses[0]
+        ),
+        var.ANF_settings.use_existing_transport_volume ? (
+          data.azurerm_netapp_volume.transport[0].volume_path
+          ) : (
+          azurerm_netapp_volume.transport[0].volume_path
+        )
       )
       ) : (
       ""
@@ -231,21 +251,27 @@ output "saptransport_path" {
 output "install_path" {
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-      length(var.azure_files_storage_account_id) == 0 ? (
+      length(var.azure_files_install_storage_account_id) == 0 ? (
         azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address) : (
-        data.azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address
+        data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address
       ),
-      length(var.azure_files_storage_account_id) == 0 ? (
+      length(var.azure_files_install_storage_account_id) == 0 ? (
         azurerm_storage_account.install[0].name) : (
-        split("/", var.azure_files_storage_account_id)[8]
+        split("/", var.azure_files_install_storage_account_id)[8]
       ),
       try(azurerm_storage_share.install[0].name, "")
     )
     ) : (
     var.NFS_provider == "ANF" ? (
       format("%s:/%s",
-        azurerm_netapp_volume.install[0].mount_ip_addresses[0],
-        azurerm_netapp_volume.install[0].volume_path
+        var.ANF_settings.use_existing_install_volume ? (
+          data.azurerm_netapp_volume.install[0].mount_ip_addresses[0]) : (
+          azurerm_netapp_volume.install[0].mount_ip_addresses[0]
+        ),
+        var.ANF_settings.use_existing_install_volume ? (
+          data.azurerm_netapp_volume.install[0].volume_path) : (
+          azurerm_netapp_volume.install[0].volume_path
+        )
       )
       ) : (
       ""

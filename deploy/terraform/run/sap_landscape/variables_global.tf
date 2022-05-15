@@ -1,3 +1,50 @@
+variable "tfstate_resource_id" {
+  description = "Resource id of tfstate storage account"
+  validation {
+    condition = (
+      length(split("/", var.tfstate_resource_id)) == 9
+    )
+    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+  }
+
+}
+
+variable "deployer_tfstate_key" {
+  description = "The key of deployer's remote tfstate file"
+  default     = ""
+}
+
+variable "NFS_provider" {
+  type    = string
+  default = "NONE"
+}
+
+variable "azure_files_install_storage_account_id" {
+  description = "Azure Resource Identifier for the Installation media storage account"
+  type    = string
+  default = ""
+}
+
+variable "azurerm_private_endpoint_connection_install_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
+variable "azure_files_transport_storage_account_id" {
+  description = "Azure Resource Identifier for the Transport media storage account"
+  type    = string
+  default = ""
+}
+
+variable "azurerm_private_endpoint_connection_transport_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
+
+
 variable "infrastructure" {
   description = "Details of the Azure infrastructure to deploy the SAP landscape into"
   default     = {}

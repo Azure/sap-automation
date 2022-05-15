@@ -3,89 +3,6 @@
   Define local variables
 */
 
-variable "custom_prefix" {
-  type        = string
-  description = "Custom prefix"
-  default     = ""
-}
-
-variable "is_single_node_hana" {
-  description = "Checks if single node hana architecture scenario is being deployed"
-  default     = false
-}
-
-variable "deployer_tfstate" {
-  description = "Deployer remote tfstate file"
-}
-
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
-
-variable "service_principal" {
-  description = "Current service principal used to authenticate to Azure"
-}
-
-/* Comment out code with users.object_id for the time being
-variable "deployer_user" {
-  description = "Details of the users"
-  default     = []
-}
-*/
-
-variable "naming" {
-  description = "Defines the names for the resources"
-}
-
-variable "custom_disk_sizes_filename" {
-  type        = string
-  description = "Disk size json file"
-  default     = ""
-}
-
-variable "deployment" {
-  description = "The type of deployment"
-}
-
-variable "terraform_template_version" {
-  description = "The version of Terraform templates that were identified in the state file"
-}
-
-variable "license_type" {
-  description = "Specifies the license type for the OS"
-  default     = ""
-}
-
-variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
-}
-
-variable "sapmnt_volume_size" {
-  description = "The volume size in GB for sapmnt"
-}
-
-variable "NFS_provider" {
-  type    = string
-  default = "NONE"
-}
-
-variable "azure_files_sapmnt_id" {
-  type    = string
-  default = ""
-}
-
-variable "Agent_IP" {
-  type    = string
-  default = ""
-}
-
-variable "use_private_endpoint" {
-  default = false
-}
-
-variable "hana_dual_nics" {
-  description = "value to indicate if dual nics are used for HANA"
-}
 
 locals {
   // Resources naming
@@ -597,11 +514,9 @@ locals {
     null
   )
 
-}
 
 # This needs more though as changing of it is a destructive action 
 # try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
-locals {
   // 'Cg==` is empty string, base64 encoded.
   cloudinit_growpart_config = null
 }

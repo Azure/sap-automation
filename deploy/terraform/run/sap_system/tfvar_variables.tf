@@ -214,8 +214,8 @@ variable "web_subnet_nsg_arm_id" {
   default = ""
 }
 
-
 variable "use_observer" {
+  description = "value to determine if an observer virtual machine is used"
   default = true
 }
 
@@ -701,29 +701,66 @@ variable "azure_files_sapmnt_id" {
   default = ""
 }
 
-variable "use_ANF_for_HANA_data" {
+#########################################################################################
+#                                                                                       #
+#  ANF settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
+variable "ANF_use_for_HANA_data" {
   description = "If defined, will create ANF volumes for HANA data"
   default     = false
 }
 
-variable "use_ANF_for_HANA_log" {
-  description = "If defined, will create ANF volumes for HANA log"
-  default     = false
-}
-
-variable "HANA_data_volume_size" {
+variable "ANF_HANA_data_volume_size" {
   description = "If defined provides the size of the HANA data volume"
   default = 512
 }
 
-variable "HANA_log_volume_size" {
+variable "ANF_use_existing_data_volume" {
+  description = "Use existing data volume"
+  default     = false
+}
+
+variable "ANF_data_volume_name" {
+  description = "Data volume name"
+  default     = false
+}
+
+variable "ANF_use_for_HANA_log" {
+  description = "If defined, will create ANF volumes for HANA log"
+  default     = false
+}
+
+variable "ANF_HANA_log_volume_size" {
   description = "If defined provides the size of the HANA log volume"
   default = 512
+}
+
+variable "ANF_use_existing_log_volume" {
+  description = "Use existing log volume"
+  default     = false
+}
+
+variable "ANF_log_volume_name" {
+  description = "Log volume name"
+  default     = false
 }
 
 variable "use_private_endpoint" {
   description = "Use private endpoint for the deployment"
   default = false
+}
+
+variable "ANF_use_existing_sapmnt_volume" {
+  description = "Use existing sapmnt volume"
+  default     = false
+}
+
+variable "ANF_sapmnt_volume_name" {
+  description = "sapmnt volume name"
+  default     = ""
 }
 
 

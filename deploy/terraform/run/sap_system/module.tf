@@ -68,6 +68,8 @@ module "common_infrastructure" {
   use_private_endpoint  = var.use_private_endpoint
   hana_dual_nics        = var.hana_dual_nics
   azure_files_sapmnt_id = var.azure_files_sapmnt_id
+  hana_ANF_volumes  = local.hana_ANF_volumes
+
 }
 
 # // Create HANA database nodes
@@ -118,7 +120,7 @@ module "hdb_node" {
     0
   )
   landscape_tfstate = data.terraform_remote_state.landscape.outputs
-  hana_ANF_data     = local.hana_ANF_data
+  hana_ANF_volumes  = local.hana_ANF_volumes
   NFS_provider      = var.NFS_provider
 }
 

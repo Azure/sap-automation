@@ -1,7 +1,14 @@
 
 resource "azurerm_netapp_volume" "hanadata" {
 
-  count = var.hana_ANF_data.use_ANF_for_HANA_data ? 1 : 0
+  count = var.hana_ANF_volumes.use_for_data ? (
+    var.hana_ANF_volumes.use_existing_data_volume ? (
+      0
+      ) : (
+      1
+    )) : (
+    0
+  )
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.hanadata,
     local.prefix,
@@ -25,13 +32,32 @@ resource "azurerm_netapp_volume" "hanadata" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.hana_ANF_data.HANA_data_volume_size
+  storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
+  throughput_in_mibps = 64
 
 }
 
+data "azurerm_netapp_volume" "hanadata" {
+
+  count = var.hana_ANF_volumes.use_for_data ? (
+    var.hana_ANF_volumes.use_existing_data_volume ? (
+      1
+      ) : (
+      0
+    )) : (
+    0
+  )
+  resource_group_name = local.ANF_pool_settings.resource_group_name
+  account_name        = local.ANF_pool_settings.account_name
+  pool_name           = local.ANF_pool_settings.pool_name
+  name                = var.hana_ANF_volumes.data_volume_name
+
+}
+
+
 resource "azurerm_netapp_volume" "hanalog" {
 
-  count = var.hana_ANF_data.use_ANF_for_HANA_log ? 1 : 0
+  count = var.hana_ANF_volumes.use_for_log ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.hanalog,
     local.prefix,
@@ -55,6 +81,25 @@ resource "azurerm_netapp_volume" "hanalog" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.hana_ANF_data.HANA_log_volume_size
+
+  storage_quota_in_gb = var.hana_ANF_volumes.log_volume_size
+  throughput_in_mibps = 64
+
+}
+
+data "azurerm_netapp_volume" "hanalog" {
+
+  count = var.hana_ANF_volumes.use_for_log ? (
+    var.hana_ANF_volumes.use_existing_log_volume ? (
+      1
+      ) : (
+      0
+    )) : (
+    0
+  )
+  resource_group_name = local.ANF_pool_settings.resource_group_name
+  account_name        = local.ANF_pool_settings.account_name
+  pool_name           = local.ANF_pool_settings.pool_name
+  name                = var.hana_ANF_volumes.log_volume_name
 
 }
