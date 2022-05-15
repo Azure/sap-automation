@@ -336,6 +336,13 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "ANF Mount: install:Get the Server name list"
+  ansible.builtin.set_fact:
+    first_server_temp:                 "{{ first_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
 - name:                                "ANF Mount: sap_trans"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
   loop:
@@ -349,15 +356,9 @@
       'target_nodes':      ['app','pas', 'ers', 'scs']
     }
   vars:
-    primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    primary_host:                     "{{ first_server_temp | first }}"
   when:
     - tier == 'sapos'
-- name:                                "ANF Mount: install:Get the Server name list"
-  ansible.builtin.set_fact:
-    first_server_temp:                 "{{ first_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
 - name:                                "ANF Mount: install"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
@@ -368,7 +369,7 @@
       'mount':             '{{ usr_sap_install_mountpoint }}',
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/install',
-      'set_chattr_on_dir': true,
+      'set_chattr_on_dir': false,
       'target_nodes':      ['all']
     }
   vars:
