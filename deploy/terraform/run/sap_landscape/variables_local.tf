@@ -5,16 +5,6 @@
 #                                                                             # 
 ###############################################################################
 
-variable "azure_files_storage_account_id" {
-  type    = string
-  default = ""
-}
-
-variable "azurerm_private_endpoint_connection_transport_id" {
-  description = "Azure Resource Identifier for an private endpoint connection"
-  type        = string
-}
-
 locals {
 
   version_label = trimspace(file("${path.module}/../../../configs/version.txt"))
