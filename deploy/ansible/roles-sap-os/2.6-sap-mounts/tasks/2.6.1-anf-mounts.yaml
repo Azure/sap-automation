@@ -353,7 +353,8 @@
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/trans',
       'set_chattr_on_dir': false,
-      'target_nodes':      ['app','pas', 'ers', 'scs']
+      'target_nodes':      ['app','pas', 'ers', 'scs'],
+      'create_temp_folders': false
     }
   vars:
     primary_host:                     "{{ first_server_temp | first }}"
@@ -370,7 +371,8 @@
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/install',
       'set_chattr_on_dir': false,
-      'target_nodes':      ['all']
+      'target_nodes':      ['all'],
+      'create_temp_folders': true
     }
   vars:
     primary_host:                     "{{ first_server_temp | first }}"
@@ -455,7 +457,7 @@
     - tier == 'sapos'
     - node_tier == 'hana'
 
-- name:                                "ANF Mount: HANA data and log"
+- name:                                "ANF Mount: HANA data"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
   loop:
     - {
@@ -465,16 +467,8 @@
       'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
       'path':              '/hana/data',
       'set_chattr_on_dir': false,
-      'target_nodes' :     ['hana']
-    }
-    - {
-      'type':              'log',
-      'temppath':          'hanalog',
-      'mount' :            '{{ hana_log_mountpoint }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
-      'path' :             '/hana/log',
-      'set_chattr_on_dir': false,
-      'target_nodes':      ['hana']
+      'target_nodes' :     ['hana'],
+      'create_temp_folders': false
     }
   vars:
     primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
@@ -482,6 +476,25 @@
     - tier == 'sapos'
     - node_tier == 'hana'
     - hana_data_mountpoint is defined
+
+- name:                                "ANF Mount: HANA log"
+  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  loop:
+    - {
+      'type':                'log',
+      'temppath':            'hanalog',
+      'mount' :              '{{ hana_log_mountpoint }}',
+      'opts':                'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'path' :               '/hana/log',
+      'set_chattr_on_dir':   false,
+      'target_nodes':        ['hana'],
+      'create_temp_folders': false
+    }
+  vars:
+    primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
     - hana_log_mountpoint is defined
 
 ...
