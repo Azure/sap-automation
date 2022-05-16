@@ -350,7 +350,7 @@ locals {
 
   admin_subnet_nsg_name = local.admin_subnet_nsg_defined ? (
     local.admin_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_admin.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
         format("%s%s%s%s",
@@ -417,7 +417,7 @@ locals {
   database_subnet_nsg_exists = length(local.database_subnet_nsg_arm_id) > 0
   database_subnet_nsg_name = local.database_subnet_nsg_defined ? (
     local.database_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_db.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
         format("%s%s%s%s",
