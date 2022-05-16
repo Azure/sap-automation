@@ -23,19 +23,24 @@ module "sap_landscape" {
   witness_storage_account     = local.witness_storage_account
   use_deployer                = length(var.deployer_tfstate_key) > 0
   ANF_settings                = local.ANF_settings
-  
-  dns_label                   = var.dns_label
+
+  dns_label = var.dns_label
   dns_resource_group_name = length(var.dns_resource_group_name) > 0 ? (
     var.dns_resource_group_name) : (
     local.saplib_resource_group_name
   )
-  enable_purge_control_for_keyvaults       = var.enable_purge_control_for_keyvaults
-  use_private_endpoint                     = var.use_private_endpoint
-  transport_volume_size                    = var.transport_volume_size
-  azure_files_transport_storage_account_id = var.azure_files_transport_storage_account_id
-  NFS_provider                             = var.NFS_provider
-  Agent_IP                                 = var.Agent_IP
-  azure_files_storage_account_id           = var.azure_files_storage_account_id
+  enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
+  use_private_endpoint               = var.use_private_endpoint
+
+  NFS_provider                                     = var.NFS_provider
+  Agent_IP                                         = var.Agent_IP
+  transport_volume_size                            = var.transport_volume_size
+  azure_files_transport_storage_account_id         = var.azure_files_transport_storage_account_id
+  azurerm_private_endpoint_connection_transport_id = var.azurerm_private_endpoint_connection_transport_id
+
+  install_volume_size                            = var.install_volume_size
+  azure_files_install_storage_account_id         = var.azure_files_install_storage_account_id
+  azurerm_private_endpoint_connection_install_id = var.azurerm_private_endpoint_connection_install_id
 }
 
 module "sap_namegenerator" {

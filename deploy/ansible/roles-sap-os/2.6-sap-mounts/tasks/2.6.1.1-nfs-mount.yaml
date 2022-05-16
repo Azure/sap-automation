@@ -67,6 +67,8 @@
   when:
     - item.mount is defined
     - ansible_hostname == primary_host
+    - item.create_temp_folders
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -109,7 +111,7 @@
 
 - name:                                "ANF Mount: ({{ item.path }} on {{ item.mount }})"
   ansible.builtin.mount:
-    src:                               "{{ item.mount }}/{{ item.temppath }}"
+    src:                               "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.temppath }}{% else %}{{ item.mount }}{% endif %}"
     path:                              "{{ item.path }}"
     fstype:                            "nfs4"
     opts:                              "{{ item.opts }}"

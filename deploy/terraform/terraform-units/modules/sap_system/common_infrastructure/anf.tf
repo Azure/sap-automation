@@ -1,12 +1,23 @@
 
 resource "azurerm_netapp_volume" "sapmnt" {
+  count = var.NFS_provider == "ANF" ? (
+    var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
+      0
+      ) : (
+      1
+    )) : (
+    0
+  )
 
-  count = var.NFS_provider == "ANF" ? 1 : 0
-  name = format("%s%s%s%s",
-    var.naming.resource_prefixes.sapmnt,
-    local.prefix,
-    var.naming.separator,
-    local.resource_suffixes.sapmnt
+  name = length(var.hana_ANF_volumes.sapmnt_volume_name) > 0 ? (
+    var.hana_ANF_volumes.sapmnt_volume_name
+    ) : (
+    format("%s%s%s%s",
+      var.naming.resource_prefixes.sapmnt,
+      local.prefix,
+      var.naming.separator,
+      local.resource_suffixes.sapmnt
+    )
   )
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
@@ -27,5 +38,22 @@ resource "azurerm_netapp_volume" "sapmnt" {
   }
   storage_quota_in_gb = var.sapmnt_volume_size
 
+  throughput_in_mibps = 64
+
 }
 
+data "azurerm_netapp_volume" "sapmnt" {
+  count = var.NFS_provider == "ANF" ? (
+    var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
+      1
+      ) : (
+      0
+    )) : (
+    0
+  )
+  resource_group_name = local.ANF_pool_settings.resource_group_name
+  account_name        = local.ANF_pool_settings.account_name
+  pool_name           = local.ANF_pool_settings.pool_name
+  name                = var.hana_ANF_volumes.sapmnt_volume_name
+
+}

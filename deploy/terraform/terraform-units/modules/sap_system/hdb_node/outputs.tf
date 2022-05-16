@@ -93,10 +93,16 @@ output "db_ip" {
 }
 
 output "hana_data" {
-  value = var.hana_ANF_data.use_ANF_for_HANA_data ? (
+  value = var.hana_ANF_volumes.use_for_data ? (
     format("%s:/%s",
-      azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0],
-      azurerm_netapp_volume.hanadata[0].volume_path
+        var.hana_ANF_volumes.use_existing_data_volume ? (
+          data.azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]) : (
+          azurerm_netapp_volume.hanadata[0].mount_ip_addresses[0]
+        ),
+        var.hana_ANF_volumes.use_existing_data_volume ? (
+          data.azurerm_netapp_volume.hanadata[0].volume_path) : (
+          azurerm_netapp_volume.hanadata[0].volume_path
+        )
     )
     ) : (
     ""
@@ -104,12 +110,19 @@ output "hana_data" {
 }
 
 output "hana_log" {
-  value = var.hana_ANF_data.use_ANF_for_HANA_log ? (
+  value = var.hana_ANF_volumes.use_for_log ? (
     format("%s:/%s",
-      azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0],
-      azurerm_netapp_volume.hanalog[0].volume_path
+        var.hana_ANF_volumes.use_existing_log_volume ? (
+          data.azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]) : (
+          azurerm_netapp_volume.hanalog[0].mount_ip_addresses[0]
+        ),
+        var.hana_ANF_volumes.use_existing_log_volume ? (
+          data.azurerm_netapp_volume.hanalog[0].volume_path) : (
+          azurerm_netapp_volume.hanalog[0].volume_path
+        )
     )
     ) : (
     ""
   )
 }
+

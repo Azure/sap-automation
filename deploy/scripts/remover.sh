@@ -12,7 +12,7 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source 
+#call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -94,7 +94,7 @@ do
     -s | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
     -t | --type)                               deployment_system="$2"           ; shift 2 ;;
     -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
-    -h | --help)                               showhelp 
+    -h | --help)                               showhelp
                                                exit 3                           ; shift ;;
     --) shift; break ;;
   esac
@@ -344,6 +344,7 @@ else
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
 fi
+return_value=$?
 
 if [ "${deployment_system}" == sap_deployer ]; then
     sed -i /deployer_tfstate_key/d "${system_config_information}"
@@ -361,4 +362,4 @@ fi
 
 unset TF_DATA_DIR
 
-exit 0
+exit $return_value

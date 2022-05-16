@@ -314,6 +314,11 @@ variable "transport_volume_size" {
   default     = 128
 }
 
+variable "install_volume_size" {
+  description = "The volume size in GB for the transport share"
+  default     = 256
+}
+
 variable "Agent_IP" {
   type    = string
   default = ""
@@ -336,6 +341,11 @@ variable "ANF_account_name" {
   default     = ""
 }
 
+variable "ANF_use_existing_pool" {
+  description = "Use existing storage pool"
+  default     = false
+}
+
 variable "ANF_pool_name" {
   description = "If provided, the NetApp capacity pool name (if any)"
   default     = ""
@@ -350,6 +360,27 @@ variable "ANF_pool_size" {
   description = "The NetApp Pool size in TB"
   default     = 4
 }
+
+variable "ANF_use_existing_transport_volume" {
+  description = "Use existing transport volume"
+  default     = false
+}
+
+variable "ANF_transport_volume_name" {
+  description = "Transport volume name"
+  default     = false
+}
+
+variable "ANF_use_existing_install_volume" {
+  description = "Use existing install volume"
+  default     = ""
+}
+
+variable "ANF_install_volume_name" {
+  description = "Install volume name"
+  default     = ""
+}
+
 
 #########################################################################################
 #                                                                                       #
