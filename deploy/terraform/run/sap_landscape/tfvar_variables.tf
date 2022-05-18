@@ -373,14 +373,13 @@ variable "ANF_transport_volume_name" {
 
 variable "ANF_use_existing_install_volume" {
   description = "Use existing install volume"
-  default     = ""
+  default     = false
 }
 
 variable "ANF_install_volume_name" {
   description = "Install volume name"
   default     = ""
 }
-
 
 #########################################################################################
 #                                                                                       #
