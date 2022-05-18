@@ -28,8 +28,8 @@ parameters:
       - S4HANA_2021_ISS_v0001ms
       - S42020SPS03_v0002ms
       - HANA_2_00_061_latest
-      - HANA_2_00_059_v0002ms
-      - HANA_2_00_055_v0006ms
+      - HANA_2_00_059_latest
+      - HANA_2_00_055_latest
       - NW750SPS20_v0004ms
       - ORACLE_19_00_v0002ms
       - ORACLE_19_00_ORA_MSID_v0002ms

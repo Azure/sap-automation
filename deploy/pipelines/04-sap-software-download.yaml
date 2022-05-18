@@ -21,8 +21,8 @@ parameters:
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
       - HANA_2_00_061_latest
-      - HANA_2_00_059_v0002ms
-      - HANA_2_00_055_v0006ms
+      - HANA_2_00_059_latest
+      - HANA_2_00_055_latest
       - NW750SPS20_v0004ms
       - NW752SPS09_v0001ms
       - SWPM20SP11_latest
