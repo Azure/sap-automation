@@ -134,6 +134,3 @@ output "saptransport_path" {
   value = module.sap_landscape.saptransport_path
 }
 
-output "azure_files_transport_storage_account_id" {
-  value = module.sap_landscape.azure_files_transport_storage_account_id
-}
