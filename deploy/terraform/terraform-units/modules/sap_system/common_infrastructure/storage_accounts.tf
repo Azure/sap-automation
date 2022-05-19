@@ -1,15 +1,9 @@
-data "azurerm_storage_account" "shared" {
-  count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_sapmnt_id) > 0 ? (
-      1) : (
-      0
-    )) : (
-    0
-  )
-  name                = split("/", var.azure_files_sapmnt_id)[8]
-  resource_group_name = split("/", var.azure_files_sapmnt_id)[4]
-}
 
+#########################################################################################
+#                                                                                       #
+#  sapmnt                                                                               #
+#                                                                                       #
+#########################################################################################
 
 resource "azurerm_storage_account" "sapmnt" {
   count = var.NFS_provider == "AFS" ? (
@@ -40,8 +34,18 @@ resource "azurerm_storage_account" "sapmnt" {
   enable_https_traffic_only       = false
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
+}
 
-
+data "azurerm_storage_account" "sapmnt" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+  name                = split("/", var.azure_files_sapmnt_id)[8]
+  resource_group_name = split("/", var.azure_files_sapmnt_id)[4]
 }
 
 resource "azurerm_storage_account_network_rules" "sapmnt" {
@@ -67,22 +71,6 @@ resource "azurerm_storage_account_network_rules" "sapmnt" {
 }
 
 
-resource "azurerm_storage_share" "sapmnt" {
-  count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_sapmnt_id) > 0 ? (
-      0) : (
-      1
-    )) : (
-    0
-  )
-
-  name                 = format("%s", local.resource_suffixes.sapmnt)
-  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
-  enabled_protocol     = "NFS"
-
-  quota = var.sapmnt_volume_size
-}
-
 resource "azurerm_private_endpoint" "sapmnt" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
@@ -103,8 +91,6 @@ resource "azurerm_private_endpoint" "sapmnt" {
     azurerm_resource_group.resource_group[0].location
   )
   subnet_id = try(var.landscape_tfstate.app_subnet_id, "")
-
-
   private_service_connection {
     name = format("%s%s%s",
       var.naming.resource_prefixes.storage_private_svc_install,
@@ -122,4 +108,46 @@ resource "azurerm_private_endpoint" "sapmnt" {
   }
 }
 
+#########################################################################################
+#                                                                                       #
+#  NFS share                                                                            #
+#                                                                                       #
+#########################################################################################
 
+resource "azurerm_storage_share" "sapmnt" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+
+  name                 = format("%s", local.resource_suffixes.sapmnt)
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
+  enabled_protocol     = "NFS"
+
+  quota = var.sapmnt_volume_size
+}
+
+#########################################################################################
+#                                                                                       #
+#  SMB share                                                                            #
+#                                                                                       #
+#########################################################################################
+
+resource "azurerm_storage_share" "sapmnt_smb" {
+  count = var.NFS_provider == "AFS" && local.app_tier_os == "WINDOWS"? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+
+  name                 = format("%s", local.resource_suffixes.sapmnt_smb)
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
+  enabled_protocol     = "SMB"
+
+  quota = var.sapmnt_volume_size
+}

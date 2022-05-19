@@ -519,4 +519,9 @@ locals {
 # try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
   // 'Cg==` is empty string, base64 encoded.
   cloudinit_growpart_config = null
+
+  app_tier_os=upper(try(var.application.app_os.os_type, "LINUX"))
+
+
+
 }

@@ -35,7 +35,7 @@ resource "azurerm_netapp_pool" "workload_netapp_pool" {
     0
   )
 
-  name = length(var.ANF_settings.pool_name) ? (
+  name = length(var.ANF_settings.pool_name) > 0 ? (
     var.ANF_settings.pool_name) : (
     format("%s%s%s%s",
       var.naming.resource_prefixes.netapp_pool,

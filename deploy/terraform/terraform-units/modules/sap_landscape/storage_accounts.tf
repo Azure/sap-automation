@@ -427,22 +427,6 @@ data "azurerm_private_endpoint_connection" "install" {
 
 }
 
-resource "azurerm_storage_share" "install" {
-  count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_install_storage_account_id) > 0 ? (
-      0) : (
-      1
-    )) : (
-    0
-  )
-
-  name                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
-  enabled_protocol     = "NFS"
-
-  quota = var.install_volume_size
-}
-
 resource "azurerm_storage_account_network_rules" "install" {
   depends_on = [
     azurerm_subnet.app,
@@ -525,4 +509,35 @@ resource "azurerm_private_endpoint" "install" {
   }
 }
 
+resource "azurerm_storage_share" "install" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_install_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+
+  name                 = format("%s", local.resource_suffixes.install_volume)
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
+  enabled_protocol     = "NFS"
+
+  quota = var.install_volume_size
+}
+
+resource "azurerm_storage_share" "install_smb" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_install_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+
+  name                 = format("%s", local.resource_suffixes.install_volume_smb)
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
+  enabled_protocol     = "SMB"
+
+  quota = var.install_volume_size
+}
 
