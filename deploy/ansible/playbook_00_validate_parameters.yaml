@@ -167,10 +167,8 @@
     - name:                            Check internet connectivity
       ansible.builtin.uri:
         url:                           "{{ url_internet }}"
-      when:                            check_internet_connectivity
-      tags:
-        - 0.0-internet
-
+        validate_certs:                false
+      when:                            check_outbound
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h
