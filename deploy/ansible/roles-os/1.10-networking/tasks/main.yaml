@@ -1,0 +1,102 @@
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |             Add 2nd IP addresses to a VM operating system in RHEL          |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:              "{{ sap_sid|upper }}_DB  :
+                       {{ sap_sid|upper }}_SCS :
+                       {{ sap_sid|upper }}_ERS :
+                       {{ sap_sid|upper }}_PAS :
+                       {{ sap_sid|upper }}_ERS :
+                       {{ sap_sid|upper }}_APP :
+                       {{ sap_sid|upper }}_WEB"
+
+  name:              " OS Config - Add 2nd IP addresses to a VM operating system in RHEL"
+  become:             true
+  become_user:        root
+  gather_facts:       true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+  tasks:
+############## RHEL-2nd IP - #######################################################################################################################################
+    - name: "Get the IP information from instance meta data"
+      ansible.builtin.command: curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01"
+      register: azure_metadata
+      #no_log: true
+      changed_when: false
+      args:
+        warn: false
+
+    - name: "Pass the output of instance meta data to azure meta data function"
+      ansible.builtin.set_fact:
+        json_azure_data: "{{ azure_metadata.stdout | from_json }}"
+      no_log: true
+
+    - name: "Filter out the values for IPAddresses in json format"
+      ansible.builtin.set_fact:
+        private_ips_info: "{{ json_azure_data | json_query('ipv4.ipAddress') }}"
+      no_log: true
+    
+    - name: "Convert ips to list"
+      ansible.builtin.set_fact:
+        ipadd: "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
+      no_log: true
+
+    - name: "Get the secondary IP"
+      ansible.builtin.set_fact:
+        secondary_ip: "{{ ipadd[1] }}"
+      no_log: true
+      when:
+        - ipadd is defined
+        - ipadd | length > 0
+
+    - name: "print ip info"
+      debug: 
+          msg: "{{ json_azure_data }}"
+          verbosity: 2
+      
+    - name: "print ipaddress"
+      debug: 
+          msg: "{{ private_ips_info }}"
+          verbosity: 2
+
+    - name: "Print IPS"
+      debug: 
+          msg: "{{ ipadd }}"
+          verbosity: 2
+
+    - name: "Print Secondary ip"
+      debug: 
+          msg: "{{ secondary_ip }}"
+          verbosity: 2
+          when:
+            - secondary_ip is defined
+            
+
+    - name: "Create the file with secondary ip"
+      ansible.builtin.blockinfile:
+        create: true
+        path: /etc/sysconfig/network-scripts/ifcfg-eth0:0
+        marker_begin: "-- BEGIN"
+        marker_end: "-- END"
+        block: |
+          DEVICE=eth0:0
+          BOOTPROTO=static
+          ONBOOT=yes
+          IPADDR="{{ secondary_ip }}"
+          NETMASK=255.255.255.0
+          mode: 755
+      when:
+        - secondary_ip is defined
+
+# Restart Network service
+    - name: "Restart Network service"
+      ansible.builtin.command: ifup eth0
+  when: ansible_os_family | upper == "REDHAT"
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

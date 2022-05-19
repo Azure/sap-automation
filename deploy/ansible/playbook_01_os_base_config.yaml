@@ -118,6 +118,13 @@
             name:                      roles-os/1.9-kernelparameters
       tags:
         - 1.9-kernelparameters
+        
+    - block:
+        - name:                        "OS configuration playbook: - Configure networking"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.10-networking
+      tags:
+        - 1.10-networking
 
     - block:
         - name:                        "OS configuration playbook: - Configure accounts"
