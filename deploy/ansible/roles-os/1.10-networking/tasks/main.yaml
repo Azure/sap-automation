@@ -36,22 +36,22 @@
         - ipadd | length > 1
 
     - name: "print ip info"
-      debug: 
+      ansible.builtin.debug: 
           msg: "{{ json_azure_data }}"
           verbosity: 2
       
     - name: "print ipaddress"
-      debug: 
+      ansible.builtin.debug: 
           msg: "{{ private_ips_info }}"
           verbosity: 2
 
     - name: "Print IPS"
-      debug: 
+      ansible.builtin.debug: 
           msg: "{{ ipadd }}"
           verbosity: 2
 
     - name: "Print Secondary ip"
-      debug: 
+      ansible.builtin.debug: 
           msg: "{{ secondary_ip }}"
           verbosity: 2
       when:
