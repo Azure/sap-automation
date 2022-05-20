@@ -17,7 +17,7 @@
         json_azure_data: "{{ azure_metadata.stdout | from_json }}"
       no_log: true
 
-    - name: "Filter out the values for IPAddresses in json format"
+    - name:                            "1.10 Networking - Filter out the values for IPAddresses in json format"
       ansible.builtin.set_fact:
         private_ips_info: "{{ json_azure_data | json_query('ipv4.ipAddress') }}"
       no_log: true
