@@ -1,30 +1,13 @@
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |             Add 2nd IP addresses to a VM operating system in RHEL          |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:              "{{ sap_sid|upper }}_DB  :
-                       {{ sap_sid|upper }}_SCS :
-                       {{ sap_sid|upper }}_ERS :
-                       {{ sap_sid|upper }}_PAS :
-                       {{ sap_sid|upper }}_ERS :
-                       {{ sap_sid|upper }}_APP :
-                       {{ sap_sid|upper }}_WEB"
-
-  name:              " OS Config - Add 2nd IP addresses to a VM operating system in RHEL"
-  become:             true
-  become_user:        root
-  gather_facts:       true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-  tasks:
-############## RHEL-2nd IP - #######################################################################################################################################
     - name: "Get the IP information from instance meta data"
       ansible.builtin.command: curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01"
       register: azure_metadata
-      #no_log: true
+      no_log: true
       changed_when: false
       args:
         warn: false
@@ -50,7 +33,7 @@
       no_log: true
       when:
         - ipadd is defined
-        - ipadd | length > 0
+        - ipadd | length > 1
 
     - name: "print ip info"
       debug: 
@@ -71,8 +54,8 @@
       debug: 
           msg: "{{ secondary_ip }}"
           verbosity: 2
-          when:
-            - secondary_ip is defined
+      when:
+        - secondary_ip is defined
             
 
     - name: "Create the file with secondary ip"
@@ -94,8 +77,6 @@
 # Restart Network service
     - name: "Restart Network service"
       ansible.builtin.command: ifup eth0
-  when: ansible_os_family | upper == "REDHAT"
-
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
