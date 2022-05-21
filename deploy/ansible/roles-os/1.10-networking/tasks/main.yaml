@@ -12,7 +12,7 @@
       args:
         warn: false
 
-    - name: "Pass the output of instance meta data to azure meta data function"
+    - name:                            "1.10 Networking - Pass the output of instance meta data to azure meta data function"
       ansible.builtin.set_fact:
         json_azure_data: "{{ azure_metadata.stdout | from_json }}"
       no_log: true
