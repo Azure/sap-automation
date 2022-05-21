@@ -35,7 +35,7 @@
         - ipadd is defined
         - ipadd | length > 1
 
-    - name: "print ip info"
+    - name:                            "1.10 Networking - Print ip info"
       ansible.builtin.debug: 
           msg: "{{ json_azure_data }}"
           verbosity: 2
