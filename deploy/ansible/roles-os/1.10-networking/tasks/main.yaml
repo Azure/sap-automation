@@ -22,7 +22,7 @@
         private_ips_info: "{{ json_azure_data | json_query('ipv4.ipAddress') }}"
       no_log: true
     
-    - name: "Convert ips to list"
+    - name:                            "1.10 Networking - Convert ips to list"
       ansible.builtin.set_fact:
         ipadd: "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
       no_log: true
