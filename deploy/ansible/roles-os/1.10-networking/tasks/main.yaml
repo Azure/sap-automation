@@ -27,7 +27,7 @@
         ipadd: "{{ private_ips_info | map(attribute='privateIpAddress') | list }}"
       no_log: true
 
-    - name: "Get the secondary IP"
+    - name:                            "1.10 Networking - Get the secondary IP"
       ansible.builtin.set_fact:
         secondary_ip: "{{ ipadd[1] }}"
       no_log: true
