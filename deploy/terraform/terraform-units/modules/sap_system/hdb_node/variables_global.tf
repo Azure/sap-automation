@@ -93,18 +93,23 @@ variable "hana_dual_nics" {
 }
 
 variable "database_vm_db_nic_ips" {
-  default = [""]
+  description = "If provided, the database tier will be configured with the specified IPs"
+}
+
+variable "database_vm_db_nic_secondary_ips" {
+  description = "If provided, the database tier will be configured with the specified IPs as secondary IPs"
 }
 
 variable "database_vm_admin_nic_ips" {
-  default = [""]
+  description = "If provided, the database tier will be configured with the specified IPs (admin subnet)"
 }
 
 variable "database_vm_storage_nic_ips" {
-  default = [""]
+  description = "If provided, the database tier will be configured with the specified IPs (srorage subnet)"
 }
 
 variable "database_server_count" {
+  description = "The number of database servers"
   default = 1
 }
 
@@ -124,4 +129,9 @@ variable "hana_ANF_volumes" {
 variable "NFS_provider" {
   description = "Describes the NFS solution used"
   type = string
+}
+
+variable "use_secondary_ips" {
+  description = "Use secondary IPs for the SAP System"
+  default = false
 }

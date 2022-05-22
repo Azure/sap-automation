@@ -16,6 +16,7 @@
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
     all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts|default([]) + [ this_sid ] }}{% endif %}"
+    db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
 - name:                                "ANF Mount: Ensure the NFS service is stopped"
   ansible.builtin.systemd:
@@ -463,7 +464,7 @@
     - {
       'type':              'data',
       'temppath':          'hanadata',
-      'mount':             '{{ hana_data_mountpoint }}',
+      'mount':             '{{ hana_data_mountpoint[0] }}',
       'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
       'path':              '/hana/data',
       'set_chattr_on_dir': false,
@@ -471,11 +472,13 @@
       'create_temp_folders': false
     }
   vars:
-    primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+    primary_host:                     "{{ db_hosts[0] }}"
   when:
     - tier == 'sapos'
     - node_tier == 'hana'
     - hana_data_mountpoint is defined
+    - hana_data_mountpoint | length > 0
+    - ansible_hostname == db_hosts[0]
 
 - name:                                "ANF Mount: HANA log"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
@@ -483,7 +486,7 @@
     - {
       'type':                'log',
       'temppath':            'hanalog',
-      'mount' :              '{{ hana_log_mountpoint }}',
+      'mount' :              '{{ hana_log_mountpoint[0] }}',
       'opts':                'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
       'path' :               '/hana/log',
       'set_chattr_on_dir':   false,
@@ -491,10 +494,57 @@
       'create_temp_folders': false
     }
   vars:
-    primary_host:                     "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+    primary_host:                     "{{ db_hosts[0] }}"
   when:
     - tier == 'sapos'
     - node_tier == 'hana'
     - hana_log_mountpoint is defined
+    - hana_log_mountpoint | length > 0
+    - ansible_hostname == db_hosts[0]
+
+- name:                                "ANF Mount: HANA data (secondary)"
+  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  loop:
+    - {
+      'type':              'data',
+      'temppath':          'hanadata',
+      'mount':             '{{ hana_data_mountpoint[1] }}',
+      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'path':              '/hana/data',
+      'set_chattr_on_dir': false,
+      'target_nodes' :     ['hana'],
+      'create_temp_folders': false
+    }
+  vars:
+    primary_host:                     "{{ db_hosts[1] }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - hana_data_mountpoint is defined
+    - hana_data_mountpoint | length > 1
+    - ansible_hostname == db_hosts[1]
+
+- name:                                "ANF Mount: HANA log (secondary)"
+  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  loop:
+    - {
+      'type':                'log',
+      'temppath':            'hanalog',
+      'mount' :              '{{ hana_log_mountpoint[1] }}',
+      'opts':                'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'path' :               '/hana/log',
+      'set_chattr_on_dir':   false,
+      'target_nodes':        ['hana'],
+      'create_temp_folders': false
+    }
+  vars:
+    primary_host:                     "{{ db_hosts[1] }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - hana_log_mountpoint is defined
+    - hana_log_mountpoint | length > 1
+    - ansible_hostname == db_hosts[1]
+
 
 ...

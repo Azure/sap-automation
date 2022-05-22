@@ -21,8 +21,6 @@ variable "databases" {
     )
     error_message = "The size must be specified in the databases block."
   }
-
-
 }
 variable "infrastructure" {
   validation {
@@ -114,19 +112,6 @@ variable "key_vault" {
     )
     error_message = "If specified, the kv_user_id needs to be a correctly formed Azure resource ID."
   }
-
-  validation {
-    condition = (
-      contains(keys(var.key_vault), "kv_prvt_id") ? (
-        length(var.key_vault.kv_prvt_id) > 0 ? (
-          length(split("/", var.key_vault.kv_prvt_id)) == 9) : (
-          true
-        )) : (
-        true
-      )
-    )
-    error_message = "If specified, the kv_prvt_id needs to be a correctly formed Azure resource ID."
-  }
 }
 
 
@@ -140,8 +125,8 @@ variable "ha_validator" {
 }
 
 variable "custom_prefix" {
-  type        = string
   description = "Custom prefix"
+  type        = string
   default     = ""
 }
 
@@ -217,6 +202,12 @@ variable "Agent_IP" {
 
 variable "use_private_endpoint" {
   default = false
+}
+
+variable "azurerm_private_endpoint_connection_sapmnt_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
 }
 
 variable "hana_dual_nics" {

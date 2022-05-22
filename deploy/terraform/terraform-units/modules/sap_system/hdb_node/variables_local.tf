@@ -311,5 +311,31 @@ locals {
     ) : (
     null
   )
+  database_primary_ips = [
+    {
+      name                          = "IPConfig1"
+      subnet_id                     = var.db_subnet.id
+      nic_ips                       = var.database_vm_db_nic_ips
+      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = !var.use_secondary_ips
+    }
+  ]
+
+  database_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id                     = var.db_subnet.id
+      nic_ips                       = var.database_vm_db_nic_secondary_ips
+      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      offset                        = var.database_server_count
+      primary                       = var.use_secondary_ips
+    }
+  ]
+
+  database_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.database_secondary_ips, local.database_primary_ips))) : (
+    local.database_primary_ips
+  )
 
 }

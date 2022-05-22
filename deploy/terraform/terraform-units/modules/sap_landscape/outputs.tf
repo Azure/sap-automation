@@ -1,10 +1,31 @@
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
 
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value = local.rg_exists ? (
+    data.azurerm_resource_group.resource_group[0].id) : (
+    azurerm_resource_group.resource_group[0].id
+  )
+}
+
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+  value = local.rg_exists ? (
+    split("/",data.azurerm_resource_group.resource_group[0].id))[2] : (
+    split("/",azurerm_resource_group.resource_group[0].id)[2]
+  )
+}
+
+  
 ###############################################################################
 #                                                                             # 
 #                            Network                                          # 
 #                                                                             # 
 ###############################################################################
-
 
 output "vnet_sap_id" {
   description = "Azure resource identifier for the Virtual Network"
@@ -180,8 +201,8 @@ output "witness_storage_account_key" {
 
 output "transport_storage_account_id" {
   value = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
-      var.azure_files_transport_storage_account_id) : (
+    length(var.transport_storage_account_id) > 0 ? (
+      var.transport_storage_account_id) : (
       azurerm_storage_account.transport[0].id
     )) : (
     ""
@@ -257,13 +278,13 @@ output "ANF_pool_settings" {
 output "saptransport_path" {
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-      length(var.azure_files_transport_storage_account_id) == 0 ? (
+      length(var.transport_private_endpoint_id) == 0 ? (
         azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address) : (
         data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address
       ),
-      length(var.azure_files_transport_storage_account_id) == 0 ? (
+      length(var.transport_storage_account_id) == 0 ? (
         azurerm_storage_account.transport[0].name) : (
-        split("/", var.azure_files_transport_storage_account_id)[8]
+        split("/", var.transport_storage_account_id)[8]
       ),
       try(azurerm_storage_share.transport[0].name, "")
     )
@@ -290,13 +311,13 @@ output "saptransport_path" {
 output "install_path" {
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-      length(var.azure_files_install_storage_account_id) == 0 ? (
+      length(var.install_storage_account_id) == 0 ? (
         azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address) : (
         data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address
       ),
-      length(var.azure_files_install_storage_account_id) == 0 ? (
+      length(var.install_storage_account_id) == 0 ? (
         azurerm_storage_account.install[0].name) : (
-        split("/", var.azure_files_install_storage_account_id)[8]
+        split("/", var.install_storage_account_id)[8]
       ),
       try(azurerm_storage_share.install[0].name, "")
     )

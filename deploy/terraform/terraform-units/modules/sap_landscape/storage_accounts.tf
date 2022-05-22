@@ -215,7 +215,7 @@ resource "azurerm_storage_account" "transport" {
   ]
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
+    length(var.transport_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -245,7 +245,7 @@ resource "azurerm_storage_account" "transport" {
 resource "azurerm_storage_share" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
+    length(var.transport_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -263,14 +263,14 @@ resource "azurerm_storage_share" "transport" {
 data "azurerm_storage_account" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
+    length(var.transport_storage_account_id) > 0 ? (
       1) : (
       0
     )) : (
     0
   )
-  name                = split("/", var.azure_files_transport_storage_account_id)[8]
-  resource_group_name = split("/", var.azure_files_transport_storage_account_id)[4]
+  name                = split("/", var.transport_storage_account_id)[8]
+  resource_group_name = split("/", var.transport_storage_account_id)[4]
 }
 
 
@@ -308,7 +308,7 @@ resource "azurerm_private_endpoint" "transport" {
     azurerm_subnet.app
   ]
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
+    length(var.transport_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -339,7 +339,7 @@ resource "azurerm_private_endpoint" "transport" {
       local.resource_suffixes.storage_private_svc_transport
     )
     is_manual_connection = false
-    private_connection_resource_id = length(var.azure_files_transport_storage_account_id) > 0 ? (
+    private_connection_resource_id = length(var.transport_storage_account_id) > 0 ? (
       data.azurerm_storage_account.transport[0].id) : (
       azurerm_storage_account.transport[0].id
     )
@@ -352,14 +352,14 @@ resource "azurerm_private_endpoint" "transport" {
 data "azurerm_private_endpoint_connection" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azurerm_private_endpoint_connection_transport_id) > 0 ? (
+    length(var.transport_private_endpoint_id) > 0 ? (
       1) : (
       0
     )) : (
     0
   )
-  name                = split("/",var.azurerm_private_endpoint_connection_transport_id)[8]
-  resource_group_name = split("/",var.azurerm_private_endpoint_connection_transport_id)[4]
+  name                = split("/",var.transport_private_endpoint_id)[8]
+  resource_group_name = split("/",var.transport_private_endpoint_id)[4]
 
 }
 
@@ -371,7 +371,7 @@ data "azurerm_private_endpoint_connection" "transport" {
 
 resource "azurerm_storage_account" "install" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_install_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -403,27 +403,27 @@ resource "azurerm_storage_account" "install" {
 
 data "azurerm_storage_account" "install" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_install_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       1) : (
       0
     )) : (
     0
   )
-  name                = split("/", var.azure_files_install_storage_account_id)[8]
-  resource_group_name = split("/", var.azure_files_install_storage_account_id)[4]
+  name                = split("/", var.install_storage_account_id)[8]
+  resource_group_name = split("/", var.install_storage_account_id)[4]
 }
  
 data "azurerm_private_endpoint_connection" "install" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azurerm_private_endpoint_connection_install_id) > 0 ? (
+    length(var.install_private_endpoint_id) > 0 ? (
       1) : (
       0
     )) : (
     0
   )
-  name                = split("/",var.azurerm_private_endpoint_connection_install_id)[8]
-  resource_group_name = split("/",var.azurerm_private_endpoint_connection_install_id)[4]
+  name                = split("/",var.install_private_endpoint_id)[8]
+  resource_group_name = split("/",var.install_private_endpoint_id)[4]
 
 }
 
@@ -434,7 +434,7 @@ resource "azurerm_storage_account_network_rules" "install" {
     azurerm_subnet.web
   ]
   count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
-    length(var.azure_files_install_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       0
     )) : (
@@ -471,7 +471,7 @@ resource "azurerm_private_endpoint" "install" {
   ]
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_install_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -499,7 +499,7 @@ resource "azurerm_private_endpoint" "install" {
       local.resource_suffixes.storage_private_svc_install
     )
     is_manual_connection = false
-    private_connection_resource_id = length(var.azure_files_install_storage_account_id) > 0 ? (
+    private_connection_resource_id = length(var.install_storage_account_id) > 0 ? (
       data.azurerm_storage_account.install[0].id) : (
       azurerm_storage_account.install[0].id
     )
@@ -511,7 +511,7 @@ resource "azurerm_private_endpoint" "install" {
 
 resource "azurerm_storage_share" "install" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_install_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -527,7 +527,7 @@ resource "azurerm_storage_share" "install" {
 
 resource "azurerm_storage_share" "install_smb" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_install_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (

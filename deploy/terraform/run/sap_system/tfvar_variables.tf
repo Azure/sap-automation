@@ -76,6 +76,11 @@ variable "proximityplacementgroup_arm_ids" {
   default = []
 }
 
+variable "use_secondary_ips" {
+  description = "Use secondary IPs for the SAP System"
+  default = false
+}
+
 #########################################################################################
 #                                                                                       #
 #  Virtual Network variables                                                            #
@@ -230,11 +235,6 @@ variable "user_keyvault_id" {
   default = ""
 }
 
-variable "automation_keyvault_id" {
-  description = "Currently not used"
-  default = ""
-}
-
 variable "spn_keyvault_id" {
   description = "If provided, the Azure resource identifier of the deployment credential keyvault"
   default = ""
@@ -374,6 +374,11 @@ variable "database_vm_db_nic_ips" {
   default = [""]
 }
 
+variable "database_vm_db_nic_secondary_ips" {
+  description = "If provided, the database tier will be configured with the specified IPs as secondary IPs"
+  default = [""]
+}
+
 variable "database_vm_admin_nic_ips" {
   description = "If provided, the database tier will be configured with the specified IPs (admin subnet)"
   default = [""]
@@ -477,6 +482,11 @@ variable "scs_server_app_nic_ips" {
   default = []
 }
 
+variable "scs_server_nic_secondary_ips" {
+  description = "If provided, the SAP Central Services tier will be configured with the specified IPs as secondary IPs"
+  default = []
+}
+
 variable "scs_server_admin_nic_ips" {
   description = "If provided, the SAP Central Services tier will be configured with the specified IPs  (admin subnet)"
   default = []
@@ -519,6 +529,11 @@ variable "application_server_count" {
 }
 
 variable "application_server_app_nic_ips" {
+  description = "IP addresses for the application servers"
+  default = []
+}
+
+variable "application_server_nic_secondary_ips" {
   description = "IP addresses for the application servers"
   default = []
 }
@@ -603,6 +618,11 @@ variable "webdispatcher_server_app_nic_ips" {
   default = []
 }
 
+variable "webdispatcher_server_nic_secondary_ips" {
+  description = "If provided, the Web Dispatchers will be configured with the specified IPs as secondary IPs"
+  default = []
+}
+
 variable "webdispatcher_server_admin_nic_ips" {
   description = "The IP addresses for the web dispatchers (admin subnet)"
   default = []
@@ -679,6 +699,11 @@ variable "shared_home" {
   default     = false
 }
 
+variable "save_naming_information" {
+  description = "If defined, will save the naming information for the resources"
+  default     = false
+}
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #
@@ -700,6 +725,13 @@ variable "azure_files_sapmnt_id" {
   description = "Azure File Share ID for SAPMNT"
   default = ""
 }
+
+variable "azurerm_private_endpoint_connection_sapmnt_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
 
 #########################################################################################
 #                                                                                       #
@@ -725,7 +757,7 @@ variable "ANF_use_existing_data_volume" {
 
 variable "ANF_data_volume_name" {
   description = "Data volume name"
-  default     = false
+  default     = [""]
 }
 
 variable "ANF_use_for_HANA_log" {
@@ -745,7 +777,7 @@ variable "ANF_use_existing_log_volume" {
 
 variable "ANF_log_volume_name" {
   description = "Log volume name"
-  default     = false
+  default     = [""]
 }
 
 variable "use_private_endpoint" {

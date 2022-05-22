@@ -207,6 +207,41 @@ dns_label="sap.contoso.net"
 
 # If defined provides the name of the resource group hosting the Private DNS zone
 #dns_resourcegroup_name=""
+ 
+#########################################################################################
+#                                                                                       #
+#  NFS support                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+NFS_provider          = "NONE"
+
+# Defines the size of the install volume
+install_volume_size = 256
+
+# azure_files_install_storage_account_id defines the Azure resource id for the install storage account
+#azure_files_install_storage_account_id = ""
+
+# azurerm_private_endpoint_connection_install_id defines the Azure resource id for the install storage account's private endpoint connection
+#azurerm_private_endpoint_connection_install_id=""
+
+# Defines the size of the transport volume
+transport_volume_size = 128
+
+# azure_files_transport_storage_account_id defines the Azure resource id for the transport storage account
+#azure_files_transport_storage_account_id = ""
+
+# azurerm_private_endpoint_connection_transport_id defines the Azure resource id for the transport storage accounts private endpoint connection
+#azurerm_private_endpoint_connection_transport_id=""
+
+
+# use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
+use_private_endpoint = true
+
 
 #########################################################################################
 #                                                                                       #

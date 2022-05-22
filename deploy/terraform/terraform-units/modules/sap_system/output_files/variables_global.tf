@@ -200,3 +200,7 @@ variable "hana_log" {
   description = "If defined provides the mount point for HANA log on ANF"
 }
 
+variable "save_naming_information" {
+  description = "If defined, will save the naming information for the resources"
+  default     = false
+}

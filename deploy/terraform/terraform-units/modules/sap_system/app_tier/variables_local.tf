@@ -232,14 +232,19 @@ locals {
     (var.use_loadbalancers_for_standalone_deployments || local.webdispatcher_count > 1)
   )
 
-  app_nic_ips       = try(var.application.app_nic_ips, [])
-  app_admin_nic_ips = try(var.application.app_admin_nic_ips, [])
-  scs_lb_ips        = try(var.application.scs_lb_ips, [])
-  scs_nic_ips       = try(var.application.scs_nic_ips, [])
-  scs_admin_nic_ips = try(var.application.scs_admin_nic_ips, [])
-  web_lb_ips        = try(var.application.web_lb_ips, [])
-  web_nic_ips       = try(var.application.web_nic_ips, [])
-  web_admin_nic_ips = try(var.application.web_admin_nic_ips, [])
+  app_nic_ips           = try(var.application.app_nic_ips, [])
+  app_nic_secondary_ips = try(var.application.app_nic_secondary_ips, [])
+  app_admin_nic_ips     = try(var.application.app_admin_nic_ips, [])
+
+  scs_lb_ips            = try(var.application.scs_lb_ips, [])
+  scs_nic_ips           = try(var.application.scs_nic_ips, [])
+  scs_nic_secondary_ips = try(var.application.scs_nic_secondary_ips, [])
+  scs_admin_nic_ips     = try(var.application.scs_admin_nic_ips, [])
+
+  web_lb_ips            = try(var.application.web_lb_ips, [])
+  web_nic_ips           = try(var.application.web_nic_ips, [])
+  web_nic_secondary_ips = try(var.application.web_nic_secondary_ips, [])
+  web_admin_nic_ips     = try(var.application.web_admin_nic_ips, [])
 
   app_size = var.application.app_sku
   scs_size = length(var.application.scs_sku) > 0 ? var.application.scs_sku : local.app_size
@@ -530,12 +535,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = length(try(local.scs_lb_ips[2],"")) > 0 ? (
+      private_ip_address = length(try(local.scs_lb_ips[2], "")) > 0 ? (
         local.scs_lb_ips[2]) : (
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[2],"")) > 0 ? "Static" : "Dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[2], "")) > 0 ? "Static" : "Dynamic"
 
     },
     {
@@ -552,12 +557,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = length(try(local.scs_lb_ips[3],"")) > 0 ? (
+      private_ip_address = length(try(local.scs_lb_ips[3], "")) > 0 ? (
         local.scs_lb_ips[3]) : (
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[3],"")) > 0 ? "Static" : "Dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[3], "")) > 0 ? "Static" : "Dynamic"
     }
   ]
 
@@ -576,12 +581,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = length(try(local.scs_lb_ips[0],"")) > 0 ? (
+      private_ip_address = length(try(local.scs_lb_ips[0], "")) > 0 ? (
         local.scs_lb_ips[0]) : (
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[0],"")) > 0 ? "Static" : "Dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[0], "")) > 0 ? "Static" : "Dynamic"
     },
     {
       name = format("%s%s%s%s",
@@ -597,12 +602,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = length(try(local.scs_lb_ips[1],"")) > 0 ? (
+      private_ip_address = length(try(local.scs_lb_ips[1], "")) > 0 ? (
         local.scs_lb_ips[1]) : (
         var.application.use_DHCP ? (
         null) : (cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = length(try(local.scs_lb_ips[1],"")) > 0 ? "Static" : "Dynamic"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[1], "")) > 0 ? "Static" : "Dynamic"
     },
   ]
 
@@ -621,4 +626,118 @@ locals {
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
 
   deploy_route_table = local.enable_deployment && length(var.route_table_id) > 0
+
+  application_primary_ips = [
+    {
+      name = "IPConfig1"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.app_nic_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = !var.use_secondary_ips
+    }
+  ]
+
+  application_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.app_nic_secondary_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = local.application_server_count
+      primary                       = var.use_secondary_ips
+    }
+  ]
+
+  application_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.application_secondary_ips, local.application_primary_ips))) : (
+    local.application_primary_ips
+  )
+
+  scs_primary_ips = [
+    {
+      name = "IPConfig1"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.scs_nic_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = !var.use_secondary_ips
+    }
+  ]
+
+  scs_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.scs_nic_secondary_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = local.scs_server_count
+      primary                       = var.use_secondary_ips
+    }
+  ]
+
+  scs_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.scs_secondary_ips, local.scs_primary_ips))) : (
+    local.scs_primary_ips
+  )
+
+  web_dispatcher_primary_ips = [
+    {
+      name = "IPConfig1"
+      subnet_id = local.enable_deployment ? (
+        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
+        ) : (
+        ""
+      )
+      nic_ips                       = local.web_nic_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = !var.use_secondary_ips
+    }
+  ]
+
+  web_dispatcher_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id = local.enable_deployment ? (
+        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
+        ) : (
+        ""
+      )
+      nic_ips                       = local.web_nic_secondary_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = local.webdispatcher_count
+      primary                       = var.use_secondary_ips
+    }
+  ]
+
+  web_dispatcher_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.web_dispatcher_secondary_ips, local.web_dispatcher_primary_ips))) : (
+    local.web_dispatcher_primary_ips
+  )
+
 }

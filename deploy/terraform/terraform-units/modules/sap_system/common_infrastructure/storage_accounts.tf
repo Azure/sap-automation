@@ -108,6 +108,21 @@ resource "azurerm_private_endpoint" "sapmnt" {
   }
 }
 
+data "azurerm_private_endpoint_connection" "sapmnt" {
+  provider = azurerm.main
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azurerm_private_endpoint_connection_sapmnt_id) > 0 ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+  name                = split("/",var.azurerm_private_endpoint_connection_sapmnt_id)[8]
+  resource_group_name = split("/",var.azurerm_private_endpoint_connection_sapmnt_id)[4]
+
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  NFS share                                                                            #
