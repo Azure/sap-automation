@@ -135,11 +135,12 @@ stages:
 
               if [ -f ${deployer_environment_file_name} ]; then
                 export keyvault=$(cat ${deployer_environment_file_name}  | grep keyvault | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                length=$(expr length "$keyvault")
 
                 ip_added=0
 
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
-                  if [ -n ${keyvault} ]; then
+                  if [ 0 != $length ]; then
 
                     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                     az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --no-wait

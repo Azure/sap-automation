@@ -6,7 +6,7 @@
 
 output "created_resource_group_id" {
   description = "Created resource group ID"
-  value = local.rg_exists ? (
+  value = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].id) : (
     azurerm_resource_group.resource_group[0].id
   )
@@ -14,7 +14,7 @@ output "created_resource_group_id" {
 
 output "created_resource_group_subscription_id" {
   description = "Created resource group' subscription ID"
-  value = local.rg_exists ? (
+  value = local.resource_group_exists ? (
     split("/",data.azurerm_resource_group.resource_group[0].id))[2] : (
     split("/",azurerm_resource_group.resource_group[0].id)[2]
   )
@@ -260,7 +260,7 @@ output "ANF_pool_settings" {
       split("/", var.ANF_settings.arm_id)[4]) : (
       azurerm_resource_group.resource_group[0].name
     )
-    location = local.rg_exists ? (
+    location = local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].location) : (
       azurerm_resource_group.resource_group[0].location
     )

@@ -35,8 +35,8 @@ locals {
   )
   sid       = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
   prefix    = trimspace(var.naming.prefix.SDU)
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
-  rg_name = local.rg_exists ? (
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     coalesce(
       try(var.infrastructure.resource_group.name, ""),

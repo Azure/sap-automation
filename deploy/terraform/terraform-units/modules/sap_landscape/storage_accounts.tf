@@ -8,11 +8,11 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   provider = azurerm.main
   count    = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
   name     = local.storageaccount_name
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -84,7 +84,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     local.resource_suffixes.storage_private_link_diag
   )
   resource_group_name = local.rg_name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+  location            = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   subnet_id           = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
 
   private_service_connection {
@@ -118,11 +118,11 @@ resource "azurerm_storage_account" "witness_storage" {
     azurerm_subnet.db
   ]
   name = local.witness_storageaccount_name
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -181,7 +181,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     local.resource_suffixes.storage_private_link_witness
   )
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -228,7 +228,7 @@ resource "azurerm_storage_account" "transport" {
     "/[^a-z0-9]/",
     ""
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
@@ -322,7 +322,7 @@ resource "azurerm_private_endpoint" "transport" {
   )
 
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -388,7 +388,7 @@ resource "azurerm_storage_account" "install" {
     ""
   )
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -483,7 +483,7 @@ resource "azurerm_private_endpoint" "install" {
     local.resource_suffixes.storage_private_link_install
   )
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )

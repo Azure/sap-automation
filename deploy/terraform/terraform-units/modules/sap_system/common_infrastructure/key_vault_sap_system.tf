@@ -41,7 +41,7 @@ resource "azurerm_key_vault" "sid_keyvault_user" {
   count    = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
   name     = local.user_keyvault_name
   location = var.infrastructure.region
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )

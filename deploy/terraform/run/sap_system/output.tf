@@ -28,8 +28,6 @@ output "created_resource_group_subscription_id" {
     value = module.common_infrastructure.created_resource_group_subscription_id
 }
 
-
-
 ###############################################################################
 #                                                                             # 
 #                                     DNS                                     # 

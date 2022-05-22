@@ -19,11 +19,11 @@ resource "azurerm_public_ip" "deployer" {
     var.naming.virtualmachine_names.DEPLOYER[count.index],
     local.resource_suffixes.pip
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
@@ -40,11 +40,11 @@ resource "azurerm_network_interface" "deployer" {
     var.naming.virtualmachine_names.DEPLOYER[count.index],
     local.resource_suffixes.nic
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
@@ -74,8 +74,8 @@ resource "azurerm_network_interface" "deployer" {
 
 // User defined identity for all Deployer, assign contributor to the current subscription
 resource "azurerm_user_assigned_identity" "deployer" {
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  resource_group_name = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location            = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   name                = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, local.resource_suffixes.msi)
 }
 
@@ -98,11 +98,11 @@ resource "azurerm_linux_virtual_machine" "deployer" {
     local.resource_suffixes.vm
   )
   computer_name = var.naming.virtualmachine_names.DEPLOYER[count.index]
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
@@ -170,13 +170,13 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 resource "azurerm_virtual_machine_extension" "configure" {
 
-  count = !local.enable_deployer_public_ip && var.configure && var.auto_configure_deployer ? 1 : 0
+  count = !local.enable_deployer_public_ip && var.configure && var.auto_configure_deployer ? var.deployer_vm_count : 0
 
   name                 = "configure_deployer"
   virtual_machine_id   = azurerm_linux_virtual_machine.deployer[count.index].id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
-  type_handler_version = "2.0"
+  type_handler_version = "2.1"
   settings = <<SETTINGS
     {
         "script": "${base64encode(templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {

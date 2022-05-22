@@ -23,7 +23,7 @@ resource "azurerm_storage_account" "sapmnt" {
     "/[^a-z0-9]/",
     ""
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
@@ -86,7 +86,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
     local.resource_suffixes.storage_private_link_sapmnt
   )
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )

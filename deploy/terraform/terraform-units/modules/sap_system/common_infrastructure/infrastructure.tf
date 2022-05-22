@@ -1,7 +1,7 @@
 // Creates the resource group
 resource "azurerm_resource_group" "resource_group" {
   provider = azurerm.main
-  count    = local.rg_exists ? 0 : 1
+  count    = local.resource_group_exists ? 0 : 1
   name     = local.rg_name
   location = var.infrastructure.region
   tags     = var.infrastructure.tags
@@ -144,11 +144,11 @@ resource "azurerm_proximity_placement_group" "ppg" {
   provider = azurerm.main
   count    = local.ppg_exists ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
   name     = format("%s%s", local.prefix, var.naming.ppg_names[count.index])
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -174,7 +174,7 @@ resource "azurerm_application_security_group" "db" {
   )
   resource_group_name = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.resource_group_name) : (
-    (local.rg_exists ? (
+    (local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].name) : (
       azurerm_resource_group.resource_group[0].name)
     )
@@ -182,7 +182,7 @@ resource "azurerm_application_security_group" "db" {
 
   location = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.location) : (
-    local.rg_exists ? (
+    local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].location) : (
       azurerm_resource_group.resource_group[0].location
     )
