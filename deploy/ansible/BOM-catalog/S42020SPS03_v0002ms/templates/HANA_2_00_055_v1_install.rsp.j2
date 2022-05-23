@@ -132,10 +132,10 @@ home=/usr/sap/${sid}/home
 shell=/bin/sh
 
 # System Administrator User ID
-userid=
+userid={{ hdbadm_uid }}
 
 # ID of User Group (sapsys)
-groupid=
+groupid={{ sapsys_gid }}
 
 # Database User (SYSTEM) Password
 system_user_password={{ main_password }}
