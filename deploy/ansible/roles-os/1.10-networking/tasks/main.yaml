@@ -71,12 +71,15 @@
           IPADDR="{{ secondary_ip }}"
           NETMASK=255.255.255.0
           mode: 755
+      register: definition_made
       when:
         - secondary_ip is defined
 
 # Restart Network service
     - name: "Restart Network service"
       ansible.builtin.command: ifup eth0
+      when:
+        - definition_made.changed
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
