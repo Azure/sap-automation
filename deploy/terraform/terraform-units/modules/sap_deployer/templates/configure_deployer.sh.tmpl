@@ -153,7 +153,7 @@ pkg_mgr_refresh()
         sudo $${pkg_mgr} update --quiet
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh 
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
         ;;
     esac
 
@@ -178,7 +178,7 @@ pkg_mgr_upgrade()
         sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet upgrade 
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
         ;;
     esac
 
@@ -323,11 +323,11 @@ sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
 
 
 rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-# Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository. 
+# Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
 # This package is outdated and not recommended. If this package is installed, remove the package
 if [ "$rel" == "20.04" ]; then
   echo "Removing Azure CLI"
-  sudo apt remove azure-cli -y 
+  sudo apt remove azure-cli -y
   sudo apt autoremove -y
   sudo apt update -y
 fi
@@ -349,8 +349,8 @@ set -o errexit
 # Install latest Ansible revision of specified version for all users.
 #
 sudo mkdir -p \
-    $${ansible_bin} 
-    
+    $${ansible_bin}
+
 
 # Create a Python3 based venv into which we will install Ansible.
 if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
