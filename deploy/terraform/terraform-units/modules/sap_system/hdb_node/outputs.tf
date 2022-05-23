@@ -196,3 +196,37 @@ output "hana_log_secondary" {
     ""
   )
 }
+
+output "hana_shared_primary" {
+  value = var.hana_ANF_volumes.use_for_shared ? (
+    format("%s:/%s",
+      var.hana_ANF_volumes.use_existing_shared_volume ? (
+        data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
+        azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
+      ),
+      var.hana_ANF_volumes.use_existing_shared_volume ? (
+        data.azurerm_netapp_volume.hanashared[0].volume_path) : (
+        azurerm_netapp_volume.hanashared[0].volume_path
+      )
+    )
+    ) : (
+    ""
+  )
+}
+
+output "hana_shared_secondary" {
+  value = var.hana_ANF_volumes.use_for_shared && local.hdb_ha ? (
+    format("%s:/%s",
+      var.hana_ANF_volumes.use_existing_shared_volume ? (
+        data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
+        azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
+      ),
+      var.hana_ANF_volumes.use_existing_shared_volume ? (
+        data.azurerm_netapp_volume.hanashared[1].volume_path) : (
+        azurerm_netapp_volume.hanashared[1].volume_path
+      )
+    )
+    ) : (
+    ""
+  )
+}

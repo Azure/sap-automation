@@ -115,6 +115,10 @@ resource "local_file" "sap-parameters_yml" {
       format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
       ""
     )
+    hana_shared = length(var.hana_shared) > 0 ? (
+      format("hana_shared_mountpoint:           %s", jsonencode(var.hana_shared))) : (
+      ""
+    )
 
     }
   )
