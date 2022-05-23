@@ -780,6 +780,21 @@ variable "ANF_log_volume_name" {
   default     = [""]
 }
 
+variable "ANF_use_for_HANA_shared" {
+  description = "If defined, will create ANF volumes for HANA shared"
+  default     = false
+}
+
+variable "ANF_HANA_shared_volume_size" {
+  description = "If defined provides the size of the HANA shared volume"
+  default = 512
+}
+
+variable "ANF_use_existing_shared_volume" {
+  description = "Use existing shared volume"
+  default     = false
+}
+
 variable "use_private_endpoint" {
   description = "Use private endpoint for the deployment"
   default = false

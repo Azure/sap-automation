@@ -91,6 +91,12 @@ locals {
     use_existing_log_volume = var.ANF_use_existing_log_volume
     log_volume_name         = var.ANF_log_volume_name
 
+    use_for_shared             = var.ANF_use_for_HANA_shared
+    shared_volume_size         = var.ANF_HANA_shared_volume_size
+    use_existing_shared_volume = var.ANF_use_existing_shared_volume
+    shared_volume_name         = var.ANF_shared_volume_name
+
+
     use_existing_sapmnt_volume = var.ANF_use_existing_sapmnt_volume
     sapmnt_volume_name         = var.ANF_sapmnt_volume_name
 
