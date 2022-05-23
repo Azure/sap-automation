@@ -35,8 +35,8 @@ locals {
   )
   sid       = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
   prefix    = trimspace(var.naming.prefix.SDU)
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
-  rg_name = local.rg_exists ? (
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     coalesce(
       try(var.infrastructure.resource_group.name, ""),
@@ -63,7 +63,6 @@ locals {
     [for pair in local.faults :
       upper(pair.Location) == upper(var.infrastructure.region) ? pair.MaximumFaultDomainCount : ""
   ])[0]), 2)
-
 
   // Dual network cards
   anydb_dual_nics = try(local.anydb.dual_nics, false)
@@ -93,8 +92,8 @@ locals {
 
   anydb_sku = try(local.db_size.vm_size, "Standard_E16_v3")
 
-  anydb_ha     = try(local.anydb.high_availability, false)
-  db_sid       = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
+  anydb_ha = try(local.anydb.high_availability, false)
+  db_sid   = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
 
   # Oracle deployments do not need a load balancer
   enable_db_lb_deployment = (
@@ -374,5 +373,32 @@ locals {
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
+
+  database_primary_ips = [
+    {
+      name                          = "IPConfig1"
+      subnet_id                     = var.db_subnet.id
+      nic_ips                       = var.database_vm_db_nic_ips
+      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = !var.use_secondary_ips
+    }
+  ]
+
+  database_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id                     = var.db_subnet.id
+      nic_ips                       = var.database_vm_db_nic_secondary_ips
+      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      offset                        = var.database_server_count
+      primary                       = var.use_secondary_ips
+    }
+  ]
+
+  database_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.database_secondary_ips, local.database_primary_ips))) : (
+    local.database_primary_ips
+  )
 
 }

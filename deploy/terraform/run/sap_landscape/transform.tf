@@ -154,17 +154,6 @@ locals {
     ""
   )
 
-  automation_keyvault_specified = (
-    length(var.automation_keyvault_id) +
-    length(try(var.key_vault.kv_prvt, ""))
-  ) > 0
-
-  prvt_kv = local.automation_keyvault_specified ? (
-    try(var.key_vault.kv_prvt_id, var.automation_keyvault_id)
-    ) : (
-    ""
-  )
-
   spn_keyvault_specified = (
     length(var.spn_keyvault_id) +
     length(try(var.key_vault.kv_spn_id, ""))
@@ -179,11 +168,6 @@ locals {
     local.user_keyvault_specified ? (
       {
         kv_user_id = local.user_keyvault
-      }
-    ) : null), (
-    local.automation_keyvault_specified ? (
-      {
-        kv_prvt_id = local.prvt_kv
       }
     ) : null), (
     local.spn_keyvault_specified ? (

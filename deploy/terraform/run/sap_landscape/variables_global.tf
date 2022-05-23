@@ -19,32 +19,6 @@ variable "NFS_provider" {
   default = "NONE"
 }
 
-variable "azure_files_install_storage_account_id" {
-  description = "Azure Resource Identifier for the Installation media storage account"
-  type    = string
-  default = ""
-}
-
-variable "azurerm_private_endpoint_connection_install_id" {
-  description = "Azure Resource Identifier for an private endpoint connection"
-  type        = string
-  default = ""
-}
-
-variable "azure_files_transport_storage_account_id" {
-  description = "Azure Resource Identifier for the Transport media storage account"
-  type    = string
-  default = ""
-}
-
-variable "azurerm_private_endpoint_connection_transport_id" {
-  description = "Azure Resource Identifier for an private endpoint connection"
-  type        = string
-  default = ""
-}
-
-
-
 variable "infrastructure" {
   description = "Details of the Azure infrastructure to deploy the SAP landscape into"
   default     = {}

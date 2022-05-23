@@ -6,7 +6,7 @@
 // Creates the resource group
 resource "azurerm_resource_group" "resource_group" {
   provider = azurerm.main
-  count    = local.rg_exists ? 0 : 1
+  count    = local.resource_group_exists ? 0 : 1
   name     = local.rg_name
   location = local.region
   tags     = var.infrastructure.tags
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "resource_group" {
 // Imports data of existing resource group
 data "azurerm_resource_group" "resource_group" {
   provider = azurerm.main
-  count    = local.rg_exists ? 1 : 0
+  count    = local.resource_group_exists ? 1 : 0
   name     = local.rg_name
 }
 
@@ -31,11 +31,11 @@ resource "azurerm_virtual_network" "vnet_sap" {
   provider = azurerm.main
   count    = local.vnet_sap_exists ? 0 : 1
   name     = local.vnet_sap_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )

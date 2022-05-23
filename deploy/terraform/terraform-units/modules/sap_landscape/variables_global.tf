@@ -176,22 +176,22 @@ variable "install_volume_size" {
 }
 
 
-variable "azure_files_transport_storage_account_id" {
+variable "transport_storage_account_id" {
   description = "Azure Resource Identifier for an existing storage account"
   type        = string
 }
 
-variable "azurerm_private_endpoint_connection_transport_id" {
+variable "transport_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
 }
 
-variable "azure_files_install_storage_account_id" {
+variable "install_storage_account_id" {
   description = "Azure Resource Identifier for an existing storage account"
   type        = string
 }
 
-variable "azurerm_private_endpoint_connection_install_id" {
+variable "install_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
   default = ""

@@ -241,11 +241,6 @@ variable "user_keyvault_id" {
   default = ""
 }
 
-variable "automation_keyvault_id" {
-  description = "Currently not used"
-  default = ""
-}
-
 variable "spn_keyvault_id" {
   description = "If provided, the Azure resource identifier of the deployment credential keyvault"
   default = ""
@@ -309,15 +304,40 @@ variable "use_private_endpoint" {
   type = bool
 }
 
+variable "transport_storage_account_id" {
+  description = "Azure Resource Identifier for the Transport media storage account"
+  type    = string
+  default = ""
+}
+
+variable "transport_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
 variable "transport_volume_size" {
   description = "The volume size in GB for the transport share"
   default     = 128
+}
+
+variable "install_storage_account_id" {
+  description = "Azure Resource Identifier for the Installation media storage account"
+  type    = string
+  default = ""
 }
 
 variable "install_volume_size" {
   description = "The volume size in GB for the transport share"
   default     = 256
 }
+
+variable "install_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
 
 variable "Agent_IP" {
   type    = string

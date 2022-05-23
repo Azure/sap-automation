@@ -61,7 +61,7 @@
     - not scs_high_availability
     - node_tier != 'observer'
 
-- name:                                "2.6 SAP Mounts: - Mount local file systems"
+- name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -70,6 +70,18 @@
     state:                             mounted
   loop:
     - { node_tier: 'hana', type: 'xfs', src: "{{ sharedpath }}",                   path: '/hana/shared' }
+  when:
+    - node_tier == 'hana'
+    - hana_shared_mountpoint is undefined
+
+- name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
     - { node_tier: 'hana', type: 'xfs', src: '/dev/vg_hana_backup/lv_hana_backup', path: '/hana/backup' }
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
 

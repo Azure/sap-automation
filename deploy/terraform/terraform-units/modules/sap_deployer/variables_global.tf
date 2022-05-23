@@ -59,3 +59,9 @@ variable "auto_configure_deployer" {
   description = "Value indicating if the deployer should be configured automatically"
   default     = true
 }
+
+variable "deployer_vm_count" {
+  description = "Number of deployer VMs to create"
+  type    = number
+  default = 1
+}

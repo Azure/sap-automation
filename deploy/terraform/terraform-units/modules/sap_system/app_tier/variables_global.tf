@@ -101,3 +101,8 @@ variable "order_deployment" {
   description = "psuedo condition for ordering deployment"
   default     = ""
 }
+
+variable "use_secondary_ips" {
+  description = "Use secondary IPs for the SAP System"
+  default = false
+}

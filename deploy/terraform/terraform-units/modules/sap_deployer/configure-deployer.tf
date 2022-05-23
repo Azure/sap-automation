@@ -8,7 +8,7 @@ Description:
 // Prepare deployer with pre-installed softwares if pip is created
 resource "null_resource" "prepare-deployer" {
   depends_on = [azurerm_linux_virtual_machine.deployer]
-  count      = local.enable_deployer_public_ip && var.configure ? 1 : 0
+  count      = local.enable_deployer_public_ip && var.configure ? var.deployer_vm_count : 0
 
   connection {
     type        = "ssh"
