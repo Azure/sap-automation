@@ -125,9 +125,7 @@ stages:
                 git pull
 
               echo -e "$green--- Convert config files to UX format ---$reset"
-                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
-                  sudo apt-get -qq install dos2unix
-                fi
+                sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
               
@@ -141,7 +139,6 @@ stages:
 
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
                   if [ 0 != $length ]; then
-
                     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                     az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --no-wait
                     ip_added=1
