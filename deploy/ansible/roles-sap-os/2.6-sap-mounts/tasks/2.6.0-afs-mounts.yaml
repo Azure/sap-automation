@@ -189,7 +189,7 @@
             opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
             state:                     mounted
 
-        - name:                        "AFS Mount: Create SAP Directories (AFS) (transport)"
+        - name:                        "AFS Mount: Create SAP Directories (AFS) (install)"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             state:                     directory
@@ -197,20 +197,20 @@
           loop:
             - { path: '/tmpinstall/{{ bom_base_name }}' }
 
-        - name:                        "AFS Mount: Unmount file systems (transport)"
+        - name:                        "AFS Mount: Unmount file systems (install)"
           ansible.builtin.mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             state:                     unmounted
 
-        - name:                        "AFS Mount: Delete locally created SAP Directories (AFS) (transport)"
+        - name:                        "AFS Mount: Delete locally created SAP Directories (AFS) (install)"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             state:                     absent
           loop:
-            - { path: '/tmpinstall/{{ bom_base_name }}' }
+            - { path: '/tmpinstall' }
 
-        - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (transport)"
+        - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (install)"
           ansible.builtin.mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
@@ -501,12 +501,12 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            "AFS Mount: Mount Install folder when using AFS"
+    - name:                            "AFS Mount: Mount Install folder when using AFS ({{ usr_sap_install_mountpoint }}/{{ bom_base_name }})"
       ansible.builtin.mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
-        opts:                          "vers=4,minorversion=1,sec=sys"
+        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
         state:                         mounted
       when:
         - tier == 'sapos'
@@ -519,7 +519,7 @@
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
-        opts:                          "vers=4,minorversion=1,sec=sys"
+        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
         state:                         mounted
       when:
         - tier == 'sapos'
