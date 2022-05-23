@@ -1,8 +1,9 @@
-/*
-  Description:
-  Setup common infrastructure
-*/
 
+#########################################################################################
+#                                                                                       #
+#  Name generator                                                                       #
+#                                                                                       #
+#########################################################################################
 
 module "sap_namegenerator" {
   source           = "../../terraform-units/modules/sap_namegenerator"
@@ -34,6 +35,12 @@ module "sap_namegenerator" {
   use_zonal_markers          = var.use_zonal_markers
 }
 
+#########################################################################################
+#                                                                                       #
+#  Common Infrastructure                                                                #
+#                                                                                       #
+#########################################################################################
+
 module "common_infrastructure" {
   source = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers = {
@@ -64,15 +71,22 @@ module "common_infrastructure" {
     local.databases[0].high_availability ? 1 : 0,
     var.NFS_provider
   )
-  Agent_IP              = var.Agent_IP
-  use_private_endpoint  = var.use_private_endpoint
-  hana_dual_nics        = var.hana_dual_nics
-  azure_files_sapmnt_id = var.azure_files_sapmnt_id
-  hana_ANF_volumes  = local.hana_ANF_volumes
+  Agent_IP                                      = var.Agent_IP
+  use_private_endpoint                          = var.use_private_endpoint
+  hana_dual_nics                                = var.hana_dual_nics
+  azure_files_sapmnt_id                         = var.azure_files_sapmnt_id
+  hana_ANF_volumes                              = local.hana_ANF_volumes
+  azurerm_private_endpoint_connection_sapmnt_id = var.azurerm_private_endpoint_connection_sapmnt_id
 
 }
 
-# // Create HANA database nodes
+
+#########################################################################################
+#                                                                                       #
+#  HANA Infrastructure                                                                  #
+#                                                                                       #
+#########################################################################################
+
 module "hdb_node" {
   source = "../../terraform-units/modules/sap_system/hdb_node"
   providers = {
@@ -110,6 +124,7 @@ module "hdb_node" {
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
   hana_dual_nics                               = module.common_infrastructure.admin_subnet == null ? false : var.hana_dual_nics
   database_vm_db_nic_ips                       = var.database_vm_db_nic_ips
+  database_vm_db_nic_secondary_ips             = var.database_vm_db_nic_secondary_ips
   database_vm_admin_nic_ips                    = var.database_vm_admin_nic_ips
   database_vm_storage_nic_ips                  = var.database_vm_storage_nic_ips
   database_server_count = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? (
@@ -122,9 +137,16 @@ module "hdb_node" {
   landscape_tfstate = data.terraform_remote_state.landscape.outputs
   hana_ANF_volumes  = local.hana_ANF_volumes
   NFS_provider      = var.NFS_provider
+  use_secondary_ips = var.use_secondary_ips
 }
 
-# // Create Application Tier nodes
+
+#########################################################################################
+#                                                                                       #
+#  App Tier Infrastructure                                                              #
+#                                                                                       #
+#########################################################################################
+
 module "app_tier" {
   source = "../../terraform-units/modules/sap_system/app_tier"
   providers = {
@@ -161,9 +183,15 @@ module "app_tier" {
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
+  use_secondary_ips                            = var.use_secondary_ips
 }
 
-# // Create anydb database nodes
+#########################################################################################
+#                                                                                       #
+#  AnyDB Infrastructure                                                                 #
+#                                                                                       #
+#########################################################################################
+
 module "anydb_node" {
   source = "../../terraform-units/modules/sap_system/anydb_node"
   providers = {
@@ -199,16 +227,22 @@ module "anydb_node" {
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
   database_vm_db_nic_ips                       = var.database_vm_db_nic_ips
+  database_vm_db_nic_secondary_ips             = var.database_vm_db_nic_secondary_ips
   database_vm_admin_nic_ips                    = var.database_vm_admin_nic_ips
-  database_vm_storage_nic_ips                  = var.database_vm_storage_nic_ips
   database_server_count = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? (
     0) : (
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count
   )
   use_observer      = var.use_observer
   landscape_tfstate = data.terraform_remote_state.landscape.outputs
+  use_secondary_ips = var.use_secondary_ips
 }
-# // Generate output files
+#########################################################################################
+#                                                                                       #
+#  Output files                                                                         #
+#                                                                                       #
+#########################################################################################
+
 module "output_files" {
   source = "../../terraform-units/modules/sap_system/output_files"
   providers = {
@@ -261,20 +295,22 @@ module "output_files" {
     module.hdb_node.db_ip) : (
     module.anydb_node.anydb_db_ip
   ) #TODO Change to use Admin IP
-  sap_mnt             = module.common_infrastructure.sapmnt_path
-  sap_transport       = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
-  ers_lb_ip           = module.app_tier.ers_lb_ip
-  bom_name            = var.bom_name
-  scs_instance_number = var.scs_instance_number
-  ers_instance_number = var.ers_instance_number
-  platform            = upper(try(local.databases[0].platform, "HANA"))
-  db_auth_type        = try(local.databases[0].authentication.type, "key")
-  tfstate_resource_id = var.tfstate_resource_id
-  install_path        = try(data.terraform_remote_state.landscape.outputs.install_path, "")
-  NFS_provider        = var.NFS_provider
-  observer_ips        = module.anydb_node.observer_ips
-  observer_vms        = module.anydb_node.observer_vms
-  shared_home         = var.shared_home
-  hana_data           = module.hdb_node.hana_data
-  hana_log            = module.hdb_node.hana_log
+  sap_mnt                 = module.common_infrastructure.sapmnt_path
+  sap_transport           = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
+  ers_lb_ip               = module.app_tier.ers_lb_ip
+  bom_name                = var.bom_name
+  scs_instance_number     = var.scs_instance_number
+  ers_instance_number     = var.ers_instance_number
+  platform                = upper(try(local.databases[0].platform, "HANA"))
+  db_auth_type            = try(local.databases[0].authentication.type, "key")
+  tfstate_resource_id     = var.tfstate_resource_id
+  install_path            = try(data.terraform_remote_state.landscape.outputs.install_path, "")
+  NFS_provider            = var.NFS_provider
+  observer_ips            = module.anydb_node.observer_ips
+  observer_vms            = module.anydb_node.observer_vms
+  shared_home             = var.shared_home
+  hana_data               = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
+  hana_log                = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
+  hana_shared             = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
+  save_naming_information = var.save_naming_information
 }

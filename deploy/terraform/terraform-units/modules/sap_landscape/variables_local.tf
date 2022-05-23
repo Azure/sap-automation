@@ -36,8 +36,8 @@ locals {
 
 
   // Resource group
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
-  rg_name = local.rg_exists ? (
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     length(try(var.infrastructure.resource_group.name, "")) > 0 ? (
       var.infrastructure.resource_group.name) : (

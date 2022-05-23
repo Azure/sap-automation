@@ -196,7 +196,15 @@ variable "hana_data" {
   description = "If defined provides the mount point for HANA data on ANF"
 }
 
+variable "hana_shared" {  
+  description = "If defined provides the mount point for HANA shared on ANF"
+}
+
 variable "hana_log" {  
   description = "If defined provides the mount point for HANA log on ANF"
 }
 
+variable "save_naming_information" {
+  description = "If defined, will save the naming information for the resources"
+  default     = false
+}

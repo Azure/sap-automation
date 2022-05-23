@@ -5,11 +5,11 @@ resource "azurerm_key_vault" "kv_prvt" {
   # TODO Add this back when we separate the usage
   count = (!local.automation_keyvault_exist) ? 0 : 0
   name  = local.keyvault_names.private_access
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
@@ -47,11 +47,11 @@ resource "azurerm_key_vault_access_policy" "kv_prvt_msi" {
 resource "azurerm_key_vault" "kv_user" {
   count = (!local.user_keyvault_exist) ? 1 : 0
   name  = local.keyvault_names.user_access
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
@@ -273,11 +273,11 @@ resource "azurerm_private_endpoint" "kv_user" {
     local.prefix,
     local.resource_suffixes.keyvault_private_link
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )

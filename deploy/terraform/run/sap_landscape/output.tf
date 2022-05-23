@@ -1,4 +1,20 @@
 
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
+
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value = module.sap_landscape.created_resource_group_id
+}
+
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+    value = module.sap_landscape.created_resource_group_subscription_id
+}
+
 
 output "workload_zone_prefix" {
   value = module.sap_landscape.workload_zone_prefix
@@ -160,10 +176,6 @@ output "transport_storage_account_id" {
   value = module.sap_landscape.transport_storage_account_id
 }
 
-output "azure_files_transport_storage_account_id" {
-  value = module.sap_landscape.transport_storage_account_id
-}
-
 output "automation_version" {
   value = local.version_label
 }
@@ -190,13 +202,11 @@ output "ANF_pool_settings" {
   value = module.sap_landscape.ANF_pool_settings
 }
 
-
 ###############################################################################
 #                                                                             # 
 #                            Mount info                                       # 
 #                                                                             # 
 ###############################################################################
-
 
 output "saptransport_path" {
   description = "Mount point for transport volume"
@@ -207,3 +217,4 @@ output "install_path" {
   description = "Mount point for install volume"
   value = module.sap_landscape.install_path
 }
+

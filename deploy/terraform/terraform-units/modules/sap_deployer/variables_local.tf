@@ -20,9 +20,9 @@ locals {
   // Resource group
   prefix = var.naming.prefix.DEPLOYER
 
-  rg_exists = length(var.infrastructure.resource_group.arm_id) > 0
+  resource_group_exists = length(var.infrastructure.resource_group.arm_id) > 0
   // If resource ID is specified extract the resourcegroup name from it otherwise read it either from input of create using the naming convention
-  rg_name = local.rg_exists ? (
+  rg_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     length(var.infrastructure.resource_group.name) > 0 ? (
       var.infrastructure.resource_group.name) : (
@@ -196,7 +196,7 @@ locals {
           local.prefix) : (
           var.infrastructure.environment
       )),
-      "/[^A-Za-z0-9]/"
+      "/[^A-Za-z0-9-]/"
     , "")
   )
   pk_secret_name = local.key_exist ? (
@@ -208,7 +208,7 @@ locals {
           var.infrastructure.environment
         ),
       ),
-      "/[^A-Za-z0-9]/",
+      "/[^A-Za-z0-9-]/",
       ""
     )
   )
@@ -221,7 +221,7 @@ locals {
           var.infrastructure.environment
         ),
       ),
-      "/[^A-Za-z0-9]/"
+      "/[^A-Za-z0-9-]/"
     , "")
   )
   username_secret_name = local.username_exist ? (
@@ -233,7 +233,7 @@ locals {
           var.infrastructure.environment
         ),
       ),
-      "/[^A-Za-z0-9]/"
+      "/[^A-Za-z0-9-]/"
     , "")
   )
 

@@ -1,41 +1,8 @@
-/*
-  Description:
-  Set up Key Vaults for sap landscape
-*/
-
-// Create private KV with access policy
-resource "azurerm_key_vault" "kv_prvt" {
-  provider = azurerm.main
-  # TODO Add this back when we separate the usage
-  count                      = (local.enable_landscape_kv && !local.automation_keyvault_exist) ? 0 : 0
-  name                       = local.automation_keyvault_name
-  location                   = local.region
-  resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
-  tenant_id                  = local.service_principal.tenant_id
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = var.enable_purge_control_for_keyvaults
-  sku_name                   = "standard"
-
-  access_policy {
-    tenant_id = local.service_principal.tenant_id
-    object_id = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
-
-    secret_permissions = [
-      "Get",
-    ]
-
-  }
-
-}
-
-// Import an existing private Key Vault
-data "azurerm_key_vault" "kv_prvt" {
-  provider            = azurerm.main
-  count               = (local.automation_keyvault_exist) ? 1 : 0
-  name                = local.automation_keyvault_name
-  resource_group_name = local.automation_keyvault_rg_name
-}
-
+###############################################################################
+#                                                                             # 
+#                            Workload zone key vault                          #  
+#                                                                             # 
+###############################################################################
 
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
@@ -43,7 +10,7 @@ resource "azurerm_key_vault" "kv_user" {
   count                      = (local.enable_landscape_kv && !local.user_keyvault_exist) ? 1 : 0
   name                       = local.user_keyvault_name
   location                   = local.region
-  resource_group_name        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
+  resource_group_name        = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   tenant_id                  = local.service_principal.tenant_id
   soft_delete_retention_days = 7
   purge_protection_enabled   = var.enable_purge_control_for_keyvaults
@@ -102,6 +69,12 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
     "Purge"
   ]
 }
+
+###############################################################################
+#                                                                             # 
+#                                       Secrets                               # 
+#                                                                             # 
+###############################################################################
 
 // Using TF tls to generate SSH key pair for SID
 resource "tls_private_key" "sid" {
@@ -279,8 +252,6 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   ]
 }
 
-
-
 //Witness access key
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   depends_on = [
@@ -295,7 +266,6 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
     azurerm_key_vault.kv_user[0].id
   )
 }
-
 
 resource "azurerm_private_endpoint" "kv_user" {
   provider = azurerm.main
@@ -318,11 +288,11 @@ resource "azurerm_private_endpoint" "kv_user" {
     ),
     local.resource_suffixes.keyvault_private_link
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )

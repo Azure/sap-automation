@@ -198,10 +198,6 @@ locals {
       var.user_keyvault_id,
       try(var.key_vault.kv_user_id, "")
     ), "")
-    kv_prvt_id = try(coalesce(
-      var.automation_keyvault_id,
-      try(var.key_vault.kv_prvt_id, "")
-    ), "")
     kv_sshkey_prvt = try(coalesce(
       var.deployer_private_key_secret_name,
       try(var.key_vault.kv_sshkey_prvt, "")
