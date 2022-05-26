@@ -329,7 +329,7 @@ variable "install_storage_account_id" {
 
 variable "install_volume_size" {
   description = "The volume size in GB for the transport share"
-  default     = 256
+  default     = 1024
 }
 
 variable "install_private_endpoint_id" {
