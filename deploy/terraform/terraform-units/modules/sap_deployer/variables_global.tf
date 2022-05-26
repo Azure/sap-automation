@@ -65,3 +65,22 @@ variable "deployer_vm_count" {
   type    = number
   default = 1
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  ADO definitioms                                                                      #
+#                                                                                       #
+#########################################################################################
+
+variable "agent_pool" {
+  description = "If provided, contains the name of the agent pool to be used"
+}
+
+variable "agent_pat" {
+  description = "If provided, contains the Personal Access Token to be used"
+}
+
+variable "agent_ado_url" {
+  description = "If provided, contains the Url to the ADO repository"
+}

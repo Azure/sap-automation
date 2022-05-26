@@ -68,7 +68,7 @@ resource "azurerm_network_interface" "deployer" {
       "Dynamic"
     )
 
-    public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : ""
+    public_ip_address_id = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : ""
   }
 }
 
@@ -123,6 +123,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
     caching                = "ReadWrite"
     storage_account_type   = var.deployer.disk_type
     disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
+    disk_size_gb           = 128
   }
 
   source_image_id = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
@@ -179,14 +180,25 @@ resource "azurerm_virtual_machine_extension" "configure" {
   type_handler_version = "2.1"
   settings = <<SETTINGS
     {
-        "script": "${base64encode(templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
-  tfversion       = var.tf_version,
-  rg_name         = local.rg_name,
-  client_id       = azurerm_user_assigned_identity.deployer.client_id,
-  subscription_id = data.azurerm_subscription.primary.subscription_id,
-  tenant_id       = data.azurerm_subscription.primary.tenant_id,
-  local_user      = local.username
-}))}"
+        "script": "${base64encode(
+  templatefile(
+    format(
+    "%s/templates/configure_deployer.sh.tmpl", path.module),
+    {
+      tfversion       = var.tf_version,
+      rg_name         = local.rg_name,
+      client_id       = azurerm_user_assigned_identity.deployer.client_id,
+      subscription_id = data.azurerm_subscription.primary.subscription_id,
+      tenant_id       = data.azurerm_subscription.primary.tenant_id,
+      local_user      = local.username
+      pool            = var.agent_pool
+      pat             = var.agent_pat
+      ado_repo        = var.agent_ado_url
+
+    }
+  )
+)
+}"
     }
 SETTINGS
 }

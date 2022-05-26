@@ -27,9 +27,9 @@ parameters:
       - S41909SPS03_v0011ms
       - S4HANA_2021_ISS_v0001ms
       - S42020SPS03_v0002ms
-      - HANA_2_00_061_latest
-      - HANA_2_00_059_latest
-      - HANA_2_00_055_latest
+      - HANA_2_00_061_v0001ms
+      - HANA_2_00_059_v0002ms
+      - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - ORACLE_19_00_v0002ms
       - ORACLE_19_00_ORA_MSID_v0002ms
@@ -124,7 +124,10 @@ stages:
                 VIRTUAL_NET=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $VIRTUAL_NET
                         SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
 
-                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
+                        ls $HOME/SYSTEM/$(sap_system_folder)
+
+                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION ; echo configuration_file $environment_file_name
+                          params_file=$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ;  echo sap_parameters_file $params_file
 
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $environment_file_name was not found ---$reset"
@@ -132,12 +135,15 @@ stages:
                   exit 2
                 fi
 
-                if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
+                if [ ! -f $params_file ]; then
                   echo -e "$boldred--- $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found."
                   exit 2
+                else
+                  dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                 fi
-                dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+                echo "3"
+                
 
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sap_system_folder)."

@@ -48,7 +48,7 @@
     - name:                            "SAP HANA: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
-        sap_inifile_template:          "HANA_2_00_055_v1_install.rsp.j2"
+        sap_inifile_template:          "HANA_2_00_install.rsp.j2"
 
     - name:                            "SAP HANA: remove install response file"
       ansible.builtin.file:

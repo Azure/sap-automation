@@ -233,7 +233,9 @@ stages:
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
-                echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
+                if [ -f ${SID}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
+                fi
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure

@@ -294,3 +294,25 @@ variable "auto_configure_deployer" {
   description = "Value indicating if the deployer should be configured automatically"
   default     = true
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  ADO definitioms                                                                      #
+#                                                                                       #
+#########################################################################################
+
+variable "agent_pool" {
+  description = "If provided, contains the name of the agent pool to be used"
+  default     = ""
+}
+
+variable "agent_pat" {
+  description = "If provided, contains the Personal Access Token to be used"
+  default     = ""
+}
+
+variable "agent_ado_url" {
+  description = "If provided, contains the Url to the ADO repository"
+  default     = ""
+}

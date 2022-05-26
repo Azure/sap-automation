@@ -62,6 +62,12 @@ subscription_id="${subscription_id}"
 tenant_id="${tenant_id}"
 local_user="${local_user}"
 
+TOKEN="${pat}"
+DEVURL="${ado_repo}"
+POOL="${pool}"
+AGENTNAME=$(hostname)
+
+
 #
 # Ansible Version settings
 #
@@ -310,14 +316,13 @@ fi
 
 chown -R "$${local_user}" "$${asad_dir}"
 
-
 #
 # Install terraform for all users
 #
 sudo mkdir -p \
     $${tf_dir} \
     $${tf_bin}
-wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}
+wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip} 
 sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
 sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
 
@@ -336,8 +341,6 @@ fi
 #
 
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
-
-/usr/bin/az extension add --name storage-blob-preview > /dev/null
 
 # Fail if any command exits with a non-zero exit status
 set -o errexit
@@ -375,20 +378,22 @@ sudo $${ansible_venv_bin}/pip3 install --upgrade \
 # Install latest MicroSoft Authentication Library
 # TODO(rtamalin): Do we need this? In particular do we expect to integrated
 # Rust based tools with the Python/Ansible envs that we are using?
-sudo $${ansible_venv_bin}/pip3 install \
-    setuptools-rust
+# sudo $${ansible_venv_bin}/pip3 install \
+#    setuptools-rust
 
 
 # Install latest revision of target Ansible version, along with additional
 # useful/supporting Python packages such as ansible-lint, yamllint,
 # argcomplete, pywinrm.
+# ansible-lint \
+#  yamllint \
+  
 sudo $${ansible_venv_bin}/pip3 install \
     "ansible>=$${ansible_major}.$${ansible_minor},<$${ansible_major}.$((ansible_minor + 1))" \
-    ansible-lint \
     argcomplete \
     'pywinrm>=0.3.0' \
-    yamllint \
-    netaddr
+    netaddr  \
+    jmespath
 
 
 # Create symlinks for all relevant commands that were installed in the Ansible
@@ -411,13 +416,13 @@ ansible_venv_commands=(
     ansible-vault
 
     # ansible-lint
-    ansible-lint
+    # ansible-lint
 
     # argcomplete
     activate-global-python-argcomplete
 
     # yamllint
-    yamllint
+    # yamllint
 )
 
 
@@ -436,7 +441,58 @@ sudo $${ansible_bin}/activate-global-python-argcomplete
 #
 echo '# Configure environment settings for deployer interactive sessions' | sudo tee /etc/profile.d/deploy_server.sh
 
+export PATH="$${PATH}":"$${ansible_bin}":"$${tf_bin}"
 
+#
+# Create Agent
+#
+# Azure SAP Automated Deployment directories
+agent_home="/home/$${local_user}/agent"
+
+if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
+    echo "Agent already installed"
+else
+    sudo mkdir -p "$${agent_home}"; cd $_
+    wget -nv https://aka.ms/AAftpys -O agent.tar.gz
+    tar zxvf agent.tar.gz >/dev/null 2>&1
+    sudo chown -R "$${local_user}" $${agent_home}
+
+    sudo touch $${agent_home}/agent_installed
+fi
+
+if [[ -n $${TOKEN} ]]; then
+    sudo touch $${agent_home}/tok
+else
+    sudo touch $${agent_home}/no_tok
+fi
+if [ -f "/home/$${local_user}/agent/agent_configured" ]; then
+    echo "Agent already configured"
+else
+    if [[ -n $${TOKEN} ]];
+    then
+        sudo chmod -R 777 $${agent_home} 
+
+        cd $${agent_home}
+        ./env.sh
+
+        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token $${TOKEN} --pool $${POOL} --agent $${AGENTNAME} --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
+        chmod +x $${agent_home}/config_fixed_params.sh
+        
+        runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
+
+        # automatic start configuration after VM reboot
+
+        sudo ./svc.sh install "$${local_user}" | sudo tee -a $${agent_home}/log.txt
+
+        # start the deamon
+        sudo ./svc.sh start | sudo tee -a $${agent_home}/log.txt
+
+        sudo rm $${agent_home}/config_fixed_params.sh
+
+        sudo touch $${agent_home}/agent_configured
+
+    fi
+fi
 # Set env for ansible
 echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
 

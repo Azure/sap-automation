@@ -78,7 +78,7 @@
   loop:                                "{{ services_to_process |
                                            selectattr('state', 'equalto', 'stopped') |
                                            list }}"
-  when:                                item.service in ansible_facts.services
+#  when:                                item.service in ansible_facts.services
 
 - name:                                "1.16 - Disable Services : {{ distro_name }}"
   ansible.builtin.service:
@@ -87,7 +87,7 @@
   loop:                                "{{ services_to_process |
                                            selectattr('state', 'equalto', 'disabled') |
                                            list }}"
-  when:                                item.service in ansible_facts.services
+#  when:                                item.service in ansible_facts.services
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
