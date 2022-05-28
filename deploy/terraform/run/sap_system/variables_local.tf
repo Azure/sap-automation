@@ -85,19 +85,30 @@ locals {
     data_volume_size         = var.ANF_HANA_data_volume_size
     use_existing_data_volume = var.ANF_use_existing_data_volume
     data_volume_name         = var.ANF_data_volume_name
+    data_volume_throughput   = var.ANF_HANA_data_volume_throughput
 
     use_for_log             = var.ANF_use_for_HANA_log
     log_volume_size         = var.ANF_HANA_log_volume_size
     use_existing_log_volume = var.ANF_use_existing_log_volume
     log_volume_name         = var.ANF_log_volume_name
+    log_volume_throughput   = var.ANF_HANA_log_volume_throughput
 
     use_for_shared             = var.ANF_use_for_HANA_shared
     shared_volume_size         = var.ANF_HANA_shared_volume_size
     use_existing_shared_volume = var.ANF_use_existing_shared_volume
-    shared_volume_name         = var.ANF_HANA_shared_volume_size
+    shared_volume_name         = var.ANF_HANA_shared_volume_name
+    shared_volume_throughput   = var.ANF_HANA_shared_volume_throughput
 
+    use_for_usr_sap             = var.ANF_use_for_usr_sap
+    usr_sap_volume_size         = var.ANF_usr_sap_volume_size
+    use_existing_usr_sap_volume = var.ANF_use_existing_usr_sap_volume
+    usr_sap_volume_name         = var.ANF_HANA_usr_sap_volume_name
+    usr_sap_volume_throughput   = var.ANF_HANA_usr_sap_throughput
+
+    sapmnt_volume_size         = var.sapmnt_volume_size
     use_existing_sapmnt_volume = var.ANF_use_existing_sapmnt_volume
     sapmnt_volume_name         = var.ANF_sapmnt_volume_name
+    sapmnt_volume_throughput   = var.ANF_HANA_sapmnt_volume_throughput
 
   }
 

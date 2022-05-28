@@ -206,7 +206,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 80,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -228,6 +228,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 256,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -258,7 +267,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 80,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -280,6 +289,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 256,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -310,7 +328,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 128,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -332,6 +350,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 256,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -362,7 +389,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 128,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -384,6 +411,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 256,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -414,7 +450,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 192,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -436,6 +472,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 512,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -466,7 +511,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 192,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -488,6 +533,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 512,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -518,7 +572,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 220,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -540,6 +594,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 512,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -570,7 +633,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 256,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -592,6 +655,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 512,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -622,7 +694,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 256,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -644,6 +716,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 512,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },
@@ -674,7 +755,7 @@
                     "disk_type"                  : "UltraSSD_LRS",
                     "size_gb"                    : 256,
                     "caching"                    : "None",
-                    "write_accelerator"          : true,
+                    "write_accelerator"          : false,
                     "disk-iops-read-write"       : 1800,
                     "disk-mbps-read-write"       : 250,
                     "lun_start"                  : 9
@@ -696,6 +777,15 @@
                     "caching"                    : "ReadOnly",
                     "write_accelerator"          : false,
                     "lun_start"                  : 14
+                },
+                {
+                    "name"                       : "backup",
+                    "count"                      : 1,
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 512,
+                    "caching"                    : "ReadOnly",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 15
                 }
             ]
         },

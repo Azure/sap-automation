@@ -33,7 +33,7 @@ resource "azurerm_netapp_volume" "hanadata" {
     root_access_enabled = true
   }
   storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
-  throughput_in_mibps = 64
+  throughput_in_mibps = var.hana_ANF_volumes.data_volume_throughput
 
 }
 
@@ -90,7 +90,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   }
 
   storage_quota_in_gb = var.hana_ANF_volumes.log_volume_size
-  throughput_in_mibps = 64
+  throughput_in_mibps = var.hana_ANF_volumes.log_volume_throughput
 
 }
 
@@ -145,7 +145,7 @@ resource "azurerm_netapp_volume" "hanashared" {
     root_access_enabled = true
   }
   storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
-  throughput_in_mibps = 64
+  throughput_in_mibps = var.hana_ANF_volumes.shared_volume_throughput
 
 }
 

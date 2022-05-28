@@ -760,6 +760,11 @@ variable "ANF_data_volume_name" {
   default     = [""]
 }
 
+variable "ANF_HANA_data_volume_throughput" {
+  description = "If defined provides the throughput of the data volume"
+  default = 128
+}
+
 variable "ANF_use_for_HANA_log" {
   description = "If defined, will create ANF volumes for HANA log"
   default     = false
@@ -780,6 +785,11 @@ variable "ANF_log_volume_name" {
   default     = [""]
 }
 
+variable "ANF_HANA_log_volume_throughput" {
+  description = "If defined provides the throughput of the log volume"
+  default = 128
+}
+
 variable "ANF_use_for_HANA_shared" {
   description = "If defined, will create ANF volumes for HANA shared"
   default     = false
@@ -795,6 +805,42 @@ variable "ANF_use_existing_shared_volume" {
   default     = false
 }
 
+variable "ANF_HANA_shared_volume_name" {
+  description = "If defined provides the name of the HANA shared volume"
+  default = 512
+}
+
+variable "ANF_HANA_shared_volume_throughput" {
+  description = "If defined provides the throughput of the /shared volume"
+  default = 128
+}
+
+
+variable "ANF_use_for_usr_sap" {
+  description = "If defined, will create ANF volumes for /usr/sap"
+  default     = false
+}
+
+variable "ANF_usr_sap_volume_size" {
+  description = "If defined provides the size of the  /usr/sap volume"
+  default = 512
+}
+
+variable "ANF_use_existing_usr_sap_volume" {
+  description = "Use existing  /usr/sap volume"
+  default     = false
+}
+
+variable "ANF_HANA_usr_sap_volume_name" {
+  description = "If defined provides the name of the /usr/sap volume"
+  default = ""
+}
+
+variable "ANF_HANA_usr_sap_throughput" {
+  description = "If defined provides the throughput of the /usr/sap volume"
+  default = 128
+}
+
 variable "use_private_endpoint" {
   description = "Use private endpoint for the deployment"
   default = false
@@ -808,6 +854,16 @@ variable "ANF_use_existing_sapmnt_volume" {
 variable "ANF_sapmnt_volume_name" {
   description = "sapmnt volume name"
   default     = ""
+}
+
+variable "ANF_HANA_sapmnt_volume_size" {
+  description = "If defined provides the size of the sapmnt volume"
+  default = 64
+}
+
+variable "ANF_HANA_sapmnt_volume_throughput" {
+  description = "If defined provides the throughput of the sapmnt volume"
+  default     = 64
 }
 
 

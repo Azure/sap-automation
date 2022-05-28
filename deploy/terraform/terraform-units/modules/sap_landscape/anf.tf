@@ -123,9 +123,9 @@ resource "azurerm_netapp_volume" "transport" {
   )
 
   throughput_in_mibps = var.ANF_settings.use_existing_pool ? (
-    128
+    var.ANF_settings.transport_volume_throughput
     ) : (
-    azurerm_netapp_pool.workload_netapp_pool[0].qos_type == "Auto" ? null : 128
+    azurerm_netapp_pool.workload_netapp_pool[0].qos_type == "Auto" ? null : var.ANF_settings.transport_volume_throughput
   )
 
   volume_path = format("%s%s%s",
@@ -145,7 +145,7 @@ resource "azurerm_netapp_volume" "transport" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.transport_volume_size
+  storage_quota_in_gb = var.ANF_settings.transport_volume_size
 
 }
 
@@ -224,9 +224,9 @@ resource "azurerm_netapp_volume" "install" {
   )
   
   throughput_in_mibps = var.ANF_settings.use_existing_pool ? (
-    128
+    var.ANF_settings.install_volume_throughput
     ) : (
-    azurerm_netapp_pool.workload_netapp_pool[0].qos_type == "Auto" ? null : 128
+    azurerm_netapp_pool.workload_netapp_pool[0].qos_type == "Auto" ? null : var.ANF_settings.install_volume_throughput
   )
 
   volume_path = format("%s%s%s",
@@ -246,7 +246,7 @@ resource "azurerm_netapp_volume" "install" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.install_volume_size
+  storage_quota_in_gb = var.ANF_settings.install_volume_size
 }
 
 data "azurerm_netapp_volume" "install" {

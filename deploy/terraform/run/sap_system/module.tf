@@ -312,5 +312,6 @@ module "output_files" {
   hana_data               = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
   hana_log                = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
   hana_shared             = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
+  usr_sap                 = module.common_infrastructure.usrsap_path
   save_naming_information = var.save_naming_information
 }

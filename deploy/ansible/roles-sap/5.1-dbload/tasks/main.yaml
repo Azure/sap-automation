@@ -110,6 +110,14 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
 # *====================================4=======================================8
+
+    - name:                            "DBLoad: Ensure the permissions are correct"
+      ansible.builtin.file:
+        path:                          "/sapmnt/{{ sap_sid | upper }}/profile/"
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
+        recurse:                       true
+
     - name:                            "DBLoad: progress"
       ansible.builtin.debug:
         msg:                           "Starting DBLoad for {{ sap_sid | upper }}. Please wait"
@@ -127,7 +135,6 @@
         TMPDIR:                        "{{ tmp_directory }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
       register:                        dbload_results
-      failed_when:                     dbload_results.rc > 0
       tags:
         - skip_ansible_lint
       async:                           7200
@@ -144,6 +151,13 @@
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
+        msg:
+         - "DBLoad : {{ dbload_results }}"                           
+         - "Job    : {{ job_result }}"                           
+
+
+    - name:                            "DBLoad: Installation results"
+      ansible.builtin.debug:
         var:                           dbload_results
       when:
         - dbload_results is defined
@@ -157,7 +171,9 @@
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
-      when:                            dbload_results.rc == 0
+      when:                            
+       - dbload_results.rc is defined
+       - dbload_results.rc == 0
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
@@ -166,7 +182,7 @@
         mode:                          0755
       when:
         - dbload_results is defined
-        - dbload_results.rc > 0
+        - dbload_results.rc == 0
 
   when:
     - not dbload_installed.stat.exists

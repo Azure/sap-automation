@@ -56,7 +56,7 @@
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
-            opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+            opts:                      "vers=4,minorversion=1,sec=sys"
             state:                     mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS)"
@@ -108,7 +108,7 @@
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
-            opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+            opts:                      "vers=4,minorversion=1,sec=sys"
             state:                     absent
       when:
         - sap_mnt is defined
@@ -132,7 +132,7 @@
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             fstype:                    "nfs4"
-            opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+            opts:                      "vers=4,minorversion=1,sec=sys"
             state:                     mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS) (transport)"
@@ -161,7 +161,7 @@
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             fstype:                    "nfs4"
-            opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+            opts:                      "vers=4,minorversion=1,sec=sys"
             state:                     absent
 
       when:
@@ -186,7 +186,7 @@
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             fstype:                    "nfs4"
-            opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+            opts:                      "vers=4,minorversion=1,sec=sys"
             state:                     mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS) (install)"
@@ -215,7 +215,7 @@
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             fstype:                    "nfs4"
-            opts:                      "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+            opts:                      "vers=4,minorversion=1,sec=sys"
             state:                     absent
 
       when:
@@ -506,7 +506,7 @@
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
-        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+        opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       when:
         - tier == 'sapos'
@@ -519,7 +519,7 @@
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
-        opts:                          "rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp"
+        opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       when:
         - tier == 'sapos'

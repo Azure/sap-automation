@@ -120,6 +120,11 @@ resource "local_file" "sap-parameters_yml" {
       ""
     )
 
+    usr_sap = length(var.usr_sap) > 1 ? (
+      format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
+      ""
+    )
+
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)

@@ -387,8 +387,18 @@ variable "ANF_use_existing_transport_volume" {
 }
 
 variable "ANF_transport_volume_name" {
-  description = "Transport volume name"
+  description = "If defined provides the Transport volume name"
   default     = false
+}
+
+variable "ANF_transport_volume_throughput" {
+  description = "If defined provides the throughput of the transport volume"
+  default = 128
+}
+
+variable "ANF_transport_volume__size" {
+  description = "If defined provides the size of the transport volume"
+  default = 128
 }
 
 variable "ANF_use_existing_install_volume" {
@@ -399,6 +409,16 @@ variable "ANF_use_existing_install_volume" {
 variable "ANF_install_volume_name" {
   description = "Install volume name"
   default     = ""
+}
+
+variable "ANF_install_volume_throughput" {
+  description = "If defined provides the throughput of the install volume"
+  default = 128
+}
+
+variable "ANF_install_volume__size" {
+  description = "If defined provides the size of the install volume"
+  default = 1024
 }
 
 #########################################################################################
