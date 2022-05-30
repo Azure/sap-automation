@@ -156,6 +156,7 @@
     group:                             sapsys
     mode:                              0755
     path:                              "/sapmnt/{{ sap_sid|upper }}"
+    state:                             directory
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
