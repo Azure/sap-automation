@@ -16,12 +16,6 @@ resource "azurerm_key_vault" "kv_user" {
   purge_protection_enabled   = var.enable_purge_control_for_keyvaults
   sku_name                   = "standard"
 
-  lifecycle {
-    ignore_changes = [
-      network_acls
-    ]
-  }
-
   network_acls {
     bypass         = "AzureServices"
     default_action = "Deny"
@@ -40,6 +34,12 @@ resource "azurerm_key_vault" "kv_user" {
     virtual_network_subnet_ids = [
       local.deployer_subnet_management_id
       ]
+  }
+
+  lifecycle {
+    ignore_changes = [
+      network_acls
+    ]
   }
 
 }
