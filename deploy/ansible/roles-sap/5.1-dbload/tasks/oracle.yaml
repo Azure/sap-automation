@@ -1,3 +1,12 @@
+
+- name:                                "ORACLE (sharedHome): Permissions"
+  ansible.builtin.file:
+    path:                              /oracle/RDBMS/{{ ora_version }}/bin/oracle
+    state:                             file
+    mode:                              6751
+  tags:
+    - skip_ansible_lint
+
 #Create ORA<SID> users for MULTI-SID Installation on Database Node.
 - name:                                "DBLoad (sharedHome): ORA{{ item.sid }} User creation"
   ansible.builtin.user:

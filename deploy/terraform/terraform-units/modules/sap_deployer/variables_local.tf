@@ -129,8 +129,8 @@ locals {
   firewall_service_tags = format("AzureCloud.%s", var.infrastructure.region)
 
   // Bastion subnet
-  bastion_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")
-  bastion_subnet_exists = length(local.bastion_subnet_arm_id) > 0
+  management_bastion_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")
+  bastion_subnet_exists = length(local.management_bastion_subnet_arm_id) > 0
   bastion_subnet_name   = "AzureBastionSubnet"
   bastion_subnet_prefix = local.bastion_subnet_exists ? (
     "") : (

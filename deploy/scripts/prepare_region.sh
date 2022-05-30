@@ -74,7 +74,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
 
 if [ -n "$approve" ]; then
-    approveparam=" -i"
+    approveparam=" --auto-approve"
 fi
 
 if [ ! -f "$deployer_parameter_file" ]; then

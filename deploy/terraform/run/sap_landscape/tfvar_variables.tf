@@ -396,7 +396,7 @@ variable "ANF_transport_volume_throughput" {
   default = 128
 }
 
-variable "ANF_transport_volume__size" {
+variable "ANF_transport_volume_size" {
   description = "If defined provides the size of the transport volume"
   default = 128
 }
@@ -416,7 +416,7 @@ variable "ANF_install_volume_throughput" {
   default = 128
 }
 
-variable "ANF_install_volume__size" {
+variable "ANF_install_volume_size" {
   description = "If defined provides the size of the install volume"
   default = 1024
 }

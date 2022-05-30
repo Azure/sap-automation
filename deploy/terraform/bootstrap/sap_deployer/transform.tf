@@ -115,8 +115,8 @@ locals {
           )
         }
         subnet_bastion = {
-          arm_id = var.bastion_subnet_arm_id
-          prefix = var.bastion_subnet_address_prefix
+          arm_id = var.management_bastion_subnet_arm_id
+          prefix = var.management_bastion_subnet_address_prefix
         }
       }
     }

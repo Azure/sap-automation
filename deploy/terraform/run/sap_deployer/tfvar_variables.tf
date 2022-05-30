@@ -11,6 +11,7 @@ variable "environment" {
 }
 
 variable "codename" {
+  description = "Additional component for naming the resources"
   default = ""
   type    = string
 }
@@ -89,6 +90,12 @@ variable "management_subnet_address_prefix" {
   default = ""
 }
 
+###############################################################################
+#                                                                             # 
+#                            Firewall                                         # 
+#                                                                             # 
+###############################################################################
+
 variable "management_firewall_subnet_arm_id" {
   description = "Azure resource identifier for the existing subnet into which the firewall will be deployed"
   default = ""
@@ -99,6 +106,44 @@ variable "management_firewall_subnet_address_prefix" {
   default = ""
 }
 
+
+variable "firewall_deployment" {
+  description = "Boolean flag indicating if an Azure Firewall should be deployed"
+  default     = false
+  type = bool
+}
+
+variable "firewall_rule_subnets" {
+  description = "List of subnets that are part of the firewall rule"
+  default     = null
+}
+
+variable "firewall_allowed_ipaddresses" {
+  description = "List of allowed IP addresses to be part of the firewall rule"
+  default     = null
+}
+
+###############################################################################
+#                                                                             # 
+#                            Bastion                                          # 
+#                                                                             # 
+###############################################################################
+
+variable "management_bastion_subnet_arm_id" {
+  description = "Azure resource identifier Azure Bastion subnet"
+  default = ""
+}
+
+variable "management_bastion_subnet_address_prefix" {
+  description = "Subnet adress range for the bastion subnet"
+  default = ""
+}
+
+
+variable "bastion_deployment" {
+  description = "Boolean flag indicating if an Azure bastion should be deployed"
+  default     = false
+}
 
 ###############################################################################
 #                                                                             # 
@@ -124,37 +169,6 @@ variable "deployer_enable_public_ip" {
   description = "value to enable/disable public ip"
   default = false
   type = bool
-}
-
-variable "firewall_deployment" {
-  description = "Boolean flag indicating if an Azure Firewall should be deployed"
-  default     = false
-  type = bool
-}
-
-variable "firewall_rule_subnets" {
-  description = "List of subnets that are part of the firewall rule"
-  default     = null
-}
-
-variable "firewall_allowed_ipaddresses" {
-  description = "List of allowed IP addresses to be part of the firewall rule"
-  default     = null
-}
-
-variable "bastion_deployment" {
-  description = "Boolean flag indicating if an Azure bastion should be deployed"
-  default     = false
-}
-
-variable "bastion_subnet_arm_id" {
-  description = "Azure resource identifier Azure Bastion subnet"
-  default = ""
-}
-
-variable "bastion_subnet_address_prefix" {
-  description = "Subnet adress range for the bastion subnet"
-  default = ""
 }
 
 ###############################################################################

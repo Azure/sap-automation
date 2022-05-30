@@ -233,6 +233,8 @@
     - name:                            "2.6 SAP Mounts: - Create file systems under sapmnt for oracle shared home installation"
       ansible.builtin.file:
         path:                          /sapmnt/{{ item.sid }}
+        owner:                         '{{ item.sidadm_uid }}'
+        group:                         sapsys
         state:                         directory
         mode:                          '0644'
       loop:                            "{{ MULTI_SIDS }}"
@@ -240,7 +242,6 @@
     - tier == 'sapos'
     - node_tier == 'scs'
     - MULTI_SIDS is defined
-    - not use_AFS
 
 - name:                                "2.6 SAP Mounts: - Mount SAP File systems sapmnt for oracle shared home installation"
   become:                              true

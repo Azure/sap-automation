@@ -63,9 +63,10 @@
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             state:                     directory
+            owner:                     '{{ sapadm_uid }}'
+            group:                     sapsys
             mode:                      0755
           loop:
-            - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
@@ -75,9 +76,10 @@
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     directory
+            owner:                     '{{ item.sidadm_uid }}'
+            group:                     sapsys
             mode:                      0755
-          loop:                        "{{ MULTI_SIDS }}"
-          when:                        MULTI_SIDS is defined
+          loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
           ansible.builtin.mount:
@@ -90,7 +92,6 @@
             path:                      "{{ item.path }}"
             state:                     absent
           loop:
-            - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
@@ -100,8 +101,7 @@
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
-          loop:                        "{{ MULTI_SIDS }}"
-          when:                        MULTI_SIDS is defined
+          loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
           ansible.builtin.mount:
@@ -233,7 +233,7 @@
 
     - name:                            "AFS Mount: Create SAP Directories (sapmnt)"
       ansible.builtin.file:
-        owner:                         "{{ item.sidadm_uid }}"
+        owner:                         '{{ item.sidadm_uid }}'
         group:                         sapsys
         mode:                          0755
         path:                          "/sapmnt/{{ item.sid }}"
@@ -339,7 +339,7 @@
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    opts:                              'vers=4,minorversion=1,sec=sys'
     state:                             mounted
   loop:
     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
@@ -347,6 +347,8 @@
     - not scs_high_availability
     - node_tier != 'hana'
     - sap_mnt is defined
+    - MULTI_SIDS is undefined
+
 
 - name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} - Standalone MULTI_SIDS"
   become:                              true
@@ -355,7 +357,7 @@
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    opts:                              'vers=4,minorversion=1,sec=sys'
     state:                             mounted
   loop:                                "{{ MULTI_SIDS }}"
   when:
@@ -368,7 +370,7 @@
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    opts:                              'vers=4,minorversion=1,sec=sys'
     state:                             mounted
   loop:
     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }

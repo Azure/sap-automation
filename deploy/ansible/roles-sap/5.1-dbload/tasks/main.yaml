@@ -111,13 +111,6 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "DBLoad: Ensure the permissions are correct"
-      ansible.builtin.file:
-        path:                          "/sapmnt/{{ sap_sid | upper }}/profile/"
-        owner:                         '{{ sidadm_uid }}'
-        group:                         sapsys
-        recurse:                       true
-
     - name:                            "DBLoad: progress"
       ansible.builtin.debug:
         msg:                           "Starting DBLoad for {{ sap_sid | upper }}. Please wait"
@@ -148,7 +141,7 @@
       retries:                         90
       delay:                           120
       when:                            dbload_results.ansible_job_id is defined
-
+ 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         msg:
