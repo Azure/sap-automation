@@ -152,7 +152,7 @@
 
 - name:                                "2.6 SAP Mounts: - Create SAP Directories (sapmnt)"
   ansible.builtin.file:
-    owner:                             '{{ sap_sid }}'
+    owner:                             '{{ sapadm_uid }}'
     group:                             sapsys
     mode:                              0755
     path:                              "/sapmnt/{{ sap_sid|upper }}"
