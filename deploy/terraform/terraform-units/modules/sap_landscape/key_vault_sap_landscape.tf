@@ -32,10 +32,7 @@ resource "azurerm_key_vault" "kv_user" {
           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
           length(var.Agent_IP) > 0 ? var.Agent_IP : ""
         ]
-      )) : (
-      [
-        length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-      ]
+      )) : ( ""
     )
     virtual_network_subnet_ids = [
       local.deployer_subnet_management_id
