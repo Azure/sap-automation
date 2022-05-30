@@ -100,7 +100,7 @@
       - "KEYVAULT:     {{ deployer_kv_name }}"
       - "URL     :     {{ sapbits_location_base_path }}"
       - "SAS     :     {{ sapbits_sas_token }}"
-    verbosity:                         0
+    verbosity:                         2
 
 ...
 # /*---------------------------------------------------------------------------8
