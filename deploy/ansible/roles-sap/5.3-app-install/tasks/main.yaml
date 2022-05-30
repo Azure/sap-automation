@@ -102,17 +102,8 @@
 
 - name:                                "App Install: Set hdbuserstore path"
   ansible.builtin.set_fact:
-    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient"
   when:
-    - distribution_id in ['sles_sap12', 'sles_sap15' ]
-    - db_high_availability
-    - platform == 'HANA'
-
-- name:                                "App Install: Set hdbuserstore path"
-  ansible.builtin.set_fact:
-    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/hdbclient/"
-  when:
-    - distribution_id in ['redhat7', 'redhat8' ]
     - db_high_availability
     - platform == 'HANA'
 

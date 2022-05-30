@@ -206,3 +206,7 @@ variable "Agent_IP" {
   type    = string
   default = ""
 }
+
+variable "enable_rbac_authorization_for_keyvault" {
+  description = "Enables RBAC authorization for Azure keyvault"
+}

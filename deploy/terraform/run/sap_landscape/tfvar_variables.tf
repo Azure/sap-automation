@@ -251,6 +251,12 @@ variable "enable_purge_control_for_keyvaults" {
   default = true
 }
 
+variable "enable_rbac_authorization_for_keyvault" {
+  description = "Enables RBAC authorization for Azure keyvault"
+  default = false
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #

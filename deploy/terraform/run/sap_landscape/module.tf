@@ -32,15 +32,20 @@ module "sap_landscape" {
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   use_private_endpoint               = var.use_private_endpoint
 
-  NFS_provider                                     = var.NFS_provider
-  Agent_IP                                         = var.Agent_IP
-  transport_volume_size                            = var.transport_volume_size
-  transport_storage_account_id         = var.transport_storage_account_id
+  Agent_IP = var.Agent_IP
+
+  NFS_provider = var.NFS_provider
+
+  transport_volume_size         = var.transport_volume_size
+  transport_storage_account_id  = var.transport_storage_account_id
   transport_private_endpoint_id = var.transport_private_endpoint_id
 
-  install_volume_size                            = var.install_volume_size
-  install_storage_account_id         = var.install_storage_account_id
+  install_volume_size         = var.install_volume_size
+  install_storage_account_id  = var.install_storage_account_id
   install_private_endpoint_id = var.install_private_endpoint_id
+
+  enable_rbac_authorization_for_keyvault = var.enable_rbac_authorization_for_keyvault
+
 }
 
 module "sap_namegenerator" {

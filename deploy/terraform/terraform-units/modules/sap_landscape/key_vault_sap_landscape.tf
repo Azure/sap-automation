@@ -15,26 +15,26 @@ resource "azurerm_key_vault" "kv_user" {
   soft_delete_retention_days = 7
   purge_protection_enabled   = var.enable_purge_control_for_keyvaults
   sku_name                   = "standard"
+  enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
+
 
   network_acls {
     bypass         = "AzureServices"
     default_action = "Deny"
-    ip_rules = var.use_private_endpoint ? (
-      compact
-      (
-        [
-          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-        ]
-      )) : (
+
+    ip_rules = compact(
       [
-        length(var.Agent_IP) > 0 ? var.Agent_IP : "" 
+        length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+        length(var.Agent_IP) > 0 ? var.Agent_IP : ""
       ]
     )
+
     virtual_network_subnet_ids = [
       local.deployer_subnet_management_id
-      ]
+    ]
   }
+
+
 
   lifecycle {
     ignore_changes = [
@@ -52,9 +52,31 @@ data "azurerm_key_vault" "kv_user" {
   resource_group_name = local.user_keyvault_rg_name
 }
 
+
+resource "azurerm_role_assignment" "role_assignment_msi" {
+  count                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
+  scope                = local.user_keyvault_exist ? (
+    local.user_key_vault_id) : (
+    azurerm_key_vault.kv_user[0].id
+  )
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = var.deployer_tfstate.deployer_uai.principal_id
+}
+
+resource "azurerm_role_assignment" "role_assignment_spn" {
+  count                = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" ? 1 : 0
+  scope                = local.user_keyvault_exist ? (
+    local.user_key_vault_id) : (
+    azurerm_key_vault.kv_user[0].id
+  )
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = local.service_principal.object_id
+}
+
 resource "azurerm_key_vault_access_policy" "kv_user" {
+
   provider     = azurerm.main
-  count        = (local.enable_landscape_kv && !local.user_keyvault_exist) ? 1 : 0
+  count        = (local.enable_landscape_kv && !local.user_keyvault_exist) && !var.enable_rbac_authorization_for_keyvault ? 1 : 0
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
   tenant_id    = local.service_principal.tenant_id
   object_id    = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
@@ -94,7 +116,8 @@ resource "random_password" "created_password" {
 // Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV 
 resource "azurerm_key_vault_secret" "sid_ppk" {
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user
+    azurerm_key_vault_access_policy.kv_user,
+    azurerm_role_assignment.role_assignment_spn
   ]
   provider     = azurerm.main
   count        = !local.sid_key_exist ? 1 : 0
@@ -113,7 +136,8 @@ data "azurerm_key_vault_secret" "sid_ppk" {
 
 resource "azurerm_key_vault_secret" "sid_pk" {
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user
+    azurerm_key_vault_access_policy.kv_user,
+    azurerm_role_assignment.role_assignment_spn
   ]
   provider     = azurerm.main
   count        = !local.sid_key_exist ? 1 : 0
@@ -134,7 +158,8 @@ data "azurerm_key_vault_secret" "sid_pk" {
 // Credentials will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV 
 resource "azurerm_key_vault_secret" "sid_username" {
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user
+    azurerm_key_vault_access_policy.kv_user,
+    azurerm_role_assignment.role_assignment_spn
   ]
   provider     = azurerm.main
   count        = (!local.sid_credentials_secret_exist) ? 1 : 0
@@ -153,7 +178,8 @@ data "azurerm_key_vault_secret" "sid_username" {
 
 resource "azurerm_key_vault_secret" "sid_password" {
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user
+    azurerm_key_vault_access_policy.kv_user,
+    azurerm_role_assignment.role_assignment_spn
   ]
   provider     = azurerm.main
   count        = (!local.sid_credentials_secret_exist) ? 1 : 0
@@ -174,7 +200,8 @@ data "azurerm_key_vault_secret" "sid_password" {
 //Witness access key
 resource "azurerm_key_vault_secret" "witness_access_key" {
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user
+    azurerm_key_vault_access_policy.kv_user,
+    azurerm_role_assignment.role_assignment_spn
   ]
   provider     = azurerm.main
   count        = 1
@@ -201,7 +228,8 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
 //Witness access key
 resource "azurerm_key_vault_secret" "witness_name" {
   depends_on = [
-    azurerm_key_vault_access_policy.kv_user
+    azurerm_key_vault_access_policy.kv_user,
+    azurerm_role_assignment.role_assignment_spn
   ]
   provider     = azurerm.main
   count        = 1
@@ -227,7 +255,7 @@ resource "azurerm_key_vault_secret" "witness_name" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
   provider = azurerm.main
-  count = local.user_keyvault_exist ? (
+  count = local.user_keyvault_exist && var.enable_rbac_authorization_for_keyvault ? (
     0) : (
     length(var.deployer_tfstate) > 0 ? (
       length(var.deployer_tfstate.deployer_uai) == 2 ? (
