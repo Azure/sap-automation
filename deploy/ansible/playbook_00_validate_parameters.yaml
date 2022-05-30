@@ -51,7 +51,6 @@
         - { parameter: 'sap_fqdn', error: 'Please provide the SAP fqdn in  in sap_fqdn parameter' }
         - { parameter: 'sap_sid', error: 'Please provide the SAP SID in sap_sid parameter' }
         - { parameter: 'secret_prefix', error: 'Please provide the Key Vault secret prefix in secret_prefix parameter' }
-        - { parameter: 'sapbits_sas_token', error: 'Please provide the sapbits_sas_token in sapbits_sas_token parameter' }
         - { parameter: 'sapbits_location_base_path', error: 'Please provide the sapbits_location_base_path in the deployer key vault' }
       loop_control:
         loop_var: item_to_check
