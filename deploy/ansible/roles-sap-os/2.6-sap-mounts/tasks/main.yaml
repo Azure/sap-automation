@@ -157,6 +157,7 @@
     mode:                              0755
     path:                              "/sapmnt/{{ sap_sid|upper }}"
     state:                             directory
+    recurse:                           true
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
