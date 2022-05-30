@@ -150,6 +150,13 @@
     - MULTI_SIDS is undefined
     - "'scs' in supported_tiers"
 
+- name:                                "2.6 SAP Mounts: - Create SAP Directories (sapmnt)"
+  ansible.builtin.file:
+    owner:                             '{{ sap_sid }}'
+    group:                             sapsys
+    mode:                              0755
+    path:                              "/sapmnt/{{ sap_sid|upper }}"
+
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
     - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
