@@ -183,21 +183,21 @@ output "sapmnt_path" {
 }
 
 output "usrsap_path" {
-  value =   var.NFS_provider == "ANF" ? (
-      format("%s:/%s",
-        var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
-          data.azurerm_netapp_volume.usrsap[0].mount_ip_addresses[0]) : (
-          azurerm_netapp_volume.usrsap[0].mount_ip_addresses[0]
-        ),
-        var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
-          data.azurerm_netapp_volume.usrsap[0].volume_path) : (
-          azurerm_netapp_volume.usrsap[0].volume_path
-        )
+  value = var.NFS_provider == "ANF" && var.hana_ANF_volumes.use_for_usr_sap ? (
+    format("%s:/%s",
+      var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
+        data.azurerm_netapp_volume.usrsap[0].mount_ip_addresses[0]) : (
+        azurerm_netapp_volume.usrsap[0].mount_ip_addresses[0]
+      ),
+      var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
+        data.azurerm_netapp_volume.usrsap[0].volume_path) : (
+        azurerm_netapp_volume.usrsap[0].volume_path
       )
-      ) : (
-      ""
     )
-  
+    ) : (
+    ""
+  )
+
 }
 
 
