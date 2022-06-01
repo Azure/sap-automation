@@ -23,64 +23,71 @@
     var:                               services_to_process
     verbosity:                         2
 
+- name:                                "1.16 - Populate service facts : {{ distro_name }}"
+  ansible.builtin.service_facts:
+
+- name:                                "[DEBUG] 1.16 - Show services"
+  ansible.builtin.debug:
+    var:                               ansible_facts.services
+    verbosity:                         2
+
 # Extract the list of service names whose state match the specified value and
 # pass them as the argument to the name parameter; this is the recommended
 # approach as it only calls the underlying distro specific service manager
 # once per state value.
 - name:                                "1.16 - Start Services : {{ distro_name }}"
   ansible.builtin.service:
-    name:                              "{{ item }}"
+    name:                              "{{ item.service }}"
     state:                             started
   loop:                                "{{ services_to_process |
                                          selectattr('state', 'equalto', 'started') |
-                                         map(attribute='service') |
                                          list }}"
+#  when:                                item.service in ansible_facts.services
 
 - name:                                "1.16 - Restart Services : {{ distro_name }}"
   ansible.builtin.service:
-    name:                              "{{ item }}"
+    name:                              "{{ item.service }}"
     state:                             restarted
   loop:                                "{{ services_to_process |
                                          selectattr('state', 'equalto', 'restarted') |
-                                         map(attribute='service') |
                                          list }}"
+#  when:                                item.service in ansible_facts.services
 
 - name:                                "1.16 - Reload Services : {{ distro_name }}"
   ansible.builtin.service:
-    name:                              "{{ item }}"
+    name:                              "{{ item.service }}"
     state:                             restarted
   loop:                                "{{ services_to_process |
                                          selectattr('state', 'equalto', 'reloded') |
-                                         map(attribute='service') |
                                          list }}"
-
+#  when:                                item.service in ansible_facts.services
 
 - name:                                "1.16 - Enable Services : {{ distro_name }}"
   ansible.builtin.service:
-    name:                              "{{ item }}"
+    name:                              "{{ item.service }}"
     enabled:                            true
   loop:                                "{{ services_to_process |
                                          selectattr('state', 'equalto', 'enabled') |
-                                         map(attribute='service') |
                                          list }}"
+#  when:                                item.service in ansible_facts.services
 
 - name:                                "1.16 - Stop Services : {{ distro_name }}"
   ansible.builtin.service:
-    name:                              "{{ item }}"
+    name:                              "{{ item.service }}"
     state:                             stopped
   loop:                                "{{ services_to_process |
                                            selectattr('state', 'equalto', 'stopped') |
-                                           map(attribute='service') |
                                            list }}"
+#  when:                                item.service in ansible_facts.services
 
 - name:                                "1.16 - Disable Services : {{ distro_name }}"
   ansible.builtin.service:
-    name:                              "{{ item }}"
+    name:                              "{{ item.service }}"
     enabled:                           false
   loop:                                "{{ services_to_process |
                                            selectattr('state', 'equalto', 'disabled') |
-                                           map(attribute='service') |
                                            list }}"
+#  when:                                item.service in ansible_facts.services
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

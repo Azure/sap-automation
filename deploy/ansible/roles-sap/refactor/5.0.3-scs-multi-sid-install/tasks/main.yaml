@@ -1,0 +1,125 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |             SAP: Register BOM                                              |
+# |         SAP SCS: deploy SCS Parameter file install template                |
+# |         SAP SCS: Install                                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+- name:                                "SCS (sharedHome): Install - Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-scs-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.params"
+  when:                                MULTI_SIDS is undefined
+
+
+- name:                                "SCS (sharedHome): Install - Set SCS facts for multi-sid"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.params"
+  when:                                 MULTI_SIDS is defined
+  loop:                                 "{{ MULTI_SIDS }}"
+
+
+# Returns bom object
+- name:                                "SCS (sharedHome): Include 3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+
+- name:                                "SCS (sharedHome): : Include roles-sap/3.3.1-bom-utility role"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-template
+  vars:
+    sap_cd_package_cd1:
+    sap_cd_package_cd2:
+    sap_cd_package_cd3:
+    sap_cd_package_cd4:
+    sap_cd_package_cd5:
+    sap_cd_package_hdbclient:
+    sap_ciInstanceNumber:
+    app_instance_number:
+    sap_ciDialogWPNumber:
+    sap_ciBtcWPNumber:
+    sap_installSAPHostAgent:
+    sap_profile_dir:
+    sap_scs_hostname:                  "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    sap_db_hostname:
+    sap_ciVirtualHostname:
+    sap_appVirtualHostname:
+    param_directory:                   "{{ dir_params }}"
+  tags:
+    - skip_ansible_lint
+
+- name:                                "SCS (sharedHome): SCS install variables"
+  ansible.builtin.debug:
+    msg:
+      - "{{ sap_inifile }}"
+      - "{{ bom.product_ids.scs }}"
+      - "{{ bom_base_name }}"
+      - "{{ ansible_hostname }}"
+      - "{{ MULTI_SIDS }}"
+    verbosity:                         2
+
+# - name: Fail here
+#   fail:
+#     msg: param files created
+
+# *====================================4=======================================8
+#   SAP SCS: Install
+# 2230669 - System Provisioning Using a Parameter Input File
+#
+- name:                                "SCS (sharedHome): Create run flag directory"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ item.sid | upper }}"
+    state:                             directory
+    mode:                              0755
+  loop:                                "{{ MULTI_SIDS }}"
+
+- name:                                "SCS (sharedHome): Install: reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_scs.txt"
+    state:                             absent
+  when:                                reinstall
+  loop:                                "{{ MULTI_SIDS }}"
+
+- name:                                "SCS (sharedHome): SCS Install: SAP SCS Install"
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                          \
+                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                                 SAPINST_START_GUISERVER=false                                                 \
+                                                 SAPINST_ACCEPT_INTERNAL_SIGNATURE=true
+                                       touch /etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_scs.txt
+  args:
+    chdir:                             "{{ target_media_location }}/SWPM"
+    creates:                           /etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_scs.txt
+  environment:
+    SAPSYSTEMNAME:                     "{{ item.sid | upper }}"
+    TMPDIR:                            "{{ tmp_directory }}"
+  when:                                MULTI_SIDS is defined
+  loop:                                "{{ MULTI_SIDS }}"
+  tags:
+    - skip_ansible_lint
+
+- name:                                "SCS (sharedHome): Cleanup ini file {{ ansible_hostname }}"
+  ansible.builtin.file:
+    path:                              "{{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params"
+    state:                             absent
+  loop:                                "{{ MULTI_SIDS }}"
+
+
+# *====================================4=======================================8
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

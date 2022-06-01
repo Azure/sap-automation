@@ -1,6 +1,8 @@
 
 locals {
 
+  enable_app_tier_deployment = var.enable_app_tier_deployment && try(var.application.enable_deployment, true)
+
   temp_infrastructure = {
     environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
     region      = coalesce(var.location, try(var.infrastructure.region, ""))
@@ -72,7 +74,7 @@ locals {
   db_authentication_defined = (length(local.db_authentication.type) + length(local.db_authentication.username)) > 3
   avset_arm_ids             = distinct(concat(var.database_vm_avset_arm_ids, try(var.databases[0].avset_arm_ids, [])))
   db_avset_arm_ids_defined  = length(local.avset_arm_ids) > 0
-  frontend_ip               = try(coalesce(var.database_loadbalancer_ip, try(var.databases[0].loadbalancer.frontend_ip, "")), "")
+  frontend_ips              = try(coalesce(var.database_loadbalancer_ips, try(var.databases[0].loadbalancer.frontend_ip, [])), [])
   db_tags                   = try(coalesce(var.database_tags, try(var.databases[0].tags, {})), {})
 
   databases_temp = {
@@ -126,30 +128,46 @@ locals {
   application_temp = {
     sid = try(coalesce(var.sid, try(var.application.sid, "")), "")
 
-    enable_deployment = var.enable_app_tier_deployment && try(var.application.enable_deployment, true)
+    enable_deployment = local.enable_app_tier_deployment
     use_DHCP          = var.app_tier_use_DHCP || try(var.application.use_DHCP, false)
     dual_nics         = var.app_tier_dual_nics || try(var.application.dual_nics, false)
     vm_sizing         = try(coalesce(var.app_tier_vm_sizing, try(var.application.vm_sizing, "")), "Optimized")
 
-    application_server_count = max(var.application_server_count, try(var.application.application_server_count, 0))
-    app_sku                  = try(coalesce(var.application_server_sku, var.application.app_sku), "")
-    app_no_ppg               = var.application_server_no_ppg || try(var.application.app_no_ppg, false)
-    app_no_avset             = var.application_server_no_avset || try(var.application.app_no_avset, false)
-    avset_arm_ids            = var.application_server_vm_avset_arm_ids
+    application_server_count = local.enable_app_tier_deployment ? (
+      max(var.application_server_count, try(var.application.application_server_count, 0))
+      ) : (
+      0
+    )
+    app_sku       = try(coalesce(var.application_server_sku, var.application.app_sku), "")
+    app_no_ppg    = var.application_server_no_ppg || try(var.application.app_no_ppg, false)
+    app_no_avset  = var.application_server_no_avset || try(var.application.app_no_avset, false)
+    avset_arm_ids = var.application_server_vm_avset_arm_ids
 
-    scs_server_count      = max(var.scs_server_count, try(var.application.scs_server_count, 1))
-    scs_high_availability = var.scs_high_availability || try(var.application.scs_high_availability, false)
-    scs_instance_number   = coalesce(var.scs_instance_number, try(var.application.scs_instance_number, "00"))
-    ers_instance_number   = coalesce(var.ers_instance_number, try(var.application.ers_instance_number, "02"))
+    scs_server_count = local.enable_app_tier_deployment ? (
+      max(var.scs_server_count, try(var.application.scs_server_count, 1))
+      ) : (
+      0
+    )
+    scs_high_availability = local.enable_app_tier_deployment ? (
+      var.scs_high_availability || try(var.application.scs_high_availability, false)
+      ) : (
+      false
+    )
+    scs_instance_number = coalesce(var.scs_instance_number, try(var.application.scs_instance_number, "00"))
+    ers_instance_number = coalesce(var.ers_instance_number, try(var.application.ers_instance_number, "02"))
 
     scs_sku      = try(coalesce(var.scs_server_sku, var.application.scs_sku), "")
     scs_no_ppg   = var.scs_server_no_ppg || try(var.application.scs_no_ppg, false)
     scs_no_avset = var.scs_server_no_avset || try(var.application.scs_no_avset, false)
 
-    webdispatcher_count = max(var.webdispatcher_server_count, try(var.application.webdispatcher_count, 0))
-    web_sku             = try(coalesce(var.webdispatcher_server_sku, var.application.web_sku), "")
-    web_no_ppg          = var.webdispatcher_server_no_ppg || try(var.application.web_no_ppg, false)
-    web_no_avset        = var.webdispatcher_server_no_avset || try(var.application.web_no_avset, false)
+    webdispatcher_count = local.enable_app_tier_deployment ? (
+      max(var.webdispatcher_server_count, try(var.application.webdispatcher_count, 0))
+      ) : (
+      0
+    )
+    web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application.web_sku), "")
+    web_no_ppg   = var.webdispatcher_server_no_ppg || try(var.application.web_no_ppg, false)
+    web_no_avset = var.webdispatcher_server_no_avset || try(var.application.web_no_avset, false)
 
   }
 
@@ -195,10 +213,7 @@ locals {
   }
 
   sap = {
-    #    name          = try(coalesce(var.network_name, try(var.infrastructure.vnets.sap.name, "")), "")
-    logical_name  = try(coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, "")), "")
-    arm_id        = try(coalesce(var.network_arm_id, try(var.infrastructure.vnets.sap.arm_id, "")), "")
-    address_space = try(coalesce(var.network_address_space, try(var.infrastructure.vnets.sap.address_space, "")), "")
+    logical_name = try(coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, "")), "")
   }
 
   subnet_admin_defined = (
@@ -277,16 +292,17 @@ locals {
     length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
   ) > 0
 
+  app_nic_ips           = distinct(concat(var.application_server_app_nic_ips, try(var.application.app_nic_ips, [])))
+  app_nic_secondary_ips = distinct(var.application_server_app_nic_ips)
+  app_admin_nic_ips     = distinct(concat(var.application_server_admin_nic_ips, try(var.application.app_admin_nic_ips, [])))
 
+  scs_nic_ips           = distinct(concat(var.scs_server_app_nic_ips, try(var.application.scs_nic_ips, [])))
+  scs_admin_nic_ips     = distinct(concat(var.scs_server_admin_nic_ips, try(var.application.scs_admin_nic_ips, [])))
+  scs_lb_ips            = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application.scs_lb_ips, [])))
 
-  app_nic_ips       = distinct(concat(var.application_server_app_nic_ips, try(var.application.app_nic_ips, [])))
-  app_admin_nic_ips = distinct(concat(var.application_server_admin_nic_ips, try(var.application.app_admin_nic_ips, [])))
-  scs_nic_ips       = distinct(concat(var.scs_server_app_nic_ips, try(var.application.scs_nic_ips, [])))
-  scs_admin_nic_ips = distinct(concat(var.scs_server_admin_nic_ips, try(var.application.scs_admin_nic_ips, [])))
-  scs_lb_ips        = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application.scs_lb_ips, [])))
-  web_nic_ips       = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application.web_nic_ips, [])))
-  web_admin_nic_ips = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application.web_admin_nic_ips, [])))
-  web_lb_ips        = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application.web_lb_ips, [])))
+  web_nic_ips           = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application.web_nic_ips, [])))
+  web_admin_nic_ips     = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application.web_admin_nic_ips, [])))
+  web_lb_ips            = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application.web_lb_ips, [])))
 
   subnet_admin = merge((
     {
@@ -445,11 +461,6 @@ locals {
     ""
   )
 
-  automation_keyvault_specified = (
-    length(var.automation_keyvault_id) +
-    length(try(var.key_vault.kv_prvt, ""))
-  ) > 0
-  prvt_kv = local.automation_keyvault_specified ? try(coalesce(var.automation_keyvault_id, try(var.key_vault.kv_prvt_id, "")), "") : ""
   spn_keyvault_specified = (
     length(var.spn_keyvault_id) +
     length(try(var.key_vault.kv_spn_id, ""))
@@ -484,11 +495,14 @@ locals {
     length(local.scs_zones_temp) > 0 ? { scs_zones = local.scs_zones_temp } : null), (
     length(local.web_zones_temp) > 0 ? { web_zones = local.web_zones_temp } : null), (
     length(local.app_nic_ips) > 0 ? { app_nic_ips = local.app_nic_ips } : null), (
+    length(var.application_server_nic_secondary_ips) > 0 ? { app_nic_secondary_ips = var.application_server_nic_secondary_ips } : null), (
     length(local.app_admin_nic_ips) > 0 ? { app_admin_nic_ips = local.app_admin_nic_ips } : null), (
     length(local.scs_nic_ips) > 0 ? { scs_nic_ips = local.scs_nic_ips } : null), (
+    length(var.scs_server_nic_secondary_ips) > 0 ? { scs_nic_secondary_ips = var.scs_server_nic_secondary_ips } : null), (
     length(local.scs_admin_nic_ips) > 0 ? { scs_admin_nic_ips = local.scs_admin_nic_ips } : null), (
     length(local.scs_lb_ips) > 0 ? { scs_lb_ips = local.scs_lb_ips } : null), (
     length(local.web_nic_ips) > 0 ? { web_nic_ips = local.web_nic_ips } : null), (
+    length(var.webdispatcher_server_nic_secondary_ips) > 0 ? { web_nic_secondary_ips = var.webdispatcher_server_nic_secondary_ips } : null), (
     length(local.web_admin_nic_ips) > 0 ? { web_admin_nic_ips = local.web_admin_nic_ips } : null), (
     length(local.web_lb_ips) > 0 ? { web_lb_ips = local.web_lb_ips } : null), (
     length(local.app_tags) > 0 ? { app_tags = local.app_tags } : null), (
@@ -502,7 +516,7 @@ locals {
     local.db_authentication_defined ? { authentication = local.db_authentication } : null), (
     local.db_avset_arm_ids_defined ? { avset_arm_ids = local.avset_arm_ids } : null), (
     length(local.db_zones_temp) > 0 ? { zones = local.db_zones_temp } : null), (
-    length(local.frontend_ip) > 0 ? { loadbalancer = { frontend_ip = local.frontend_ip } } : { loadbalancer = {} }), (
+    length(local.frontend_ips) > 0 ? { loadbalancer = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }), (
     length(local.db_tags) > 0 ? { tags = local.db_tags } : null), (
     local.db_sid_specified ? { instance = local.instance } : null)
     )
@@ -521,10 +535,6 @@ locals {
       {
         kv_user_id = local.user_keyvault
       }
-    ) : null), (
-    local.automation_keyvault_specified ? (
-      {
-      kv_prvt_id = local.prvt_kv }
     ) : null), (
     local.spn_keyvault_specified ? (
       {

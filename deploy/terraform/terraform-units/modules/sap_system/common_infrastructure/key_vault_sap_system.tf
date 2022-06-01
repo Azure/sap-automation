@@ -1,9 +1,8 @@
-/*
-  Description:
-  Set up key vault for sap system
-*/
-
-// retrieve public key from sap landscape's Key vault
+###############################################################################
+#                                                                             # 
+#                Retrieve secrets from workload zone key vault                # 
+#                                                                             # 
+###############################################################################
 data "azurerm_key_vault_secret" "sid_pk" {
   provider     = azurerm.main
   count        = local.use_local_credentials ? 0 : 1
@@ -31,48 +30,18 @@ data "azurerm_key_vault_secret" "sid_password" {
   key_vault_id = local.user_key_vault_id
 }
 
-
-// Create private KV with access policy
-resource "azurerm_key_vault" "sid_keyvault_prvt" {
-  provider = azurerm.main
-  count    = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
-  name     = local.automation_keyvault_name
-  location = var.infrastructure.region
-  resource_group_name = local.rg_exists ? (
-    data.azurerm_resource_group.resource_group[0].name) : (
-    azurerm_resource_group.resource_group[0].name
-  )
-  tenant_id                  = local.service_principal.tenant_id
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = var.enable_purge_control_for_keyvaults
-  sku_name                   = "standard"
-
-  access_policy {
-    tenant_id = local.service_principal.tenant_id
-    object_id = local.service_principal.object_id
-
-    secret_permissions = [
-      "get",
-    ]
-  }
-
-}
-
-// Import an existing private Key Vault
-data "azurerm_key_vault" "sid_keyvault_prvt" {
-  provider            = azurerm.main
-  count               = local.enable_sid_deployment && length(local.prvt_key_vault_id) > 0 ? 1 : 0
-  name                = local.automation_keyvault_name
-  resource_group_name = local.automation_keyvault_rg_name
-}
-
-// Create user KV with access policy
+###############################################################################
+#                                                                             # 
+#                Optional local keyvault,                                     # 
+#                controlled by local.use_local_credentials                    # 
+#                                                                             # 
+###############################################################################
 resource "azurerm_key_vault" "sid_keyvault_user" {
   provider = azurerm.main
   count    = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
   name     = local.user_keyvault_name
   location = var.infrastructure.region
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
@@ -94,9 +63,7 @@ resource "azurerm_key_vault" "sid_keyvault_user" {
       "Recover",
       "Purge"
     ]
-
   }
-
 }
 
 // Import an existing user Key Vault
@@ -134,6 +101,7 @@ resource "random_password" "password" {
   special          = true
   override_special = "_%@"
 }
+
 
 // Store the logon username in KV when authentication type is password
 resource "azurerm_key_vault_secret" "auth_username" {

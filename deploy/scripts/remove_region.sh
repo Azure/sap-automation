@@ -247,16 +247,17 @@ isLocal=""
 if [ -f ./.terraform/terraform.tfstate ]; then
    if grep "azurerm" ./.terraform/terraform.tfstate ; then
      isLocal=""
+     echo "State is stored in Azure"
    else
      isLocal="-migrate-state"
    fi
 fi
 
-terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true  \
---backend-config "subscription_id=${subscription}"                                  \
---backend-config "resource_group_name=${resource_group}"                            \
---backend-config "storage_account_name=${storage_account}"                          \
---backend-config "container_name=tfstate"                                           \
+terraform -chdir="${terraform_module_directory}" init $isLocal -upgrade=true  \
+--backend-config "subscription_id=${subscription}"                            \
+--backend-config "resource_group_name=${resource_group}"                      \
+--backend-config "storage_account_name=${storage_account}"                    \
+--backend-config "container_name=tfstate"                                     \
 --backend-config "key=${key}.terraform.tfstate"
 
 #Initialize the statefile and copy to local
@@ -306,16 +307,17 @@ isLocal=""
 if [ -f ./.terraform/terraform.tfstate ]; then
    if grep "azurerm" ./.terraform/terraform.tfstate ; then
      isLocal=""
+     echo "State is stored in Azure"
    else
      isLocal="-migrate-state"
    fi
 fi
 
-terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true \
---backend-config "subscription_id=${subscription}"                                 \
---backend-config "resource_group_name=${resource_group}"                           \
---backend-config "storage_account_name=${storage_account}"                         \
---backend-config "container_name=tfstate"                                          \
+terraform -chdir="${terraform_module_directory}" init $isLocal -upgrade=true  \
+--backend-config "subscription_id=${subscription}"                            \
+--backend-config "resource_group_name=${resource_group}"                      \
+--backend-config "storage_account_name=${storage_account}"                    \
+--backend-config "container_name=tfstate"                                     \
 --backend-config "key=${key}.terraform.tfstate"
 
 echo ""

@@ -1,0 +1,35 @@
+- name:                                "SAP DBLOAD {{ item.sid }}"
+  ansible.builtin.debug:
+    msg:                               "Starting DB Load on {{ item.sid }}"
+
+- name:                                "SAP DBLOAD {{ item.sid }}"
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
+                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
+                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                                 SAPINST_START_GUISERVER=false                                                 \
+
+                                       touch /etc/sap_deployment_automation/sap_deployment_dbload_{{ item.sid }}.txt
+  args:
+    chdir:                             "{{ target_media_location }}/SWPM"
+    creates:                           /etc/sap_deployment_automation/sap_deployment_dbload_{{ item.sid }}.txt
+  environment:
+    TMPDIR:                            "{{ tmp_directory }}"
+
+  register:                            dbload_results
+  failed_when:                         dbload_results.rc > 0
+  async:                               10800
+  poll:                                60
+  tags:
+    - skip_ansible_lint
+
+- name:                                "DBLoad (sharedHome): Install -Wait for asynchronous job for {{ item.sid }} to end"
+  ansible.builtin.async_status:
+    jid:                               '{{ dbload_results.ansible_job_id }}'
+  register:                            job_result
+  until:                               job_result.finished
+  retries:                             900
+  delay:                               120
+  when:                                dbload_results.ansible_job_id is defined

@@ -115,6 +115,7 @@ if [ 0 != $return_code ]; then
 fi
 
 # Convert the region to the correct code
+region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 get_region_code "$region"
 
 private_link_used=$(grep  "use_private_endpoint=" "${param_dirname}"/"${parameterfile}" |  cut -d'=' -f2 | tr -d '"')
@@ -498,12 +499,14 @@ export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 root_dirname=$(pwd)
 
 check_output=0
-
-if [ $account_set == 0 ]
-then
-    az account set --sub "${subscription}"
-    account_set=1
-fi
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "#       $cyan Changing the subscription to: ${subscription} $resetformatting            #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+az account set --sub "${subscription}"
 
 if [ ! -d ./.terraform/ ];
 then
@@ -819,6 +822,10 @@ if [ 0 == $return_value ] ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
     fi
+    workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}"  output workload_zone_prefix | tr -d \")
+    save_config_var "workload_zone_prefix" "${workload_config_information}"
+
+    
     unset TF_DATA_DIR
 
     # if [ "$private_link_used" == "true" ]; then

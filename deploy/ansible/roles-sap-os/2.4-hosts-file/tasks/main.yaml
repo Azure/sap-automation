@@ -42,6 +42,13 @@
   when:
     - scs_high_availability or db_high_availability
 
+- name:                                "2.4 Hosts: - Get the Server name list"
+  ansible.builtin.set_fact:
+    scs_server_list:                   "{{ scs_server_list | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
+
+
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - SCS & ERS"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
@@ -54,6 +61,7 @@
     marker:                            "# {mark} ASCS/ERS Entries {{ scs_virtual_hostname }}"
   when:
     - scs_high_availability
+    - scs_server_list | length > 0
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
   ansible.builtin.blockinfile:
