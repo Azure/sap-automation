@@ -72,7 +72,7 @@ Sort the order so eth0 is first.
 Skip over the 'lo' interface.
 
 #}
-{%    for interface in hostvars[host]['ansible_interfaces']|sort if interface != 'lo' %}
+{%    for interface in hostvars[host]['ansible_interfaces']|sort if interface not in ['lo', 'br'] %}
 {#
 
 if ipv4 not found, then that NIC is not configured and is skipped

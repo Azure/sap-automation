@@ -78,9 +78,6 @@ variable "use_loadbalancers_for_standalone_deployments" {
   default     = true
 }
 
-variable "database_vm_names" {
-  default = [""]
-}
 
 variable "database_vm_db_nic_ips" {
   default = [""]
@@ -206,7 +203,6 @@ locals {
 
   anydb_ha     = try(local.anydb.high_availability, false)
   db_sid       = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
-  loadbalancer = try(local.anydb.loadbalancer, {})
 
   # Oracle deployments do not need a load balancer
   enable_db_lb_deployment = (

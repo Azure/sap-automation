@@ -1,12 +1,12 @@
   // In brownfield scenarios the subnets are often defined in the workload
   // If subnet information is specified in the parameter file use it
-  // As either of the arm_id or the prefix need to be specified to create 
-  // a subnet the lack of both indicate that the subnet is to be created in the 
+  // As either of the arm_id or the prefix need to be specified to create
+  // a subnet the lack of both indicate that the subnet is to be created in the
   // SAP Infrastructure Deployment
 
   ##############################################################################################
   #
-  #  Application subnet - Check if locally provided 
+  #  Application subnet - Check if locally provided
   #
   ##############################################################################################
 
@@ -47,13 +47,13 @@ resource "azurerm_subnet_route_table_association" "app" {
 
   // In brownfield scenarios the subnets are often defined in the workload
   // If subnet information is specified in the parameter file use it
-  // As either of the arm_id or the prefix need to be specified to create 
-  // a subnet the lack of both indicate that the subnet is to be created in the 
+  // As either of the arm_id or the prefix need to be specified to create
+  // a subnet the lack of both indicate that the subnet is to be created in the
   // SAP Infrastructure Deployment
 
   ##############################################################################################
   #
-  #  Web subnet - Check if locally provided 
+  #  Web subnet - Check if locally provided
   #
   ##############################################################################################
 resource "azurerm_subnet" "subnet_sap_web" {
@@ -101,8 +101,8 @@ resource "azurerm_lb" "scs" {
       subnet_id                     = pub.value.subnet_id
       private_ip_address            = pub.value.private_ip_address
       private_ip_address_allocation = pub.value.private_ip_address_allocation
+      zones                         = ["1", "2", "3"]
     }
-
   }
 }
 
@@ -356,6 +356,7 @@ resource "azurerm_lb" "web" {
       )
     )
     private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+    zones = ["1", "2", "3"]
   }
 
 }

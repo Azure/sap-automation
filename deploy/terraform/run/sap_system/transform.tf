@@ -72,7 +72,7 @@ locals {
   db_authentication_defined = (length(local.db_authentication.type) + length(local.db_authentication.username)) > 3
   avset_arm_ids             = distinct(concat(var.database_vm_avset_arm_ids, try(var.databases[0].avset_arm_ids, [])))
   db_avset_arm_ids_defined  = length(local.avset_arm_ids) > 0
-  frontend_ip               = try(coalesce(var.database_loadbalancer_ip, try(var.databases[0].loadbalancer.frontend_ip, "")), "")
+  frontend_ips              = try(coalesce(var.database_loadbalancer_ips, try(var.databases[0].loadbalancer.frontend_ip, [])), [])
   db_tags                   = try(coalesce(var.database_tags, try(var.databases[0].tags, {})), {})
 
   databases_temp = {
@@ -195,10 +195,7 @@ locals {
   }
 
   sap = {
-    #    name          = try(coalesce(var.network_name, try(var.infrastructure.vnets.sap.name, "")), "")
-    logical_name  = try(coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, "")), "")
-    arm_id        = try(coalesce(var.network_arm_id, try(var.infrastructure.vnets.sap.arm_id, "")), "")
-    address_space = try(coalesce(var.network_address_space, try(var.infrastructure.vnets.sap.address_space, "")), "")
+    logical_name = try(coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, "")), "")
   }
 
   subnet_admin_defined = (
@@ -502,7 +499,7 @@ locals {
     local.db_authentication_defined ? { authentication = local.db_authentication } : null), (
     local.db_avset_arm_ids_defined ? { avset_arm_ids = local.avset_arm_ids } : null), (
     length(local.db_zones_temp) > 0 ? { zones = local.db_zones_temp } : null), (
-    length(local.frontend_ip) > 0 ? { loadbalancer = { frontend_ip = local.frontend_ip } } : { loadbalancer = {} }), (
+    length(local.frontend_ips) > 0 ? { loadbalancer = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }), (
     length(local.db_tags) > 0 ? { tags = local.db_tags } : null), (
     local.db_sid_specified ? { instance = local.instance } : null)
     )

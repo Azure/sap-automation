@@ -80,6 +80,7 @@
 
             - name:                    Create bom-processing flag
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/bom-processing"
                 state:                 touch

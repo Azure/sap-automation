@@ -37,12 +37,20 @@
     python_version:                    'python3'
   when:                                distribution_id in ['suse15', 'redhat8']
 
+#   0x) Create hidden directory for parameter files
+- name:                                "3.3 BoM Processing: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ param_directory }}"
+    state:                             directory
+    mode:                              '0755'
+
 - name:                                "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
+    force:                             true
   delegate_to:                         localhost
   register:                            result
   vars:
@@ -51,12 +59,13 @@
     - distribution_id in ['suse15', 'redhat8']
     - not always_upload_jinja_templates
 
-- name:                                "BOM2: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
+- name:                                "{{ task_prefix }} Check if file: ({{ bom_base_name }}) is already downloaded to the storage account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ sap_inifile_template }}{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
+    force:                             true
   delegate_to:                         localhost
   register:                            result
   when:
@@ -64,80 +73,19 @@
     - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
 
-- name:                                "BOM: Create ini files ({{ bom_name }})"
+- name:                                "BOM: Create ini files ({{ bom_base_name }})"
   block:
 
-    - name:                            "Create ini file {{ sap_inifile }}"
+    - name:                            "Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
+        dest:                          "{{ param_directory }}/{{ sap_inifile }}"
         #remote_src:                    yes
         mode:                          0644
         force:                         true
 
   when:
     - result is succeeded or result is skipped
-    - MULTI_SIDS is undefined
-
-- name:                                "BOM: Create ini files ({{ bom_name }}) for Multi-SID for SCS"
-  block:
-
-    - name:                            "Create SCS ini file {{ sap_inifile }}"
-      ansible.builtin.template:
-        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-scs-{{ ansible_hostname }}.params
-        mode:                          0644
-        force:                         true
-      loop:                            "{{ MULTI_SIDS }}"
-  when:
-    - result is succeeded or result is skipped
-    - MULTI_SIDS is defined
-    - node_tier == "scs"
-
-- name:                                "BOM: Create ini files ({{ bom_name }}) for Multi-SID  for Multi-SID for DB Load"
-  block:
-
-    - name:                            "Create DBLoad ini file {{ sap_inifile }}"
-      ansible.builtin.template:
-        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params
-        mode:                          0644
-        force:                         true
-      loop:                            "{{ MULTI_SIDS }}"
-  when:
-    - result is succeeded or result is skipped
-    - MULTI_SIDS is defined
-    - node_tier == "oracle-multi-sid"
-
-- name:                                "BOM: Create ini files ({{ bom_name }}) from Storage Account for Multi-SID for PAS"
-  block:
-
-    - name:                            "Create PAS ini file {{ sap_inifile }}"
-      ansible.builtin.template:
-        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params
-        mode:                          0644
-        force:                         true
-      loop:                            "{{ MULTI_SIDS }}"
-  when:
-    - result is succeeded or result is skipped
-    - MULTI_SIDS is defined
-    - node_tier == "pas"
-
-- name:                                "BOM:  Create ini files ({{ bom_name }}) from Storage Account for Multi-SID for APP"
-  block:
-
-    - name:                            "Create APP ini file {{ sap_inifile }}"
-      ansible.builtin.template:
-        src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
-        dest:                          /usr/sap/install/downloads/{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params
-        mode:                          0644
-        force:                         true
-      loop:                                 "{{ MULTI_SIDS }}"
-  when:
-    - result is succeeded or result is skipped
-    - MULTI_SIDS is defined
-    - node_tier == "app"
 
 # -------------------------------------+---------------------------------------8
 #
@@ -156,7 +104,7 @@
     - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
         src:                           "{{ microsoft_supplied_bom_template.stat.path }}"
-        dest:                          /usr/sap/install/downloads/{{ sap_inifile }}
+        dest:                          "{{ param_directory }}/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
       when:                            microsoft_supplied_bom_template.stat.exists
@@ -179,7 +127,7 @@
         - name:                        "{{ task_prefix }} Create ini file {{ sap_inifile }}"
           ansible.builtin.template:
             src:                       "{{ microsoft_supplied_bom_template.stat.path }}"
-            dest:                      /usr/sap/install/downloads/{{ sap_inifile }}
+            dest:                      "{{ param_directory }}/{{ sap_inifile }}"
             mode:                      0644
             force:                     true
           when:                        microsoft_supplied_bom_template_archive.stat.exists

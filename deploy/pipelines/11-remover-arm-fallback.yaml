@@ -5,7 +5,7 @@
 # |      and the region via ARM resource group deletion.                       |
 # |                                                                            |
 # |      The pipeline can be used as fallback in case the terraform            |
-# |      destroy doesn't remove everything                                     |
+# |      destroy doesn't remove everything.                                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -203,7 +203,14 @@ stages:
 
   - stage:                             Remove_Control_plane
     displayName:                       Remove Control Plane
-    condition:                         eq(${{ parameters.cleanup_control_plane }}, true)
+    dependsOn:
+      - Remove_SAP_workload_zone
+    condition: |
+      and
+      (
+        eq(${{ parameters.cleanup_control_plane }}, true),
+        in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped')
+      )
     jobs:
       - job:                           Remove_SAP_library
         displayName:                   Remove SAP Library ${{ parameters.library }}
