@@ -39,13 +39,14 @@
 
     - name:                            "SAP DB2: check if installed"
       ansible.builtin.stat:
-        path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
-        register:                      db2_installed
+        path:                           /etc/sap_deployment_automation/sap_deployment_db2.txt
+      register:                        db2_installed
       when:                            node_tier == 'db2'
 
   when:
     - ansible_hostname == primary_instance_name
 
+ 
 - name:                                "SAP DB2 Install: Install DB2"
   block:
     - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
@@ -61,7 +62,7 @@
         tasks_from:                    bom-template
       vars:
         db2_archive_path:              /usr/sap/install/sapdb2_software
-        db2_cd_package_exportcd:       "{{ db2_archive_path }}/erpexports"
+        db2_cd_package_exportcd:       "/usr/sap/install/CD_EXPORT/DATA_UNITS"
         db2_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
         db2_cd_package_software:       "{{ db2_archive_path }}/db2server/LINUXX86_64"
         db2_cd_package_kernel:         /usr/sap/install/download_basket/
@@ -94,9 +95,12 @@
       environment:
         TMPDIR:                        /usr/sap/install
       register:                        db2_installation
-      failed_when:                     db2_installation.rc > 0
+      failed_when:                 db2_installation.rc > 0
       tags:
         - skip_ansible_lint
+
+   # TBC - Add another check to remove the contents of /sapmnt/<SID> if installation fails 
+
 
     - name:                            "DB2 Install: flag"
       ansible.builtin.file:

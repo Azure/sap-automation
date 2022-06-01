@@ -1,8 +1,14 @@
-#############################################################################################################################################################################################################
-#                                                                                                                                                                                                           #
-# Installation service 'SAP NetWeaver 7.5 > IBM Db2 for Linux, UNIX, and Windows > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.DB6.ABAP' #
 #                                                                                                                                                                                                           #
 #############################################################################################################################################################################################################
+##################################################################
+#
+#
+# Installation service 'SAP NetWeaver 7.5 > IBM Db2 for Linux, UNIX, and Windows > System Copy > Target System > Distributed System > Based on AS
+ ABAP > Database Instance', product id 'NW_ABAP_DB:NW750.DB6.CP' #
+#
+#
+#################################################################################################################################################
+##################################################################
 
 # Location of Export CD
 
@@ -17,7 +23,7 @@ NW_Unpack.sapExeSar                                                 = {{ db2_cd_
 
 NW_DB6_DB.db6.abap.connect.user                                      = sap{{ db_sid |lower }}
 NW_DB6_DB.db6.abap.schema                                            = sap{{ db_sid |lower }}
-NW_GetMasterPassword.masterPwd                                       = {{ main_paasword }}
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
 NW_GetSidNoProfiles.sapdrive = undefined
 NW_GetSidNoProfiles.sid                                              = {{ sap_sid |upper }}
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
@@ -34,8 +40,8 @@ nwUsers.db6.sapsidUid                                                = {{ db2sap
 
 # Passwords for sap and db2 users
 
-nwUsers.db6.db2sidPassword                                          = {{ main_paasword }}
-nwUsers.db6.sapsidPassword                                          = {{ main_paasword }}
+nwUsers.db6.db2sidPassword                                          = {{ main_password }}
+nwUsers.db6.sapsidPassword                                          = {{ main_password }}
 nwUsers.sidadmPassword                                              = {{ main_password }}
 
 #Database Parameters
@@ -62,7 +68,7 @@ storageBasedCopy.db6.PortRangeEnd                                   = 59170
 storageBasedCopy.db6.PortRangeStart                                 = 59140
 
 # Using System Copy Backup/Restore for preparing the set up of an HADR standby system
-# db6.usingSystemCopyBRforHADR = true
+db6.usingSystemCopyBRforHADR = true
 
 # Import Parameters
 NW_ABAP_Import_Dialog.dbCodepage                                    = 4103

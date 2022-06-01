@@ -14,43 +14,43 @@
 ---
 
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
-- name:                                "SAP DB2 Install: Prep work"
+- name:                                "SAP DB2  Install Secondary: Prep work"
   block:
-    - name:                            "SAP DB2 Install: Set BOM facts"
+    - name:                            "SAP DB2 Install Secondary: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
         sap_inifile_template:          "{{ bom_base_name }}-dbloadstandby-inifile-param.j2"
 
-    - name:                            "SAP DB2: Create run flag directory"
+    - name:                            "SAP DB2 Secondary: Create run flag directory"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation
         state:                         directory
         mode:                          0755
 
-    - name:                            "SAP DB2: Install reset"
+    - name:                            "SAP DB2 Secondary: Install reset"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
         state:                         absent
       when:                            reinstall
 
-    - name:                                "SAP DB2: check if installed"
+    - name:                                "SAP DB2 Secodary: check if installed"
       ansible.builtin.stat:
         path:                              /etc/sap_deployment_automation/sap_deployment_db2.txt
-        register:                            db2_installed
+      register:                            db2_installed
       when:                                node_tier == 'db2'
 
   when:                              ansible_hostname == secondary_instance_name
 
-- name:                                "DB2 Install"
+- name:                                "DB2 Install - Secondary DB"
   block:
-    - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
+    - name:                            "DB2 Install Secondary DB: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
 
-    - name:                            "DB2 Install: Include roles-sap/3.3.1-bom-utility role"
+    - name:                            "DB2 Install secondary DB: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
@@ -71,18 +71,18 @@
         - skip_ansible_lint
 # +------------------------------------4--------------------------------------*/
 
-    - name:                            "SAP DB2 install: variables"
+    - name:                            "SAP DB2 install Secondary: variables"
       ansible.builtin.debug:
         msg:
           - "{{ sap_inifile }}"
-          - "{{ bom.product_ids.dbl }}"
+          - "{{ bom.product_ids.dblsby }}"
         verbosity:                     2
 # *====================================4=======================================8
 #   SAP DB2: Install
 #   2230669 - System Provisioning Using a Parameter Input File
 #
 
-    - name:                            "SAP DB2 Install"
+    - name:                            "SAP DB2 Install - Secondary DB"
       ansible.builtin.shell: |
                                        export TMPDIR=/usr/sap/install
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
@@ -99,7 +99,7 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            "DB2 Install: flag"
+    - name:                            "DB2 Install Secondary: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
         state:                         touch
