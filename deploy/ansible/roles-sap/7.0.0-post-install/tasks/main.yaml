@@ -16,14 +16,14 @@
 
 - name:                                "Post Installation: Show path"
   ansible.builtin.debug:
-    msg:                               "{{ target_media_location }}/sapinst_instdir/{{ prefix }}{{ path }}"
+    msg:                               "{{ tmp_directory }}/sapinst_instdir/{{ prefix }}{{ path }}"
   when:
     - tier != 'hana'
     - tier != 'oracle'
 
 - name:                                "Post Installation: Find the log files (SAPINST)"
   ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/sapinst_instdir/{{ prefix }}{{ path }}"
+    paths:                             "{{ tmp_directory }}/sapinst_instdir/{{ prefix }}{{ path }}"
     file_type:                         file
     patterns:                          'sa*.log,Hd*.log'
     recurse:                           true
@@ -54,7 +54,7 @@
 - name:                                "Post Installation: Compress the installation log files"
   ansible.builtin.archive:
     path:                              "{{ sapinst_list_of_files }}"
-    dest:                              "{{ target_media_location }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
+    dest:                              "{{ tmp_directory }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
     format:                            zip
     mode:                              0755
   when:
@@ -62,7 +62,7 @@
 
 - name:                                "Post Installation: Copy installation logs"
   ansible.builtin.fetch:
-    src:                               "{{ target_media_location }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
+    src:                               "{{ tmp_directory }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
     dest:                              "{{ _workspace_directory }}/logs/{{ sap_sid }}{{ suffix }}.zip"
     flat:                              true
   when:

@@ -11,6 +11,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-pas-inifile-param.j2"
+    dir_params:                        "{{ target_media_location }}/.params"
   when:                                 MULTI_SIDS is defined
   loop:                                 "{{ MULTI_SIDS }}"
 
@@ -43,6 +44,7 @@
     sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
     sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') | first }}"
     sap_appVirtualHostname:
+    param_directory:                   "{{ dir_params }}"
   tags:
     - skip_ansible_lint
 
@@ -53,13 +55,14 @@
 
 - name:                                "PAS (sharedHome): Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ item.sid | upper }}"
     state:                             directory
     mode:                              0755
+  loop:                                "{{ MULTI_SIDS }}"
 
 - name:                                "PAS (sharedHome): Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
+    path:                              "/etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_pas.txt"
     state:                             absent
   when:                                reinstall
   loop:                                "{{ MULTI_SIDS }}"
@@ -75,20 +78,20 @@
   ansible.builtin.shell: |
                                        set -o errexit
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.pas }}                          \
                                                  SAPINST_SKIP_DIALOGS=true                                                     \
                                                  SAPINST_START_GUISERVER=false                                                 \
                                                  SAPINST_ACCEPT_INTERNAL_SIGNATURE=true
-                                       touch /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
+                                       touch /etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_pas.txt
   args:
     chdir:                             "{{ target_media_location }}/SWPM"
-    creates:                           /etc/sap_deployment_automation/sap_deployment_pas_{{ item.sid }}.txt
+    creates:                           "/etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_pas.txt"
   environment:
-    TMPDIR:                            "{{ target_media_location }}/{{ item.sid|upper }}"
+    TMPDIR:                            "{{ target_media_location }}/{{ item.sid | upper }}"
   register:                            pas_installation
   failed_when:                         pas_installation.rc > 0
-  loop:       "{{ MULTI_SIDS }}"
+  loop:                                "{{ MULTI_SIDS }}"
   tags:
     - skip_ansible_lint
 
@@ -96,6 +99,11 @@
   ansible.builtin.debug:
     var:                               pas_installation.stdout_lines
 
+- name:                                "PAS (sharedHome): Cleanup ini file {{ ansible_hostname }}"
+  ansible.builtin.file:
+    path:                              "{{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-pas-{{ ansible_hostname }}.params"
+    state:                             absent
+  loop:                                "{{ MULTI_SIDS }}"
 
 ...
 # /*---------------------------------------------------------------------------8

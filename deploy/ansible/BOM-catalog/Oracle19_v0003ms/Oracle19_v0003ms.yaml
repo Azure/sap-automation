@@ -72,21 +72,19 @@ materials:
     - name:         "Oracle compact-lib"
       archive:      compat-libcap1-1.10-7.el7.x86_64.rpm
       extract:      false
+      checksum:     30FB28F1266049493E5AEFFE18E8939B1BB4A889F1013EBEF6DABE496156B501
       url:          https://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/getPackage/compat-libcap1-1.10-7.el7.x86_64.rpm
 
     - name:         "Oracle ASMSUPPORT RPM"
       archive:      oracleasm-support-2.1.12-1.el8.x86_64.rpm
       extract:      false
+      checksum:     A60037BEECBF5CC95957CB04ED7CDF511867FE8F65CFD014033FCEFC3BB29C0C
       url:          https://public-yum.oracle.com/repo/OracleLinux/OL8/addons/x86_64/getPackage/oracleasm-support-2.1.12-1.el8.x86_64.rpm
 
     - name:         "Oracle ASMLIB RPM"
       archive:      oracleasmlib-2.0.17-1.el8.x86_64.rpm
       extract:      false
+      checksum:     0ABF6BD267E67C472D194DBBEFC723D3A1910AAF8D688FAE4BB6980CE1F3281A
       url:          https://download.oracle.com/otn_software/asmlib/oracleasmlib-2.0.17-1.el8.x86_64.rpm
-
-    - name:         "Oracle compact-lib"
-      archive:      compat-libcap1-1.10-7.el7.x86_64.rpm
-      extract:      false
-      url:          https://public-yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/getPackage/compat-libcap1-1.10-7.el7.x86_64.rpm
 
 ...

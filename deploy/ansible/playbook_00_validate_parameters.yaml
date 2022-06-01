@@ -51,6 +51,7 @@
         - { parameter: 'sap_fqdn', error: 'Please provide the SAP fqdn in  in sap_fqdn parameter' }
         - { parameter: 'sap_sid', error: 'Please provide the SAP SID in sap_sid parameter' }
         - { parameter: 'secret_prefix', error: 'Please provide the Key Vault secret prefix in secret_prefix parameter' }
+        - { parameter: 'sapbits_location_base_path', error: 'Please provide the sapbits_location_base_path in the deployer key vault' }
       loop_control:
         loop_var: item_to_check
 
@@ -167,22 +168,31 @@
     - name:                            Check internet connectivity
       ansible.builtin.uri:
         url:                           "{{ url_internet }}"
+        validate_certs:                false
+      when:                            check_outbound
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h
       register:                        mounts
+      failed_when:                     false
+      tags:
+        - 0.0-mounts
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         var:                           mounts.stdout_lines
+      when:                            mounts is defined
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command:         cat /etc/hosts
       register:                        hosts
+      tags:
+        - 0.0-hosts
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
         var:                           hosts.stdout_lines
+      when:                            hosts is defined
 
 - hosts:               "{{ sap_sid|upper }}_DB"
 

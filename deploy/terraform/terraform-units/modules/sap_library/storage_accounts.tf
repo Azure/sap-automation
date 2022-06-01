@@ -235,4 +235,3 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   )
   key_vault_id = var.key_vault.kv_spn_id
 }
-

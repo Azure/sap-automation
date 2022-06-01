@@ -107,12 +107,21 @@ resource "local_file" "sap-parameters_yml" {
 
     oracle = local.oracle
 
-    hana_data = length(var.hana_data) > 0 ? (
-      format("hana_data_mountpoint:          %s", var.hana_data)) : (
+    hana_data = length(try(var.hana_data[0], "")) > 1 ? (
+      format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
       ""
     )
-    hana_log = length(var.hana_log) > 0 ? (
-      format("hana_log_mountpoint:           %s", var.hana_log)) : (
+    hana_log = length(try(var.hana_log[0], "")) > 1 ? (
+      format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
+      ""
+    )
+    hana_shared = length(try(var.hana_shared[0], "")) > 1 ? (
+      format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
+      ""
+    )
+
+    usr_sap = length(var.usr_sap) > 1 ? (
+      format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
       ""
     )
 
