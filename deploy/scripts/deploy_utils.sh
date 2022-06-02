@@ -296,13 +296,13 @@ function set_executing_user_environment_variables() {
         
         unset_executing_user_environment_variables
         
-        az_user_obj_id=$(az ad signed-in-user show --query objectId -o tsv)
+        az_user_obj_id=$(az ad signed-in-user show --query id -o tsv)
         az_user_name=$(az ad signed-in-user show --query userPrincipalName -o tsv)
         
         # this is the user object id but exporeted as client_id to make it easier to use in TF
         export TF_VAR_Agent_IP=${az_user_obj_id}
         
-        echo -e "\t[set_executing_user_environment_variables]: logged in user objectID: ${az_user_obj_id} (${az_user_name})"
+        echo -e "\t[set_executing_user_environment_variables]: logged in user id: ${az_user_obj_id} (${az_user_name})"
         echo -e "\t[set_executing_user_environment_variables]: Initializing state with user: ${az_user_name}"
     else
         # else, if you are executing as service principal, we need to export the ARM variables
@@ -330,7 +330,7 @@ function set_executing_user_environment_variables() {
             *)
                 if is_valid_guid "${az_exec_user_name}"; then
                     
-                    az_user_obj_id=$(az ad sp show --id "${az_exec_user_name}" --query objectId -o tsv)
+                    az_user_obj_id=$(az ad sp show --id "${az_exec_user_name}" --query id -o tsv)
                     az_user_name=$(az ad sp show --id "${az_exec_user_name}" --query displayName -o tsv)
                     
                     echo -e "\t[set_executing_user_environment_variables]: Identified login type as 'service principal'"
