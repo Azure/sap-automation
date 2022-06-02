@@ -1,10 +1,36 @@
+
+##########################################################################################
+#                                                                                        #
+# Deployment topologies                                                                  #
+#                                                                                        #
+# Standard (All roles on same server)                                                    #
+#  Define the database tier values and set enable_app_tier_deployment to false           #
+#                                                                                        #
+# Distributed (1+1 or 1+1+N)                                                             #
+#  Define the database tier values and define scs_server_count = 1,                      #
+#  application_server_count >= 1                                                         #
+#                                                                                        #
+# High Availability                                                                      #
+#  Define the database tier values and database_high_availability = true                 #
+#  scs_server_count = 1 and scs_high_availability = true                                 #
+#  application_server_count >= 1                                                         #
+#                                                                                        #
+##########################################################################################
+
+##########################################################################################
+#                                                                                        #
+# This sample defines an Distributed deployment                                          #
+#                                                                                        #
+##########################################################################################
+
 # The automation supports both creating resources (greenfield) or using existing resources (brownfield)
-# For the greenfield scenario the automation defines default names for resources, if there is a XXXXname variable then the name is customizable 
+# For the greenfield scenario the automation defines default names for resources, 
+# if there is a XXXXname variable then the name is customizable 
 # for the brownfield scenario the Azure resource identifiers for the resources must be specified
 
 #########################################################################################
 #                                                                                       #
-#  Infrastructure definitioms                                                          #
+#  Environment definitioms                                                              #
 #                                                                                       #
 #########################################################################################
 
@@ -12,27 +38,16 @@
 environment = "QA"
 
 # The location valus is a mandatory field, it is used to control where the resources are deployed
-location="westeurope"
-
-#########################################################################################
-#                                                                                       #
-#  NFS support                                                                          #
-#                                                                                       #
-#########################################################################################
-
-# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
-# AFS indicates that Azure Files for NFS is used
-# ANF indicates that Azure NetApp Files is used
-# NFS indicates that a custom solution is used for NFS
-NFS_provider       = "AFS"
-sapmnt_volume_size = 128
-
+location = "westeurope"
 
 #########################################################################################
 #                                                                                       #
 #  Database tier                                                                        #                                                                                       #
 #                                                                                       #
 #########################################################################################
+
+# database_sid = "HDB"
+database_sid = "HDB"
 
 # database_platform defines the database backend, supported values are
 # - HANA
@@ -42,6 +57,9 @@ sapmnt_volume_size = 128
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
 database_platform = "HANA"
+
+# database_instance_number if provided defines the instance number of the HANA database
+#database_instance_number="00"
 
 # database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
 #database_high_availability=false
@@ -55,6 +73,14 @@ database_size = "S4Demo"
 
 # database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 database_vm_use_DHCP = true
+
+# database_vm_db_nic_ips, if provided provides the static IP addresses 
+# for the network interface cards connected to the database subnet
+#database_vm_db_nic_ips = ["",""]
+
+# database_vm_admin_nic_ips, if provided provides the static IP addresses 
+# for the network interface cards connected to the admin subnet
+#database_vm_admin_nic_ips = ["",""]
 
 # The vm_image defines the Virtual machine image to use, 
 # if source_image_id is specified the deployment will use the custom image provided, 
@@ -94,23 +120,6 @@ database_vm_image = {
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
 database_vm_zones=["1"]
 
-# database_nodes provides a way to specify more than one database node, i.e. a scaleout scenario
-
-#database_nodes=[
-# {
-# name=  "hdb1"
-# admin_nic_ips= ["",""]
-# db_nic_ips= ["",""]
-# storage_nic_ips= ["",""]
-# },
-# {
-# name="hdb2"
-# admin_nic_ips= ["",""]
-# db_nic_ips= ["",""]
-# storage_nic_ips= ["",""]
-# }
-# ]
-
 # Optional, Defines the default authentication model for the Database VMs (key/password)
 #database_vm_authentication_type="key"
 
@@ -123,35 +132,88 @@ database_vm_zones=["1"]
 # Optional, Defines the that the database virtual machines will not be placed in an availability set
 #database_no_avset=false
 
+
 #########################################################################################
 #                                                                                       #
 #  Application tier                                                                        #                                                                                       #
 #                                                                                       #
 #########################################################################################
-# sid is a mandatory field that defines the SAP Application SID
-sid = "Q00"
 
 app_tier_vm_sizing = "Optimized"
 
+# enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
+# enable_app_tier_deployment=false
 
 # app_tier_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 app_tier_use_DHCP = true
-# Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
-#app_tier_authentication_type="key"
 
-# enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
-#enable_app_tier_deployment=true
-
-# app_tier_dual_nics is a boolean flag controlling if the application tier servers should have two network cards
-#app_tier_dual_nics=false
-
-#If you want to customise the disk sizes for application tier use the following parameter.
-#app_disk_sizes_filename="custom-sizing.json"
+# sid is a mandatory field that defines the SAP Application SID
+sid = "Q00"
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
 #use_loadbalancers_for_standalone_deployments=false
 
-# Application Servers
+#########################################################################################
+#                                                                                       #
+#  SAP Central Services                                                                 #
+#                                                                                       #
+#########################################################################################
+
+# scs_server_count defines how many SCS servers to deploy
+scs_server_count = 1
+
+# scs_high_availability is a boolean flag controlling if SCS should be highly available
+scs_high_availability = false
+
+# scs_instance_number
+scs_instance_number = "01"
+
+# ers_instance_number
+ers_instance_number = "02"
+
+# scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
+scs_server_zones=["1"]
+
+# scs_server_sku, if defined provides the SKU to use for the SCS servers
+#scs_server_sku="Standard_D4s_v3"
+
+# The vm_image defines the Virtual machine image to use for the application servers, 
+# if source_image_id is specified the deployment will use the custom image provided, 
+# in this case os_type must also be specified
+scs_server_image= {
+ os_type=""
+ source_image_id=""
+ publisher="SUSE"
+ offer="sles-sap-15-sp3"
+ sku="gen2"
+}
+
+# scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
+#scs_server_no_ppg=false
+
+# scs_server_no_avset defines the that the SCS virtual machines will not be placed in an availability set
+#scs_server_no_avset=false
+
+# scs_server_app_nic_ips, if provided provides the static IP addresses 
+# for the network interface cards connected to the application subnet
+#scs_server_app_nic_ips=[]
+
+# scs_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# for the network interface cards connected to the application subnet
+#scs_server_app_admin_nic_ips=[]
+
+# scs_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
+# for the network interface cards connected to the application subnet
+#scs_server_loadbalancer_ips=[]
+
+# scs_server_tags, if defined provides the tags to be associated to the application servers
+#scs_server_tags={},
+
+#########################################################################################
+#                                                                                       #
+#  Application Servers                                                                  #
+#                                                                                       #
+#########################################################################################
 
 # application_server_count defines how many application servers to deploy
 application_server_count=2
@@ -162,19 +224,28 @@ application_server_count=2
 # application_server_sku, if defined provides the SKU to use for the application servers
 #application_server_sku="Standard_D4s_v3"
 
+# app_tier_dual_nics is a boolean flag controlling if the application tier servers should have two network cards
+#app_tier_dual_nics=false
+
+# application_server_app_nic_ips, if provided provides the static IP addresses 
+# for the network interface cards connected to the application subnet
+#application_server_app_nic_ips=[]
+
+# application_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# for the network interface cards connected to the admin subnet
+#application_server_app_admin_nic_ips=[]
+
+#If you want to customise the disk sizes for application tier use the following parameter.
+#app_disk_sizes_filename="custom-sizing.json"
+
+# Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
+#app_tier_authentication_type="key"
+
 # application_server_no_ppg defines the that the application server virtual machines will not be placed in a proximity placement group
 #application_server_no_ppg=false
 
 # application_server_no_avset defines the that the application server virtual machines will not be placed in an availability set
 #application_server_no_avset=false
-
-# application_server_app_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#application_server_app_nic_ips=[]
-
-# application_server_app_admin_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the admin subnet
-#application_server_app_admin_nic_ips=[]
 
 # application_server_tags, if defined provides the tags to be associated to the application servers
 #application_server_tags={},
@@ -191,74 +262,25 @@ application_server_image = {
   version         = "latest"
 }
 
-# SCS Servers
-
-# scs_server_count defines how many SCS servers to deploy
-scs_server_count = 1
-
-# scs_server_sku, if defined provides the SKU to use for the SCS servers
-#scs_server_sku="Standard_D4s_v3"
-
-# scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
-#scs_server_no_ppg=false
-
-# scs_server_no_avset defines the that the SCS virtual machines will not be placed in an availability set
-#scs_server_no_avset=false
-
-# scs_high_availability is a boolean flag controlling if SCS should be highly available
-scs_high_availability = false
-
-# scs_instance_number
-scs_instance_number = "01"
-
-# ers_instance_number
-ers_instance_number = "02"
-
-# scs_server_app_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#scs_server_app_nic_ips=[]
-
-# scs_server_app_admin_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
-#scs_server_app_admin_nic_ips=[]
-
-# scs_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
-# for the network interface cars connected to the application subnet
-#scs_server_loadbalancer_ips=[]
-
-
-# scs_server_tags, if defined provides the tags to be associated to the application servers
-#scs_server_tags={},
-
-# scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-scs_server_zones=["1"]
-
-# The vm_image defines the Virtual machine image to use for the application servers, 
-# if source_image_id is specified the deployment will use the custom image provided, 
-# in this case os_type must also be specified
-#scs_server_image= {
-# os_type=""
-# source_image_id=""
-# publisher="SUSE"
-# offer="sles-sap-12-sp5"
-# sku="gen2"
-#}
-
-# Web Dispatchers
+############################################################################################
+#                                                                                          #
+#                                  Web Dispatchers                                         #
+#                                                                                          #
+############################################################################################
 
 # webdispatcher_server_count defines how many web dispatchers to deploy
 webdispatcher_server_count = 0
 
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
+# for the network interface cards connected to the application subnet
 #webdispatcher_server_app_nic_ips=[]
 
 # webdispatcher_server_app_admin_nic_ips, if provided provides the static IP addresses 
-# for the network interface cars connected to the application subnet
+# for the network interface cards connected to the application subnet
 #webdispatcher_server_app_admin_nic_ips=[]
 
 # webdispatcher_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
-# for the network interface cars connected to the application subnet
+# for the network interface cards connected to the application subnet
 #webdispatcher_server_loadbalancer_ips=[]
 
 # webdispatcher_server_sku, if defined provides the SKU to use for the web dispatchers
@@ -289,7 +311,22 @@ webdispatcher_server_count = 0
 
 #########################################################################################
 #                                                                                       #
-#  Credentials                                                                          #
+#  NFS support                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# AFS indicates that Azure Files for NFS is used
+# ANF indicates that Azure NetApp Files is used
+# NFS indicates that a custom solution is used for NFS
+NFS_provider       = "AFS"
+sapmnt_volume_size = 64
+
+#########################################################################################
+#                                                                                       #
+#  Credentials.                                                                         #
+#  By default the credentials are defined in the workload zone                          #
+#  Only use this section if the SID needs unique credentials                            #
 #                                                                                       #
 #########################################################################################
 
@@ -318,7 +355,6 @@ webdispatcher_server_count = 0
 # nsg_asg_with_vnet if set controls where the Application Security Groups are created
 #nsg_asg_with_vnet=false
 
-
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
 # The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
@@ -332,26 +368,34 @@ webdispatcher_server_count = 0
 
 
 # PPG
-# The proximity placement group names and arm_ids are optional can be used to control the naming and the creation of the proximity placement groups
-# The proximityplacementgroup_names list value is optional, it can be used to override the name of the proximity placement groups that will be provisioned
-# The proximityplacementgroup_arm_ids list value is optional, it can be used to provide an existing proximity placement groups for the deployment
+# The proximity placement group names and arm_ids are optional can be used to 
+# control the naming and the creation of the proximity placement groups
+# The proximityplacementgroup_names list value is optional, 
+# it can be used to override the name of the proximity placement groups that will be provisioned
+# The proximityplacementgroup_arm_ids list value is optional, 
+# it can be used to provide an existing proximity placement groups for the deployment
 #proximityplacementgroup_names=[]
 #proximityplacementgroup_arm_ids=[]
 
 #########################################################################################
 #                                                                                       #
 #  Networking                                                                           #
+#  By default the networking is defined in the workload zone                            #
+#  Only use this section if the SID needs unique subnets/NSGs                           #
+#                                                                                       #
+# The deployment automation supports two ways of providing subnet information.          #
+# 1. Subnets are defined as part of the workload zone  deployment                       #
+#    In this model multiple SAP System share the subnets                                #
+# 2. Subnets are deployed as part of the SAP system                                     #
+#    In this model each SAP system has its own sets of subnets                          # 
+#                                                                                       #
+# The automation supports both creating the subnets (greenfield)                        #
+# or using existing subnets (brownfield)                                                #
+# For the greenfield scenario the subnet address prefix must be specified whereas       #
+# for the brownfield scenario the Azure resource identifier for the subnet must         #
+# be specified                                                                          #
 #                                                                                       #
 #########################################################################################
-# The deployment automation supports two ways of providing subnet information.
-# 1. Subnets are defined as part of the workload zone  deployment
-#    In this model multiple SAP System share the subnets
-# 2. Subnets are deployed as part of the SAP system
-#    In this model each SAP system has its own sets of subnets
-#
-# The automation supports both creating the subnets (greenfield) or using existing subnets (brownfield)
-# For the greenfield scenario the subnet address prefix must be specified whereas
-# for the brownfield scenario the Azure resource identifier for the subnet must be specified
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
 ##network_name ="SAP05"

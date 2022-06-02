@@ -127,6 +127,7 @@ stages:
                 git checkout -q $(Branch)
                 git pull
               echo -e "$green--- --- Convert config file to UX format ---$reset"
+
                 sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
@@ -232,7 +233,9 @@ stages:
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
-                echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
+                if [ -f ${SID}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
+                fi
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure

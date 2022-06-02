@@ -12,7 +12,6 @@
     name:                              "{{ sap_sid | lower }}adm"
     comment:                           "{{ sap_sid | lower }}adm User account"
     group:                             haclient
-  when:                                ansible_os_family|upper == "SUSE"
 
 - name:                                "5.6 SCSERS - SUSE - Add the ASCS and ERS service definitions from sapservices file"
   ansible.builtin.lineinfile:
@@ -59,6 +58,31 @@
   when:
     - ansible_os_family|upper  == "SUSE"
     - inventory_hostname == primary_instance_name
+
+- name:                                "5.6 SCSERS - ASCS, ERS profile changes"
+  block:
+
+    - name:                            "5.6 SCSERS - ASCS Profile - add service/halib"
+      ansible.builtin.blockinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_virtual_hostname }}
+        block: |
+                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib_cluster_connector = /usr/bin/sap_cluster_connector
+
+      register: scsservicehalib
+
+    - name:                            "5.6 SCSERS - ERS Profile - add service/halib"
+      ansible.builtin.blockinfile:
+        path:                          /sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        block: |
+                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib_cluster_connector = /usr/bin/sap_cluster_connector
+
+      register: ersservicehalib
+  when:
+    - ansible_os_family|upper  == "REDHAT"
+    - inventory_hostname == primary_instance_name
+
 
 
 ######################################################

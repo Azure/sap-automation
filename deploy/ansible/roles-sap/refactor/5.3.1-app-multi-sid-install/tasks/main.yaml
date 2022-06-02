@@ -1,0 +1,118 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |             SAP: Register BOM                                              |
+# |         SAP APP: deploy APP Parameter file install template                |
+# |         SAP APP: Install                                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+- name:                                "APP (sharedHome) Install: Set facts oracle multi-sid PAS"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-app-inifile-param.j2"
+    dir_params:                        "{{ target_media_location }}/.params"
+  when:                                 MULTI_SIDS is defined
+  loop:                                 "{{ MULTI_SIDS }}"
+
+- name:                                "APP (sharedHome): Install: Create run flag directory"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ item.sid | upper }}"
+    state:                             directory
+    mode:                              0755
+  loop:                                "{{ MULTI_SIDS }}"
+
+- name:                                "APP (sharedHome): Install: reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_app.txt"
+    state:                             absent
+  when:                                reinstall
+  loop:                                "{{ MULTI_SIDS }}"
+
+
+# Returns bom object
+- name:                                "APP (sharedHome) Install"
+  block:
+
+    - name:                            "APP (sharedHome) Install: Include 3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+
+    - name:                            "APP (sharedHome) Install: Include roles-sap/3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        task_prefix:                   "APP Install: "
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_ciInstanceNumber:          '00'
+        app_instance_number:           '00'
+        sap_ciDialogWPNumber:          12
+        sap_ciBtcWPNumber:             8
+        sap_installSAPHostAgent:       "false"
+        sap_profile_dir:               /sapmnt/{{ sap_sid|upper }}/profile
+        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+        sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+        sap_ciVirtualHostname:         "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') | first }}"
+        sap_appVirtualHostname:        "{{ inventory_hostname }}"
+        param_directory:               "{{ dir_params }}"
+
+      tags:
+        - skip_ansible_lint
+
+# *====================================4=======================================8
+#   SAP APP: Install
+# 2230669 - System Provisioning Using a Parameter Input File
+#
+    - name:                            "APP (sharedHome) Install: register variables"
+      ansible.builtin.set_fact:
+        app_bom_id:                    "{% if scs_high_availability %}{{ bom.product_ids.app_ha }}{% else %}{{ bom.product_ids.app }}{% endif %}"
+
+    - name:                            "APP (sharedHome) Install: debug variables"
+      ansible.builtin.debug:
+        msg:
+          - "{{ sap_inifile }}"
+          - "{{ app_bom_id }}"
+        verbosity:                     2
+
+    - name:                            "APP (sharedHome) Install"
+      ansible.builtin.shell: |
+                                       set -o errexit
+                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.pas }}                          \
+                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                                 SAPINST_START_GUISERVER=false                                                 \
+                                                 SAPINST_ACCEPT_INTERNAL_SIGNATURE=true
+                                       touch /etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_app.txt
+      args:
+        chdir:                         "{{ target_media_location }}/SWPM"
+        creates:                       "/etc/sap_deployment_automation/{{ item.sid | upper }}/sap_deployment_app.txt"
+      environment:
+        TMPDIR:                        "{{ target_media_location }}/{{ item.sid | upper }}"
+      register:                        app_installation
+      failed_when:                     app_installation.rc > 0
+      loop:                            "{{ MULTI_SIDS }}"
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "APP (sharedHome): Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ bom_base_name }}-{{ item.sid }}-app-{{ ansible_hostname }}.params"
+        state:                         absent
+      loop:                            "{{ MULTI_SIDS }}"
+
+# *====================================4=======================================8
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
