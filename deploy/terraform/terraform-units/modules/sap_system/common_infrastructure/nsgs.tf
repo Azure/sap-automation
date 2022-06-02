@@ -11,14 +11,14 @@ resource "azurerm_network_security_group" "db" {
   name     = local.database_subnet_nsg_name
   resource_group_name = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.resource_group_name) : (
-    local.rg_exists ? (
+    local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].name) : (
       azurerm_resource_group.resource_group[0].name
     )
   )
   location = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.location) : (
-    local.rg_exists ? (
+    local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].location) : (
       azurerm_resource_group.resource_group[0].location
     )
@@ -61,14 +61,14 @@ resource "azurerm_network_security_group" "admin" {
   name     = local.admin_subnet_nsg_name
   resource_group_name = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.resource_group_name) : (
-    local.rg_exists ? (
+    local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].name) : (
       azurerm_resource_group.resource_group[0].name
     )
   )
   location = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.location) : (
-    local.rg_exists ? (
+    local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].location) : (
       azurerm_resource_group.resource_group[0].location
     )

@@ -10,7 +10,13 @@
 HANA DB Linux Server private IP range: .10 -
 +--------------------------------------4--------------------------------------*/
 
-# Creates the admin traffic NIC and private IP address for database nodes
+
+#########################################################################################
+#                                                                                       #
+#  Admin Network Interface                                                              #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_network_interface" "nics_dbnodes_admin" {
   provider = azurerm.main
   count = local.enable_deployment && var.hana_dual_nics ? (
@@ -32,22 +38,26 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
   ip_configuration {
     name      = "ipconfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = var.databases[0].use_DHCP ? (
+    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.databases[0].use_DHCP ? (
       null) : (
-      length(try(var.database_vm_admin_nic_ips[count.index], "")) > 0 ? (
-        var.database_vm_admin_nic_ips[count.index]) : (
-        cidrhost(
-          var.admin_subnet.address_prefixes[0],
-          tonumber(count.index) + local.hdb_ip_offsets.hdb_admin_vm
-        )
+      cidrhost(
+        var.admin_subnet.address_prefixes[0],
+        tonumber(count.index) + local.hdb_ip_offsets.hdb_admin_vm
+      )
       )
     )
-
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = length(try(var.database_vm_admin_nic_ips[count.index], "")) > 0 ? (
+      "Static") : (
+      "Dynamic"
+    )
   }
 }
 
-# Creates the DB traffic NIC and private IP address for database nodes
+#########################################################################################
+#                                                                                       #
+#  Primary Network Interface                                                            #
+#                                                                                       #
+#########################################################################################
 resource "azurerm_network_interface" "nics_dbnodes_db" {
   provider = azurerm.main
   count    = local.enable_deployment ? var.database_server_count : 0
@@ -62,22 +72,28 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = true
-  ip_configuration {
-    primary   = true
-    name      = "ipconfig1"
-    subnet_id = var.db_subnet.id
-
-    private_ip_address = var.databases[0].use_DHCP ? (
-      null) : (
-      length(try(var.database_vm_db_nic_ips[count.index], "")) > 0 ? (
-        var.database_vm_db_nic_ips[count.index]) : (
-        cidrhost(
-          var.db_subnet.address_prefixes[0],
-          tonumber(count.index) + local.hdb_ip_offsets.hdb_db_vm
+  dynamic "ip_configuration" {
+    iterator = pub
+    for_each = local.database_ips
+    content {
+      name      = pub.value.name
+      subnet_id = pub.value.subnet_id
+      private_ip_address = try(pub.value.nic_ips[count.index],
+        var.databases[0].use_DHCP ? (
+          null) : (
+          cidrhost(
+            var.db_subnet.address_prefixes[0],
+            tonumber(count.index) + local.hdb_ip_offsets.hdb_db_vm + pub.value.offset
+          )
         )
       )
-    )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = length(try(pub.value.nic_ips[count.index], "")) > 0 ? (
+        "Static") : (
+        pub.value.private_ip_address_allocation
+      )
+
+      primary = pub.value.primary
+    }
   }
 }
 
@@ -174,18 +190,33 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   zone = local.use_avset ? null : local.zones[count.index % max(local.db_zone_count, 1)]
 
   network_interface_ids = local.enable_storage_subnet ? (
-    [
-      azurerm_network_interface.nics_dbnodes_db[count.index].id,
-      azurerm_network_interface.nics_dbnodes_admin[count.index].id,
-      azurerm_network_interface.nics_dbnodes_storage[count.index].id
-    ]
-    ) : (
-    var.hana_dual_nics ?
-    (
+    var.options.legacy_nic_order ? (
+      [
+        azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+        azurerm_network_interface.nics_dbnodes_db[count.index].id,
+        azurerm_network_interface.nics_dbnodes_storage[count.index].id
+      ]
+      ) : (
       [
         azurerm_network_interface.nics_dbnodes_db[count.index].id,
-        azurerm_network_interface.nics_dbnodes_admin[count.index].id
-      ]) : (
+        azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+        azurerm_network_interface.nics_dbnodes_storage[count.index].id
+      ]
+    )
+    ) : (
+    var.hana_dual_nics ? (
+      var.options.legacy_nic_order ? (
+        [
+          azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+          azurerm_network_interface.nics_dbnodes_db[count.index].id
+        ]
+        ) : (
+        [
+          azurerm_network_interface.nics_dbnodes_db[count.index].id,
+          azurerm_network_interface.nics_dbnodes_admin[count.index].id
+        ]
+      )
+      ) : (
       [
         azurerm_network_interface.nics_dbnodes_db[count.index].id
       ]

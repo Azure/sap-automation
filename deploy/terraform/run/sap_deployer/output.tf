@@ -1,8 +1,19 @@
-/*
-Description:
 
-  Output from sap_deployer module.
-*/
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
+
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value = module.sap_deployer.created_resource_group_id
+}
+
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+    value = module.sap_deployer.created_resource_group_subscription_id
+}
 
 output "deployer_id" {
   sensitive = true
@@ -10,10 +21,12 @@ output "deployer_id" {
 }
 
 output "vnet_mgmt_id" {
+  description = "Azure Resource Identifier for the management VNet"
   value = module.sap_deployer.vnet_mgmt_id
 }
 
 output "subnet_mgmt_id" {
+  description = "Azure Resource Identifier for the management subnet"
   value = module.sap_deployer.subnet_mgmt_id
 }
 
@@ -100,10 +113,6 @@ output "firewall_id" {
 
 output "automation_version" {
   value = local.version_label
-}
-
-output "tags" {
-  value = local.infrastructure.tags
 }
 
 output "webapp_url_base" {

@@ -1,75 +1,3 @@
-variable "api-version" {
-  description = "IMDS API Version"
-  default     = "2019-04-30"
-}
-
-variable "auto-deploy-version" {
-  description = "Version for automated deployment"
-  default     = "v2"
-}
-
-variable "scenario" {
-  description = "Deployment Scenario"
-  default     = "HANA Database"
-}
-
-variable "db_disk_sizes_filename" {
-  description = "Custom disk configuration json file for database tier"
-  default     = ""
-}
-
-variable "app_disk_sizes_filename" {
-  description = "Custom disk configuration json file for application tier"
-  default     = ""
-}
-
-variable "tfstate_resource_id" {
-  description = "Resource id of tfstate storage account"
-  validation {
-    condition = (
-      length(split("/", var.tfstate_resource_id)) == 9
-    )
-    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
-  }
-
-}
-
-variable "deployer_tfstate_key" {
-  description = "The key of deployer's remote tfstate file"
-  default     = ""
-}
-
-variable "landscape_tfstate_key" {
-  description = "The key of sap landscape's remote tfstate file"
-
-  validation {
-    condition = (
-      length(trimspace(try(var.landscape_tfstate_key, ""))) != 0
-    )
-    error_message = "The Landscape state file name must be specified."
-  }
-
-}
-
-variable "deployment" {
-  description = "The type of deployment"
-  default     = "update"
-}
-
-variable "terraform_template_version" {
-  description = "The version of Terraform templates that were identified in the state file"
-  default     = ""
-}
-
-variable "license_type" {
-  description = "Specifies the license type for the OS"
-  default     = ""
-}
-
-variable "use_zonal_markers" {
-  type    = bool
-  default = true
-}
 
 locals {
 
@@ -99,9 +27,12 @@ locals {
   hdb_ins        = try(local.hdb.instance, {})
   hanadb_sid     = try(local.hdb_ins.sid, "HDB") // HANA database sid from the Databases array for use as reference to LB/AS
   anydb_platform = try(local.anydb-databases[0].platform, "NONE")
-  anydb_sid      = (length(local.anydb-databases) > 0) ? try(local.anydb-databases[0].instance.sid, lower(substr(local.anydb_platform, 0, 3))) : lower(substr(local.anydb_platform, 0, 3))
-  db_sid         = length(local.hana-databases) > 0 ? local.hanadb_sid : local.anydb_sid
-  sap_sid        = upper(try(local.application.sid, local.db_sid))
+  anydb_sid = (length(local.anydb-databases) > 0) ? (
+    try(local.anydb-databases[0].instance.sid, lower(substr(local.anydb_platform, 0, 3)))) : (
+    lower(substr(local.anydb_platform, 0, 3))
+  )
+  db_sid  = length(local.hana-databases) > 0 ? local.hanadb_sid : local.anydb_sid
+  sap_sid = upper(try(local.application.sid, local.db_sid))
 
   enable_db_deployment = (
     length(local.hana-databases) > 0
@@ -144,5 +75,41 @@ locals {
     object_id       = data.azurerm_client_config.current.object_id
   }
 
-  custom_names = length(var.name_override_file) > 0 ? jsondecode(file(format("%s/%s", path.cwd, var.name_override_file))) : null
+  custom_names = length(var.name_override_file) > 0 ? (
+    jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
+    null
+  )
+
+  hana_ANF_volumes = {
+    use_for_data             = var.ANF_use_for_HANA_data
+    data_volume_size         = var.ANF_HANA_data_volume_size
+    use_existing_data_volume = var.ANF_use_existing_data_volume
+    data_volume_name         = var.ANF_data_volume_name
+    data_volume_throughput   = var.ANF_HANA_data_volume_throughput
+
+    use_for_log             = var.ANF_use_for_HANA_log
+    log_volume_size         = var.ANF_HANA_log_volume_size
+    use_existing_log_volume = var.ANF_use_existing_log_volume
+    log_volume_name         = var.ANF_log_volume_name
+    log_volume_throughput   = var.ANF_HANA_log_volume_throughput
+
+    use_for_shared             = var.ANF_use_for_HANA_shared
+    shared_volume_size         = var.ANF_HANA_shared_volume_size
+    use_existing_shared_volume = var.ANF_use_existing_shared_volume
+    shared_volume_name         = var.ANF_HANA_shared_volume_name
+    shared_volume_throughput   = var.ANF_HANA_shared_volume_throughput
+
+    use_for_usr_sap             = var.ANF_use_for_usr_sap
+    usr_sap_volume_size         = var.ANF_usr_sap_volume_size
+    use_existing_usr_sap_volume = var.ANF_use_existing_usr_sap_volume
+    usr_sap_volume_name         = var.ANF_HANA_usr_sap_volume_name
+    usr_sap_volume_throughput   = var.ANF_HANA_usr_sap_throughput
+
+    sapmnt_volume_size         = var.sapmnt_volume_size
+    use_existing_sapmnt_volume = var.ANF_use_existing_sapmnt_volume
+    sapmnt_volume_name         = var.ANF_sapmnt_volume_name
+    sapmnt_volume_throughput   = var.ANF_HANA_sapmnt_volume_throughput
+
+  }
+
 }

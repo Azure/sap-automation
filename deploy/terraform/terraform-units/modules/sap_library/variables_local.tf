@@ -1,25 +1,3 @@
-/*
-Description:
-
-  Define local variables.
-*/
-
-// Input arguments 
-variable "naming" {
-  description = "naming convention"
-}
-
-variable "deployer_tfstate" {
-  description = "terraform.tfstate of deployer"
-}
-
-variable "service_principal" {
-  description = "Current service principal used to authenticate to Azure"
-}
-
-variable "use_private_endpoint" {
-  default = false
-}
 
 variable "use_webapp" {
   default = false

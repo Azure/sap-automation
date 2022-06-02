@@ -86,7 +86,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-      when:                                platform != "ORACLE"
+      when:                            platform != "ORACLE"
       tags:
         - 2.5-sap-users
 
@@ -155,14 +155,20 @@
                 name:                  roles-sap/5.0.0-scs-install
               when:                    MULTI_SIDS is undefined
 
-            - name:                    Include 5.0.3-scs-multi-sid-install role
+            - name:                    "SCS Installation Playbook: - Install SAPInst (sharedHome)"
               ansible.builtin.include_role:
-                name:                  roles-sap/5.0.3-scs-multi-sid-install
+                name:                  roles-sap/5.0.0-scs-install
               when:                    MULTI_SIDS is defined
-
+              vars:
+                sap_sid:               "{{ item.sid }}"
+                scs_instance_number:   "{{ item.ascs_inst_no }}"
+                sapadm_uid:            "{{ item.dbsid_uid }}"
+                sidadm_uid:            "{{ item.sidadm_uid }}"
+              loop:                    "{{ MULTI_SIDS }}"
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
                 state:                 touch
@@ -316,6 +322,7 @@
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/scs-install-done"
                 state:                 touch
@@ -325,6 +332,7 @@
 
             - name:                    "ERS Installation Playbook: - Ensure ers-install-done flag exists"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/ers-install-done"
                 state:                 touch

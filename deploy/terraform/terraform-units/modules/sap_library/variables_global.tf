@@ -83,3 +83,19 @@ variable "key_vault" {
 }
 
 variable "dns_label" {}
+
+variable "naming" {
+  description = "naming convention data structure"
+}
+
+variable "deployer_tfstate" {
+  description = "terraform.tfstate of deployer"
+  default     = {}
+}
+variable "service_principal" {
+  description = "Current service principal used to authenticate to Azure"
+}
+
+variable "use_private_endpoint" {
+  default = false
+}

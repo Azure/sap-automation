@@ -3,88 +3,6 @@
   Define local variables
 */
 
-variable "custom_prefix" {
-  type        = string
-  description = "Custom prefix"
-  default     = ""
-}
-
-variable "is_single_node_hana" {
-  description = "Checks if single node hana architecture scenario is being deployed"
-  default     = false
-}
-
-variable "deployer_tfstate" {
-  description = "Deployer remote tfstate file"
-}
-
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
-
-variable "service_principal" {
-  description = "Current service principal used to authenticate to Azure"
-}
-
-/* Comment out code with users.object_id for the time being
-variable "deployer_user" {
-  description = "Details of the users"
-  default     = []
-}
-*/
-
-variable "naming" {
-  description = "Defines the names for the resources"
-}
-
-variable "custom_disk_sizes_filename" {
-  type        = string
-  description = "Disk size json file"
-  default     = ""
-}
-
-variable "deployment" {
-  description = "The type of deployment"
-}
-
-variable "terraform_template_version" {
-  description = "The version of Terraform templates that were identified in the state file"
-}
-
-variable "license_type" {
-  description = "Specifies the license type for the OS"
-  default     = ""
-}
-
-variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
-}
-
-variable "sapmnt_volume_size" {
-  description = "The volume size in GB for sapmnt"
-}
-
-variable "NFS_provider" {
-  type    = string
-  default = "NONE"
-}
-
-variable "azure_files_storage_account_id" {
-  type    = string
-  default = ""
-}
-
-variable "Agent_IP" {
-  type    = string
-  default = ""
-}
-
-variable "use_private_endpoint" {
-  default = false
-}
-
-variable "hana_dual_nics" {
-}
 
 locals {
   // Resources naming
@@ -100,9 +18,9 @@ locals {
     trimspace(var.custom_prefix)) : (
     trimspace(var.naming.prefix.SDU)
   )
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   // Resource group
-  rg_name = local.rg_exists ? (
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     coalesce(
       try(var.infrastructure.resource_group.name, ""),
@@ -292,12 +210,6 @@ locals {
   #
   ##############################################################################################
 
-  enable_admin_subnet = (
-    var.application.dual_nics ||
-    var.databases[0].dual_nics ||
-    (local.isHANA && var.hana_dual_nics)
-  )
-
   admin_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_admin, {})) > 0
   admin_subnet_prefix = local.admin_subnet_defined ? (
     try(var.infrastructure.vnets.sap.subnet_admin.prefix, "")) : (
@@ -306,6 +218,18 @@ locals {
   admin_subnet_arm_id = local.admin_subnet_defined ? (
     try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "")) : (
     var.landscape_tfstate.admin_subnet_id
+  )
+
+  enable_admin_subnet = (
+    (
+      var.application.dual_nics ||
+      var.databases[0].dual_nics ||
+      (local.isHANA && var.hana_dual_nics)
+    )
+    &&
+    (
+      (length(local.admin_subnet_prefix) + length(local.admin_subnet_arm_id)) > 0
+    )
   )
 
   admin_subnet_exists = length(local.admin_subnet_arm_id) > 0
@@ -343,7 +267,7 @@ locals {
 
   admin_subnet_nsg_name = local.admin_subnet_nsg_defined ? (
     local.admin_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_admin.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
         format("%s%s%s%s",
@@ -410,7 +334,7 @@ locals {
   database_subnet_nsg_exists = length(local.database_subnet_nsg_arm_id) > 0
   database_subnet_nsg_name = local.database_subnet_nsg_defined ? (
     local.database_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_db.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
         format("%s%s%s%s",
@@ -514,6 +438,7 @@ locals {
     var.key_vault.kv_user_id) : (
     var.landscape_tfstate.landscape_key_vault_user_arm_id
   )
+
   prvt_key_vault_id = length(try(var.key_vault.kv_prvt_id, "")) > 0 ? (
     var.key_vault.kv_prvt_id) : (
     var.landscape_tfstate.landscape_key_vault_private_arm_id
@@ -589,11 +514,14 @@ locals {
     null
   )
 
-}
 
 # This needs more though as changing of it is a destructive action 
 # try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
-locals {
   // 'Cg==` is empty string, base64 encoded.
   cloudinit_growpart_config = null
+
+  app_tier_os=upper(try(var.application.app_os.os_type, "LINUX"))
+
+
+
 }

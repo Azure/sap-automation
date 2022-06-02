@@ -5,7 +5,7 @@
 # |      and the region via ARM resource group deletion.                       |
 # |                                                                            |
 # |      The pipeline can be used as fallback in case the terraform            |
-# |      destroy doesn't remove everything                                     |
+# |      destroy doesn't remove everything.                                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -14,7 +14,7 @@ parameters:
   - name:                              cleanup_sap
     displayName:                       Remove the SAP system
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              sap_system
     displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
@@ -24,7 +24,7 @@ parameters:
   - name:                              cleanup_workload_zone
     displayName:                       Remove the SAP workload zone
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              workload_zone
     displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -34,7 +34,7 @@ parameters:
   - name:                              cleanup_control_plane
     displayName:                       Remove the control plane
     type:                              boolean
-    default:                           false
+    default:                           true
 
   - name:                              deployer
     displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -134,8 +134,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ]; then
-                  git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
             displayName:               Remove SAP System deployment artifacts from WORKSPACES
@@ -192,8 +192,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
             displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
@@ -203,7 +203,14 @@ stages:
 
   - stage:                             Remove_Control_plane
     displayName:                       Remove Control Plane
-    condition:                         eq(${{ parameters.cleanup_control_plane }}, true)
+    dependsOn:
+      - Remove_SAP_workload_zone
+    condition: |
+      and
+      (
+        eq(${{ parameters.cleanup_control_plane }}, true),
+        in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped')
+      )
     jobs:
       - job:                           Remove_SAP_library
         displayName:                   Remove SAP Library ${{ parameters.library }}
@@ -273,8 +280,8 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:

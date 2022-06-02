@@ -1,43 +1,9 @@
-variable "api-version" {
-  description = "IMDS API Version"
-  default     = "2019-04-30"
-}
 
-variable "auto-deploy-version" {
-  description = "Version for automated deployment"
-  default     = "v2"
-}
-
-variable "scenario" {
-  description = "Deployment Scenario"
-  default     = "HANA Database"
-}
-
-variable "tfstate_resource_id" {
-  description = "Resource id of tfstate storage account"
-  validation {
-    condition = (
-      length(split("/", var.tfstate_resource_id)) == 9
-    )
-    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
-  }
-
-}
-
-variable "deployer_tfstate_key" {
-  description = "The key of deployer's remote tfstate file"
-  default     = ""
-
-}
-
-variable "azure_files_transport_storage_account_id" {
-  type    = string
-  default = ""
-}
-variable "NFS_provider" {
-  type    = string
-  default = "NONE"
-}
+###############################################################################
+#                                                                             # 
+#                            Local Variables                                  # 
+#                                                                             # 
+###############################################################################
 
 locals {
 
@@ -87,12 +53,23 @@ locals {
   }
 
   ANF_settings = {
-    use           = var.NFS_provider == "ANF"
-    name          = var.ANF_account_name
-    pool_name     = var.ANF_pool_name
-    arm_id        = var.ANF_account_arm_id
-    service_level = var.ANF_service_level
-    size_in_tb    = var.ANF_pool_size
+    use               = var.NFS_provider == "ANF"
+    name              = var.ANF_account_name
+    arm_id            = var.ANF_account_arm_id
+    pool_name         = var.ANF_pool_name
+    use_existing_pool = var.ANF_use_existing_pool
+    service_level     = var.ANF_service_level
+    size_in_tb        = var.ANF_pool_size
+
+    use_existing_transport_volume = var.ANF_use_existing_transport_volume
+    transport_volume_name         = var.ANF_transport_volume_name
+    transport_volume_size         = var.ANF_transport_volume_size
+    transport_volume_throughput   = var.ANF_transport_volume_throughput
+
+    use_existing_install_volume = var.ANF_use_existing_install_volume
+    install_volume_name         = var.ANF_install_volume_name
+    install_volume_size         = var.ANF_install_volume_size
+    install_volume_throughput   = var.ANF_install_volume_throughput
 
   }
 

@@ -1,0 +1,150 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                SAP: Register BOM                                           |
+# |         SAP DBLOAD: deploy DBLOAD Parameter file install template          |
+# |         SAP DBLOAD: Install                                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+- name:                                "DBLoad (sharedHome): Set dbload facts for multi-sid"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-{{ item.sid }}-dbload-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
+    dir_params:                        "{{ target_media_location }}/.params"
+  when:                                 node_tier == "oracle-multi-sid"
+  loop:                                 "{{ MULTI_SIDS }}"
+
+- name:                                "DBLoad (sharedHome): - Create run flag directory"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    state:                             directory
+    mode:                              0755
+
+
+#Create ORA<SID> users for MULTI-SID Installation on Database Node.
+- name:                                "DBLoad (sharedHome): ORA{{ item.sid }} User creation"
+  ansible.builtin.user:
+    name:                              "ora{{ item.sid|lower }}"
+    uid:                               "{{ item.dbsid_uid }}"
+    group:                             dba
+    groups:                            oper,sapinst,oinstall
+    shell:                             /bin/csh
+    create_home:                       true
+    home:                              "/home/ora.{{ item.sid|lower }}"
+    password:                          "{{ main_password |
+                                          password_hash('sha512') }}"
+    state:                             present
+    append:                            true
+  loop:                                "{{ MULTI_SIDS }}"
+
+# Temporary block to start the listener due the bug in SWPM DEV version.
+#Remove this block after checking with SAP - Action on VP
+#Create tnsnames.ora
+###########################################START OF THE BLOCK###############################################################
+- name:                                "DBLoad (sharedHome): Create the tnsnames file"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.template:
+    backup:                            true
+    src:                               tnsnames.j2
+    dest:                              "/oracle/RDBMS/{{ ora_version }}/network/admin/tnsnames.ora"
+    mode:                              0644
+    force:                             true
+
+- name:                                "DBLoad (sharedHome): Create the tnsnames file"
+  become:                              true
+  become_user:                         oracle
+  ansible.builtin.template:
+    backup:                            true
+    src:                               listener.j2
+    dest:                              "/oracle/RDBMS/{{ ora_version }}/network/admin/listener.ora"
+    mode:                              0644
+    force:                             true
+
+- name:                                "DBLoad (sharedHome): START THE LISTENER"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell:               lsnrctl start
+  args:
+    creates:                           /etc/sap_deployment_automation/startlsnrctl.txt
+    executable:                        /bin/csh
+  register:                            lsnrstatus
+  failed_when:                         lsnrstatus.rc >= 2
+  tags:
+    - skip_ansible_lint
+
+- name:                                "DBLoad (sharedHome): create startlsnrctl.txt"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/startlsnrctl.txt
+    state:                             touch
+    mode:                              0755
+
+###########################################END OF THE BLOCK###############################################################
+
+# - name:                                "SAP DBLOAD reset"
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
+#     state:                             absent
+#   when:                                reinstall
+
+# - name:                                "SAP DBLOAD: check if installed"
+#   ansible.builtin.stat:
+#     path:                              /etc/sap_deployment_automation/sap_deployment_dbload.txt
+#   register:                            dbload_installed
+
+- name:                                "DBLOAD Install"
+  block:
+
+    - name:                            "DBLoad (sharedHome): Include 3.3.1-bom-utility role for registering the BoM"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-register
+      vars:
+        bom_name:                      "{{ bom_base_name }}"
+
+    - name:                            "DBLoad (sharedHome): Include 3.3.1-bom-utility role"
+      ansible.builtin.include_role:
+        name:                          roles-sap/3.3.1-bom-utility
+        tasks_from:                    bom-template
+      vars:
+        sap_cd_package_hdbclient:      "{{ target_media_location }}/{{ sap_sid|upper }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+        sap_cd_package_cd1:            "{{ target_media_location }}/{{ sap_sid|upper }}/CD_EXPORT"
+        sap_cd_package_cd2:
+        sap_cd_package_cd3:
+        sap_cd_package_cd4:
+        sap_cd_package_cd5:
+        sap_ciInstanceNumber:
+        app_instance_number:
+        sap_ciDialogWPNumber:
+        sap_ciBtcWPNumber:
+        sap_installSAPHostAgent:
+        sap_profile_dir:               /sapmnt/{{ sap_sid|upper }}/profile
+        sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+        sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
+        sap_ciVirtualHostname:
+        sap_appVirtualHostname:
+        param_directory:               "{{ dir_params }}" 
+      tags:
+        - skip_ansible_lint
+
+# *====================================4=======================================8
+#   SAP DBLOAD: Install
+# 2230669 - System Provisioning Using a Parameter Input File
+#
+# *====================================4=======================================8
+
+    - name:                            "DBLoad (sharedHome): SAP DBLOAD variables"
+      ansible.builtin.debug:
+        msg:
+          - "{{ sap_inifile }}"
+          - "{{ bom.product_ids.dbl }}"
+        verbosity:                     2
+    - name:                            "DBLoad (sharedHome): DBLOAD Install "
+      ansible.builtin.include_tasks:   sapinst.yaml
+      loop:                            "{{ MULTI_SIDS }}"
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

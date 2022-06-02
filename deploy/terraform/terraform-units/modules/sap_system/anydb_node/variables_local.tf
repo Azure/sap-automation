@@ -1,114 +1,3 @@
-variable "anchor_vm" {
-  description = "Deployed anchor VM"
-}
-
-variable "resource_group" {
-  description = "Details of the resource group"
-}
-
-variable "storage_bootdiag_endpoint" {
-  description = "Details of the boot diagnostics storage account"
-}
-
-variable "ppg" {
-  description = "Details of the proximity placement group"
-}
-
-variable "naming" {
-  description = "Defines the names for the resources"
-}
-
-variable "custom_disk_sizes_filename" {
-  type        = string
-  description = "Disk size json file"
-  default     = ""
-}
-
-variable "admin_subnet" {
-  description = "Information about SAP admin subnet"
-}
-
-variable "db_subnet" {
-  description = "Information about SAP db subnet"
-}
-variable "sid_keyvault_user_id" {
-  description = "ID of the user keyvault for sap_system"
-}
-
-variable "sdu_public_key" {
-  description = "Public key used for authentication"
-}
-
-variable "sid_password" {
-  description = "SDU password"
-}
-
-variable "sid_username" {
-  description = "SDU username"
-}
-
-variable "sap_sid" {
-  description = "The SID of the application"
-}
-
-variable "db_asg_id" {
-  description = "Database Application Security Group"
-}
-
-variable "deployment" {
-  description = "The type of deployment"
-}
-
-variable "terraform_template_version" {
-  description = "The version of Terraform templates that were identified in the state file"
-}
-
-variable "cloudinit_growpart_config" {
-  description = "A cloud-init config that configures automatic growpart expansion of root partition"
-}
-
-variable "license_type" {
-  description = "Specifies the license type for the OS"
-  default     = ""
-
-}
-
-variable "use_loadbalancers_for_standalone_deployments" {
-  description = "Defines if load balancers are used even for standalone deployments"
-  default     = true
-}
-
-variable "database_vm_names" {
-  default = [""]
-}
-
-variable "database_vm_db_nic_ips" {
-  default = [""]
-}
-
-variable "database_vm_admin_nic_ips" {
-  default = [""]
-}
-
-variable "database_vm_storage_nic_ips" {
-  default = [""]
-}
-
-variable "database_server_count" {
-  default = 1
-}
-
-variable "order_deployment" {
-  description = "psuedo condition for ordering deployment"
-  default     = ""
-}
-
-variable "use_observer" {
-}
-
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
 
 locals {
   // Imports database sizing information
@@ -146,8 +35,8 @@ locals {
   )
   sid       = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
   prefix    = trimspace(var.naming.prefix.SDU)
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
-  rg_name = local.rg_exists ? (
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     coalesce(
       try(var.infrastructure.resource_group.name, ""),
@@ -174,7 +63,6 @@ locals {
     [for pair in local.faults :
       upper(pair.Location) == upper(var.infrastructure.region) ? pair.MaximumFaultDomainCount : ""
   ])[0]), 2)
-
 
   // Dual network cards
   anydb_dual_nics = try(local.anydb.dual_nics, false)
@@ -204,9 +92,8 @@ locals {
 
   anydb_sku = try(local.db_size.vm_size, "Standard_E16_v3")
 
-  anydb_ha     = try(local.anydb.high_availability, false)
-  db_sid       = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
-  loadbalancer = try(local.anydb.loadbalancer, {})
+  anydb_ha = try(local.anydb.high_availability, false)
+  db_sid   = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
 
   # Oracle deployments do not need a load balancer
   enable_db_lb_deployment = (
@@ -486,5 +373,32 @@ locals {
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
+
+  database_primary_ips = [
+    {
+      name                          = "IPConfig1"
+      subnet_id                     = var.db_subnet.id
+      nic_ips                       = var.database_vm_db_nic_ips
+      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = !var.use_secondary_ips
+    }
+  ]
+
+  database_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id                     = var.db_subnet.id
+      nic_ips                       = var.database_vm_db_nic_secondary_ips
+      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      offset                        = var.database_server_count
+      primary                       = var.use_secondary_ips
+    }
+  ]
+
+  database_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.database_secondary_ips, local.database_primary_ips))) : (
+    local.database_primary_ips
+  )
 
 }

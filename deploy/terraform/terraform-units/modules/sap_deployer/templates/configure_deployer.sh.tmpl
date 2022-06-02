@@ -60,6 +60,13 @@ tfversion="${tfversion}"
 client_id="${client_id}"
 subscription_id="${subscription_id}"
 tenant_id="${tenant_id}"
+local_user="${local_user}"
+
+TOKEN="${pat}"
+DEVURL="${ado_repo}"
+POOL="${pool}"
+AGENTNAME=$(hostname)
+
 
 #
 # Ansible Version settings
@@ -152,7 +159,7 @@ pkg_mgr_refresh()
         sudo $${pkg_mgr} update --quiet
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh 
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet refresh
         ;;
     esac
 
@@ -177,7 +184,7 @@ pkg_mgr_upgrade()
         sudo $${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet upgrade 
+        sudo $${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
         ;;
     esac
 
@@ -214,7 +221,7 @@ ansible_collections=$${ansible_base}/collections
 ansible_pip3=$${ansible_venv_bin}/pip3
 
 # Azure SAP Automated Deployment directories
-asad_home="$${HOME}/Azure_SAP_Automated_Deployment"
+asad_home="/home/$${local_user}/Azure_SAP_Automated_Deployment"
 asad_ws="$${asad_home}/WORKSPACES"
 asad_repo="https://github.com/Azure/sap-automation.git"
 asad_dir="$${asad_home}/$(basename $${asad_repo} .git)"
@@ -245,6 +252,7 @@ case "$(get_distro_name_version)" in
     ;;
 esac
 
+
 # List of required packages whose names are common to all supported distros
 required_pkgs=(
     jq
@@ -261,6 +269,7 @@ required_pkgs=(
 cli_pkgs=(
     azure-cli
 )
+
 
 # Include distro version agnostic packages into required packages list
 case "$(get_distro_name)" in
@@ -280,6 +289,7 @@ case "$(get_distro_name_version)" in
     )
     ;;
 esac
+
 
 # Ensure our package metadata cache is up to date
 pkg_mgr_refresh
@@ -303,22 +313,26 @@ if [[ ! -d "$${asad_dir}" ]]; then
     git clone "$${asad_repo}" "$${asad_dir}"
 fi
 
+
+chown -R "$${local_user}" "$${asad_dir}"
+
 #
 # Install terraform for all users
 #
 sudo mkdir -p \
     $${tf_dir} \
     $${tf_bin}
-wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}
+wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip} 
 sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
 sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
 
+
 rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-# Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository. 
+# Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
 # This package is outdated and not recommended. If this package is installed, remove the package
 if [ "$rel" == "20.04" ]; then
   echo "Removing Azure CLI"
-  sudo apt remove azure-cli -y 
+  sudo apt remove azure-cli -y
   sudo apt autoremove -y
   sudo apt update -y
 fi
@@ -328,34 +342,32 @@ fi
 
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
 
-/usr/bin/az extension add --name storage-blob-preview > /dev/null
-
 # Fail if any command exits with a non-zero exit status
 set -o errexit
 
 # Ensure our package metadata cache is up to date
-pkg_mgr_refresh
-
-pkg_mgr_upgrade
-
+# pkg_mgr_refresh
+# pkg_mgr_upgrade
 #
 # Install latest Ansible revision of specified version for all users.
 #
 sudo mkdir -p \
-    $${ansible_bin} \
-    $${ansible_collections}
-    
+    $${ansible_bin}
+
+
 # Create a Python3 based venv into which we will install Ansible.
 if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
     sudo rm -rf $${ansible_venv}
     sudo virtualenv --python python3 $${ansible_venv}
 fi
 
+
 # Fail if pip3 doesn't exist in the venv
 if [[ ! -x "$${ansible_venv_bin}/pip3" ]]; then
     echo "Using the wrong pip3: '$${found_pip3}' != '$${ansible_venv_bin}/pip3'"
     exit 1
 fi
+
 
 # Ensure that standard tools are up to date
 sudo $${ansible_venv_bin}/pip3 install --upgrade \
@@ -366,30 +378,23 @@ sudo $${ansible_venv_bin}/pip3 install --upgrade \
 # Install latest MicroSoft Authentication Library
 # TODO(rtamalin): Do we need this? In particular do we expect to integrated
 # Rust based tools with the Python/Ansible envs that we are using?
-sudo $${ansible_venv_bin}/pip3 install \
-    setuptools-rust
+# sudo $${ansible_venv_bin}/pip3 install \
+#    setuptools-rust
+
 
 # Install latest revision of target Ansible version, along with additional
 # useful/supporting Python packages such as ansible-lint, yamllint,
 # argcomplete, pywinrm.
+# ansible-lint \
+#  yamllint \
+  
 sudo $${ansible_venv_bin}/pip3 install \
     "ansible>=$${ansible_major}.$${ansible_minor},<$${ansible_major}.$((ansible_minor + 1))" \
-    ansible-lint \
     argcomplete \
     'pywinrm>=0.3.0' \
-    yamllint \
-    msal
+    netaddr  \
+    jmespath
 
-# Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
-sudo mkdir -p $${ansible_collections}
-sudo -H $${ansible_venv_bin}/ansible-galaxy collection install azure.azcollection --force --collections-path $${ansible_collections}
-
-# Install the Python requirements associated with the Ansible Azure collection
-# that was just installed into the Ansible venv.
-azure_azcollection_version=$(jq -r '.collection_info.version' $${ansible_collections}/ansible_collections/azure/azcollection/MANIFEST.json)
-wget -nv -O /tmp/requirements-azure.txt https://raw.githubusercontent.com/ansible-collections/azure/v$${azure_azcollection_version}/requirements-azure.txt
-sudo $${ansible_venv_bin}/pip3 install \
-    -r /tmp/requirements-azure.txt
 
 # Create symlinks for all relevant commands that were installed in the Ansible
 # venv's bin so that they are available in the /opt/ansible/bin directory, which
@@ -411,20 +416,22 @@ ansible_venv_commands=(
     ansible-vault
 
     # ansible-lint
-    ansible-lint
+    # ansible-lint
 
     # argcomplete
     activate-global-python-argcomplete
 
     # yamllint
-    yamllint
+    # yamllint
 )
+
 
 relative_path="$(realpath --relative-to $${ansible_bin} $${ansible_venv_bin})"
 for vcmd in "$${ansible_venv_commands[@]}"
 do
     sudo ln -vfs $${relative_path}/$${vcmd} $${ansible_bin}/$${vcmd}
 done
+
 
 # Ensure that Python argcomplete is enabled for all users interactive shell sessions
 sudo $${ansible_bin}/activate-global-python-argcomplete
@@ -434,10 +441,60 @@ sudo $${ansible_bin}/activate-global-python-argcomplete
 #
 echo '# Configure environment settings for deployer interactive sessions' | sudo tee /etc/profile.d/deploy_server.sh
 
+export PATH="$${PATH}":"$${ansible_bin}":"$${tf_bin}"
 
+#
+# Create Agent
+#
+# Azure SAP Automated Deployment directories
+agent_home="/home/$${local_user}/agent"
+
+if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
+    echo "Agent already installed"
+else
+    sudo mkdir -p "$${agent_home}"; cd $_
+    wget -nv https://aka.ms/AAftpys -O agent.tar.gz
+    tar zxvf agent.tar.gz >/dev/null 2>&1
+    sudo chown -R "$${local_user}" $${agent_home}
+
+    sudo touch $${agent_home}/agent_installed
+fi
+
+if [[ -n $${TOKEN} ]]; then
+    sudo touch $${agent_home}/tok
+else
+    sudo touch $${agent_home}/no_tok
+fi
+if [ -f "/home/$${local_user}/agent/agent_configured" ]; then
+    echo "Agent already configured"
+else
+    if [[ -n $${TOKEN} ]];
+    then
+        sudo chmod -R 777 $${agent_home} 
+
+        cd $${agent_home}
+        ./env.sh
+
+        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token $${TOKEN} --pool $${POOL} --agent $${AGENTNAME} --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
+        chmod +x $${agent_home}/config_fixed_params.sh
+        
+        runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
+
+        # automatic start configuration after VM reboot
+
+        sudo ./svc.sh install "$${local_user}" | sudo tee -a $${agent_home}/log.txt
+
+        # start the deamon
+        sudo ./svc.sh start | sudo tee -a $${agent_home}/log.txt
+
+        sudo rm $${agent_home}/config_fixed_params.sh
+
+        sudo touch $${agent_home}/agent_configured
+
+    fi
+fi
 # Set env for ansible
 echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
-echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
 
 # Set env for MSI
 echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -445,11 +502,11 @@ echo export ARM_CLIENT_ID=$${client_id} | sudo tee -a /etc/profile.d/deploy_serv
 echo export ARM_SUBSCRIPTION_ID=$${subscription_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 echo export ARM_TENANT_ID=$${tenant_id} | sudo tee -a /etc/profile.d/deploy_server.sh
 
-echo export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation' | sudo tee -a /etc/profile.d/deploy_server.sh
 
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
-echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':$HOME/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':'$${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
 
 
 # Ensure that the user's account is logged in to Azure with specified creds

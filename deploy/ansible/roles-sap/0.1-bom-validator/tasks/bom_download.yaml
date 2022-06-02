@@ -9,7 +9,7 @@
 
     - name:                            "BOM: {{ bom_name }} Check is file {{ item.archive }} is already downloaded"
       ansible.builtin.uri:
-        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
         status_code:                   [200, 403, 404, 409]
         method:                        HEAD
       register:                        blob_exists
@@ -49,6 +49,7 @@
             force_basic_auth:          true
             http_agent:                'SAP Software Download'
             timeout:                   60
+            mode:                      0644
           become:                      true
           become_user:                 root
           register:                    result
@@ -75,6 +76,7 @@
             force_basic_auth:          true
             http_agent:                'SAP Software Download'
             timeout:                   60
+            mode:                      0644
           become:                      true
           become_user:                 root
           register:                    result

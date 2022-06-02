@@ -82,6 +82,7 @@
   ansible.builtin.include_tasks:       "bom_processor.yaml"
   vars:
     bom_name:                          "{{ bom_base_name }}"
+# when:                                ansible_hostname == primary_instance_name
 
 ...
 # /*---------------------------------------------------------------------------8

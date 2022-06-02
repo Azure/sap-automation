@@ -74,7 +74,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
 
 if [ -n "$approve" ]; then
-    approveparam=" -i"
+    approveparam=" --auto-approve"
 fi
 
 if [ ! -f "$deployer_parameter_file" ]; then
@@ -494,6 +494,8 @@ if [ 3 == $step ]; then
     TF_VAR_cmdb_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "cmdb-connection-string" | jq -r .value)
     export TF_VAR_cmdb_connection_string
     
+    echo "calling installer.sh with parameters: $allParams"
+    
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
@@ -581,18 +583,6 @@ export deployer_ip="${deployer_public_ip_address}"
 export terraform_state_storage_account="${REMOTE_STATE_SA}"
 
 if [ 5 == $step ]; then
-    
-    account_key=$(az keyvault secret show --vault-name "${keyvault}" --name "sapbits-access-key" | jq -r .value)
-    end=$(date -u -d "180 days" '+%Y-%m-%dT%H:%MZ')
-    
-    sas=?$(az storage container generate-sas --permissions rl --account-name $REMOTE_STATE_SA --name sapbits --https-only  --expiry $end -o tsv --account-key "${account_key}")
-    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
-
-    step=6
-    save_config_var "step" "${deployer_config_information}"
-fi
-
-if [ 6 == $step ]; then
     cd "${curdir}" || exit
     
     load_config_vars "${deployer_config_information}" "sshsecret"

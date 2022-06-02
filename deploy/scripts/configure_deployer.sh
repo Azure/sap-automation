@@ -301,6 +301,7 @@ if [[ ! -d "${asad_dir}" ]]; then
     git clone "${asad_repo}" "${asad_dir}"
 fi
 
+chown -R "${USER}" "${asad_dir}"
 #
 # Install terraform for all users
 #
@@ -361,9 +362,6 @@ sudo ${ansible_venv_bin}/pip3 install --upgrade \
     wheel \
     setuptools
 
-# Install latest MicroSoft Authentication Library
-# TODO(rtamalin): Do we need this? In particular do we expect to integrated
-# Rust based tools with the Python/Ansible envs that we are using?
 sudo ${ansible_venv_bin}/pip3 install \
     setuptools-rust
 

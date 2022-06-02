@@ -8,11 +8,11 @@ Description:
 resource "azurerm_network_security_group" "nsg_mgmt" {
   count = !local.management_subnet_nsg_exists ? 1 : 0
   name  = local.management_subnet_nsg_name
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
@@ -49,7 +49,7 @@ resource "azurerm_network_security_rule" "nsr_ssh" {
     data.azurerm_network_security_group.nsg_mgmt,
     azurerm_network_security_group.nsg_mgmt
   ]
-  count = !local.management_subnet_nsg_exists ? 1 : 0
+  count = !local.management_subnet_nsg_exists && local.enable_deployer_public_ip ? 1 : 0
   name  = "ssh"
   resource_group_name = local.management_subnet_nsg_exists ? (
     data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name) : (
@@ -75,7 +75,7 @@ resource "azurerm_network_security_rule" "nsr_rdp" {
     data.azurerm_network_security_group.nsg_mgmt,
     azurerm_network_security_group.nsg_mgmt
   ]
-  count = !local.management_subnet_nsg_exists ? 1 : 0
+  count = !local.management_subnet_nsg_exists  && local.enable_deployer_public_ip ? 1 : 0
   name  = "rdp"
   resource_group_name = local.management_subnet_nsg_exists ? (
     data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name) : (
@@ -101,7 +101,7 @@ resource "azurerm_network_security_rule" "nsr_winrm" {
     data.azurerm_network_security_group.nsg_mgmt,
     azurerm_network_security_group.nsg_mgmt
   ]
-  count = !local.management_subnet_nsg_exists ? 1 : 0
+  count = !local.management_subnet_nsg_exists  && local.enable_deployer_public_ip ? 1 : 0
   name  = "winrm"
   resource_group_name = local.management_subnet_nsg_exists ? (
     data.azurerm_network_security_group.nsg_mgmt[0].resource_group_name) : (

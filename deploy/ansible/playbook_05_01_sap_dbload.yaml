@@ -69,9 +69,6 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "DBLoad Playbook: - Load the SAP parameters"
-      ansible.builtin.include_vars:    "{{ _workspace_directory }}/sap-parameters.yaml"
-
     - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
       block:
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
@@ -99,6 +96,7 @@
 
             - name:                    "DBLoad Playbook: - Create db-load-done flag"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/db-load-done"
                 state:                 touch
@@ -179,6 +177,7 @@
 
             - name:                    "DBLoad Playbook: - Create db-load-done flag"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/db-load-done"
                 state:                 touch
@@ -215,12 +214,17 @@
             - 5.1-dbload
           when:                        MULTI_SIDS is undefined
 
-        - name:                        Include 5.1.1-dbload role
+        - name:                        "DBLoad Playbook: - Run DBLoad (shared home)"
           ansible.builtin.include_role:
-            name:                      roles-sap/5.1.1-multi-sid-dbload
+            name:                      roles-sap/5.1-dbload
+          vars:
+            sap_sid:                   "{{ item.sid }}"
+            scs_instance_number:       "{{ item.ascs_inst_no }}"
+            sapadm_uid:                "{{ item.dbsid_uid }}"
+            sidadm_uid:                "{{ item.sidadm_uid }}"
+          loop:                        "{{ MULTI_SIDS }}"
           when:
             - MULTI_SIDS is defined
-            - node_tier == 'oracle-multi-sid'
 
       when:                            platform == 'ORACLE'
 

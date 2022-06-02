@@ -1,3 +1,23 @@
+
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
+
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value = local.resource_group_exists ? data.azurerm_resource_group.library[0].id : azurerm_resource_group.library[0].id
+}
+
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+  value = local.resource_group_exists ? (
+    split("/",data.azurerm_resource_group.library[0].id))[2] : (
+    split("/",azurerm_resource_group.library[0].id)[2]
+  )
+}
+
 output "tfstate_storage_account" {
   value = local.sa_tfstate_exists ? (
     split("/", local.sa_tfstate_arm_id)[8]) : (

@@ -115,8 +115,8 @@ locals {
           )
         }
         subnet_bastion = {
-          arm_id = var.bastion_subnet_arm_id
-          prefix = var.bastion_subnet_address_prefix
+          arm_id = var.management_bastion_subnet_arm_id
+          prefix = var.management_bastion_subnet_address_prefix
         }
         subnet_cmdb = {
           arm_id = var.cmdb_subnet_arm_id
@@ -201,10 +201,6 @@ locals {
     kv_user_id = try(coalesce(
       var.user_keyvault_id,
       try(var.key_vault.kv_user_id, "")
-    ), "")
-    kv_prvt_id = try(coalesce(
-      var.automation_keyvault_id,
-      try(var.key_vault.kv_prvt_id, "")
     ), "")
     kv_sshkey_prvt = try(coalesce(
       var.deployer_private_key_secret_name,

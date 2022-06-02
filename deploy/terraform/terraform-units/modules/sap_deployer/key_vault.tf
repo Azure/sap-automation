@@ -1,57 +1,16 @@
 // Create private KV with access policy
 data "azurerm_client_config" "deployer" {}
 
-resource "azurerm_key_vault" "kv_prvt" {
-  # TODO Add this back when we separate the usage
-  count = (!local.automation_keyvault_exist) ? 0 : 0
-  name  = local.keyvault_names.private_access
-  resource_group_name = local.rg_exists ? (
-    data.azurerm_resource_group.deployer[0].name) : (
-    azurerm_resource_group.deployer[0].name
-  )
-  location = local.rg_exists ? (
-    data.azurerm_resource_group.deployer[0].location) : (
-    azurerm_resource_group.deployer[0].location
-  )
-  tenant_id                  = data.azurerm_client_config.deployer.tenant_id
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = var.enable_purge_control_for_keyvaults
-
-  sku_name = "standard"
-}
-
-// Import an existing private Key Vault
-data "azurerm_key_vault" "kv_prvt" {
-  # TODO Add this back when we separate the usage
-  count               = (local.automation_keyvault_exist) ? 0 : 0
-  name                = split("/", local.prvt_key_vault_id)[8]
-  resource_group_name = split("/", local.prvt_key_vault_id)[4]
-}
-
-resource "azurerm_key_vault_access_policy" "kv_prvt_msi" {
-  # TODO Add this back when we separate the usage
-  count        = (!local.automation_keyvault_exist) ? 0 : 0
-  key_vault_id = azurerm_key_vault.kv_prvt[0].id
-
-  tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
-  object_id = azurerm_user_assigned_identity.deployer.principal_id
-
-  secret_permissions = [
-    "Get",
-    "Set",
-    "List"
-  ]
-}
 
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
   count = (!local.user_keyvault_exist) ? 1 : 0
   name  = local.keyvault_names.user_access
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
@@ -65,19 +24,20 @@ resource "azurerm_key_vault" "kv_user" {
     bypass         = "AzureServices"
     default_action = "Allow"
     ip_rules = var.use_private_endpoint ? (
-      local.enable_deployer_public_ip ? [azurerm_public_ip.deployer[0].ip_address] : []
-      ) : (
-      []
-    )
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
       [
-        local.management_subnet_exists ? (
-          data.azurerm_subnet.subnet_mgmt[0].id) : (
-          azurerm_subnet.subnet_mgmt[0].id
-        )
-      ]) : (
-      []
+        local.enable_deployer_public_ip ? azurerm_public_ip.deployer[0].ip_address : ""
+      ]
+      ) : (
+      [
+        
+      ]
     )
+    virtual_network_subnet_ids = [
+      local.management_subnet_exists ? (
+        data.azurerm_subnet.subnet_mgmt[0].id) : (
+        azurerm_subnet.subnet_mgmt[0].id
+      )
+    ]
   }
 
 }
@@ -123,7 +83,6 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   )
   #application_id = data.azurerm_client_config.deployer.client_id
 
-
   secret_permissions = [
     "Get",
     "List",
@@ -135,31 +94,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
     "Purge"
   ]
 
-  # lifecycle {
-  #   ignore_changes = [
-  #     // Ignore changes to object_id
-  #     object_id
-  #   ]
-  # }
 }
-
-// Comment out code with users.object_id for the time being.
-/*
-resource "azurerm_key_vault_access_policy" "kv_user_portal" {
-  count        = local.enable_deployers ? length(local.deployer_users_id_list) : 0
-  key_vault_id = azurerm_key_vault.kv_user[0].id
-
-  tenant_id = data.azurerm_client_config.deployer.tenant_id
-  object_id = local.deployer_users_id_list[count.index]
-
-  secret_permissions = [
-    "delete",
-    "get",
-    "list",
-    "set",
-  ]
-}
-*/
 
 // Using TF tls to generate SSH key pair and store in user KV
 resource "tls_private_key" "deployer" {
@@ -172,11 +107,6 @@ resource "tls_private_key" "deployer" {
   rsa_bits  = 2048
 }
 
-/*
- To force dependency between kv access policy and secrets. Expected behavior:
- https://github.com/terraform-providers/terraform-provider-azurerm/issues/4971
-*/
-// If user brings an existing KV, the secrets will be stored in the exsiting KV; if not, the secrets will be stored in a newly generated KV
 resource "azurerm_key_vault_secret" "ppk" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
@@ -272,11 +202,11 @@ resource "azurerm_private_endpoint" "kv_user" {
     local.prefix,
     local.resource_suffixes.keyvault_private_link
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
     azurerm_resource_group.deployer[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].location) : (
     azurerm_resource_group.deployer[0].location
   )
