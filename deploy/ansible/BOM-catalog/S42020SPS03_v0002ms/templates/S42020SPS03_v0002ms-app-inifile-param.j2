@@ -47,3 +47,6 @@ NW_getLoadType.loadType                                               = SAP
 NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
 
 NW_System.installSAPHostAgent                                         = {{ sap_installSAPHostAgent }}
+
+# Database hostnames that will be set directly in hdbuserstore without resolving them in HANA. Comma separated. Example (host1,host2)
+HDB_Userstore.doNotResolveHostnames                                   =  {{ virt_do_not_resolve_hostname }}
