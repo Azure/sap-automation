@@ -75,3 +75,6 @@ NW_WPConfiguration.ciBtcWPNumber                                      = {{ sap_c
 
 storageBasedCopy.hdb.instanceNumber                                   = {{ hdb_instance_number }}
 storageBasedCopy.hdb.systemPassword                                   = {{ main_password }}
+
+# Database hostnames that will be set directly in hdbuserstore without resolving them in HANA. Comma separated. Example (host1,host2)
+HDB_Userstore.doNotResolveHostnames                                   =  {{ virt_do_not_resolve_hostname }}

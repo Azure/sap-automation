@@ -34,7 +34,7 @@ function load_config_vars() {
     
     shift # shift params 1 place to remove var_file value from front of list
     
-    # We don't assign values to variables if they aren't found in the var_file
+    # We don't assign values to variables if they aren't found in the var_file | sed -r '/[^=]+=[^=]+/!d'
     # so there is nothing to do if the specified var_file doesn't exist
     if [[ ! -f "${var_file}" ]]; then
         return
