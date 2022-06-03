@@ -1,4 +1,3 @@
-
 - name:                                "ORACLE (sharedHome): Permissions"
   ansible.builtin.file:
     path:                              /oracle/RDBMS/{{ ora_version }}/bin/oracle
@@ -66,4 +65,3 @@
     mode:                              0755
 
 ###########################################END OF THE BLOCK###############################################################
-

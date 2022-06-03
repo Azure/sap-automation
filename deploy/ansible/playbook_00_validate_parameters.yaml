@@ -150,7 +150,7 @@
     - name:                            "0.0 Validations - Variables"
       ansible.builtin.debug:
         msg:
-          - "Virtual Host Name: {{ virtual_host }}"                           
+          - "Virtual Host Name: {{ virtual_host }}"
           - "DNS:               {{ ansible_domain }}"
 
     - name:                            "0.0 Validations - Validate SCS and HDB instance numbers"

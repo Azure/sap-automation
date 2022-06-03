@@ -7,7 +7,7 @@
 
 - name:                                "AFS Mount: Define this SID"
   ansible.builtin.set_fact:
-    this_sid:                          
+    this_sid:
       {
         'sid': '{{ sap_sid|upper }}',
         'sidadm_uid': '{{ sidadm_uid }}',
