@@ -54,12 +54,12 @@
 
 - name:                                "PAS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{hostvars[ scs_server_temp | first]['virtual_host']}}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     DB:                                "{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
- 
+
 - name:                                "PAS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
@@ -187,7 +187,6 @@
         - skip_ansible_lint
       when:
         - db_high_availability
-        - 
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0

@@ -83,8 +83,6 @@
     - ansible_os_family|upper  == "REDHAT"
     - inventory_hostname == primary_instance_name
 
-
-
 ######################################################
 #
 #
