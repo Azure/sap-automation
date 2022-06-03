@@ -19,7 +19,7 @@
     state:                             directory
     mode:                              0755
   delegate_to:                         localhost
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   loop:
     - path: "{{ download_directory }}"
@@ -43,7 +43,7 @@
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   ignore_errors:                       true
   register:                            result
   vars:
@@ -58,7 +58,7 @@
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   register:                            result
   ignore_errors:                       true
   when:
