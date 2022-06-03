@@ -124,7 +124,7 @@
         sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
-        param_directory:               "{{ dir_params }}" 
+        param_directory:               "{{ dir_params }}"
       tags:
         - skip_ansible_lint
 

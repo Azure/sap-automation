@@ -43,7 +43,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sap_sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
-    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{hostvars[ scs_server_temp | first]['virtual_host']}}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     dir_params:                        "{{ tmp_directory }}/.params"
 
@@ -147,12 +147,12 @@
       retries:                         90
       delay:                           120
       when:                            dbload_results.ansible_job_id is defined
- 
+
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         msg:
-         - "DBLoad : {{ dbload_results }}"                           
-         - "Job    : {{ job_result }}"                           
+          - "DBLoad : {{ dbload_results }}"
+          - "Job    : {{ job_result }}"
 
 
     - name:                            "DBLoad: Installation results"
@@ -170,9 +170,9 @@
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
-      when:                            
-       - dbload_results.rc is defined
-       - dbload_results.rc == 0
+      when:
+        - dbload_results.rc is defined
+        - dbload_results.rc == 0
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:

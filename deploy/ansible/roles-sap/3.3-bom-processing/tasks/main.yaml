@@ -46,7 +46,7 @@
     state:                             directory
     mode:                              0755
   delegate_to:                         localhost
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   loop:
     - path: "{{ download_directory }}"

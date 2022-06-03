@@ -42,7 +42,7 @@
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracleowner.txt"
   register:                            oracle_permissions
-  
+
 - name:                                "Make oracle:oinstall as owners"
   become:                              true
   become_user:                         root
