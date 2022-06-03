@@ -8,16 +8,9 @@
 
 ---
 
-- name:                                "SCS Install: Set the SCS Server name list"
-  ansible.builtin.set_fact:
-    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
-
 - name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{{ scs_server_temp | first }}"
+    scs_server:                        "{{ virtual_host }}"
 
 - name:                                "SCS Install: Set BOM facts"
   ansible.builtin.set_fact:
@@ -85,7 +78,7 @@
     sap_ciBtcWPNumber:
     sap_installSAPHostAgent:
     sap_profile_dir:
-    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_scs_hostname:                  "{{ virtual_host }}"
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
@@ -102,6 +95,7 @@
       - "PRODUCT ID: {{ bom.product_ids.scs }}"
       - "INSTANCE:   {{ scs_instance_number }}"
       - "MEDIA:      {{ target_media_location }}"
+      - "HOST:       {{ virtual_host }}"
 
 - name:                                "SCS Install"
   block:
@@ -117,9 +111,10 @@
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                \
-                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
+                                                 SAPINST_SKIP_DIALOGS=true                                        \
+                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                          \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"

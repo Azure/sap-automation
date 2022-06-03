@@ -46,14 +46,20 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
+- name:                                "PAS Install: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
 - name:                                "PAS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{hostvars[ scs_server_temp | first]['virtual_host']}}{% endif %}"
+    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
-    db_virtual_host:                   "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     DB:                                "{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
-
+ 
 - name:                                "PAS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
@@ -89,6 +95,7 @@
     sap_appVirtualHostname:
     tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
+    virt_do_not_resolve_hostname:      "{% db_virtual_host == (db_server_temp | first) %}{% else %}db_virtual_host{% endif %}"
 
   tags:
     - skip_ansible_lint
@@ -112,6 +119,7 @@
       - "PRODUCT ID: {{ pas_bom_id }}"
       - "INSTANCE:   {{ instance_number }}"
       - "DBHOST:     {{ db_virtual_host }}"
+      - "HOST:       {{ virtual_host }}"
 
 - name:                                "PAS Install"
   block:
@@ -129,9 +137,10 @@
     - name:                            "PAS Install"
       ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ pas_bom_id }}                         \
-                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ pas_bom_id }}                     \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
+                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                         \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
@@ -178,6 +187,7 @@
         - skip_ansible_lint
       when:
         - db_high_availability
+        - 
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0

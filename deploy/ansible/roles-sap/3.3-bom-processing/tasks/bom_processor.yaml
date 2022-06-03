@@ -164,6 +164,7 @@
   when:
     - item.download is undefined or item.download
     - distribution_id != 'suse15'
+    - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
 
 #   05) Extract files - SAPCAR

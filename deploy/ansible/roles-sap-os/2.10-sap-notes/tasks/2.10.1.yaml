@@ -54,15 +54,15 @@
   ansible.posix.selinux:
     state:                             disabled
 
-- name: "2.10.1 sap-notes: - Disable core file creation"
+- name:                                "2.10.1 sap-notes: - Disable core file creation"
   ansible.builtin.lineinfile:
-    path: /etc/security/limits.d/99-sap.conf
-    regexp: "@sapsys\\s*{{ item }}\\s*core\\s*0"
-    line: "@sapsys    {{ item }}    core    0"
-    owner: root
-    group: root
-    mode: 0600
-    create: true
+    path:                              /etc/security/limits.d/99-sap.conf
+    regexp:                            "@sapsys\\s*{{ item }}\\s*core\\s*0"
+    line:                              "@sapsys    {{ item }}    core    0"
+    owner:                             root
+    group:                             root
+    mode:                              0600
+    create:                            true
   with_items:
     - soft
     - hard
@@ -71,8 +71,3 @@
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
 # +-------------------------------------4--------------------------------------*/
-<<<<<<< HEAD
-diff --git a/SUPPORT.md b/SUPPORT.md
-=======
-# commenting as this is not required - diff --git a/SUPPORT.md b/SUPPORT.md
->>>>>>> 7b60debc6f454bd8ed6f8d77622ac31feb6cbea1

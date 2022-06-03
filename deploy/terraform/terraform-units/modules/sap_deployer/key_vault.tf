@@ -29,7 +29,7 @@ resource "azurerm_key_vault" "kv_user" {
       ]
       ) : (
       [
-        
+
       ]
     )
     virtual_network_subnet_ids = [

@@ -4,8 +4,10 @@ ${sid}_DB:
     ${dbnodes[idx]}:
       ansible_host        : ${ips_dbnode}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${dbconnection} 
-      connection_type     : ${dbconnectiontype} 
+      ansible_connection  : ${db_connection} 
+      connection_type     : ${db_connectiontype}
+      virtual_host        : ${virt_dbnodes[idx]} 
+
 %{~ endfor }
   vars:
     node_tier             : ${platform}
@@ -14,11 +16,13 @@ ${sid}_DB:
 ${sid}_SCS:
   hosts:
 %{~ for idx,ip_scs in ips_scs }
-    ${scsservers[idx]}:
+    ${scs_servers[idx]}:
       ansible_host        : ${ip_scs}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${scsconnection} 
-      connection_type     : ${scsconnectiontype} 
+      ansible_connection  : ${scs_connection} 
+      connection_type     : ${scs_connectiontype} 
+      virtual_host        : ${virt_scs_servers[idx]} 
+
 %{~ endfor }
   vars:
     node_tier             : scs
@@ -27,11 +31,13 @@ ${sid}_SCS:
 ${sid}_ERS:
   hosts:
 %{~ for idx,ip_ers in ips_ers }
-    ${ersservers[idx]}:
+    ${ers_servers[idx]}:
       ansible_host        : ${ip_ers}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${ersconnection} 
-      connection_type     : ${ersconnectiontype} 
+      ansible_connection  : ${ers_connection} 
+      connection_type     : ${ers_connectiontype} 
+      virtual_host        : ${virt_ers_servers[idx]} 
+
 %{~ endfor }
   vars:
     node_tier             : ers
@@ -41,11 +47,12 @@ ${sid}_ERS:
 ${sid}_PAS:
   hosts:
 %{~ for idx,ip_pas in ips_pas }
-    ${passervers[idx]}:
+    ${pas_servers[idx]}:
       ansible_host        : ${ip_pas}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${scsconnection} 
-      connection_type     : ${scsconnectiontype} 
+      ansible_connection  : ${scs_connection} 
+      connection_type     : ${scs_connectiontype} 
+      virtual_host        : ${virt_pas_servers[idx]} 
 
 %{~ endfor }
   vars:
@@ -55,11 +62,12 @@ ${sid}_PAS:
 ${sid}_APP:
   hosts:
 %{~ for idx,ip_app in ips_app }
-    ${appservers[idx]}:
+    ${app_servers[idx]}:
       ansible_host        : ${ip_app}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${appconnection} 
-      connection_type     : ${appconnectiontype} 
+      ansible_connection  : ${app_connection} 
+      connection_type     : ${app_connectiontype} 
+      virtual_host        : ${virt_app_servers[idx]} 
 
 %{~ endfor }
   vars:
@@ -69,11 +77,12 @@ ${sid}_APP:
 ${sid}_WEB:
   hosts:
 %{~ for idx,ip_web in ips_web }
-    ${webservers[idx]}:
+    ${web_servers[idx]}:
       ansible_host        : ${ip_web}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${webconnection} 
-      connection_type     : ${webconnectiontype} 
+      ansible_connection  : ${web_connection} 
+      connection_type     : ${web_connectiontype} 
+      virtual_host        : ${virt_web_servers[idx]} 
 
 %{~ endfor }
   vars:
@@ -86,8 +95,8 @@ ${sid}_OBSERVER_DB:
     ${observers[idx]}:
       ansible_host        : ${ip_observer}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${dbconnection} 
-      connection_type     : ${dbconnectiontype} 
+      ansible_connection  : ${db_connection} 
+      connection_type     : ${db_connectiontype} 
 
 %{~ endfor }
   vars:
