@@ -282,7 +282,7 @@ locals {
       "") : (
       length(try(var.application.app_os.offer, "")) > 0 ? (
         var.application.app_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.app_custom_image ? (
@@ -327,7 +327,7 @@ locals {
       "") : (
       length(try(var.application.scs_os.offer, "")) > 0 ? (
         var.application.scs_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.scs_custom_image ? (
@@ -370,7 +370,7 @@ locals {
       "") : (
       length(try(var.application.web_os.offer, "")) > 0 ? (
         var.application.web_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.web_custom_image ? (

@@ -159,7 +159,7 @@ web_subnet_arm_id="<azure_resource_id>"
 # iscsi_image= {
 #     source_image_id = ""
 #     publisher       = "SUSE"
-#     offer           = "sles-sap-12-sp5"
+#     offer           = "sles-sap-15-sp3"
 #     sku             = "gen1"
 #     version         = "latest"
 #   }

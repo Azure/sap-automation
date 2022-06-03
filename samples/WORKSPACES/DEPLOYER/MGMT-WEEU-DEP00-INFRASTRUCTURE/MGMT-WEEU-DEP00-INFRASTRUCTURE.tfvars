@@ -1,5 +1,3 @@
-
-
 ##########################################################################################
 #                                                                                        #
 # This sample defines an standard control plane deployment with                          #

@@ -226,7 +226,7 @@ ers_instance_number="02"
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen1"
 #}
 
@@ -263,7 +263,7 @@ webdispatcher_server_count=0
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen1"
 #}
 
@@ -427,7 +427,7 @@ network_logical_name ="SAP01"
 #os_type=""
 #source_image_id=""
 #publisher="SUSE"
-#offer="sles-sap-12-sp5"
+#offer="sles-sap-15-sp3"
 #sku="gen1"
 #version="latest"
 #}

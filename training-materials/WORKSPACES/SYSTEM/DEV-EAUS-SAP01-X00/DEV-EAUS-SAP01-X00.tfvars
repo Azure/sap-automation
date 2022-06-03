@@ -82,7 +82,7 @@ database_vm_image={
   os_type=""
   source_image_id=""
   publisher="SUSE"
-  offer="sles-sap-12-sp5"
+  offer="sles-sap-15-sp3"
   sku="gen1"
   version="latest"
 }
@@ -200,7 +200,7 @@ application_server_image= {
   os_type=""
   source_image_id=""
   publisher="SUSE"
-  offer="sles-sap-12-sp5"
+  offer="sles-sap-15-sp3"
   sku="gen1"
   version="latest"
 }
@@ -262,7 +262,7 @@ ers_instance_number="02"
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen1"
 #}
 
@@ -305,7 +305,7 @@ webdispatcher_server_count=0
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen1"
 #}
 use_loadbalancers_for_standalone_deployments=false
@@ -474,7 +474,7 @@ network_logical_name ="SAP01"
 #os_type=""
 #source_image_id=""
 #publisher="SUSE"
-#offer="sles-sap-12-sp5"
+#offer="sles-sap-15-sp3"
 #sku="gen1"
 #version="latest"
 #}

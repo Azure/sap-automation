@@ -157,7 +157,7 @@ web_subnet_address_prefix="10.118.128.0/19"
 # iscsi_image= {
 #     source_image_id = ""
 #     publisher       = "SUSE"
-#     offer           = "sles-sap-12-sp5"
+#     offer           = "sles-sap-15-sp3"
 #     sku             = "gen1"
 #     version         = "latest"
 #   }

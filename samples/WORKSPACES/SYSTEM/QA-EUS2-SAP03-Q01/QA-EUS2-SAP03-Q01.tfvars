@@ -102,7 +102,7 @@ database_vm_use_DHCP = true
 #   os_type         = ""
 #   source_image_id = ""
 #   publisher       = "SUSE"
-#   offer           = "sles-sap-12-sp5"
+#   offer           = "sles-sap-15-sp3"
 #   sku             = "gen2"
 #   version         = "latest"
 # }
@@ -306,7 +306,7 @@ webdispatcher_server_count = 0
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen2"
 #}
 
@@ -501,7 +501,7 @@ network_logical_name = "SAP03"
 #os_type=""
 #source_image_id=""
 #publisher="SUSE"
-#offer="sles-sap-12-sp5"
+#offer="sles-sap-15-sp3"
 #sku="gen2"
 #version="latest"
 #}

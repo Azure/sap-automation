@@ -128,13 +128,13 @@ locals {
     }
     DB2 = {
       "publisher" = "SUSE",
-      "offer"     = "sles-sap-12-sp5",
+      "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
       "version"   = "latest"
     }
     ASE = {
       "publisher" = "SUSE",
-      "offer"     = "sles-sap-12-sp5",
+      "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
       "version"   = "latest"
     }

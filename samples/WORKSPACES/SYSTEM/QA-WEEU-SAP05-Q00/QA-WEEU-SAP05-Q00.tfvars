@@ -102,7 +102,7 @@ database_vm_image = {
   os_type         = ""
   source_image_id = ""
   publisher       = "SUSE"
-  offer           = "sles-sap-12-sp5"
+  offer           = "sles-sap-15-sp3"
   sku             = "gen2"
   version         = "latest"
 }
@@ -257,7 +257,7 @@ application_server_image = {
   os_type         = ""
   source_image_id = ""
   publisher       = "SUSE"
-  offer           = "sles-sap-12-sp5"
+  offer           = "sles-sap-15-sp3"
   sku             = "gen2"
   version         = "latest"
 }
@@ -305,7 +305,7 @@ webdispatcher_server_count = 0
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen2"
 #}
 
@@ -500,7 +500,7 @@ network_logical_name = "SAP05"
 #os_type=""
 #source_image_id=""
 #publisher="SUSE"
-#offer="sles-sap-12-sp5"
+#offer="sles-sap-15-sp3"
 #sku="gen2"
 #version="latest"
 #}
