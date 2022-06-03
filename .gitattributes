@@ -4,6 +4,7 @@
 *.ps1       text eol=crlf
 *.sh        text eol=lf
 *.tfvars    text eol=lf
+*.tmpl      text eol=lf
 *.tf        text eol=lf
 *.yml       text eol=lf
 *.yaml      text eol=lf
