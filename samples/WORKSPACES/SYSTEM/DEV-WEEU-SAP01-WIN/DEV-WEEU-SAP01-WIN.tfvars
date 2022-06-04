@@ -148,7 +148,7 @@ app_tier_vm_sizing = "Optimized"
 app_tier_use_DHCP = true
 
 # sid is a mandatory field that defines the SAP Application SID
-sid = "X00"
+sid = "WIN"
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
 #use_loadbalancers_for_standalone_deployments=false

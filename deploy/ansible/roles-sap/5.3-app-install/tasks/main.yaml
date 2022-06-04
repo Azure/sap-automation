@@ -57,6 +57,7 @@
     scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
+    db_lb_virtual_host:                "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -114,6 +115,15 @@
   when:
     - db_high_availability
     - platform == 'HANA'
+    - distribution_id in ['sles_sap12','sles_sap15']
+
+- name:                                "PAS Install: Set hdbuserstore path"
+  ansible.builtin.set_fact:
+    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/hdbclient"
+  when:
+    - db_high_availability
+    - platform == 'HANA'
+    - distribution_id in ['redhat7','redhat8']
 
 - name:                                "APP Install"
   block:
@@ -168,9 +178,21 @@
         recurse:                       true
       register:                        app_installed_according_to_sapinst
 
+    - name:                            "APP Install: flag"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
+        state:                         touch
+        mode:                          0755
+      when:
+        - app_installation.rc == 0
+        - app_installed_according_to_sapinst is defined
+        - app_installed_according_to_sapinst | length > 0
+
     - name:                            "APP Install: Set DB Virtual Host name"
+      become:                          true
+      become_user:                     "{{ sap_sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
@@ -180,16 +202,6 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-        - app_installed_according_to_sapinst is defined
-        - app_installed_according_to_sapinst | length > 0
-
-    - name:                            "APP Install: flag"
-      ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
-        state:                         touch
-        mode:                          0755
-      when:
-        - app_installation.rc == 0
         - app_installed_according_to_sapinst is defined
         - app_installed_according_to_sapinst | length > 0
 
@@ -207,9 +219,11 @@
       ansible.builtin.set_fact:
         app_already_installed:         true
 
-    - name:                            "APP Install: Set DB Virtual Host name"
+    - name:                            "APP Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
+      become:                          true
+      become_user:                     "{{ sap_sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
         TMPDIR:                        "{{ hdbuserstore_path }}"
