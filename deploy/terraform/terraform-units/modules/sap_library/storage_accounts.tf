@@ -27,12 +27,12 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   network_rules {
     default_action = "Allow"
-    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0  ? (
-      [ local.deployer_public_ip_address ]) : (
+    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0 ? (
+      [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(local.deployer_tfstate.subnet_management_id) > 0  ? (
-      [ local.deployer_tfstate.subnet_management_id ]) : (
+    virtual_network_subnet_ids = var.use_private_endpoint && length(try(local.deployer_tfstate.subnet_management_id, "")) > 0 ? (
+      [local.deployer_tfstate.subnet_management_id]) : (
       []
     )
   }
@@ -127,12 +127,12 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
   network_rules {
     default_action = "Allow"
-    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0  ? (
-      [ local.deployer_public_ip_address ]) : (
+    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0 ? (
+      [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(local.deployer_tfstate.subnet_management_id) > 0  ? (
-      [ local.deployer_tfstate.subnet_management_id ]) : (
+    virtual_network_subnet_ids = var.use_private_endpoint && length(try(local.deployer_tfstate.subnet_management_id, "")) > 0 ? (
+      [local.deployer_tfstate.subnet_management_id]) : (
       []
     )
 
