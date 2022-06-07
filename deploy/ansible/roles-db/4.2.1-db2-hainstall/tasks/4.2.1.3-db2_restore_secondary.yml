@@ -21,6 +21,21 @@
       ansible.builtin.debug:
         msg:                           "Result: {{ whoami_result.stdout }}"
 
+    - name:                           "DB2: Create SAPTMP directories"
+    
+    - name:                                " DB2 Backup -  Create SAPTMP Directories"
+      ansible.builtin.file:
+        path:                              "{{ item.dest }}"
+        state:                             directory
+        mode:                              0755
+      with_items:
+         - { dest: '/db2/{{ db_sid }}/saptmp1' }
+         - { dest: '/db2/{{ db_sid }}/saptmp2' }
+         - { dest: '/db2/{{ db_sid }}/saptmp3' }
+         - { dest: '/db2/{{ db_sid }}/saptmp4' }
+      run_once: true 
+         
+         
     - name:                            "DB2 - Start the Secondary/Standby DB"
       ansible.builtin.shell:           db2start
       args:
@@ -28,17 +43,17 @@
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 
-      ######################Start of Restore without Encryption#################
+      ###################### Start of Restore without Encryption ##################################
     - name:                            "DB2 - Restore without encryption"
-      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} no encrypt
+      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} on /db2/{{ db_sid }} no encrypt
       args:
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      ########## End of Restore without Encryption #############################
-  when:   ansible_hostname == secondary_host_name
+      ########## ########### End of Restore without Encryption ####################################
+  when:   ansible_hostname == secondary_instance_name
   become:                                             true
-  become_user:                                    db2{{ db_sid| lower }}
+  become_user:                                    db2{{ db_sid | lower }}
 
 
 ##################Start of Restore with Encryption############################

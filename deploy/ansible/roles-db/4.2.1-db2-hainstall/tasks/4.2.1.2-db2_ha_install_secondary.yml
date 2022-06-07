@@ -56,7 +56,7 @@
         tasks_from:                    bom-template
       vars:
         db2_archive_path:              /usr/sap/install/sapdb2_software
-        db2_cd_package_exportcd:       "{{ db2_archive_path }}/erpexports"
+        db2_cd_package_exportcd:       "/usr/sap/install/CD_EXPORT/DATA_UNITS"
         db2_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
         db2_cd_package_software:       "{{ db2_archive_path }}/db2server/LINUXX86_64"
         db2_cd_package_kernel:         /usr/sap/install/download_basket/
