@@ -37,9 +37,10 @@
   become:                             yes
   become_user:                     "db2{{ db_sid | lower }}"
   block:
-    - name:                            "DB2 Backup - Stop the primary system"
-      ansible.builtin.shell: >
-                              db2stop
+    - name:                            "DB2 Backup - Prepare for offline backup"
+      ansible.builtin.shell: |
+                              db2 terminate
+                              db2 deactivate database {{ db_sid }}
       args:
         executable: /bin/csh
       environment:
@@ -78,7 +79,16 @@
     - name:                            "DB2 Backup  - Waiting for backup to finish"
       ansible.builtin.pause:
         seconds:                         60
-
+    
+    - name:                                "DB2 Backup:- Ensure the DB is activated after the backup"
+      become:                             yes
+      become_user:                     "db2{{ db_sid | lower }}"
+      ansible.builtin.shell: >
+                               db2 activate database {{ db_sid }}
+      args:
+        executable: /bin/csh
+      environment:
+        PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 
 # TBC - check at what stage we need to start the primary DB
 #    - name:                           " DB2 Backup - Start the primary system"
