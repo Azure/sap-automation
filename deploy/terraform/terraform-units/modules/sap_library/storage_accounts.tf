@@ -31,8 +31,8 @@ resource "azurerm_storage_account" "storage_tfstate" {
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(try(local.deployer_tfstate.subnet_management_id, "")) > 0 ? (
-      [local.deployer_tfstate.subnet_management_id]) : (
+    virtual_network_subnet_ids = var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
+      [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )
   }
@@ -88,7 +88,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
     data.azurerm_resource_group.library[0].location) : (
     azurerm_resource_group.library[0].location
   )
-  subnet_id = var.deployer_tfstate.subnet_management_id
+  subnet_id = var.deployer_tfstate.subnet_mgmt_id
 
   private_service_connection {
     name = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_tf,
@@ -131,8 +131,8 @@ resource "azurerm_storage_account" "storage_sapbits" {
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(try(local.deployer_tfstate.subnet_management_id, "")) > 0 ? (
-      [local.deployer_tfstate.subnet_management_id]) : (
+    virtual_network_subnet_ids = var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
+      [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )
 
@@ -165,7 +165,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
     data.azurerm_resource_group.library[0].location) : (
     azurerm_resource_group.library[0].location
   )
-  subnet_id = var.deployer_tfstate.subnet_management_id
+  subnet_id = var.deployer_tfstate.subnet_mgmt_id
 
   private_service_connection {
     name = format("%s%s%s",
