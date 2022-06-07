@@ -27,11 +27,14 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   network_rules {
     default_action = "Allow"
-    ip_rules = var.use_private_endpoint ? (
-      [length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : null]) : (
+    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0  ? (
+      [ local.deployer_public_ip_address ]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
+    virtual_network_subnet_ids = var.use_private_endpoint && length(local.deployer_tfstate.subnet_management_id) > 0  ? (
+      [ local.deployer_tfstate.subnet_management_id ]) : (
+      []
+    )
   }
 
   min_tls_version                 = "TLS1_2"
@@ -124,12 +127,15 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
   network_rules {
     default_action = "Allow"
-    ip_rules = var.use_private_endpoint ? (
-      [length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : null]) : (
+    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0  ? (
+      [ local.deployer_public_ip_address ]) : (
+      []
+    )
+    virtual_network_subnet_ids = var.use_private_endpoint && length(local.deployer_tfstate.subnet_management_id) > 0  ? (
+      [ local.deployer_tfstate.subnet_management_id ]) : (
       []
     )
 
-    virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
   }
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
