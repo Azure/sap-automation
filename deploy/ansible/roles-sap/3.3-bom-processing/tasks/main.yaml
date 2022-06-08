@@ -54,7 +54,6 @@
     - path: "{{ download_directory }}/bom"
     - path: "{{ download_directory }}/files"
 
-
 - name:                                "3.3 BoM Processing: - Run the bom-register"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility

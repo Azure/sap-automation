@@ -213,3 +213,7 @@ variable "save_naming_information" {
   description = "If defined, will save the naming information for the resources"
   default     = false
 }
+
+variable "use_secondary_ips" {
+  description = "Use secondary IPs for the SAP System"
+}

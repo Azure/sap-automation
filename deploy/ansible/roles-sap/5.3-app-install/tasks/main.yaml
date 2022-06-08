@@ -39,17 +39,23 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_app.txt"
   register:                            app_installed
 
-- name:                                "APP Install: Get the SCS Server name list"
+- name:                                "PAS Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
+- name:                                "PAS Install: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
-    db_virtual_host:                   "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
@@ -85,6 +91,7 @@
     sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') | first }}"
     sap_appVirtualHostname:            "{{ inventory_hostname }}"
     param_directory:                   "{{ dir_params }}"
+    virt_do_not_resolve_hostname:      "{% db_virtual_host == (db_server_temp | first) %}{% else %}db_virtual_host{% endif %}"
   tags:
     - skip_ansible_lint
 
@@ -99,6 +106,7 @@
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.app }}"
       - "DBHOST:     {{ db_virtual_host }}"
+      - "HOST:       {{ virtual_host }}"
 
 - name:                                "App Install: Set hdbuserstore path"
   ansible.builtin.set_fact:
@@ -121,9 +129,10 @@
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
                                        export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                      \
-                                                 SAPINST_SKIP_DIALOGS=true                                        \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                     \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
+                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                         \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"

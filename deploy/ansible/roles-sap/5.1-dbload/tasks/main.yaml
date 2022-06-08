@@ -33,12 +33,18 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
 
+- name:                                "DBLoad: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+
 - name:                                "DBLoad: - Set dbload facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sap_sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
-    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
-    db_virtual_host:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') | first }}"
+    scs_server:                        "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{hostvars[ scs_server_temp | first]['virtual_host']}}{% endif %}"
+    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     dir_params:                        "{{ tmp_directory }}/.params"
 
 #   0x) Create hidden directory for parameter files
@@ -117,9 +123,9 @@
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                \
-                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}            \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
