@@ -17,9 +17,9 @@ variable "databases" {
 
   validation {
     condition = (
-      length(trimspace(try(var.databases[0].size, ""))) != 0
+      length(trimspace(try(var.databases[0].db_sizing_key, ""))) != 0
     )
-    error_message = "The size must be specified in the databases block."
+    error_message = "The db_sizing_key must be specified in the databases block."
   }
 }
 variable "infrastructure" {

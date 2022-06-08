@@ -29,9 +29,9 @@ locals {
     )
   ))
 
-  region    = var.infrastructure.region
-  sid       = upper(var.sap_sid)
-  prefix    = trimspace(var.naming.prefix.SDU)
+  region                = var.infrastructure.region
+  sid                   = upper(var.sap_sid)
+  prefix                = trimspace(var.naming.prefix.SDU)
   resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
@@ -116,10 +116,10 @@ locals {
     )
   }
 
-  hdb_size = try(local.hdb.size, "Default")
+  db_sizing_key = try(local.hdb.db_sizing_key, "Default")
 
-  db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.hdb_size).storage : []
-  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.hdb_size).compute.vm_size : ""
+  db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).storage : []
+  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute.vm_size : ""
 
   hdb_vm_sku = length(local.db_size) > 0 ? local.db_size : "Standard_E4s_v3"
 
@@ -324,7 +324,7 @@ locals {
 
   database_secondary_ips = [
     {
-      name = "IPConfig2"
+      name                          = "IPConfig2"
       subnet_id                     = var.db_subnet.id
       nic_ips                       = var.database_vm_db_nic_secondary_ips
       private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"

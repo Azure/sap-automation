@@ -57,7 +57,7 @@ module "common_infrastructure" {
   service_principal                  = var.use_spn ? local.service_principal : local.account
   deployer_tfstate                   = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
-  custom_disk_sizes_filename         = var.db_disk_sizes_filename
+  custom_disk_sizes_filename         = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   authentication                     = local.authentication
   terraform_template_version         = var.terraform_template_version
   deployment                         = var.deployment
@@ -107,7 +107,7 @@ module "hdb_node" {
   ppg                                          = module.common_infrastructure.ppg
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  custom_disk_sizes_filename                   = var.db_disk_sizes_filename
+  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   db_subnet                                    = module.common_infrastructure.db_subnet
   storage_subnet                               = module.common_infrastructure.storage_subnet
@@ -168,7 +168,7 @@ module "app_tier" {
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   admin_subnet                                 = module.common_infrastructure.admin_subnet
-  custom_disk_sizes_filename                   = var.app_disk_sizes_filename
+  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.app_disk_sizes_filename), "")
   sid_password                                 = module.common_infrastructure.sid_password
   sid_username                                 = module.common_infrastructure.sid_username
   sdu_public_key                               = module.common_infrastructure.sdu_public_key
@@ -212,7 +212,7 @@ module "anydb_node" {
   ppg                                          = module.common_infrastructure.ppg
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  custom_disk_sizes_filename                   = var.db_disk_sizes_filename
+  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   db_subnet                                    = module.common_infrastructure.db_subnet
   anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app

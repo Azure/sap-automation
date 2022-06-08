@@ -190,15 +190,6 @@
     state:                             touch
     mode:                              0755
 
-- name:                                "ORACLE (sharedHome): Permissions"
-  ansible.builtin.file:
-    path:                              /oracle/RDBMS/{{ ora_version }}/bin/oracle
-    state:                             file
-    owner:                             oracle
-    mode:                              6751
-  tags:
-    - skip_ansible_lint
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Step 4 SBP Patching for Oracle                                             |
@@ -334,6 +325,16 @@
         setenv  DB_SID {{ db_sid }}
         set path = ($path $ORACLE_HOME/bin)
     mode:                              0755
+
+- name:                                "ORACLE (sharedHome): Permissions"
+  ansible.builtin.file:
+    path:                              /oracle/RDBMS/{{ ora_version }}/bin/oracle
+    state:                             file
+    owner:                             oracle
+    mode:                              6751
+  tags:
+    - skip_ansible_lint
+
 
 ...
 # /*---------------------------------------------------------------------------8

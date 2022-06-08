@@ -104,5 +104,5 @@ variable "order_deployment" {
 
 variable "use_secondary_ips" {
   description = "Use secondary IPs for the SAP System"
-  default = false
+  default     = false
 }

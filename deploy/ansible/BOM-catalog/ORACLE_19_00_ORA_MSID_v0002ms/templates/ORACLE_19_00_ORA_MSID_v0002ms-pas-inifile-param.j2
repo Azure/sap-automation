@@ -16,16 +16,16 @@ archives.downloadBasket                                              = {{ target
 
 nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
-nwUsers.sidAdmUID                                                    = {{ sidadm_uid }}
+nwUsers.sidAdmUID                                                    = {{ sid_to_be_deployed.sidadm_uid }}
 nwUsers.sidadmPassword                                               = {{ main_password }}
 
 NW_Delete_Sapinst_Users.removeUsers                                  = true
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
-NW_GetSidNoProfiles.sid                                              = {{ sap_sid|upper }}
+NW_GetSidNoProfiles.sid                                              = {{ sid_to_be_deployed.sid |upper }}
 NW_getUnicode.isUnicode                                              = true
 NW_SCS_Instance.ascsInstallGateway                                   = true
 NW_SCS_Instance.ascsInstallWebDispatcher                             = false
-NW_SCS_Instance.instanceNumber                                       = {{ pas_instance_number }}
+NW_SCS_Instance.instanceNumber                                       = {{ sid_to_be_deployed.pas_inst_no }}
 NW_SCS_Instance.scsVirtualHostname                                   = {{ sap_scs_hostname }}
 
 NW_adaptProfile.skipSecurityProfileSettings                          = true
@@ -33,12 +33,12 @@ NW_getFQDN.FQDN                                                      = {{ sap_fq
 
 NW_DDIC_Password.needDDICPasswords                                   = false
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
-NW_checkMsgServer.abapMSPort                                         = 36{{ scs_instance_number }}
+NW_checkMsgServer.abapMSPort                                         = 36{{ sid_to_be_deployed.ascs_inst_no }}
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
-NW_getDBInfoGeneric.dbsid                                            = {{ sap_sid }}
+NW_getDBInfoGeneric.dbsid                                            = {{ sid_to_be_deployed.sid  | upper }}
 NW_getLoadType.loadType                                              = SAP
-NW_readProfileDir.profileDir                                         = /sapmnt/{{ sap_sid|upper }}/profile
-ora.multitenant.pdbsid                                               = {{ sap_sid }}
+NW_readProfileDir.profileDir                                         = /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
+ora.multitenant.pdbsid                                               = {{ sid_to_be_deployed.sid  | upper }}
 ora.whatInstallation                                                 = isSHOH
 # ora.whatIsASM                                                      = false
 storageBasedCopy.ora.clientVersion                                   = 19
@@ -49,7 +49,7 @@ storageBasedCopy.ora.listenerPort                                    = 1521
 #NW_readProfileDir.profileDir                                        = /sapmnt/{{ sap_sid|upper }}/profile
 
 NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
-NW_CI_Instance.ciInstanceNumber                                       = {{ scs_instance_number }}
+NW_CI_Instance.ciInstanceNumber                                       = {{ sid_to_be_deployed.ascs_inst_no }}
 NW_CI_Instance.ciMSPort                                               = 36{{ scs_instance_number }}
 NW_CI_Instance.ciVirtualHostname                                      = {{ sap_ciVirtualHostname }}
 NW_CI_Instance.scsVirtualHostname                                     = {{ sap_scs_hostname }}

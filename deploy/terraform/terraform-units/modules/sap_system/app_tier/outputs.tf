@@ -80,8 +80,8 @@ output "cluster_lb_ip" {
 output "fileshare_lb_ip" {
   value = local.enable_scs_lb_deployment && (local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS") ? (
     try(azurerm_lb.scs[0].frontend_ip_configuration[3].private_ip_address, "")) : (
-      ""
-      )
+    ""
+  )
 }
 
 output "scs_loadbalancer_ips" {

@@ -5,7 +5,7 @@
 # Date..........:
 # @(#) $Id: //inst/inst_scripts/lmts_006_REL/tpls/ora/TNSNAMES.ORA#2 $
 ################
-{{ db_sid }}.WORLD=
+{{ sid_to_be_deployed.sid | upper }}.WORLD=
   (DESCRIPTION =
     (ADDRESS_LIST =
         (ADDRESS =
@@ -15,7 +15,7 @@
         )
     )
     (CONNECT_DATA =
-       (SID = {{ db_sid }})
-       (SERVICE_NAME = {{ db_sid }}.WORLD )
+       (SID = {{ sid_to_be_deployed.sid | upper }})
+       (SERVICE_NAME = {{ sid_to_be_deployed.sid | upper }}.WORLD )
     )
   )
