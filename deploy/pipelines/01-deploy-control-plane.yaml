@@ -228,6 +228,7 @@ stages:
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
               TF_VAR_agent_pat:        $(PAT)
               TF_VAR_agent_ado_url:    $(System.CollectionUri)
+              TF_VAR_agent_pool:       $(POOL)
             failOnStderr:              false
 
 ...
