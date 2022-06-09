@@ -23,7 +23,7 @@ materials:
       creates:      SIGNATURE.SMF
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000000520352022
-     
+
     # v2_00_061 Revision 2.00.061.0 (SPS06) for HANA DB 2.0
     - name:         HANA Server
       archive:      IMDB_SERVER20_061_0-80002031.SAR

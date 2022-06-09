@@ -223,8 +223,8 @@ NFS_provider          = "NONE"
 # Defines the size of the install volume
 install_volume_size = 256
 
-# azure_files_install_storage_account_id defines the Azure resource id for the install storage account
-#azure_files_install_storage_account_id = ""
+# install_storage_account_id defines the Azure resource id for the install storage account
+#install_storage_account_id = ""
 
 # azurerm_private_endpoint_connection_install_id defines the Azure resource id for the install storage account's private endpoint connection
 #azurerm_private_endpoint_connection_install_id=""
@@ -232,8 +232,8 @@ install_volume_size = 256
 # Defines the size of the transport volume
 transport_volume_size = 128
 
-# azure_files_transport_storage_account_id defines the Azure resource id for the transport storage account
-#azure_files_transport_storage_account_id = ""
+# transport_storage_account_id defines the Azure resource id for the transport storage account
+#transport_storage_account_id = ""
 
 # azurerm_private_endpoint_connection_transport_id defines the Azure resource id for the transport storage accounts private endpoint connection
 #azurerm_private_endpoint_connection_transport_id=""
@@ -308,7 +308,7 @@ use_private_endpoint = false
 # iscsi_image= {
 #     source_image_id = ""
 #     publisher       = "SUSE"
-#     offer           = "sles-sap-12-sp5"
+#     offer           = "sles-sap-15-sp3"
 #     sku             = "gen1"
 #     version         = "latest"
 #   }

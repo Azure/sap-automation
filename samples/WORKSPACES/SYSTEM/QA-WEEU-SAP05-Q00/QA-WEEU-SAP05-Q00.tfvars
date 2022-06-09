@@ -42,6 +42,29 @@ location = "westeurope"
 
 #########################################################################################
 #                                                                                       #
+#  Networking                                                                           #
+#  By default the networking is defined in the workload zone                            #
+#  Only use this section if the SID needs unique subnets/NSGs                           #
+#                                                                                       #
+# The deployment automation supports two ways of providing subnet information.          #
+# 1. Subnets are defined as part of the workload zone  deployment                       #
+#    In this model multiple SAP System share the subnets                                #
+# 2. Subnets are deployed as part of the SAP system                                     #
+#    In this model each SAP system has its own sets of subnets                          # 
+#                                                                                       #
+# The automation supports both creating the subnets (greenfield)                        #
+# or using existing subnets (brownfield)                                                #
+# For the greenfield scenario the subnet address prefix must be specified whereas       #
+# for the brownfield scenario the Azure resource identifier for the subnet must         #
+# be specified                                                                          #
+#                                                                                       #
+#########################################################################################
+
+# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
+network_logical_name = "SAP05"
+
+#########################################################################################
+#                                                                                       #
 #  Database tier                                                                        #                                                                                       #
 #                                                                                       #
 #########################################################################################
@@ -78,6 +101,11 @@ database_vm_use_DHCP = true
 # for the network interface cards connected to the database subnet
 #database_vm_db_nic_ips = ["",""]
 
+
+# database_vm_db_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# for the network interface cards connected to the application subnet
+# database_vm_db_nic_secondary_ips = ["", ""]
+
 # database_vm_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the admin subnet
 #database_vm_admin_nic_ips = ["",""]
@@ -93,16 +121,16 @@ database_vm_use_DHCP = true
 #  source_image_id=""
 #  publisher="Oracle"
 #  offer= "Oracle-Linux",
-#  sku= "81-gen2",
+#  sku= "82-gen2",
 #  version="latest"
 #}
 
-#SUSE 12 SP5
+#SUSE 15 SP3
 database_vm_image = {
   os_type         = ""
   source_image_id = ""
   publisher       = "SUSE"
-  offer           = "sles-sap-12-sp5"
+  offer           = "sles-sap-15-sp3"
   sku             = "gen2"
   version         = "latest"
 }
@@ -198,6 +226,10 @@ scs_server_image= {
 # for the network interface cards connected to the application subnet
 #scs_server_app_nic_ips=[]
 
+# scs_server_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# for the network interface cards connected to the application subnet
+#scs_server_nic_secondary_ips = ["", ""]
+
 # scs_server_app_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the application subnet
 #scs_server_app_admin_nic_ips=[]
@@ -231,6 +263,10 @@ application_server_count=2
 # for the network interface cards connected to the application subnet
 #application_server_app_nic_ips=[]
 
+# application_server_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# for the network interface cards connected to the application subnet
+#application_server_nic_secondary_ips = ["", ""]
+
 # application_server_app_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the admin subnet
 #application_server_app_admin_nic_ips=[]
@@ -257,7 +293,7 @@ application_server_image = {
   os_type         = ""
   source_image_id = ""
   publisher       = "SUSE"
-  offer           = "sles-sap-12-sp5"
+  offer           = "sles-sap-15-sp3"
   sku             = "gen2"
   version         = "latest"
 }
@@ -274,6 +310,10 @@ webdispatcher_server_count = 0
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the application subnet
 #webdispatcher_server_app_nic_ips=[]
+
+# webdispatcher_server_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# for the network interface cards connected to the application subnet
+#webdispatcher_server_nic_secondary_ips = ["", ""]
 
 # webdispatcher_server_app_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the application subnet
@@ -305,9 +345,28 @@ webdispatcher_server_count = 0
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen2"
 #}
+
+
+#########################################################################################
+#                                                                                       #
+#  Miscallaneous settings                                                               #
+#                                                                                       #
+#########################################################################################
+
+# use_secondary_ips, if defined will 
+# use secondary IP addresses for the network interface cards
+use_secondary_ips = false
+
+# resource_offset can be used to provide an offset for resource naming
+# server#, disk# 
+resource_offset = 1
+
+# vm_disk_encryption_set_id if defined defines the custom encryption key 
+#vm_disk_encryption_set_id=""
+
 
 #########################################################################################
 #                                                                                       #
@@ -319,8 +378,8 @@ webdispatcher_server_count = 0
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider       = "AFS"
-sapmnt_volume_size = 64
+NFS_provider       = "NONE"
+sapmnt_volume_size = 128
 
 #########################################################################################
 #                                                                                       #
@@ -379,29 +438,10 @@ sapmnt_volume_size = 64
 
 #########################################################################################
 #                                                                                       #
-#  Networking                                                                           #
-#  By default the networking is defined in the workload zone                            #
-#  Only use this section if the SID needs unique subnets/NSGs                           #
-#                                                                                       #
-# The deployment automation supports two ways of providing subnet information.          #
-# 1. Subnets are defined as part of the workload zone  deployment                       #
-#    In this model multiple SAP System share the subnets                                #
-# 2. Subnets are deployed as part of the SAP system                                     #
-#    In this model each SAP system has its own sets of subnets                          # 
-#                                                                                       #
-# The automation supports both creating the subnets (greenfield)                        #
-# or using existing subnets (brownfield)                                                #
-# For the greenfield scenario the subnet address prefix must be specified whereas       #
-# for the brownfield scenario the Azure resource identifier for the subnet must         #
-# be specified                                                                          #
+#  Admin Subnet variables                                                               #
 #                                                                                       #
 #########################################################################################
 
-# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-##network_name ="SAP05"
-network_logical_name = "SAP05"
-
-# ADMIN subnet
 # If defined these parameters control the subnet name and the subnet prefix
 # admin_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
 #admin_subnet_name=""
@@ -416,7 +456,13 @@ network_logical_name = "SAP05"
 # admin_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 #admin_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/DEV-WEEU-SAP01_adminSubnet-nsg"
 
-# DB subnet
+
+#########################################################################################
+#                                                                                       #
+#  DB Subnet variables                                                                  #
+#                                                                                       #
+#########################################################################################
+
 # If defined these parameters control the subnet name and the subnet prefix
 # db_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
 #db_subnet_name=""
@@ -433,8 +479,12 @@ network_logical_name = "SAP05"
 # db_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 #db_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/DEV-WEEU-SAP01_dbSubnet-nsg"
 
+#########################################################################################
+#                                                                                       #
+#  App Subnet variables                                                                 #
+#                                                                                       #
+#########################################################################################
 
-# APP subnet
 # If defined these parameters control the subnet name and the subnet prefix
 # app_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
 #app_subnet_name=""
@@ -451,7 +501,13 @@ network_logical_name = "SAP05"
 # app_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 #app_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/DEV-WEEU-SAP01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/DEV-WEEU-SAP01_appSubnet-nsg"
 
-# WEB subnet
+
+#########################################################################################
+#                                                                                       #
+#  Web Subnet variables                                                                 #
+#                                                                                       #
+#########################################################################################
+
 # If defined these parameters control the subnet name and the subnet prefix
 # web_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
 #web_subnet_name=""
@@ -500,7 +556,7 @@ network_logical_name = "SAP05"
 #os_type=""
 #source_image_id=""
 #publisher="SUSE"
-#offer="sles-sap-12-sp5"
+#offer="sles-sap-15-sp3"
 #sku="gen2"
 #version="latest"
 #}

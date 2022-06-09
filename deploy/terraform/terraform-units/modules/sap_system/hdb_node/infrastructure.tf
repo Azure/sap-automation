@@ -59,7 +59,7 @@ resource "azurerm_lb" "hdb" {
       local.resource_suffixes.db_alb_feip
     )
     subnet_id = var.db_subnet.id
-    private_ip_address = length(try(var.databases[0].loadbalancer.frontend_ips[0],"")) > 0 ? (
+    private_ip_address = length(try(var.databases[0].loadbalancer.frontend_ips[0], "")) > 0 ? (
       var.databases[0].loadbalancer.frontend_ips[0]) : (
       var.databases[0].use_DHCP ? (
         null) : (

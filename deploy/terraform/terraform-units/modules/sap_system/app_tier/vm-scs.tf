@@ -45,7 +45,11 @@ resource "azurerm_network_interface" "scs" {
 
 resource "azurerm_network_interface_application_security_group_association" "scs" {
   provider                      = azurerm.main
-  count                         = local.enable_deployment ? local.scs_server_count : 0
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? local.scs_server_count : 0) : (
+    0
+  )
+
   network_interface_id          = azurerm_network_interface.scs[count.index].id
   application_security_group_id = azurerm_application_security_group.app[0].id
 }

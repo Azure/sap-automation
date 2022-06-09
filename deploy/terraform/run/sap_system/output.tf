@@ -20,12 +20,12 @@ output "automation_version" {
 
 output "created_resource_group_id" {
   description = "Created resource group ID"
-  value = module.common_infrastructure.created_resource_group_id
+  value       = module.common_infrastructure.created_resource_group_id
 }
 
 output "created_resource_group_subscription_id" {
   description = "Created resource group' subscription ID"
-    value = module.common_infrastructure.created_resource_group_subscription_id
+  value       = module.common_infrastructure.created_resource_group_subscription_id
 }
 
 ###############################################################################
@@ -37,22 +37,22 @@ output "created_resource_group_subscription_id" {
 
 output "dns_information_anydb" {
   description = "DNS information for the anydb servers"
-  value = module.anydb_node.dns_info_vms
+  value       = module.anydb_node.dns_info_vms
 }
 
 output "dns_information_loadbalancers_anydb" {
   description = "DNS information for the anydb loadbalancer  "
-    value = module.anydb_node.dns_info_loadbalancers
+  value       = module.anydb_node.dns_info_loadbalancers
 }
 
 output "dns_information_hanadb" {
   description = "DNS information for the HANA servers"
-  value = module.hdb_node.dns_info_vms
+  value       = module.hdb_node.dns_info_vms
 }
 
 output "dns_information_loadbalancers_hanadb" {
   description = "DNS information for the HANA load balancer"
-  value = module.hdb_node.dns_info_loadbalancers
+  value       = module.hdb_node.dns_info_loadbalancers
 }
 
 output "dns_information_app" {
@@ -61,7 +61,7 @@ output "dns_information_app" {
 
 output "dns_information_loadbalancers_app" {
   description = "DNS information for the application servers"
-  value = module.app_tier.dns_info_loadbalancers
+  value       = module.app_tier.dns_info_loadbalancers
 }
 
 output "database_loadbalancer_ip" {
@@ -70,7 +70,7 @@ output "database_loadbalancer_ip" {
 
 output "scs_loadbalancer_ips" {
   description = "SCS Loadbalancer IP"
-  value = tolist(module.app_tier.scs_loadbalancer_ips)
+  value       = tolist(module.app_tier.scs_loadbalancer_ips)
 }
 
 
@@ -83,17 +83,17 @@ output "scs_loadbalancer_ips" {
 
 output "app_vm_ids" {
   description = "Virtual Machine IDs for the application servers"
-  value = module.app_tier.app_vm_ids
+  value       = module.app_tier.app_vm_ids
 }
 
 output "scs_vm_ids" {
   description = "Virtual Machine IDs for the Central Services servers"
-  value = module.app_tier.scs_vm_ids
+  value       = module.app_tier.scs_vm_ids
 }
 
 output "web_vm_ids" {
   description = "Virtual Machine IDs for the Web Dispatcher servers"
-  value = module.app_tier.web_vm_ids
+  value       = module.app_tier.web_vm_ids
 }
 
 output "hanadb_vm_ids" {

@@ -57,7 +57,7 @@ module "common_infrastructure" {
   service_principal                  = var.use_spn ? local.service_principal : local.account
   deployer_tfstate                   = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
-  custom_disk_sizes_filename         = var.db_disk_sizes_filename
+  custom_disk_sizes_filename         = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   authentication                     = local.authentication
   terraform_template_version         = var.terraform_template_version
   deployment                         = var.deployment
@@ -77,6 +77,7 @@ module "common_infrastructure" {
   azure_files_sapmnt_id                         = var.azure_files_sapmnt_id
   hana_ANF_volumes                              = local.hana_ANF_volumes
   azurerm_private_endpoint_connection_sapmnt_id = var.azurerm_private_endpoint_connection_sapmnt_id
+  deploy_application_security_groups            = var.deploy_application_security_groups
 
 }
 
@@ -107,7 +108,7 @@ module "hdb_node" {
   ppg                                          = module.common_infrastructure.ppg
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  custom_disk_sizes_filename                   = var.db_disk_sizes_filename
+  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   db_subnet                                    = module.common_infrastructure.db_subnet
   storage_subnet                               = module.common_infrastructure.storage_subnet
@@ -134,10 +135,11 @@ module "hdb_node" {
     )) : (
     0
   )
-  landscape_tfstate = data.terraform_remote_state.landscape.outputs
-  hana_ANF_volumes  = local.hana_ANF_volumes
-  NFS_provider      = var.NFS_provider
-  use_secondary_ips = var.use_secondary_ips
+  landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
+  hana_ANF_volumes                   = local.hana_ANF_volumes
+  NFS_provider                       = var.NFS_provider
+  use_secondary_ips                  = var.use_secondary_ips
+  deploy_application_security_groups = var.deploy_application_security_groups
 }
 
 
@@ -168,7 +170,7 @@ module "app_tier" {
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   admin_subnet                                 = module.common_infrastructure.admin_subnet
-  custom_disk_sizes_filename                   = var.app_disk_sizes_filename
+  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.app_disk_sizes_filename), "")
   sid_password                                 = module.common_infrastructure.sid_password
   sid_username                                 = module.common_infrastructure.sid_username
   sdu_public_key                               = module.common_infrastructure.sdu_public_key
@@ -184,6 +186,7 @@ module "app_tier" {
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
   use_secondary_ips                            = var.use_secondary_ips
+  deploy_application_security_groups           = var.deploy_application_security_groups
 }
 
 #########################################################################################
@@ -212,7 +215,7 @@ module "anydb_node" {
   ppg                                          = module.common_infrastructure.ppg
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  custom_disk_sizes_filename                   = var.db_disk_sizes_filename
+  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   admin_subnet                                 = module.common_infrastructure.admin_subnet
   db_subnet                                    = module.common_infrastructure.db_subnet
   anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
@@ -233,9 +236,10 @@ module "anydb_node" {
     0) : (
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count
   )
-  use_observer      = var.use_observer
-  landscape_tfstate = data.terraform_remote_state.landscape.outputs
-  use_secondary_ips = var.use_secondary_ips
+  use_observer                       = var.use_observer
+  landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
+  use_secondary_ips                  = var.use_secondary_ips
+  deploy_application_security_groups = var.deploy_application_security_groups
 }
 #########################################################################################
 #                                                                                       #

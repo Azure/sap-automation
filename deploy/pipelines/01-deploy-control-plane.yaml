@@ -25,7 +25,7 @@ parameters:
 trigger:                               none
 
 pool:
-  vmImage:                             ubuntu-latest
+  name:                                $(Agent)
 
 variables:
   - group:                             "SDAF-General"
@@ -194,6 +194,9 @@ stages:
                     git add -f DEPLOYER/$(deployerfolder)/terraform.tfstate
                     added=1
                   fi
+                else
+                    git rm -q -f DEPLOYER/$(deployerfolder)/terraform.tfstate
+                    added=1
                 fi
 
                 if [ -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
@@ -206,6 +209,9 @@ stages:
                     git add -f LIBRARY/$(libraryfolder)/terraform.tfstate
                     added=1
                   fi
+                else
+                    git rm -q -f LIBRARY/$(libraryfolder)/terraform.tfstate
+                    added=1
                 fi
 
 

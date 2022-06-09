@@ -92,6 +92,14 @@
         - db_high_availability
         - platform == "HANA"
 
+    - name:                            "sharedHome variables"
+      ansible.builtin.debug:
+        var:                           sid_to_be_deployed
+      when:                            MULTI_SIDS is defined
+      loop:                            "{{ MULTI_SIDS }}"
+      loop_control:   
+        loop_var:                      sid_to_be_deployed
+
     - name:                            "0.0 Validations - Validate ORACLE parameters"
       ansible.builtin.assert:
         that:
@@ -150,7 +158,7 @@
     - name:                            "0.0 Validations - Variables"
       ansible.builtin.debug:
         msg:
-          - "Virtual Host Name: {{ virtual_host }}"                           
+          - "Virtual Host Name: {{ virtual_host }}"
           - "DNS:               {{ ansible_domain }}"
 
     - name:                            "0.0 Validations - Validate SCS and HDB instance numbers"

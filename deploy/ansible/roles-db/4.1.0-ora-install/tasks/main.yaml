@@ -9,11 +9,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-# TODO: Considerations
-#         15G+ swap space for Oracle DB installation.
-#         MAke the installer more version independent
-#
-
 ---
 
 - name:                                "ORACLE: - Validate ORACLE parameters"
@@ -42,7 +37,7 @@
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracleowner.txt"
   register:                            oracle_permissions
-  
+
 - name:                                "Make oracle:oinstall as owners"
   become:                              true
   become_user:                         root
@@ -117,6 +112,7 @@
         state:                         touch
         mode:                          0755
       when:                            oraprecheck_results.rc < 3
+      
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
 # | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |

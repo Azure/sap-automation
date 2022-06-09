@@ -485,7 +485,7 @@ locals {
   iscsi_os = try(var.infrastructure.iscsi.os,
     {
       "publisher" = try(var.infrastructure.iscsi.os.publisher, "SUSE")
-      "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-12-sp5")
+      "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-15-sp3")
       "sku"       = try(var.infrastructure.iscsi.os.sku, "gen2")
       "version"   = try(var.infrastructure.iscsi.os.version, "latest")
   })

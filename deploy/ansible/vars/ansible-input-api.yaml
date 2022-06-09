@@ -12,6 +12,7 @@ sapbits_bom_files:            "sapfiles"                                        
 target_media_location:        "/usr/sap/install"                                        # Default
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
+bom_processing_become:        true                                                      # BOM processing as root user
 
 always_upload_jinja_templates: true
 

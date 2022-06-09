@@ -17,9 +17,9 @@ variable "databases" {
 
   validation {
     condition = (
-      length(trimspace(try(var.databases[0].size, ""))) != 0
+      length(trimspace(try(var.databases[0].db_sizing_key, ""))) != 0
     )
-    error_message = "The size must be specified in the databases block."
+    error_message = "The db_sizing_key must be specified in the databases block."
   }
 }
 variable "infrastructure" {
@@ -216,4 +216,8 @@ variable "hana_dual_nics" {
 
 variable "hana_ANF_volumes" {
   description = "Defines HANA ANF  volumes"
+}
+
+variable "deploy_application_security_groups" {
+  description = "Defines if application security groups should be deployed"
 }

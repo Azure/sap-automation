@@ -33,8 +33,8 @@ locals {
     try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))) : (
     lower(substr(local.anydb_platform, 0, 3))
   )
-  sid       = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
-  prefix    = trimspace(var.naming.prefix.SDU)
+  sid                   = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
+  prefix                = trimspace(var.naming.prefix.SDU)
   resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
@@ -85,7 +85,7 @@ locals {
 
   anydb_ostype = upper(local.anydb_platform) == "SQLSERVER" ? "WINDOWS" : try(local.anydb.os.os_type, "LINUX")
   anydb_oscode = upper(local.anydb_ostype) == "LINUX" ? "l" : "w"
-  anydb_size   = try(local.anydb.size, "Default")
+  anydb_size   = try(local.anydb.db_sizing_key, "Default")
 
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).storage : []
   db_size   = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).compute : {}
@@ -128,13 +128,13 @@ locals {
     }
     DB2 = {
       "publisher" = "SUSE",
-      "offer"     = "sles-sap-12-sp5",
+      "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
       "version"   = "latest"
     }
     ASE = {
       "publisher" = "SUSE",
-      "offer"     = "sles-sap-12-sp5",
+      "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
       "version"   = "latest"
     }
@@ -387,7 +387,7 @@ locals {
 
   database_secondary_ips = [
     {
-      name = "IPConfig2"
+      name                          = "IPConfig2"
       subnet_id                     = var.db_subnet.id
       nic_ips                       = var.database_vm_db_nic_secondary_ips
       private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"

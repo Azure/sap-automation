@@ -181,7 +181,7 @@ output "hana_log_primary" {
 }
 
 output "hana_log_secondary" {
-  value = var.hana_ANF_volumes.use_for_log && local.hdb_ha? (
+  value = var.hana_ANF_volumes.use_for_log && local.hdb_ha ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_log_volume ? (
         data.azurerm_netapp_volume.hanalog[1].mount_ip_addresses[0]) : (

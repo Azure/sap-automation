@@ -87,7 +87,6 @@
     msg:                               "ERS Install flag: {{ ers_installed }}"
     verbosity:                         2
 
-
 - name:                                "ERS Install"
   block:
 

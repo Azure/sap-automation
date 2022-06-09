@@ -20,7 +20,7 @@
         "os_type"                          : "LINUX",
         "source_image_id"                  : "",
         "publisher"                        : "SUSE",
-        "offer"                            : "sles-sap-12-sp5",
+        "offer"                            : "sles-sap-15-sp3",
         "sku"                              : "gen1"
       },
       "nic_ips"                            : ["","",""],
@@ -100,7 +100,7 @@
         "os_type"                          : "LINUX",
         "source_image_id"                  : "",
         "publisher"                        : "SUSE",
-        "offer"                            : "sles-sap-12-sp5",
+        "offer"                            : "sles-sap-15-sp3",
         "sku"                              : "gen1"
       },
       "platform"                           : "HANA",
@@ -132,7 +132,7 @@
       "os_type"                            : "",
       "source_image_id"                    : "",
       "publisher"                          : "SUSE",
-      "offer"                              : "sles-sap-12-sp5",
+      "offer"                              : "sles-sap-15-sp3",
       "sku"                                : "gen1"
     },
     "scs_admin_nic_ips"                    : [],
@@ -145,7 +145,7 @@
       "os_type"                            : "",
       "source_image_id"                    : "",
       "publisher"                          : "SUSE",
-      "offer"                              : "sles-sap-12-sp5",
+      "offer"                              : "sles-sap-15-sp3",
       "sku"                                : "gen1"
     },
     "scs_server_count"                     : 1,
@@ -159,7 +159,7 @@
       "os_type"                            : "",
       "source_image_id"                    : "",
       "publisher"                          : "SUSE",
-      "offer"                              : "sles-sap-12-sp5",
+      "offer"                              : "sles-sap-15-sp3",
       "sku"                                : "gen1"
     },
     "web_sku"                              : "",

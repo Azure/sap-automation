@@ -210,20 +210,6 @@
     - node_tier != 'scs'
     - usr_sap_install_mountpoint is not defined
 
-# Import this task only if the sap_mnt is defined, i.e. AFS is used
-- name:                                "2.6 SAP Mounts: - Import AFS tasks"
-  ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
-  when:
-    - sap_mnt is defined or sap_trans is defined
-    - NFS_provider == 'AFS'
-
-# Import this task only if the sap_mnt is defined, i.e. ANF is used
-- name:                                "2.6 SAP Mounts: - Import ANF tasks"
-  ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
-  when:
-    - sap_mnt is defined or sap_trans is defined
-    - NFS_provider == 'ANF'
-
 # Mount File systems for SCS server in Multi-SID installations
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
   block:
@@ -251,6 +237,7 @@
     - tier == 'sapos'
     - node_tier == 'scs'
     - MULTI_SIDS is defined
+    - sap_mnt is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount SAP File systems sapmnt for oracle shared home installation"
   become:                              true
@@ -281,5 +268,20 @@
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
+
+# Import this task only if the sap_mnt is defined, i.e. AFS is used
+- name:                                "2.6 SAP Mounts: - Import AFS tasks"
+  ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined
+    - NFS_provider == 'AFS'
+
+# Import this task only if the sap_mnt is defined, i.e. ANF is used
+- name:                                "2.6 SAP Mounts: - Import ANF tasks"
+  ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined
+    - NFS_provider == 'ANF'
+
 
 ...

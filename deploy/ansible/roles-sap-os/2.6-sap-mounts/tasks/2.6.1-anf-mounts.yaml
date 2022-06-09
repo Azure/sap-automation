@@ -11,7 +11,16 @@
 
 - name:                                "AFS Mount: Define this SID"
   ansible.builtin.set_fact:
-    this_sid:                          { 'sid': '{{ sap_sid|upper }}', 'sidadm_uid': '{{ sidadm_uid }}', 'ascs_inst_no': '{{ scs_instance_number }}', 'pas_inst_no': '{{ app_instance_number }}' , 'app_inst_no': '{{ pas_instance_number }}' }
+    this_sid:
+      {
+        'sid': '{{ sap_sid|upper }}',
+        'dbsid_uid': '{{ hdbadm_uid }}',
+        'sidadm_uid': '{{ sidadm_uid }}',
+        'ascs_inst_no': '{{ scs_instance_number }}',
+        'pas_inst_no': '{{ pas_instance_number }}',
+        'app_inst_no': '{{ app_instance_number }}'
+      }
+
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
@@ -75,12 +84,12 @@
   when:
     - tier == 'sapos'
 
-- name:                                "ANF Mount: Set nfs4_disable_idmapping
-                                          to Y"
+- name:                                "ANF Mount: Set nfs4_disable_idmapping to Y"
   ansible.builtin.lineinfile:
     path:                              /etc/modprobe.d/nfs.conf
     line:                              'options nfs nfs4_disable_idmapping=Y'
     create:                            true
+    mode:                              0644
   when:
     - tier == 'sapos'
 
@@ -314,7 +323,7 @@
   when:
     - not scs_high_availability
     - tier in ['sapos']
-    - node_tier != 'hana' 
+    - node_tier != 'hana'
     - sap_mnt is defined
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid|upper }} - Standalone MULTI_SIDS"
@@ -426,12 +435,12 @@
 - name:                                "ANF Mount: Prepare the OS for running
                                         SAP HANA on Azure NetApp with NFS"
   block:
-    - name:                             "ANF Mount: Create configuration file
-                                          for the NetApp configuration settings"
+    - name:                             "ANF Mount: Create configuration file for the NetApp configuration settings"
       ansible.builtin.blockinfile:
-        path:                            "/etc/sysctl.d/netapp-hana.conf"
+        path:                            /etc/sysctl.d/netapp-hana.conf
         backup:                          true
         create:                          true
+        mode:                            0644
         marker:                          "# {mark} HANA NetApp configuration"
         block: |
           net.core.rmem_max = 16777216
@@ -453,9 +462,10 @@
     - name:                             "ANF Mount: Create configuration file
                                           with additional optimization settings"
       ansible.builtin.blockinfile:
-        path:                            "/etc/sysctl.d/ms-az.conf"
+        path:                            /etc/sysctl.d/ms-az.conf
         backup:                          true
         create:                          true
+        mode:                            0644
         marker:                          "# {mark} HANA NetApp optimizations"
         block: |
           net.ipv6.conf.all.disable_ipv6 = 1
@@ -473,9 +483,10 @@
     - name:                             "ANF Mount: configure the maximum number
                                           of RPC requests for the NFS session"
       ansible.builtin.blockinfile:
-        path:                            "/etc/modprobe.d/sunrpc.conf"
+        path:                            /etc/modprobe.d/sunrpc.conf
         backup:                          true
         create:                          true
+        mode:                            0644
         marker:                          "# {mark} NFS RPC Connections"
         block:                           "options sunrpc tcp_max_slot_table_entries=128"
       when:
@@ -487,7 +498,8 @@
 
 - name:                            "ANF Mount: Create /hana folder"
   ansible.builtin.file:
-    path:                          "/hana"
+    path:                          /hana
+    mode:                          0755
     state:                         directory
     group:                         sapsys
   when:

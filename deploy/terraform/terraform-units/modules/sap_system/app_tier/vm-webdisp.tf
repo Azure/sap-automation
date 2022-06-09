@@ -49,7 +49,11 @@ resource "azurerm_network_interface" "web" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "web" {
-  count                         = local.enable_deployment ? local.webdispatcher_count : 0
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
+    0
+  )
+
   network_interface_id          = azurerm_network_interface.web[count.index].id
   application_security_group_id = azurerm_application_security_group.web[0].id
 }
