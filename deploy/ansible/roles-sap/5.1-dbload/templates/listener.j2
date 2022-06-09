@@ -10,11 +10,11 @@ LISTENER =
   (ADDRESS_LIST =
         (ADDRESS =
           (PROTOCOL = IPC)
-          (KEY = {{ sid_to_be_deployed.sid  | upper }}.WORLD)
+          (KEY = {{ db_sid  | upper }}.WORLD)
         )
         (ADDRESS=
           (PROTOCOL = IPC)
-          (KEY = {{ sid_to_be_deployed.sid  | upper }})
+          (KEY = {{ db_sid  | upper }})
         )
         (ADDRESS =
           (PROTOCOL = TCP)
@@ -28,8 +28,8 @@ TRACE_LEVEL_LISTENER = OFF
 SID_LIST_LISTENER =
   (SID_LIST =
     (SID_DESC =
-      (SID_NAME = {{ sid_to_be_deployed.sid | upper }})
-      (ORACLE_HOME = /oracle/{{ sid_to_be_deployed.sid | upper }}/{{ ora_release }})
+      (SID_NAME = {{ db_sid | upper }})
+      (ORACLE_HOME = /oracle/{{ db_sid | upper }}/{{ ora_release }})
     )
   )
-ADR_BASE_LISTENER = /oracle/{{ sid_to_be_deployed.sid  | upper }}/saptrace
+ADR_BASE_LISTENER = /oracle/{{ db_sid  | upper }}/saptrace

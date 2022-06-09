@@ -217,3 +217,7 @@ variable "hana_dual_nics" {
 variable "hana_ANF_volumes" {
   description = "Defines HANA ANF  volumes"
 }
+
+variable "deploy_application_security_groups" {
+  description = "Defines if application security groups should be deployed"
+}

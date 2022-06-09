@@ -447,7 +447,10 @@ resource "azurerm_availability_set" "web" {
 
 resource "azurerm_application_security_group" "app" {
   provider = azurerm.main
-  count    = local.enable_deployment ? 1 : 0
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? 1 : 0) : (
+    0
+  )
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.app_asg,
     local.prefix,
@@ -466,7 +469,11 @@ resource "azurerm_application_security_group" "app" {
 
 resource "azurerm_application_security_group" "web" {
   provider = azurerm.main
-  count    = local.webdispatcher_count > 0 ? 1 : 0
+  count = local.webdispatcher_count > 0 ? (
+    var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
+    0
+  )
+
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.web_asg,
     local.prefix,

@@ -77,6 +77,7 @@ module "common_infrastructure" {
   azure_files_sapmnt_id                         = var.azure_files_sapmnt_id
   hana_ANF_volumes                              = local.hana_ANF_volumes
   azurerm_private_endpoint_connection_sapmnt_id = var.azurerm_private_endpoint_connection_sapmnt_id
+  deploy_application_security_groups            = var.deploy_application_security_groups
 
 }
 
@@ -134,10 +135,11 @@ module "hdb_node" {
     )) : (
     0
   )
-  landscape_tfstate = data.terraform_remote_state.landscape.outputs
-  hana_ANF_volumes  = local.hana_ANF_volumes
-  NFS_provider      = var.NFS_provider
-  use_secondary_ips = var.use_secondary_ips
+  landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
+  hana_ANF_volumes                   = local.hana_ANF_volumes
+  NFS_provider                       = var.NFS_provider
+  use_secondary_ips                  = var.use_secondary_ips
+  deploy_application_security_groups = var.deploy_application_security_groups
 }
 
 
@@ -184,6 +186,7 @@ module "app_tier" {
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
   use_secondary_ips                            = var.use_secondary_ips
+  deploy_application_security_groups           = var.deploy_application_security_groups
 }
 
 #########################################################################################
@@ -233,9 +236,10 @@ module "anydb_node" {
     0) : (
     local.databases[0].high_availability ? 2 * var.database_server_count : var.database_server_count
   )
-  use_observer      = var.use_observer
-  landscape_tfstate = data.terraform_remote_state.landscape.outputs
-  use_secondary_ips = var.use_secondary_ips
+  use_observer                       = var.use_observer
+  landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
+  use_secondary_ips                  = var.use_secondary_ips
+  deploy_application_security_groups = var.deploy_application_security_groups
 }
 #########################################################################################
 #                                                                                       #

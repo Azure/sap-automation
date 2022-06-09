@@ -730,6 +730,11 @@ variable "save_naming_information" {
   default     = false
 }
 
+variable "deploy_application_security_groups" {
+  description = "Defines if application security groups should be deployed"
+  default     = true
+}
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #

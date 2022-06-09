@@ -49,7 +49,11 @@ resource "azurerm_network_interface" "web" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "web" {
-  count                         = local.enable_deployment ? local.webdispatcher_count : 0
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
+    0
+  )
+
   network_interface_id          = azurerm_network_interface.web[count.index].id
   application_security_group_id = azurerm_application_security_group.web[0].id
 }
@@ -76,7 +80,7 @@ resource "azurerm_network_interface" "web_admin" {
   )
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
-  enable_accelerated_networking = local.web_sizing.compute.accelerated_networking
+  enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
 
   ip_configuration {
     name      = "IPConfig1"

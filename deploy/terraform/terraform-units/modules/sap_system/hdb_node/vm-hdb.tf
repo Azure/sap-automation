@@ -99,7 +99,10 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
 
 resource "azurerm_network_interface_application_security_group_association" "db" {
   provider                      = azurerm.main
-  count                         = local.enable_deployment ? var.database_server_count : 0
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? var.database_server_count : 0) : (
+    0
+  )
   network_interface_id          = azurerm_network_interface.nics_dbnodes_db[count.index].id
   application_security_group_id = var.db_asg_id
 }

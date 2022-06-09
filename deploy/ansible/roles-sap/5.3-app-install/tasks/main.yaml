@@ -112,22 +112,6 @@
       - "HOST:       {{ virtual_host }}"
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-- name:                                "App Install: Set hdbuserstore path"
-  ansible.builtin.set_fact:
-    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/SYS/exe/uc/linuxx86_64/hdbclient"
-  when:
-    - db_high_availability
-    - platform == 'HANA'
-    - distribution_id in ['sles_sap12','sles_sap15']
-
-- name:                                "PAS Install: Set hdbuserstore path"
-  ansible.builtin.set_fact:
-    hdbuserstore_path:                 "/usr/sap/{{ sap_sid|upper }}/hdbclient"
-  when:
-    - db_high_availability
-    - platform == 'HANA'
-    - distribution_id in ['redhat7','redhat8']
-
 - name:                                "APP Install"
   block:
 
@@ -137,7 +121,7 @@
 #
     - name:                            "APP Install: progress"
       ansible.builtin.debug:
-        msg:                           "Starting App Install"
+        msg:                           "Starting App Install ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
@@ -192,14 +176,39 @@
         - app_installed_according_to_sapinst is defined
         - app_installed_according_to_sapinst | length > 0
 
+    - name:                            "APP Install: Get hdbuserstore path"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sap_sid|upper }}"
+        file_type:                     file
+        patterns:                      'hdbuserstore'
+        recurse:                       true
+      register:                        hdbuserstore_file
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+    
+    - name:                            "APP Install: Set hdbuserstore path"
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_file | length > 0
+    
+    - name:                            "APP Install: show hdbuserstore path"
+      ansible.builtin.debug:
+        var:                           hdbuserstore_path
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
     - name:                            "APP Install: Set DB Virtual Host name"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "{{ hdbuserstore_path }}"
       register:                        hdbuserstore
       tags:
         - skip_ansible_lint
@@ -208,23 +217,6 @@
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
-        - distribution_id in ['redhat7','redhat8']
-
-    - name:                            "APP Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
-      ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
-      environment:
-        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "{{ hdbuserstore_path }}"
-      register:                        hdbuserstore
-      tags:
-        - skip_ansible_lint
-      when:
-        - db_high_availability
-        - platform == 'HANA'
-        - pas_installed_according_to_sapinst is defined
-        - pas_installed_according_to_sapinst | length > 0
-        - distribution_id not in ['redhat7','redhat8']
 
   when:
     - not app_installed.stat.exists
@@ -234,39 +226,47 @@
 
     - name:                            "APP Install: - status"
       ansible.builtin.debug:
-        msg:                           "APP Installation is already performed"
+        msg:                           "APP Installation is already performed ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "APP Install: - return value"
       ansible.builtin.set_fact:
         app_already_installed:         true
 
-    - name:                            "APP Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
-      ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
-      environment:
-        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "{{ hdbuserstore_path }}"
-      register:                        hdbuserstore
+    - name:                            "APP Install: Get hdbuserstore path"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sap_sid|upper }}"
+        file_type:                     file
+        patterns:                      'hdbuserstore'
+        recurse:                       true
+      register:                        hdbuserstore_file
       when:
         - db_high_availability
         - platform == 'HANA'
-        - distribution_id not in ['redhat7','redhat8']
-      tags:
-        - skip_ansible_lint
+    
+    - name:                            "APP Install: Set hdbuserstore path"
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_file | length > 0
+    
+    - name:                            "APP Install: show hdbuserstore path"
+      ansible.builtin.debug:
+        var:                           hdbuserstore_path
+      when:
+        - db_high_availability
+        - platform == 'HANA'
 
     - name:                            "APP Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
-      become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }}/hdbuserstore SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "{{ hdbuserstore_path }}"
       register:                        hdbuserstore
       when:
         - db_high_availability
         - platform == 'HANA'
-        - distribution_id in ['redhat7','redhat8']
       tags:
         - skip_ansible_lint
 
