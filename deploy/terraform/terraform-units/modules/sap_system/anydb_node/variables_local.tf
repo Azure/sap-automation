@@ -29,14 +29,12 @@ locals {
   resource_suffixes    = var.naming.resource_suffixes
 
   region = var.infrastructure.region
-  sid    = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
-  prefix = trimspace(var.naming.prefix.SDU)
-
   anydb_sid = (length(local.anydb_databases) > 0) ? (
     try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))) : (
     lower(substr(local.anydb_platform, 0, 3))
   )
-
+  sid                   = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
+  prefix                = trimspace(var.naming.prefix.SDU)
   resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
