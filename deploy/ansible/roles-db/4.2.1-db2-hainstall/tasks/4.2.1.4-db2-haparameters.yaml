@@ -16,12 +16,28 @@
       ansible.builtin.debug:
         msg:                           "Result: {{ whoami_result.stdout }}"
 
-    - name:                            "DB2 Primary DB - Start the Primary DB"
-      ansible.builtin.shell:           db2start
+     - name:                            "DB2 Primary DB : check if the DB is up and running"
+      ansible.builtin.shell:            db2pd - | grep 'Active'
       args:
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+      register:                         pridb2status
+      failed_when:                      false
+      changed_when:                     false
+
+    - name:                              "DB2 Primary: Print return information from the primary db2status"
+      ansible.builtin.debug:
+        msg:                              "Result: {{ pridb2status.stdout }}"
+
+
+    - name:                                "DB2 Primary DB - Start the Primary DB"
+      ansible.builtin.shell:           db2start
+      args:
+        executable:                     /bin/csh
+      environment:
+        PATH:                            "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+      when:                                pridb2status !=0 and "Active" not in pridb2status.stdout
 
     - name:                            "DB2 Primary DB - HA Config - SLES"
       ## SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
@@ -45,7 +61,7 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family==SLES
+      when:   ansible_os_family=='Suse'
 
     - name:                            "DB2 Primary DB - HA Config - RHEL"
       ##RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
@@ -69,7 +85,7 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family==RedHat
+      when:   ansible_os_family=='RedHat'
 
   when:       ansible_hostname == primary_instance_name
   become:                              true
@@ -94,6 +110,21 @@
     - name:                            "DB2 Secondary DB - Task to capture result of whomai"
       ansible.builtin.debug:
         msg:                           "Result: {{ whoami_result.stdout }}"
+    
+    - name:                                "DB2 Secondary DB : check if the DB is up and running"
+      ansible.builtin.shell:            db2pd - | grep 'Active'
+      args:
+        executable:                    /bin/csh
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+      register:                         secdb2status
+      failed_when:                      false
+      changed_when:                     false
+
+    - name:                           "DB2  Secondary: Print return information from the Secondary db2status"
+      ansible.builtin.debug:
+        msg:                           "Result: {{ secdb2status.stdout }}"
+
 
     - name:                            "DB2 Secondary DB - Start the Primary DB"
       ansible.builtin.shell:           db2start
@@ -101,7 +132,7 @@
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-
+      when:                              secdb2status !=0 and "Active" not in secdb2status.stdout
 
     - name:                            "DB2 Secondary DB - HA Config - SLES"
       ## SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
@@ -125,7 +156,7 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when: ansible_os_family==SLES
+      when: ansible_os_family=='Suse'
 
     - name:                            "DB2 Secondary DB - HA Config - RHEL"
       ##RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
@@ -149,7 +180,7 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family==RedHat
+      when:   ansible_os_family=='RedHat'
 
   when:       ansible_hostname == secondary_instance_name
   become:                              true
