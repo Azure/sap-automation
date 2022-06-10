@@ -31,7 +31,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
+    virtual_network_subnet_ids = !var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
       [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )
@@ -131,7 +131,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
+    virtual_network_subnet_ids = !var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
       [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )
