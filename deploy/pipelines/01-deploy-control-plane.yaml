@@ -25,7 +25,7 @@ parameters:
 trigger:                               none
 
 pool:
-  vmImage:                             ubuntu-latest
+  name:                                $(Agent)
 
 variables:
   - group:                             "SDAF-General"
@@ -125,9 +125,7 @@ stages:
                 git pull
 
               echo -e "$green--- Convert config files to UX format ---$reset"
-                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
-                  sudo apt-get -qq install dos2unix
-                fi
+                sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
               
@@ -135,12 +133,12 @@ stages:
 
               if [ -f ${deployer_environment_file_name} ]; then
                 export keyvault=$(cat ${deployer_environment_file_name}  | grep keyvault | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                length=$(expr length "$keyvault")
 
                 ip_added=0
 
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
-                  if [ -n ${keyvault} ]; then
-
+                  if [ 0 != $length ]; then
                     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                     az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --no-wait
                     ip_added=1
@@ -150,7 +148,7 @@ stages:
 
               echo -e "$green--- Deploy the Control Plane ---$reset"
 
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve
+                $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)  --subscription $(ARM_SUBSCRIPTION_ID)  --spn_id $(ARM_CLIENT_ID) --spn_secret $(ARM_CLIENT_SECRET) --tenant_id $(ARM_TENANT_ID)  --auto-approve --ado
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from prepare_region $return_code."
@@ -196,6 +194,9 @@ stages:
                     git add -f DEPLOYER/$(deployerfolder)/terraform.tfstate
                     added=1
                   fi
+                else
+                    git rm -q -f DEPLOYER/$(deployerfolder)/terraform.tfstate
+                    added=1
                 fi
 
                 if [ -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
@@ -208,6 +209,9 @@ stages:
                     git add -f LIBRARY/$(libraryfolder)/terraform.tfstate
                     added=1
                   fi
+                else
+                    git rm -q -f LIBRARY/$(libraryfolder)/terraform.tfstate
+                    added=1
                 fi
 
 
@@ -228,6 +232,9 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              TF_VAR_agent_pat:        $(PAT)
+              TF_VAR_agent_ado_url:    $(System.CollectionUri)
+              TF_VAR_agent_pool:       $(POOL)
             failOnStderr:              false
 
 ...

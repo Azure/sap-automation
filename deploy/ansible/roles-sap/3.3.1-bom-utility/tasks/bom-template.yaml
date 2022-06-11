@@ -47,7 +47,7 @@
 - name:                                "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
-                                        {{ sap_inifile_template }}{{ sapbits_sas_token }}"
+                                        {{ sap_inifile_template }}?{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
     force:                             true
@@ -62,7 +62,7 @@
 - name:                                "{{ task_prefix }} Check if file: ({{ bom_base_name }}) is already downloaded to the storage account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
-                                        {{ sap_inifile_template }}{{ sapbits_sas_token }}"
+                                        {{ sap_inifile_template }}?{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
     force:                             true

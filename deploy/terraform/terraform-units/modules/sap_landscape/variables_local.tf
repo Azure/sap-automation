@@ -1,79 +1,9 @@
-/*
-  Description:
-  Define local variables
-*/
 
-variable "deployer_tfstate" {
-  description = "Deployer remote tfstate file"
-}
-
-variable "service_principal" {
-  description = "Current service principal used to authenticate to Azure"
-}
-
-variable "naming" {
-  description = "Defines the names for the resources"
-}
-
-variable "use_deployer" {
-  description = "Use the deployer"
-}
-
-variable "ANF_settings" {
-  description = "ANF settings"
-  default = {
-    use           = false
-    name          = ""
-    arm_id        = ""
-    service_level = "Standard"
-    size_in_tb    = 4
-
-  }
-}
-
-variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
-}
-
-variable "dns_label" {
-  description = "DNS label"
-  default     = ""
-}
-
-variable "dns_resource_group_name" {
-  description = "DNS resource group name"
-  default     = ""
-}
-
-variable "use_private_endpoint" {
-  type        = bool
-  description = "Private endpoint"
-  default     = false
-}
-
-variable "transport_volume_size" {
-  description = "The volume size in GB for shared"
-}
-
-variable "azure_files_transport_storage_account_id" {
-  description = "Azure Resource Identifier for an existing storage account"
-  type        = string
-}
-
-variable "azure_files_storage_account_id" {
-  description = "Azure Resource Identifier for an existing storage account"
-  type        = string
-}
-
-variable "NFS_provider" {
-  description = "Describes the NFS solution used"
-  type        = string
-}
-
-variable "Agent_IP" {
-  type    = string
-  default = ""
-}
+###############################################################################
+#                                                                             #
+#                            Local Variables                                  #
+#                                                                             #
+###############################################################################
 
 locals {
   // Resources naming
@@ -84,10 +14,6 @@ locals {
   sid_keyvault_names                              = var.naming.keyvault_names.SDU
   resource_suffixes                               = var.naming.resource_suffixes
   virtualmachine_names                            = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
-
-}
-
-locals {
 
   // Region and metadata
   region = var.infrastructure.region
@@ -106,12 +32,12 @@ locals {
 
   deployer_subnet_management_id = try(var.deployer_tfstate.subnet_mgmt_id, null)
 
-  deployer_public_ip_address = try(var.deployer_tfstate.deployer_public_ip_address, null)
+  deployer_public_ip_address = try(var.deployer_tfstate.deployer_public_ip_address, "")
 
 
   // Resource group
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
-  rg_name = local.rg_exists ? (
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     length(try(var.infrastructure.resource_group.name, "")) > 0 ? (
       var.infrastructure.resource_group.name) : (
@@ -135,7 +61,7 @@ locals {
   )
   vnet_sap_addr = local.vnet_sap_exists ? "" : try(var.infrastructure.vnets.sap.address_space, "")
 
-  // By default, Ansible ssh key for SID uses generated public key. 
+  // By default, Ansible ssh key for SID uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
 
   sid_public_key = local.sid_key_exist ? (
@@ -150,7 +76,7 @@ locals {
   // Current service principal
   service_principal = try(var.service_principal, {})
 
-  // If the user specifies arm id of key vaults in input, 
+  // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of creating new key vaults
 
   user_key_vault_id         = try(var.key_vault.kv_user_id, "")
@@ -160,7 +86,7 @@ locals {
 
   enable_landscape_kv = !local.user_keyvault_exist
 
-  // If the user specifies the secret name of key pair/password in input, 
+  // If the user specifies the secret name of key pair/password in input,
   // the secrets will be imported instead of creating new secrets
   input_sid_public_key_secret_name  = try(var.key_vault.kv_sid_sshkey_pub, "")
   input_sid_private_key_secret_name = try(var.key_vault.kv_sid_sshkey_prvt, "")
@@ -250,13 +176,13 @@ locals {
 
   // In brownfield scenarios the subnets are often defined in the workload
   // If subnet information is specified in the parameter file use it
-  // As either of the arm_id or the prefix need to be specified to create 
-  // a subnet the lack of both indicate that the subnet is to be created in the 
+  // As either of the arm_id or the prefix need to be specified to create
+  // a subnet the lack of both indicate that the subnet is to be created in the
   // SAP Infrastructure Deployment
 
   ##############################################################################################
   #
-  #  Admin subnet - Check if locally provided 
+  #  Admin subnet - Check if locally provided
   #
   ##############################################################################################
 
@@ -291,7 +217,7 @@ locals {
 
   ##############################################################################################
   #
-  #  Admin subnet NSG - Check if locally provided 
+  #  Admin subnet NSG - Check if locally provided
   #
   ##############################################################################################
 
@@ -318,7 +244,7 @@ locals {
 
   ##############################################################################################
   #
-  #  Database subnet - Check if locally provided 
+  #  Database subnet - Check if locally provided
   #
   ##############################################################################################
 
@@ -354,7 +280,7 @@ locals {
 
   ##############################################################################################
   #
-  #  Database subnet NSG - Check if locally provided 
+  #  Database subnet NSG - Check if locally provided
   #
   ##############################################################################################
 
@@ -382,7 +308,7 @@ locals {
 
   ##############################################################################################
   #
-  #  Application subnet - Check if locally provided 
+  #  Application subnet - Check if locally provided
   #
   ##############################################################################################
 
@@ -418,7 +344,7 @@ locals {
 
   ##############################################################################################
   #
-  #  Application subnet NSG - Check if locally provided 
+  #  Application subnet NSG - Check if locally provided
   #
   ##############################################################################################
 
@@ -445,7 +371,7 @@ locals {
 
   ##############################################################################################
   #
-  #  Web subnet - Check if locally provided 
+  #  Web subnet - Check if locally provided
   #
   ##############################################################################################
 
@@ -480,7 +406,7 @@ locals {
 
   ##############################################################################################
   #
-  #  Web subnet NSG - Check if locally provided 
+  #  Web subnet NSG - Check if locally provided
   #
   ##############################################################################################
 
@@ -508,7 +434,7 @@ locals {
 
   ##############################################################################################
   #
-  #  ANF subnet - Check if locally provided 
+  #  ANF subnet - Check if locally provided
   #
   ##############################################################################################
 
@@ -559,7 +485,7 @@ locals {
   iscsi_os = try(var.infrastructure.iscsi.os,
     {
       "publisher" = try(var.infrastructure.iscsi.os.publisher, "SUSE")
-      "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-12-sp5")
+      "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-15-sp3")
       "sku"       = try(var.infrastructure.iscsi.os.sku, "gen2")
       "version"   = try(var.infrastructure.iscsi.os.version, "latest")
   })
@@ -577,7 +503,7 @@ locals {
   )
   iscsi_nic_ips = local.sub_iscsi_exists ? try(var.infrastructure.iscsi.iscsi_nic_ips, []) : []
 
-  // By default, ssh key for iSCSI uses generated public key. 
+  // By default, ssh key for iSCSI uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
   enable_iscsi_auth_key = local.enable_iscsi && local.iscsi_auth_type == "key"
   iscsi_public_key = local.enable_iscsi_auth_key ? (

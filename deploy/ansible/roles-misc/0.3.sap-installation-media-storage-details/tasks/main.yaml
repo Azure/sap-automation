@@ -49,25 +49,6 @@
                                        {{ (sapbits_location_base_path_secret.stdout | from_json).value }}
   when:                                sapbits_location_base_path is not defined
 
-- name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS secret"
-  block:
-
-    - name:                            "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS"
-      ansible.builtin.command: >-
-                                       az keyvault secret show
-                                         --vault-name {{ deployer_kv_name }}
-                                         --name {{ sapbits_sas_token_secret }}
-      changed_when:                    false
-      register:                        sapbits_sas_token_secret
-
-    - name:                            "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS"
-      ansible.builtin.set_fact:
-        sapbits_sas_token: >-
-                                       {{ (sapbits_sas_token_secret.stdout | from_json).value }}
-      no_log:                          false
-
-  when:                                sapbits_sas_token is not defined
-
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
   block:
     - name:                            "0.4 Installation Media: - Retrieve Access Key details"
@@ -85,8 +66,33 @@
           {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
       no_log:                          true
   when:
-    - tier == 'bom'
     - sapbits_access_key is not defined
+
+- name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS secret"
+  block:
+
+    - name:                            "0.4 Installation Media: - Set Expiry"
+      ansible.builtin.command:         "date +'%Y-%m-%d' -d '+3 days'"
+      register: expiry
+
+    - name:                            "0.4 Installation Media: - Create SAP Binaries Storage Account SAS"
+      ansible.builtin.shell: >-
+                                       az storage account generate-sas \
+                                         --services b \
+                                         --resource-types sco \
+                                         --permissions rl \
+                                         --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }} \
+                                         --account-key {{ sapbits_access_key }} \
+                                         --auth-mode login \
+                                         --expiry {{ expiry.stdout }} \
+                                         | tr -d \"
+      changed_when:                    false
+      register:                        az_sapbits_sas_token
+
+    - name:                            "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
+      ansible.builtin.set_fact:
+        sapbits_sas_token: >-
+                                       {{ az_sapbits_sas_token.stdout }}
 
 - name:                                "0.4 Installation Media: - Debug storage account details"
   ansible.builtin.debug:
@@ -94,8 +100,7 @@
       - "KEYVAULT:     {{ deployer_kv_name }}"
       - "URL     :     {{ sapbits_location_base_path }}"
       - "SAS     :     {{ sapbits_sas_token }}"
-    verbosity:                         4
-
+    verbosity:                         2
 
 ...
 # /*---------------------------------------------------------------------------8

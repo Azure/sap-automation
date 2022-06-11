@@ -148,7 +148,7 @@ app_tier_vm_sizing = "Optimized"
 app_tier_use_DHCP = true
 
 # sid is a mandatory field that defines the SAP Application SID
-sid = "X00"
+sid = "WIN"
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
 #use_loadbalancers_for_standalone_deployments=false
@@ -306,7 +306,7 @@ webdispatcher_server_count = 0
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen2"
 #}
 
@@ -501,7 +501,7 @@ network_logical_name = "SAP01"
 #os_type=""
 #source_image_id=""
 #publisher="SUSE"
-#offer="sles-sap-12-sp5"
+#offer="sles-sap-15-sp3"
 #sku="gen2"
 #version="latest"
 #}
@@ -610,7 +610,7 @@ webdispatcher_server_count=0
 # os_type=""
 # source_image_id=""
 # publisher="SUSE"
-# offer="sles-sap-12-sp5"
+# offer="sles-sap-15-sp3"
 # sku="gen1"
 #}
 
@@ -763,7 +763,7 @@ network_logical_name="SAP01"
 #os_type=""
 #source_image_id=""
 #publisher="SUSE"
-#offer="sles-sap-12-sp5"
+#offer="sles-sap-15-sp3"
 #sku="gen1"
 #version="latest"
 #}

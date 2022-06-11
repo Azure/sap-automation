@@ -1,4 +1,8 @@
-# Create Application NICs
+#########################################################################################
+#                                                                                       #
+#  Primary Network Interface                                                            #
+#                                                                                       #
+#########################################################################################
 
 resource "azurerm_network_interface" "app" {
   provider = azurerm.main
@@ -14,35 +18,51 @@ resource "azurerm_network_interface" "app" {
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
 
-  ip_configuration {
-    name = "IPConfig1"
-    subnet_id = local.application_subnet_exists ? (
-      data.azurerm_subnet.subnet_sap_app[0].id) : (
-      azurerm_subnet.subnet_sap_app[0].id
-    )
-    private_ip_address = var.application.use_DHCP ? (
-      null) : (
-      try(local.app_nic_ips[count.index],
-        cidrhost(local.application_subnet_exists ?
-          data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
-          azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
-          tonumber(count.index) + local.ip_offsets.app_vm
+  dynamic "ip_configuration" {
+    iterator = pub
+    for_each = local.application_ips
+    content {
+      name      = pub.value.name
+      subnet_id = pub.value.subnet_id
+      private_ip_address = try(pub.value.nic_ips[count.index],
+        var.application.use_DHCP ? (
+          null) : (
+          cidrhost(local.application_subnet_exists ?
+            data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
+            azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
+            tonumber(count.index) + local.ip_offsets.app_vm + pub.value.offset
+          )
         )
       )
-    )
-    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = length(try(pub.value.nic_ips[count.index], "")) > 0 ? (
+        "Static") : (
+        pub.value.private_ip_address_allocation
+      )
 
+      primary = pub.value.primary
+
+    }
   }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "app" {
-  provider                      = azurerm.main
-  count                         = local.enable_deployment ? local.application_server_count : 0
+
+  provider = azurerm.main
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? local.application_server_count : 0) : (
+    0
+  )
   network_interface_id          = azurerm_network_interface.app[count.index].id
   application_security_group_id = azurerm_application_security_group.app[0].id
 }
 
-# Create Application NICs
+
+#########################################################################################
+#                                                                                       #
+#  Admin Network Interface                                                              #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_network_interface" "app_admin" {
   provider = azurerm.main
   count = local.enable_deployment && var.application.dual_nics ? (
@@ -63,17 +83,20 @@ resource "azurerm_network_interface" "app_admin" {
   ip_configuration {
     name      = "IPConfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = var.application.use_DHCP ? (
+    private_ip_address = try(local.app_admin_nic_ips[count.index], var.application.use_DHCP ? (
       null) : (
-      try(local.app_admin_nic_ips[count.index],
-        cidrhost(
-          var.admin_subnet.address_prefixes[0],
-          tonumber(count.index) + local.admin_ip_offsets.app_vm
-        )
+      cidrhost(
+        var.admin_subnet.address_prefixes[0],
+        tonumber(count.index) + local.admin_ip_offsets.app_vm
+      )
       )
     )
-    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = length(try(local.app_admin_nic_ips[count.index], "")) > 0 ? (
+      "Static") : (
+      "Dynamic"
+    )
   }
+
 }
 
 # Create the Linux Application VM(s)

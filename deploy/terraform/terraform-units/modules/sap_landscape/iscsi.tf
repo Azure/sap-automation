@@ -37,11 +37,11 @@ resource "azurerm_network_security_group" "iscsi" {
   provider = azurerm.main
   count    = local.enable_sub_iscsi ? (local.sub_iscsi_nsg_exists ? 0 : 1) : 0
   name     = local.sub_iscsi_nsg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
@@ -71,10 +71,10 @@ resource "azurerm_network_interface" "iscsi" {
     local.virtualmachine_names[count.index],
     local.resource_suffixes.nic
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
   azurerm_resource_group.resource_group[0].location)
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
@@ -119,11 +119,11 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
     local.resource_suffixes.vm
   )
   computer_name = local.virtualmachine_names[count.index]
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )

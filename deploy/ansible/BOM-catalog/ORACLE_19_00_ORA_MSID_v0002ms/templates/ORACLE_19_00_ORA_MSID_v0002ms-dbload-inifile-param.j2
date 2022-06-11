@@ -21,11 +21,11 @@ archives.downloadBasket                                              = {{ target
 NW_readProfileDir.profilesAvailable                                  = false
 nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
-nwUsers.sidAdmUID                                                    = {{ sidadm_uid }}
+nwUsers.sidAdmUID                                                    = {{ sid_to_be_deployed.sidadm_uid }}
 
 NW_Delete_Sapinst_Users.removeUsers                                  = true
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
-NW_GetSidNoProfiles.sid                                              = {{ sap_sid|upper }}
+NW_GetSidNoProfiles.sid                                              = {{ sid_to_be_deployed.sid | upper }}
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
 hostAgent.sapAdmPassword                                             = {{ main_password }}
 nwUsers.sidadmPassword                                               = {{ main_password }}
@@ -36,22 +36,22 @@ nwUsers.sidadmPassword                                               = {{ main_p
 NW_ABAP_Import_Dialog.migmonJobNum                                   = 10
 NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
-NW_getDBInfoGeneric.dbsid                                            = {{ sap_sid|upper }}
+NW_getDBInfoGeneric.dbsid                                            = {{ sid_to_be_deployed.sid | upper }}
 NW_getLoadType.loadType                                              = SAP
 ora.SysPassword                                                      = {{ main_password }}
 ora.SystemPassword                                                   = {{ main_password }}
 ora.createStatisticsCodeABAP                                         = CREATE
-ora.dbhome                                                           = /oracle/{{ sap_sid |upper }}/19
+ora.dbhome                                                           = /oracle/{{ sid_to_be_deployed.sid | upper }}/19
 #ora.oraclePassword                                                  = {{ main_password }}
 # ora.orasidPassword                                                 = {{ main_password }}
 storageBasedCopy.abapSchemaPassword                                  = {{ main_password }}
 storageBasedCopy.javaSchemaPassword                                  = {{ main_password }}
 # ora.hasTDE                                                         = false
 ora.multitenant.installMT                                            = FALSE
-ora.multitenant.pdbsid                                               = {{ sap_sid|upper }}
-storageBasedCopy.ora.ABAPSchema                                     = SAPSR3
-ora.InstallSW                                                       = false
-ora.SharedOracleHome                                                = /oracle/RDBMS
+ora.multitenant.pdbsid                                               = {{ sid_to_be_deployed.sid | upper }}
+storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
+ora.InstallSW                                                        = false
+ora.SharedOracleHome                                                 = /oracle/RDBMS
 # possible values are
 #         isSingle:  Database on filesystem exist.
 #         isSHOH:    Database installation with SHared Oracle Home.
@@ -75,8 +75,8 @@ ora.whatIsOracleUser                                                 = true
 # storageBasedCopy.ora.swowner                                      = oracle
 
 # Oracle client & Server  version: 121, 112, ...
-storageBasedCopy.ora.serverVersion                                   = 19
-storageBasedCopy.ora.clientVersion                                   = 19
+storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.clientVersion                                   = {{ ora_release }}
 
 # Name of Oracle Listener. Default value is: LISTENER
 # storageBasedCopy.ora.listenerName = 

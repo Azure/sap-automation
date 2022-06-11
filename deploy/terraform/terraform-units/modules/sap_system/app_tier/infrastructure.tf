@@ -1,14 +1,14 @@
-  // In brownfield scenarios the subnets are often defined in the workload
-  // If subnet information is specified in the parameter file use it
-  // As either of the arm_id or the prefix need to be specified to create
-  // a subnet the lack of both indicate that the subnet is to be created in the
-  // SAP Infrastructure Deployment
+// In brownfield scenarios the subnets are often defined in the workload
+// If subnet information is specified in the parameter file use it
+// As either of the arm_id or the prefix need to be specified to create
+// a subnet the lack of both indicate that the subnet is to be created in the
+// SAP Infrastructure Deployment
 
-  ##############################################################################################
-  #
-  #  Application subnet - Check if locally provided
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Application subnet - Check if locally provided
+#
+##############################################################################################
 
 resource "azurerm_subnet" "subnet_sap_app" {
   provider             = azurerm.main
@@ -28,11 +28,11 @@ data "azurerm_subnet" "subnet_sap_app" {
   virtual_network_name = split("/", local.application_subnet_arm_id)[8]
 }
 
-  ##############################################################################################
-  #
-  #  Application route table association
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Application route table association
+#
+##############################################################################################
 resource "azurerm_subnet_route_table_association" "app" {
   provider = azurerm.main
   count = (
@@ -45,17 +45,17 @@ resource "azurerm_subnet_route_table_association" "app" {
   route_table_id = var.landscape_tfstate.route_table_id
 }
 
-  // In brownfield scenarios the subnets are often defined in the workload
-  // If subnet information is specified in the parameter file use it
-  // As either of the arm_id or the prefix need to be specified to create
-  // a subnet the lack of both indicate that the subnet is to be created in the
-  // SAP Infrastructure Deployment
+// In brownfield scenarios the subnets are often defined in the workload
+// If subnet information is specified in the parameter file use it
+// As either of the arm_id or the prefix need to be specified to create
+// a subnet the lack of both indicate that the subnet is to be created in the
+// SAP Infrastructure Deployment
 
-  ##############################################################################################
-  #
-  #  Web subnet - Check if locally provided
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Web subnet - Check if locally provided
+#
+##############################################################################################
 resource "azurerm_subnet" "subnet_sap_web" {
   provider             = azurerm.main
   count                = local.enable_deployment && local.web_subnet_defined ? (local.web_subnet_exists ? 0 : 1) : 0
@@ -74,11 +74,11 @@ data "azurerm_subnet" "subnet_sap_web" {
   virtual_network_name = split("/", local.web_subnet_arm_id)[8]
 }
 
-  ##############################################################################################
-  #
-  #  Create the SCS Load Balancer
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Create the SCS Load Balancer
+#
+##############################################################################################
 
 resource "azurerm_lb" "scs" {
   provider = azurerm.main
@@ -265,11 +265,11 @@ resource "azurerm_lb_rule" "fs" {
   enable_floating_ip       = true
 }
 
-  ##############################################################################################
-  #
-  #  Create the SCS Availability Set
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Create the SCS Availability Set
+#
+##############################################################################################
 resource "azurerm_availability_set" "scs" {
   count = local.enable_deployment && local.use_scs_avset ? (
     max(length(local.scs_zones), 1)) : (
@@ -291,11 +291,11 @@ resource "azurerm_availability_set" "scs" {
   managed = true
 }
 
-  ##############################################################################################
-  #
-  #  Create the Application Availability Set
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Create the Application Availability Set
+#
+##############################################################################################
 resource "azurerm_availability_set" "app" {
   provider = azurerm.main
   count = local.use_app_avset && length(var.application.avset_arm_ids) == 0 ? (
@@ -356,7 +356,7 @@ resource "azurerm_lb" "web" {
       )
     )
     private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
-    zones = ["1", "2", "3"]
+    zones                         = ["1", "2", "3"]
   }
 
 }
@@ -418,11 +418,11 @@ resource "azurerm_network_interface_backend_address_pool_association" "web" {
   backend_address_pool_id = azurerm_lb_backend_address_pool.web[0].id
 }
 
-  ##############################################################################################
-  #
-  #  Create the Web dispatcher Availability Set
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Create the Web dispatcher Availability Set
+#
+##############################################################################################
 
 resource "azurerm_availability_set" "web" {
   count = local.use_web_avset ? max(length(local.web_zones), 1) : 0
@@ -439,15 +439,18 @@ resource "azurerm_availability_set" "web" {
 }
 
 
-  ##############################################################################################
-  #
-  #  Create the Application Security Group
-  #
-  ##############################################################################################
+##############################################################################################
+#
+#  Create the Application Security Group
+#
+##############################################################################################
 
 resource "azurerm_application_security_group" "app" {
   provider = azurerm.main
-  count    = local.enable_deployment ? 1 : 0
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? 1 : 0) : (
+    0
+  )
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.app_asg,
     local.prefix,
@@ -466,7 +469,11 @@ resource "azurerm_application_security_group" "app" {
 
 resource "azurerm_application_security_group" "web" {
   provider = azurerm.main
-  count    = local.webdispatcher_count > 0 ? 1 : 0
+  count = local.webdispatcher_count > 0 ? (
+    var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
+    0
+  )
+
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.web_asg,
     local.prefix,

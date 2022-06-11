@@ -3,89 +3,6 @@
   Define local variables
 */
 
-variable "custom_prefix" {
-  type        = string
-  description = "Custom prefix"
-  default     = ""
-}
-
-variable "is_single_node_hana" {
-  description = "Checks if single node hana architecture scenario is being deployed"
-  default     = false
-}
-
-variable "deployer_tfstate" {
-  description = "Deployer remote tfstate file"
-}
-
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
-
-variable "service_principal" {
-  description = "Current service principal used to authenticate to Azure"
-}
-
-/* Comment out code with users.object_id for the time being
-variable "deployer_user" {
-  description = "Details of the users"
-  default     = []
-}
-*/
-
-variable "naming" {
-  description = "Defines the names for the resources"
-}
-
-variable "custom_disk_sizes_filename" {
-  type        = string
-  description = "Disk size json file"
-  default     = ""
-}
-
-variable "deployment" {
-  description = "The type of deployment"
-}
-
-variable "terraform_template_version" {
-  description = "The version of Terraform templates that were identified in the state file"
-}
-
-variable "license_type" {
-  description = "Specifies the license type for the OS"
-  default     = ""
-}
-
-variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
-}
-
-variable "sapmnt_volume_size" {
-  description = "The volume size in GB for sapmnt"
-}
-
-variable "NFS_provider" {
-  type    = string
-  default = "NONE"
-}
-
-variable "azure_files_sapmnt_id" {
-  type    = string
-  default = ""
-}
-
-variable "Agent_IP" {
-  type    = string
-  default = ""
-}
-
-variable "use_private_endpoint" {
-  default = false
-}
-
-variable "hana_dual_nics" {
-  description = "value to indicate if dual nics are used for HANA"
-}
 
 locals {
   // Resources naming
@@ -101,9 +18,9 @@ locals {
     trimspace(var.custom_prefix)) : (
     trimspace(var.naming.prefix.SDU)
   )
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   // Resource group
-  rg_name = local.rg_exists ? (
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     coalesce(
       try(var.infrastructure.resource_group.name, ""),
@@ -150,7 +67,7 @@ locals {
   db_os = {
     "source_image_id" = local.db_custom_image ? local.db.os.source_image_id : ""
     "publisher"       = try(local.db.os.publisher, local.db_custom_image ? "" : "SUSE")
-    "offer"           = try(local.db.os.offer, local.db_custom_image ? "" : "sles-sap-12-sp5")
+    "offer"           = try(local.db.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp3")
     "sku"             = try(local.db.os.sku, local.db_custom_image ? "" : "gen1")
     "version"         = try(local.db.os.version, local.db_custom_image ? "" : "latest")
   }
@@ -206,7 +123,7 @@ locals {
   sizes = jsondecode(file(local.file_name))
 
   db_sizing = local.enable_sid_deployment ? (
-    lookup(local.sizes.db, var.databases[0].size).storage) : (
+    lookup(local.sizes.db, var.databases[0].db_sizing_key).storage) : (
     []
   )
 
@@ -350,7 +267,7 @@ locals {
 
   admin_subnet_nsg_name = local.admin_subnet_nsg_defined ? (
     local.admin_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_admin.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
         format("%s%s%s%s",
@@ -417,7 +334,7 @@ locals {
   database_subnet_nsg_exists = length(local.database_subnet_nsg_arm_id) > 0
   database_subnet_nsg_name = local.database_subnet_nsg_defined ? (
     local.database_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_db.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
         format("%s%s%s%s",
@@ -597,11 +514,14 @@ locals {
     null
   )
 
-}
 
 # This needs more though as changing of it is a destructive action 
 # try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
-locals {
   // 'Cg==` is empty string, base64 encoded.
   cloudinit_growpart_config = null
+
+  app_tier_os=upper(try(var.application.app_os.os_type, "LINUX"))
+
+
+
 }
