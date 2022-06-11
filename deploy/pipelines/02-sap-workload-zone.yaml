@@ -88,8 +88,6 @@ stages:
                 deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$LOCATION
                 workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
-                cat $workload_environment_file_name
-
                 if [ ! -f $HOME/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
                   echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
@@ -107,7 +105,9 @@ stages:
                 export      REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 export   STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
-                export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                if [ -f ${workload_environment_file_name} ]; then
+                  export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                fi
 
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
@@ -171,7 +171,23 @@ stages:
                   --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 return_code=$?
 
-                export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                if [ -f ${workload_environment_file_name} ]; then
+                  export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
+                  export       workloadprefix=$(cat ${workload_environment_file_name}  | grep workload_zone_prefix | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix'    ${workloadprefix}
+                fi
+
+                if [ -z $(FENCING_SPN_ID) ]; then
+                  echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments"
+                else
+
+                  export fencing_id=$(az keyvault secret list --vault-name $workloadkeyvault --query [].name -o tsv | grep ${workloadprefix}-fencing-spn-id | xargs)
+                  if [ -z "$fencing_id" ]; then
+                    az keyvault secret set --output none --name ${workloadprefix}-fencing-spn-id --vault-name $workloadkeyvault --value $(FENCING_SPN_ID)
+                    az keyvault secret set --output none --name ${workloadprefix}-fencing-spn-pwd --vault-name $workloadkeyvault --value $(FENCING_SPN_PWD)
+                    az keyvault secret set --output none --name ${workloadprefix}-fencing-spn-tenant --vault-name $workloadkeyvault --value $(FENCING_SPN_TENANT)
+                  fi
+                fi
+
 
                 az account set --subscription "${STATE_SUBSCRIPTION}"
                 if [[ 1 -eq $ip_added ]]; then

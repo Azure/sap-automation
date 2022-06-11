@@ -56,7 +56,7 @@ VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
     showhelp
-    
+
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
@@ -107,6 +107,7 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
+region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 # Convert the region to the correct code
 get_region_code $region
 
@@ -281,7 +282,7 @@ then
     then
         touch "${deployer_config_information}"
         printf -v val %-.20s "$keyvault"
-        
+
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -289,7 +290,7 @@ then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        
+
         save_config_var "keyvault" "${deployer_config_information}"
         return_value=0
     else

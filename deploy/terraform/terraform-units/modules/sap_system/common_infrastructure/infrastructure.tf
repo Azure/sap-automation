@@ -1,7 +1,7 @@
 // Creates the resource group
 resource "azurerm_resource_group" "resource_group" {
   provider = azurerm.main
-  count    = local.rg_exists ? 0 : 1
+  count    = local.resource_group_exists ? 0 : 1
   name     = local.rg_name
   location = var.infrastructure.region
   tags     = var.infrastructure.tags
@@ -27,7 +27,13 @@ data "azurerm_virtual_network" "vnet_sap" {
   name                = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
   resource_group_name = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
 }
-// Creates admin subnet of SAP VNET
+
+#########################################################################################
+#                                                                                       #
+#  Admin Subnet variables                                                               #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_subnet" "admin" {
   provider             = azurerm.main
   count                = !local.admin_subnet_exists && local.enable_admin_subnet ? 1 : 0
@@ -39,7 +45,7 @@ resource "azurerm_subnet" "admin" {
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider = azurerm.main
-  count = local.admin_subnet_defined && !local.admin_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0 ? (
+  count = local.admin_subnet_defined && !local.admin_subnet_exists && local.enable_admin_subnet && length(var.landscape_tfstate.route_table_id) > 0 ? (
     1) : (
     0
   )
@@ -57,7 +63,13 @@ data "azurerm_subnet" "admin" {
   virtual_network_name = split("/", local.admin_subnet_arm_id)[8]
 }
 
-// Creates db subnet of SAP VNET
+
+#########################################################################################
+#                                                                                       #
+#  DB Subnet variables                                                               #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_subnet" "db" {
   provider             = azurerm.main
   count                = local.enable_db_deployment ? (local.database_subnet_exists ? 0 : 1) : 0
@@ -89,7 +101,13 @@ resource "azurerm_subnet_route_table_association" "db" {
   route_table_id = var.landscape_tfstate.route_table_id
 }
 
-// Scale out on ANF
+
+#########################################################################################
+#                                                                                       #
+#  Scaleout Subnet variables                                                            #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_subnet" "storage" {
   provider = azurerm.main
   count = local.enable_db_deployment && local.enable_storage_subnet ? (
@@ -126,11 +144,11 @@ resource "azurerm_proximity_placement_group" "ppg" {
   provider = azurerm.main
   count    = local.ppg_exists ? 0 : (local.zonal_deployment ? max(length(local.zones), 1) : 1)
   name     = format("%s%s", local.prefix, var.naming.ppg_names[count.index])
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -148,6 +166,7 @@ data "azurerm_proximity_placement_group" "ppg" {
 
 resource "azurerm_application_security_group" "db" {
   provider = azurerm.main
+  count    = var.deploy_application_security_groups ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.db_asg,
     local.prefix,
@@ -156,7 +175,7 @@ resource "azurerm_application_security_group" "db" {
   )
   resource_group_name = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.resource_group_name) : (
-    (local.rg_exists ? (
+    (local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].name) : (
       azurerm_resource_group.resource_group[0].name)
     )
@@ -164,7 +183,7 @@ resource "azurerm_application_security_group" "db" {
 
   location = var.options.nsg_asg_with_vnet ? (
     data.azurerm_virtual_network.vnet_sap.location) : (
-    local.rg_exists ? (
+    local.resource_group_exists ? (
       data.azurerm_resource_group.resource_group[0].location) : (
       azurerm_resource_group.resource_group[0].location
     )

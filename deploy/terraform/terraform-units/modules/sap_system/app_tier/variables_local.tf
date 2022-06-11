@@ -1,102 +1,3 @@
-variable "resource_group" {
-  description = "Details of the resource group"
-}
-
-variable "storage_bootdiag_endpoint" {
-  description = "Details of the boot diagnostic storage device"
-}
-
-variable "ppg" {
-  description = "Details of the proximity placement group"
-}
-
-variable "naming" {
-  description = "Defines the names for the resources"
-}
-
-variable "custom_disk_sizes_filename" {
-  type        = string
-  description = "Disk size json file"
-  default     = ""
-}
-
-variable "admin_subnet" {
-  description = "Information about SAP admin subnet"
-}
-
-variable "deployer_user" {
-  description = "Details of the users"
-  default     = []
-}
-
-variable "sid_keyvault_user_id" {
-  description = "Details of the user keyvault for sap_system"
-}
-
-variable "sdu_public_key" {
-  description = "Public key used for authentication"
-}
-
-variable "route_table_id" {
-  description = "Route table (if any) id"
-}
-
-variable "firewall_id" {
-  description = "Firewall (if any) id"
-}
-
-variable "sid_password" {
-  description = "SDU password"
-}
-
-variable "sid_username" {
-  description = "SDU username"
-}
-
-variable "sap_sid" {
-  description = "The SID of the application"
-}
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
-
-variable "deployment" {
-  description = "The type of deployment"
-}
-
-variable "terraform_template_version" {
-  description = "The version of Terraform templates that were identified in the state file"
-}
-
-variable "cloudinit_growpart_config" {
-  description = "A cloud-init config that configures automatic growpart expansion of root partition"
-}
-
-variable "license_type" {
-  description = "Specifies the license type for the OS"
-  default     = ""
-
-}
-
-variable "use_loadbalancers_for_standalone_deployments" {
-  description = "Defines if load balancers are used even for standalone deployments"
-  default     = true
-}
-
-variable "network_location" {
-  description = "Location of the Virtual Network"
-  default     = ""
-}
-
-variable "network_resource_group" {
-  description = "Resource Group of the Virtual Network"
-  default     = ""
-}
-
-variable "order_deployment" {
-  description = "psuedo condition for ordering deployment"
-  default     = ""
-}
 
 locals {
   // Imports Disk sizing sizing information
@@ -130,8 +31,8 @@ locals {
   sid    = upper(var.application.sid)
   prefix = trimspace(var.naming.prefix.SDU)
   // Resource group
-  rg_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
-  rg_name = local.rg_exists ? (
+  resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
     coalesce(
       try(var.infrastructure.resource_group.name, ""),
@@ -208,7 +109,7 @@ locals {
   application_subnet_nsg_exists = length(local.application_subnet_nsg_arm_id) > 0
   application_subnet_nsg_name = local.application_subnet_nsg_defined ? (
     local.application_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_app.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_app.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_app.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
         format("%s%s%s%s",
@@ -272,7 +173,7 @@ locals {
   web_subnet_nsg_exists = length(local.web_subnet_nsg_arm_id) > 0
   web_subnet_nsg_name = local.web_subnet_nsg_defined ? (
     local.web_subnet_nsg_exists ? (
-      split("/", var.infrastructure.vnets.sap.subnet_web.nsg.arm_id)[10]) : (
+      split("/", var.infrastructure.vnets.sap.subnet_web.nsg.arm_id)[8]) : (
       length(var.infrastructure.vnets.sap.subnet_web.nsg.name) > 0 ? (
         var.infrastructure.vnets.sap.subnet_web.nsg.name) : (
         format("%s%s%s%s",
@@ -331,21 +232,26 @@ locals {
     (var.use_loadbalancers_for_standalone_deployments || local.webdispatcher_count > 1)
   )
 
-  app_nic_ips       = try(var.application.app_nic_ips, [])
-  app_admin_nic_ips = try(var.application.app_admin_nic_ips, [])
-  scs_lb_ips        = try(var.application.scs_lb_ips, [])
-  scs_nic_ips       = try(var.application.scs_nic_ips, [])
-  scs_admin_nic_ips = try(var.application.scs_admin_nic_ips, [])
-  web_lb_ips        = try(var.application.web_lb_ips, [])
-  web_nic_ips       = try(var.application.web_nic_ips, [])
-  web_admin_nic_ips = try(var.application.web_admin_nic_ips, [])
+  app_nic_ips           = try(var.application.app_nic_ips, [])
+  app_nic_secondary_ips = try(var.application.app_nic_secondary_ips, [])
+  app_admin_nic_ips     = try(var.application.app_admin_nic_ips, [])
+
+  scs_lb_ips            = try(var.application.scs_lb_ips, [])
+  scs_nic_ips           = try(var.application.scs_nic_ips, [])
+  scs_nic_secondary_ips = try(var.application.scs_nic_secondary_ips, [])
+  scs_admin_nic_ips     = try(var.application.scs_admin_nic_ips, [])
+
+  web_lb_ips            = try(var.application.web_lb_ips, [])
+  web_nic_ips           = try(var.application.web_nic_ips, [])
+  web_nic_secondary_ips = try(var.application.web_nic_secondary_ips, [])
+  web_admin_nic_ips     = try(var.application.web_admin_nic_ips, [])
 
   app_size = var.application.app_sku
   scs_size = length(var.application.scs_sku) > 0 ? var.application.scs_sku : local.app_size
   web_size = length(var.application.web_sku) > 0 ? var.application.web_sku : local.app_size
 
-  vm_sizing = length(var.application.vm_sizing) > 0 ? (
-    var.application.vm_sizing) : (
+  vm_sizing_dictionary_key = length(var.application.vm_sizing_dictionary_key) > 0 ? (
+    var.application.vm_sizing_dictionary_key) : (
     length(local.app_size) > 0 ? (
       "Optimized") : (
       "Default"
@@ -376,7 +282,7 @@ locals {
       "") : (
       length(try(var.application.app_os.offer, "")) > 0 ? (
         var.application.app_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.app_custom_image ? (
@@ -421,7 +327,7 @@ locals {
       "") : (
       length(try(var.application.scs_os.offer, "")) > 0 ? (
         var.application.scs_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.scs_custom_image ? (
@@ -464,7 +370,7 @@ locals {
       "") : (
       length(try(var.application.web_os.offer, "")) > 0 ? (
         var.application.web_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.web_custom_image ? (
@@ -513,11 +419,17 @@ locals {
 
 
   // Default VM config should be merged with any the user passes in
-  app_sizing = lookup(local.sizes.app, local.vm_sizing)
+  app_sizing = local.application_server_count > 0 ? (
+    lookup(local.sizes.app, local.vm_sizing_dictionary_key)) : (
+    null
+  )
 
-  scs_sizing = lookup(local.sizes.scs, local.vm_sizing)
+  scs_sizing = lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
 
-  web_sizing = lookup(local.sizes.web, local.vm_sizing)
+  web_sizing = local.webdispatcher_count > 0 ? (
+    lookup(local.sizes.web, local.vm_sizing_dictionary_key)) : (
+    null
+  )
 
   // Ports used for specific ASCS, ERS and Web dispatcher
   lb_ports = {
@@ -629,14 +541,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = var.application.use_DHCP ? (
-        null) : (
-        try(
-          local.scs_lb_ips[0],
-          cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb)
-        )
+      private_ip_address = length(try(local.scs_lb_ips[2], "")) > 0 ? (
+        local.scs_lb_ips[2]) : (
+        var.application.use_DHCP ? (
+        null) : (cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[2], "")) > 0 ? "Static" : "Dynamic"
 
     },
     {
@@ -653,14 +563,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = var.application.use_DHCP ? (
-        null) : (
-        try(
-          local.scs_lb_ips[0],
-          cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb)
-        )
+      private_ip_address = length(try(local.scs_lb_ips[3], "")) > 0 ? (
+        local.scs_lb_ips[3]) : (
+        var.application.use_DHCP ? (
+        null) : (cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[3], "")) > 0 ? "Static" : "Dynamic"
     }
   ]
 
@@ -679,14 +587,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = var.application.use_DHCP ? (
-        null) : (
-        try(
-          local.scs_lb_ips[0],
-          cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb)
-        )
+      private_ip_address = length(try(local.scs_lb_ips[0], "")) > 0 ? (
+        local.scs_lb_ips[0]) : (
+        var.application.use_DHCP ? (
+        null) : (cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[0], "")) > 0 ? "Static" : "Dynamic"
     },
     {
       name = format("%s%s%s%s",
@@ -702,13 +608,12 @@ locals {
         )) : (
         ""
       )
-      private_ip_address = var.application.use_DHCP ? (
-        null) : (
-        try(
-          local.scs_lb_ips[1],
-        cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb))
+      private_ip_address = length(try(local.scs_lb_ips[1], "")) > 0 ? (
+        local.scs_lb_ips[1]) : (
+        var.application.use_DHCP ? (
+        null) : (cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb))
       )
-      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = length(try(local.scs_lb_ips[1], "")) > 0 ? "Static" : "Dynamic"
     },
   ]
 
@@ -727,4 +632,118 @@ locals {
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
 
   deploy_route_table = local.enable_deployment && length(var.route_table_id) > 0
+
+  application_primary_ips = [
+    {
+      name = "IPConfig1"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.app_nic_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = true
+    }
+  ]
+
+  application_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.app_nic_secondary_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = local.application_server_count
+      primary                       = false
+    }
+  ]
+
+  application_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.application_primary_ips, local.application_secondary_ips))) : (
+    local.application_primary_ips
+  )
+
+  scs_primary_ips = [
+    {
+      name = "IPConfig1"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.scs_nic_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = true
+    }
+  ]
+
+  scs_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id = local.enable_deployment ? (
+        local.application_subnet_exists ? (
+          data.azurerm_subnet.subnet_sap_app[0].id) : (
+          azurerm_subnet.subnet_sap_app[0].id
+        )) : (
+        ""
+      )
+      nic_ips                       = local.scs_nic_secondary_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = local.scs_server_count
+      primary                       = false
+    }
+  ]
+
+  scs_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.scs_primary_ips, local.scs_secondary_ips))) : (
+    local.scs_primary_ips
+  )
+
+  web_dispatcher_primary_ips = [
+    {
+      name = "IPConfig1"
+      subnet_id = local.enable_deployment ? (
+        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
+        ) : (
+        ""
+      )
+      nic_ips                       = local.web_nic_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = 0
+      primary                       = true
+    }
+  ]
+
+  web_dispatcher_secondary_ips = [
+    {
+      name = "IPConfig2"
+      subnet_id = local.enable_deployment ? (
+        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
+        ) : (
+        ""
+      )
+      nic_ips                       = local.web_nic_secondary_ips
+      private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+      offset                        = local.webdispatcher_count
+      primary                       = false
+    }
+  ]
+
+  web_dispatcher_ips = (var.use_secondary_ips) ? (
+    flatten(concat(local.web_dispatcher_primary_ips, local.web_dispatcher_secondary_ips))) : (
+    local.web_dispatcher_primary_ips
+  )
+
 }

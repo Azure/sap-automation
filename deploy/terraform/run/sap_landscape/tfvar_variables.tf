@@ -241,11 +241,6 @@ variable "user_keyvault_id" {
   default = ""
 }
 
-variable "automation_keyvault_id" {
-  description = "Currently not used"
-  default = ""
-}
-
 variable "spn_keyvault_id" {
   description = "If provided, the Azure resource identifier of the deployment credential keyvault"
   default = ""
@@ -255,6 +250,12 @@ variable "enable_purge_control_for_keyvaults" {
   description = "Disables the purge protection for Azure keyvaults. USE THIS ONLY FOR TEST ENVIRONMENTS"
   default = true
 }
+
+variable "enable_rbac_authorization_for_keyvault" {
+  description = "Enables RBAC authorization for Azure keyvault"
+  default = false
+}
+
 
 #########################################################################################
 #                                                                                       #
@@ -309,10 +310,40 @@ variable "use_private_endpoint" {
   type = bool
 }
 
+variable "transport_storage_account_id" {
+  description = "Azure Resource Identifier for the Transport media storage account"
+  type    = string
+  default = ""
+}
+
+variable "transport_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
 variable "transport_volume_size" {
   description = "The volume size in GB for the transport share"
   default     = 128
 }
+
+variable "install_storage_account_id" {
+  description = "Azure Resource Identifier for the Installation media storage account"
+  type    = string
+  default = ""
+}
+
+variable "install_volume_size" {
+  description = "The volume size in GB for the transport share"
+  default     = 1024
+}
+
+variable "install_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
 
 variable "Agent_IP" {
   type    = string
@@ -336,6 +367,11 @@ variable "ANF_account_name" {
   default     = ""
 }
 
+variable "ANF_use_existing_pool" {
+  description = "Use existing storage pool"
+  default     = false
+}
+
 variable "ANF_pool_name" {
   description = "If provided, the NetApp capacity pool name (if any)"
   default     = ""
@@ -349,6 +385,46 @@ variable "ANF_service_level" {
 variable "ANF_pool_size" {
   description = "The NetApp Pool size in TB"
   default     = 4
+}
+
+variable "ANF_use_existing_transport_volume" {
+  description = "Use existing transport volume"
+  default     = false
+}
+
+variable "ANF_transport_volume_name" {
+  description = "If defined provides the Transport volume name"
+  default     = false
+}
+
+variable "ANF_transport_volume_throughput" {
+  description = "If defined provides the throughput of the transport volume"
+  default = 128
+}
+
+variable "ANF_transport_volume_size" {
+  description = "If defined provides the size of the transport volume"
+  default = 128
+}
+
+variable "ANF_use_existing_install_volume" {
+  description = "Use existing install volume"
+  default     = false
+}
+
+variable "ANF_install_volume_name" {
+  description = "Install volume name"
+  default     = ""
+}
+
+variable "ANF_install_volume_throughput" {
+  description = "If defined provides the throughput of the install volume"
+  default = 128
+}
+
+variable "ANF_install_volume_size" {
+  description = "If defined provides the size of the install volume"
+  default = 1024
 }
 
 #########################################################################################
@@ -402,7 +478,7 @@ variable "iscsi_image" {
   default = {
     "source_image_id" = ""
     "publisher"       = "SUSE"
-    "offer"           = "sles-sap-12-sp5"
+    "offer"           = "sles-sap-15-sp3"
     "sku"             = "gen1"
     "version"         = "latest"
   }

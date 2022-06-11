@@ -12,7 +12,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-scsha-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scsha-inifile-param.j2"
-    dir_params:                        "{{ tmp_directory }}/.params"
+    dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
 - name:                               "SCS HA Install: Create hidden directory"
@@ -116,6 +116,11 @@
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
+
+
+    - name:                            "SCS HA Installation"
+      ansible.builtin.debug:
+        msg:                           "Starting sapinst for {{ sap_sid | upper }}. Please wait"
 
     - name:                            "SCS HA Installation"
       block:
