@@ -34,9 +34,7 @@ resource "azurerm_key_vault" "kv_user" {
         local.deployer_subnet_management_id
       ]
     )
-
   }
-
 
   lifecycle {
     ignore_changes = [
