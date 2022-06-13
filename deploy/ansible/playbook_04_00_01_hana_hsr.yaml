@@ -64,8 +64,10 @@
         - name:                        Initialize facts
           ansible.builtin.set_fact:
             tier:                      hdb                                      # Actions for HANA DB Servers
-            primary_instance_name :    "{{ hostvars[ ansible_play_hosts_all[0] ]['virtual_host'] }}"        # Setting up Primary Instance Name
-            secondary_instance_name:   "{{ hostvars[ ansible_play_hosts_all[1] ]['virtual_host'] }}"        # Setting up Secondary Instance Name
+            primary_instance_name :    "{{ hostvars[ansible_play_hosts_all[0]]['virtual_host'] }}"        # Setting up Primary Instan
+            primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
+            secondary_instance_name:   "{{ hostvars[ansible_play_hosts_all[1]]['virtual_host'] }}"        # Setting up Secondary Inst
+            secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
             main_password:             "{{ hostvars.localhost.sap_password }}"
 
         - block:
