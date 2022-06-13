@@ -22,11 +22,15 @@
 #   0x) Create hidden directory for parameter files
 - name:                                "PAS Install: Create hidden directory"
   ansible.builtin.file:
-    path:                              "{{ item.path }}"
+    path:                              "{{ dir_params }}"
     state:                             directory
-    mode:                              '{{ item.mode }}'
-  loop:
-    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
+    mode:                              0755
+
+- name:                                "PAS Install: Create temp directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
 
 - name:                                "PAS Install: reset"
   ansible.builtin.file:
@@ -166,7 +170,7 @@
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
-      
+
     - name:                            "PAS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}{{ file_path }}"
@@ -195,7 +199,7 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-    
+
     - name:                            "PAS Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -203,7 +207,7 @@
         - db_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-    
+
     - name:                            "PAS Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
@@ -251,7 +255,7 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-    
+
     - name:                            "PAS Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -259,7 +263,7 @@
         - db_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-    
+
     - name:                            "PAS Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
