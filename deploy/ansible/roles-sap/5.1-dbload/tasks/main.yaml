@@ -147,20 +147,10 @@
       async:                           7200
       poll:                            60
 
-    - name:                            "DBLoad Install -Wait for asynchronous job to end"
-      ansible.builtin.async_status:
-        jid:                           '{{ dbload_results.ansible_job_id }}'
-      register:                        job_result
-      until:                           job_result.finished
-      retries:                         90
-      delay:                           120
-      when:                            dbload_results.ansible_job_id is defined
-
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         msg:
           - "DBLoad : {{ dbload_results }}"
-          - "Job    : {{ job_result }}"
 
 
     - name:                            "DBLoad: Installation results"
