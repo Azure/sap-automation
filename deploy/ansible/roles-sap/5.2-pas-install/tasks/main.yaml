@@ -22,11 +22,15 @@
 #   0x) Create hidden directory for parameter files
 - name:                                "PAS Install: Create hidden directory"
   ansible.builtin.file:
-    path:                              "{{ item.path }}"
+    path:                              "{{ dir_params }}"
     state:                             directory
-    mode:                              '{{ item.mode }}'
-  loop:
-    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
+    mode:                              0755
+
+- name:                                "PAS Install: Create temp directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
 
 - name:                                "PAS Install: reset"
   ansible.builtin.file:
