@@ -93,7 +93,7 @@
   changed_when:                        false
   when:
     - upload is defined
-    - upload is true
+    - upload
 
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Upload Folder"
   vars:
@@ -117,7 +117,7 @@
     - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
   when:
     - upload is defined
-    - upload is true
+    - upload
 
 # ------------------<DEBUGGING>-------------------
 # - name: "List error codes"
