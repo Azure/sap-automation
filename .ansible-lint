@@ -1,5 +1,6 @@
 exclude_paths:
   - deploy/pipelines
+  - deploy/ansible/BOM-catalog/archives
   - deploy/terraform
   - .github
 
