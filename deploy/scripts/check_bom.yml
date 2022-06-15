@@ -1,5 +1,4 @@
 ---
-
 - hosts: localhost
   vars:
     target_media_location: /usr/sap/install
@@ -21,8 +20,8 @@
       vars:
         reference: "bom"
         dict: "{{ bom }}"
-        required: ['name', 'defaults', 'materials']
-        optional: ['target', 'product_ids']
+        required: ["name", "defaults", "materials"]
+        optional: ["target", "product_ids"]
       ignore_errors: true
 
     - name: "Check bom.defaults dict"
@@ -30,7 +29,7 @@
       vars:
         reference: "bom.defaults"
         dict: "{{ bom.defaults }}"
-        required: ['target_location']
+        required: ["target_location"]
         optional: []
       when: bom.defaults is defined
       ignore_errors: true
@@ -40,7 +39,7 @@
       vars:
         reference: "bom.product_ids"
         dict: "{{ bom.product_ids }}"
-        required: ['scs','ers', 'db', 'pas', 'aas', 'web']
+        required: ["scs", "ers", "db", "pas", "aas", "web"]
         optional: []
       when: bom.product_ids is defined
       ignore_errors: true
@@ -50,8 +49,8 @@
       vars:
         reference: "bom.materials"
         dict: "{{ bom.materials }}"
-        required: ['media', 'templates', 'stackfiles']
-        optional: ['dependencies']
+        required: ["media", "templates", "stackfiles"]
+        optional: ["dependencies"]
       when: bom.materials is defined
       ignore_errors: true
 
@@ -60,7 +59,7 @@
       vars:
         reference: "bom.materials.dependencies"
         dict: "{{ dict_item }}"
-        required: ['name']
+        required: ["name"]
         optional: []
       when: bom.materials.dependencies is defined
       loop: "{{ bom.materials.dependencies | flatten(levels=1) }}"
@@ -73,8 +72,9 @@
       vars:
         reference: "bom.materials.templates"
         dict: "{{ dict_item }}"
-        required: ['file']
-        optional: ['name', 'override_target_location', 'override_target_filename']
+        required: ["file"]
+        optional:
+          ["name", "override_target_location", "override_target_filename"]
       when: bom.materials.templates is defined
       loop: "{{ bom.materials.templates | flatten(levels=1) }}"
       loop_control:
@@ -86,8 +86,9 @@
       vars:
         reference: "bom.materials.stackfiles"
         dict: "{{ dict_item }}"
-        required: ['file']
-        optional: ['name', 'override_target_location', 'override_target_filename']
+        required: ["file"]
+        optional:
+          ["name", "override_target_location", "override_target_filename"]
       when: bom.materials.stackfiles is defined
       loop: "{{ bom.materials.stackfiles | flatten(levels=1) }}"
       loop_control:
@@ -99,8 +100,14 @@
       vars:
         reference: "bom.materials.media"
         dict: "{{ dict_item }}"
-        required: ['archive']
-        optional: ['name', 'sapurl', 'override_target_location', 'override_target_filename']
+        required: ["archive"]
+        optional:
+          [
+            "name",
+            "sapurl",
+            "override_target_location",
+            "override_target_filename",
+          ]
       when: bom.materials.media is defined
       loop: "{{ bom.materials.media | flatten(levels=1) }}"
       loop_control:

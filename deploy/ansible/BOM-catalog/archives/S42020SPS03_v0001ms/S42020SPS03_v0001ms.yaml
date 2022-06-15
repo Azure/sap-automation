@@ -1,37 +1,35 @@
 ---
-
-name:    "SAP S4HANA 2020 SPS 3"
-target:  "ABAP PLATFORM 2020"
+name: "SAP S4HANA 2020 SPS 3"
+target: "ABAP PLATFORM 2020"
 version: 1
 platform: HANA
 
 product_ids:
-  scs:         NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAP
-  scs_ha:      NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAPHA
-  dbl:         NW_ABAP_DB:S4HANA2020.CORE.HDB.ABAP
-  pas:         NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAP
-  pas_ha:      NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAPHA
-  app:         NW_DI:S4HANA2020.CORE.HDB.PD
-  app_ha:      NW_DI:S4HANA2020.CORE.HDB.ABAPHA
+  scs: NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAP
+  scs_ha: NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAPHA
+  dbl: NW_ABAP_DB:S4HANA2020.CORE.HDB.ABAP
+  pas: NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAP
+  pas_ha: NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAPHA
+  app: NW_DI:S4HANA2020.CORE.HDB.PD
+  app_ha: NW_DI:S4HANA2020.CORE.HDB.ABAPHA
   web:
-  ers:         NW_ERS:S4HANA2020.CORE.HDB.ABAP
-  ers_ha:      NW_ERS:S4HANA2020.CORE.HDB.ABAPHA
-  generic:     NW_Users_Create:GENERIC.HDB.PD
+  ers: NW_ERS:S4HANA2020.CORE.HDB.ABAP
+  ers_ha: NW_ERS:S4HANA2020.CORE.HDB.ABAPHA
+  generic: NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:
-    - name:     HANA_2_00_059_v0001ms
-    - name:     SWPM20SP11_latest
+    - name: HANA_2_00_059_v0001ms
+    - name: SWPM20SP11_latest
 
   media:
-
     # SAPCAR 7.XX
 
-    - name:         SAPCAR
-      archive:      SAPCAR_1010-70006178.EXE
-      filename:     SAPCAR
-      permissions:  '0755'
-      url:          https://softwaredownloads.sap.com/file/0020000002208852020
+    - name: SAPCAR
+      archive: SAPCAR_1010-70006178.EXE
+      filename: SAPCAR
+      permissions: "0755"
+      url: https://softwaredownloads.sap.com/file/0020000002208852020
 
     # kernel components
 
@@ -967,5 +965,3 @@ materials:
     - name: "Download Basket permalinks"
       file: "myDownloadBasketFiles.txt"
       override_target_location: "{{ target_media_location }}/config"
-
-...

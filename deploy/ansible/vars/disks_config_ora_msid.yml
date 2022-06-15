@@ -1,5 +1,4 @@
 ---
-
 # Dynamicallu determine list of unique disk types associated with
 # current node.
 disktypes: >-
@@ -9,7 +8,7 @@ disktypes: >-
       list }}
 
 multisids: >-
-  {{ MULTI_SIDS |map(attribute='sid') | sort | unique |list }}
+  {{ MULTI_SIDS | map(attribute='sid') | sort | unique | list }}
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
@@ -32,13 +31,11 @@ disk_type_to_name_map:
   # mirrlogb_sid2:  mirrlogB_'{{ ora_sid2 | lower }}'
   # oraarch_sid2:   oraarch_'{{ ora_sid2 | lower }}'
 
-
 # Dynamically determine list of volume groups associated with
 # the current node.
 volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
 
 logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
-
 
 # Table of possible logical volumes that need to be managed.
 #
@@ -115,7 +112,6 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     stripesize: 256
 #     fstype:     'xfs'
 
-
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
 #     vg:         vg_'{{ ora_sid1| lower }}'_sapdata3
@@ -187,7 +183,6 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     stripesize: 256
 #     fstype:     'xfs'
 
-
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'
 #     vg:         'vg_{{ ora_sid2| lower }}_sapdata3'
@@ -242,7 +237,6 @@ logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
 #     lv:         'lv_{{ ora_sid2| lower }}_oraarch'
 #     size:       '100%FREE'
 #     fstype:     'xfs'
-
 
 #   - tier:       'sapos'
 #     node_tier:  'oracle-multi-sid'

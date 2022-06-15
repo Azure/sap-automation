@@ -1,57 +1,51 @@
 ---
-
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Validation for Prerequisites
 #
-- name:                                "0.1 BoM Validator: - Check required variables are present and not empty"
+- name: "0.1 BoM Validator: - Check required variables are present and not empty"
   ansible.builtin.assert:
     that:
-      - "sapbits_location_base_path is defined"                                 # Has the variable been defined
-      - "sapbits_location_base_path | trim | length != 0"                       #   and given a value
+      - "sapbits_location_base_path is defined" # Has the variable been defined
+      - "sapbits_location_base_path | trim | length != 0" #   and given a value
 
-      - "sapbits_bom_files is defined"                                          # Has the variable been defined
-      - "sapbits_bom_files | trim | length != 0"                                #   and given a value
+      - "sapbits_bom_files is defined" # Has the variable been defined
+      - "sapbits_bom_files | trim | length != 0" #   and given a value
 
-      - "target_media_location is defined"                                      # Has the variable been defined
-      - "target_media_location | trim | length != 0"                            #   and given a value
-    fail_msg:                          "Please ensure that the storage account details are provided"
+      - "target_media_location is defined" # Has the variable been defined
+      - "target_media_location | trim | length != 0" #   and given a value
+    fail_msg: "Please ensure that the storage account details are provided"
 
-- name:                                "0.1 BoM Validator: - Check required variables are present and not empty (bom)"
+- name: "0.1 BoM Validator: - Check required variables are present and not empty (bom)"
   ansible.builtin.assert:
     that:
-      - "bom_base_name is defined"                                              # Has the variable been defined
-      - "bom_base_name | type_debug != 'NoneType'"    # and given a value                                          # Has the variable been defined
-      - "bom_base_name | trim | length > 1"                                     #   and given a value
-    fail_msg:                          "Please ensure that the BOM details are provided"
+      - "bom_base_name is defined" # Has the variable been defined
+      - "bom_base_name | type_debug != 'NoneType'" # and given a value                                          # Has the variable been defined
+      - "bom_base_name | trim | length > 1" #   and given a value
+    fail_msg: "Please ensure that the BOM details are provided"
 
-- name:                                "0.1 BoM Validator: - Check required variables are present and not empty (kv)"
+- name: "0.1 BoM Validator: - Check required variables are present and not empty (kv)"
   ansible.builtin.assert:
     that:
-
       - "kv_name is defined"
-      - "kv_name | type_debug != 'NoneType'"    # and given a value                                          # Has the variable been defined
-      - "kv_name | trim | length != 0"                                           #   and given a value
+      - "kv_name | type_debug != 'NoneType'" # and given a value                                          # Has the variable been defined
+      - "kv_name | trim | length != 0" #   and given a value
 
-    fail_msg:                          "Please ensure that the key vault details are provided"
+    fail_msg: "Please ensure that the key vault details are provided"
 
-
-- name:                                "0.1 BoM Validator: - Check S User are present and not empty"
+- name: "0.1 BoM Validator: - Check S User are present and not empty"
   ansible.builtin.assert:
     that:
-      - "s_user is defined"                    # Has the variable been defined
-      - "s_user | type_debug != 'NoneType'"    # and given a value
-      - "s_user | string | length != 0 "       # Detect null values
-    fail_msg:                          "Please define the s_user either as a parameter or in the deployer key vault"
+      - "s_user is defined" # Has the variable been defined
+      - "s_user | type_debug != 'NoneType'" # and given a value
+      - "s_user | string | length != 0 " # Detect null values
+    fail_msg: "Please define the s_user either as a parameter or in the deployer key vault"
 
-- name:                                "0.1 BoM Validator: - Check S User password is present and not empty"
+- name: "0.1 BoM Validator: - Check S User password is present and not empty"
   ansible.builtin.assert:
     that:
-      - "s_password is defined"                    # Has the variable been defined
-      - "s_password | type_debug != 'NoneType'"    # and given a value
-      - "s_password | string | length != 0 "       # Detect null values
-    fail_msg:                          "Please define the s_password either as a parameter or in the deployer key vault"
-
+      - "s_password is defined" # Has the variable been defined
+      - "s_password | type_debug != 'NoneType'" # and given a value
+      - "s_password | string | length != 0 " # Detect null values
+    fail_msg: "Please define the s_password either as a parameter or in the deployer key vault"
 # -------------------------------------+---------------------------------------8
-
-...

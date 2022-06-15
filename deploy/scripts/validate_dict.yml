@@ -1,5 +1,4 @@
 ---
-
 - name: "Determine list of dict keys"
   set_fact:
     dict_keys: "{{

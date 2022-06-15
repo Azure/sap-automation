@@ -7,13 +7,13 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  SAP Software download $(bom) $(environment_code) $(location_code)
+name: SAP Software download $(bom) $(environment_code) $(location_code)
 
 parameters:
-  - name:                              bom_base_name
-    displayName:                       Name of Bill of Materials (BoM)
+  - name: bom_base_name
+    displayName: Name of Bill of Materials (BoM)
     type: string
-    default:                           
+    default:
     values:
       - S4HANA_2021_ISS_v0001ms
       - S42020SPS03_v0002ms
@@ -28,49 +28,49 @@ parameters:
       - ORACLE_19_00_v0002ms
       - ORACLE_19_00_ORA_MSID_v0002ms
 
-  - name:                              environment
-    displayName:                       Control Plane Environment
-    default:                           MGMT
+  - name: environment
+    displayName: Control Plane Environment
+    default: MGMT
 
-  - name:                              region
-    displayName:                       Control Plane (SAP Library) location code
-    type:                              string
-    default:                           WEEU
+  - name: region
+    displayName: Control Plane (SAP Library) location code
+    type: string
+    default: WEEU
 
-  - name:                              re_download
-    displayName:                       Re-download software from SAP
-    type:                              boolean
-    default:                           false
+  - name: re_download
+    displayName: Re-download software from SAP
+    type: boolean
+    default: false
 
-trigger:                               none
+trigger: none
 
 pool:
-  name:                                $(Agent)
+  name: $(Agent)
 
 variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.environment }}
-  - name:                              bom
-    value:                             $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
-  - name:                              environment_code
-    value:                             ${{ parameters.environment }}
-  - name:                              location_code
-    value:                             ${{ parameters.region }}
-  - name:                              check_storage_account
-    value:                             $[not(${{ parameters.re_download }})]
+  - group: "SDAF-General"
+  - group: SDAF-${{ parameters.environment }}
+  - name: bom
+    value: $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
+  - name: environment_code
+    value: ${{ parameters.environment }}
+  - name: location_code
+    value: ${{ parameters.region }}
+  - name: check_storage_account
+    value: $[not(${{ parameters.re_download }})]
 
 stages:
-  - stage:                             Prepare_download
-    displayName:                       Preparation
+  - stage: Prepare_download
+    displayName: Preparation
     jobs:
-      - job:                           Prepare_download_job
-        displayName:                   Preparation
+      - job: Prepare_download_job
+        displayName: Preparation
         workspace:
-          clean:                       all
+          clean: all
         steps:
-          - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
+          - task: PostBuildCleanup@3
+          - checkout: self
+            persistCredentials: true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -122,11 +122,11 @@ stages:
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
               echo -e "$green--- Get key_vault name ---$reset"
 
-                kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}')
+               kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault | awk -F'=' '{print $2}')
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
-              
+
               echo -e "$green--- BoM $(bom) ---$reset"
-              
+
               echo -e "$green--- Save BOM ---$reset"
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
@@ -150,27 +150,27 @@ stages:
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
                 fi
 
-            displayName:               Prepare download
-            name:                      Preparation
+            displayName: Prepare download
+            name: Preparation
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              false
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+            failOnStderr: false
 
-  - stage:                             Software_download
-    displayName:                       Download software
+  - stage: Software_download
+    displayName: Download software
     jobs:
-      - job:                           Software_download
-        displayName:                   Download software
+      - job: Software_download
+        displayName: Download software
         variables:
-          kv_name:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
-          S-USER:                      $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
-          S-PASSWORD:                  $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
-          BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
-        timeoutInMinutes:              0
+          kv_name: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          S-USER: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
+          S-PASSWORD: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
+          BOM_NAME: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
+        timeoutInMinutes: 0
         steps:
-          - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
+          - task: PostBuildCleanup@3
+          - checkout: self
+            persistCredentials: true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -220,17 +220,15 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-          - task:                      Ansible@0
-            displayName:               Download software
-            timeoutInMinutes:          0
+          - task: Ansible@0
+            displayName: Download software
+            timeoutInMinutes: 0
             inputs:
-              ansibleInterface:        "agentMachine"
+              ansibleInterface: "agentMachine"
               playbookPathOnAgentMachine: $DEPLOYMENT_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
-              args:                    ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
-              failOnStderr:            false
+              args: ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
+              failOnStderr: false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+              ANSIBLE_PYTHON_INTERPRETER: auto_silent
               ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-
-...

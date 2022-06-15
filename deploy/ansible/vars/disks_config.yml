@@ -1,5 +1,4 @@
 ---
-
 # Dynamically determine list of unique disk types associated with
 # current node.
 disktypes: >-
@@ -14,20 +13,20 @@ volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
-  data:      '{{ node_tier | lower }}_data'
-  log:       '{{ node_tier | lower }}_log'
-  backup:    '{{ node_tier | lower }}_backup'
-  shared:    '{{ node_tier | lower }}_shared'
-  sapdata1:  '{{ node_tier | lower }}_sapdata1'
-  sapdata2:  '{{ node_tier | lower }}_sapdata2'
-  sapdata3:  '{{ node_tier | lower }}_sapdata3'
-  sapdata4:  '{{ node_tier | lower }}_sapdata4'
-  origloga:  '{{ node_tier | lower }}_origlogA'
-  origlogb:  '{{ node_tier | lower }}_origlogB'
-  mirrloga:  '{{ node_tier | lower }}_mirrlogA'
-  mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
-  oraarch: '{{ node_tier | lower }}_oraarch'
-  #orabackup: '{{ node_tier | lower }}_orabackup'
+  data: "{{ node_tier | lower }}_data"
+  log: "{{ node_tier | lower }}_log"
+  backup: "{{ node_tier | lower }}_backup"
+  shared: "{{ node_tier | lower }}_shared"
+  sapdata1: "{{ node_tier | lower }}_sapdata1"
+  sapdata2: "{{ node_tier | lower }}_sapdata2"
+  sapdata3: "{{ node_tier | lower }}_sapdata3"
+  sapdata4: "{{ node_tier | lower }}_sapdata4"
+  origloga: "{{ node_tier | lower }}_origlogA"
+  origlogb: "{{ node_tier | lower }}_origlogB"
+  mirrloga: "{{ node_tier | lower }}_mirrlogA"
+  mirrlogb: "{{ node_tier | lower }}_mirrlogB"
+  oraarch: "{{ node_tier | lower }}_oraarch"
+  # orabackup: '{{ node_tier | lower }}_orabackup'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -59,152 +58,150 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 logical_volumes:
-  - tier:       'sapos'
-    node_tier:  "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
-    vg:         'vg_sap'
-    lv:         'lv_usrsap'
-    size:       '32g'
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
+    vg: "vg_sap"
+    lv: "lv_usrsap"
+    size: "32g"
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         'vg_hana_data'
-    lv:         'lv_hana_data'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "hana"
+    vg: "vg_hana_data"
+    lv: "lv_hana_data"
+    size: "100%FREE"
     stripesize: 256
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         'vg_hana_log'
-    lv:         'lv_hana_log'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "hana"
+    vg: "vg_hana_log"
+    lv: "lv_hana_log"
+    size: "100%FREE"
     stripesize: 64
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         'vg_hana_backup'
-    lv:         'lv_hana_backup'
-    size:       '100%FREE'
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "hana"
+    vg: "vg_hana_backup"
+    lv: "lv_hana_backup"
+    size: "100%FREE"
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'hana'
-    vg:         "{% if shareddisk == '1' %}vg_hana_shared{% else %}vg_sap{% endif %}"
-    lv:         'lv_hana_shared'
-    size:       "{% if shareddisk == '1' %}100%FREE{% else %}32g{% endif %}"
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "hana"
+    vg: "{% if shareddisk == '1' %}vg_hana_shared{% else %}vg_sap{% endif %}"
+    lv: "lv_hana_shared"
+    size: "{% if shareddisk == '1' %}100%FREE{% else %}32g{% endif %}"
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'web'
-    vg:         'vg_sap'
-    lv:         'lv_sapmnt'
-    size:       '1g'
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "web"
+    vg: "vg_sap"
+    lv: "lv_sapmnt"
+    size: "1g"
+    fstype: "xfs"
 
-# Adding Tier and disk types for Oracle installation non-ASM.
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_sapdata1'
-    lv:         'lv_oracle_sapdata1'
-    size:       '100%FREE'
+  # Adding Tier and disk types for Oracle installation non-ASM.
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_sapdata1"
+    lv: "lv_oracle_sapdata1"
+    size: "100%FREE"
     stripesize: 256
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_sapdata2'
-    lv:         'lv_oracle_sapdata2'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_sapdata2"
+    lv: "lv_oracle_sapdata2"
+    size: "100%FREE"
     stripesize: 256
-    fstype:     'xfs'
+    fstype: "xfs"
 
-
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_sapdata3'
-    lv:         'lv_oracle_sapdata3'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_sapdata3"
+    lv: "lv_oracle_sapdata3"
+    size: "100%FREE"
     stripesize: 256
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_sapdata4'
-    lv:         'lv_oracle_sapdata4'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_sapdata4"
+    lv: "lv_oracle_sapdata4"
+    size: "100%FREE"
     stripesize: 256
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_origlogA'
-    lv:         'lv_oracle_origlogA'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_origlogA"
+    lv: "lv_oracle_origlogA"
+    size: "100%FREE"
     stripesize: 128
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_origlogB'
-    lv:         'lv_oracle_origlogB'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_origlogB"
+    lv: "lv_oracle_origlogB"
+    size: "100%FREE"
     stripesize: 128
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_mirrlogA'
-    lv:         'lv_oracle_mirrlogA'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_mirrlogA"
+    lv: "lv_oracle_mirrlogA"
+    size: "100%FREE"
     stripesize: 128
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_mirrlogB'
-    lv:         'lv_oracle_mirrlogB'
-    size:       '100%FREE'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_mirrlogB"
+    lv: "lv_oracle_mirrlogB"
+    size: "100%FREE"
     stripesize: 128
-    fstype:     'xfs'
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle_oraarch'
-    lv:         'lv_oracle_oraarch'
-    size:       '100%FREE'
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle_oraarch"
+    lv: "lv_oracle_oraarch"
+    size: "100%FREE"
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_oracle'
-    lv:         'lv_oracle'
-    size:       '64g'
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_oracle"
+    lv: "lv_oracle"
+    size: "64g"
+    fstype: "xfs"
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_orabackup'
-    lv:         'lv_orabackup'
-    size:       '64g'
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "oracle"
+    vg: "vg_orabackup"
+    lv: "lv_orabackup"
+    size: "64g"
+    fstype: "xfs"
 logical_volumes_sapmnt:
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_sapmnt'
-    size:       '32g'
-    fstype:     'xfs'
+  - tier: "sapos"
+    node_tier: "scs"
+    vg: "vg_sap"
+    lv: "lv_sapmnt"
+    size: "32g"
+    fstype: "xfs"
 
 logical_volumes_install:
-  - tier:       'sapos'
-    node_tier:  'scs'
-    vg:         'vg_sap'
-    lv:         'lv_usrsapinstall'
-    size:       '100%FREE'
-    fstype:     'xfs'
-
+  - tier: "sapos"
+    node_tier: "scs"
+    vg: "vg_sap"
+    lv: "lv_usrsapinstall"
+    size: "100%FREE"
+    fstype: "xfs"
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

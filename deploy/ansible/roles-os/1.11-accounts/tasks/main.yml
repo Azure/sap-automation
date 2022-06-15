@@ -19,19 +19,19 @@
 #
 # -------------------------------------+---------------------------------------8
 
-- name:                                "1.11 Accounts - Include top-level admin accounts definitions"
-  ansible.builtin.include_vars:        "admin-accounts.yml"
+- name: "1.11 Accounts - Include top-level admin accounts definitions"
+  ansible.builtin.include_vars: "admin-accounts.yml"
 
 # Need to create groups first, if they are going to be referenced
 # by the following user actions
-- name:                                "1.11 Accounts - Create specified admin groups if needed tier: {{ tier }}"
+- name: "1.11 Accounts - Create specified admin groups if needed tier: {{ tier }}"
   ansible.builtin.group:
-    name:                              "{{ item.name }}"
-    gid:                               "{{ item.gid }}"
-    state:                             "{{ item.state | default('present') }}"
-  loop:                                "{{ admin_groups }}"
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ admin_groups }}"
   loop_control:
-    label:                             "{{ item.name }}"
+    label: "{{ item.name }}"
   when:
     - item.enabled | bool
     - item.tier in ["all", tier]
@@ -39,23 +39,23 @@
     - (item.state | default('present')) == "present"
 
 # Create or delete users as needed
-- name:                                "1.11 Accounts - Manage specified admin users"
+- name: "1.11 Accounts - Manage specified admin users"
   ansible.builtin.user:
-    name:                              "{{ item.name }}"
-    comment:                           "{{ item.comment | default('') }}"
-    uid:                               "{{ item.uid }}"
-    group:                             "{{ item.group | default(item.name) }}"
-    groups:                            "{{ item.groups }}"
-    shell:                             "{{ item.shell | default('/bin/bash') }}"
-    create_home:                       true
-    home:                              "/home/{{ item.name }}"
-    password:                          "{{ item.password |
-                                          password_hash('sha512') }}"
-    state:                             "{{ item.state | default('present') }}"
-    append:                            true
-  loop:                                "{{ admin_users }}"
+    name: "{{ item.name }}"
+    comment: "{{ item.comment | default('') }}"
+    uid: "{{ item.uid }}"
+    group: "{{ item.group | default(item.name) }}"
+    groups: "{{ item.groups }}"
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    create_home: true
+    home: "/home/{{ item.name }}"
+    password: "{{ item.password |
+      password_hash('sha512') }}"
+    state: "{{ item.state | default('present') }}"
+    append: true
+  loop: "{{ admin_users }}"
   loop_control:
-    label:         "{{ item.name }}"
+    label: "{{ item.name }}"
   when:
     - item.enabled | bool
     - item.node_tier == node_tier
@@ -68,16 +68,16 @@
 # corresponding /etc/sudoers.d/<username> entry. Unfortunately the
 # block action doesn't support iteration, otherwise it would be
 # the way to handle this.
-- name:                                "1.11 Accounts - Manage associated per-user /etc/sudoers.d/ files for
-                                       given sudoers role"
-  ansible.builtin.include_tasks:       setup_user_sudoers.yml
+- name: "1.11 Accounts - Manage associated per-user /etc/sudoers.d/ files for
+    given sudoers role"
+  ansible.builtin.include_tasks: setup_user_sudoers.yml
   vars:
-    sudoers_user:                      "{{ item.name }}"
-    sudoers_role:                      "{{ item.sudoers_role }}"
-    sudoers_state:                     "{{ item.state | default('present') }}"
-  loop:                                "{{ admin_users }}"
+    sudoers_user: "{{ item.name }}"
+    sudoers_role: "{{ item.sudoers_role }}"
+    sudoers_state: "{{ item.state | default('present') }}"
+  loop: "{{ admin_users }}"
   loop_control:
-    label:                             "{{ item.name }}"
+    label: "{{ item.name }}"
   when:
     - item.enabled | bool
     - item.tier in ["all", tier]
@@ -85,13 +85,13 @@
 
 # Remove groups after user action has removed the users that may have
 # referenced them
-- name:                                "1.11 Accounts - Remove specified admin groups"
+- name: "1.11 Accounts - Remove specified admin groups"
   ansible.builtin.group:
-    name:                              "{{ item.name }}"
-    state:                             "{{ item.state | default('present') }}"
-  loop:                                "{{ admin_groups }}"
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ admin_groups }}"
   loop_control:
-    label:                             "{{ item.name }}"
+    label: "{{ item.name }}"
   when:
     - item.enabled | bool
     - item.tier in ["all", tier]

@@ -1,5 +1,4 @@
 ---
-
 # SLES Clustering
 # Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
 # https://rpm.pbone.net/index.php3/stat/45/idpl/27916721/numer/8/nazwa/ha-cluster-init
@@ -58,7 +57,6 @@
 - name: Ensure the cluster STONITH is created
   when: inventory_hostname == primary_instance.ip_admin
   block:
-
     - name: Check if SBD resource exists
       ansible.builtin.shell: crm resource list | grep 'sbd' | awk '{ print $1; }'
       register: sbd_device
