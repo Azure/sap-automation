@@ -102,7 +102,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        [HttpGet] // #network_address_arm_id
+        [HttpGet] // #network_arm_id
         public ActionResult GetVNetOptions(string subscriptionId)
         {
             List<SelectListItem> options = new List<SelectListItem>

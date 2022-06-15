@@ -100,12 +100,6 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public string[] proximityplacementgroup_arm_ids { get; set; }
 
-        // Network
-
-        [BsonIgnoreIfNull]
-        [NetworkAddressValidator(ErrorMessage = "Invalid network address arm id")]
-        public string network_address_arm_id { get; set; }
-
         // Admin Subnet
 
         [BsonIgnoreIfNull]
@@ -179,6 +173,12 @@ namespace AutomationForm.Models
         public bool? database_high_availability { get; set; }
 
         [BsonIgnoreIfNull]
+        public int? database_server_count { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? database_dual_nics { get; set; }
+
+        [BsonIgnoreIfNull]
         [DatabaseSizeValidator]
         public string database_size { get; set; }
 
@@ -216,10 +216,28 @@ namespace AutomationForm.Models
         public string[] database_tags { get; set; }
 
         [BsonIgnoreIfNull]
+        public string[] database_loadbalancer_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] database_vm_db_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
         public string database_HANA_use_ANF_scaleout_scenario { get; set; }
 
         [BsonIgnoreIfNull]
         public string dual_nics { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] database_vm_db_nic_secondary_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] database_vm_admin_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] database_vm_storage_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? hana_dual_nics { get; set; }
 
         // Application Tier
 
@@ -259,13 +277,28 @@ namespace AutomationForm.Models
         public string[] application_server_zones { get; set; }
 
         [BsonIgnoreIfNull]
-        public string[] application_server_app_nic_ips { get; set; }
+        public string[] application_server_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
-        public string[] application_server_app_admin_nic_ips { get; set; }
+        public string[] application_server_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
         public string[] application_server_tags { get; set; } // change data structure
+
+        [BsonIgnoreIfNull]
+        public string[] application_server_app_nic_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] application_server_nic_secondary_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? application_server_no_avset { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] application_server_vm_avset_arm_ids { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? application_server_no_ppg { get; set; }
 
         // SAP Central Services
 
@@ -294,13 +327,22 @@ namespace AutomationForm.Models
         public string[] scs_server_app_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
-        public string[] scs_server_app_admin_nic_ips { get; set; }
+        public string[] scs_server_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
         public string[] scs_server_loadbalancer_ips { get; set; }
 
         [BsonIgnoreIfNull]
         public string[] scs_server_tags { get; set; } // change data structure
+
+        [BsonIgnoreIfNull]
+        public string[] scs_server_nic_secondary_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? scs_server_no_avset { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? scs_server_no_ppg { get; set; }
 
         // Web Dispatchers
 
@@ -314,7 +356,7 @@ namespace AutomationForm.Models
         public string[] webdispatcher_server_app_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
-        public string[] webdispatcher_server_app_admin_nic_ips { get; set; }
+        public string[] webdispatcher_server_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
         public string[] webdispatcher_server_loadbalancer_ips { get; set; }
@@ -327,6 +369,15 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public Image webdispatcher_server_image { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string[] webdispatcher_server_nic_secondary_ips { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? webdispatcher_server_no_avset { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? webdispatcher_server_no_ppg { get; set; }
 
         // Authentication
 
@@ -356,6 +407,92 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public int? sapmnt_volume_size { get; set; }
 
+        [BsonIgnoreIfNull]
+        public string azure_files_sapmnt_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string azurerm_private_endpoint_connection_sapmnt_id { get; set; }
+
+        // ANF Settings
+
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_for_HANA_data { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_data_volume_size { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_data_volume { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ANF_data_volume_name { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_data_volume_throughput { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_for_HANA_log { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_log_volume_size { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_log_volume { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public string ANF_log_volume_name { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_log_volume_throughput { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_for_HANA_shared { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_shared_volume_size { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_shared_volume { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ANF_HANA_shared_volume_name { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_shared_volume_throughput { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_for_usr_sap { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public int? ANF_usr_sap_volume_size { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_usr_sap_volume { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public string ANF_HANA_usr_sap_volume_name { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_usr_sap_throughput { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? use_private_endpoint { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_sapmnt_volume { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public string ANF_sapmnt_volume_name { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_sapmnt_volume_size { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public int? ANF_HANA_sapmnt_volume_throughput { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string anchor_vm_authentication_username { get; set; }
+
         // Anchor VM
 
         [BsonIgnoreIfNull]
@@ -380,7 +517,17 @@ namespace AutomationForm.Models
         public bool? anchor_vm_use_DHCP { get; set; }
 
         [BsonIgnoreIfNull]
-        public string bom_base { get; set; }
+        public string bom_name { get; set; }
+
+
+        [BsonIgnoreIfNull]
+        public string user_keyvault_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string spn_keyvault_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? enable_purge_control_for_keyvaults { get; set; }
     }
 
     public class Image

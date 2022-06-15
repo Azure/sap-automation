@@ -102,11 +102,11 @@ namespace AutomationForm.Models
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
                 string prefix = (string)value;
-                string armId = (string)context.ObjectInstance.GetType().GetProperty("network_address_arm_id").GetValue(context.ObjectInstance);
+                string armId = (string)context.ObjectInstance.GetType().GetProperty("network_arm_id").GetValue(context.ObjectInstance);
 
                 if (prefix == null && armId == null)
                 {
-                    return new ValidationResult($"At least one of network_address_space or network_address_arm_id must be present.");
+                    return new ValidationResult($"At least one of network_address_space or network_arm_id must be present.");
                 }
                 else
                 {

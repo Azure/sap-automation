@@ -3,6 +3,7 @@
   "Groupings": [
     {
       "Section": "Terraform system parameters",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#terraform-parameters",
       "Parameters": [
         {
           "Name": "deployer_tfstate_key",
@@ -24,6 +25,7 @@
     },
     {
       "Section": "Common infrastructure",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#resource-group-parameters",
       "Parameters": [
         {
           "Name": "subscription",
@@ -63,9 +65,10 @@
     },
     {
       "Section": "Network",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
-          "Name": "network_address_arm_id",
+          "Name": "network_arm_id",
           "Required": false,
           "Description": "Specifies Azure resource identifier for the existing virtual network",
           "Type": "lookup",
@@ -76,11 +79,20 @@
             }
           ],
           "Overrules": "network_address_space"
+        },
+        {
+          "Name": "network_name",
+          "Required": false,
+          "Description": "If provided, the name of the Virtual network",
+          "Type": "field",
+          "Options": [],
+          "Overrules": "network_logical_name"
         }
       ]
     },
     {
       "Section": "Admin subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "admin_subnet_arm_id",
@@ -107,6 +119,7 @@
     },
     {
       "Section": "Admin subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "admin_subnet_nsg_arm_id",
@@ -133,6 +146,7 @@
     },
     {
       "Section": "Database subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "db_subnet_arm_id",
@@ -159,6 +173,7 @@
     },
     {
       "Section": "Database subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "db_subnet_nsg_arm_id",
@@ -185,6 +200,7 @@
     },
     {
       "Section": "Application subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "app_subnet_arm_id",
@@ -211,6 +227,7 @@
     },
     {
       "Section": "Application subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "app_subnet_nsg_arm_id",
@@ -237,6 +254,7 @@
     },
     {
       "Section": "Web subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "web_subnet_arm_id",
@@ -263,6 +281,7 @@
     },
     {
       "Section": "Web subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "web_subnet_nsg_arm_id",
@@ -289,6 +308,7 @@
     },
     {
       "Section": "ISCSI subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
       "Parameters": [
         {
           "Name": "iscsi_subnet_arm_id",
@@ -323,6 +343,7 @@
     },
     {
       "Section": "ISCSI subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
       "Parameters": [
         {
           "Name": "iscsi_subnet_nsg_arm_id",
@@ -349,6 +370,7 @@
     },
     {
       "Section": "ANF subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "anf_subnet_arm_id",
@@ -377,27 +399,6 @@
           "Description": "Should only be used if the default naming is not acceptable",
           "Type": "field",
           "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "use_ANF",
-          "Required": false,
-          "Description": "Controlls if Azure NetApp files is used for storage",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
           "Overrules": ""
         },
         {
@@ -456,7 +457,133 @@
       ]
     },
     {
+      "Section": "ANF Support",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-netapp-files-support",
+      "Parameters": [
+        {
+          "Name": "ANF_use_existing_pool",
+          "Required": false,
+          "Description": "Use existing storage pool",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_pool_name",
+          "Required": false,
+          "Description": "the NetApp capacity pool name (if any)",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_existing_transport_volume",
+          "Required": false,
+          "Description": "Use existing transport volume",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_transport_volume_name",
+          "Required": false,
+          "Description": "If defined provides the Transport volume name",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_transport_volume_throughput",
+          "Required": false,
+          "Description": "If defined provides the throughput of the transport volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_transport_volume_size",
+          "Required": false,
+          "Description": "If defined provides the size of the transport volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_existing_install_volume",
+          "Required": false,
+          "Description": "Use existing install volume",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_install_volume_name",
+          "Required": false,
+          "Description": "Install volume name",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_install_volume_throughput",
+          "Required": false,
+          "Description": "If defined provides the throughput of the install volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_install_volume_size",
+          "Required": false,
+          "Description": "If defined provides the size of the install volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
       "Section": "ANF subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "anf_subnet_nsg_arm_id",
@@ -483,6 +610,7 @@
     },
     {
       "Section": "Azure keyvault support",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#key-vault-parameters",
       "Parameters": [
         {
           "Name": "user_keyvault_id",
@@ -533,6 +661,7 @@
     },
     {
       "Section": "Credentials",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#authentication-parameters",
       "Parameters": [
         {
           "Name": "automation_password",
@@ -562,6 +691,7 @@
     },
     {
       "Section": "Private DNS support",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#private-dns",
       "Parameters": [
         {
           "Name": "dns_label",
@@ -572,7 +702,7 @@
           "Overrules": ""
         },
         {
-          "Name": "dns_resourcegroup_name",
+          "Name": "dns_resource_group_name",
           "Required": false,
           "Description": "Provides the name of the resource group hosting the Private DNS zone",
           "Type": "field",
@@ -583,6 +713,7 @@
     },
     {
       "Section": "NFS support",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#nfs-support",
       "Parameters": [
         {
           "Name": "NFS_provider",
@@ -613,6 +744,93 @@
           "Name": "transport_volume_size",
           "Required": false,
           "Description": "",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Storage Account",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-files-nfs-support",
+      "Parameters": [
+        {
+          "Name": "diagnostics_storage_account_arm_id",
+          "Required": false,
+          "Description": "Azure resource id for the diagnostics storage account",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "witness_storage_account_arm_id",
+          "Required": false,
+          "Description": "Azure resource id for the witness storage account",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "transport_storage_account_id",
+          "Required": false,
+          "Description": "Azure Resource Identifier for the Transport media storage account",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "transport_private_endpoint_id",
+          "Required": false,
+          "Description": "Azure Resource Identifier for a private endpoint connection",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "install_storage_account_id",
+          "Required": false,
+          "Description": "Azure Resource Identifier for the Installation media storage account",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "install_volume_size",
+          "Required": false,
+          "Description": "The volume size in GB for the transport share",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "install_private_endpoint_id",
+          "Required": false,
+          "Description": "Azure Resource Identifier for a private endpoint connection",
           "Type": "field",
           "Options": [],
           "Overrules": ""

@@ -8,7 +8,7 @@ var azureResourceIds = [
     "subscription",
     "workload_zone",
     "resourcegroup_arm_id",
-    "network_address_arm_id",
+    "network_arm_id",
     "admin_subnet_arm_id",
     "db_subnet_arm_id",
     "app_subnet_arm_id",
@@ -271,7 +271,7 @@ $("#subscription").on("change", function () {
             }
         },
         {
-            ids: ["network_address_arm_id"],
+            ids: ["network_arm_id"],
             controller: "/Armclient/GetVNetOptions",
             errorMessage: "Error retrieving vnets for specified subscription",
             input: {
@@ -287,7 +287,7 @@ $("#subscription").on("change", function () {
     }
 });
 
-$("#network_address_arm_id").on("change", function () {
+$("#network_arm_id").on("change", function () {
     var vnetid = $(this).val();
     var dropdownsAffected = [
         {

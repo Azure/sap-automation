@@ -83,7 +83,10 @@ namespace AutomationForm.Models
         
         [BsonIgnoreIfNull]
         [NetworkAddressValidator(ErrorMessage = "Invalid network address arm id")]
-        public string network_address_arm_id { get; set; }
+        public string network_arm_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string network_name { get; set; }
 
         
         [BsonIgnoreIfNull]
@@ -185,9 +188,6 @@ namespace AutomationForm.Models
         public string anf_subnet_nsg_name { get; set; }
 
         [BsonIgnoreIfNull]
-        public bool? use_ANF { get; set; }
-
-        [BsonIgnoreIfNull]
         public string ANF_account_arm_id { get; set; }
         
         [BsonIgnoreIfNull]
@@ -201,6 +201,37 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public bool? use_private_endpoint { get; set; }
+
+        
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_pool { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ANF_pool_name { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_transport_volume { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ANF_transport_volume_name { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_transport_volume_throughput { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_transport_volume_size { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? ANF_use_existing_install_volume { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string ANF_install_volume_name { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_install_volume_throughput { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? ANF_install_volume_size { get; set; }
 
 
         [BsonIgnoreIfNull]
@@ -229,7 +260,7 @@ namespace AutomationForm.Models
         public string dns_label { get; set; }
 
         [BsonIgnoreIfNull]
-        public string dns_resourcegroup_name { get; set; }
+        public string dns_resource_group_name { get; set; }
 
 
         [BsonIgnoreIfNull]
@@ -237,5 +268,27 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public int? transport_volume_size { get; set; }
+
+
+        [BsonIgnoreIfNull]
+        public string diagnostics_storage_account_arm_id { get; set; }
+        
+        [BsonIgnoreIfNull]
+        public string witness_storage_account_arm_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string transport_storage_account_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string transport_private_endpoint_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string install_storage_account_id { get; set; }
+
+        [BsonIgnoreIfNull]
+        public int? install_volume_size { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string install_private_endpoint_id { get; set; }
     }
 }
