@@ -1,4 +1,5 @@
 ---
+
 cluster_totem:
   token: 30000
   retransmits: 10
@@ -13,8 +14,8 @@ cluster_quorum:
 # These are the default timeouts used for the SAP SCS OS clustering. Depending on the
 # SAP SCS System, these may need to be adjusted if the operation takes longer than expected.
 cluster_sap_scs_timeouts:
-  start: 60s
-  stop: 60s
+  start:          60s
+  stop:           60s
   monitor_master: 700
   monitor_slave: 700
   promote: 3600
@@ -35,5 +36,7 @@ cluster_name: nw{{ sid | lower }}
 # SAP ASCS/ERS Utility Commands
 sapcontrolscs_command: "sapcontrol -nr {{ scs_instance_number }}"
 sapcontrolers_command: "sapcontrol -nr {{ ers_instance_number }}"
-# hana_stop_start_timeout_in_seconds: 2700
-# hana_stop_start_delay_in_seconds: 2
+
+#hana_stop_start_timeout_in_seconds: 2700
+#hana_stop_start_delay_in_seconds: 2
+...

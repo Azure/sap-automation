@@ -1,4 +1,6 @@
 ---
+
+
 # /*---------------------------------------------------------------------------8
 # |  Variables in this file are required by the role,                          |
 # |  but are computed from default variables (e.g. sid),                       |
@@ -9,4 +11,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-db_sid_admin_user: "{{ db_sid | lower }}adm"
+db_sid_admin_user:                     "{{ db_sid | lower }}adm"
+
+...

@@ -26,26 +26,26 @@
 # -------------------------------------+---------------------------------------8
 #
 
-- name: Create sudoers file for {{ hanasudoers_file }} with
-    role {{ hanasudoers_role }} if required
+- name:                                Create sudoers file for {{ hanasudoers_file }} with
+                                       role {{ hanasudoers_role }} if required
   ansible.builtin.debug:
-    msg: "{{ sudoers_path }}/{{ hanasudoers_file }}"
-    verbosity: 2
+    msg:                               "{{ sudoers_path }}/{{ hanasudoers_file }}"
+    verbosity:                         2
 
-- name: Debug hanasudoers
+- name:                                Debug hanasudoers
   ansible.builtin.debug:
-    msg: "sudoers_{{ hanasudoers_role }}.j2"
-    verbosity: 2
+    msg:                               "sudoers_{{ hanasudoers_role }}.j2"
+    verbosity:                         2
 
-- name: Create sudoers file for {{ hanasudoers_file }} with
-    role {{ hanasudoers_role }} if required
+- name:                                Create sudoers file for {{ hanasudoers_file }} with
+                                       role {{ hanasudoers_role }} if required
   ansible.builtin.template:
-    src: "sudoers_{{ hanasudoers_role }}.j2"
-    dest: "{{ sudoers_path }}/{{ hanasudoers_file }}"
-    mode: "0440"
-    owner: root
-    group: root
-    validate: /usr/sbin/visudo -cf %s
+    src:                               "sudoers_{{ hanasudoers_role }}.j2"
+    dest:                              "{{ sudoers_path }}/{{ hanasudoers_file }}"
+    mode:                              "0440"
+    owner:                             root
+    group:                             root
+    validate:                          /usr/sbin/visudo -cf %s
   notify:
     - restart sshd service
 

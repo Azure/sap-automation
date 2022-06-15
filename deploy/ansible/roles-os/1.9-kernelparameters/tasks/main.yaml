@@ -35,47 +35,49 @@
 # <Comment Header>
 #
 # -------------------------------------+---------------------------------------8
-- name: "1.9 Kernel parameters - Ensure parameters are available"
-  ansible.builtin.include_vars: parameters.yaml
+- name:                                "1.9 Kernel parameters - Ensure parameters are available"
+  ansible.builtin.include_vars:        parameters.yaml
 
 # ----------------------------------------
 # BEGIN
 # ----------------------------------------
 
-- name: "1.9 Kernel parameters - Gather list of parameters which need to be applied"
+- name:                                "1.9 Kernel parameters - Gather list of parameters which need to be applied"
   ansible.builtin.set_fact:
-    get_parameters_to_apply: '{{
-      (
-      parameters["common"]
-      +
-      (
-      parameters[distribution_id] | default([])
-      )
-      ) | unique
-      }}'
+    get_parameters_to_apply:           '{{
+                                          (
+                                            parameters["common"]
+                                            +
+                                            (
+                                              parameters[distribution_id]|default([])
+                                            )
+                                          ) | unique
+                                        }}'
 
 # print only when -vv, otherwise you will have terminal nausea
-- name: "1.9 Kernel parameters - Display parameters which will be applied"
+- name:                                "1.9 Kernel parameters - Display parameters which will be applied"
   ansible.builtin.debug:
-    var: get_parameters_to_apply
-    verbosity: 2
+    var:                               get_parameters_to_apply
+    verbosity:                         2
 
-- name: "1.9 Kernel parameters - Set relevant kernel parameters"
-  become: true
+- name:                                "1.9 Kernel parameters - Set relevant kernel parameters"
+  become:                              true
   ansible.builtin.sysctl:
-    name: "{{ item.name }}"
-    value: "{{ item.value }}"
-    state: "{{ item.state }}"
-    sysctl_set: true
-    reload: true
-    ignoreerrors: true
-  loop: "{{ get_parameters_to_apply }}"
+    name:                              "{{ item.name }}"
+    value:                             "{{ item.value }}"
+    state:                             "{{ item.state }}"
+    sysctl_set:                        true
+    reload:                            true
+    ignoreerrors:                      true
+  loop:                                "{{ get_parameters_to_apply }}"
   when:
     - item.tier in ["all", tier]
+
 # ----------------------------------------
 # END
 # ----------------------------------------
 
+...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
 # +------------------------------------4--------------------------------------*/

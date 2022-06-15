@@ -1,37 +1,39 @@
 ---
-name: "SAP S4HANA 2020 SPS 3"
-target: "ABAP PLATFORM 2020"
+
+name:    "SAP S4HANA 2020 SPS 3"
+target:  "ABAP PLATFORM 2020"
 version: 1
 platform: HANA
 
 product_ids:
-  scs: NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAP
-  scs_ha: NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAPHA
-  dbl: NW_ABAP_DB:S4HANA2020.CORE.HDB.ABAP
-  pas: NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAP
-  pas_ha: NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAPHA
-  app: NW_DI:S4HANA2020.CORE.HDB.PD
-  app_ha: NW_DI:S4HANA2020.CORE.HDB.ABAPHA
+  scs:         NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAP
+  scs_ha:      NW_ABAP_ASCS:S4HANA2020.CORE.HDB.ABAPHA
+  dbl:         NW_ABAP_DB:S4HANA2020.CORE.HDB.ABAP
+  pas:         NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAP
+  pas_ha:      NW_ABAP_CI:S4HANA2020.CORE.HDB.ABAPHA
+  app:         NW_DI:S4HANA2020.CORE.HDB.PD
+  app_ha:      NW_DI:S4HANA2020.CORE.HDB.ABAPHA
   web:
-  ers: NW_ERS:S4HANA2020.CORE.HDB.ABAP
-  ers_ha: NW_ERS:S4HANA2020.CORE.HDB.ABAPHA
-  generic: NW_Users_Create:GENERIC.HDB.PD
+  ers:         NW_ERS:S4HANA2020.CORE.HDB.ABAP
+  ers_ha:      NW_ERS:S4HANA2020.CORE.HDB.ABAPHA
+  generic:     NW_Users_Create:GENERIC.HDB.PD
 
 materials:
   dependencies:
-    - name: HANA_2_00_059_v0002ms
-    - name: SWPM20SP11_latest
-    - name: SUM20SP13_latest
+    - name:     HANA_2_00_059_v0002ms
+    - name:     SWPM20SP11_latest
+    - name:     SUM20SP13_latest
 
   media:
+
     # SAPCAR 7.XX
 
-    - name: "SAPCAR 7.22; OS: Linux on x86_64 64bit"
-      archive: SAPCAR_1115-70006178.EXE
-      checksum: 765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
-      filename: SAPCAR
-      permissions: "0755"
-      url: https://softwaredownloads.sap.com/file/0020000000098642022
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      filename:     SAPCAR
+      permissions:  '0755'
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
 
     # kernel components
 
@@ -928,3 +930,5 @@ materials:
       archive: "SAP_UI755.SAR"
       url: "https://softwaredownloads.sap.com/file/0010000000211202021"
       download: false
+
+...

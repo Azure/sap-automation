@@ -5,48 +5,48 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Update Azure DevOps repository from GitHub $(branch) branch
+name:                                  Update Azure DevOps repository from GitHub $(branch) branch
 
 parameters:
-  - name: repository
-    displayName: Source repository
-    type: string
-    default: https://github.com/Azure/sap-automation.git
+  - name:                              repository
+    displayName:                       Source repository
+    type:                              string
+    default:                           https://github.com/Azure/sap-automation.git
 
-  - name: branch
-    displayName: Source branch to update from
-    type: string
-    default: main
+  - name:                              branch
+    displayName:                       Source branch to update from
+    type:                              string
+    default:                           main
 
-  - name: force
-    displayName: Force the update
-    type: boolean
-    default: false
+  - name:                              force
+    displayName:                       Force the update
+    type:                              boolean
+    default:                           false
 
-trigger: none
+trigger:                               none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage:                             ubuntu-latest
 
 variables:
-  - name: repository
-    value: ${{ parameters.repository }}
-  - name: branch
-    value: ${{ parameters.branch }}
-  - name: force
-    value: ${{ parameters.force }}
-  - name: log
-    value: logfile_$(Build.BuildId)
+  - name:                              repository
+    value:                             ${{ parameters.repository }}
+  - name:                              branch
+    value:                             ${{ parameters.branch }}
+  - name:                              force
+    value:                             ${{ parameters.force }}
+  - name:                              log
+    value:                             logfile_$(Build.BuildId)
 
 stages:
-  - stage: Update_ADO_repository
-    displayName: Update ADO repository
+  - stage:                             Update_ADO_repository
+    displayName:                       Update ADO repository
     jobs:
-      - job: Update_ADO_repository
-        displayName: Update ADO repository
+      - job:                           Update_ADO_repository
+        displayName:                   Update ADO repository
         steps:
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -92,7 +92,8 @@ stages:
 
               exit $return_code
 
-            displayName: Update ADO repository
+            displayName:               Update ADO repository
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: true
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              true
+...

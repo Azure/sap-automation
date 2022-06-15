@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             #
-#                             Resource Group                                  #
-#                                                                             #
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -21,9 +21,9 @@ output "workload_zone_prefix" {
 }
 
 ###############################################################################
-#                                                                             #
-#                            Network                                          #
-#                                                                             #
+#                                                                             # 
+#                            Network                                          # 
+#                                                                             # 
 ###############################################################################
 
 output "dns_label" {
@@ -91,9 +91,9 @@ output "subnet_mgmt_id" {
 
 
 ###############################################################################
-#                                                                             #
-#                            Key Vault                                        #
-#                                                                             #
+#                                                                             # 
+#                            Key Vault                                        # 
+#                                                                             # 
 ###############################################################################
 
 
@@ -133,9 +133,9 @@ output "sid_password_secret_name" {
 }
 
 ###############################################################################
-#                                                                             #
-#                            iSCSI                                            #
-#                                                                             #
+#                                                                             # 
+#                            iSCSI                                            # 
+#                                                                             # 
 ###############################################################################
 
 output "iscsi_authentication_type" {
@@ -156,18 +156,18 @@ output "dns_info_iscsi" {
 }
 
 ###############################################################################
-#                                                                             #
-#                            Storage accounts                                 #
-#                                                                             #
+#                                                                             # 
+#                            Storage accounts                                 # 
+#                                                                             # 
 ###############################################################################
 
 output "storageaccount_name" {
-  description = "Diagnostics storage account name"
+  description = "Diagnostics storage account name" 
   value = try(module.sap_landscape.storageaccount_name, "")
 }
 
 output "storageaccount_rg_name" {
-  description = "Diagnostics storage account resource group name"
+  description = "Diagnostics storage account resource group name" 
   value = try(module.sap_landscape.storageaccount_rg_name, "")
 }
 
@@ -193,9 +193,9 @@ output "witness_storage_account_key" {
 
 
 ###############################################################################
-#                                                                             #
-#                            ANF                                              #
-#                                                                             #
+#                                                                             # 
+#                            ANF                                              # 
+#                                                                             # 
 ###############################################################################
 
 output "ANF_pool_settings" {
@@ -203,9 +203,9 @@ output "ANF_pool_settings" {
 }
 
 ###############################################################################
-#                                                                             #
-#                            Mount info                                       #
-#                                                                             #
+#                                                                             # 
+#                            Mount info                                       # 
+#                                                                             # 
 ###############################################################################
 
 output "saptransport_path" {
