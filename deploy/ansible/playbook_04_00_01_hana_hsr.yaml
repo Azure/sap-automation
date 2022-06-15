@@ -14,27 +14,27 @@
 
     - name:                            Initialization
       block:
-        - name:                            Initialize facts
+        - name:                        Initialize facts
           ansible.builtin.set_fact:
-            tier:                          fencing
+            tier:                      fencing
 
-        - name:                            Run the misc/password role
+        - name:                        Run the misc/password role
           ansible.builtin.include_role:
-            name:                          roles-misc/0.1-passwords
-            public:                        true
+            name:                      roles-misc/0.1-passwords
+            public:                    true
           tags:
             - 0.1-passwords
 
-        - name:                            Run the keyvault role
+        - name:                        Run the keyvault role
           ansible.builtin.include_role:
-            name:                          roles-misc/0.2-kv-secrets
+            name:                      roles-misc/0.2-kv-secrets
           tags:
             - kv-secrets
 
-        - name:                            Ensure step file is removed
+        - name:                        Ensure step file is removed
           ansible.builtin.file:
-            path:                          "{{ _workspace_directory }}/.step401"
-            state:                         absent
+            path:                      "{{ _workspace_directory }}/.step401"
+            state:                     absent
       when:                            db_high_availability
 
 
@@ -42,8 +42,7 @@
 #   01) Hana DB system replication
 #
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
-
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                HANA HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -68,24 +67,21 @@
             secondary_instance_name:   "{{ hostvars[ ansible_play_hosts_all[1] ]['virtual_host'] }}"        # Setting up Secondary Instance Name
             main_password:             "{{ hostvars.localhost.sap_password }}"
 
-        - block:
-            - name:                    Include 1.4-packages role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.4-packages
+        - name:                        Include 1.4-packages role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
           tags:
             - 1.4-packages
 
-        - block:
-            - name:                    Run the db/hdb-hsr role
-              ansible.builtin.include_role:
-                name:                  roles-db/4.0.1-hdb-hsr
+        - name:                        Run the db/hdb-hsr role
+          ansible.builtin.include_role:
+            name:                      roles-db/4.0.1-hdb-hsr
           tags:
             - 4.0.1-hdb-hsr
       when:                            db_high_availability
 
     - name:                            "Install HANA Pacemaker resources"
       block:
-
         - name:                        Initialize facts
           ansible.builtin.set_fact:
             tier:                      ha
@@ -99,19 +95,19 @@
           tags:
             - always
 
-        - block:
-            - name:                    Run the hana sudoers role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.11-accounts
-                tasks_from:            setup_hanausers_sudoers.yml
-              when:                    1==2
-          tags:
-            - 1.11-accounts
-        - block:
-            - name:                    Run the Pacemaker role
-              ansible.builtin.include_role:
-                name:                  roles-sap/5.5-hanadb-pacemaker
-              when:                    db_high_availability
+        # FIXME: This task will never run due to when condition. Remove is possible
+        # - name:                        Run the hana sudoers role
+        #   ansible.builtin.include_role:
+        #     name:                      roles-os/1.11-accounts
+        #     tasks_from:                setup_hanausers_sudoers.yml
+        #   when:                        1==2
+        #   tags:
+        #     - 1.11-accounts
+
+        - name:                        Run the Pacemaker role
+          ansible.builtin.include_role:
+            name:                      roles-sap/5.5-hanadb-pacemaker
+          when:                        db_high_availability
           tags:
             - 5.5-hanadb-pacemaker
 

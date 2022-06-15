@@ -37,6 +37,6 @@ cluster_name: nw{{ sid | lower }}
 sapcontrolscs_command: "sapcontrol -nr {{ scs_instance_number }}"
 sapcontrolers_command: "sapcontrol -nr {{ ers_instance_number }}"
 
-#hana_stop_start_timeout_in_seconds: 2700
-#hana_stop_start_delay_in_seconds: 2
+# hana_stop_start_timeout_in_seconds: 2700
+# hana_stop_start_delay_in_seconds: 2
 ...

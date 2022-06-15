@@ -80,7 +80,7 @@
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
         dest:                          "{{ param_directory }}/{{ sap_inifile }}"
-        #remote_src:                    yes
+        # remote_src:                    yes
         mode:                          0644
         force:                         true
 

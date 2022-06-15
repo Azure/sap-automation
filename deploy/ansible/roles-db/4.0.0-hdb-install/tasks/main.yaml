@@ -69,7 +69,7 @@
         _rsp_components:               "all"
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
         _rsp_hostname:                 "{{ hana_host }}"
-        _rsp_sid:                      "{{ db_sid|upper }}"
+        _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ hdb_instance_number }}"
         _rsp_system_usage:             "custom"
         param_directory:               "{{ dir_params }}"
@@ -143,7 +143,7 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
   when:
-    -  hana_installed.stat.exists
+    - hana_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

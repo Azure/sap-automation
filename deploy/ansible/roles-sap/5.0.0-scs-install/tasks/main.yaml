@@ -11,7 +11,7 @@
 - name:                                "SCS Install"
   ansible.builtin.debug:
     msg:
-     - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 - name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:

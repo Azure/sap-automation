@@ -14,14 +14,14 @@
     ora_secondary:         "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                  "{{ ansible_hostname }}"
 
-#Configuration on the Secondary DB
+# Configuration on the Secondary DB
 
 - name:                                "Oracle Data Guard - Setup Secondary: Copy initSID.ora to Secondary"
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/init{{ db_sid|upper  }}.ora"
-    dest:                              /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/init{{ db_sid|upper  }}.ora
+    src:                               "{{ target_media_location }}/downloads/init{{ db_sid | upper  }}.ora"
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper  }}.ora
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
@@ -33,8 +33,8 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/orapw{{ db_sid|upper }}"
-    dest:                              /oracle/{{ db_sid|upper }}/{{ ora_release }}/dbs/orapw{{ db_sid|upper }}
+    src:                               "{{ target_media_location }}/downloads/orapw{{ db_sid | upper }}"
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
     remote_src:                        true
     owner:                             oracle
     group:                             dba
@@ -125,7 +125,7 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid|upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid|upper }}_STDBY @rman-restore.rman
+      ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid | upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid | upper }}_STDBY @rman-restore.rman
       register:                        rman_results
       failed_when:                     rman_results.rc > 0
       args:
@@ -158,14 +158,14 @@
       become_user:                     "oracle"
       ansible.builtin.shell:           rm -rf {{ item.directory_to_empty }}/*
       loop:
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata1' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata2' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata3' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/sapdata4' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogA' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/origlogB' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogA' }
-        - { directory_to_empty: '/oracle/{{ db_sid|upper }}/mirrlogB' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata1' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata2' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata3' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata4' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/origlogA' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/origlogB' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/mirrlogA' }
+        - { directory_to_empty: '/oracle/{{ db_sid | upper }}/mirrlogB' }
       tags:
         - skip_ansible_lint
 
@@ -194,7 +194,7 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid|upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid|upper }}_STDBY @rman-restore.rman
+      ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid | upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid | upper }}_STDBY @rman-restore.rman
       register:                        rman_results
       failed_when:                     rman_results.rc > 0
       args:
