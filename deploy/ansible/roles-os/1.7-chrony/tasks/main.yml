@@ -11,41 +11,40 @@
 #
 # -------------------------------------+---------------------------------------8
 
-
 # -------------------------------------+---------------------------------------8
 #
 # <Comment Header>
 #
 # -------------------------------------+---------------------------------------8
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
-#----------------------------------------
+# ----------------------------------------
 
 # TODO: This should probably be moved into the 1.4-packages role
-- name:                                "1.7 chrony: - Collect facts about installed packages"
+- name: "1.7 chrony: - Collect facts about installed packages"
   ansible.builtin.package_facts:
 
 # The ntp package should have been uninstalled during the execution
 # of the 1.4-packages role.
-- name:                                "1.7 chrony: - Fail if ntp still installed"
+- name: "1.7 chrony: - Fail if ntp still installed"
   ansible.builtin.fail:
     msg: >
-          The 'ntp' package is still installed. Please ensure that the
-          role-os/1.4-packages role has been successfully run before
-          this role runs.
+      The 'ntp' package is still installed. Please ensure that the
+      role-os/1.4-packages role has been successfully run before
+      this role runs.
   when:
     # parentheses wrapped to keep ansible parser happy
-    -      ('ntp' in ansible_facts.packages)
+    - ('ntp' in ansible_facts.packages)
 
-- name:                                "1.7 chrony: - Ensure that required packages are installed"
+- name: "1.7 chrony: - Ensure that required packages are installed"
   ansible.builtin.package:
-    name:                              "{{ item }}"
-    state:                             present
+    name: "{{ item }}"
+    state: present
   when:
     - item not in ansible_facts.packages
   loop:
-    - 'chrony'
+    - "chrony"
   register: chrony_package_installed
 
 # -------------------------------------+---------------------------------------8
@@ -54,9 +53,9 @@
 # using the distribution provided defaults.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Initialise facts used to manage chrony settings"
+- name: "1.7 chrony: - Initialise facts used to manage chrony settings"
   ansible.builtin.set_fact:
-    chronyd_restart_required:          "{{ chrony_package_installed is changed }}"
+    chronyd_restart_required: "{{ chrony_package_installed is changed }}"
     # Generate list of chrony config entries that may need to be added
     chrony_conf_entries: >-
       {%- set _conf_entries =[] -%}
@@ -69,10 +68,10 @@
       {%- endif -%}
       {{- _conf_entries -}}
 
-- name:                                "1.7 chrony: - Show generated list of chrony conf entries"
+- name: "1.7 chrony: - Show generated list of chrony conf entries"
   ansible.builtin.debug:
-    var:                               chrony_conf_entries
-    verbosity:                         2
+    var: chrony_conf_entries
+    verbosity: 2
   when:
     - (chrony_conf_entries | count) == 0
 
@@ -86,28 +85,28 @@
 # well as remove the ansible managed block entru
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Setup chrony with distribution defaults"
+- name: "1.7 chrony: - Setup chrony with distribution defaults"
   block:
-    - name:                            "1.7 chrony: - Remove any ansible managed block"
+    - name: "1.7 chrony: - Remove any ansible managed block"
       ansible.builtin.blockinfile:
-        path:                          /etc/chrony.conf
-        marker:                        "# {mark} ANSIBLE MANAGED BLOCK"
-        state:                         absent
-      register:                        chrony_remove_custom_settings
+        path: /etc/chrony.conf
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        state: absent
+      register: chrony_remove_custom_settings
 
-    - name:                            "1.7 chrony: - Uncomment any default entries"
+    - name: "1.7 chrony: - Uncomment any default entries"
       ansible.builtin.lineinfile:
-        path:                          /etc/chrony.conf
-        regexp:                        '^! ((pool|server) .*)$'
+        path: /etc/chrony.conf
+        regexp: "^! ((pool| server) .*)$"
         # need to use single quotes here to avoid quoting issues with \1
-        line:                          '\1'
-        backrefs:                      true
-        state:                         present
-      register:                        chrony_conf_updated
+        line: '\1'
+        backrefs: true
+        state: present
+      register: chrony_conf_updated
       when:
-        - ansible_os_family|upper == 'SUSE'
+        - ansible_os_family| upper == 'SUSE'
 
-    - name:                            "1.7 chrony: - Set chrony facts"
+    - name: "1.7 chrony: - Set chrony facts"
       ansible.builtin.set_fact:
         chronyd_restart_required: >-
           {{ ((chronyd_restart_required | bool) or
@@ -126,38 +125,38 @@
 # any of the settings are removed.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Setup chrony with override settings"
+- name: "1.7 chrony: - Setup chrony with override settings"
   block:
-    - name:                            "1.7 chrony: - Remove existing pool or server entries if
-                                       custom settings not yet applied"
+    - name: "1.7 chrony: - Remove existing pool or server entries if
+        custom settings not yet applied"
       ansible.builtin.shell: |
         # Don't do anything if the file has ansible managed marker
         if grep >/dev/null 2>&1 "ANSIBLE MANAGED BLOCK" /etc/chrony.conf; then
           exit 0
         fi
         # Don't do anything if there are no active pool or server settings
-        if ! grep -E "^(pool|server) .*" /etc/chrony.conf; then
+        if ! grep -E "^(pool| server) .*" /etc/chrony.conf; then
           exit 0
         fi
         # comment out any existing pool or server settings and exit with
         # 55 if successful, otherwise fail with the error status of sed
-        sed -i -e '/^\(pool\|server\) /s,^,! ,' /etc/chrony.conf && exit 55
-      failed_when:                     chrony_remove_existing_settings.rc not in [0, 55]
-      changed_when:                    chrony_remove_existing_settings.rc == 55
-      register:                        chrony_remove_existing_settings
+        sed -i -e '/^\(pool\| server\) /s,^,! ,' /etc/chrony.conf && exit 55
+      failed_when: chrony_remove_existing_settings.rc not in [0, 55]
+      changed_when: chrony_remove_existing_settings.rc == 55
+      register: chrony_remove_existing_settings
 
-    - name:                            "1.7 chrony: - Add/Update custom settings block"
+    - name: "1.7 chrony: - Add/Update custom settings block"
       ansible.builtin.blockinfile:
-        path:                          /etc/chrony.conf
-        marker:                        "# {mark} ANSIBLE MANAGED BLOCK"
-        insertafter:                   "^# Please consider joining the pool .*"
+        path: /etc/chrony.conf
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        insertafter: "^# Please consider joining the pool .*"
         block: |
-                                       {% for entry in chrony_conf_entries -%}
-                                       {{ entry.type }} {{ entry.name }} {{ entry.opts | join(' ') }}
-                                       {% endfor -%}
-      register:                        chrony_conf_updated
+          {% for entry in chrony_conf_entries -%}
+          {{ entry.type }} {{ entry.name }} {{ entry.opts | join(' ') }}
+          {% endfor -%}
+      register: chrony_conf_updated
 
-    - name:                            "1.7 chrony: - Set chrony facts"
+    - name: "1.7 chrony: - Set chrony facts"
       ansible.builtin.set_fact:
         chronyd_restart_required: >-
           {{ ((chronyd_restart_required | bool) or
@@ -167,10 +166,10 @@
     # If custom pool or servers specified
     - (chrony_conf_entries | count) > 0
 
-- name:                                "1.7 chrony: - Do we need to restart chronyd?"
+- name: "1.7 chrony: - Do we need to restart chronyd?"
   ansible.builtin.debug:
-    var:                               chronyd_restart_required
-    verbosity:                         2
+    var: chronyd_restart_required
+    verbosity: 2
 
 # -------------------------------------+---------------------------------------8
 #
@@ -181,20 +180,20 @@
 # -------------------------------------+---------------------------------------8
 
 # On SLES systems the service is installed in a disabled state
-- name:                                "1.7 chrony: - Ensure chronyd service is enabled"
+- name: "1.7 chrony: - Ensure chronyd service is enabled"
   ansible.builtin.service:
-    name:                              chronyd
-    enabled:                           true
+    name: chronyd
+    enabled: true
 
 # Restart chronyd either if the package was installed or
 # configuration changes were made.
-- name:                                "1.7 chrony: - Restart chronyd service if needed"
+- name: "1.7 chrony: - Restart chronyd service if needed"
   ansible.builtin.service:
-    name:                              chronyd
-    state:                             restarted
+    name: chronyd
+    state: restarted
   when:
     - chronyd_restart_required | bool
-  register:                            chronyd_restarted
+  register: chronyd_restarted
 
 # -------------------------------------+---------------------------------------8
 #
@@ -204,13 +203,12 @@
 # is started/running.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                Ensure chronyd service is running
+- name: Ensure chronyd service is running
   ansible.builtin.service:
-    name:                              chronyd
-    state:                             started
+    name: chronyd
+    state: started
   when:
     - chronyd_restarted is skipped
-
-#----------------------------------------
+# ----------------------------------------
 # END
-#----------------------------------------
+# ----------------------------------------

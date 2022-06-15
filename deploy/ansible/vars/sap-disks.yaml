@@ -1,5 +1,4 @@
 ---
-
 # TODO: The below lists are enough for the SCS being configured for the Bill of Materials processing.
 #       The lists will need expanding to cover all expected disks/mount points for all hosts.
 #       This will likely include NFS mounts, and will need to consider different deployment sizes/configurations.

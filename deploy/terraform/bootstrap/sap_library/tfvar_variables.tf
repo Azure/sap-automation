@@ -1,6 +1,6 @@
 /*
 
-This block describes the variable for the infrastructure block 
+This block describes the variable for the infrastructure block
 
 */
 
@@ -37,7 +37,7 @@ variable "resourcegroup_tags" {
 
 /*
 
-This block describes the variable for the deployer block 
+This block describes the variable for the deployer block
 
 */
 

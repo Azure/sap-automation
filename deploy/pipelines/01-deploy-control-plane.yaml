@@ -8,52 +8,52 @@
 name: Deploying the control plane defined in $(deployerfolder) $(libraryfolder)
 
 parameters:
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name: deployer
+    displayName: "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
 
-  - name:                              library
-    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
+  - name: library
+    displayName: "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
+    type: string
+    default: MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              environment
-    displayName:                       "Environment name, MGMT, DEV, QA, etc"
-    type:                              string
-    default:                           MGMT
-trigger:                               none
+  - name: environment
+    displayName: "Environment name, MGMT, DEV, QA, etc"
+    type: string
+    default: MGMT
+trigger: none
 
 pool:
-  name:                                $(Agent)
+  name: $(Agent)
 
 variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.environment }}
-  - name:                              deployerfolder
-    value:                             ${{ parameters.deployer }}
-  - name:                              deployerconfig
-    value:                             ${{ parameters.deployer }}.tfvars
-  - name:                              libraryfolder
-    value:                             ${{ parameters.library }}
-  - name:                              libraryconfig
-    value:                             ${{ parameters.library }}.tfvars
-  - name:                              log
-    value:                             logfile_$(Build.BuildId)
-  - name:                              tf_url
-    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group: "SDAF-General"
+  - group: SDAF-${{ parameters.environment }}
+  - name: deployerfolder
+    value: ${{ parameters.deployer }}
+  - name: deployerconfig
+    value: ${{ parameters.deployer }}.tfvars
+  - name: libraryfolder
+    value: ${{ parameters.library }}
+  - name: libraryconfig
+    value: ${{ parameters.library }}.tfvars
+  - name: log
+    value: logfile_$(Build.BuildId)
+  - name: tf_url
+    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage:                             Deploy_controlplane
-    displayName:                       Deploy the control plane
+  - stage: Deploy_controlplane
+    displayName: Deploy the control plane
     jobs:
-      - job:                           Deploy_controlplane
-        displayName:                   Deploy the control plane
+      - job: Deploy_controlplane
+        displayName: Deploy the control plane
         workspace:
-          clean:                       all
+          clean: all
         steps:
-          - checkout:                  self
-            persistCredentials:        true
+          - checkout: self
+            persistCredentials: true
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
@@ -128,7 +128,7 @@ stages:
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
-              
+
               deployer_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
               if [ -f ${deployer_environment_file_name} ]; then
@@ -216,8 +216,8 @@ stages:
 
 
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
 
                 if [ -f $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
@@ -225,16 +225,14 @@ stages:
                 fi
 
                 exit $return_code
-            displayName:               Deploy control plane
+            displayName: Deploy control plane
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              TF_VAR_agent_pat:        $(PAT)
-              TF_VAR_agent_ado_url:    $(System.CollectionUri)
-              TF_VAR_agent_pool:       $(POOL)
-            failOnStderr:              false
-
-...
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              TF_VAR_agent_pat: $(PAT)
+              TF_VAR_agent_ado_url: $(System.CollectionUri)
+              TF_VAR_agent_pool: $(POOL)
+            failOnStderr: false

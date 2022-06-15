@@ -1,13 +1,8 @@
 ---
+bom_base_name: S42020SPS03_v0001ms
 
-bom_base_name:       S42020SPS03_v0001ms
-
-#Name of the key vault containing the S user credentials
-deployer_kv_name:    PERMUKSODEP03user9B3
-
+# Name of the key vault containing the S user credentials
+deployer_kv_name: PERMUKSODEP03user9B3
 # Set the following value to true to calculate checksums for the downloaded files
 # Not needed for the Microsoft provided BOMs
-#create_checksums:              true
-
-
-...
+# create_checksums:              true

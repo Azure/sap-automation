@@ -1,5 +1,4 @@
 ---
-
 # /*---------------------------------------------------------------------------8
 # |  Variables in this file are required by the role,                          |
 # |  but are computed from default variables (e.g. sid),                       |
@@ -11,15 +10,15 @@
 # +------------------------------------4--------------------------------------*/
 
 cluster_totem:
-  token:                               30000
-  retransmits:                         10
-  join:                                60
-  consensus:                           36000
-  max_messages:                        20
+  token: 30000
+  retransmits: 10
+  join: 60
+  consensus: 36000
+  max_messages: 20
 
 cluster_quorum:
-  expected_votes:                      2
-  two_node:                            1
+  expected_votes: 2
+  two_node: 1
 
 # /*---------------------------------------------------------------------------8
 # | These are the default timeouts used for the SAP HANA OS clustering.        |
@@ -29,23 +28,23 @@ cluster_quorum:
 # +------------------------------------4--------------------------------------*/
 
 cluster_sap_hana_timeouts:
-  start:                              3600
-  stop:                               3600
-  monitor_master:                     700
-  monitor_slave:                      700
-  promote:                            3600
-  demote:                             3600
+  start: 3600
+  stop: 3600
+  monitor_master: 700
+  monitor_slave: 700
+  promote: 3600
+  demote: 3600
 
 cluster_status_cmd:
-  RedHat:                             "pcs status --full"
-  Suse:                               "crm status full"
+  RedHat: "pcs status --full"
+  Suse: "crm status full"
 
-cluster_status_report_wait_in_s:      60
-cluster_name:                         db{{ sid | lower }}
+cluster_status_report_wait_in_s: 60
+cluster_name: db{{ sid | lower }}
 
 # /*---------------------------------------------------------------------------8
 # |                      HANA utility commands                                 |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-sapcontrol_command:                    "/usr/sap/{{ db_sid | upper}}/HDB{{ hdb_instance_number }}/exe/sapcontrol -nr {{ hdb_instance_number }}"
+sapcontrol_command: "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/sapcontrol -nr {{ hdb_instance_number }}"

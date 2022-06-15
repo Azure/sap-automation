@@ -1,11 +1,10 @@
 ---
 #
-name:    'SWPM20SP09_v0001ms'
-target:  'S/4 HANA 1909 SPS 03'
+name: "SWPM20SP09_v0001ms"
+target: "S/4 HANA 1909 SPS 03"
 version: 1
 
 materials:
-
   media:
   # Format:
   #   - name:           any value                           (Not Used)
@@ -17,6 +16,3 @@ materials:
   #     creates:
   #     url:            optional download url if known      (Not Used at this time)
   #
-
-
-...

@@ -9,52 +9,48 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
-
-- name:                                "HCMT"
+- name: "HCMT"
   block:
-
-# +------------------------------------4--------------------------------------*/
+    # +------------------------------------4--------------------------------------*/
 
     - name: Setup HCMT
-      ansible.builtin.command:         ./hcmtsetup
+      ansible.builtin.command: ./hcmtsetup
       args:
-        chdir:                         "{{ target_media_location }}/hcmt/setup"
-        creates:                       "{{ target_media_location }}/hcmt/setup/config"
+        chdir: "{{ target_media_location }}/hcmt/setup"
+        creates: "{{ target_media_location }}/hcmt/setup/config"
 
-    - name:                            Set Request to false to allow non-interactive run
+    - name: Set Request to false to allow non-interactive run
       ansible.builtin.replace:
-        path:                          "{{ target_media_location }}/hcmt/setup/config/executionplan.json"
-        regexp:                        '"Request": "true"'
-        replace:                       '"Request": "false"'
+        path: "{{ target_media_location }}/hcmt/setup/config/executionplan.json"
+        regexp: '"Request": "true"'
+        replace: '"Request": "false"'
 
-    - name:                            Lower Repeat Value to 1 to reduce long runtime
+    - name: Lower Repeat Value to 1 to reduce long runtime
       ansible.builtin.replace:
-        path:                          "{{ target_media_location }}/hcmt/setup/config/executionplan.json"
-        regexp:                        '"Value": "2"'
-        replace:                       '"Value": "1"'
+        path: "{{ target_media_location }}/hcmt/setup/config/executionplan.json"
+        regexp: '"Value": "2"'
+        replace: '"Value": "1"'
 
-    - name:                            Execute HCMT
-      ansible.builtin.command:         ./hcmt -v -p config/executionplan.json
-      changed_when:                    false
+    - name: Execute HCMT
+      ansible.builtin.command: ./hcmt -v -p config/executionplan.json
+      changed_when: false
       args:
-        chdir:                         "{{ target_media_location }}/hcmt/setup"
+        chdir: "{{ target_media_location }}/hcmt/setup"
 
-    - name:                            Find HCMT test result file
+    - name: Find HCMT test result file
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/hcmt/setup"
-        patterns:                      "hcmtresult-*.zip"
-        recurse:                       false
-      register:                        file_2_fetch
+        paths: "{{ target_media_location }}/hcmt/setup"
+        patterns: "hcmtresult-*.zip"
+        recurse: false
+      register: file_2_fetch
 
-    - name:                            Fetch the HCMT result
+    - name: Fetch the HCMT result
       ansible.builtin.fetch:
-        src:                           "{{ item.path }}"
-        dest:                          "{{ _workspace_directory }}/logs"
-        flat:                          true
-        fail_on_missing:               false
+        src: "{{ item.path }}"
+        dest: "{{ _workspace_directory }}/logs"
+        flat: true
+        fail_on_missing: false
       with_items: "{{ file_2_fetch.files }}"
-
-...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/

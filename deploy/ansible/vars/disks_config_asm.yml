@@ -1,5 +1,4 @@
 ---
-
 # Dynamicallu determine list of unique disk types associated with
 # current node.
 disktypes: >-
@@ -57,23 +56,21 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 
-#Adding Tier and disk types for Oracle installation ASM.
+# Adding Tier and disk types for Oracle installation ASM.
 logical_volumes:
+  - tier: "ora"
+    node_tier: "oracle-asm"
+    vg: "vg_oracle"
+    lv: "lv_oracle"
+    size: "64g"
+    fstype: "xfs"
 
-  - tier:       'ora'
-    node_tier:  'oracle-asm'
-    vg:         'vg_oracle'
-    lv:         'lv_oracle'
-    size:       '64g'
-    fstype:     'xfs'
-
-  - tier:       'ora'
-    node_tier:  'oracle-asm'
-    vg:         'vg_sap'
-    lv:         'lv_usrsap'
-    size:       '64g'
-    fstype:     'xfs'
-
+  - tier: "ora"
+    node_tier: "oracle-asm"
+    vg: "vg_sap"
+    lv: "lv_usrsap"
+    size: "64g"
+    fstype: "xfs"
 
 # Define a dynamic expression based upon the 'item' fact that can
 # only be used within a loop, that determines the number of PVs

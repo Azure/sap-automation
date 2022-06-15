@@ -24,7 +24,7 @@ location    = "westeurope"
 #anchor_vm_nic_ips=["","",""]
 #anchor_vm_use_DHCP=false
 
-#Networking 
+#Networking
 #network_arm_id=""
 network_name          = "SAP01"
 network_address_space = "10.1.0.0/16"

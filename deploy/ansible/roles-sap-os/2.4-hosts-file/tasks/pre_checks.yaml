@@ -1,24 +1,19 @@
 ---
-
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Validation for Prerequisites
 #
-- name:                                Check required variables are present and not empty
+- name: Check required variables are present and not empty
   ansible.builtin.debug:
-    msg:                               "{{ sap_fqdn | type_debug }}"
+    msg: "{{ sap_fqdn | type_debug }}"
 
 # -------------------------------------+---------------------------------------8
 
-
-- name:                                Check required variables are present and not empty
+- name: Check required variables are present and not empty
   ansible.builtin.assert:
     that:
-      - "sap_fqdn is defined"                    # Has the variable been defined
-      - "sap_fqdn | type_debug != 'NoneType'"    # and given a value
-      - "sap_fqdn | string | length != 0 "       # Detect null values
-    fail_msg:                          "Please define the sap_fqdn parameter"
-
+      - "sap_fqdn is defined" # Has the variable been defined
+      - "sap_fqdn | type_debug != 'NoneType'" # and given a value
+      - "sap_fqdn | string | length != 0 " # Detect null values
+    fail_msg: "Please define the sap_fqdn parameter"
 # -------------------------------------+---------------------------------------8
-
-...
