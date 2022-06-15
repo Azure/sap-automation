@@ -43,14 +43,14 @@
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "PAS Install: -  Set the DB Server name list"
   ansible.builtin.set_fact:
     db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
@@ -89,7 +89,7 @@
     sap_profile_dir:                   /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
-    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') | first }}"
+    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
     sap_appVirtualHostname:            "{{ inventory_hostname }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
@@ -178,7 +178,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid|upper }}"
+        paths:                         "/usr/sap/{{ sap_sid | upper }}"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -186,7 +186,7 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-    
+
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -194,7 +194,7 @@
         - db_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-    
+
     - name:                            "APP Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
@@ -234,7 +234,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid|upper }}"
+        paths:                         "/usr/sap/{{ sap_sid | upper }}"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -242,7 +242,7 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-    
+
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -250,7 +250,7 @@
         - db_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-    
+
     - name:                            "APP Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
@@ -271,7 +271,7 @@
         - skip_ansible_lint
 
   when:
-    -  app_installed.stat.exists
+    - app_installed.stat.exists
 
 # *====================================4=======================================8
 

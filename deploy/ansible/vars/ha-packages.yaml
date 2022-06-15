@@ -1,7 +1,7 @@
 ---
-#Deprecating this vars file - The HA packages will be installed from roles-os->1.4-packages
+# Deprecating this vars file - The HA packages will be installed from roles-os->1.4-packages
 
-#ha_packages:
+# ha_packages:
 #  RedHat:
 #    - pcs
 #    - pacemaker
