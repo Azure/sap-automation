@@ -1,13 +1,13 @@
 {
     "infrastructure": {
-        "environment": "np",
-        "region": "westeurope"
+        "environment"                   : "np",
+        "region"                        : "westeurope"
     },
     "deployer": {
-        "environment": "np",
-        "region": "westeurope",
-        "vnet": "DEP00",
-        "use": "true"
+        "environment"                   : "np",
+        "region"                        : "westeurope",
+        "vnet"                          : "DEP00",
+        "use"                           : "true"
     },
-    "dns_label": "sap.agcicat.net"
+    "dns_label"                         : "sap.agcicat.net"
 }

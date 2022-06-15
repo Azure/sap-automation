@@ -1,4 +1,5 @@
 ---
+
 # sapcontrol EXITCODES
 
 # /*---------------------------------------------------------------------------8
@@ -7,7 +8,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name: Check the fencing agent configuration variables are set
+- name:                                Check the fencing agent configuration variables are set
   ansible.builtin.assert:
     that:
       - "sap_hana_fencing_spn_subscription_id is defined"
@@ -18,46 +19,46 @@
       - "sap_hana_fencing_spn_client_id | trim | length > 0"
       - "sap_hana_fencing_spn_client_pwd is defined"
       - "sap_hana_fencing_spn_client_pwd | trim | length > 0"
-    fail_msg: Fencing SPN details are missing
+    fail_msg:                          Fencing SPN details are missing
 
-- name: Check the required cluster password is set
+- name:                                Check the required cluster password is set
   ansible.builtin.assert:
     that:
       - "password_ha_db_cluster is defined"
       - "password_ha_db_cluster | trim | length > 0"
-    fail_msg: The cluster password is not defined
+    fail_msg:                          The cluster password is not defined
 
-- name: Check the required Clustering scripts are available
+- name:                                Check the required Clustering scripts are available
   ansible.builtin.stat:
-    path: "{{ item }}"
+    path:                              "{{ item }}"
   loop:
     - "/usr/sbin/ha-cluster-init"
     - "/usr/sbin/ha-cluster-join"
-  register: cluster_scripts_status_results
-  failed_when: not cluster_scripts_status_results.stat.exists
+  register:                            cluster_scripts_status_results
+  failed_when:                         not cluster_scripts_status_results.stat.exists
   when: ansible_os_family == 'Suse'
 
-- name: "HANA PCM Install: Create run flag directory"
+- name:                                "HANA PCM Install: Create run flag directory"
   ansible.builtin.file:
-    path: /etc/sap_deployment_automation
-    state: directory
-    mode: 0755
+    path:                              /etc/sap_deployment_automation
+    state:                             directory
+    mode:                              0755
 
-- name: "HANA PCM Install: reset"
+- name:                                "HANA PCM Install: reset"
   ansible.builtin.file:
-    path: /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
-    state: absent
-  when: reinstall
+    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
+    state:                             absent
+  when:                                reinstall
 
-- name: "HANA PCM Install: check if deployed"
+- name:                                "HANA PCM Install: check if deployed"
   ansible.builtin.stat:
-    path: /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
-  register: hana_pacemaker
+    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
+  register:                            hana_pacemaker
 
-- name: Check if a cluster has already been prepared (save)
+- name:                                Check if a cluster has already been prepared (save)
   ansible.builtin.set_fact:
-    hana_cluster_existence_check: "{{ hana_pacemaker.stat.exists }}"
+    hana_cluster_existence_check:      "{{ hana_pacemaker.stat.exists }}"
 
-- name: Check if a cluster has already been prepared (show)
+- name:                                Check if a cluster has already been prepared (show)
   ansible.builtin.debug:
-    msg: "Cluster check return value: {{ hana_cluster_existence_check }}"
+    msg:                               "Cluster check return value: {{ hana_cluster_existence_check }}"

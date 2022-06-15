@@ -8,44 +8,44 @@
 name: SAP Infrastructure Deployment $(sap_system_folder)
 
 parameters:
-  - name: sap_system
-    displayName: "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
-    type: string
-    default: DEV-WEEU-SAP01-X00
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
 
-  - name: environment
-    displayName: Workload Environment (DEV, QUA, PRD, ...)
-    type: string
-    default: DEV
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
 
-trigger: none
+trigger:                               none
 
 pool:
-  name: $(Agent)
-  vmImage: ubuntu-latest
+  name:                                $(Agent)
+  vmImage:                             ubuntu-latest
 
 variables:
-  - group: "SDAF-General"
-  - group: SDAF-${{ parameters.environment }}
-  - name: sap_system_folder
-    value: ${{ parameters.sap_system }}
-  - name: sap_system_configuration
-    value: ${{ parameters.sap_system }}.tfvars
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
+  - name:                              sap_system_folder
+    value:                             ${{ parameters.sap_system }}
+  - name:                              sap_system_configuration
+    value:                             ${{ parameters.sap_system }}.tfvars
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Deploy_SAP_infrastructure
-    displayName: Deploy SAP infrastructure
+  - stage:                             Deploy_SAP_infrastructure
+    displayName:                       Deploy SAP infrastructure
     jobs:
-      - job: Deploy_SAP_infrastructure
-        displayName: Deploy SAP infrastructure
+      - job:                           Deploy_SAP_infrastructure
+        displayName:                   Deploy SAP infrastructure
         workspace:
-          clean: all
+          clean:                       all
         steps:
           - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
@@ -146,7 +146,7 @@ stages:
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --only-show-errors
+                  az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --only-show-errors 
                   ip_added=1
                 fi
 
@@ -155,7 +155,7 @@ stages:
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  az keyvault network-rule add --name ${workloadkeyvault} --ip-address ${this_ip} --only-show-errors
+                  az keyvault network-rule add --name ${workloadkeyvault} --ip-address ${this_ip} --only-show-errors 
                 fi
 
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
@@ -191,7 +191,7 @@ stages:
                 fi
 
                 # Pull changes if there are other deployment jobs
-
+                
                 cd $HOME/SYSTEM/$(sap_system_folder)
                 git pull
 
@@ -223,26 +223,27 @@ stages:
                   git add    ${SID}_resource_names.json
                   added=1
                 fi
-
+                
                 if [ -f $(sap_system_configuration) ]; then
                   git add    $(sap_system_configuration)
                   added=1
                 fi
-
+                
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
                 if [ -f ${SID}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
                 fi
               exit $return_code
 
-            displayName: Deploy_SAP_infrastructure
+            displayName:               Deploy_SAP_infrastructure
             env:
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            failOnStderr: false
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+            failOnStderr:              false
+...

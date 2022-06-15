@@ -6,98 +6,99 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+
 name: Removal
 
 parameters:
-  - name: cleanup_sap
-    displayName: Remove the SAP system
-    type: boolean
-    default: true
+  - name:                              cleanup_sap
+    displayName:                       Remove the SAP system
+    type:                              boolean
+    default:                           true
 
-  - name: sap_system
-    displayName: "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
-    type: string
-    default: DEV-WEEU-SAP01-X00
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
 
-  - name: cleanup_zone
-    displayName: Remove the SAP workload zone
-    type: boolean
-    default: true
+  - name:                              cleanup_zone
+    displayName:                       Remove the SAP workload zone
+    type:                              boolean
+    default:                           true
 
-  - name: workload_zone
-    displayName: "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type: string
-    default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                              workload_zone
+    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name: cleanup_region
-    displayName: Remove the control plane
-    type: boolean
-    default: true
+  - name:                              cleanup_region
+    displayName:                       Remove the control plane
+    type:                              boolean
+    default:                           true
 
-  - name: deployer
-    displayName: "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type: string
-    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name:                              deployer
+    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
 
-  - name: library
-    displayName: "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type: string
-    default: MGMT-WEEU-SAP_LIBRARY
+  - name:                              library
+    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type:                              string
+    default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name: environment
-    displayName: Environment (DEV, QUA, PRD)
-    type: string
-    default: DEV
+  - name:                              environment
+    displayName:                       Environment (DEV, QUA, PRD)
+    type:                              string
+    default:                           DEV
 
-trigger: none
+trigger:                               none
 
 pool:
-  name: $(Agent)
+  name:                                $(Agent)
 
 variables:
-  - group: "SDAF-General"
-  - group: SDAF-${{ parameters.environment }}
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
 
-  - name: deployer_folder
-    value: ${{ parameters.deployer }}
+  - name:                              deployer_folder
+    value:                             ${{ parameters.deployer }}
 
-  - name: deployer_configuration_file
-    value: ${{ parameters.deployer }}.tfvars
+  - name:                              deployer_configuration_file
+    value:                             ${{ parameters.deployer }}.tfvars
 
-  - name: library_folder
-    value: ${{ parameters.library }}
+  - name:                              library_folder
+    value:                             ${{ parameters.library }}
 
-  - name: library_configuration_file
-    value: ${{ parameters.library }}.tfvars
+  - name:                              library_configuration_file
+    value:                             ${{ parameters.library }}.tfvars
 
-  - name: workload_zone_folder
-    value: ${{ parameters.workload_zone }}
+  - name:                              workload_zone_folder
+    value:                             ${{ parameters.workload_zone }}
 
-  - name: workload_zone_configuration_file
-    value: ${{ parameters.workload_zone }}.tfvars
+  - name:                              workload_zone_configuration_file
+    value:                             ${{ parameters.workload_zone }}.tfvars
 
-  - name: sap_system_folder
-    value: ${{ parameters.sap_system }}
+  - name:                              sap_system_folder
+    value:                             ${{ parameters.sap_system }}
 
-  - name: sap_system_configuration
-    value: ${{ parameters.sap_system }}.tfvars
+  - name:                              sap_system_configuration
+    value:                             ${{ parameters.sap_system }}.tfvars
 
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Remove_SAP_systems
-    displayName: "Removing the SAP System"
-    condition: eq(${{ parameters.cleanup_sap }}, true)
+  - stage:                             Remove_SAP_systems
+    displayName:                       "Removing the SAP System"
+    condition:                         eq(${{ parameters.cleanup_sap }}, true)
     jobs:
-      - job: Remove_SAP_systems
-        displayName: "Removing the SAP System"
+      - job:                           Remove_SAP_systems
+        displayName:                   "Removing the SAP System"
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
@@ -232,33 +233,33 @@ stages:
                 fi
 
                 if [ 1 == $changed ]; then
-                  git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
               exit $return_code
 
-            displayName: Remove SAP systems
+            displayName:               Remove SAP systems
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+            failOnStderr:              false
 
-  - stage: Remove_SAP_workload_zone
-    displayName: "Removing the SAP workload zone"
-    condition: eq(${{ parameters.cleanup_zone }}, true)
+  - stage:                             Remove_SAP_workload_zone
+    displayName:                       "Removing the SAP workload zone"
+    condition:                         eq(${{ parameters.cleanup_zone }}, true)
     jobs:
-      - job: Remove_SAP_workload_zone
-        displayName: Remove the SAP Workload Zone
+      - job:                           Remove_SAP_workload_zone
+        displayName:                   Remove the SAP Workload Zone
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(workload_zone_folder)"
@@ -385,22 +386,22 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
               exit $return_code
-            displayName: Remove SAP workload_zone
+            displayName:               Remove SAP workload_zone
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+            failOnStderr:              false
 
-  - stage: Remove_controlplane
-    displayName: "Remove the control plane"
+  - stage:                             Remove_controlplane
+    displayName:                       "Remove the control plane"
     dependsOn:
       - Remove_SAP_workload_zone
     condition: |
@@ -410,14 +411,14 @@ stages:
         in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped')
       )
     jobs:
-      - job: Remove_controlplane
-        displayName: "Remove the control plane"
+      - job:                           Remove_controlplane
+        displayName:                   "Remove the control plane"
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
@@ -553,15 +554,16 @@ stages:
                 fi
 
                 if [ 1 == $changed ] ; then
-                  git commit -m "Control Plane ${deployer_folder} removal[skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Control Plane ${deployer_folder} removal[skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
               exit $return_code
-            displayName: Remove control plane
+            displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+            failOnStderr:              false
+...

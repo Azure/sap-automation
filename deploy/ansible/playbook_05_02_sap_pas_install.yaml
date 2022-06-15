@@ -4,49 +4,52 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
-- hosts: localhost
-  name: "PAS Installation Playbook: - Initialization"
-  gather_facts: false
+
+- hosts:                               localhost
+  name:                                "PAS Installation Playbook: - Initialization"
+  gather_facts:                        false
   vars_files:
-    - vars/ansible-input-api.yaml # API Input template with defaults
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name: "PAS Installation Playbook: - Create Progress folder"
-      ansible.builtin.file:
-        path: "{{ _workspace_directory }}/.progress"
-        state: directory
-        mode: 0755
 
-    - name: "PAS Installation Playbook: - Remove pas-install-done flag"
+    - name:                            "PAS Installation Playbook: - Create Progress folder"
       ansible.builtin.file:
-        path: "{{ _workspace_directory }}/.progress/pas-install-done"
-        state: absent
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
 
-    - name: "PAS Installation Playbook: - Set pas fact"
+    - name:                            "PAS Installation Playbook: - Remove pas-install-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
+        state:                          absent
+
+
+    - name:                            "PAS Installation Playbook: - Set pas fact"
       ansible.builtin.set_fact:
-        tier: pas
+        tier:                          pas
 
-    - name: "PAS Installation Playbook: - Read/Create passwords"
+    - name:                            "PAS Installation Playbook: - Read/Create passwords"
       ansible.builtin.include_role:
-        name: roles-misc/0.1-passwords
-        public: true
+        name:                          roles-misc/0.1-passwords
+        public:                        true
 
       tags:
         - 0.1-passwords
 
-    - name: "PAS Installation Playbook: - Read/Create key vault secrets"
+    - name:                            "PAS Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
-        name: roles-misc/0.2-kv-secrets
-        public: true
+        name:                          roles-misc/0.2-kv-secrets
+        public:                        true
       tags:
         - 0.2-kv-secrets
 
-    - name: "PAS Installation Playbook: - Read storage account details"
+    - name:                            "PAS Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
-        name: roles-misc/0.3.sap-installation-media-storage-details
-        public: true
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
       vars:
-        tier: pas
+        tier:                          pas
       tags:
         - kv-sap-installation-media-storage-details
 
@@ -56,49 +59,50 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts: "{{ sap_sid | upper }}_PAS"
+- hosts:                               "{{ sap_sid|upper }}_PAS"
 
-  name: SAP Generic OS Groups and User Creation
-  serial: 1
-  become: true
-  become_user: root
-  gather_facts: true
+  name:                                SAP Generic OS Groups and User Creation
+  serial:                              1
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
   vars_files:
-    - vars/ansible-input-api.yaml # API Input template with defaults
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name: "PAS Installation Playbook: Define this SID"
+    - name:                            "PAS Installation Playbook: Define this SID"
       ansible.builtin.set_fact:
         this_sid:
           {
-            "sid": "{{ sap_sid | upper }}",
-            "dbsid_uid": "{{ hdbadm_uid }}",
-            "sidadm_uid": "{{ sidadm_uid }}",
-            "ascs_inst_no": "{{ scs_instance_number }}",
-            "pas_inst_no": "{{ pas_instance_number }}",
-            "app_inst_no": "{{ app_instance_number }}",
+            'sid': '{{ sap_sid|upper }}',
+            'dbsid_uid': '{{ hdbadm_uid }}',
+            'sidadm_uid': '{{ sidadm_uid }}',
+            'ascs_inst_no': '{{ scs_instance_number }}',
+            'pas_inst_no': '{{ pas_instance_number }}',
+            'app_inst_no': '{{ app_instance_number }}'
           }
 
-    - name: "PAS Installation Playbook: - Set 'pas' tier facts"
+    - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
       ansible.builtin.set_fact:
-        all_sids: "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids|default([]) + [ this_sid ] }}{% endif %}"
 
-    - name: Generic Users and Groups for SAP Installation
+    - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
-        name: roles-sap-os/2.5-sap-users
-        tasks_from: user_nw.yaml
+        name:                          roles-sap-os/2.5-sap-users
+        tasks_from:                    user_nw.yaml
       vars:
-        scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
-        tier: generic
-        main_password: "{{ hostvars.localhost.sap_password }}"
-        sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-        sapbits_sas_token: "{{ hostvars.localhost.sapbits_sas_token }}"
-      loop: "{{ all_sids }}"
-      loop_control:
-        loop_var: sid_to_be_deployed
-      when: platform != 'ORACLE'
+        scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
+        tier:                          generic
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      loop:                            "{{ all_sids }}"
+      loop_control:   
+        loop_var:                      sid_to_be_deployed
+      when:                            platform != 'ORACLE'
       tags:
         - 2.5-sap-users
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -106,116 +110,118 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts: "{{ sap_sid | upper }}_PAS  :
-    {{ sap_sid | upper }}_SCS :
-    {{ sap_sid | upper }}_DB"
 
-  name: "PAS Installation Playbook"
-  remote_user: "{{ orchestration_ansible_user }}"
-  become: true
-  become_user: root
-  gather_facts: true
+- hosts:                               "{{ sap_sid|upper }}_PAS  :
+                                        {{ sap_sid|upper }}_SCS :
+                                        {{ sap_sid|upper }}_DB"
+
+  name:                                "PAS Installation Playbook"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
   vars_files:
-    - vars/ansible-input-api.yaml # API Input template with defaults
-  # -------------------------------------+---------------------------------------8
-  #
-  # Build the list of tasks to be executed in order here.
-  #
-  # -------------------------------------+---------------------------------------8
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
 
   tasks:
-    - name: "PAS Installation Playbook: - Set 'pas' tier facts"
+
+    - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
       ansible.builtin.set_fact:
-        tier: pas
-        main_password: "{{ hostvars.localhost.sap_password }}"
-        sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-        sapbits_sas_token: "{{ hostvars.localhost.sapbits_sas_token }}"
-        file_path: "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
+        tier:                          pas
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
         always_upload_jinja_templates: false
       tags:
         - always
 
-    - name: "PAS Installation Playbook: Define this SID"
+    - name:                            "PAS Installation Playbook: Define this SID"
       ansible.builtin.set_fact:
         this_sid:
           {
-            "sid": "{{ sap_sid | upper }}",
-            "dbsid_uid": "{{ hdbadm_uid }}",
-            "sidadm_uid": "{{ sidadm_uid }}",
-            "ascs_inst_no": "{{ scs_instance_number }}",
-            "pas_inst_no": "{{ pas_instance_number }}",
-            "app_inst_no": "{{ app_instance_number }}",
+            'sid': '{{ sap_sid|upper }}',
+            'dbsid_uid': '{{ hdbadm_uid }}',
+            'sidadm_uid': '{{ sidadm_uid }}',
+            'ascs_inst_no': '{{ scs_instance_number }}',
+            'pas_inst_no': '{{ pas_instance_number }}',
+            'app_inst_no': '{{ app_instance_number }}'
           }
-    - name: "PAS Installation Playbook: Define list of SIDs"
+    - name:                            "PAS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
-        all_sids: "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids|default([]) + [ this_sid ] }}{% endif %}"
 
-    # -------------------------------------+---------------------------------------8
-    # Role: 5.2-PAS Installation
-    #
-    # Description:
-    #
-    # -------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
+# Role: 5.2-PAS Installation
+#
+# Description:
+#
+# -------------------------------------+---------------------------------------8
 
-    - name: "PAS Installation Playbook: - Run PAS Installation"
+    - name:                            "PAS Installation Playbook: - Run PAS Installation"
       block:
-        - name: "PAS Installation Playbook: - Assertions"
+
+        - name:                        "PAS Installation Playbook: - Assertions"
           block:
-            - name: "PAS Installation Playbook: - Show instance numbers"
+            - name:                    "PAS Installation Playbook: - Show instance numbers"
               ansible.builtin.debug:
                 msg:
                   - "pas_instance_number: {{ pas_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
 
-            - name: "PAS Installation Playbook: - Assert instance numbers"
+            - name:                    "PAS Installation Playbook: - Assert instance numbers"
               ansible.builtin.assert:
                 that:
                   - "pas_instance_number is defined"
                   - "scs_instance_number != pas_instance_number"
-                fail_msg: "Please ensure that the scs_instance_number is different from the pas_instance_number"
-          when: (ansible_play_hosts_all | length) <= 2
+                fail_msg:              "Please ensure that the scs_instance_number is different from the pas_instance_number"
+          when:                        (ansible_play_hosts_all | length) <= 2
 
-        - name: Run the PAS installation Playbook
-          block:
-            - name: "PAS Installation Playbook: - Install SAPInst"
+        - block:
+            - name:                    "PAS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
-                name: roles-sap/5.2-pas-install
+                name:                  roles-sap/5.2-pas-install
               vars:
-                instance_number: "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
-              loop: "{{ all_sids }}"
-              loop_control:
-                loop_var: sid_to_be_deployed
+                instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
+              loop:                    "{{ all_sids }}"
+              loop_control:   
+                loop_var:              sid_to_be_deployed
 
-            - name: "PAS Installation Playbook: - Create pas-install-done flag"
-              delegate_to: localhost
-              become: false
+            - name:                    "PAS Installation Playbook: - Create pas-install-done flag"
+              delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
-                path: "{{ _workspace_directory }}/.progress/pas-install-done"
-                state: touch
-                mode: 0755
+                path:                  "{{ _workspace_directory }}/.progress/pas-install-done"
+                state:                 touch
+                mode:                  0755
               when:
                 - pas_already_installed is defined or (pas_installation.rc is defined and pas_installation.rc == 0)
           always:
-            - name: "PAS Installation Playbook: - Get the Error lines from installation output"
+            - name:                    "PAS Installation Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:
-                error_lines: "{{ error_lines | default([]) + [item] }}"
-              with_items: "{{ pas_installation.stdout_lines }}"
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ pas_installation.stdout_lines }}"
               when:
                 - pas_installation.stdout_lines is defined
                 - '"ERROR" in item'
 
-            - name: "PAS Installation Playbook: - Run post installation routines"
+            - name:                    "PAS Installation Playbook: - Run post installation routines"
               ansible.builtin.include_role:
-                name: roles-sap/7.0.0-post-install
+                name:                  roles-sap/7.0.0-post-install
               vars:
-                suffix: "_PAS"
-                prefix: "{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-                path: "{{ file_path }}"
-                tier: "pas"
+                suffix:                "_PAS"
+                prefix:                "{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                path:                  "{{ file_path }}"
+                tier:                  'pas'
 
-            - name: "PAS Installation Playbook: - Show errors from PAS installation"
+            - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
               ansible.builtin.debug:
-                msg: "{{ error_lines }}"
+                msg:                   "{{ error_lines }}"
               when:
                 - error_lines is defined
 
@@ -224,6 +230,9 @@
 
       when:
         - "'pas' in supported_tiers"
+
+
+...
 # /*---------------------------------------------------------------------------8
 # |                                    END                                     |
 # +------------------------------------4--------------------------------------*/

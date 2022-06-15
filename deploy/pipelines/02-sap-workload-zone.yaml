@@ -8,50 +8,50 @@
 name: Deploying the SAP Workload zone defined in $(workload_zone_folder)
 
 parameters:
-  - name: workload_zone
-    displayName: "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type: string
-    default: DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                              workload_zone
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name: deployer_environment_parameter
-    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type: string
-    default: MGMT
+  - name:                              deployer_environment_parameter
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
 
-  - name: workload_environment_parameter
-    displayName: Workload Environment (DEV, QUA, PRD, ...)
-    type: string
-    default: DEV
+  - name:                              workload_environment_parameter
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
 
-trigger: none
+trigger:                               none
 
 pool:
-  name: $(Agent)
+  name:                                $(Agent)
 
 variables:
-  - group: "SDAF-General"
-  - group: SDAF-${{ parameters.workload_environment_parameter }}
-  - name: workload_zone_folder
-    value: ${{ parameters.workload_zone }}
-  - name: workload_zone_configuration_file
-    value: ${{ parameters.workload_zone }}.tfvars
-  - name: deployer_environment
-    value: ${{ parameters.deployer_environment_parameter }}
-  - name: tf_url
-    value: https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.workload_environment_parameter }}
+  - name:                              workload_zone_folder
+    value:                             ${{ parameters.workload_zone }}
+  - name:                              workload_zone_configuration_file
+    value:                             ${{ parameters.workload_zone }}.tfvars
+  - name:                              deployer_environment
+    value:                             ${{ parameters.deployer_environment_parameter }}
+  - name:                              tf_url
+    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
 stages:
-  - stage: Deploy_SAP_workload_zone
-    displayName: Deploy SAP workload zone
+  - stage:                             Deploy_SAP_workload_zone
+    displayName:                       Deploy SAP workload zone
     jobs:
-      - job: Deploy_SAP_workload_zone
-        displayName: Deploy SAP workload zone
+      - job:                           Deploy_SAP_workload_zone
+        displayName:                   Deploy SAP workload zone
         workspace:
-          clean: all
+          clean:                       all
         steps:
           - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
+          - checkout:                  self
+            persistCredentials:        true
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
@@ -206,7 +206,7 @@ stages:
                     if [ -n ${workloadkeyvault} ]; then
                       az keyvault network-rule remove --name ${workloadkeyvault} --ip-address ${this_ip} --no-wait
                     fi
-
+                    
                   fi
                 fi
 
@@ -218,7 +218,7 @@ stages:
                   fi
 
                 fi
-
+                
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 git pull
@@ -236,8 +236,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
+                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
 
                 if [ -f ${workload_environment_file_name}.md ]; then
@@ -246,12 +246,13 @@ stages:
 
               exit $return_code
 
-            displayName: Deploy SAP Workload Zone
+            displayName:               Deploy SAP Workload Zone
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-              REMOTE_STATE_SA: ${REMOTE_STATE_SA}
-            failOnStderr: false
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              REMOTE_STATE_SA:         ${REMOTE_STATE_SA}
+            failOnStderr:              false
+...

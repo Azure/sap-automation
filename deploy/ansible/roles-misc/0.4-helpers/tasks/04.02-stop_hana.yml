@@ -1,4 +1,5 @@
 ---
+
 # sapcontrol EXITCODES
 
 # /*---------------------------------------------------------------------------8
@@ -14,24 +15,24 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name: "Determine if HANA is stopped on {{ ansible_hostname }}"
+- name:                                "Determine if HANA is stopped on {{ ansible_hostname }}"
   # become_user:                         "{{ db_sid | lower }}adm"
-  become: true
-  ansible.builtin.command: "{{ sapcontrol_command }} -function GetProcessList"
-  failed_when: false
-  changed_when: false
-  register: hana_stopped
+  become:                              true
+  ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
+  failed_when:                         false
+  changed_when:                        false
+  register:                            hana_stopped
 
-- name: "Ensure HANA is stopped {{ ansible_hostname }}"
+- name:                                "Ensure HANA is stopped {{ ansible_hostname }}"
   # become_user:                         "{{ db_sid | lower }}adm"
-  become: true
-  ansible.builtin.command: "{{ sapcontrol_command }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
-  when: hana_stopped.rc != 4
+  become:                              true
+  ansible.builtin.command:             "{{ sapcontrol_command }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
+  when:                                hana_stopped.rc != 4
 
-- name: "Verify HANA is stopped on {{  ansible_hostname }}"
+- name:                                "Verify HANA is stopped on {{  ansible_hostname }}"
   # become_user:                         "{{ db_sid | lower }}adm"
-  become: true
-  ansible.builtin.command: "{{ sapcontrol_command }} -function GetProcessList"
-  changed_when: false
-  register: hana_stopped
-  failed_when: hana_stopped.rc != (4 or 0)
+  become:                              true
+  ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
+  changed_when:                        false
+  register:                            hana_stopped
+  failed_when:                         hana_stopped.rc != (4 or 0)
