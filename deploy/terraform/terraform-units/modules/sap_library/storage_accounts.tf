@@ -31,15 +31,16 @@ resource "azurerm_storage_account" "storage_tfstate" {
   }
 
   network_rules {
-    default_action = var.use_private_endpoint || local.deployer_public_ip_address_used || local.deployer_tfstate_subnet_used ? "Deny" : "Allow"
+    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
     ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = !var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
+    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
       [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )
+
   }
 
   min_tls_version                 = "TLS1_2"
@@ -131,12 +132,12 @@ resource "azurerm_storage_account" "storage_sapbits" {
   enable_https_traffic_only = true
 
   network_rules {
-    default_action = var.use_private_endpoint || local.deployer_public_ip_address_used || local.deployer_tfstate_subnet_used ? "Deny" : "Allow"
+    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
     ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = !var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
+    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
       [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )

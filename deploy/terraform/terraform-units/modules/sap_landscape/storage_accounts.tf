@@ -160,9 +160,7 @@ data "azurerm_storage_account" "witness_storage" {
 resource "azurerm_private_endpoint" "witness_storage" {
   provider = azurerm.main
   count    = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
-  depends_on = [
-    azurerm_storage_account_network_rules.witness_storage
-  ]
+
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_witness,
     local.prefix,

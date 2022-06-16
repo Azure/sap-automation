@@ -166,21 +166,20 @@
       ansible.builtin.debug:
         var:                           dbload_results
       when:
-        - dbload_results is defined
-        - dbload_results.rc > 0
+        - job_result is defined
+        - job_result.rc > 0
 
     - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
-      when: 1==2
 
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
       when:
-        - dbload_results.rc is defined
-        - dbload_results.rc == 0
+        - job_result.rc is defined
+        - job_result.rc == 0
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
@@ -188,8 +187,8 @@
         state:                         touch
         mode:                          0755
       when:
-        - dbload_results is defined
-        - dbload_results.rc == 0
+        - job_result is defined
+        - job_result.rc > 0
 
   when:
     - not dbload_installed.stat.exists

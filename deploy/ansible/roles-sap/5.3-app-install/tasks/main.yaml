@@ -191,7 +191,6 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -199,7 +198,6 @@
         - db_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-
     - name:                            "APP Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
@@ -247,6 +245,33 @@
       when:
         - db_high_availability
         - platform == 'HANA'
+    
+    - name:                            "APP Install: Set hdbuserstore path"
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_file | length > 0
+    
+    - name:                            "APP Install: show hdbuserstore path"
+      ansible.builtin.debug:
+        var:                           hdbuserstore_path
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "APP Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
+      ansible.builtin.shell: |
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      register:                        hdbuserstore
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+      tags:
+        - skip_ansible_lint
 
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:

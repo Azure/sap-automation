@@ -459,9 +459,10 @@ if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
     echo "Agent already installed"
 else
     sudo mkdir -p "$${agent_home}"; cd $_
-    wget -nv https://aka.ms/AAftpys -O agent.tar.gz
-    tar zxvf agent.tar.gz >/dev/null 2>&1
     sudo chown -R "$${local_user}" $${agent_home}
+
+    sudo wget -nv https://aka.ms/AAftpys -O agent.tar.gz
+    sudo tar zxvf agent.tar.gz >/dev/null 2>&1
 
     sudo touch $${agent_home}/agent_installed
 fi
