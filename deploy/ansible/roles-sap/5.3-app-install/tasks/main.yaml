@@ -16,11 +16,15 @@
 #   0x) Create hidden directory for parameter files
 - name:                                "APP Install: Create hidden directory"
   ansible.builtin.file:
-    path:                              "{{ item.path }}"
+    path:                              "{{ dir_params }}"
     state:                             directory
-    mode:                              '{{ item.mode }}'
-  loop:
-    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
+    mode:                              0755
+
+- name:                                "APP Install: Create temp directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
 
 - name:                                "APP Install: Create run flag directory"
   ansible.builtin.file:
@@ -90,7 +94,7 @@
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
-    sap_appVirtualHostname:            "{{ inventory_hostname }}"
+    sap_appVirtualHostname:            "{{ virtual_host }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
