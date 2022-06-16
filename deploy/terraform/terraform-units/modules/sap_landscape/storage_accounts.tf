@@ -1,7 +1,7 @@
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                     Diagnostics storage account                              #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "storage_bootdiag" {
@@ -98,9 +98,9 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                        Witness storage account                               #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "witness_storage" {
@@ -161,7 +161,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
   provider = azurerm.main
   count    = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
   depends_on = [
-    azurerm_storage_account_network_rules.witness_storage
+    azurerm_storage_account.witness_storage
   ]
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_witness,
@@ -192,9 +192,9 @@ resource "azurerm_private_endpoint" "witness_storage" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                        Transport storage account                             #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "transport" {
@@ -341,9 +341,9 @@ data "azurerm_private_endpoint_connection" "transport" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                     Install media storage account                            #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "install" {
