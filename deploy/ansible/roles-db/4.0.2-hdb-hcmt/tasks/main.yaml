@@ -16,7 +16,9 @@
 # +------------------------------------4--------------------------------------*/
 
     - name: Setup HCMT
-      ansible.builtin.command:         ./hcmtsetup
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./hcmtsetup
       args:
         chdir:                         "{{ target_media_location }}/hcmt/setup"
         creates:                       "{{ target_media_location }}/hcmt/setup/config"
@@ -34,7 +36,9 @@
         replace:                       '"Value": "1"'
 
     - name:                            Execute HCMT
-      ansible.builtin.command:         ./hcmt -v -p config/executionplan.json
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./hcmt -v -p config/executionplan.json
       changed_when:                    false
       args:
         chdir:                         "{{ target_media_location }}/hcmt/setup"

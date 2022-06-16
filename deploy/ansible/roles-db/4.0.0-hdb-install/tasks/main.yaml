@@ -79,7 +79,9 @@
         msg:                           "Start HANA Installation"
 
     - name:                            "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
-      ansible.builtin.command:         ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
       args:
         chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
         creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
