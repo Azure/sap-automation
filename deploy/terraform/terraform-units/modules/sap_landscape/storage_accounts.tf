@@ -354,6 +354,11 @@ resource "azurerm_storage_account" "install" {
     )) : (
     0
   )
+  depends_on = [
+    azurerm_subnet.app,
+    azurerm_subnet.db,
+    azurerm_subnet.web
+  ]
   name = replace(
     lower(
       format("%s%s",
@@ -376,6 +381,33 @@ resource "azurerm_storage_account" "install" {
   enable_https_traffic_only       = false
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
+
+  network_rules {
+    default_action = "Deny"
+    ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
+    bypass         = ["AzureServices", "Logging", "Metrics"]
+    virtual_network_subnet_ids = var.use_private_endpoint ? (
+      []
+      ) : (
+      compact(
+        [
+          local.application_subnet_existing ? (
+            local.application_subnet_arm_id) : (
+            azurerm_subnet.app[0].id
+          ),
+          local.database_subnet_existing ? (
+            local.database_subnet_arm_id) : (
+            azurerm_subnet.db[0].id
+          ),
+          local.web_subnet_existing ? (
+            local.web_subnet_arm_id) : (
+            azurerm_subnet.web[0].id
+          ),
+          local.deployer_subnet_management_id
+        ]
+      )
+    )
+  }
 }
 
 data "azurerm_storage_account" "install" {
@@ -401,44 +433,6 @@ data "azurerm_private_endpoint_connection" "install" {
   )
   name                = split("/", var.install_private_endpoint_id)[8]
   resource_group_name = split("/", var.install_private_endpoint_id)[4]
-
-}
-
-resource "azurerm_storage_account_network_rules" "install" {
-  depends_on = [
-    azurerm_subnet.app,
-    azurerm_subnet.db,
-    azurerm_subnet.web
-  ]
-  count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
-    length(var.install_storage_account_id) > 0 ? (
-      0) : (
-      0
-    )) : (
-    0
-  )
-
-  storage_account_id = azurerm_storage_account.install[0].id
-
-  default_action = "Deny"
-  ip_rules       = [var.Agent_IP]
-  virtual_network_subnet_ids = compact([
-    local.application_subnet_existing ? (
-      local.application_subnet_arm_id) : (
-      azurerm_subnet.app[0].id
-    ),
-    local.database_subnet_existing ? (
-      local.database_subnet_arm_id) : (
-      azurerm_subnet.db[0].id
-    ),
-    local.web_subnet_existing ? (
-      local.web_subnet_arm_id) : (
-      azurerm_subnet.web[0].id
-    ),
-    local.deployer_subnet_management_id
-    ]
-  )
-  bypass = ["AzureServices", "Logging", "Metrics"]
 
 }
 
