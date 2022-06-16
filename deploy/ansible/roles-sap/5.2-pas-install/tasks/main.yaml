@@ -171,7 +171,7 @@
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
-
+      
     - name:                            "PAS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}{{ file_path }}"
@@ -217,8 +217,7 @@
         - platform == 'HANA'
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
-      become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become:                          "{{ bom_processing_become }}"
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
@@ -273,13 +272,12 @@
         - platform == 'HANA'
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
-      become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        hdbuserstore
+      become:                          "{{ bom_processing_become }}"
       when:
         - db_high_availability
         - platform == 'HANA'

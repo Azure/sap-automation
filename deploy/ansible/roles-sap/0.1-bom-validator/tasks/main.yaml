@@ -161,9 +161,8 @@
                                          --account-key {{ sapbits_access_key }}
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}
                                          --name {{ bom_base_name }}.yaml
-
   delegate_to:                         localhost
-  ignore_errors:                       false
+  ignore_errors:                       true
   changed_when:                        false
 
 

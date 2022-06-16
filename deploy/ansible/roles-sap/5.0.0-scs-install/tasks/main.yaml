@@ -147,7 +147,6 @@
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
-      when: 1 == 2
 
     - name:                            "SCS Install: Installation results"
       ansible.builtin.debug:
