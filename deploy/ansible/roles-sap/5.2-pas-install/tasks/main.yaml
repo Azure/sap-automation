@@ -217,7 +217,7 @@
         - platform == 'HANA'
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
-      become:                          "{{ bom_processing_become }}"
+      become:                          true
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
@@ -277,7 +277,7 @@
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        hdbuserstore
-      become:                          "{{ bom_processing_become }}"
+      become:                          true
       when:
         - db_high_availability
         - platform == 'HANA'
