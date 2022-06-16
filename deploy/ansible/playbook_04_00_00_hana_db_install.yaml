@@ -44,8 +44,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
-
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - HANA
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -53,7 +52,6 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
-
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -76,16 +74,14 @@
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 2
 
-        - block:
-            - name:                    Include 4.0.0-hdb-install role
-              ansible.builtin.include_role:
-                name:                  roles-db/4.0.0-hdb-install
+        - name:                    Include 4.0.0-hdb-install role
+          ansible.builtin.include_role:
+            name:                  roles-db/4.0.0-hdb-install
           tags:
             - 4.0.0-hdb-install
 
     - name:                            "Install Pacemaker (base)"
       block:
-
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ha
@@ -100,51 +96,45 @@
             sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
             sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
 
-        - block:
-            - name:                    Include 1.3-repository role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.3-repository
-              when:                    db_high_availability
+        - name:                    Include 1.3-repository role
+          ansible.builtin.include_role:
+            name:                  roles-os/1.3-repository
+          when:                    db_high_availability
           tags:
             - 1.3-repository
 
-        - block:
-            - name:                    Include 1.4-packages role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.4-packages
-              when:                    db_high_availability
+        - name:                    Include 1.4-packages role
+          ansible.builtin.include_role:
+            name:                  roles-os/1.4-packages
+          when:                    db_high_availability
           tags:
             - 1.4-packages
 
-        - block:
-          # Setup the kernel parameters required for pacemaker cluster VMs
-            - name:                    Include 1.9-kernelparameters role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.9-kernelparameters
-              when:                    db_high_availability
+        # Setup the kernel parameters required for pacemaker cluster VMs
+        - name:                    Include 1.9-kernelparameters role
+          ansible.builtin.include_role:
+            name:                  roles-os/1.9-kernelparameters
+          when:                    db_high_availability
           tags:
             - 1.9-kernelparameters
 
-        - block:
-            - name:                    Include 1.16-services role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.16-services
-              when:                    db_high_availability
+        - name:                    Include 1.16-services role
+          ansible.builtin.include_role:
+            name:                  roles-os/1.16-services
+          when:                    db_high_availability
           tags:
             - 1.16-services
 
-        - block:
-            - name:                    Include 1.11-accounts role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.11-accounts
-              when:                    db_high_availability
+        - name:                    Include 1.11-accounts role
+          ansible.builtin.include_role:
+            name:                  roles-os/1.11-accounts
+          when:                    db_high_availability
           tags:
             - 1.11-accounts
 
-        - block:
-            - name:                    Include 1.17-generic-pacemaker role
-              ansible.builtin.include_role:
-                name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+        - name:                    Include 1.17-generic-pacemaker role
+          ansible.builtin.include_role:
+            name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
           tags:
             - 1.17-generic-pacemaker
 

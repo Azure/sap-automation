@@ -39,10 +39,10 @@
     sap_ciDialogWPNumber:              12
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
-    sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
-    sap_scs_hostname:                  "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
-    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}"
-    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') | first }}"
+    sap_profile_dir:                   /sapmnt/{{ sap_sid | upper }}/profile
+    sap_scs_hostname:                  "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+    sap_db_hostname:                   "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB')  | first }}"
+    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') | first }}"
     sap_appVirtualHostname:
     param_directory:                   "{{ dir_params }}"
   tags:

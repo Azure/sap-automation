@@ -65,13 +65,13 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower}}adm"
+        owner:                         "{{ sap_sid | lower }}adm"
         group:                         sapsys
         state:                         directory
       loop:
-        -  { path: '/sapmnt/{{ sap_sid|upper }}' }
-        -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
-        -  { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}' }
+        - { path: '/sapmnt/{{ sap_sid | upper }}' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}' }
       when: inventory_hostname == primary_instance_name
       tags:
         - skip_ansible_lint
@@ -140,13 +140,13 @@
     - name:                            "5.6 SCSERS - RHEL - ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower}}adm"
+        owner:                         "{{ sap_sid | lower }}adm"
         group:                         sapsys
         state:                         directory
       loop:
-        -  { path: '/sapmnt/{{ sap_sid|upper }}' }
-        -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
-        -  { path: '/usr/sap/{{ sap_sid|upper }}/ERS{{ ers_instance_number }}' }
+        - { path: '/sapmnt/{{ sap_sid | upper }}' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { path: '/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}' }
       when: inventory_hostname == secondary_instance_name
       tags:
         - skip_ansible_lint
@@ -187,7 +187,7 @@
     - { port: "5{{ ers_instance_number }}13" }
     - { port: "5{{ ers_instance_number }}14" }
     - { port: "5{{ ers_instance_number }}16" }
-  when: 1 == 2 #ToDo Fix this if we need to enable firewalld
+  when: 1 == 2 # ToDo Fix this if we need to enable firewalld
 
 
 # End of Playbook.

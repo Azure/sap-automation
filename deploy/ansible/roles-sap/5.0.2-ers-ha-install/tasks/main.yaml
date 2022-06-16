@@ -68,7 +68,7 @@
     sap_ciDialogWPNumber:
     sap_ciBtcWPNumber:
     sap_installSAPHostAgent:
-    sap_profile_dir:                   "/sapmnt/{{ sap_sid|upper }}/profile"
+    sap_profile_dir:                   "/sapmnt/{{ sap_sid | upper }}/profile"
     ers_virtual_hostname:              "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
     sap_db_hostname:
     sap_ciVirtualHostname:
@@ -105,7 +105,7 @@
         recurse:                       true
         state:                         directory
       loop:
-        -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
     - name:                            "ERS Install: SAP ERS install command"
       ansible.builtin.debug:
@@ -157,9 +157,9 @@
             recurse:                       true
             state:                         directory
           loop:
-            -  { path: '/sapmnt/{{ sap_sid | upper }}' }
-            -  { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-            -  { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
+            - { path: '/sapmnt/{{ sap_sid | upper }}' }
+            - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+            - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
 
         # Add IS_HOST_LOCAL_USING_STRING_COMPARE=true to fix The host with the
         # name <host> is not a valid virtual host on the local host
@@ -221,7 +221,7 @@
         ers_already_installed:         true
   when:
     - "'ers' in supported_tiers"
-    -  ers_installed.stat.exists
+    - ers_installed.stat.exists
 
 # *====================================4=======================================8
 

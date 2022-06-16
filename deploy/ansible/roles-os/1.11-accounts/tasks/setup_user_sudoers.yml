@@ -35,10 +35,9 @@
       empty value, and matches a known user if creating a sudoers
       entry.
   when:
-    -           ((sudoers_user is not defined) or
-                 ((sudoers_user == "") or
-                  ((sudoers_user not in getent_passwd) and
-                   (sudoers_state == "present"))))
+    - ((sudoers_user is not defined) or
+      ((sudoers_user == "") or
+      ((sudoers_user not in getent_passwd) and (sudoers_state == "present"))))
 
 - name:                                Optionally include any vars settings for specified role
   ansible.builtin.include_vars:        "{{ found_var_file }}"

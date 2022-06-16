@@ -21,7 +21,7 @@
     backup:                            true
     regexp:                            '^CLOUD_NETCONFIG_MANAGE='
     line:                              CLOUD_NETCONFIG_MANAGE='no'
-  when:                                ansible_os_family|upper == "SUSE"
+  when:                                ansible_os_family | upper == "SUSE"
   tags:
     - cloudnetmanage
 

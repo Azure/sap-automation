@@ -16,6 +16,6 @@
     path:                              /etc/sysconfig/network/dhcp
     regexp:                            '^DHCLIENT_SET_HOSTNAME='
     line:                              DHCLIENT_SET_HOSTNAME="no"
-  when:                                ansible_os_family|upper == 'SUSE'
+  when:                                ansible_os_family | upper == 'SUSE'
 
 ...

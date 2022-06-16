@@ -49,7 +49,7 @@
     sap_ciBtcWPNumber:
     sap_installSAPHostAgent:
     sap_profile_dir:
-    sap_scs_hostname:                  "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    sap_scs_hostname:                  "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:

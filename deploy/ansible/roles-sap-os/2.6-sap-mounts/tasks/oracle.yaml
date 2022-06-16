@@ -15,8 +15,8 @@
   ansible.builtin.set_fact:
     nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ORACLE: Set the NFS Server name"
   ansible.builtin.set_fact:
@@ -36,7 +36,7 @@
 
 - name:                                "ORACLE: Gather existing LVs"
   ansible.builtin.set_fact:
-    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') |list }}"
+    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') | list }}"
 
 - name:                                "ORACLE: Show lvexists"
   ansible.builtin.debug:
@@ -49,7 +49,7 @@
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
                                        {%- set lv_parts = item.lv.split('_') -%}
-                                       {%- if lv_parts| length == 2 -%}
+                                       {%- if lv_parts | length == 2 -%}
                                        {%- set _path = '/' ~ lv_parts[-1] -%}
                                        {%- else -%}
                                        {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
@@ -58,7 +58,7 @@
     fstype:                            "{{ item.fstype }}"
     opts:                              defaults
     state:                             mounted
-  loop:                                "{{ logical_volumes |sort(attribute='lv') }}"
+  loop:                                "{{ logical_volumes | sort(attribute='lv') }}"
   register:  oracle_filesystem_mounts
   when:
     - item.node_tier == "oracle"
@@ -111,13 +111,13 @@
     state:                             mounted
   vars:
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
   loop:
-    - {type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}' }
+    - {type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}' }
   when:
     - sap_mnt is undefined
 
-#Mount install file system on Observer node.
+# Mount install file system on Observer node.
 - name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
@@ -127,7 +127,7 @@
     state:                             mounted
   vars:
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
   loop:
     - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
   when:
