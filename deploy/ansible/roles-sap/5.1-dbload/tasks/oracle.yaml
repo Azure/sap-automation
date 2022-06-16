@@ -1,23 +1,22 @@
-
-#Create ORA<SID> users for MULTI-SID Installation on Database Node.
+# Create ORA<SID> users for MULTI-SID Installation on Database Node.
 - name:                                "DBLoad (sharedHome): ORA{{ sid_to_be_deployed.sid }} User creation"
   ansible.builtin.user:
-    name:                              "ora{{ sid_to_be_deployed.sid|lower }}"
+    name:                              "ora{{ sid_to_be_deployed.sid | lower }}"
     uid:                               "{{ sid_to_be_deployed.dbsid_uid }}"
     group:                             dba
     groups:                            oper,sapinst,oinstall
     shell:                             /bin/csh
     create_home:                       true
-    home:                              "/home/ora.{{ sid_to_be_deployed.sid|lower }}"
+    home:                              "/home/ora.{{ sid_to_be_deployed.sid | lower }}"
     password:                          "{{ main_password |
                                           password_hash('sha512') }}"
     state:                             present
     append:                            true
 
 # Temporary block to start the listener due the bug in SWPM DEV version.
-#Remove this block after checking with SAP - Action on VP
-#Create tnsnames.ora
-###########################################START OF THE BLOCK###############################################################
+# Remove this block after checking with SAP - Action on VP
+# Create tnsnames.ora
+########################################### START OF THE BLOCK ###############################################################
 - name:                                "DBLoad (sharedHome): Create the tnsnames file"
   become:                              true
   become_user:                         oracle
@@ -56,4 +55,4 @@
     state:                             touch
     mode:                              0755
 
-###########################################END OF THE BLOCK###############################################################
+########################################### END OF THE BLOCK ###############################################################

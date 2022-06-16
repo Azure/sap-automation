@@ -30,14 +30,14 @@
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "DBLoad: -  Set the DB Server name list"
   ansible.builtin.set_fact:
     db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "DBLoad: - Set dbload facts"
   ansible.builtin.set_fact:
@@ -199,7 +199,7 @@
       ansible.builtin.set_fact:
         dbload_already_performed:      true
   when:
-    -  dbload_installed.stat.exists
+    - dbload_installed.stat.exists
 
 
 ...

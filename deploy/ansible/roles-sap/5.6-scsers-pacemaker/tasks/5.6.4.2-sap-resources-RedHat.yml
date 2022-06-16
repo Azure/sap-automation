@@ -3,8 +3,8 @@
 # RHEL Clustering - Deploy ASCS/ERS cluster resources
 # Azure ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-netapp-files
 
-#[1] Create the SAP cluster resources
-#If using enqueue server 1 architecture (ENSA1), define the resources as follows:
+# [1] Create the SAP cluster resources
+# If using enqueue server 1 architecture (ENSA1), define the resources as follows:
 
 - name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install "
   block:

@@ -86,7 +86,7 @@
     # socat is recommended in place of netcat on Azure: https://www.suse.com/support/kb/doc/?id=000019536
     # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
     # Currently we recommend using azure-lb resource agent, which is part of package resource-agents
-    #- name: Ensure SAP HANA Heartbeat socat resource is configured
+ # - name: Ensure SAP HANA Heartbeat socat resource is configured
     #  shell: >
     #    crm configure primitive rsc_nc_{{ db_sid | upper }}_HDB{{ instance_number }} anything
     #    params binfile="/usr/bin/socat" cmdline_options="-U TCP-LISTEN:625{{ instance_number }},backlog=10,fork,reuseaddr /dev/null"

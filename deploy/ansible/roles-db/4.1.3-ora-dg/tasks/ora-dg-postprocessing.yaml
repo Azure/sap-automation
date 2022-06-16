@@ -28,7 +28,7 @@
         creates:                       /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
-      #when:                                current_host == ora_primary
+      # when:                                current_host == ora_primary
 
     - name:                            "Oracle Data Guard - Post Processing: Restart lsnrctl on Primary (Debug)"
       ansible.builtin.debug:
@@ -50,7 +50,7 @@
         state:                         touch
         mode:                          0755
       when:                            lsnrctl_start_primary_results.rc == 0
-      #when:                                current_host == ora_primary
+      # when:                                current_host == ora_primary
 
     - name:                            "Oracle Data Guard - Post Processing: Enable DG Broker on Primary"
       become:                          true
@@ -62,7 +62,7 @@
         creates:                       /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
-      #when:                                current_host == ora_primary
+      # when:                                current_host == ora_primary
 
     - name:                            "Oracle Data Guard - Post Processing:  - Pause 30 secs"
       ansible.builtin.pause:
@@ -88,7 +88,7 @@
         state:                         touch
         mode:                          0755
       when:                            dg_broker_primary_results.rc == 0
-      #when:                                current_host == ora_primary
+      # when:                                current_host == ora_primary
 
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary"
       become:                          true
@@ -100,7 +100,7 @@
         creates:                       /etc/sap_deployment_automation/dgscripts/dg_config.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
-      #when:                                current_host == ora_primary
+      # when:                                current_host == ora_primary
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (debug)"
       ansible.builtin.debug:
         var:                           dgconfig_results.stdout_lines
@@ -133,7 +133,7 @@
         creates:                       /etc/sap_deployment_automation/dgscripts/dg_enable.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
-      #when:                                current_host == ora_primary
+      # when:                                current_host == ora_primary
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary (debug)"
       ansible.builtin.debug:
         var:                           enable_dgconfig_results.stdout_lines

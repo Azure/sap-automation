@@ -81,7 +81,7 @@
 
     - name:                            "Post Installation: Create List (hana)"
       ansible.builtin.set_fact:
-        hana_list_of_files:            "{{ hana_log_files.files | map(attribute='path')| list }}"
+        hana_list_of_files:            "{{ hana_log_files.files | map(attribute='path') | list }}"
       when:
         - hana_log_files.files is defined
         - hana_log_files.files | length > 0
@@ -122,7 +122,7 @@
 
     - name:                            "Post Installation: Create List (Oracle)"
       ansible.builtin.set_fact:
-        oracle_list_of_files:          "{{ oracle_log_files.files | map(attribute='path')| list }}"
+        oracle_list_of_files:          "{{ oracle_log_files.files | map(attribute='path') | list }}"
       when:
         - oracle_log_files.files is defined
         - oracle_log_files.files | length > 0

@@ -23,7 +23,7 @@
     - "/usr/sbin/ha-cluster-join"
   register:                            cluster_scripts_status_results
   failed_when:                         not cluster_scripts_status_results.stat.exists
-  when:                                ansible_os_family|upper == 'SUSE'
+  when:                                ansible_os_family | upper == 'SUSE'
 
 - name:                                "5.6 SCSERS - Check if a cluster has already been prepared"
   ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
