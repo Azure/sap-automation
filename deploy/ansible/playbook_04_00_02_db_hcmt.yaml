@@ -5,8 +5,7 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
-
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB HCMT
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -22,16 +21,12 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                            "Run HCMT"
-      block:
-        - block:
-            - name:                    Run the db/hdb-hdb-hcmt role
-              ansible.builtin.include_role:
-                name:                  roles-db/4.0.2-hdb-hcmt
-          tags:
-            - 4.0.2-hdb-hcmt
-      when:
-        - node_tier == 'hana'
+    - name:                    Run the db/hdb-hdb-hcmt role
+      ansible.builtin.include_role:
+        name:                  roles-db/4.0.2-hdb-hcmt
+      when: node_tier == 'hana'
+      tags:
+        - 4.0.2-hdb-hcmt
 
 ...
 # /*----------------------------------------------------------------------------8

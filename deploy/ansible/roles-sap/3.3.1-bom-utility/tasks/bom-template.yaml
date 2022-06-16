@@ -52,6 +52,7 @@
     mode:                              0644
     force:                             true
   delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
   register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
@@ -67,6 +68,7 @@
     mode:                              0644
     force:                             true
   delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
   register:                            result
   when:
     - distribution_id != 'suse15'
@@ -80,7 +82,7 @@
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
         dest:                          "{{ param_directory }}/{{ sap_inifile }}"
-        #remote_src:                    yes
+        # remote_src:                    yes
         mode:                          0644
         force:                         true
 
@@ -100,6 +102,7 @@
         path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
       register:                        microsoft_supplied_bom_template
       delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
 
     - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
@@ -123,6 +126,7 @@
             path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
           register:                    microsoft_supplied_bom_template_archive
           delegate_to:                 localhost
+          become:                      "{{ bom_processing_become }}"
 
         - name:                        "{{ task_prefix }} Create ini file {{ sap_inifile }}"
           ansible.builtin.template:

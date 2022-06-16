@@ -45,7 +45,7 @@
 
 - name:                                "Combine dependent BoMs"
   ansible.builtin.set_fact:
-    root_media_list:                   "{{ root_media_list + bom.materials.media|flatten(levels=1) }}"
+    root_media_list:                   "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
   when: root_media_list is defined
 
 # ------------------<DEBUGGING>-------------------
@@ -93,7 +93,7 @@
   changed_when:                        false
   when:
     - upload is defined
-    - upload is true
+    - upload
 
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Upload Folder"
   vars:
@@ -103,7 +103,7 @@
                                          --account-name {{ account }}
                                          --account-key {{ sapbits_access_key }}
                                          --destination "{{ bom_container_name }}/{{ bom_name }}/templates"
-                                         --source "{{ bom_file.rpartition('/')[0]}}/templates"
+                                         --source "{{ bom_file.rpartition('/')[0] }}/templates"
                                          --overwrite true
                                          --if-none-match "*"
                                          --no-progress
@@ -117,7 +117,7 @@
     - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
   when:
     - upload is defined
-    - upload is true
+    - upload
 
 # ------------------<DEBUGGING>-------------------
 # - name: "List error codes"

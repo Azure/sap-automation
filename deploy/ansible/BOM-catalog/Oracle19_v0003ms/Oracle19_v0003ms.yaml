@@ -25,11 +25,11 @@ materials:
       download:     true
       extractDir:   oraserver
       path:         download_basket
-      #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0030000002299742019          #Not all S-users have permissions to download the oracle software.
+      # creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0030000002299742019          # Not all S-users have permissions to download the oracle software.
 
 
-#SBP Patches are downloaded based on SAP Note 2799920 - Patches 19c: Database
+# SBP Patches are downloaded based on SAP Note 2799920 - Patches 19c: Database
 
     - name:         "Oracle SBP - Bundle patches for 19c: GIRU"
       archive:      GIRU19P_2202-70004508.ZIP
@@ -38,7 +38,7 @@ materials:
       download:     true
       extractDir:   SBP/GIRU19P
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000223642022
 
     - name:         "Oracle SBP - Bundle patches for 19c: SAP19P"
@@ -47,7 +47,7 @@ materials:
       extract:      true
       extractDir:   SBP/SAPSBP
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000219572022
 
     - name:         "Oracle SBP - Bundle patches for 19c: SBPJDK19P"
@@ -56,7 +56,7 @@ materials:
       extract:      false
       extractDir:   SBP/SBPJDK
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000219812022
 
     - name:         "Oracle SBP - Bundle patches for 19c: OPatch"
@@ -65,7 +65,7 @@ materials:
       extract:      true
       extractDir:   SBP/OPATCH
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000226172022
 
 

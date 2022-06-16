@@ -244,7 +244,7 @@ admin_users:
 #    node_tier:    all
 #    enabled:      true
 
-#  - name:         "{{ sap_sid|lower }}adm"
+#  - name:         "{{ sap_sid | lower }}adm"
 #    comment:      "SAP System Administrator"
 #    uid:          "{{ sidadm_uid }}"
 #    group:        sapsys
@@ -259,7 +259,7 @@ admin_users:
 
 # Admin users for Oracle Non-ASM
 
-  - name:         "ora{{ sap_sid|lower }}"
+  - name:         "ora{{ sap_sid | lower }}"
     comment:      "Oracle Database System Administrator"
     uid:          "{{ orasid_uid }}"
     group:        dba
@@ -314,7 +314,7 @@ admin_users:
 #####
 # Admin users for Oracle Non-ASM Multi-SID
 
-  # - name:         "ora{{ sap_sid|lower }}"
+  # - name:         "ora{{ sap_sid | lower }}"
   #   comment:      "Oracle Database System Administrator"
   #   uid:          "{{ orasid_uid }}"
   #   group:        dba
@@ -340,9 +340,9 @@ admin_users:
     node_tier:    oracle-multi-sid
     enabled:      true
 
-#Admin users for Oracle ASM
+# Admin users for Oracle ASM
 
-  - name:         "ora{{ db_sid|lower }}"
+  - name:         "ora{{ db_sid | lower }}"
     comment:      "Oracle Database System Administrator"
     uid:          "{{ orasid_uid }}"
     group:        dba
