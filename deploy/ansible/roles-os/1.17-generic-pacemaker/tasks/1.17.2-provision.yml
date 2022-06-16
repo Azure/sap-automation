@@ -11,7 +11,8 @@
     daemon_reload:                     true
 
 # SSH access between nodes is only required on SUSE for crm_clustering
-- block:
+- name:                                    "1.17 Generic Pacemaker - SUSE specific network and SSH configuration"
+  block:
     # Change the configuration file for the network interface to prevent the cloud
     # network plugin from removing the virtual IP address (Pacemaker must control
     # the VIP assignment)
