@@ -81,8 +81,8 @@ locals {
     high_availability = var.database_high_availability || try(var.databases[0].high_availability, false)
     use_DHCP          = var.database_vm_use_DHCP || try(var.databases[0].use_DHCP, false)
 
-    platform = coalesce(var.database_platform, try(var.databases[0].platform, ""))
-    size     = coalesce(var.database_size, try(var.databases[0].size, ""))
+    platform      = coalesce(var.database_platform, try(var.databases[0].platform, ""))
+    db_sizing_key = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
 
     use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
     dual_nics = var.database_dual_nics || try(var.databases[0].dual_nics, false)
@@ -128,10 +128,10 @@ locals {
   application_temp = {
     sid = try(coalesce(var.sid, try(var.application.sid, "")), "")
 
-    enable_deployment = local.enable_app_tier_deployment
-    use_DHCP          = var.app_tier_use_DHCP || try(var.application.use_DHCP, false)
-    dual_nics         = var.app_tier_dual_nics || try(var.application.dual_nics, false)
-    vm_sizing         = try(coalesce(var.app_tier_vm_sizing, try(var.application.vm_sizing, "")), "Optimized")
+    enable_deployment        = local.enable_app_tier_deployment
+    use_DHCP                 = var.app_tier_use_DHCP || try(var.application.use_DHCP, false)
+    dual_nics                = var.app_tier_dual_nics || try(var.application.dual_nics, false)
+    vm_sizing_dictionary_key = try(coalesce(var.app_tier_sizing_dictionary_key, var.app_tier_vm_sizing, try(var.application.vm_sizing, "")), "Optimized")
 
     application_server_count = local.enable_app_tier_deployment ? (
       max(var.application_server_count, try(var.application.application_server_count, 0))
@@ -296,13 +296,13 @@ locals {
   app_nic_secondary_ips = distinct(var.application_server_app_nic_ips)
   app_admin_nic_ips     = distinct(concat(var.application_server_admin_nic_ips, try(var.application.app_admin_nic_ips, [])))
 
-  scs_nic_ips           = distinct(concat(var.scs_server_app_nic_ips, try(var.application.scs_nic_ips, [])))
-  scs_admin_nic_ips     = distinct(concat(var.scs_server_admin_nic_ips, try(var.application.scs_admin_nic_ips, [])))
-  scs_lb_ips            = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application.scs_lb_ips, [])))
+  scs_nic_ips       = distinct(concat(var.scs_server_app_nic_ips, try(var.application.scs_nic_ips, [])))
+  scs_admin_nic_ips = distinct(concat(var.scs_server_admin_nic_ips, try(var.application.scs_admin_nic_ips, [])))
+  scs_lb_ips        = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application.scs_lb_ips, [])))
 
-  web_nic_ips           = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application.web_nic_ips, [])))
-  web_admin_nic_ips     = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application.web_admin_nic_ips, [])))
-  web_lb_ips            = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application.web_lb_ips, [])))
+  web_nic_ips       = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application.web_nic_ips, [])))
+  web_admin_nic_ips = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application.web_admin_nic_ips, [])))
+  web_lb_ips        = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application.web_lb_ips, [])))
 
   subnet_admin = merge((
     {

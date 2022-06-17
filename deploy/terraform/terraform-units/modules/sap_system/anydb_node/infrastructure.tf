@@ -34,7 +34,7 @@ resource "azurerm_lb" "anydb" {
       ))
     )
     private_ip_address_allocation = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
-    zones = ["1", "2", "3"]
+    zones                         = ["1", "2", "3"]
   }
 }
 

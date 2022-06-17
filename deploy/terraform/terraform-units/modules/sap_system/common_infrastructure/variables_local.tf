@@ -67,7 +67,7 @@ locals {
   db_os = {
     "source_image_id" = local.db_custom_image ? local.db.os.source_image_id : ""
     "publisher"       = try(local.db.os.publisher, local.db_custom_image ? "" : "SUSE")
-    "offer"           = try(local.db.os.offer, local.db_custom_image ? "" : "sles-sap-12-sp5")
+    "offer"           = try(local.db.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp3")
     "sku"             = try(local.db.os.sku, local.db_custom_image ? "" : "gen1")
     "version"         = try(local.db.os.version, local.db_custom_image ? "" : "latest")
   }
@@ -123,7 +123,7 @@ locals {
   sizes = jsondecode(file(local.file_name))
 
   db_sizing = local.enable_sid_deployment ? (
-    lookup(local.sizes.db, var.databases[0].size).storage) : (
+    lookup(local.sizes.db, var.databases[0].db_sizing_key).storage) : (
     []
   )
 

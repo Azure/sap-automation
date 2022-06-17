@@ -15,12 +15,12 @@ resource "local_file" "ansible_inventory_new_yml" {
       []
     )
     ips_ers = length(local.ips_scs) > 1 ? (
-      slice(local.ips_scs, 1, length(local.ips_scs) )) : (
+      slice(local.ips_scs, 1, length(local.ips_scs))) : (
       []
     )
 
     ips_pas = length(local.ips_app) > 0 ? slice(local.ips_app, 0, 1) : [],
-    ips_app = length(local.ips_app) > 1 ? slice(local.ips_app, 1, length(local.ips_app) ) : []
+    ips_app = length(local.ips_app) > 1 ? slice(local.ips_app, 1, length(local.ips_app)) : []
     ips_web = length(local.ips_web) > 0 ? local.ips_web : [],
     sid     = var.sap_sid,
 
@@ -32,7 +32,7 @@ resource "local_file" "ansible_inventory_new_yml" {
     virt_pas_servers = var.use_secondary_ips ? (
       length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
       length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1) : []
-    )
+    ),
 
     app_servers = length(local.ips_app) > 1 ? (
       slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app))) : (
@@ -40,9 +40,9 @@ resource "local_file" "ansible_inventory_new_yml" {
     ),
 
     virt_app_servers = var.use_secondary_ips ? (
-      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 1, length(local.ips_app) ) : []) : (
-      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app) ) : []
-    )
+      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 1, length(local.ips_app)) : []) : (
+      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app)) : []
+    ),
 
     scs_servers = length(local.ips_scs) > 0 ? (
       slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
@@ -52,7 +52,7 @@ resource "local_file" "ansible_inventory_new_yml" {
     virt_scs_servers = var.use_secondary_ips ? (
       length(local.ips_scs) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
       length(local.ips_scs) > 0 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1) : []
-    )
+    ),
 
     ers_servers = length(local.ips_scs) > 1 ? (
       slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(local.ips_scs))) : (
@@ -65,13 +65,13 @@ resource "local_file" "ansible_inventory_new_yml" {
     ),
 
     web_servers = length(local.ips_web) > 0 ? (
-      slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 1, length(local.ips_web))) : (
+      slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(local.ips_web))) : (
       []
     ),
     virt_web_servers = var.use_secondary_ips ? (
-      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(local.ips_web) - 1) : []) : (
-      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(local.ips_web) - 1) : []
-    )
+      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(local.ips_web)) : []) : (
+      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(local.ips_web)) : []
+    ),
 
     prefix              = var.naming.prefix.SDU,
     separator           = var.naming.separator,

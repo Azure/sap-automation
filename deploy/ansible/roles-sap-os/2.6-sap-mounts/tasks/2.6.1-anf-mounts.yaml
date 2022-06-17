@@ -11,12 +11,21 @@
 
 - name:                                "AFS Mount: Define this SID"
   ansible.builtin.set_fact:
-    this_sid:                          { 'sid': '{{ sap_sid|upper }}', 'sidadm_uid': '{{ sidadm_uid }}', 'ascs_inst_no': '{{ scs_instance_number }}', 'pas_inst_no': '{{ app_instance_number }}' , 'app_inst_no': '{{ pas_instance_number }}' }
+    this_sid:
+      {
+        'sid': '{{ sap_sid | upper }}',
+        'dbsid_uid': '{{ hdbadm_uid }}',
+        'sidadm_uid': '{{ sidadm_uid }}',
+        'ascs_inst_no': '{{ scs_instance_number }}',
+        'pas_inst_no': '{{ pas_instance_number }}',
+        'app_inst_no': '{{ app_instance_number }}'
+      }
+
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts|default([]) + [ this_sid ] }}{% endif %}"
-    db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [ this_sid ] }}{% endif %}"
+    db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: Ensure the NFS service is stopped"
   ansible.builtin.systemd:
@@ -75,12 +84,12 @@
   when:
     - tier == 'sapos'
 
-- name:                                "ANF Mount: Set nfs4_disable_idmapping
-                                          to Y"
+- name:                                "ANF Mount: Set nfs4_disable_idmapping to Y"
   ansible.builtin.lineinfile:
     path:                              /etc/modprobe.d/nfs.conf
     line:                              'options nfs nfs4_disable_idmapping=Y'
     create:                            true
+    mode:                              0644
   when:
     - tier == 'sapos'
 
@@ -118,8 +127,8 @@
   ansible.builtin.set_fact:
     first_app_server_temp:             "{{ first_app_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_PAS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: usr/sap"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
@@ -183,11 +192,11 @@
         state:                         directory
         mode:                          0755
       loop:
-        - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
+        - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 
     - name:                            "ANF Mount: Create SAP Directories (ANF)"
       ansible.builtin.file:
@@ -208,11 +217,11 @@
         path:                          "{{ item.path }}"
         state:                         absent
       loop:
-        - { path: '/saptmp/sapmnt{{ sap_sid|upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ascs{{ scs_instance_number }}' }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}ers{{ ers_instance_number }}'  }
-        - { path: '/saptmp/usrsap{{ sap_sid|upper }}sys'                           }
+        - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 
     - name:                            "ANF Mount: Remove SAP Directories (ANF)"
       ansible.builtin.file:
@@ -278,10 +287,10 @@
     group:                             sapsys
     mode:                              0755
   loop:
-    - { path: '/usr/sap/{{ sap_sid|upper }}' }
-    - { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
-    - { path: '/usr/sap/{{ sap_sid|upper }}/ASCS{{ scs_instance_number }}' }
-    - { path: '/usr/sap/{{ sap_sid|upper }}/ERS{{ ers_instance_number }}' }
+    - { path: '/usr/sap/{{ sap_sid | upper }}' }
+    - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+    - { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
+    - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
   when:
     - tier == 'sapos'
     - node_tier in ['scs','ers'] or 'scs' in supported_tiers
@@ -302,7 +311,7 @@
   tags:
     - skip_ansible_lint
 
-- name:                                "ANF Mount: sapmnt/{{ sap_sid|upper }} - Standalone"
+- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -310,14 +319,14 @@
     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
     state:                             mounted
   loop:
-    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
+    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
   when:
     - not scs_high_availability
     - tier in ['sapos']
-    - node_tier != 'hana' 
+    - node_tier != 'hana'
     - sap_mnt is defined
 
-- name:                                "ANF Mount: sapmnt/{{ sap_sid|upper }} - Standalone MULTI_SIDS"
+- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
   become:                              true
   become_user:                         root
   ansible.builtin.mount:
@@ -332,7 +341,7 @@
     - sap_mnt is defined
     - MULTI_SIDS is defined
 
-- name:                                "ANF Mount: sapmnt/{{ sap_sid|upper }}"
+- name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }}"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -340,14 +349,14 @@
     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
     state:                             mounted
   loop:
-    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
+    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
   when:
     - scs_high_availability
     - tier in ['sapos']
     - node_tier != 'hana'
     - sap_mnt is defined
 
-- name:                                "ANF Mount: usr/sap/{{ sap_sid|upper }}/SYS"
+- name:                                "ANF Mount: usr/sap/{{ sap_sid | upper }}/SYS"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -355,7 +364,7 @@
     opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
     state:                             mounted
   loop:
-    - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
+    - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
   when:
     - scs_high_availability
     - tier in ['sapos']
@@ -376,8 +385,8 @@
   ansible.builtin.set_fact:
     first_server_temp:                 "{{ first_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: sap_trans"
   ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
@@ -426,12 +435,12 @@
 - name:                                "ANF Mount: Prepare the OS for running
                                         SAP HANA on Azure NetApp with NFS"
   block:
-    - name:                             "ANF Mount: Create configuration file
-                                          for the NetApp configuration settings"
+    - name:                             "ANF Mount: Create configuration file for the NetApp configuration settings"
       ansible.builtin.blockinfile:
-        path:                            "/etc/sysctl.d/netapp-hana.conf"
+        path:                            /etc/sysctl.d/netapp-hana.conf
         backup:                          true
         create:                          true
+        mode:                            0644
         marker:                          "# {mark} HANA NetApp configuration"
         block: |
           net.core.rmem_max = 16777216
@@ -453,9 +462,10 @@
     - name:                             "ANF Mount: Create configuration file
                                           with additional optimization settings"
       ansible.builtin.blockinfile:
-        path:                            "/etc/sysctl.d/ms-az.conf"
+        path:                            /etc/sysctl.d/ms-az.conf
         backup:                          true
         create:                          true
+        mode:                            0644
         marker:                          "# {mark} HANA NetApp optimizations"
         block: |
           net.ipv6.conf.all.disable_ipv6 = 1
@@ -473,9 +483,10 @@
     - name:                             "ANF Mount: configure the maximum number
                                           of RPC requests for the NFS session"
       ansible.builtin.blockinfile:
-        path:                            "/etc/modprobe.d/sunrpc.conf"
+        path:                            /etc/modprobe.d/sunrpc.conf
         backup:                          true
         create:                          true
+        mode:                            0644
         marker:                          "# {mark} NFS RPC Connections"
         block:                           "options sunrpc tcp_max_slot_table_entries=128"
       when:
@@ -487,7 +498,8 @@
 
 - name:                            "ANF Mount: Create /hana folder"
   ansible.builtin.file:
-    path:                          "/hana"
+    path:                          /hana
+    mode:                          0755
     state:                         directory
     group:                         sapsys
   when:

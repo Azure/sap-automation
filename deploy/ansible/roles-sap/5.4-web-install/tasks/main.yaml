@@ -38,8 +38,8 @@
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "Web Install: Set the SCS Server name"
   ansible.builtin.set_fact:
@@ -66,7 +66,7 @@
     bom_name:                          "{{ bom_base_name }}"
     web_instance_number:               "00" # "{{ web_instance_number }}"
     sap_ciInstanceNumber:              "00"
-    sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
+    sap_profile_dir:                   /sapmnt/{{ sap_sid | upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_webVirtualHostname:            "{{ inventory_hostname }}"
     sap_installSAPHostAgent:           false
@@ -98,6 +98,7 @@
 #
     - name:               "SAP Web Dispatcher Install"
       ansible.builtin.command: |
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.web }}            \
                                                  SAPINST_SKIP_DIALOGS=true                                       \

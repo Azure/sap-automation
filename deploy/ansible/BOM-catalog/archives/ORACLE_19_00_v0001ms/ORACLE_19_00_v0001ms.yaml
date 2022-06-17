@@ -29,27 +29,27 @@ materials:
       archive:      SAPEXE_801-80002573.SAR
       checksum:     c1efbbd12cb16134720b251fd18cab4fdbc8a0a3ee93b54c2ee41671bc3048fc
       extract:      false
-      #download:     true
+      # download:     true
       path:         download_basket
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000937192021
 
     - name:         "Oracle DB specific kernel files"
       archive:      SAPEXEDB_801-80002605.SAR
       checksum:     3682acc6bbc9b5a122af422835217875e01cecd372b04649ef0659fcade3163e
       extract:      false
-      #download:     true
+      # download:     true
       path:         download_basket
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000937422021
 
     - name:         "Oracle DBATOOLS"
       archive:      DBATL740O11_46-80002605.SAR
       checksum:     31a4aed609605084dc711bb6d42fe7c5f08b68c88a221b06c754c33c4d9b00b3
       extract:      false
-      #download:     true
+      # download:     true
       path:         download_basket
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000816512021
 
       # SWPM
@@ -69,7 +69,7 @@ materials:
       download:    true
       extractDir:  EXPORT
       path:        download_basket
-      #creates:    SIGNATURE.SMF
+      # creates:    SIGNATURE.SMF
       url:         https://softwaredownloads.sap.com/file/0030000000635092016
 
     - name:         "SAP Host Agent"

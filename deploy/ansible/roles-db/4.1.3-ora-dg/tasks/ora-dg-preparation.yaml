@@ -58,10 +58,10 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl1.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl2.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl3.dbf' size 400M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid|upper }}/oraarch/standbylog/srl4.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size 400M reuse;
+        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl4.dbf' size 400M reuse;
         exit
     mode:                              0755
 
@@ -128,7 +128,7 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-         STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid|upper }}.ora;
+         STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid | upper }}.ora;
          exit
     mode:                              0755
 
@@ -166,7 +166,7 @@
     ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                      "{{ ansible_hostname }}"
 
-#Debug for testing
+# Debug for testing
 - name:                                "Oracle Data Guard - Preparation: Debug: installer prechecks output"
   ansible.builtin.debug:
     msg:
@@ -175,7 +175,7 @@
       - "host is {{ current_host }}"
     verbosity:                         2
 
-#Create Listener for primary node.
+# Create Listener for primary node.
 
 - name:                               "Oracle Data Guard - Preparation: Create the Listener file for Primary"
   become:                             true
@@ -190,7 +190,7 @@
     hostname:  "{{ ora_primary }}"
   when:  current_host == ora_primary
 
-#Create Listener for secondary node.
+# Create Listener for secondary node.
 
 - name:                               "Oracle Data Guard - Preparation: Create the Listener file for Secondary"
   become:                             true
@@ -205,7 +205,7 @@
     hostname:  "{{ ora_secondary }}"
   when:  current_host == ora_secondary
 
-#Create tnsnames.ora for primary node.
+# Create tnsnames.ora for primary node.
 
 - name:                               "Oracle Data Guard - Preparation: Create the tnsnames file for Primary"
   become:                             true
@@ -238,7 +238,7 @@
     sap_dbp_hostname:                  "{{ ora_primary }}"
     sap_dbs_hostname:                  "{{ ora_secondary }}"
   when:  current_host == ora_primary
-#Create tnsnames.ora for secondary node.
+# Create tnsnames.ora for secondary node.
 
 - name:                               "Oracle Data Guard - Preparation: Create the tnsnames file for Secondary"
   become:                             true
@@ -256,7 +256,7 @@
   when:  current_host == ora_secondary
 
 
-#Create sqlnet.ora for secondary node.
+# Create sqlnet.ora for secondary node.
 
 - name:                               "Oracle Data Guard - Preparation: Create the sqlnet.ora for Secondary"
   become:                             true
@@ -320,16 +320,16 @@
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
-         STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid|upper }}.ora;
+         STARTUP NOMOUNT PFILE=$ORACLE_HOME/dbs/init{{ db_sid | upper }}.ora;
          exit
     mode: 0755
   when: current_host == ora_secondary
 
-#Create Directories for RESTORE on Secondary
+# Create Directories for RESTORE on Secondary
 
 - name:                                "ORACLE: Create oracle SIDarch directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/oraarch/{{ db_sid|upper }}arch
+    path:                              /oracle/{{ db_sid | upper }}/oraarch/{{ db_sid | upper }}arch
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -338,7 +338,7 @@
 
 - name:                                "ORACLE: Create oracle standbylog directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/oraarch/standbylog
+    path:                              /oracle/{{ db_sid | upper }}/oraarch/standbylog
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -347,7 +347,7 @@
 
 - name:                                "ORACLE: Create oracle oraflash directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/oraflash
+    path:                              /oracle/{{ db_sid | upper }}/oraflash
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -356,7 +356,7 @@
 
 - name:                                "ORACLE: Create saptrace directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/saptrace
+    path:                              /oracle/{{ db_sid | upper }}/saptrace
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -365,7 +365,7 @@
 
 - name:                                "ORACLE: Create saparch directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/saparch
+    path:                              /oracle/{{ db_sid | upper }}/saparch
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -374,7 +374,7 @@
 
 - name:                                "ORACLE: Create sapprof directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/sapprof
+    path:                              /oracle/{{ db_sid | upper }}/sapprof
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -383,7 +383,7 @@
 
 - name:                                "ORACLE: Create sapcheck directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/sapcheck
+    path:                              /oracle/{{ db_sid | upper }}/sapcheck
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -392,7 +392,7 @@
 
 - name:                                "ORACLE: Create saptrace audit directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/saptrace/audit
+    path:                              /oracle/{{ db_sid | upper }}/saptrace/audit
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -401,7 +401,7 @@
 
 - name:                                "ORACLE: Create saptrace background directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/saptrace/background
+    path:                              /oracle/{{ db_sid | upper }}/saptrace/background
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -410,7 +410,7 @@
 
 - name:                                "ORACLE: Create saptrace diag directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/saptrace/diag
+    path:                              /oracle/{{ db_sid | upper }}/saptrace/diag
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -419,7 +419,7 @@
 
 - name:                                "ORACLE: Create saptrace usertrace directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/saptrace/usertrace
+    path:                              /oracle/{{ db_sid | upper }}/saptrace/usertrace
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -428,7 +428,7 @@
 
 - name:                                "ORACLE: Create orawallet directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/orawallet
+    path:                              /oracle/{{ db_sid | upper }}/orawallet
     mode:                              0755
     state:                             directory
     owner:                             oracle

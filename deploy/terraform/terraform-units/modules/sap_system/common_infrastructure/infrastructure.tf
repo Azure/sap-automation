@@ -166,6 +166,7 @@ data "azurerm_proximity_placement_group" "ppg" {
 
 resource "azurerm_application_security_group" "db" {
   provider = azurerm.main
+  count    = var.deploy_application_security_groups ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.db_asg,
     local.prefix,

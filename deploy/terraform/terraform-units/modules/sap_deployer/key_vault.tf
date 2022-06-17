@@ -22,24 +22,23 @@ resource "azurerm_key_vault" "kv_user" {
 
   network_acls {
     bypass         = "AzureServices"
-    default_action = "Allow"
+    default_action = var.use_private_endpoint || local.management_subnet_exists ? "Deny" : "Allow"
     ip_rules = var.use_private_endpoint ? (
       [
         local.enable_deployer_public_ip ? azurerm_public_ip.deployer[0].ip_address : ""
       ]
       ) : (
       [
-        
+
       ]
     )
-    virtual_network_subnet_ids = [
-      local.management_subnet_exists ? (
+    virtual_network_subnet_ids = var.use_private_endpoint ? (
+      []) : (
+      [local.management_subnet_exists ? (
         data.azurerm_subnet.subnet_mgmt[0].id) : (
-        azurerm_subnet.subnet_mgmt[0].id
-      )
-    ]
+      azurerm_subnet.subnet_mgmt[0].id)]
+    )
   }
-
 }
 
 // Import an existing user Key Vault

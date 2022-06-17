@@ -30,7 +30,8 @@ locals {
 
   firewall_service_tags = format("AzureCloud.%s", local.region)
 
-  deployer_subnet_management_id = try(var.deployer_tfstate.subnet_mgmt_id, null)
+  deployer_subnet_management_id = try(var.deployer_tfstate.subnet_mgmt_id, "")
+  management_subnet_exists      = length(local.deployer_subnet_management_id) > 0
 
   deployer_public_ip_address = try(var.deployer_tfstate.deployer_public_ip_address, "")
 
@@ -485,7 +486,7 @@ locals {
   iscsi_os = try(var.infrastructure.iscsi.os,
     {
       "publisher" = try(var.infrastructure.iscsi.os.publisher, "SUSE")
-      "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-12-sp5")
+      "offer"     = try(var.infrastructure.iscsi.os.offer, "sles-sap-15-sp3")
       "sku"       = try(var.infrastructure.iscsi.os.sku, "gen2")
       "version"   = try(var.infrastructure.iscsi.os.version, "latest")
   })

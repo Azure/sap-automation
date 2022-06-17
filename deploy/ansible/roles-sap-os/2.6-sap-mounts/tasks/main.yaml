@@ -28,8 +28,8 @@
   ansible.builtin.set_fact:
     nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "2.6 SAP Mounts: - Set the NFS Server name"
   ansible.builtin.set_fact:
@@ -142,7 +142,7 @@
     opts:                              defaults
     state:                             mounted
   loop:
-    - { type: 'xfs',  src: '/dev/vg_sap/lv_sapmnt',  path: '/sapmnt/{{ sap_sid|upper }}' }
+    - { type: 'xfs',  src: '/dev/vg_sap/lv_sapmnt',  path: '/sapmnt/{{ sap_sid | upper }}' }
   when:
     - tier == 'sapos'
     - sap_mnt is undefined
@@ -155,7 +155,7 @@
     owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
     mode:                              0755
-    path:                              "/sapmnt/{{ sap_sid|upper }}"
+    path:                              "/sapmnt/{{ sap_sid | upper }}"
     state:                             directory
     recurse:                           true
 
@@ -169,7 +169,7 @@
         opts:                          defaults
         state:                         mounted
       loop:
-        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
+        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - tier == 'sapos'
         - node_tier in ['pas', 'app', 'ers', 'oracle']
@@ -188,7 +188,7 @@
         opts:                          defaults
         state:                         remounted
       loop:
-        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}',  path: '/sapmnt/{{ sap_sid|upper }}' }
+        - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - tier == 'sapos'
         - node_tier in ['pas', 'app', 'ers', 'oracle']
@@ -209,20 +209,6 @@
     - tier == 'sapos'
     - node_tier != 'scs'
     - usr_sap_install_mountpoint is not defined
-
-# Import this task only if the sap_mnt is defined, i.e. AFS is used
-- name:                                "2.6 SAP Mounts: - Import AFS tasks"
-  ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
-  when:
-    - sap_mnt is defined or sap_trans is defined
-    - NFS_provider == 'AFS'
-
-# Import this task only if the sap_mnt is defined, i.e. ANF is used
-- name:                                "2.6 SAP Mounts: - Import ANF tasks"
-  ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
-  when:
-    - sap_mnt is defined or sap_trans is defined
-    - NFS_provider == 'ANF'
 
 # Mount File systems for SCS server in Multi-SID installations
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
@@ -251,19 +237,20 @@
     - tier == 'sapos'
     - node_tier == 'scs'
     - MULTI_SIDS is defined
+    - sap_mnt is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount SAP File systems sapmnt for oracle shared home installation"
   become:                              true
   become_user:                         root
   ansible.builtin.mount:
-    src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid|upper }}'
-    path:                              '/sapmnt/{{ item.sid|upper }}'
+    src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
+    path:                              '/sapmnt/{{ item.sid | upper }}'
     fstype:                            'nfs4'
     opts:                              defaults
     state:                             mounted
   vars:
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
   loop:                                "{{ MULTI_SIDS }}"
   when:
     - tier == 'sapos'
@@ -281,5 +268,20 @@
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
+
+# Import this task only if the sap_mnt is defined, i.e. AFS is used
+- name:                                "2.6 SAP Mounts: - Import AFS tasks"
+  ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined
+    - NFS_provider == 'AFS'
+
+# Import this task only if the sap_mnt is defined, i.e. ANF is used
+- name:                                "2.6 SAP Mounts: - Import ANF tasks"
+  ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined
+    - NFS_provider == 'ANF'
+
 
 ...

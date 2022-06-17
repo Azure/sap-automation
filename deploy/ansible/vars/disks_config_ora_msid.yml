@@ -9,7 +9,7 @@ disktypes: >-
       list }}
 
 multisids: >-
-  {{ MULTI_SIDS |map(attribute='sid') | sort | unique |list }}
+  {{ MULTI_SIDS | map(attribute='sid') | sort | unique | list }}
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
