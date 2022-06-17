@@ -50,9 +50,9 @@
   ansible.builtin.command:             echo never > /sys/kernel/mm/transparent_hugepage/enabled
   changed_when:                        false
 
-# - name:                                "2.10.1 sap-notes: - Disable SELinux"
-#   ansible.posix.selinux:
-#     state:                             disabled
+- name:                                "2.10.1 sap-notes: - Disable SELinux"
+  selinux:
+    state:                             disabled
 
 - name:                                "2.10.1 sap-notes: - Disable core file creation"
   ansible.builtin.lineinfile:

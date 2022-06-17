@@ -482,7 +482,7 @@ else
         cd $${agent_home}
         ./env.sh
 
-        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token $${TOKEN} --pool $${POOL} --agent $${AGENTNAME} --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
+        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
         chmod +x $${agent_home}/config_fixed_params.sh
         
         runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt

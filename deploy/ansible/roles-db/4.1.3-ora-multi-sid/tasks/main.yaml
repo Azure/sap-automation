@@ -41,14 +41,14 @@
 - name:                                "ORACLE Permissions"
   block:
 
-    - name:													   "ORACLE (sharedHome): Make oracle:oinstall as owners"
+    - name:                            "ORACLE (sharedHome): Make oracle:oinstall as owners"
       ansible.builtin.file:
         path:                          /oracle
         state:                         directory
         owner:                         oracle
         group:                         oinstall
         recurse:                       true
-    
+
     - name:												     "ORACLE (sharedHome): Create oracleowner.txt"
       become:											     true
       become_user:								     root
