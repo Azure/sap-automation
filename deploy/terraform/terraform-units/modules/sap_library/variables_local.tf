@@ -1,8 +1,4 @@
 
-variable "use_webapp" {
-  default = false
-}
-
 locals {
 
 #  storageaccount_names = var.naming.storageaccount_names.LIBRARY

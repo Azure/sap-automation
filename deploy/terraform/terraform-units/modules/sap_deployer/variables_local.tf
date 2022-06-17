@@ -5,25 +5,6 @@
 #                                                                             # 
 ###############################################################################
 
-variable "use_private_endpoint" {
-  default = false
-}
-
-variable "use_webapp" {
-  default = false
-}
-
-variable "configure" {
-  default = false
-}
-
-variable "tf_version" {
-  default = ""
-}
-
-variable "bastion_deployment" {
-  default = false
-}
 
 locals {
 
