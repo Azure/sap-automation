@@ -57,7 +57,7 @@
   tags: ansible_skip_lint
 
 - name:                                "2.10.1 - Force all notified handlers to run now"
-  meta:                                flush_handlers
+  ansible.builtin.meta:                flush_handlers
 
 - name:                                "2.10.1 sap-notes: - Disable core file creation"
   ansible.builtin.lineinfile:
