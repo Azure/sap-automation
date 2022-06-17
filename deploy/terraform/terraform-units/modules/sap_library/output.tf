@@ -74,10 +74,6 @@ output "tfstate_resource_id" {
   )
 }
 
-output "storagecontainer_ansible" {
-  value = local.sa_ansible_container_name
-}
-
 output "cmdb_connection_string" {
   sensitive = true
   value = var.use_webapp ? azurerm_cosmosdb_account.cmdb[0].connection_strings[0] : ""
