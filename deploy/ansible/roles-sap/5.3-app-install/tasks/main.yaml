@@ -245,7 +245,7 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-    
+
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -253,7 +253,7 @@
         - db_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-    
+
     - name:                            "APP Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
