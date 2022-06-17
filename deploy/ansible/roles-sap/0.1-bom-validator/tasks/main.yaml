@@ -179,7 +179,7 @@
                                          --no-progress
   delegate_to:                         localhost
   register:                            azresult
-  ignore_errors:                       false
+  failed_when:                         false
   changed_when:                        false
   failed_when:
     - azresult.rc != 0
