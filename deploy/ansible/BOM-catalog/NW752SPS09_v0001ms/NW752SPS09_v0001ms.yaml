@@ -2,6 +2,7 @@
 
 name:                                  "NW752SPS09_v0001ms"
 target:                                "NETWEAVER 7.52 SPS 09"
+version:                               1
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
@@ -20,49 +21,49 @@ product_ids:
 
 materials:
   dependencies:
-    - name:                            HANA_2_00_059_v0002ms
-    - name:                            SWPM10SP34_latest
-    - name:                            SUM20SP13_latest
+    - name:                            HANA_2_00_061_v0001ms
+    - name:                            SWPM10SP35_latest
+    - name:                            SUM20SP14_latest
 
   media:
 
     # kernel components
 
     - name:                            "Kernel Part II (753)"
-      archive:      SAPEXEDB_900-80002572.SAR
-      checksum:     83eb0450e30e7cefb09aa3def0a3f7f0bdbf5b2ee1ccbe481443084f50f98e37
+      archive:                         SAPEXEDB_900-80002572.SAR
+      checksum:                        83eb0450e30e7cefb09aa3def0a3f7f0bdbf5b2ee1ccbe481443084f50f98e37
       url:                             https://softwaredownloads.sap.com/file/0020000001557752021
-      path:         download_basket
+      path:                            download_basket
 
     - name:                            "Kernel Part I (753)"
-      archive:      SAPEXE_900-80002573.SAR
-      checksum:     f5755f3df7be0bd0f1f07c959bc55c806a51ba3131287c568c2535bd8fdf713d
+      archive:                         SAPEXE_900-80002573.SAR
+      checksum:                        f5755f3df7be0bd0f1f07c959bc55c806a51ba3131287c568c2535bd8fdf713d
       url:                             https://softwaredownloads.sap.com/file/0020000001557032021
-      path:         download_basket
+      path:                            download_basket
 
     - name:                            "SAP HOST AGENT 7.22 SP54"
-      archive:      SAPHOSTAGENT54_54-80004822.SAR
-      checksum:     5899a0934bd8d37a887d0d67de6ac0520f907a66ff7c3bc79176fff99171a878
+      archive:                         SAPHOSTAGENT54_54-80004822.SAR
+      checksum:                        5899a0934bd8d37a887d0d67de6ac0520f907a66ff7c3bc79176fff99171a878
       url:                             https://softwaredownloads.sap.com/file/0020000001542872021
-      path:         download_basket
+      path:                            download_basket
 
     - name:                            "Installation for SAP IGS integrated in SAP Kernel"
-      archive:      igsexe_13-80003187.sar
-      checksum:     b508b1ff97ec0e3b7f4dd8f57e3840eb547b6326434df677927b8cfd6b4faa12
+      archive:                         igsexe_13-80003187.sar
+      checksum:                        b508b1ff97ec0e3b7f4dd8f57e3840eb547b6326434df677927b8cfd6b4faa12
       url:                             https://softwaredownloads.sap.com/file/0020000000534572021
-      path:         download_basket
+      path:                            download_basket
 
     - name:                            "SAP IGS Fonts and Textures"
-      archive:      igshelper_17-10010245.sar
-      checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
+      archive:                         igshelper_17-10010245.sar
+      checksum:                        bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
       url:                             https://softwaredownloads.sap.com/file/0020000000703122018
-      path:         download_basket
+      path:                            download_basket
 
     - name:                            "SAP HANA CLIENT 2.0 for NW AS ABAP 7.52"
-      archive:      51051805.ZIP
-      checksum:     8dadbb7923ed7b36eaa5c1d103a2bbd216351c233de3c2d627b9e7db5755510e
+      archive:                         51051805.ZIP
+      checksum:                        8dadbb7923ed7b36eaa5c1d103a2bbd216351c233de3c2d627b9e7db5755510e
       url:                             https://softwaredownloads.sap.com/file/0030000019669572017
-      path:         download_basket
+      path:                            download_basket
 
     # DB Export
     - name:                            "NetWeaver AS ABAP 7.52 Innovation Pkg - Installation Exp 1/2"

@@ -163,12 +163,11 @@
                                          --name {{ bom_base_name }}.yaml
   delegate_to:                         localhost
   register:                            azresult
-  ignore_errors:                       true
   changed_when:                        false
   failed_when:
     - azresult.rc != 0
     - azresult.stderr is defined
-    - azresult.stderr.find("ContainerNotFound") == -1
+    - azresult.stderr.find("BlobNotFound") == -1
 
 
 - name:                                "0.1 BoM Validator: - Upload combined BoM"
@@ -190,13 +189,13 @@
     - azresult.stderr is defined
     - azresult.stderr.find("BlobAlreadyExists") == -1
 
+- name:                                "0.1 BoM Validator: - BoM folder path"
+  ansible.builtin.debug:
+    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
+
 
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
-
-- name:                                "0.1 BoM Validator: - BoM folder path"
-  ansible.builtin.debug:
-    msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
 
 ...
