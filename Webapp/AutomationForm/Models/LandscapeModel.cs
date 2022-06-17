@@ -235,15 +235,18 @@ namespace AutomationForm.Models
 
 
         [BsonIgnoreIfNull]
+        [KeyvaultIdValidator]
         public string user_keyvault_id { get; set; }
 
         [BsonIgnoreIfNull]
+        [KeyvaultIdValidator]
         public string automation_keyvault_id { get; set; }
 
         [BsonIgnoreIfNull]
         public bool? enable_purge_control_for_keyvaults { get; set; }
 
         [BsonIgnoreIfNull]
+        [KeyvaultIdValidator]
         public string spn_keyvault_id { get; set; }
 
         [BsonIgnoreIfNull]
@@ -271,24 +274,30 @@ namespace AutomationForm.Models
 
 
         [BsonIgnoreIfNull]
+        [StorageAccountIdValidator]
         public string diagnostics_storage_account_arm_id { get; set; }
         
         [BsonIgnoreIfNull]
+        [StorageAccountIdValidator]
         public string witness_storage_account_arm_id { get; set; }
 
         [BsonIgnoreIfNull]
+        [StorageAccountIdValidator]
         public string transport_storage_account_id { get; set; }
 
         [BsonIgnoreIfNull]
+        [PrivateEndpointIdValidator]
         public string transport_private_endpoint_id { get; set; }
 
         [BsonIgnoreIfNull]
+        [StorageAccountIdValidator]
         public string install_storage_account_id { get; set; }
 
         [BsonIgnoreIfNull]
         public int? install_volume_size { get; set; }
 
         [BsonIgnoreIfNull]
+        [PrivateEndpointIdValidator]
         public string install_private_endpoint_id { get; set; }
     }
 }

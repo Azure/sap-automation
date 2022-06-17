@@ -61,6 +61,9 @@ $$location$$
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
 $$network_name$$
+
+$$network_arm_id$$
+
 $$network_logical_name$$
 
 #########################################################################################
@@ -160,6 +163,20 @@ $$database_no_ppg$$
 # Optional, Defines the that the database virtual machines will not be placed in an availability set
 $$database_no_avset$$
 
+$$database_dual_nics$$
+
+$$database_server_count$$
+
+$$database_tags$$
+
+$$database_loadbalancer_ips$$
+
+$$database_vm_storage_nic_ips$$
+
+$$database_HANA_use_ANF_scaleout_scenario$$
+
+$$hana_dual_nics$$
+
 #########################################################################################
 #                                                                                       #
 #  Application tier                                                                        #                                                                                       #
@@ -225,7 +242,7 @@ $$scs_server_nic_secondary_ips$$
 
 # scs_server_app_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the application subnet
-$$scs_server_app_admin_nic_ips$$
+$$scs_server_admin_nic_ips$$
 
 # scs_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
 # for the network interface cards connected to the application subnet
@@ -262,7 +279,7 @@ $$application_server_nic_secondary_ips$$
 
 # application_server_app_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the admin subnet
-$$application_server_app_admin_nic_ips$$
+$$application_server_admin_nic_ips$$
 
 #If you want to customise the disk sizes for application tier use the following parameter.
 $$app_disk_sizes_filename$$
@@ -284,6 +301,8 @@ $$application_server_tags$$
 # in this case os_type must also be specified
 $$application_server_image$$
 
+$$application_server_vm_avset_arm_ids$$
+
 ############################################################################################
 #                                                                                          #
 #                                  Web Dispatchers                                         #
@@ -303,7 +322,7 @@ $$webdispatcher_server_nic_secondary_ips$$
 
 # webdispatcher_server_app_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the application subnet
-$$webdispatcher_server_app_admin_nic_ips$$
+$$webdispatcher_server_admin_nic_ips$$
 
 # webdispatcher_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
 # for the network interface cards connected to the application subnet
@@ -357,7 +376,69 @@ $$vm_disk_encryption_set_id$$
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
 $$NFS_provider$$
+
 $$sapmnt_volume_size$$
+
+$$azure_files_sapmnt_id$$
+
+$$azurerm_private_endpoint_connection_sapmnt_id$$
+
+#########################################################################################
+#                                                                                       #
+#  ANF Settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+$$ANF_use_for_HANA_data$$
+
+$$ANF_HANA_data_volume_size$$
+
+$$ANF_use_existing_data_volume$$
+
+$$ANF_data_volume_name$$
+
+$$ANF_HANA_data_volume_throughput$$
+
+$$ANF_use_for_HANA_log$$
+
+$$ANF_HANA_log_volume_size$$
+
+$$ANF_use_existing_log_volume$$
+
+$$ANF_log_volume_name$$
+
+$$ANF_HANA_log_volume_throughput$$
+
+$$ANF_use_for_HANA_shared$$
+
+$$ANF_HANA_shared_volume_size$$
+
+$$ANF_use_existing_shared_volume$$
+
+$$ANF_HANA_shared_volume_name$$
+
+$$ANF_HANA_shared_volume_throughput$$
+
+$$ANF_use_for_usr_sap$$
+
+$$ANF_usr_sap_volume_size$$
+
+$$ANF_use_existing_usr_sap_volume$$
+
+$$ANF_HANA_usr_sap_volume_name$$
+
+$$ANF_HANA_usr_sap_throughput$$
+
+$$use_private_endpoint$$
+
+$$ANF_use_existing_sapmnt_volume$$
+
+$$ANF_sapmnt_volume_name$$
+
+$$ANF_HANA_sapmnt_volume_size$$
+
+$$ANF_HANA_sapmnt_volume_throughput$$
+
 
 #########################################################################################
 #                                                                                       #
@@ -418,6 +499,18 @@ $$use_prefix$$
 $$proximityplacementgroup_names$$
 
 $$proximityplacementgroup_arm_ids$$
+
+#########################################################################################
+#                                                                                       #
+#  Key Vault variables                                                                  #
+#                                                                                       #
+#########################################################################################
+
+$$user_keyvault_id$$
+
+$$spn_keyvault_id$$
+
+$$enable_purge_control_for_keyvaults$$
 
 #########################################################################################
 #                                                                                       #
@@ -540,6 +633,10 @@ $$anchor_vm_nic_ips$$
 
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 $$anchor_vm_use_DHCP$$
+
+$$anchor_vm_authentication_username$$
+
+$$bom_name$$
 
 #########################################################################################
 #                                                                                       #

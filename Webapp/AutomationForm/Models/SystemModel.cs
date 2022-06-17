@@ -98,7 +98,12 @@ namespace AutomationForm.Models
         public string[] proximityplacementgroup_names { get; set; }
         
         [BsonIgnoreIfNull]
+        [PpgIdValidator]
         public string[] proximityplacementgroup_arm_ids { get; set; }
+
+        [BsonIgnoreIfNull]
+        [NetworkAddressValidator]
+        public string network_arm_id { get; set; }
 
         // Admin Subnet
 
@@ -204,6 +209,7 @@ namespace AutomationForm.Models
         public string database_vm_authentication_type { get; set; }
 
         [BsonIgnoreIfNull]
+        [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
         
         [BsonIgnoreIfNull]
@@ -277,9 +283,6 @@ namespace AutomationForm.Models
         public string[] application_server_zones { get; set; }
 
         [BsonIgnoreIfNull]
-        public string[] application_server_nic_ips { get; set; }
-
-        [BsonIgnoreIfNull]
         public string[] application_server_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
@@ -295,6 +298,7 @@ namespace AutomationForm.Models
         public bool? application_server_no_avset { get; set; }
 
         [BsonIgnoreIfNull]
+        [AvSetIdValidator]
         public string[] application_server_vm_avset_arm_ids { get; set; }
 
         [BsonIgnoreIfNull]
@@ -411,6 +415,7 @@ namespace AutomationForm.Models
         public string azure_files_sapmnt_id { get; set; }
 
         [BsonIgnoreIfNull]
+         [PrivateEndpointIdValidator]
         public string azurerm_private_endpoint_connection_sapmnt_id { get; set; }
 
         // ANF Settings
@@ -490,10 +495,10 @@ namespace AutomationForm.Models
         [BsonIgnoreIfNull]
         public int? ANF_HANA_sapmnt_volume_throughput { get; set; }
 
+        // Anchor VM
+
         [BsonIgnoreIfNull]
         public string anchor_vm_authentication_username { get; set; }
-
-        // Anchor VM
 
         [BsonIgnoreIfNull]
         public bool? deploy_anchor_vm { get; set; }
@@ -521,9 +526,11 @@ namespace AutomationForm.Models
 
 
         [BsonIgnoreIfNull]
+        [KeyvaultIdValidator]
         public string user_keyvault_id { get; set; }
 
         [BsonIgnoreIfNull]
+        [KeyvaultIdValidator]
         public string spn_keyvault_id { get; set; }
 
         [BsonIgnoreIfNull]
@@ -549,5 +556,18 @@ namespace AutomationForm.Models
         
         [BsonIgnoreIfNull]
         public string version { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool IsInitialized { 
+            get
+            {
+                return (os_type != null
+                    || source_image_id != null 
+                    || publisher != null 
+                    || offer != null 
+                    || sku != null 
+                    || version != null);
+            } 
+        }
     }
 }
