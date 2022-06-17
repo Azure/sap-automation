@@ -25,32 +25,42 @@
   loop_control:
     loop_var: item_to_check
 
-- name:																 "ORACLE (sharedHome): Create sap_deployment_automation folder"
+- name:                                "ORACLE (sharedHome): Create sap_deployment_automation folder"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
-    mode:															 0755
-    state:														 directory
-    owner:														 oracle
-    group:														 oinstall
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
 
-- name:																 "ORACLE (sharedHome): Make oracle:oinstall as owners"
-  become:															 true
-  become_user:												 root
-  ansible.builtin.command:						 chown -R oracle:oinstall /oracle
-  args:
-    creates:													 /etc/sap_deployment_automation/oracleowner.txt
-  tags:
-    - skip_ansible_lint
+- name:                                "ORACLE (sharedHome): check if permissions are set"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/oracleowner.txt
+  register:                            permissions_set
 
-- name:																 "ORACLE (sharedHome): Create oracleowner.txt"
-  become:															 true
-  become_user:												 root
-  ansible.builtin.file:
-    path:															 /etc/sap_deployment_automation/oracleowner.txt
-    state:														 touch
-    mode:															 0755
-    owner:														 oracle
-    group:														 oinstall
+- name:                                "ORACLE Permissions"
+  block:
+
+    - name:													   "ORACLE (sharedHome): Make oracle:oinstall as owners"
+      ansible.builtin.file:
+        path:                          /oracle
+        state:                         directory
+        owner:                         oracle
+        group:                         oinstall
+        recurse:                       true
+    
+    - name:												     "ORACLE (sharedHome): Create oracleowner.txt"
+      become:											     true
+      become_user:								     root
+      ansible.builtin.file:
+        path:											     /etc/sap_deployment_automation/oracleowner.txt
+        state:										     touch
+        mode:											     0755
+        owner:										     oracle
+        group:										     oinstall
+
+  when:
+    - not permissions_set.stat.exists
 
 #	START OF ORACLE SOFTWARE INSTALLATION USING SAP RUNINSTALLER WRAPPER.
 # /*---------------------------------------------------------------------------8
