@@ -53,6 +53,10 @@
 - name:                                "2.10.1 sap-notes: - Disable SELinux"
   selinux:
     state:                             disabled
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+
+- name:                                "2.10.1 - Force all notified handlers to run now"
+  meta:                                flush_handlers
 
 - name:                                "2.10.1 sap-notes: - Disable core file creation"
   ansible.builtin.lineinfile:
