@@ -162,9 +162,12 @@
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}
                                          --name {{ bom_base_name }}.yaml
   delegate_to:                         localhost
+  register:                            azresult
   ignore_errors:                       true
   changed_when:                        false
-
+  failed_when:
+    - azresult.rc != 0
+    - azresult.stderr is defined
 
 - name:                                "0.1 BoM Validator: - Upload combined BoM"
   ansible.builtin.command: >-
@@ -179,7 +182,6 @@
                                          --no-progress
   delegate_to:                         localhost
   register:                            azresult
-  failed_when:                         false
   changed_when:                        false
   failed_when:
     - azresult.rc != 0

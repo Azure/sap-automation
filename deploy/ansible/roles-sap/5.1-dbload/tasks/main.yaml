@@ -166,8 +166,8 @@
       ansible.builtin.debug:
         var:                           dbload_results
       when:
-        - job_result is defined
-        - job_result.rc > 0
+        - dbload_results is defined
+        - dbload_results.rc > 0
 
     - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
