@@ -10,7 +10,7 @@ resource "azurerm_cosmosdb_account" "cmdb" {
     is_virtual_network_filter_enabled = true
 
     virtual_network_rule {
-      id = try(var.deployer_tfstate.subnet_management_id, "")
+      id = try(var.deployer_tfstate.subnet_mgmt_id, "")
     }
 
     virtual_network_rule {

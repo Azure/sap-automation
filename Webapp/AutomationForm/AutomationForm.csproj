@@ -7,6 +7,8 @@
   <ItemGroup>
     <None Include="wwwroot\css\prism.css" />
     <None Include="wwwroot\js\prism.js" />
+    <None Include="ParameterDetails/LandscapeTemplate.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="ParameterDetails/SystemTemplate.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
