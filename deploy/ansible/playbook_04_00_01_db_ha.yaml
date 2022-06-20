@@ -97,6 +97,12 @@
               tags:
                 - always
 
+            - name:                    "HANA HA Setup: - Ensure the needed services are started"
+              ansible.builtin.include_role:
+                name:                  roles-os/1.16-services
+              tags:
+                - 1.16-services
+
             # FIXME: This task will never run due to when condition. Remove is possible
             # - name:                    Run the hana sudoers role
             #   ansible.builtin.include_role:
@@ -106,7 +112,7 @@
             #   tags:
             #     - 1.11-accounts
 
-            - name:                    Run the Pacemaker role
+            - name:                    "HANA HA Setup: - run the Pacemaker role"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
               when:                    db_high_availability
