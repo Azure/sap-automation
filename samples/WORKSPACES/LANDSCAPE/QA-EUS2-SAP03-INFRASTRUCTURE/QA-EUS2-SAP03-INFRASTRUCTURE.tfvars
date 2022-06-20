@@ -226,8 +226,8 @@ install_volume_size = 256
 # install_storage_account_id defines the Azure resource id for the install storage account
 install_storage_account_id = "<azure_resource_id>"
 
-# azurerm_private_endpoint_connection_install_id defines the Azure resource id for the install storage account's private endpoint connection
-#azurerm_private_endpoint_connection_install_id=""
+# install_private_endpoint_id defines the Azure resource id for the install storage account's private endpoint connection
+#install_private_endpoint_id=""
 
 # Defines the size of the transport volume
 transport_volume_size = 128
@@ -235,8 +235,8 @@ transport_volume_size = 128
 # transport_storage_account_id defines the Azure resource id for the transport storage account
 transport_storage_account_id = "<azure_resource_id>"
 
-# azurerm_private_endpoint_connection_transport_id defines the Azure resource id for the transport storage accounts private endpoint connection
-#azurerm_private_endpoint_connection_transport_id=""
+# transport_private_endpoint_id defines the Azure resource id for the transport storage accounts private endpoint connection
+#transport_private_endpoint_id=""
 
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
