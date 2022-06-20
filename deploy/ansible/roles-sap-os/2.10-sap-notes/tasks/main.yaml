@@ -48,6 +48,7 @@
     - node_tier == 'hana'
     - distribution_id == 'redhat8'
 
+# ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
 
 
