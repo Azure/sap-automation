@@ -92,6 +92,14 @@
         - db_high_availability
         - platform == "HANA"
 
+    - name:                            "sharedHome variables"
+      ansible.builtin.debug:
+        var:                           sid_to_be_deployed
+      when:                            MULTI_SIDS is defined
+      loop:                            "{{ MULTI_SIDS }}"
+      loop_control:
+        loop_var:                      sid_to_be_deployed
+
     - name:                            "0.0 Validations - Validate ORACLE parameters"
       ansible.builtin.assert:
         that:
@@ -123,13 +131,13 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:              "{{ sap_sid|upper }}_DB  :
-                       {{ sap_sid|upper }}_SCS :
-                       {{ sap_sid|upper }}_ERS :
-                       {{ sap_sid|upper }}_PAS :
-                       {{ sap_sid|upper }}_ERS :
-                       {{ sap_sid|upper }}_APP :
-                       {{ sap_sid|upper }}_WEB"
+- hosts:              "{{ sap_sid | upper }}_DB  :
+                       {{ sap_sid | upper }}_SCS :
+                       {{ sap_sid | upper }}_ERS :
+                       {{ sap_sid | upper }}_PAS :
+                       {{ sap_sid | upper }}_ERS :
+                       {{ sap_sid | upper }}_APP :
+                       {{ sap_sid | upper }}_WEB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters"
   gather_facts:                        true
@@ -210,7 +218,7 @@
         var:                           hosts.stdout_lines
       when:                            hosts is defined
 
-- hosts:               "{{ sap_sid|upper }}_DB"
+- hosts:               "{{ sap_sid | upper }}_DB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
   gather_facts:                        true
@@ -226,7 +234,7 @@
         fail_msg:                      "Please specify MULTI_SIDS if you are deploying a shared home installation"
       when:                            node_tier == 'oracle-multi-sid'
 
-- hosts:               "{{ sap_sid|upper }}_WEB"
+- hosts:               "{{ sap_sid | upper }}_WEB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
   gather_facts:                        true

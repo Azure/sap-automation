@@ -1,13 +1,13 @@
 ---
 - name:                                "Oracle Data Guard - Observer: Set the NFS Server name"
   ansible.builtin.set_fact:
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
 
 # # Set Primary and Secondary node names.
 # - name:                                "Set the  Server names"
 #   ansible.builtin.set_fact:
-#     ora_primary:                       "{{ sap_sid|upper }}_DB[0]"
-#     ora_secondary:                     "{{ sap_sid|upper }}_DB[1]"
+#     ora_primary:                       "{{ sap_sid | upper }}_DB[0]"
+#     ora_secondary:                     "{{ sap_sid | upper }}_DB[1]"
 #     current_host:                      "{{ ansible_hostname }}"
 
 
@@ -74,7 +74,7 @@
   register:                            orainstall_results
   failed_when:                         orainstall_results.rc >= 3
   environment:
-    DB_SID:                            "{{ db_sid|upper }}"
+    DB_SID:                            "{{ db_sid | upper }}"
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
@@ -104,7 +104,7 @@
     mode:                              0755
   when:                                orainstall_results.rc < 3
 
-  #Create SQLNET.ORA .
+  # Create SQLNET.ORA .
 
 - name:                                "Oracle Data Guard - Observer: Copy sqlnet.ora TO Observer"
   become:                              true
@@ -137,13 +137,13 @@
     path:                              /home/oracle/.bashrc
     insertafter:                       'fi '
     block: |
-        #User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid|upper }}/{{ ora_version }}
-        export ORACLE_SID={{ db_sid|upper }}
+        # User Specific environment
+        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
+        export ORACLE_SID={{ db_sid | upper }}
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
-        export DB_SID={{ db_sid|upper }}
+        export DB_SID={{ db_sid | upper }}
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
 
@@ -156,26 +156,26 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        #User Specific environment
-        setenv  ORACLE_HOME /oracle/{{ db_sid|upper }}/{{ ora_release }}
-        setenv  ORACLE_SID  {{ db_sid|upper }}
+        # User Specific environment
+        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+        setenv  ORACLE_SID  {{ db_sid | upper }}
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
-        setenv  DB_SID {{ db_sid|upper }}
+        setenv  DB_SID {{ db_sid | upper }}
         set path = ($path $ORACLE_HOME/bin)
     mode:                              0755
 
-#Check if tnsping is working to reach Primary and Secondary databases.
+# Check if tnsping is working to reach Primary and Secondary databases.
 
 # TNSPING FOR PRIMARY
 - name:                                "Oracle Data Guard - Observer: Run tnsping on Primary"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               tnsping {{ db_sid|upper }}
+  ansible.builtin.shell:               tnsping {{ db_sid | upper }}
   register:                            tnsping_primary_results
   args:
-    chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
+    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
     executable:                        /bin/csh
 
 - name:                                "Oracle Data Guard - Observer: tnsping Primary output"
@@ -194,10 +194,10 @@
 - name:                                "Oracle Data Guard - Observer: Run tnsping on Secondary"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               tnsping {{ db_sid|upper }}_STDBY
+  ansible.builtin.shell:               tnsping {{ db_sid | upper }}_STDBY
   register:                            tnsping_secondary_results
   args:
-    chdir:                             /oracle/{{ db_sid|upper }}/{{ ora_release }}/bin
+    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/bin
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
@@ -237,7 +237,7 @@
     - name:                            "Oracle Data Guard - Observer: Prepare for FSFO"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }} @enablefsfo.dgmgrl
+      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid | upper }} @enablefsfo.dgmgrl
       register:                        fsfo_results
       failed_when:                     fsfo_results.rc > 0
       args:
@@ -269,7 +269,7 @@
     - name:                            "Oracle Data Guard - Observer: Enable FSFO"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  "ENABLE FAST_START FAILOVER"
+      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid | upper }}  "ENABLE FAST_START FAILOVER"
       register:                        fsfo_enable_results
       failed_when:                     fsfo_enable_results.rc > 0
       args:
@@ -301,7 +301,7 @@
     - name:                            "Oracle Data Guard - Observer: Start FSFO Observer"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid|upper }}  "START OBSERVER" &
+      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid | upper }}  "START OBSERVER" &
       register:                        observer_results
       failed_when:                     observer_results.rc > 0
       args:

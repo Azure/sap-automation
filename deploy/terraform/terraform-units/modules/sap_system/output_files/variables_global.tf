@@ -172,12 +172,12 @@ variable "db_auth_type" {
 
 variable "install_path" {
   description = "Defines the install path for mounting /usr/sap/install"
-  default = ""
+  default     = ""
 }
 
 variable "NFS_provider" {
   description = "Defines the NFS provider"
-  type = string
+  type        = string
 }
 
 variable "observer_ips" {
@@ -192,19 +192,19 @@ variable "shared_home" {
   description = "If defined provides shared-home support"
 }
 
-variable "hana_data" {  
+variable "hana_data" {
   description = "If defined provides the mount point for HANA data on ANF"
 }
 
-variable "hana_shared" {  
+variable "hana_shared" {
   description = "If defined provides the mount point for HANA shared on ANF"
 }
 
-variable "hana_log" {  
+variable "hana_log" {
   description = "If defined provides the mount point for HANA log on ANF"
 }
 
-variable "usr_sap" {  
+variable "usr_sap" {
   description = "If defined provides the mount point for /usr/sap on ANF"
 }
 

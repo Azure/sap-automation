@@ -128,7 +128,7 @@ output "sdu_public_key" {
 }
 
 output "db_asg_id" {
-  value = azurerm_application_security_group.db.id
+  value = var.deploy_application_security_groups ? azurerm_application_security_group.db[0].id : ""
 }
 
 output "use_local_credentials" {
@@ -148,6 +148,7 @@ output "cloudinit_growpart_config" {
 
 
 output "sapmnt_path" {
+  description = "Defines the sapmnt mount path"
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
 
@@ -183,6 +184,7 @@ output "sapmnt_path" {
 }
 
 output "usrsap_path" {
+  description = "Defines the /usr/sap mount path (if used)"
   value = var.NFS_provider == "ANF" && var.hana_ANF_volumes.use_for_usr_sap ? (
     format("%s:/%s",
       var.hana_ANF_volumes.use_existing_usr_sap_volume ? (

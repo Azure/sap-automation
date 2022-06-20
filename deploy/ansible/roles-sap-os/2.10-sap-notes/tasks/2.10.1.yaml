@@ -29,7 +29,7 @@
     grub_config_file:                  "{{ grub_config_path | default('/etc/default/grub') }}"
 
 - name:                                "2.10.1 sap-notes: - Add GRUB arguments to the config if RHEL 8.4"
-  ansible.builtin.include_tasks:       2.10.1.1.yml
+  ansible.builtin.include_tasks:       roles-sap-os/2.10-sap-notes/tasks/grub_editor.yaml
   with_dict:
     - tsx:                             'on'
     - transparent_hugepage:            'never'
@@ -51,8 +51,13 @@
   changed_when:                        false
 
 - name:                                "2.10.1 sap-notes: - Disable SELinux"
-  ansible.posix.selinux:
+  selinux:
     state:                             disabled
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  tags: ansible_skip_lint
+
+- name:                                "2.10.1 - Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
 
 - name:                                "2.10.1 sap-notes: - Disable core file creation"
   ansible.builtin.lineinfile:

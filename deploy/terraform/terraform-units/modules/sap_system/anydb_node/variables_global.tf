@@ -97,7 +97,7 @@ variable "database_vm_admin_nic_ips" {
 
 variable "database_server_count" {
   description = "The number of database servers"
-  default = 1
+  default     = 1
 }
 
 variable "order_deployment" {
@@ -114,5 +114,9 @@ variable "landscape_tfstate" {
 
 variable "use_secondary_ips" {
   description = "Use secondary IPs for the SAP System"
-  default = false
+  default     = false
+}
+
+variable "deploy_application_security_groups" {
+  description = "Defines if application security groups should be deployed"
 }

@@ -69,7 +69,7 @@
         _rsp_components:               "all"
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
         _rsp_hostname:                 "{{ hana_host }}"
-        _rsp_sid:                      "{{ db_sid|upper }}"
+        _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ hdb_instance_number }}"
         _rsp_system_usage:             "custom"
         param_directory:               "{{ dir_params }}"
@@ -79,7 +79,9 @@
         msg:                           "Start HANA Installation"
 
     - name:                            "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
-      ansible.builtin.command:         ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
       args:
         chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
         creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
@@ -143,7 +145,7 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
   when:
-    -  hana_installed.stat.exists
+    - hana_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -6,6 +6,7 @@
 *.tfvars    text eol=lf
 *.tmpl      text eol=lf
 *.tf        text eol=lf
+*.tmpl      text eol=lf
 *.yml       text eol=lf
 *.yaml      text eol=lf
 *.jpg       -text

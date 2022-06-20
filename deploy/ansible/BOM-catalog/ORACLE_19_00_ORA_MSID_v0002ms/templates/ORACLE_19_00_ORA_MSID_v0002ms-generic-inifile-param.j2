@@ -9,7 +9,7 @@
 ########################################################################################################################################################################################################
 
 
-NW_Users_Create.dbsid                                                 = {{ sap_sid|upper }}
+NW_Users_Create.dbsid                                                 = {{ db_sid | upper }}
 
 # Specify whether you are preparing for an SAP sytem based on AS ABAP.
 NW_Users_Create.hasABAP                                               = true
@@ -18,15 +18,15 @@ NW_Users_Create.hasABAP                                               = true
 NW_Users_Create.installDBUsers                                        = false
 
 # SAP system ID
-NW_Users_Create.sid                                                   = {{ sap_sid|upper }}
+NW_Users_Create.sid                                                   = {{ sid_to_be_deployed.sid | upper }}
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
-nwUsers.sidAdmUID                                                     = {{ sidadm_uid }}
+nwUsers.sidAdmUID                                                     = {{ sid_to_be_deployed.sidadm_uid }}
 nwUsers.sidadmPassword                                                = {{ main_password }}
 
 # Password for the 'sapadm' user of the SAP Host Agent
-hostAgent.sapAdmPassword =  {{ main_password }}
+hostAgent.sapAdmPassword                                              =  {{ main_password }}
 
 
 

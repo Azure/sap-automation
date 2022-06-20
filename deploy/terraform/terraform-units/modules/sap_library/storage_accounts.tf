@@ -3,6 +3,11 @@
   Set up storage accounts for sap library 
 */
 
+locals {
+  deployer_public_ip_address_used = length(local.deployer_public_ip_address) > 0
+  deployer_tfstate_subnet_used    = length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0
+}
+
 // Creates storage account for storing tfstate
 resource "azurerm_storage_account" "storage_tfstate" {
   provider = azurerm.main
@@ -26,12 +31,16 @@ resource "azurerm_storage_account" "storage_tfstate" {
   }
 
   network_rules {
-    default_action = "Allow"
-    ip_rules = var.use_private_endpoint ? (
-      [length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : null]) : (
+    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
+    ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
+      [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
+    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
+      [var.deployer_tfstate.subnet_mgmt_id]) : (
+      []
+    )
+
   }
 
   min_tls_version                 = "TLS1_2"
@@ -85,7 +94,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
     data.azurerm_resource_group.library[0].location) : (
     azurerm_resource_group.library[0].location
   )
-  subnet_id = var.deployer_tfstate.subnet_management_id
+  subnet_id = var.deployer_tfstate.subnet_mgmt_id
 
   private_service_connection {
     name = format("%s%s%s", var.naming.resource_prefixes.storage_private_svc_tf,
@@ -123,13 +132,16 @@ resource "azurerm_storage_account" "storage_sapbits" {
   enable_https_traffic_only = true
 
   network_rules {
-    default_action = "Allow"
-    ip_rules = var.use_private_endpoint ? (
-      [length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : null]) : (
+    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
+    ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
+      [local.deployer_public_ip_address]) : (
+      []
+    )
+    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
+      [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )
 
-    virtual_network_subnet_ids = var.use_private_endpoint ? [try(var.deployer_tfstate.subnet_management_id, null)] : []
   }
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
@@ -159,7 +171,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
     data.azurerm_resource_group.library[0].location) : (
     azurerm_resource_group.library[0].location
   )
-  subnet_id = var.deployer_tfstate.subnet_management_id
+  subnet_id = var.deployer_tfstate.subnet_mgmt_id
 
   private_service_connection {
     name = format("%s%s%s",

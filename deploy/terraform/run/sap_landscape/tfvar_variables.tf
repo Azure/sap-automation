@@ -478,7 +478,7 @@ variable "iscsi_image" {
   default = {
     "source_image_id" = ""
     "publisher"       = "SUSE"
-    "offer"           = "sles-sap-12-sp5"
+    "offer"           = "sles-sap-15-sp3"
     "sku"             = "gen1"
     "version"         = "latest"
   }

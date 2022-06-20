@@ -18,13 +18,13 @@
 #
 # -------------------------------------+---------------------------------------8
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
-#----------------------------------------
+# ----------------------------------------
 
-#----------------------------------------
+# ----------------------------------------
 # END
-#----------------------------------------
+# ----------------------------------------
 
 # TODO: Review and rewrite for efficiency and working for all servers
 
@@ -48,7 +48,7 @@
   ignore_errors: true
 
 - name: Ensure Prometheus is installed and configured
-  when: not (add_repo_status.failed is defined and add_repo_status.failed == true)
+  when: not (add_repo_status.failed is defined and add_repo_status.failed )
   block:
     - name: Install Prometheus with Node and HA Cluster exporters
       ansible.builtin.zypper:

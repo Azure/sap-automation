@@ -51,9 +51,9 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_PAS  :
-                                        {{ sap_sid|upper }}_SCS :
-                                        {{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_PAS  :
+                                        {{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_DB"
 
   name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -82,17 +82,38 @@
           tags:
             - always
 
-        - block:
-            - name:                    "DBLoad Playbook: - Mounting"
-              ansible.builtin.include_role:
-                name:                  roles-sap-os/2.6-sap-mounts
+        - name:                    "DBLoad Playbook: - Mounting"
+          ansible.builtin.include_role:
+            name:                  roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
 
-        - block:
+        - name:                        "DBLoad Playbook: Define this SID"
+          ansible.builtin.set_fact:
+            this_sid:
+              {
+                'sid': '{{ sap_sid | upper }}',
+                'dbsid_uid': '{{ hdbadm_uid }}',
+                'sidadm_uid': '{{ sidadm_uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no': '{{ pas_instance_number }}',
+                'app_inst_no': '{{ app_instance_number }}'
+              }
+
+        - name:                        "DBLoad Playbook: Define list of SIDs"
+          ansible.builtin.set_fact:
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+
+        - name:                        Run the DBLoad Playbook
+          block:
             - name:                    "DBLoad Playbook: - Run DBLoad"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
+              vars:
+                scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
 
             - name:                    "DBLoad Playbook: - Create db-load-done flag"
               delegate_to:             localhost
@@ -142,7 +163,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_DB[0]"
+- hosts:                               "{{ sap_sid | upper }}_DB[0]"
 
   name:                                DB Installation - ORACLE
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -169,11 +190,30 @@
             always_upload_jinja_templates: false
           tags:
             - always
+        - name:                        "DBLoad Playbook: Define this SID"
+          ansible.builtin.set_fact:
+            this_sid:
+              {
+                'sid': '{{ sap_sid | upper }}',
+                'dbsid_uid': '{{ hdbadm_uid }}',
+                'sidadm_uid': '{{ sidadm_uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no': '{{ pas_instance_number }}',
+                'app_inst_no': '{{ app_instance_number }}'
+              }
 
-        - block:
-            - name:                    "DBLoad Playbook: - Run DBLoad"
+        - name:                        "DBLoad Playbook: Define list of SIDs"
+          ansible.builtin.set_fact:
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+
+        - name:                        Run the DBLoad Playbook
+          block:
+            - name:                    "DBLoad Playbook: - Run DBLoad (shared home)"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
 
             - name:                    "DBLoad Playbook: - Create db-load-done flag"
               delegate_to:             localhost
@@ -212,19 +252,6 @@
                 - error_lines is defined
           tags:
             - 5.1-dbload
-          when:                        MULTI_SIDS is undefined
-
-        - name:                        "DBLoad Playbook: - Run DBLoad (shared home)"
-          ansible.builtin.include_role:
-            name:                      roles-sap/5.1-dbload
-          vars:
-            sap_sid:                   "{{ item.sid }}"
-            scs_instance_number:       "{{ item.ascs_inst_no }}"
-            sapadm_uid:                "{{ item.dbsid_uid }}"
-            sidadm_uid:                "{{ item.sidadm_uid }}"
-          loop:                        "{{ MULTI_SIDS }}"
-          when:
-            - MULTI_SIDS is defined
 
       when:                            platform == 'ORACLE'
 
