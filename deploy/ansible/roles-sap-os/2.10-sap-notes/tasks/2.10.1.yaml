@@ -29,7 +29,7 @@
     grub_config_file:                  "{{ grub_config_path | default('/etc/default/grub') }}"
 
 - name:                                "2.10.1 sap-notes: - Add GRUB arguments to the config if RHEL 8.4"
-  ansible.builtin.include_tasks:       roles-sap-os/2.10-sap-notes/tasks/2.10.1.1.yaml
+  ansible.builtin.include_tasks:       roles-sap-os/2.10-sap-notes/tasks/grub_editor.yaml
   with_dict:
     - tsx:                             'on'
     - transparent_hugepage:            'never'
