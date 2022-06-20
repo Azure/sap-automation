@@ -27,7 +27,7 @@ disk_type_to_name_map:
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
   oraarch: '{{ node_tier | lower }}_oraarch'
-  #orabackup: '{{ node_tier | lower }}_orabackup'
+ # orabackup: '{{ node_tier | lower }}_orabackup'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -60,7 +60,7 @@ disk_type_to_name_map:
 #
 logical_volumes:
   - tier:       'sapos'
-    node_tier:  "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
+    node_tier:  "{% if scs_high_availability %}['pas', 'app']{% else %}all{% endif %}"
     vg:         'vg_sap'
     lv:         'lv_usrsap'
     size:       '32g'

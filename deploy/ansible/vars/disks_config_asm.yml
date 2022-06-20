@@ -57,7 +57,7 @@ disk_type_to_name_map:
 #       mkfs command when formatting the file system.
 #
 
-#Adding Tier and disk types for Oracle installation ASM.
+# Adding Tier and disk types for Oracle installation ASM.
 logical_volumes:
 
   - tier:       'ora'

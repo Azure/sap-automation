@@ -144,7 +144,7 @@ locals {
     avset_arm_ids = var.application_server_vm_avset_arm_ids
 
     scs_server_count = local.enable_app_tier_deployment ? (
-      max(var.scs_server_count, try(var.application.scs_server_count, 1))
+      max(var.scs_server_count, try(var.application.scs_server_count, 0))
       ) : (
       0
     )

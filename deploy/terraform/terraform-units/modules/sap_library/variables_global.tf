@@ -91,12 +91,6 @@ variable "naming" {
 variable "deployer_tfstate" {
   description = "terraform.tfstate of deployer"
   default     = {}
-  validation {
-    condition = (
-      length(var.deployer_tfstate) > 0
-    )
-    error_message = "The state file is empty."
-  }
 }
 variable "service_principal" {
   description = "Current service principal used to authenticate to Azure"

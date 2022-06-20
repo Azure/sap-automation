@@ -27,32 +27,6 @@
       - "hana_dir | trim | length != 0"
       - "sap_dir | trim | length != 0"
 
-# - name:                                HSR - Check for existence of id_rsa.pub file
-#   become_user:                         "{{ db_sid_admin_user }}"
-#   become:                              true
-#   ansible.builtin.stat:
-#     path:                              "~/.ssh/id_rsa.pub"
-#   register:                            id_rsa_file_pub_status
-#   failed_when:                         false
-
-# - name:                                HSR - Ensure ssh keys on both nodes
-#   block:
-#     - name:                            HSR - Ensure key pair files exist
-#       become_user:                     "{{ db_sid_admin_user }}"
-#       become:                          true
-#       ansible.builtin.shell: >
-#                                        ssh-keygen -b 4096 -t rsa -f ~/.ssh/id_rsa -q -N ""
-#       changed_when:                    true
-#   when: not id_rsa_file_pub_status.stat.exists
-
-# - name:                                HSR - Copy SSH public key
-#   become_user:                         "{{ db_sid_admin_user }}"
-#   become:                              true
-#   ansible.builtin.fetch:
-#     src:                               ~/.ssh/id_rsa.pub
-#     dest:                              /tmp/{{ ansible_hostname }}-id_rsa.pub
-#     flat:                              true
-
 - name:                                HSR - Check that HANA was installed successfully and is running normally
   import_tasks:                       ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
@@ -170,5 +144,3 @@
   when:
     - ansible_hostname == primary_instance_name
     - hana_system_replication_needed
-  tags:
-    - skip_ansible_lint

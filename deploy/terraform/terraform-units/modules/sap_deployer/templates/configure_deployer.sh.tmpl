@@ -459,9 +459,10 @@ if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
     echo "Agent already installed"
 else
     sudo mkdir -p "$${agent_home}"; cd $_
-    wget -nv https://aka.ms/AAftpys -O agent.tar.gz
-    tar zxvf agent.tar.gz >/dev/null 2>&1
     sudo chown -R "$${local_user}" $${agent_home}
+
+    sudo wget -nv https://aka.ms/AAftpys -O agent.tar.gz
+    sudo tar zxvf agent.tar.gz >/dev/null 2>&1
 
     sudo touch $${agent_home}/agent_installed
 fi
@@ -481,7 +482,7 @@ else
         cd $${agent_home}
         ./env.sh
 
-        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token $${TOKEN} --pool $${POOL} --agent $${AGENTNAME} --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
+        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
         chmod +x $${agent_home}/config_fixed_params.sh
         
         runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
