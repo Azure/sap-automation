@@ -183,13 +183,13 @@ stages:
 
               echo -e "$green--- Deploy the Control Plane ---$reset"
 
-              if [ -n $(PAT) ]; then
-                TF_VAR_agent_pat:      $(PAT)
-              fi
+                if [ -n $(PAT) ]; then
+                  export TF_VAR_agent_pat=$(PAT); echo 'Deployer Agent PAT is defined'
+                fi
 
-              if [ -n $(POOL) ]; then
-                TF_VAR_agent_pool:     $(POOL)
-              fi
+                if [ -n $(POOL) ]; then
+                  export TF_VAR_agent_pool=$(POOL); echo 'Deployer Agent Pool' ${TF_VAR_agent_pool}
+                fi
 
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/prepare_region.sh                   \
                   --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) \

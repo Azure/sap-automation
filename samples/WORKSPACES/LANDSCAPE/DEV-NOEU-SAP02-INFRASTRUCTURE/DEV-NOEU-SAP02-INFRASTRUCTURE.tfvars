@@ -275,9 +275,6 @@ use_private_endpoint = true
 # anf_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 #anf_subnet_address_prefix="10.111.64.0/27"
 
-# use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
-use_private_endpoint = false
-
 ###########################################################################
 #                                                                         #
 #                                    ISCSI                                #
