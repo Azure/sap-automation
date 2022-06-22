@@ -222,9 +222,11 @@ namespace AutomationForm.Models
         public string[] database_tags { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] database_loadbalancer_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] database_vm_db_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
@@ -234,12 +236,15 @@ namespace AutomationForm.Models
         public string dual_nics { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] database_vm_db_nic_secondary_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] database_vm_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] database_vm_storage_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
@@ -283,15 +288,18 @@ namespace AutomationForm.Models
         public string[] application_server_zones { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] application_server_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
         public string[] application_server_tags { get; set; } // change data structure
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] application_server_app_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] application_server_nic_secondary_ips { get; set; }
 
         [BsonIgnoreIfNull]
@@ -328,18 +336,22 @@ namespace AutomationForm.Models
         public string[] scs_server_zones { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] scs_server_app_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] scs_server_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] scs_server_loadbalancer_ips { get; set; }
 
         [BsonIgnoreIfNull]
         public string[] scs_server_tags { get; set; } // change data structure
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
 
         [BsonIgnoreIfNull]
@@ -357,12 +369,15 @@ namespace AutomationForm.Models
         public string webdispatcher_server_sku { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] webdispatcher_server_app_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] webdispatcher_server_admin_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] webdispatcher_server_loadbalancer_ips { get; set; }
 
         [BsonIgnoreIfNull]
@@ -375,6 +390,7 @@ namespace AutomationForm.Models
         public Image webdispatcher_server_image { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] webdispatcher_server_nic_secondary_ips { get; set; }
 
         [BsonIgnoreIfNull]
@@ -516,6 +532,7 @@ namespace AutomationForm.Models
         public Image anchor_vm_image { get; set; }
 
         [BsonIgnoreIfNull]
+        [IpAddressValidator]
         public string[] anchor_vm_nic_ips { get; set; }
 
         [BsonIgnoreIfNull]

@@ -27,8 +27,24 @@ namespace AutomationForm.Models
         {
             public override bool IsValid(object value)
             {
+                if (value == null) return true;
                 string pattern = @"^\d+\.\d+\.\d+\.\d+\/\d+$";
-                return RegexValidation(value, pattern);
+                if (value.GetType().IsArray)
+                {
+                    string[] values = (string[])value;
+                    foreach (string v in values)
+                    {
+                        if (!RegexValidation(v, pattern)) return false;
+                    }
+                    return true;
+                }
+                else if (value.GetType() == typeof(string)) {
+                    return RegexValidation(value, pattern);
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
         public class SubnetArmIdValidator : ValidationAttribute
@@ -99,6 +115,7 @@ namespace AutomationForm.Models
         {
             public override bool IsValid(object value)
             {
+                if (value == null) return true;
                 string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Compute\/availabilitySets\/[a-zA-Z0-9-_]+$";
                 if (value.GetType().IsArray)
                 {
@@ -123,6 +140,7 @@ namespace AutomationForm.Models
         {
             public override bool IsValid(object value)
             {
+                if (value == null) return true;
                 string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Compute\/proximityPlacementGroups\/[a-zA-Z0-9-_]+$";
                 if (value.GetType().IsArray)
                 {
