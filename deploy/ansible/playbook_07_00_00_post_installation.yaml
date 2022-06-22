@@ -43,8 +43,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_SCS"
-
+- hosts:                               "{{ sap_sid | upper }}_SCS"
   name:                                Post Installation
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -60,10 +59,9 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - block:
-        - name:                    Include 7.0.0-post-install role
-          ansible.builtin.include_role:
-            name:                  roles-sap/7.0.0-post-install
+    - name:                    Include 7.0.0-post-install role
+      ansible.builtin.include_role:
+        name:                  roles-sap/7.0.0-post-install
       tags:
         - 7.0.0-post-install
 

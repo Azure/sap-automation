@@ -1,8 +1,19 @@
-/*
-Description:
 
-  Output from sap_deployer module.
-*/
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
+
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value = module.sap_deployer.created_resource_group_id
+}
+
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+    value = module.sap_deployer.created_resource_group_subscription_id
+}
 
 output "deployer_id" {
   sensitive = true
@@ -10,10 +21,12 @@ output "deployer_id" {
 }
 
 output "vnet_mgmt_id" {
+  description = "Azure Resource Identifier for the management VNet"
   value = module.sap_deployer.vnet_mgmt_id
 }
 
 output "subnet_mgmt_id" {
+  description = "Azure Resource Identifier for the management subnet"
   value = module.sap_deployer.subnet_mgmt_id
 }
 
@@ -54,11 +67,11 @@ output "deployer_user" {
 
 output "deployer_kv_user_arm_id" {
   sensitive = true
-  value     = module.sap_deployer.deployer_kv_user_arm_id
+  value     = module.sap_deployer.deployer_keyvault_user_arm_id
 }
 
 # TODO Add this back when we separate the usage
-# output "deployer_kv_prvt_name" {
+# output "deployer_keyvault_prvt_name" {
 #  value = module.sap_deployer.prvt_vault_name
 # }
 
@@ -100,10 +113,6 @@ output "firewall_id" {
 
 output "automation_version" {
   value = local.version_label
-}
-
-output "tags" {
-  value = local.infrastructure.tags
 }
 
 output "webapp_url_base" {

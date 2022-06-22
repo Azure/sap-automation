@@ -3,11 +3,12 @@
   "Groupings": [
     {
       "Section": "Common infrastructure",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#environment-parameters",
       "Parameters": [
         {
           "Name": "environment",
           "Required": true,
-          "Description": "Identifier for the workload zone, used for partitioning the environments",
+          "Description": "Identifier for the workload zone, used for partitioning the environments.",
           "Type": "lookup",
           "Options": [
             {

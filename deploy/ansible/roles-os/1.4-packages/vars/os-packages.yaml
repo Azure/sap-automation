@@ -127,6 +127,12 @@ packages:
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
+  # ------------------------- Begin - Packages required for Start/Stop ------------------------------------8
+    - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'ers',     state: 'present' }
+
+  # ------------------------- End - Packages required for Start/Stop -----------------------------------------8
   redhat8.1:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.2:
@@ -222,8 +228,8 @@ packages:
   sles_sap15.2:
   sles_sap15.3:
 #    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
-    #Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
-    #Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
+    # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
+    # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
   oraclelinux8:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }

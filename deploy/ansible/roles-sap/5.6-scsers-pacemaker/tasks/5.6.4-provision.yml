@@ -34,20 +34,19 @@
   block:
     - name:                            "Post SCS HA Install: check if installed"
       become:                          true
-      delegate_to:                     "{{ primary_instance_ip }}"
       ansible.builtin.stat:
-        path:                          /etc/sap_deployment_automation/sap_deployment_scs.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
       register:                        post_scs_install
       failed_when:                     not post_scs_install.stat.exists
-      when:                            inventory_hostname == secondary_instance_name
+      when:                            ansible_hostname == primary_instance_name
 
     - name:                            "Post ERS Install: check if installed"
       become:                          true
       ansible.builtin.stat:
-        path:                          /etc/sap_deployment_automation/sap_deployment_ers.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
       register:                        post_ers_install
       failed_when:                     not post_ers_install.stat.exists
-      when:                            inventory_hostname == secondary_instance_name
+      when:                            ansible_hostname == secondary_instance_name
 
 - name:                                "5.6 SCSERS - profile"
   ansible.builtin.include_tasks:       "5.6.4.1-scsersprofile.yaml"

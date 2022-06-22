@@ -12,6 +12,7 @@ sapbits_bom_files:            "sapfiles"                                        
 target_media_location:        "/usr/sap/install"                                        # Default
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
+bom_processing_become:        true                                                      # BOM processing as root user
 
 always_upload_jinja_templates: true
 
@@ -33,6 +34,10 @@ sap_fqdn:                     ""                                                
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
+
+tmp_directory:                "/tmp"
+url_internet:                 "http://www.github.com"                                   # URL to use for internet access checks"
+check_outbound:               false
 
 # Oracle specific parameters
 ora_sid:                      "ORA"

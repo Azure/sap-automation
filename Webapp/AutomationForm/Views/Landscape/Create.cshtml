@@ -50,6 +50,11 @@
     
     <div class="text-center">
         <h2 style="text-align: center">New workload zone</h2>
+        <p>
+            <a href="https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
+                More information on configuring the workload zone
+            </a>
+        </p>
     </div>
     
     @if (!ViewData.ModelState.IsValid)
@@ -88,7 +93,7 @@
                         @foreach (Grouping g in pg.Groupings)
                         {
                             <div class="grouping">
-                                <h2>@g.Section</h2>
+                                <h2><a href="@g.Link" target="_blank" rel="noopener noreferrer">@g.Section</a></h2>
                                 <div class="parameters">
 
                                     @foreach (ParameterModel p in g.Parameters)

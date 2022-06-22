@@ -110,9 +110,10 @@ else
 
 fi
 
+
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
-if [ ! -n "${environment}" ]
+if [ -z "${environment}" ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -125,7 +126,7 @@ then
     exit 64
 fi
 
-if [ ! -n "${region}" ]
+if [ -z "${region}" ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -139,6 +140,7 @@ then
 fi
 
 # Convert the region to the correct code
+region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 get_region_code $region
 
 
@@ -271,7 +273,7 @@ else
             echo "#########################################################################################"
 
             if [ $approve == "--auto-approve" ] ; then
-                terraform -chdir="${terraform_module_directory}" init -upgrade=true  -backend-config "path=${param_dirname}/terraform.tfstate"
+                terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -backend-config "path=${param_dirname}/terraform.tfstate"
                 terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
             else
 

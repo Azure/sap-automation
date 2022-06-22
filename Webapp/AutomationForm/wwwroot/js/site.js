@@ -8,7 +8,7 @@ var azureResourceIds = [
     "subscription",
     "workload_zone",
     "resourcegroup_arm_id",
-    "network_address_arm_id",
+    "network_arm_id",
     "admin_subnet_arm_id",
     "db_subnet_arm_id",
     "app_subnet_arm_id",
@@ -20,7 +20,22 @@ var azureResourceIds = [
     "app_subnet_nsg_arm_id",
     "web_subnet_nsg_arm_id",
     "iscsi_subnet_nsg_arm_id",
-    "anf_subnet_nsg_arm_id"
+    "anf_subnet_nsg_arm_id",
+    "diagnostics_storage_account_arm_id",
+    "witness_storage_account_arm_id",
+    "transport_storage_account_id",
+    "transport_private_endpoint_id",
+    "install_storage_account_id",
+    "install_private_endpoint_id",
+    "user_keyvault_id",
+    "automation_keyvault_id",
+    "spn_keyvault_id",
+    "proximityplacementgroup_arm_ids",
+    "database_vm_avset_arm_ids",
+    "application_server_vm_avset_arm_ids",
+    "azurerm_private_endpoint_connection_sapmnt_id",
+    "user_keyvault_id",
+    "spn_keyvault_id"
 ];
 var hanadb_sizes = [
     {
@@ -255,6 +270,38 @@ function resetDropdowns(ids) {
     });
 }
 
+// set the subscription to correct value based on one of the existing arm ids
+// required for the case that a user inputs valid arm ids without choosing a subscription and later wishes to edit
+function setSubscriptionFromResource() {
+    if (model["subscription"] == null) {
+        var alreadySetArmId = null;
+        for (i = 3; i < azureResourceIds.length; i++) {
+            var currArmId = azureResourceIds[i];
+            console.log("currARmId" + currArmId);
+            if (model[currArmId] != null) {
+                console.log("model[currArmId] was not null: " + model[currArmId]);
+                alreadySetArmId = model[currArmId];
+                break;
+            }
+        }
+        if (alreadySetArmId != null) {
+            $.ajax({
+                type: "GET",
+                url: "/Armclient/GetSubscriptionFromResource",
+                data: {
+                    resourceId: alreadySetArmId
+                },
+                success: function (data) {
+                    model["subscription"] = data;
+                },
+                error: function () {
+                    console.log("Couldn't get subscription from any existing resources");
+                }
+            });
+        }
+    }
+}
+
 // ===============
 // EVENT LISTENERS
 // ===============
@@ -271,13 +318,65 @@ $("#subscription").on("change", function () {
             }
         },
         {
-            ids: ["network_address_arm_id"],
+            ids: ["network_arm_id"],
             controller: "/Armclient/GetVNetOptions",
             errorMessage: "Error retrieving vnets for specified subscription",
             input: {
                 subscriptionId: subscriptionid
             }
         },
+        {
+            ids: ["diagnostics_storage_account_arm_id",
+                "witness_storage_account_arm_id",
+                "transport_storage_account_id",
+                "install_storage_account_id"
+            ],
+            controller: "/Armclient/GetStorageAccountOptions",
+            errorMessage: "Error retrieving storage accounts for specified subscription",
+            input: {
+                subscriptionId: subscriptionid
+            }
+        },
+        {
+            ids: ["transport_private_endpoint_id",
+                "install_private_endpoint_id",
+                "azurerm_private_endpoint_connection_sapmnt_id"
+            ],
+            controller: "/Armclient/GetPrivateEndpointOptions",
+            errorMessage: "Error retrieving private endpoints for specified subscription",
+            input: {
+                subscriptionId: subscriptionid
+            }
+        },
+        {
+            ids: ["user_keyvault_id",
+                "spn_keyvault_id",
+                "automation_keyvault_id"
+            ],
+            controller: "/Armclient/GetKeyvaultOptions",
+            errorMessage: "Error retrieving keyvaults for specified subscription",
+            input: {
+                subscriptionId: subscriptionid
+            }
+        },
+        {
+            ids: ["proximityplacementgroup_arm_ids"],
+            controller: "/Armclient/GetPPGroupOptions",
+            errorMessage: "Error retrieving proximity placement groups for specified subscription",
+            input: {
+                subscriptionId: subscriptionid
+            }
+        },
+        {
+            ids: ["database_vm_avset_arm_ids",
+                "application_server_vm_avset_arm_ids"
+            ],
+            controller: "/Armclient/GetAvSetOptions",
+            errorMessage: "Error retrieving availability sets for specified subscription",
+            input: {
+                subscriptionId: subscriptionid
+            }
+        }
     ];
     if (subscriptionid) {
         Promise.all(dropdownsAffected.map(updateAndSetDropdowns));
@@ -287,7 +386,7 @@ $("#subscription").on("change", function () {
     }
 });
 
-$("#network_address_arm_id").on("change", function () {
+$("#network_arm_id").on("change", function () {
     var vnetid = $(this).val();
     var dropdownsAffected = [
         {
@@ -368,7 +467,7 @@ $("#database_platform").on("change", function () {
 });
 
 // ========================
-// TOGGLE DISABLE FUNCTIONS
+// TOGGLE FUNCTIONS
 // ========================
 
 function toggleDisableViaCheckbox(checkbox, id) {
@@ -398,6 +497,10 @@ function toggleDisableViaTwoInputs(input1, input2, id) {
         $("#" + id).prop('checked', false);
         $("#" + id).prop('disabled', true);
     }
+}
+
+function toggleNullParameters() {
+    $(".is-null-value").toggle();
 }
 
 // Disables an input when an overriding parameter has a value. Erases the pre-entered value if any

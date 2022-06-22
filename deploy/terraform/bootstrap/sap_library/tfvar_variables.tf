@@ -61,18 +61,6 @@ variable "use_deployer" {
   default = true
 }
 
-/*
-This block describes the variables for the key_vault section
-*/
-
-variable "user_keyvault_id" {
-  default = ""
-}
-
-variable "automation_keyvault_id" {
-  default = ""
-}
-
 variable "spn_keyvault_id" {
   default = ""
 }
@@ -83,6 +71,10 @@ This block describes the variables for the "SAPBits" storage account
 
 
 variable "library_sapmedia_arm_id" {
+  default = ""
+}
+
+variable "library_sapmedia_name" {
   default = ""
 }
 
@@ -131,6 +123,10 @@ variable "library_terraform_state_arm_id" {
   default = ""
 }
 
+variable "library_terraform_state_name" {
+  default = ""
+}
+
 variable "library_terraform_state_account_tier" {
   default = "Standard"
 }
@@ -166,13 +162,12 @@ variable "enable_purge_control_for_keyvaults" {
 variable "use_private_endpoint" {
   default = false
 }
-  
-variable "name_overrride_file" {
-  description = "If provided, contains a json formatted file defining the name overrides"
-  default = ""
-}
-
 
 variable "use_webapp" {
   default = false
+}
+
+variable "name_override_file" {
+  description = "If provided, contains a json formatted file defining the name overrides"
+  default = ""
 }

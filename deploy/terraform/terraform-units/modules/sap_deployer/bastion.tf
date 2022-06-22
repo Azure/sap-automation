@@ -8,7 +8,7 @@ resource "azurerm_subnet" "bastion" {
     )) : (
     0
   )
-  name  = "AzureBastionSubnet"
+  name = "AzureBastionSubnet"
   resource_group_name = local.vnet_mgmt_exists ? (
     data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
     azurerm_virtual_network.vnet_mgmt[0].resource_group_name
@@ -41,7 +41,11 @@ data "azurerm_subnet" "bastion" {
 # Create a public IP address for the Azure Bastion
 resource "azurerm_public_ip" "bastion" {
   count = var.bastion_deployment ? 1 : 0
-  name  = format("%s%s%s", var.naming.resource_prefixes.bastion_pip, local.prefix, local.resource_suffixes.bastion_pip)
+  name = format("%s%s%s",
+    var.naming.resource_prefixes.bastion_pip,
+    local.prefix,
+    local.resource_suffixes.bastion_pip
+  )
   location = local.vnet_mgmt_exists ? (
     data.azurerm_virtual_network.vnet_mgmt[0].location) : (
     azurerm_virtual_network.vnet_mgmt[0].location
@@ -57,7 +61,11 @@ resource "azurerm_public_ip" "bastion" {
 # Create the Bastion Host
 resource "azurerm_bastion_host" "bastion" {
   count = var.bastion_deployment ? 1 : 0
-  name  = format("%s%s%s", var.naming.resource_prefixes.bastion_host, local.prefix, local.resource_suffixes.bastion_host)
+  name = format("%s%s%s",
+    var.naming.resource_prefixes.bastion_host,
+    local.prefix,
+    local.resource_suffixes.bastion_host
+  )
   location = local.vnet_mgmt_exists ? (
     data.azurerm_virtual_network.vnet_mgmt[0].location) : (
     azurerm_virtual_network.vnet_mgmt[0].location

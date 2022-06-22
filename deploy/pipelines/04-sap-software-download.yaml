@@ -15,17 +15,18 @@ parameters:
     type: string
     default:                           
     values:
+      - S4HANA_2021_ISS_v0001ms
+      - S42020SPS03_v0002ms
       - S41909SPS03_v0011ms
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
+      - HANA_2_00_061_v0001ms
+      - HANA_2_00_059_v0002ms
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - NW752SPS09_v0001ms
-      - SWPM20SP11_latest
-      - SWPM10SP34_latest
-      - SUM20SP13_latest
       - ORACLE_19_00_v0002ms
-      - ORACLE_19_00_ORA_MSID_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0002ms
 
   - name:                              environment
     displayName:                       Control Plane Environment

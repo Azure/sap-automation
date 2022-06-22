@@ -34,19 +34,18 @@ function load_config_vars() {
     
     shift # shift params 1 place to remove var_file value from front of list
     
-    # We don't assign values to variables if they aren't found in the var_file
+    # We don't assign values to variables if they aren't found in the var_file | sed -r '/[^=]+=[^=]+/!d'
     # so there is nothing to do if the specified var_file doesn't exist
     if [[ ! -f "${var_file}" ]]; then
         return
     fi
-    
     for var_name; do # iterate over function params
-        # NOTE: Should we care if we fail to retrieve a value from the file?
-        var_value="$(grep -m1 "^${var_name}=" "${var_file}" | cut -d'=' -f2- | tr -d '"')"
+            # NOTE: Should we care if we fail to retrieve a value from the file?
+        var_value="$(grep -m1 "^${var_name}=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
         
         if [ -z "${var_value}" ]
         then
-          var_value="$(grep -m1 "^${var_name} =" "${var_file}" | cut -d'=' -f2- | tr -d '"')"
+          var_value="$(grep -m1 "^${var_name} " "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
         fi
         
         # NOTE: this continue means we skip setting an empty value for a variable
@@ -297,13 +296,13 @@ function set_executing_user_environment_variables() {
         
         unset_executing_user_environment_variables
         
-        az_user_obj_id=$(az ad signed-in-user show --query objectId -o tsv)
+        az_user_obj_id=$(az ad signed-in-user show --query id -o tsv)
         az_user_name=$(az ad signed-in-user show --query userPrincipalName -o tsv)
         
         # this is the user object id but exporeted as client_id to make it easier to use in TF
         export TF_VAR_Agent_IP=${az_user_obj_id}
         
-        echo -e "\t[set_executing_user_environment_variables]: logged in user objectID: ${az_user_obj_id} (${az_user_name})"
+        echo -e "\t[set_executing_user_environment_variables]: logged in user id: ${az_user_obj_id} (${az_user_name})"
         echo -e "\t[set_executing_user_environment_variables]: Initializing state with user: ${az_user_name}"
     else
         # else, if you are executing as service principal, we need to export the ARM variables
@@ -331,7 +330,7 @@ function set_executing_user_environment_variables() {
             *)
                 if is_valid_guid "${az_exec_user_name}"; then
                     
-                    az_user_obj_id=$(az ad sp show --id "${az_exec_user_name}" --query objectId -o tsv)
+                    az_user_obj_id=$(az ad sp show --id "${az_exec_user_name}" --query id -o tsv)
                     az_user_name=$(az ad sp show --id "${az_exec_user_name}" --query displayName -o tsv)
                     
                     echo -e "\t[set_executing_user_environment_variables]: Identified login type as 'service principal'"
@@ -401,7 +400,6 @@ function get_region_code() {
         "eastasia")           export region_code="EAAS" ;;
         "eastus")             export region_code="EAUS" ;;
         "eastus2")            export region_code="EUS2" ;;
-        "eastus2euap")        export region_code="EUSA" ;;
         "francecentral")      export region_code="FRCE" ;;
         "francesouth")        export region_code="FRSO" ;;
         "germanynorth")       export region_code="GENO" ;;

@@ -21,9 +21,9 @@ product_ids:
 
 materials:
   dependencies:
-    - name:                            HANA_2_00_059_v0001ms
-    - name:                            SWPM10SP34_latest
-    - name:                            SUM20SP13_latest
+    - name:                            HANA_2_00_059_v0002ms
+    - name:                            SWPM10SP35_latest
+    - name:                            SUM20SP14_latest
 
   media:
     # Kernel

@@ -7,12 +7,17 @@
   <ItemGroup>
     <None Include="wwwroot\css\prism.css" />
     <None Include="wwwroot\js\prism.js" />
+    <None Include="ParameterDetails/LandscapeTemplate.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="ParameterDetails/SystemTemplate.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.ResourceManager" Version="1.0.0-beta.4" />
-    <PackageReference Include="Azure.ResourceManager.Compute" Version="1.0.0-beta.1" />
-    <PackageReference Include="Azure.ResourceManager.Network" Version="1.0.0-beta.1" />
+    <PackageReference Include="Azure.ResourceManager" Version="1.1.0" />
+    <PackageReference Include="Azure.ResourceManager.Compute" Version="1.0.0-beta.9" />
+    <PackageReference Include="Azure.ResourceManager.KeyVault" Version="1.0.0-beta.8" />
+    <PackageReference Include="Azure.ResourceManager.Network" Version="1.0.0-beta.7" />
+    <PackageReference Include="Azure.ResourceManager.Resources" Version="1.1.0" />
+    <PackageReference Include="Azure.ResourceManager.Storage" Version="1.0.0-beta.9" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="3.1.13" />
     <PackageReference Include="Microsoft.Azure.Common.Authentication" Version="1.7.0-preview" />

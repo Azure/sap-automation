@@ -3,6 +3,7 @@
   "Groupings": [
     {
       "Section": "Existing subnets",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "admin_subnet_address_prefix",
@@ -40,6 +41,7 @@
     },
     {
       "Section": "Credentials",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "automation_username",

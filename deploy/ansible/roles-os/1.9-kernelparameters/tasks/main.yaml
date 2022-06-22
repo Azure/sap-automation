@@ -49,7 +49,7 @@
                                             parameters["common"]
                                             +
                                             (
-                                              parameters[distribution_id]|default([])
+                                              parameters[distribution_id] | default([])
                                             )
                                           ) | unique
                                         }}'

@@ -14,13 +14,19 @@
     <h2>@Model.Landscape.Id</h2>
 </div>
 
+<fluent-switch onchange="toggleNullParameters()">
+    <span slot="checked-message">On</span>
+    <span slot="unchecked-message">Off</span>
+    <label for="cap-switch">Hide null values:</label>
+</fluent-switch>
+
 <table class="details-table">
     <caption>@Model.Landscape.Id parameter details</caption>
     <thead>
         <tr>
             <th>Parameter</th>
             <th>Value</th>
-            <th>Section</th>
+            <th class="is-null-value">Section</th>
         </tr>
     </thead>
     <tbody>
@@ -33,7 +39,13 @@
                 @foreach (ParameterModel p in g.Parameters)
                 {
                     var value = Model.Landscape.GetType().GetProperty(p.Name).GetValue(Model.Landscape);
-                    <tr>                    
+                    var nullClass = (value == null) ? "is-null-value" : "";
+                    if (value != null && value.GetType() == typeof(Image))
+                    {
+                        Image img = (Image)value;
+                        if (!img.IsInitialized) nullClass = "is-null-value";
+                    }
+                    <tr class="@nullClass">                    
                         <td>@p.Name</td>
 
                         @if (value == null)
@@ -45,12 +57,7 @@
                             @if (value.GetType() == typeof(Image))
                             {
                                 Image img = (Image)value;
-                                if (img.os_type         != null ||
-                                    img.source_image_id != null ||
-                                    img.publisher       != null ||
-                                    img.offer           != null ||
-                                    img.sku             != null ||
-                                    img.version         != null)
+                                if (img.IsInitialized)
                                 {
                                     <td>
                                         os_type:         @img.os_type <br>
@@ -61,7 +68,8 @@
                                         version:         @img.version
                                     </td>
                                 }
-                                else {
+                                else 
+                                {
                                     <td> </td>
                                 }
                             }
@@ -85,7 +93,7 @@
                         }
                         @if (firstRow)
                         {
-                            <td rowspan="@g.Parameters.Length" class="details-section" style="@(everyOther ? "background: #eee" : "background: none")">
+                            <td rowspan="@g.Parameters.Length" class="details-section is-null-value" style="@(everyOther ? "background: #eee" : "background: none")">
                                 @g.Section
                             </td>
                             firstRow = false;

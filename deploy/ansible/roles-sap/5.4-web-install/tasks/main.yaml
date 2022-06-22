@@ -38,8 +38,8 @@
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "Web Install: Set the SCS Server name"
   ansible.builtin.set_fact:
@@ -66,7 +66,7 @@
     bom_name:                          "{{ bom_base_name }}"
     web_instance_number:               "00" # "{{ web_instance_number }}"
     sap_ciInstanceNumber:              "00"
-    sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
+    sap_profile_dir:                   /sapmnt/{{ sap_sid | upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_webVirtualHostname:            "{{ inventory_hostname }}"
     sap_installSAPHostAgent:           false
@@ -77,7 +77,7 @@
   ansible.builtin.set_fact:
     web_bom_id:                        "{{ bom.product_ids.web }}"
 
-- name:                                "DBLoad: install variables"
+- name:                                "Web Install: install variables"
   ansible.builtin.debug:
     msg:
       - "INSTALLED:  {{ web_installed.stat.exists }}"
@@ -98,16 +98,18 @@
 #
     - name:               "SAP Web Dispatcher Install"
       ansible.builtin.command: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ target_media_location }}/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.web }}                          \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
+                                       umask {{ custom_umask | default('022') }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.web }}            \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
+                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                         \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_web.txt
       environment:
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-        TMPDIR:                        "{{ target_media_location }}"
+        TMPDIR:                        "{{ tmp_directory }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0
       tags:

@@ -10,11 +10,26 @@
 HANA DB Linux Server private IP range: .10 -
 +--------------------------------------4--------------------------------------*/
 
-# Creates the admin traffic NIC and private IP address for database nodes
+
+#########################################################################################
+#                                                                                       #
+#  Admin Network Interface                                                              #
+#                                                                                       #
+#########################################################################################
+
 resource "azurerm_network_interface" "nics_dbnodes_admin" {
   provider = azurerm.main
-  count    = local.enable_deployment && var.hana_dual_nics ? var.database_server_count : 0
-  name     = format("%s%s%s%s%s", var.naming.resource_prefixes.admin_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.admin_nic)
+  count = local.enable_deployment && var.hana_dual_nics ? (
+    var.database_server_count) : (
+    0
+  )
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.admin_nic,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.HANA_VMNAME[count.index],
+    local.resource_suffixes.admin_nic
+  )
 
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
@@ -23,46 +38,71 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
   ip_configuration {
     name      = "ipconfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = var.databases[0].use_DHCP ? (
+    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.databases[0].use_DHCP ? (
       null) : (
-      length(try(var.database_vm_admin_nic_ips[count.index], "")) > 0 ? (
-        var.database_vm_admin_nic_ips[count.index]) : (
-        cidrhost(var.admin_subnet.address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_admin_vm)
+      cidrhost(
+        var.admin_subnet.address_prefixes[0],
+        tonumber(count.index) + local.hdb_ip_offsets.hdb_admin_vm
+      )
       )
     )
-
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = length(try(var.database_vm_admin_nic_ips[count.index], "")) > 0 ? (
+      "Static") : (
+      "Dynamic"
+    )
   }
 }
 
-# Creates the DB traffic NIC and private IP address for database nodes
+#########################################################################################
+#                                                                                       #
+#  Primary Network Interface                                                            #
+#                                                                                       #
+#########################################################################################
 resource "azurerm_network_interface" "nics_dbnodes_db" {
   provider = azurerm.main
   count    = local.enable_deployment ? var.database_server_count : 0
-  name     = format("%s%s%s%s%s", var.naming.resource_prefixes.db_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.db_nic)
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.db_nic,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.HANA_VMNAME[count.index],
+    local.resource_suffixes.db_nic
+  )
 
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
   enable_accelerated_networking = true
-  ip_configuration {
-    primary   = true
-    name      = "ipconfig1"
-    subnet_id = var.db_subnet.id
-
-    private_ip_address = var.databases[0].use_DHCP ? (
-      null) : (
-      length(try(var.database_vm_db_nic_ips[count.index], "")) > 0 ? (
-        var.database_vm_db_nic_ips[count.index]) : (
-        cidrhost(var.db_subnet.address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_db_vm)
+  dynamic "ip_configuration" {
+    iterator = pub
+    for_each = local.database_ips
+    content {
+      name      = pub.value.name
+      subnet_id = pub.value.subnet_id
+      private_ip_address = try(pub.value.nic_ips[count.index],
+        var.databases[0].use_DHCP ? (
+          null) : (
+          cidrhost(
+            var.db_subnet.address_prefixes[0],
+            tonumber(count.index) + local.hdb_ip_offsets.hdb_db_vm + pub.value.offset
+          )
+        )
       )
-    )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = length(try(pub.value.nic_ips[count.index], "")) > 0 ? (
+        "Static") : (
+        pub.value.private_ip_address_allocation
+      )
+
+      primary = pub.value.primary
+    }
   }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "db" {
   provider                      = azurerm.main
-  count                         = local.enable_deployment ? var.database_server_count : 0
+  count = local.enable_deployment ? (
+    var.deploy_application_security_groups ? var.database_server_count : 0) : (
+    0
+  )
   network_interface_id          = azurerm_network_interface.nics_dbnodes_db[count.index].id
   application_security_group_id = var.db_asg_id
 }
@@ -72,7 +112,13 @@ resource "azurerm_network_interface_application_security_group_association" "db"
 resource "azurerm_network_interface" "nics_dbnodes_storage" {
   provider = azurerm.main
   count    = local.enable_deployment && local.enable_storage_subnet ? var.database_server_count : 0
-  name     = format("%s%s%s%s%s", var.naming.resource_prefixes.storage_nic, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.storage_nic)
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.storage_nic,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.HANA_VMNAME[count.index],
+    local.resource_suffixes.storage_nic
+  )
 
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
@@ -87,7 +133,10 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
       null) : (
       length(try(var.database_vm_storage_nic_ips[count.index], "")) > 0 ? (
         var.database_vm_storage_nic_ips[count.index]) : (
-        cidrhost(var.storage_subnet[0].address_prefixes[0], tonumber(count.index) + local.hdb_ip_offsets.hdb_scaleout_vm)
+        cidrhost(
+          var.storage_subnet[0].address_prefixes[0],
+          tonumber(count.index) + local.hdb_ip_offsets.hdb_scaleout_vm
+        )
       )
 
     )
@@ -99,10 +148,16 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
 
 # Manages Linux Virtual Machine for HANA DB servers
 resource "azurerm_linux_virtual_machine" "vm_dbnode" {
-  provider      = azurerm.main
-  depends_on    = [var.anchor_vm]
-  count         = local.enable_deployment ? var.database_server_count : 0
-  name          = format("%s%s%s%s%s", var.naming.resource_prefixes.vm, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.vm)
+  provider   = azurerm.main
+  depends_on = [var.anchor_vm]
+  count      = local.enable_deployment ? var.database_server_count : 0
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.vm,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.HANA_VMNAME[count.index],
+    local.resource_suffixes.vm
+  )
   computer_name = var.naming.virtualmachine_names.HANA_COMPUTERNAME[count.index]
 
   resource_group_name = var.resource_group[0].name
@@ -138,18 +193,33 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   zone = local.use_avset ? null : local.zones[count.index % max(local.db_zone_count, 1)]
 
   network_interface_ids = local.enable_storage_subnet ? (
-    [
-      azurerm_network_interface.nics_dbnodes_db[count.index].id,
-      azurerm_network_interface.nics_dbnodes_admin[count.index].id,
-      azurerm_network_interface.nics_dbnodes_storage[count.index].id
-    ]
-    ) : (
-    var.hana_dual_nics ?
-    (
+    var.options.legacy_nic_order ? (
+      [
+        azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+        azurerm_network_interface.nics_dbnodes_db[count.index].id,
+        azurerm_network_interface.nics_dbnodes_storage[count.index].id
+      ]
+      ) : (
       [
         azurerm_network_interface.nics_dbnodes_db[count.index].id,
-        azurerm_network_interface.nics_dbnodes_admin[count.index].id
-      ]) : (
+        azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+        azurerm_network_interface.nics_dbnodes_storage[count.index].id
+      ]
+    )
+    ) : (
+    var.hana_dual_nics ? (
+      var.options.legacy_nic_order ? (
+        [
+          azurerm_network_interface.nics_dbnodes_admin[count.index].id,
+          azurerm_network_interface.nics_dbnodes_db[count.index].id
+        ]
+        ) : (
+        [
+          azurerm_network_interface.nics_dbnodes_db[count.index].id,
+          azurerm_network_interface.nics_dbnodes_admin[count.index].id
+        ]
+      )
+      ) : (
       [
         azurerm_network_interface.nics_dbnodes_db[count.index].id
       ]
@@ -164,7 +234,13 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
     iterator = disk
     for_each = range(length(local.os_disk))
     content {
-      name                   = format("%s%s%s%s%s", var.naming.resource_prefixes.osdisk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[count.index], local.resource_suffixes.osdisk)
+      name = format("%s%s%s%s%s",
+        var.naming.resource_prefixes.osdisk,
+        local.prefix,
+        var.naming.separator,
+        var.naming.virtualmachine_names.HANA_VMNAME[count.index],
+        local.resource_suffixes.osdisk
+      )
       caching                = local.os_disk[0].caching
       storage_account_type   = local.os_disk[0].storage_account_type
       disk_size_gb           = local.os_disk[0].disk_size_gb
@@ -207,16 +283,28 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "data_disk" {
-  provider             = azurerm.main
-  count                = local.enable_deployment ? length(local.data_disk_list) : 0
-  name                 = format("%s%s%s%s%s", var.naming.resource_prefixes.disk, local.prefix, var.naming.separator, var.naming.virtualmachine_names.HANA_VMNAME[local.data_disk_list[count.index].vm_index], local.data_disk_list[count.index].suffix)
+  provider = azurerm.main
+  count    = local.enable_deployment ? length(local.data_disk_list) : 0
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.disk,
+    local.prefix,
+    var.naming.separator,
+    var.naming.virtualmachine_names.HANA_VMNAME[local.data_disk_list[count.index].vm_index],
+    local.data_disk_list[count.index].suffix
+  )
   location             = var.resource_group[0].location
   resource_group_name  = var.resource_group[0].name
   create_option        = "Empty"
   storage_account_type = local.data_disk_list[count.index].storage_account_type
   disk_size_gb         = local.data_disk_list[count.index].disk_size_gb
-  disk_iops_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? local.data_disk_list[count.index].disk_iops_read_write : null
-  disk_mbps_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? local.data_disk_list[count.index].disk_mbps_read_write : null
+  disk_iops_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+    local.data_disk_list[count.index].disk_iops_read_write) : (
+    null
+  )
+  disk_mbps_read_write = "UltraSSD_LRS" == local.data_disk_list[count.index].storage_account_type ? (
+    local.data_disk_list[count.index].disk_mbps_read_write) : (
+    null
+  )
 
   disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 

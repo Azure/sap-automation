@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Azure;
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
-using Azure.ResourceManager.Resources.Models;
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Network;
+using Azure.ResourceManager.KeyVault;
+using Azure.ResourceManager.Compute;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 
 namespace AutomationForm.Controllers
@@ -28,14 +31,14 @@ namespace AutomationForm.Controllers
             };
             try
             {
-                SubscriptionContainer subscriptions = _armClient.GetSubscriptions();
+                SubscriptionCollection subscriptions = _armClient.GetSubscriptions();
                 
-                foreach (Subscription s in subscriptions.GetAll())
+                foreach (SubscriptionResource s in subscriptions.GetAll())
                 {
                     options.Add(new SelectListItem
                     {
-                        Text = s.Data.SubscriptionGuid,
-                        Value = s.Data.Id
+                        Text = s.Data.DisplayName,
+                        Value = s.Id
                     });
                 }
             }
@@ -44,6 +47,22 @@ namespace AutomationForm.Controllers
                 return null;
             }
             return Json(options);
+        }
+
+        [HttpGet] // # populate subscription from existing resource arm id (for edit view)
+        public ActionResult GetSubscriptionFromResource(string resourceId)
+        {
+            try
+            {
+                ResourceIdentifier rsc = new ResourceIdentifier(resourceId);
+                if (rsc.SubscriptionId == null) return null;
+                string subscriptionId = "/subscriptions/" + rsc.SubscriptionId;
+                return Json(subscriptionId);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         [HttpGet] // #location
@@ -55,15 +74,13 @@ namespace AutomationForm.Controllers
             };
             try
             {
-                Subscription subscription = _armClient.DefaultSubscription;
-                IEnumerable<Location> locations = subscription.GetLocations();
-                
-                foreach (Location l in locations)
+                Dictionary<string, string> regionMapping = Helper.regionMapping;
+                foreach (string region in regionMapping.Keys)
                 {
                     options.Add(new SelectListItem
                     {
-                        Text = l.DisplayName,
-                        Value = l.Name
+                        Text = region,
+                        Value = region
                     });
                 }
             }
@@ -83,15 +100,15 @@ namespace AutomationForm.Controllers
             };
             try
             {
-                Subscription subscription = _armClient.GetSubscription(new ResourceIdentifier(subscriptionId));
-                ResourceGroupContainer resourceGroups = subscription.GetResourceGroups();
-                
-                foreach (ResourceGroup r in resourceGroups.GetAll())
+                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
+
+                foreach (ResourceGroupResource r in resourceGroups.GetAll())
                 {
                     options.Add(new SelectListItem
                     {
                         Text = r.Data.Name,
-                        Value = r.Data.Id
+                        Value = r.Id
                     });
                 }
             }
@@ -102,7 +119,7 @@ namespace AutomationForm.Controllers
             return Json(options);
         }
 
-        [HttpGet] // #network_address_arm_id
+        [HttpGet] // #network_arm_id
         public ActionResult GetVNetOptions(string subscriptionId)
         {
             List<SelectListItem> options = new List<SelectListItem>
@@ -111,14 +128,15 @@ namespace AutomationForm.Controllers
             };
             try
             {
-                Azure.Pageable<VirtualNetwork> virtualNetworks = _armClient.GetSubscription(new ResourceIdentifier(subscriptionId)).GetVirtualNetworks();
+                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                Pageable<VirtualNetworkResource> virtualNetworks = subscription.GetVirtualNetworks();
                 
-                foreach (VirtualNetwork n in virtualNetworks)
+                foreach (VirtualNetworkResource n in virtualNetworks)
                 {
                     options.Add(new SelectListItem
                     {
                         Text = n.Data.Name,
-                        Value = n.Data.Id
+                        Value = n.Id
                     });
                 }
             }
@@ -139,17 +157,17 @@ namespace AutomationForm.Controllers
             try
             {
                 ResourceIdentifier id = new ResourceIdentifier(vnetId);
-                Subscription subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
-                ResourceGroup resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
-                VirtualNetwork virtualNetwork = resourceGroup.GetVirtualNetworks().Get(id.Name);
-                SubnetContainer subnets = virtualNetwork.GetSubnets();
+                SubscriptionResource subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
+                ResourceGroupResource resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
+                VirtualNetworkResource virtualNetwork = resourceGroup.GetVirtualNetworks().Get(id.Name);
+                SubnetCollection subnets = virtualNetwork.GetSubnets();
 
-                foreach (Subnet s in subnets.GetAll())
+                foreach (SubnetResource s in subnets.GetAll())
                 {
                     options.Add(new SelectListItem
                     {
                         Text = s.Data.Name,
-                        Value = s.Data.Id
+                        Value = s.Id
                     });
                 }
             }
@@ -170,16 +188,156 @@ namespace AutomationForm.Controllers
             try
             {
                 ResourceIdentifier id = new ResourceIdentifier(vnetId);
-                Subscription subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
-                ResourceGroup resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
-                NetworkSecurityGroupContainer nsgs = resourceGroup.GetNetworkSecurityGroups();
+                SubscriptionResource subscription = _armClient.GetSubscriptions().Get(id.SubscriptionId);
+                ResourceGroupResource resourceGroup = subscription.GetResourceGroups().Get(id.ResourceGroupName);
+                NetworkSecurityGroupCollection nsgs = resourceGroup.GetNetworkSecurityGroups();
 
-                foreach (NetworkSecurityGroup nsg in nsgs.GetAll())
+                foreach (NetworkSecurityGroupResource nsg in nsgs.GetAll())
                 {
                     options.Add(new SelectListItem
                     {
                         Text = nsg.Data.Name,
-                        Value = nsg.Data.Id
+                        Value = nsg.Id
+                    });
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return Json(options);
+        }
+
+        [HttpGet] // #[various]_storage_account_arm_id
+        public ActionResult GetStorageAccountOptions(string subscriptionId)
+        {
+            List<SelectListItem> options = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "", Value = "" }
+            };
+            try
+            {
+                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                Pageable<StorageAccountResource> storageAccounts = subscription.GetStorageAccounts();
+
+                foreach (StorageAccountResource sa in storageAccounts)
+                {
+                    options.Add(new SelectListItem
+                    {
+                        Text = sa.Data.Name,
+                        Value = sa.Id
+                    });
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return Json(options);
+        }
+
+        [HttpGet] // #[various]_private_endpoint_id
+        public ActionResult GetPrivateEndpointOptions(string subscriptionId)
+        {
+            List<SelectListItem> options = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "", Value = "" }
+            };
+            try
+            {
+                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                Pageable<PrivateEndpointResource> privateEndpoints = subscription.GetPrivateEndpoints();
+
+                foreach (PrivateEndpointResource pe in privateEndpoints)
+                {
+                    options.Add(new SelectListItem
+                    {
+                        Text = pe.Data.Name,
+                        Value = pe.Id
+                    });
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return Json(options);
+        }
+
+        [HttpGet] // #[various]_keyvault_id
+        public ActionResult GetKeyvaultOptions(string subscriptionId)
+        {
+            List<SelectListItem> options = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "", Value = "" }
+            };
+            try
+            {
+                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                Pageable<VaultResource> keyVaults = subscription.GetVaults();
+
+                foreach (VaultResource kv in keyVaults)
+                {
+                    options.Add(new SelectListItem
+                    {
+                        Text = kv.Data.Name,
+                        Value = kv.Id
+                    });
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return Json(options);
+        }
+
+        [HttpGet] // #proximityplacementgroup_arm_ids
+        public ActionResult GetPPGroupOptions(string subscriptionId)
+        {
+            List<SelectListItem> options = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "", Value = "" }
+            };
+            try
+            {
+                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                Pageable<ProximityPlacementGroupResource> ppgs = subscription.GetProximityPlacementGroups();
+
+                foreach (ProximityPlacementGroupResource ppg in ppgs)
+                {
+                    options.Add(new SelectListItem
+                    {
+                        Text = ppg.Data.Name,
+                        Value = ppg.Id
+                    });
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return Json(options);
+        }
+
+        [HttpGet] // #[various]_avset_arm_id
+        public ActionResult GetAvSetOptions(string subscriptionId)
+        {
+            List<SelectListItem> options = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "", Value = "" }
+            };
+            try
+            {
+                SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
+                Pageable<AvailabilitySetResource> avs = subscription.GetAvailabilitySets();
+
+                foreach (AvailabilitySetResource av in avs)
+                {
+                    options.Add(new SelectListItem
+                    {
+                        Text = av.Data.Name,
+                        Value = av.Id
                     });
                 }
             }

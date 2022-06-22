@@ -3,6 +3,7 @@
   "Groupings": [
     {
       "Section": "Existing workload zone",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deploy-workload-zone?branch=main&tabs=linux%2Cdevops",
       "Parameters": [
         {
           "Name": "workload_zone",
@@ -21,6 +22,7 @@
     },
     {
       "Section": "Common infrastructure",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#environment-parameters",
       "Parameters": [
         {
           "Name": "sid",
@@ -33,7 +35,7 @@
         {
           "Name": "environment",
           "Required": true,
-          "Description": "Identifier for the workload zone, used for partitioning the environments",
+          "Description": "Identifier for the workload zone, used for partitioning the environments.",
           "Type": "lookup",
           "Options": [
             {
@@ -80,6 +82,7 @@
     },
     {
       "Section": "Network",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "network_logical_name",

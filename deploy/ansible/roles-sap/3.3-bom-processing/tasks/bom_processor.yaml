@@ -46,7 +46,7 @@
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              0755
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   delegate_to:                         localhost
   loop:
@@ -82,7 +82,7 @@
     path:                              "{{ target_media_location }}/{{ item.extractDir }}"
     state:                             directory
     mode:                              0755
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:                                not ( (item.extractDir is undefined) or (item.extractDir == '') )
 
 
@@ -92,11 +92,11 @@
   ansible.builtin.debug:
     msg:
       - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
-               {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+               {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
       - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
       - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     verbosity:                         2
-  loop:       "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:       "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.download is undefined or item.download
 # ------------------</DEBUGGING>------------------
@@ -108,7 +108,7 @@
 - name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8']
+  when:                                distribution_id in ['suse15', 'redhat8', 'sles_sap15']
 
 #   04) Download media from bom
 # Loop through BOM media files and download to correct location
@@ -119,15 +119,16 @@
 # deleted if the checksum does not match and will be downloaded from URL
 
 - name:                               "3.3 BoM Processing: - Creates temporary download directory"
-  file:
-    path:                             '/mnt/resource'
+  become:                             true
+  ansible.builtin.file:
+    path:                             "{{ tmp_directory }}/tmp"
     state:                            directory
     mode:                             0775
 
 - name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
-                                       {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
@@ -138,17 +139,17 @@
   until:                               result is succeeded
   retries:                             2
   delay:                               5
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
   when:
     - item.download is undefined or item.download
-    - "distribution_id == 'suse15' or distribution_id == 'redhat8'"
+    - distribution_id in ['suse15', 'redhat8', 'sles_sap15' ]
 
 - name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
-                                       {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
@@ -159,10 +160,11 @@
   until:                               result is succeeded
   retries:                             2
   delay:                               5
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.download is undefined or item.download
     - distribution_id != 'suse15'
+    - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
 
 #   05) Extract files - SAPCAR
@@ -174,12 +176,12 @@
     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/ \
                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract is not undefined
     - item.extract
-    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="SAR") ) or
-      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="SAR") )
+    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="SAR") ) or
+      ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="SAR") )
 
 
 #   06) Extract files - UNRAR
@@ -190,12 +192,12 @@
     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract is not undefined
     - item.extract
-    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
-      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") )
+    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="RAR") ) or
+      ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="RAR") )
 
 
 #   07) Extract files - UNZIP
@@ -207,12 +209,12 @@
     remote_src:                        true
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/{% if item.creates is defined %}\
                                         {{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
-  loop:                                "{{ bom.materials.media|flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract is not undefined
     - item.extract
-    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
-      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") )
+    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") ) or
+      ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") )
 
 # -------------------------------------+---------------------------------------8
 #
@@ -228,7 +230,7 @@
     loop_var:                          bom_dependency
   when:
     - bom.materials.dependencies is defined
-    - bom.materials.dependencies|length>0
+    - bom.materials.dependencies | length>0
 # -------------------------------------+---------------------------------------8
 
 

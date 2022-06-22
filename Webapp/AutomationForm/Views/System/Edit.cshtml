@@ -11,6 +11,7 @@
     $(document).ready(function () {
         var system = @Html.Raw(JsonSerializer.Serialize(Model.System));
         createModel(system);
+        setSubscriptionFromResource();
         retainFormValues();
     });
 
@@ -55,6 +56,11 @@
 
     <div class="text-center">
         <h2 style="text-align: center">@Model.System.Id</h2>
+        <p>
+            <a href="https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main" target="_blank" rel="noopener noreferrer">
+                More information on configuring the system
+            </a>
+        </p>
     </div>
 
     @if (!ViewData.ModelState.IsValid)
@@ -92,7 +98,7 @@
                         @foreach (Grouping g in pg.Groupings)
                         {
                             <div class="grouping">
-                                <h2>@g.Section</h2>
+                                <h2><a href="@g.Link" target="_blank" rel="noopener noreferrer">@g.Section</a></h2>
                                 <div class="parameters">
 
                                     @foreach (ParameterModel p in g.Parameters)

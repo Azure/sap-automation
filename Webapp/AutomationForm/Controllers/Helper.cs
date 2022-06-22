@@ -23,82 +23,147 @@ namespace AutomationForm.Controllers
     {
         public static readonly Dictionary<string, string> regionMapping = new Dictionary<string, string>()
             {
-                {"westus", "weus" },
-                {"westus2", "wus2" },
-                {"centralus", "ceus" },
-                {"eastus", "eaus" },
-                {"eastus2", "eus2" },
-                {"northcentralus", "ncus" },
-                {"southcentralus", "scus" },
-                {"westcentralus", "wcus" },
-                {"northeurope", "noeu" },
-                {"westeurope", "weeu" },
-                {"eastasia", "eeas" },
-                {"southeastasia", "seas" },
-                {"brazilsouth", "brso" },
-                {"japaneast", "jpea" },
-                {"japanwest", "jpwe" },
-                {"centralindia", "cein" },
-                {"southindia", "soin" },
-                {"westindia", "wein" },
-                {"uksouth2", "uks2" },
-                {"uknorth", "ukno" },
-                {"canadacentral", "cace" },
-                {"canadaeast", "caea" },
-                {"australiaeast", "auea" },
-                {"australiasoutheast", "ause" },
-                {"uksouth", "ukso" },
-                {"ukwest", "ukwe" },
-                {"koreacentral", "koce" },
-                {"koreasouth", "koso" },
+                {"australiacentral", "auce"},
+                {"australiacentral2", "auc2"},
+                {"australiaeast", "auea"},
+                {"australiasoutheast", "ause"},
+                {"brazilsouth", "brso"},
+                {"brazilsoutheast", "brse"},
+                {"brazilus", "brus"},
+                {"canadacentral", "cace"},
+                {"canadaeast", "caea"},
+                {"centralindia", "cein"},
+                {"centralus", "ceus"},
+                {"centraluseuap", "ceua"},
+                {"eastasia", "eaas"},
+                {"eastus", "eaus"},
+                {"eastus2", "eus2"},
+                {"eastus2euap", "eusa"},
+                {"eastusstg", "eusg"},
+                {"francecentral", "frce"},
+                {"francesouth", "frso"},
+                {"germanynorth", "geno"},
+                {"germanywestcentral", "gewc"},
+                {"japaneast", "jaea"},
+                {"japanwest", "jawe"},
+                {"jioindiacentral", "jinc"},
+                {"jioindiawest", "jinw"},
+                {"koreacentral", "koce"},
+                {"koreasouth", "koso"},
+                {"northcentralus", "ncus"},
+                {"northeurope", "noeu"},
+                {"norwayeast", "noea"},
+                {"norwaywest", "nowe"},
+                {"qatarcentral", "qace"},
+                {"southafricanorth", "sano"},
+                {"southafricawest", "sawe"},
+                {"southcentralus", "scus"},
+                {"southcentralusstg", "scug"},
+                {"southeastasia", "soea"},
+                {"southindia", "soin"},
+                {"swedencentral", "sece"},
+                {"swedensouth", "seso"},
+                {"switzerlandnorth", "swno"},
+                {"switzerlandwest", "swwe"},
+                {"uaecentral", "uace"},
+                {"uaenorth", "uano"},
+                {"uksouth", "ukso"},
+                {"ukwest", "ukwe"},
+                {"westcentralus", "wcus"},
+                {"westeurope", "weeu"},
+                {"westindia", "wein"},
+                {"westus", "weus"},
+                {"westus2", "wus2"},
+                {"westus3", "wus3"}
             };
         public static string ConvertToTerraform<T>(T model)
         {
-            StringBuilder str = new StringBuilder();
-            foreach (var property in model.GetType().GetProperties())
+            string modelType = (model.GetType() == typeof(LandscapeModel)) ? "Landscape" : "System";
+            string path = $"ParameterDetails/{modelType}Template.txt";
+
+            if (!System.IO.File.Exists(path))
             {
-                if (property.Name == "Id") continue;
-                var value = property.GetValue(model);
-                if (value != null)
+                return $"Error generating terraform variables file: No template file {path} was found";
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (string line in System.IO.File.ReadLines(path))
+            {
+                string lineToAdd = line;
+                Regex paramRegex = new Regex(@"\$\$\w*\$\$");
+
+                if (paramRegex.IsMatch(line))
                 {
-                    if (property.PropertyType.IsArray)
+                    string parameter = paramRegex.Match(line).Value.Trim('$');
+                    PropertyInfo property = model.GetType().GetProperty(parameter);
+                    if (property == null)
                     {
-                        str.Append(property.Name + " = [");
-                        foreach (var val in (string[]) value)
-                        {
-                            str.Append($"\"{val}\", ");
-                        }
-                        str.Remove(str.Length - 2, 2);
-                        str.AppendLine("]");
-                    }
-                    else if (property.PropertyType == typeof(Image))
-                    {
-                        Image img = (Image)value;
-                        str.AppendLine(property.Name + " = {");
-                        str.AppendLine("  os_type="           + $"\"{img.os_type}\",");
-                        str.AppendLine("  source_image_id="   + $"\"{img.source_image_id}\",");
-                        str.AppendLine("  publisher="         + $"\"{img.publisher}\",");
-                        str.AppendLine("  offer="             + $"\"{img.offer}\",");
-                        str.AppendLine("  sku="               + $"\"{img.sku}\",");
-                        str.AppendLine("  version="           + $"\"{img.version}\"");
-                        str.AppendLine("}");
-                    }
-                    else if (property.PropertyType == typeof(bool?))
-                    {
-                        bool b = (bool)value;
-                        str.AppendLine(property.Name + " = " + b.ToString().ToLower());
-                    }
-                    else if (property.PropertyType == typeof(int?))
-                    {
-                        int i = (int)value;
-                        str.AppendLine(property.Name + " = " + i);
+                        lineToAdd = "#" + parameter + " = null";
                     }
                     else
                     {
-                        str.AppendLine(property.Name + " = " + $"\"{value}\"");
+                        lineToAdd = WriteTfLine(property, model);
                     }
                 }
+                stringBuilder.AppendLine(lineToAdd);
             }
+            
+            return stringBuilder.ToString();
+        }
+        // Create the text that sets a model property to its value for a tfvars file
+        public static string WriteTfLine<T>(PropertyInfo property, T model)
+        {
+            StringBuilder str = new StringBuilder();
+            var value = property.GetValue(model);
+            if (property.PropertyType.IsArray)
+            {
+                if (value == null) return "#" + property.Name + " = []";
+                str.Append(property.Name + " = [");
+                foreach (var val in (string[])value)
+                {
+                    str.Append($"\"{val}\", ");
+                }
+                str.Remove(str.Length - 2, 2);
+                str.Append("]");
+            }
+            else if (property.PropertyType == typeof(Image))
+            {
+                Image img = (Image)value;
+                if (img.IsInitialized)
+                {
+                    str.AppendLine(property.Name + " = {");
+                    str.AppendLine("  os_type=" + $"\"{img.os_type}\",");
+                    str.AppendLine("  source_image_id=" + $"\"{img.source_image_id}\",");
+                    str.AppendLine("  publisher=" + $"\"{img.publisher}\",");
+                    str.AppendLine("  offer=" + $"\"{img.offer}\",");
+                    str.AppendLine("  sku=" + $"\"{img.sku}\",");
+                    str.AppendLine("  version=" + $"\"{img.version}\"");
+                    str.Append("}");
+                }
+                else
+                {
+                    return "#" + property.Name + " = {}";
+                }
+            }
+            else if (property.PropertyType == typeof(bool?))
+            {
+                if (value == null) return "#" + property.Name + " = false";
+                bool b = (bool)value;
+                str.Append(property.Name + " = " + b.ToString().ToLower());
+            }
+            else if (property.PropertyType == typeof(int?))
+            {
+                if (value == null) return "#" + property.Name + " = 0";
+                int i = (int)value;
+                str.Append(property.Name + " = " + i);
+            }
+            else
+            {
+                if (value == null) return "#" + property.Name + " = \"\"";
+                str.Append(property.Name + " = " + $"\"{value}\"");
+            }
+            
             return str.ToString();
         }
         public static StringContent CreateHttpContent(string changeType, string path, string content, GitRequestBody requestBody)
@@ -216,7 +281,7 @@ namespace AutomationForm.Controllers
 
                 return Array.Empty<byte>();
             }
-            Regex rx = new Regex(@"^\w{0,4}-\w{4}-\w{0,7}-\w{0,15}\.tfvars$");
+            Regex rx = new Regex(@"^\w{0,5}-\w{4}-\w{0,7}-\w{0,15}\.tfvars$");
             if (!rx.IsMatch(formFile.FileName))
             {
                 modelState.AddModelError(formFile.Name,

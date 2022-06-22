@@ -63,6 +63,19 @@ management_firewall_subnet_address_prefix="10.11.20.0/26"
 # firewall_rule_allowed_ipaddresses is an optional list of IP Addresses to be added to the Azure firewall
 #firewall_rule_allowed_ipaddresses=[]
 
+##################################################
+#
+# Cosmos Database Subnet
+#
+##################################################
+
+# one of the following two parameters is required when deploying the web app as a part of the control plane infrastructure
+
+# cmdb_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
+#cmdb_subnet_address_prefix="10.10.20.128/26"
+
+# cmdb_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing cmdb subnet
+# cmdb_subnet_arm_id= ""
 
 ##################################################
 #
@@ -73,11 +86,11 @@ management_firewall_subnet_address_prefix="10.11.20.0/26"
 # bastion_deployment is a boolean flag controlling if Azure bastion is to be deployed in the deployer VNet
 bastion_deployment=false
 
-# bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing AzureBastion subnet
-# bastion_subnet_arm_id= ""
+# management_bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing AzureBastion subnet
+# management_bastion_subnet_arm_id= ""
 
-# bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
-bastion_subnet_address_prefix="10.11.20.128/26"
+# management_bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
+management_bastion_subnet_address_prefix="10.11.20.128/26"
 
 ########################################################
 #
@@ -158,3 +171,7 @@ This block describes the variables for the authentication section block in the j
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false
+
+# auto_configure_deployer is a boolean flag controlling if the automation should try to configure the deployer automatically
+# set to false if outbound internet on the deployer is not available
+auto_configure_deployer = true

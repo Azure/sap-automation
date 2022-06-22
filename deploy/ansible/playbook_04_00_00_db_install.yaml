@@ -56,6 +56,8 @@
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
+      vars:
+        tier:                          bom_download
       tags:
         - kv-sap-installation-media-storage-details
 
@@ -66,8 +68,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
-
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - HANA
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -90,7 +91,7 @@
             tier:                      hdb                                     # Actions for HANA DB Serve
             main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
@@ -99,13 +100,17 @@
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - block:
+        - name:                        Run the Database installation Playbook
+          block:
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
+              vars:
+                scs_instance_number: "{{ scs_instance_number }}"
 
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
                 state:                 touch
@@ -143,7 +148,6 @@
 
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       block:
-
         - name:                        "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
             tier:                      ha
@@ -155,57 +159,47 @@
             sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
             sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the correct repositories are set"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.3-repository
-              when:                    db_high_availability
+        - name:                    "Database Installation Playbook: - Ensure the correct repositories are set"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.3-repository
           tags:
             - 1.3-repository
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the correct packages are installed"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.4-packages
-              when:                    db_high_availability
+        - name:                    "Database Installation Playbook: - Ensure the correct packages are installed"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.4-packages
           tags:
             - 1.4-packages
 
-        - block:
-          # Setup the kernel parameters required for pacemaker cluster VMs
-            - name:                    "Database Installation Playbook: - Ensure the correct kernel parameters are set"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.9-kernelparameters
-              when:                    db_high_availability
+        # Setup the kernel parameters required for pacemaker cluster VMs
+        - name:                    "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.16-services
-              when:                    db_high_availability
+        - name:                    "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.16-services
           tags:
             - 1.16-services
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the accounts are present"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.11-accounts
-              when:                    db_high_availability
+        - name:                    "Database Installation Playbook: - Ensure the accounts are present"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.11-accounts
           tags:
             - 1.11-accounts
 
-        - block:
-            - name:                    "Database Installation Playbook: - Install Pacemaker"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
-              when:                    node_tier != 'oracle'
+        - name:                    "Database Installation Playbook: - Install Pacemaker"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+          when:                    node_tier != 'oracle'
           tags:
             - 1.17-generic-pacemaker
 
         - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
           delegate_to:                 localhost
+          become:                      false
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
             state:                     touch
@@ -222,7 +216,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -263,11 +257,11 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "root"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -305,9 +299,8 @@
             tier:                      'oracle'
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
-          become_user:                 "root"
-          become:                      true
           delegate_to:                 localhost
+          become:                      false
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
             state:                     touch
@@ -337,13 +330,12 @@
 
         - name:                        Installing Oracle
           ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-msid
+            name:                      roles-db/4.1.3-ora-multi-sid
           when:                        node_tier == 'oracle-multi-sid'
 
         - name:                        "Database Installation Playbook: - Create db-install-done flag"
           delegate_to:                 localhost
-          become:                      true
-          become_user:                 root
+          become:                      false
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
@@ -360,7 +352,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
 
   name:                                SAP Post Installation - DB
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -382,11 +374,11 @@
         patterns:                      "*"
       register:                        find_progress_files
       delegate_to:                     localhost
+      become:                          false
 
     - name:                            "DB Playbook - Post Install: - Create db-install-done flag"
       delegate_to:                     localhost
-      become_user:                     "root"
-      become:                          true
+      become:                          false
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-install-done"
         state:                         touch

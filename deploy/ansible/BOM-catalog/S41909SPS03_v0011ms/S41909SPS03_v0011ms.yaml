@@ -21,9 +21,9 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     HANA_2_00_059_v0001ms
-    - name:     SWPM20SP11_latest
-    - name:     SUM20SP13_latest
+    - name:     HANA_2_00_059_v0002ms
+    - name:     SWPM20SP12_latest
+    - name:     SUM20SP14_latest
 
   media:
 
@@ -246,9 +246,9 @@ materials:
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000000059642016
 
-    - name:         "Attribute Change Package 22 for GBX01HR5 605"
+    - name:         "Attribute Change Package 26 for GBX01HR5 605"
       archive:      GBX01HR5605.SAR
-      checksum:     12d61484a6dc8a20fa4dc428b9c2b4948e60928e7abbd775cb7b21ce4898b366
+      checksum:     739bc35d266c9d53d08efba15956dcada2d276254ff7d68d8a88c7378100dba2
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000000033172015
 

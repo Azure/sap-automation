@@ -46,7 +46,7 @@ variable "infrastructure" {
   validation {
     condition = (
       contains(keys(var.infrastructure), "vnets") ? (
-        length(trimspace(try(var.infrastructure.vnets.management.subnet_management.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.management.subnet_management.prefix, ""))) != 0) : (
+        length(trimspace(try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.management.subnet_mgmt.prefix, ""))) != 0) : (
         true
       )
     )
@@ -86,11 +86,6 @@ variable "assign_subscription_permissions" {
   default     = true
 }
 
-variable "enable_purge_control_for_keyvaults" {
-  default = true
-}
-
-
 variable "arm_client_id" {
-  default = "70000000-0000-0000-0000-000000000000"
+  default = ""
 }

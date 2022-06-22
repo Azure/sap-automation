@@ -17,13 +17,15 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
+    key_vault {
+      purge_soft_delete_on_destroy = !var.enable_purge_control_for_keyvaults
+    }
   }
   subscription_id = local.spn.subscription_id
   client_id       = var.use_spn ? local.spn.client_id : null
   client_secret   = var.use_spn ? local.spn.client_secret : null
   tenant_id       = var.use_spn ? local.spn.tenant_id : null
   use_msi         = false
-  alias           = "main"
 
   partner_id = "25c87b5f-716a-4067-bcd8-116956916dd6"
 
@@ -54,7 +56,7 @@ provider "azuread" {
 
 
 terraform {
-  required_version = ">= 0.14"
+  required_version = ">= 1.0"
   required_providers {
     external = {
       source = "hashicorp/external"
@@ -72,7 +74,8 @@ terraform {
       source = "hashicorp/azuread"
     }
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
     }
     tls = {
       source = "hashicorp/tls"

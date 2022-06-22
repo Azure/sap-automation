@@ -51,7 +51,7 @@
 - name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_id }}"
   ansible.builtin.set_fact:
     packages_for_tier:                 "{{ packages[distribution_id]  |
-                                          selectattr('tier', 'in', ['all', tier]) | 
+                                          selectattr('tier', 'in', ['all', tier]) |
                                           selectattr('node_tier', 'in', ['all', node_tier]) |
                                           list }}"
 
@@ -179,7 +179,7 @@
       ansible.builtin.package:
         name:                          "{{ packages_for_tier |
                                            selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') | 
+                                           map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
       register:                        package_result
@@ -220,8 +220,6 @@
       loop:
         - { state: 'present' }  # First install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
-
-
 
 - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"
   zypper:

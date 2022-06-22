@@ -80,7 +80,7 @@ function missing {
     echo "#      -l or --library_parameter_file        library parameter file                     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    
+
 }
 
 force=0
@@ -96,13 +96,13 @@ eval set -- "$INPUT_ARGUMENTS"
 while :
 do
     case "$1" in
-        -d | --deployer_parameter_file)            deployer_parameter_file="$2"     ; shift 2 ;;
-        -l | --library_parameter_file)             library_parameter_file="$2"      ; shift 2 ;;
-        -s | --subscription)                       subscription="$2"                ; shift 2 ;;
-        -b | --storage_account)                    storage_account="$2"             ; shift 2 ;;
-        -r | --resource_group)                     resource_group="$2"              ; shift 2 ;;
-        -a | --ado)                                approveparam="--auto-approve"    ; shift ;;
-        -i | --auto-approve)                       approveparam="--auto-approve"    ; shift ;;
+        -d | --deployer_parameter_file)            deployer_parameter_file="$2"        ; shift 2 ;;
+        -l | --library_parameter_file)             library_parameter_file="$2"         ; shift 2 ;;
+        -s | --subscription)                       subscription="$2"                   ; shift 2 ;;
+        -b | --storage_account)                    storage_account="$2"                ; shift 2 ;;
+        -r | --resource_group)                     resource_group="$2"                 ; shift 2 ;;
+        -a | --ado)                                approveparam="--auto-approve;ado=1" ; shift ;;
+        -i | --auto-approve)                       approveparam="--auto-approve"       ; shift ;;
         -h | --help)                               showhelp
         exit 3                           ; shift ;;
         --) shift; break ;;
@@ -163,6 +163,14 @@ root_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+
+echo "Deployer environment: $deployer_environment"
+
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+export TF_VAR_Agent_IP=$this_ip
+echo "Agent IP: $this_ip"
+
 if [ -n "${subscription}" ]
 then
     export ARM_SUBSCRIPTION_ID=$subscription
@@ -200,19 +208,19 @@ if [ -z "${storage_account}" ]; then
     load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
     load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-    
+
     if [ -n "${STATE_SUBSCRIPTION}" ]
     then
         subscription="${STATE_SUBSCRIPTION}"
         az account set --sub "${STATE_SUBSCRIPTION}"
-        
+
     fi
-    
+
     if [ -n "${REMOTE_STATE_SA}" ]
     then
         storage_account="${REMOTE_STATE_SA}"
     fi
-    
+
     if [ -n "${REMOTE_STATE_RG}" ]
     then
         resource_group="${REMOTE_STATE_RG}"
@@ -229,17 +237,27 @@ echo "#                          Running Terraform init (deployer)              
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
-echo "#  subscription_id=${subscription}"                                 
-echo "#  backend-config resource_group_name=${resource_group}" 
-echo "#  storage_account_name=${storage_account}" 
-echo "#  container_name=tfstate" 
+echo "#  subscription_id=${subscription}"
+echo "#  backend-config resource_group_name=${resource_group}"
+echo "#  storage_account_name=${storage_account}"
+echo "#  container_name=tfstate"
 echo "#  key=${key}.terraform.tfstate"
 
-terraform -chdir="${terraform_module_directory}" init -upgrade=true  \
---backend-config "subscription_id=${subscription}"                   \
---backend-config "resource_group_name=${resource_group}"             \
---backend-config "storage_account_name=${storage_account}"           \
---backend-config "container_name=tfstate"                            \
+isLocal=""
+if [ -f ./.terraform/terraform.tfstate ]; then
+   if grep "azurerm" ./.terraform/terraform.tfstate ; then
+     isLocal=""
+     echo "State is stored in Azure"
+   else
+     isLocal="-migrate-state"
+   fi
+fi
+
+terraform -chdir="${terraform_module_directory}" init $isLocal -upgrade=true  \
+--backend-config "subscription_id=${subscription}"                            \
+--backend-config "resource_group_name=${resource_group}"                      \
+--backend-config "storage_account_name=${storage_account}"                    \
+--backend-config "container_name=tfstate"                                     \
 --backend-config "key=${key}.terraform.tfstate"
 
 #Initialize the statefile and copy to local
@@ -254,7 +272,7 @@ echo "##########################################################################
 echo ""
 
 
-terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -migrate-state -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
 
 cd "${curdir}" || exit
 
@@ -279,17 +297,27 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 echo ""
-echo "#  subscription_id=${subscription}"                                 
-echo "#  backend-config resource_group_name=${resource_group}" 
-echo "#  storage_account_name=${storage_account}" 
-echo "#  container_name=tfstate" 
+echo "#  subscription_id=${subscription}"
+echo "#  backend-config resource_group_name=${resource_group}"
+echo "#  storage_account_name=${storage_account}"
+echo "#  container_name=tfstate"
 echo "#  key=${key}.terraform.tfstate"
 
-terraform -chdir="${terraform_module_directory}" init -upgrade=true \
---backend-config "subscription_id=${subscription}"                  \
---backend-config "resource_group_name=${resource_group}"            \
---backend-config "storage_account_name=${storage_account}"          \
---backend-config "container_name=tfstate"                           \
+isLocal=""
+if [ -f ./.terraform/terraform.tfstate ]; then
+   if grep "azurerm" ./.terraform/terraform.tfstate ; then
+     isLocal=""
+     echo "State is stored in Azure"
+   else
+     isLocal="-migrate-state"
+   fi
+fi
+
+terraform -chdir="${terraform_module_directory}" init $isLocal -upgrade=true  \
+--backend-config "subscription_id=${subscription}"                            \
+--backend-config "resource_group_name=${resource_group}"                      \
+--backend-config "storage_account_name=${storage_account}"                    \
+--backend-config "container_name=tfstate"                                     \
 --backend-config "key=${key}.terraform.tfstate"
 
 echo ""
@@ -302,7 +330,7 @@ echo ""
 
 #Initialize the statefile and copy to local
 terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
 
 extra_vars=""
 

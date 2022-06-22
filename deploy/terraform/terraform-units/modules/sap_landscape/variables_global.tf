@@ -118,3 +118,95 @@ variable "terraform_template_version" {
   description = "The version of Terraform templates that were identified in the state file"
   default     = ""
 }
+
+variable "deployer_tfstate" {
+  description = "Deployer remote tfstate file"
+}
+
+variable "service_principal" {
+  description = "Current service principal used to authenticate to Azure"
+}
+
+variable "naming" {
+  description = "Defines the names for the resources"
+}
+
+variable "use_deployer" {
+  description = "Use the deployer"
+}
+
+variable "ANF_settings" {
+  description = "ANF settings"
+  default = {
+    use           = false
+    name          = ""
+    arm_id        = ""
+    service_level = "Standard"
+    size_in_tb    = 4
+
+  }
+}
+
+variable "enable_purge_control_for_keyvaults" {
+  description = "Allow the deployment to control the purge protection"
+}
+
+variable "dns_label" {
+  description = "DNS label"
+  default     = ""
+}
+
+variable "dns_resource_group_name" {
+  description = "DNS resource group name"
+  default     = ""
+}
+
+variable "use_private_endpoint" {
+  type        = bool
+  description = "Private endpoint"
+  default     = false
+}
+
+variable "transport_volume_size" {
+  description = "The volume size in GB for transport volume"
+}
+
+variable "install_volume_size" {
+  description = "The volume size in GB for install volume"
+}
+
+
+variable "transport_storage_account_id" {
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
+}
+
+variable "transport_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+}
+
+variable "install_storage_account_id" {
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
+}
+
+variable "install_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
+variable "NFS_provider" {
+  description = "Describes the NFS solution used"
+  type        = string
+}
+
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}
+
+variable "enable_rbac_authorization_for_keyvault" {
+  description = "Enables RBAC authorization for Azure keyvault"
+}

@@ -74,7 +74,7 @@
             "use_DHCP": false,
             "os": {
                 "publisher": "SUSE",
-                "offer": "sles-sap-12-sp5",
+                "offer": "sles-sap-15-sp3",
                 "version": "latest",
                 "sku": "gen1"
             }

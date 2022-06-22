@@ -15,6 +15,6 @@ sudoers_state:                         present
 # Where to create sudoers files
 sudoers_path:                          /etc/sudoers.d
 
-#Entries for SAP HANA Phython Hook Requirement
+# Entries for SAP HANA Phython Hook Requirement
 hanasudoers_role:                      hanaadmin_no_password
 hanasudoers_file:                      20-saphana

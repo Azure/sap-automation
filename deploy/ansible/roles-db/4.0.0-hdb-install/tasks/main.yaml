@@ -33,7 +33,7 @@
 # +------------------------------------4--------------------------------------*/
     - name:                            "SAP HANA: Set dir_params fact"
       ansible.builtin.set_fact:
-        dir_params:                    "{{ target_media_location }}/.params"
+        dir_params:                    "{{ tmp_directory }}/.params"
 
 #   0x) Create hidden directory for parameter files
     - name:                            "SAP HANA: Create hidden directory"
@@ -42,18 +42,18 @@
         state:                         directory
         mode:                          '{{ item.mode }}'
       loop:
-        - { state: 'directory', mode: '0755', path: '{{ target_media_location }}' }
         - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
 
 
     - name:                            "SAP HANA: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
-        sap_inifile_template:          "HANA_2_00_055_v1_install.rsp.j2"
+        sap_inifile_template:          "HANA_2_00_install.rsp.j2"
+        hana_host:                     "{% if db_high_availability %}{{ ansible_hostname }} {% else %}{{ virtual_host }}{% endif %}"
 
     - name:                            "SAP HANA: remove install response file"
       ansible.builtin.file:
-        path:                          "{{ target_media_location }}/downloads/{{ sap_inifile }}"
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
     - name:                            "SAP HANA: Include roles-sap/3.3.1-bom-utility role"
@@ -68,14 +68,20 @@
         _rsp_component_root:           "../COMPONENTS"
         _rsp_components:               "all"
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
-        _rsp_hostname:                 "{{ ansible_hostname }}"            # TODO: needs to be tested with HA and scale out
-        _rsp_sid:                      "{{ db_sid|upper }}"
+        _rsp_hostname:                 "{{ hana_host }}"
+        _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ hdb_instance_number }}"
         _rsp_system_usage:             "custom"
-        main_password:                 " {{ main_password }}"
+        param_directory:               "{{ dir_params }}"
 
-    - name:                            "SAP HANA: Execute hdblcm on {{ ansible_hostname }}"
-      ansible.builtin.command:         ./hdblcm --batch --action=install  --configfile='{{ target_media_location }}/downloads/{{ sap_inifile }}'
+    - name:                            "SAP HANA: Progress"
+      ansible.builtin.debug:
+        msg:                           "Start HANA Installation"
+
+    - name:                            "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
       args:
         chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
         creates:                       /etc/sap_deployment_automation/sap_deployment_hdb.txt
@@ -100,7 +106,7 @@
 
     - name:                            "SAP HANA: remove install response file"
       ansible.builtin.file:
-        path:                          "{{ target_media_location }}/downloads/hdbserver_{{ ansible_hostname }}_{{ sap_sid }}_install.rsp"
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
     - name:                            "SAP HANA: Create backup folder"
@@ -129,7 +135,7 @@
 
     - name:                            "HANA: - return value"
       ansible.builtin.set_fact:
-        hana_already_installed:         true     
+        hana_already_installed:         true
 
     - name:                            "SAP HANA: Create backup folder"
       ansible.builtin.file:
@@ -139,7 +145,7 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
   when:
-    -  hana_installed.stat.exists
+    - hana_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

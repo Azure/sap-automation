@@ -59,7 +59,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_PAS"
+- hosts:                               "{{ sap_sid | upper }}_PAS"
 
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
@@ -70,26 +70,35 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
+    - name:                            "PAS Installation Playbook: Define this SID"
+      ansible.builtin.set_fact:
+        this_sid:
+          {
+            'sid': '{{ sap_sid | upper }}',
+            'dbsid_uid': '{{ hdbadm_uid }}',
+            'sidadm_uid': '{{ sidadm_uid }}',
+            'ascs_inst_no': '{{ scs_instance_number }}',
+            'pas_inst_no': '{{ pas_instance_number }}',
+            'app_inst_no': '{{ app_instance_number }}'
+          }
 
     - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
       ansible.builtin.set_fact:
-        tier:                          generic
-        main_password:                 "{{ hostvars.localhost.sap_password }}"
-        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        always_upload_jinja_templates: false
-      tags:
-        - always
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
 
     - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
         name:                          roles-sap-os/2.5-sap-users
         tasks_from:                    user_nw.yaml
       vars:
+        scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         tier:                          generic
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      loop:                            "{{ all_sids }}"
+      loop_control:
+        loop_var:                      sid_to_be_deployed
       when:                            platform != 'ORACLE'
       tags:
         - 2.5-sap-users
@@ -102,9 +111,9 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_PAS  :
-                                        {{ sap_sid|upper }}_SCS :
-                                        {{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_PAS  :
+                                        {{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_DB"
 
   name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -132,6 +141,22 @@
       tags:
         - always
 
+    - name:                            "PAS Installation Playbook: Define this SID"
+      ansible.builtin.set_fact:
+        this_sid:
+          {
+            'sid': '{{ sap_sid | upper }}',
+            'dbsid_uid': '{{ hdbadm_uid }}',
+            'sidadm_uid': '{{ sidadm_uid }}',
+            'ascs_inst_no': '{{ scs_instance_number }}',
+            'pas_inst_no': '{{ pas_instance_number }}',
+            'app_inst_no': '{{ app_instance_number }}'
+          }
+
+    - name:                            "PAS Installation Playbook: Define list of SIDs"
+      ansible.builtin.set_fact:
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+
 # -------------------------------------+---------------------------------------8
 # Role: 5.2-PAS Installation
 #
@@ -158,21 +183,20 @@
                 fail_msg:              "Please ensure that the scs_instance_number is different from the pas_instance_number"
           when:                        (ansible_play_hosts_all | length) <= 2
 
-        - block:
+        - name:                        Run the PAS installation Playbook
+          block:
             - name:                    "PAS Installation Playbook: - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.2-pas-install
               vars:
                 instance_number:       "{% if pas_instance_number is defined %}{{ pas_instance_number }}{% else %}00{% endif %}"
-              when:       MULTI_SIDS is undefined
-
-            - name:                    "PAS Installation Playbook: - for MULTI-SID Deployment"
-              ansible.builtin.include_role:
-                name:                  roles-sap/5.2.1-pas-multi-sid-install
-              when:       MULTI_SIDS is defined
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
 
             - name:                    "PAS Installation Playbook: - Create pas-install-done flag"
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
                 path:                  "{{ _workspace_directory }}/.progress/pas-install-done"
                 state:                 touch

@@ -27,8 +27,24 @@ namespace AutomationForm.Models
         {
             public override bool IsValid(object value)
             {
+                if (value == null) return true;
                 string pattern = @"^\d+\.\d+\.\d+\.\d+\/\d+$";
-                return RegexValidation(value, pattern);
+                if (value.GetType().IsArray)
+                {
+                    string[] values = (string[])value;
+                    foreach (string v in values)
+                    {
+                        if (!RegexValidation(v, pattern)) return false;
+                    }
+                    return true;
+                }
+                else if (value.GetType() == typeof(string)) {
+                    return RegexValidation(value, pattern);
+                }
+                else
+                {
+                    return false;
+                }
             }
         }
         public class SubnetArmIdValidator : ValidationAttribute
@@ -71,7 +87,79 @@ namespace AutomationForm.Models
                 return RegexValidation(value, pattern);
             }
         }
-
+        public class KeyvaultIdValidator : ValidationAttribute
+        {
+            public override bool IsValid(object value)
+            {
+                string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.KeyVault\/vaults\/[a-zA-Z0-9-_]+$";
+                return RegexValidation(value, pattern);
+            }
+        }
+        public class PrivateEndpointIdValidator : ValidationAttribute
+        {
+            public override bool IsValid(object value)
+            {
+                string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/privateEndpoints\/[a-zA-Z0-9-_]+$";
+                return RegexValidation(value, pattern);
+            }
+        }
+        public class StorageAccountIdValidator : ValidationAttribute
+        {
+            public override bool IsValid(object value)
+            {
+                string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Storage\/storageAccounts\/[a-zA-Z0-9-_]+$";
+                return RegexValidation(value, pattern);
+            }
+        }
+        public class AvSetIdValidator : ValidationAttribute
+        {
+            public override bool IsValid(object value)
+            {
+                if (value == null) return true;
+                string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Compute\/availabilitySets\/[a-zA-Z0-9-_]+$";
+                if (value.GetType().IsArray)
+                {
+                    string[] values = (string[])value;
+                    foreach (string v in values)
+                    {
+                        if (!RegexValidation(v, pattern)) return false;
+                    }
+                    return true;
+                }
+                else if (value.GetType() == typeof(string))
+                {
+                    return RegexValidation(value, pattern);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        public class PpgIdValidator : ValidationAttribute
+        {
+            public override bool IsValid(object value)
+            {
+                if (value == null) return true;
+                string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Compute\/proximityPlacementGroups\/[a-zA-Z0-9-_]+$";
+                if (value.GetType().IsArray)
+                {
+                    string[] values = (string[])value;
+                    foreach (string v in values)
+                    {
+                        if (!RegexValidation(v, pattern)) return false;
+                    }
+                    return true;
+                }
+                else if (value.GetType() == typeof(string)) {
+                    return RegexValidation(value, pattern);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
         public class SubnetRequired : ValidationAttribute
         {
             private readonly string thisProperty;
@@ -102,11 +190,11 @@ namespace AutomationForm.Models
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
                 string prefix = (string)value;
-                string armId = (string)context.ObjectInstance.GetType().GetProperty("network_address_arm_id").GetValue(context.ObjectInstance);
+                string armId = (string)context.ObjectInstance.GetType().GetProperty("network_arm_id").GetValue(context.ObjectInstance);
 
                 if (prefix == null && armId == null)
                 {
-                    return new ValidationResult($"At least one of network_address_space or network_address_arm_id must be present.");
+                    return new ValidationResult($"At least one of network_address_space or network_arm_id must be present.");
                 }
                 else
                 {

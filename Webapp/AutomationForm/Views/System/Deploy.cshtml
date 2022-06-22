@@ -25,12 +25,7 @@
             if (prop.ModelType == typeof(Image))
             {
                 Image img = (Image)Model.GetType().GetProperty(prop.PropertyName).GetValue(Model);
-                if (img != null && (img.os_type         != null || 
-                                    img.source_image_id != null || 
-                                    img.publisher       != null || 
-                                    img.offer           != null || 
-                                    img.sku             != null || 
-                                    img.version         != null))
+                if (img != null && (img.IsInitialized))
                 {
                     <dt>
                         @Html.DisplayName(prop.GetDisplayName())

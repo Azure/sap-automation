@@ -2,41 +2,13 @@
   "Tab": "Expert",
   "Groupings": [
     {
-      "Section": "Terraform system parameters",
-      "Parameters": [
-        {
-          "Name": "deployer_tfstate_key",
-          "Required": false,
-          "Description": "The state file name for the deployer",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "tfstate_resource_id",
-          "Required": false,
-          "Description": "Azure resource identifier for the Storage account in the SAP Library that will contain the Terraform state files",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "landscape_tfstate_key",
-          "Required": false,
-          "Description": "The state file name for the workload deployment",
-          "Type": "field",
-          "Options": [],
-           "Overrules": ""
-         }
-      ]
-    },
-    {
-      "Section": "Common infrastructure",
+      "Section": "Subscription *",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
       "Parameters": [
         {
           "Name": "subscription",
           "Required": false,
-          "Description": "The subscription id",
+          "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various arm id parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
           "Type": "lookup",
           "Options": [
             {
@@ -45,7 +17,13 @@
             }
           ],
           "Overrules": ""
-        },
+        }
+      ]
+    },
+    {
+      "Section": "Common infrastructure",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#environment-parameters",
+      "Parameters": [
         {
           "Name": "resourcegroup_arm_id",
           "Required": false,
@@ -95,30 +73,15 @@
             }
           ],
           "Overrules": ""
-        },
-        {
-          "Name": "proximityplacementgroup_names",
-          "Required": false,
-          "Description": "A list of proximity placement groups to create",
-          "Type": "list",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "proximityplacementgroup_arm_ids",
-          "Required": false,
-          "Description": "A list of Azure resource identifiers specifying existing proximity placement groups",
-          "Type": "list",
-          "Options": [],
-          "Overrules": ""
         }
       ]
     },
     {
       "Section": "Network",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
-          "Name": "network_address_arm_id",
+          "Name": "network_arm_id",
           "Required": false,
           "Description": "Specifies Azure resource identifier for the existing virtual network",
           "Type": "lookup",
@@ -134,6 +97,7 @@
     },
     {
       "Section": "Admin subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "admin_subnet_arm_id",
@@ -160,6 +124,7 @@
     },
     {
       "Section": "Admin subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "admin_subnet_nsg_arm_id",
@@ -186,6 +151,7 @@
     },
     {
       "Section": "Database subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "db_subnet_arm_id",
@@ -212,6 +178,7 @@
     },
     {
       "Section": "Database subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "db_subnet_nsg_arm_id",
@@ -238,6 +205,7 @@
     },
     {
       "Section": "Application subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "app_subnet_arm_id",
@@ -264,6 +232,7 @@
     },
     {
       "Section": "Application subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "app_subnet_nsg_arm_id",
@@ -290,6 +259,7 @@
     },
     {
       "Section": "Web subnet",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "web_subnet_arm_id",
@@ -316,6 +286,7 @@
     },
     {
       "Section": "Web subnet network security group",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "web_subnet_nsg_arm_id",
@@ -342,6 +313,7 @@
     },
     {
       "Section": "Database tier",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
       "Parameters": [
         {
           "Name": "database_platform",
@@ -402,6 +374,27 @@
           "Overrules": ""
         },
         {
+          "Name": "database_dual_nics",
+          "Required": false,
+          "Description": "Defines if the database tier will have two NICs",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
           "Name": "database_size",
           "Required": false,
           "Description": "If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename. See <a href='https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
@@ -418,6 +411,14 @@
           "Name": "database_sid",
           "Required": false,
           "Description": "Defines the database SID",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_server_count",
+          "Required": false,
+          "Description": "The number of database servers",
           "Type": "field",
           "Options": [],
           "Overrules": ""
@@ -585,11 +586,119 @@
             }
           ],
           "Overrules": ""
+        },
+        {
+          "Name": "database_loadbalancer_ips",
+          "Required": false,
+          "Description": "If provided, the database tier will be configured with the specified load balancer IP",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_db_nic_ips",
+          "Required": false,
+          "Description": "If provided, the database tier will be configured with the specified IPs",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_db_nic_secondary_ips",
+          "Required": false,
+          "Description": "If provided, the database tier will be configured with the specified IPs as secondary IPs",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_admin_nic_ips",
+          "Required": false,
+          "Description": "If provided, the database tier will be configured with the specified IPs (admin subnet)",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_storage_nic_ips",
+          "Required": false,
+          "Description": "If provided, the database tier will be configured with the specified IPs (storage subnet)",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_HANA_use_ANF_scaleout_scenario",
+          "Required": false,
+          "Description": "",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "hana_dual_nics",
+          "Required": false,
+          "Description": "If defined, will use dual NICs for HANA",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
         }
       ]
     },
     {
       "Section": "Application tier",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
       "Parameters": [
         {
           "Name": "enable_app_tier_deployment",
@@ -716,6 +825,7 @@
     },
     {
       "Section": "Application servers",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
       "Parameters": [
         {
           "Name": "application_server_count",
@@ -760,20 +870,7 @@
           "Overrules": ""
         },
         {
-          "Name": "application_server_app_nic_ips",
-          "Required": false,
-          "Description": "Provides the static IP addresses for the network interface cars connected to the application subnet",
-          "Type": "list",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "application_server_app_admin_nic_ips",
+          "Name": "application_server_admin_nic_ips",
           "Required": false,
           "Description": "Provides the static IP addresses for the network interface cars connected to the admin subnet",
           "Type": "list",
@@ -797,11 +894,93 @@
             }
           ],
           "Overrules": ""
+        },
+        {
+          "Name": "application_server_app_nic_ips",
+          "Required": false,
+          "Description": "IP addresses for the application servers",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "application_server_nic_secondary_ips",
+          "Required": false,
+          "Description": "IP addresses for the application servers",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "application_server_no_avset",
+          "Required": false,
+          "Description": "If true, the application tier will not use an availability set",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "application_server_vm_avset_arm_ids",
+          "Required": false,
+          "Description": "If provided, Azure resource ids for the availability sets to use for the application servers",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "application_server_no_ppg",
+          "Required": false,
+          "Description": "If provided, the application servers will not be placed in a proximity placement group",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
         }
       ]
     },
     {
       "Section": "SAP central services",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
       "Parameters": [
         {
           "Name": "scs_server_count",
@@ -896,7 +1075,7 @@
           "Overrules": ""
         },
         {
-          "Name": "scs_server_app_admin_nic_ips",
+          "Name": "scs_server_admin_nic_ips",
           "Required": false,
           "Description": "Provides the static IP addresses for the network interface cars connected to the admin subnet",
           "Type": "list",
@@ -933,11 +1112,67 @@
             }
           ],
           "Overrules": ""
+        },
+        {
+          "Name": "scs_server_nic_secondary_ips",
+          "Required": false,
+          "Description": "If provided, the SAP Central Services tier will be configured with the specified IPs as secondary IPs",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "scs_server_no_avset",
+          "Required": false,
+          "Description": "If true, the SAP Central Services tier will not use an availability set",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "scs_server_no_ppg",
+          "Required": false,
+          "Description": "If provided, the Central Services will not be placed in a proximity placement group",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
         }
       ]
     },
     {
       "Section": "Web dispatchers",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
       "Parameters": [
         {
           "Name": "webdispatcher_server_count",
@@ -995,7 +1230,7 @@
           "Overrules": ""
         },
         {
-          "Name": "webdispatcher_server_app_admin_nic_ips",
+          "Name": "webdispatcher_server_admin_nic_ips",
           "Required": false,
           "Description": "Provides the static IP addresses for the network interface cars connected to the admin subnet",
           "Type": "list",
@@ -1032,11 +1267,67 @@
             }
           ],
           "Overrules": ""
+        },
+        {
+          "Name": "webdispatcher_server_nic_secondary_ips",
+          "Required": false,
+          "Description": "If provided, the Web Dispatchers will be configured with the specified IPs as secondary IPs",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "webdispatcher_server_no_avset",
+          "Required": false,
+          "Description": "If true, the Web Dispatcher tier will not use an availability set",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "webdispatcher_server_no_ppg",
+          "Required": false,
+          "Description": "If provided, the web dispatchers will not be placed in a proximity placement group",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
         }
       ]
     },
     {
-      "Section": "NFS support",
+      "Section": "NFS and Shared Files Settings",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
       "Parameters": [
         {
           "Name": "NFS_provider",
@@ -1074,11 +1365,374 @@
           "Type": "field",
           "Options": [],
           "Overrules": ""
+        },
+        {
+          "Name": "azure_files_sapmnt_id",
+          "Required": false,
+          "Description": "Azure File Share ID for SAPMNT",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "azurerm_private_endpoint_connection_sapmnt_id",
+          "Required": false,
+          "Description": "Azure Resource Identifier for an private endpoint connection",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "ANF Settings",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+      "Parameters": [
+        {
+          "Name": "ANF_use_for_HANA_data",
+          "Required": false,
+          "Description": "If defined, will create ANF volumes for HANA data",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_data_volume_size",
+          "Required": false,
+          "Description": "If defined provides the size of the HANA data volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_existing_data_volume",
+          "Required": false,
+          "Description": "Use existing data volume",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_data_volume_name",
+          "Required": false,
+          "Description": "Data volume name",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_data_volume_throughput",
+          "Required": false,
+          "Description": "If defined provides the throughput of the data volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_for_HANA_log",
+          "Required": false,
+          "Description": "If defined, will create ANF volumes for HANA log",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_log_volume_size",
+          "Required": false,
+          "Description": "If defined provides the size of the HANA log volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_existing_log_volume",
+          "Required": false,
+          "Description": "Use existing log volume",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_log_volume_name",
+          "Required": false,
+          "Description": "Log volume name",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_log_volume_throughput",
+          "Required": false,
+          "Description": "If defined provides the throughput of the log volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_for_HANA_shared",
+          "Required": false,
+          "Description": "If defined, will create ANF volumes for HANA shared",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_shared_volume_size",
+          "Required": false,
+          "Description": "If defined provides the size of the HANA shared volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_existing_shared_volume",
+          "Required": false,
+          "Description": "Use existing shared volume",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_shared_volume_name",
+          "Required": false,
+          "Description": "If defined provides the name of the HANA shared volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_shared_volume_throughput",
+          "Required": false,
+          "Description": "If defined provides the throughput of the /shared volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_for_usr_sap",
+          "Required": false,
+          "Description": "If defined, will create ANF volumes for /usr/sap",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_usr_sap_volume_size",
+          "Required": false,
+          "Description": "If defined provides the size of the  /usr/sap volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_existing_usr_sap_volume",
+          "Required": false,
+          "Description": "Use existing  /usr/sap volume",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_usr_sap_volume_name",
+          "Required": false,
+          "Description": "If defined provides the name of the /usr/sap volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_usr_sap_throughput",
+          "Required": false,
+          "Description": "If defined provides the throughput of the /usr/sap volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "use_private_endpoint",
+          "Required": false,
+          "Description": "Use private endpoint for the deployment",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_use_existing_sapmnt_volume",
+          "Required": false,
+          "Description": "Use existing sapmnt volume",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_sapmnt_volume_name",
+          "Required": false,
+          "Description": "sapmnt volume name",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_sapmnt_volume_size",
+          "Required": false,
+          "Description": "If defined provides the size of the sapmnt volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "ANF_HANA_sapmnt_volume_throughput",
+          "Required": false,
+          "Description": "If defined provides the throughput of the sapmnt volume",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
         }
       ]
     },
     {
       "Section": "Anchor VM",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#anchor-virtual-machine-parameters",
       "Parameters": [
         {
           "Name": "deploy_anchor_vm",
@@ -1105,6 +1759,14 @@
           "Name": "anchor_vm_sku",
           "Required": false,
           "Description": "Defines the virtual machine SKU",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "anchor_vm_authentication_username",
+          "Required": false,
+          "Description": "Value of the username for the Anchor VM",
           "Type": "field",
           "Options": [],
           "Overrules": ""
@@ -1199,7 +1861,7 @@
           "Overrules": ""
         },
         {
-          "Name": "bom_base",
+          "Name": "bom_name",
           "Required": false,
           "Description": "",
           "Type": "field",
@@ -1210,6 +1872,7 @@
     },
     {
       "Section": "Authentication",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#authentication-parameters",
       "Parameters": [
         {
           "Name": "automation_password",
@@ -1234,7 +1897,13 @@
           "Type": "field",
           "Options": [],
           "Overrules": ""
-        },
+        }
+      ]
+    },
+    {
+      "Section": "Other Parameters",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#other-parameters",
+      "Parameters": [
         {
           "Name": "resource_offset",
           "Required": false,
@@ -1270,6 +1939,105 @@
               "Value": "false"
             }
           ],
+          "Overrules": ""
+        },
+        {
+          "Name": "proximityplacementgroup_names",
+          "Required": false,
+          "Description": "A list of proximity placement groups to create",
+          "Type": "list",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "proximityplacementgroup_arm_ids",
+          "Required": false,
+          "Description": "A list of Azure resource identifiers specifying existing proximity placement groups",
+          "Type": "list",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Keyvault",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#key-vault-parameters",
+      "Parameters": [
+        {
+          "Name": "user_keyvault_id",
+          "Required": false,
+          "Description": "If provided, the Azure resource identifier of the credentials keyvault",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "spn_keyvault_id",
+          "Required": false,
+          "Description": "If provided, the Azure resource identifier of the deployment credential keyvault",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "enable_purge_control_for_keyvaults",
+          "Required": false,
+          "Description": "Disables the purge protection for Azure keyvaults. USE THIS ONLY FOR TEST ENVIRONMENTS",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Terraform system parameters",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#terraform-parameters",
+      "Parameters": [
+        {
+          "Name": "deployer_tfstate_key",
+          "Required": false,
+          "Description": "The state file name for the deployer",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "tfstate_resource_id",
+          "Required": false,
+          "Description": "Azure resource identifier for the Storage account in the SAP Library that will contain the Terraform state files",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "landscape_tfstate_key",
+          "Required": false,
+          "Description": "The state file name for the workload deployment",
+          "Type": "field",
+          "Options": [],
           "Overrules": ""
         }
       ]
