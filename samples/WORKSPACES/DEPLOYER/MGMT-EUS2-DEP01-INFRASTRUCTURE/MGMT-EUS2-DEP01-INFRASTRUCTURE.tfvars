@@ -71,11 +71,11 @@ management_firewall_subnet_arm_id= ="<azure_resource_id>"
 # bastion_deployment is a boolean flag controlling if Azure bastion is to be deployed in the deployer VNet
 bastion_deployment=false
 
-# bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing AzureBastion subnet
-# bastion_subnet_arm_id= ""
+# management_bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing AzureBastion subnet
+# management_bastion_subnet_arm_id= ""
 
-# bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
-# bastion_subnet_address_prefix="10.10.20.128/26"
+# management_bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
+# management_bastion_subnet_address_prefix="10.10.20.128/26"
 
 
 ########################################################
