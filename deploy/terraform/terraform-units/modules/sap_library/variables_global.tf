@@ -99,3 +99,7 @@ variable "service_principal" {
 variable "use_private_endpoint" {
   default = false
 }
+
+variable "use_webapp" {
+  default = false
+}

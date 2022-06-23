@@ -206,7 +206,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                             $boldreduscoreErrors during the plan phase$resetformatting                              #"
+    echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
