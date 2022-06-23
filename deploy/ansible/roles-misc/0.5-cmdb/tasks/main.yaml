@@ -1,8 +1,0 @@
-# Example task to be used when including this role
-- name: Modify the cosmos DB
-  modify_cmdb:
-    connStr:    "{{ connStr }}"
-    collection: "{{ collection }}"
-    id:         "{{ id }}"
-    crud:       "{{ crud }}"
-    updates:    "{{ updates }}"
