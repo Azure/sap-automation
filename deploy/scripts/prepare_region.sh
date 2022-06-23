@@ -132,6 +132,14 @@ if [ 0 != $return_code ]; then
     echo "Missing exports" > "${deployer_config_information}".err
     exit $return_code
 fi
+# Check that webapp exports are defined, if deploying webapp
+if [ $TF_VAR_use_webapp = "true" ]; then
+    validate_webapp_exports
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        exit $return_code
+    fi
+fi
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
@@ -440,6 +448,12 @@ if [ 2 == $step ]; then
         echo "Bootstrapping of the SAP Library failed" > "${deployer_config_information}".err
         exit 20
     fi
+
+    if [ $TF_VAR_use_webapp = "true" ]; then
+        terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
+        export TF_VAR_cmdb_connection_string=$(terraform -chdir="${terraform_module_directory}" output cmdb_connection_string | tr -d \")
+        az keyvault secret set --vault-name "${keyvault}" --name "cmdb-connection-string" --value "${TF_VAR_cmdb_connection_string}"
+    fi
     
     cd "${curdir}" || exit
     export step=3
@@ -477,6 +491,9 @@ if [ 3 == $step ]; then
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
+    TF_VAR_cmdb_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "cmdb-connection-string" | jq -r .value)
+    export TF_VAR_cmdb_connection_string
+    
     echo "calling installer.sh with parameters: $allParams"
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
@@ -501,7 +518,6 @@ load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 if [ 4 == $step ]; then
     echo ""
-    
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                          $cyan Migrating the library state $resetformatting                                #"
@@ -519,7 +535,7 @@ if [ 4 == $step ]; then
 
         exit 21
     fi
-    
+
     cd "$root_dirname" || exit
     
     step=5
