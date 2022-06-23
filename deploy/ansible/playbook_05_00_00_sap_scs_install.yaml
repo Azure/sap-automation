@@ -220,7 +220,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_SCS"
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ bom.product_ids.scs.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/ASCS'
                 tier:                  'scs'
 
