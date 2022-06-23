@@ -61,3 +61,8 @@ output "saplibrary_environment" {
 output "automation_version" {
   value = local.version_label
 }
+
+output "cmdb_connection_string" {
+  sensitive = true
+  value = var.use_webapp ? module.sap_library.cmdb_connection_string : ""
+}
