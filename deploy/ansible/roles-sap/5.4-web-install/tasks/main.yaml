@@ -12,27 +12,40 @@
 
 ---
 
+- name:                                "Web Install: Set BOM facts"
+  ansible.builtin.set_fact:
+    sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.sid }}-{{ ansible_hostname }}.params"
+    sap_inifile_template:              "{{ bom_base_name }}-web-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
+
+- name:                                "Web Install: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ dir_params }}"
+    state:                             directory
+    mode:                              0755
+
+- name:                                "Web Install: Create temp directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
+
 - name:                                "Web Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "Web Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_web.txt
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "Web Install: check if installed"
+- name:                                "Web Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_web.txt
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
   register:                            web_installed
-
-- name:                                "Web Install: Set BOM facts"
-  ansible.builtin.set_fact:
-    sap_inifile:                      "{{ bom_base_name }}-web-{{ ansible_hostname }}.params"
-    sap_inifile_template:             "{{ bom_base_name }}-web-inifile-param.j2"
 
 - name:                                "Web Install: Get the SCS Server name list"
   ansible.builtin.set_fact:
@@ -63,13 +76,21 @@
   vars:
     task_prefix:                       "Web Install: "
     always_upload_jinja_templates:     false
+    param_directory:                   "{{ dir_params }}"
     bom_name:                          "{{ bom_base_name }}"
+    sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
+    sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
+    sap_cd_package_cd2:
+    sap_cd_package_cd3:
+    sap_cd_package_cd4:
+    sap_cd_package_cd5:
     web_instance_number:               "00" # "{{ web_instance_number }}"
     sap_ciInstanceNumber:              "00"
     sap_profile_dir:                   /sapmnt/{{ sap_sid | upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_webVirtualHostname:            "{{ inventory_hostname }}"
     sap_installSAPHostAgent:           false
+
   tags:
     - skip_ansible_lint
 
@@ -96,9 +117,13 @@
 #   SAP Web Dispatcher: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-    - name:               "SAP Web Dispatcher Install"
+
+    - name:                            "SAP Web Dispatcher Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting Web Install ({{ sid_to_be_deployed.sid | upper }})"
+
+    - name:                            "SAP Web Dispatcher Install"
       ansible.builtin.command: |
-                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.web }}            \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
@@ -106,7 +131,7 @@
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_web.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
         TMPDIR:                        "{{ tmp_directory }}"
@@ -128,7 +153,7 @@
 
     - name:                            "Web Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_web.txt
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
         state:                         touch
         mode:                          0755
 
