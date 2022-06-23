@@ -43,11 +43,6 @@ output "subnet_mgmt_id" {
   value = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 }
 
-// Deatils of cmdb subnet that is deployed/imported
-output "subnet_cmdb_id" {
-  value = var.use_webapp ? (local.cmdb_subnet_exists ? data.azurerm_subnet.cmdb[0].id : azurerm_subnet.cmdb[0].id) : ""
-}
-
 // Details of the management vnet NSG that is deployed/imported
 output "nsg_mgmt" {
   value = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
@@ -119,8 +114,4 @@ output "firewall_ip" {
 
 output "firewall_id" {
   value = var.firewall_deployment ? azurerm_firewall.firewall[0].id : ""
-}
-
-output "webapp_url_base" {
-  value = var.use_webapp ? (var.configure ? azurerm_app_service.webapp[0].name : "") : ""
 }

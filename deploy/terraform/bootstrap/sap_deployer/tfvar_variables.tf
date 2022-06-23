@@ -329,33 +329,3 @@ variable "agent_ado_url" {
   description = "If provided, contains the Url to the ADO repository"
   default     = ""
 }
-
-/*
-This block describes the variables for use with the web app and cosmos db
-*/
-
-variable "use_webapp" {
-  default = false
-}
-
-variable "app_registration_app_id" {
-  default = ""
-}
-
-variable "cmdb_connection_string" {
-  type = string
-  default = ""
-}
-
-variable "webapp_client_secret" {
-  type = string
-  default = ""
-}
-
-variable "cmdb_subnet_arm_id" {
-  default = ""
-}
-
-variable "cmdb_subnet_address_prefix" {
-  default = ""
-}

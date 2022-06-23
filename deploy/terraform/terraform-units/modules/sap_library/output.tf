@@ -74,7 +74,3 @@ output "tfstate_resource_id" {
   )
 }
 
-output "cmdb_connection_string" {
-  sensitive = true
-  value = var.use_webapp ? azurerm_cosmosdb_account.cmdb[0].connection_strings[0] : ""
-}

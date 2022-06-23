@@ -22,12 +22,6 @@ parameters:
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
     default:                           MGMT
-  
-  - name:                              use_webapp
-    displayName:                       "Deploy the web app infrastructure"
-    type:                              boolean
-    default:                           false
-
 trigger:                               none
 
 pool:
@@ -36,10 +30,6 @@ pool:
 variables:
   - group:                             "SDAF-General"
   - group:                             SDAF-${{ parameters.environment }}
-  - name:                              variablegroup
-    value:                             SDAF-${{ parameters.environment }}
-  - name:                              use_webapp
-    value:                             ${{ lower(parameters.use_webapp) }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig
@@ -116,16 +106,6 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                if [ $(use_webapp) = "true" ]; then
-                  if [ ! -n $(TF_VAR_app_registration_app_id) ]; then
-                    echo "##vso[task.logissue type=error]Variable TF_VAR_app_registration_app_id was not defined."
-                    exit 2
-                  fi
-                  if [ ! -n $(TF_VAR_webapp_client_secret) ]; then
-                    echo "##vso[task.logissue type=error]Variable TF_VAR_webapp_client_secret was not defined."
-                    exit 2
-                  fi
-                fi
 
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)
@@ -144,25 +124,10 @@ stages:
                 git checkout -q $(Branch)
                 git pull
 
-              echo -e "$green--- Configure devops CLI extension ---$reset"
-                az extension add --name azure-devops
-                az devops configure -d organization=$(System.CollectionUri)
-                az devops configure -d project=$(System.TeamProject)
-                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variablegroup)'].id | [0]")
-
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
                 dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                 dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
-              
-              echo -e "$green--- Exporting webapp variables ---$reset"
-                export IS_PIPELINE_DEPLOYMENT=true
-                export TF_VAR_use_webapp=$(use_webapp)
-                if [ $(use_webapp) = "true" ]; then
-                  export TF_VAR_app_registration_app_id=$(TF_VAR_app_registration_app_id)
-                  export TF_VAR_webapp_client_secret=$(TF_VAR_webapp_client_secret)
-                fi
               
               deployer_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 

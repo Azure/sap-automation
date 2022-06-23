@@ -30,9 +30,6 @@ output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
 }
 
-output "subnet_cmdb_id" {
-  value = module.sap_deployer.subnet_cmdb_id
-}
 
 # output "subnet_mgmt" {
 #   sensitive = true
@@ -113,8 +110,4 @@ output "firewall_id" {
 
 output "automation_version" {
   value = local.version_label
-}
-
-output "webapp_url_base" {
-  value = var.use_webapp ? module.sap_deployer.webapp_url_base : ""
 }

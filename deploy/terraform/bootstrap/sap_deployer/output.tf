@@ -17,10 +17,6 @@ output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
 }
 
-output "subnet_cmdb_id" {
-  value = module.sap_deployer.subnet_cmdb_id
-}
-
 output "deployer_uai" {
   sensitive = true
   value = {
