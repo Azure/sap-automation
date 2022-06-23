@@ -1,0 +1,78 @@
+@model IEnumerable<AutomationForm.Models.AppFile>
+
+@{
+    ViewBag.Title = "Files";
+}
+
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Files</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Existing files</h2>
+</div>
+
+<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<div class="table-scroll">
+    <table class="table" aria-label="Existing files">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Id)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var file in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => file.Id)
+                </td>
+                <td class="td-align-right">
+                    @Html.ActionLink("Edit", "Edit", new { id=file.Id }) |
+                    @Html.ActionLink("Details", "Details", new { id=file.Id }) |
+                    @Html.ActionLink("Convert", "Convert", new { id=file.Id }) |
+                    @Html.ActionLink("Download", "Download", new { id=file.Id })
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", "File")">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create
+    </fluent-anchor>
+
+    <fluent-anchor href="@Url.Action("Upload", "File")">
+        <i class="ms-Icon ms-Icon--Upload" aria-hidden="true"></i> Upload
+    </fluent-anchor>
+
+    <fluent-anchor appearance="accent" style="float: right" href="@Url.Action("Templates", "File")">
+        Templates
+    </fluent-anchor>
+</p>
