@@ -535,7 +535,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                            $boldreduscore Errors during the plan phase$resetformatting                              #"
+    echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -562,6 +562,12 @@ if [ 0 == $return_value ] ; then
     then
         deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
         keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+
+        if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
+            webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output webapp_url_base | tr -d \")
+            az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
+        fi
+
         save_config_var "keyvault" "${system_config_information}"
         save_config_var "deployer_public_ip_address" "${system_config_information}"
 
@@ -844,6 +850,11 @@ if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+    
+    if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
+        webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output webapp_url_base | tr -d \")
+        az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
+    fi
 
     save_config_var "keyvault" "${system_config_information}"
     save_config_var "deployer_public_ip_address" "${system_config_information}"

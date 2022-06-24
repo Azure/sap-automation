@@ -60,7 +60,7 @@ disk_type_to_name_map:
 #
 logical_volumes:
   - tier:       'sapos'
-    node_tier:  "{% if scs_high_availability %}['pas', 'app']{% else %}all{% endif %}"
+    node_tier:  'all'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
     size:       '32g'

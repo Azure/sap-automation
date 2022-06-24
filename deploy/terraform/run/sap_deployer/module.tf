@@ -21,8 +21,12 @@ module "sap_deployer" {
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   arm_client_id                      = var.arm_client_id
   use_private_endpoint               = var.use_private_endpoint
+  use_webapp                         = var.use_webapp
   configure                          = true
   tf_version                         = var.tf_version
+  app_registration_app_id            = var.app_registration_app_id
+  cmdb_connection_string             = var.cmdb_connection_string
+  webapp_client_secret               = var.webapp_client_secret
   bastion_deployment                 = var.bastion_deployment
   auto_configure_deployer            = var.auto_configure_deployer
   deployer_vm_count                  = var.deployer_count

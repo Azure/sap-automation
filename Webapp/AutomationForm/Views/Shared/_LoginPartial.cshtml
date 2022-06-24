@@ -1,0 +1,19 @@
+﻿@using System.Security.Principal
+
+<ul class="navbar-nav">
+@if (Context.Request.Headers.ContainsKey("X-MS-CLIENT-PRINCIPAL-ID"))
+{
+        <li class="nav-item super-wideonly">
+            <span class="navbar-text text-dark">Hello @Context.Request.Headers["X-MS-CLIENT-PRINCIPAL-NAME"]! </span>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/.auth/logout">Sign out</a>
+        </li>
+}
+else
+{
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/.auth/login/aad/callback">Sign in</a>
+        </li>
+}
+</ul>

@@ -163,6 +163,10 @@ variable "use_private_endpoint" {
   default = false
 }
 
+variable "use_webapp" {
+  default = false
+}
+
 variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
   default = ""

@@ -14,6 +14,15 @@ variable "arm_client_id" {
   default = ""
 }
 
+// Web app variables
+variable "use_webapp" {
+  default = false
+}
+variable "app_registration_app_id" {}
+variable "cmdb_connection_string" {}
+variable "webapp_client_secret" {}
+
+
 variable "naming" {
   description = "naming convention"
 }
