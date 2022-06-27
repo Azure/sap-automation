@@ -94,7 +94,7 @@
   ansible.builtin.debug:
     msg:
       - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
-               {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+               {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
       - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
       - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     verbosity:                         2
@@ -112,7 +112,7 @@
 - name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
   win_get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
-                                       {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              '{{ target_media_location }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
     checksum:                          "{% if item.checksum is defined %}{{ item.checksum | upper }}{% endif %}"
     checksum_algorithm:                "sha256"
