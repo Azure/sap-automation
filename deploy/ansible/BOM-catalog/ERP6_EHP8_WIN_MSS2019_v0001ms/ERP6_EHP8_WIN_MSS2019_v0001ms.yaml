@@ -2,21 +2,22 @@
 
 name: "ERP6_EHP8_WIN_MSS2019_v0001ms"
 target: "SAP NETWEAVER 7.5"
-
+version: "1"
+platform: "SQLSERVER"
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
 
 product_ids:
-  scs:
-  scs_ha:
+  scs:    NW_ABAP_ASCS:NW750.MSS.ABAP
+  scs_ha: NW_FirstClusterNode_ABAP:NW750.MSS.ABAPHA
   dbl:
-  pas:
+  pas:    NW_ABAP_CI:NW750.MSS.ABAP
   pas_ha:
   app:
   app_ha:
   web:
   ers:
-  ers_ha:
+  ers_ha: NW_SecondClusterNode:NW750.MSS.ABAPHA
 
 materials:
   dependencies:
@@ -44,20 +45,21 @@ materials:
 
     - name: "SAP HOST AGENT 7.22 SP54"
       archive: SAPHOSTAGENT54_54-80004825.SAR
-      url: https://softwaredownloads.sap.com/file/0020000001542832021
+      url: https://softwaredownloads.sap.com/file/0020000000103402011
       path: download_basket
 
-    - name: "Patch 1 for SOFTWARE UPDATE MANAGER 2.0 SP13"
-      archive: SUM20SP13_1-80002458.SAR
-      url: https://softwaredownloads.sap.com/file/0020000000304012022
+    - name: "Patch 1 for SOFTWARE UPDATE MANAGER 2.0 SP14"
+      archive: SUM20SP14_1-80002458.SAR
+      checksum: 323f1be92a1ff8d5afbddcdd64057ca1da8336e4598bb9d067fb4483959f5bca
+      url: https://softwaredownloads.sap.com/file/0020000000755472022
       path: download_basket
 
-    - name: "SWPM 1.0 SP34 for NW higher than 7.0x"
-      archive: SWPM10SP34_1-20009707.SAR
+    - name: "SWPM 1.0 SP35 for NW higher than 7.0x"
+      archive: SWPM10SP35_2-20009707.SAR
       override_target_filename: "SWPM.SAR"
       extract: true
       extractDir: SWPM
-      url: https://softwaredownloads.sap.com/file/0020000000289752022
+      url: https://softwaredownloads.sap.com/file/0020000000773022022
       path: download_basket
 
     - name: "Installation for SAP IGS integrated in SAP Kernel"
