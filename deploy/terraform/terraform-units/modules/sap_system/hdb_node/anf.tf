@@ -147,7 +147,7 @@ resource "azurerm_netapp_volume" "hanashared" {
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
+  storage_quota_in_gb = var.hana_ANF_volumes.shared_volume_size
   throughput_in_mibps = var.hana_ANF_volumes.shared_volume_throughput
 
   snapshot_directory_visible = true
