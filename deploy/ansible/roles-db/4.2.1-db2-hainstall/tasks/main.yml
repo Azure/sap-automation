@@ -45,13 +45,13 @@
     - ansible_hostname == secondary_instance_name
 
 - name:                            "DB2 - Apply high availability database parameters on Primary & Secondary System"
-  import_tasks:                    4.2.1.4-db2-haparameters.yml
+  import_tasks:                    4.2.1.4-db2_haparameters.yml
 
 - name:                            "DB2 - Activate HADR on Secondary followed by HADR on Primary"
-  import_tasks:                   4.2.1.5-db2-enable_hadr.yaml
+  import_tasks:                   4.2.1.5-db2_enable_hadr.yaml
 
 - name:                            "DB2 - HA Configuration Post Install Checks"
-  import_tasks:                   4.2.1.6-db2-post_install_checks.yaml
+  import_tasks:                   4.2.1.6-db2_post_install_checks.yaml
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
