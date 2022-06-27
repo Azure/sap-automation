@@ -122,5 +122,5 @@ output "firewall_id" {
 }
 
 output "webapp_url_base" {
-  value = var.use_webapp ? (var.configure ? azurerm_app_service.webapp[0].name : "") : ""
+  value = var.use_webapp ? (var.configure ? azurerm_windows_web_app.webapp[0].name : "") : ""
 }
