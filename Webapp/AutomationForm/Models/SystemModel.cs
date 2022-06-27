@@ -233,9 +233,6 @@ namespace AutomationForm.Models
         public string database_HANA_use_ANF_scaleout_scenario { get; set; }
 
         [BsonIgnoreIfNull]
-        public string dual_nics { get; set; }
-
-        [BsonIgnoreIfNull]
         [IpAddressValidator]
         public string[] database_vm_db_nic_secondary_ips { get; set; }
 

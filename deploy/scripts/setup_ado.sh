@@ -21,15 +21,12 @@ sudo ./svc.sh install azureadm
 # start the deamon
 sudo ./svc.sh start
 
-# install dotnet for the web app
-wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-sudo dpkg -i packages-microsoft-prod.deb
-rm packages-microsoft-prod.deb
-
-sudo apt-get update; \
-  sudo apt-get install -y apt-transport-https && \
-  sudo apt-get update && \
-  sudo apt-get install -y dotnet-sdk-3.1
+# Install dotnet for the web app
+if [[ $TF_VAR_use_webapp = "true" ]]; then
+    sudo snap install dotnet-sdk --classic --channel=3.1
+    sudo snap alias dotnet-sdk.dotnet dotnet
+    export DOTNET_ROOT=/snap/dotnet-sdk/current
+fi
 
 # install mongosh for configuration management
 wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -

@@ -145,7 +145,7 @@ stages:
                 git pull
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az extension add --name azure-devops
+                az extension add --name azure-devops --only-show-errors
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
@@ -216,6 +216,13 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
+              if [ $(use_webapp) = "true" ]; then
+                echo -e "$green--- Updating the web app reply urls ---$reset"
+                az ad app update --id $(TF_VAR_app_registration_app_id) \
+                --homepage https://$(WEBAPP_URL_BASE).azurewebsites.net \
+                --reply-urls https://$(WEBAPP_URL_BASE).azurewebsites.net/ https://$(WEBAPP_URL_BASE).azurewebsites.net/.auth/login/aad/callback
+              fi
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 added=0
