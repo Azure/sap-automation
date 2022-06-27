@@ -129,9 +129,7 @@ stages:
                 git pull
               echo -e "$green--- --- Convert config file to UX format ---$reset"
 
-                if [[ "Azure Pipelines" == "$(Agent)" ]]; then
-                  sudo apt-get -qq install dos2unix
-                fi
+                sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
@@ -236,7 +234,9 @@ stages:
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
-                echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
+                if [ -f ${SID}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
+                fi
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure

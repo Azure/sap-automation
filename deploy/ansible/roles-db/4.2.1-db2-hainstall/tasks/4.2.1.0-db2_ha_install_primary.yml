@@ -46,7 +46,6 @@
   when:
     - ansible_hostname == primary_instance_name
 
- 
 - name:                                "SAP DB2 Install: Install DB2"
   block:
     - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
@@ -99,7 +98,7 @@
       tags:
         - skip_ansible_lint
 
-   # TBC - Add another check to remove the contents of /sapmnt/<SID> if installation fails 
+  # TBC - Add another check to remove the contents of /sapmnt/<SID> if installation fails
 
 
     - name:                            "DB2 Install: flag"

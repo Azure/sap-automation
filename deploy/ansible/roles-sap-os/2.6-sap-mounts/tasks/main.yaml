@@ -60,8 +60,9 @@
     - (item.node_tier == "all" or item.node_tier == node_tier)
     - not scs_high_availability
     - node_tier != 'observer'
+    - node_tier == 'app' and usr_sap_mountpoint is undefined
 
-- name:                                "2.6 SAP Mounts: - Mount local file systems"
+- name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -70,6 +71,18 @@
     state:                             mounted
   loop:
     - { node_tier: 'hana', type: 'xfs', src: "{{ sharedpath }}",                   path: '/hana/shared' }
+  when:
+    - node_tier == 'hana'
+    - hana_shared_mountpoint is undefined
+
+- name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:
     - { node_tier: 'hana', type: 'xfs', src: '/dev/vg_hana_backup/lv_hana_backup', path: '/hana/backup' }
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
 
@@ -137,6 +150,15 @@
     - MULTI_SIDS is undefined
     - "'scs' in supported_tiers"
 
+- name:                                "2.6 SAP Mounts: - Create SAP Directories (sapmnt)"
+  ansible.builtin.file:
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+    mode:                              0755
+    path:                              "/sapmnt/{{ sap_sid|upper }}"
+    state:                             directory
+    recurse:                           true
+
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
     - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
@@ -188,21 +210,6 @@
     - node_tier != 'scs'
     - usr_sap_install_mountpoint is not defined
 
-# Import this task only if the sap_mnt is defined, i.e. AFS is used
-- name:                                "2.6 SAP Mounts: - Import AFS tasks"
-  ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
-  when:
-    - sap_mnt is defined or sap_trans is defined
-    - tier == 'sapos'
-    - NFS_provider == 'AFS' and NFS_provider != 'NONE'
-
-# Import this task only if the sap_mnt is defined, i.e. ANF is used
-- name:                                "2.6 SAP Mounts: - Import ANF tasks"
-  ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
-  when:
-    - sap_mnt is defined or sap_trans is defined
-    - NFS_provider == 'ANF'
-
 # Mount File systems for SCS server in Multi-SID installations
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
   block:
@@ -221,6 +228,8 @@
     - name:                            "2.6 SAP Mounts: - Create file systems under sapmnt for oracle shared home installation"
       ansible.builtin.file:
         path:                          /sapmnt/{{ item.sid }}
+        owner:                         '{{ item.sidadm_uid }}'
+        group:                         sapsys
         state:                         directory
         mode:                          '0644'
       loop:                            "{{ MULTI_SIDS }}"
@@ -228,7 +237,7 @@
     - tier == 'sapos'
     - node_tier == 'scs'
     - MULTI_SIDS is defined
-    - not use_AFS
+    - sap_mnt is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount SAP File systems sapmnt for oracle shared home installation"
   become:                              true
@@ -264,4 +273,20 @@
 - import_tasks:                        "2.6.4-db2-mounts.yaml"
   when:
     - node_tier == "db2"
+
+# Import this task only if the sap_mnt is defined, i.e. AFS is used
+- name:                                "2.6 SAP Mounts: - Import AFS tasks"
+  ansible.builtin.import_tasks:        2.6.0-afs-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined
+    - NFS_provider == 'AFS'
+
+# Import this task only if the sap_mnt is defined, i.e. ANF is used
+- name:                                "2.6 SAP Mounts: - Import ANF tasks"
+  ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined
+    - NFS_provider == 'ANF'
+
+
 ...

@@ -8,38 +8,36 @@
 
 ---
 
-- name:                                "SCS Install: Set the SCS Server name list"
-  ansible.builtin.set_fact:
-    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+- name:                                "SCS Install"
+  ansible.builtin.debug:
+    msg:
+     - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 - name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{{ scs_server_temp | first }}"
+    scs_server:                        "{{ virtual_host }}"
 
 - name:                                "SCS Install: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-scs-{{ sap_sid | lower }}-{{ ansible_hostname }}.params"
+    sap_inifile:                       "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
-    dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | lower }}-params"
+    dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 - name:                                "SCS Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "SCS Install: reset"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "SCS Install: check if installed"
+- name:                                "SCS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
   when:                                "'scs' in supported_tiers"
 
@@ -85,12 +83,15 @@
     sap_ciBtcWPNumber:
     sap_installSAPHostAgent:
     sap_profile_dir:
-    sap_scs_hostname:                  "{{ scs_server }}"
+    sap_scs_hostname:                  "{{ virtual_host }}"
     sap_db_hostname:
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
+    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
+    scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
+    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
   tags:
     - skip_ansible_lint
 
@@ -100,8 +101,10 @@
       - "INSTALLED:  {{ scs_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.scs }}"
-      - "INSTANCE:   {{ scs_instance_number }}"
+      - "INSTANCE:   {{ sid_to_be_deployed.ascs_inst_no }}"
       - "MEDIA:      {{ target_media_location }}"
+      - "HOST:       {{ virtual_host }}"
+      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 - name:                                "SCS Install"
   block:
@@ -116,17 +119,18 @@
 
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |
-                                       export SAPSYSTEMNAME={{ sap_sid | upper }};
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                \
-                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                       export SAPSYSTEMNAME={{ sid_to_be_deployed.sid | upper }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
+                                                 SAPINST_SKIP_DIALOGS=true                                        \
+                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                          \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
       environment:
-        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
-        TMPDIR:                        "{{ tmp_directory }}"
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:
@@ -136,6 +140,7 @@
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
+      when: 1 == 2
 
     - name:                            "SCS Install: Installation results"
       ansible.builtin.debug:
@@ -161,7 +166,7 @@
 
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
         state:                         touch
         mode:                          0755
       when:

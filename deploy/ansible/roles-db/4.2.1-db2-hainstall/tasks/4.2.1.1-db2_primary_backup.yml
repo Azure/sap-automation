@@ -16,7 +16,7 @@
   loop:
     - path:                            "{{ target_media_location }}/db2backup"
 
-- name:                              " DB2 - Set fact for backup dir " 
+- name:                              " DB2 - Set fact for backup dir "
   ansible.builtin.set_fact:
     db_sid_backup_dir:      "{{ target_media_location }}/db2backup"
 
@@ -46,7 +46,7 @@
       environment:
         PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 
-#TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome 
+#TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome
     - name:                            "DB2 HA: - Backup DB2 database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
                              db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}
@@ -75,11 +75,10 @@
         DB2_HOME: "/db2/db2{{ db_sid | lower }}/sqllib"
         DB2LIB: "/db2/db2{{ db_sid | lower }}/sqllib/lib"
 
-     
     - name:                            "DB2 Backup  - Waiting for backup to finish"
       ansible.builtin.pause:
         seconds:                         60
-    
+
     - name:                                "DB2 Backup:- Ensure the DB is activated after the backup"
       become:                             yes
       become_user:                     "db2{{ db_sid | lower }}"
@@ -98,4 +97,3 @@
 #TBC - Need a check here for the successfull backup
   when:
     - ansible_hostname == primary_instance_name
-

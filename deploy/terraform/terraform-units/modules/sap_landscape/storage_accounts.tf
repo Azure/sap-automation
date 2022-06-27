@@ -8,11 +8,11 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   provider = azurerm.main
   count    = length(var.diagnostics_storage_account.arm_id) > 0 ? 0 : 1
   name     = local.storageaccount_name
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -84,7 +84,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
     local.resource_suffixes.storage_private_link_diag
   )
   resource_group_name = local.rg_name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
+  location            = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
   subnet_id           = local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id
 
   private_service_connection {
@@ -118,11 +118,11 @@ resource "azurerm_storage_account" "witness_storage" {
     azurerm_subnet.db
   ]
   name = local.witness_storageaccount_name
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -181,7 +181,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
     local.resource_suffixes.storage_private_link_witness
   )
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -215,7 +215,7 @@ resource "azurerm_storage_account" "transport" {
   ]
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
+    length(var.transport_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -228,7 +228,7 @@ resource "azurerm_storage_account" "transport" {
     "/[^a-z0-9]/",
     ""
   )
-  resource_group_name = local.rg_exists ? (
+  resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].name) : (
     azurerm_resource_group.resource_group[0].name
   )
@@ -242,23 +242,10 @@ resource "azurerm_storage_account" "transport" {
 
 }
 
-data "azurerm_storage_account" "transport" {
-  provider = azurerm.main
-  count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
-      1) : (
-      0
-    )) : (
-    0
-  )
-  name                = split("/", var.azure_files_transport_storage_account_id)[8]
-  resource_group_name = split("/", var.azure_files_transport_storage_account_id)[4]
-}
-
 resource "azurerm_storage_share" "transport" {
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
+    length(var.transport_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -272,6 +259,21 @@ resource "azurerm_storage_share" "transport" {
 
   quota = var.transport_volume_size
 }
+
+data "azurerm_storage_account" "transport" {
+  provider = azurerm.main
+  count = var.NFS_provider == "AFS" ? (
+    length(var.transport_storage_account_id) > 0 ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+  name                = split("/", var.transport_storage_account_id)[8]
+  resource_group_name = split("/", var.transport_storage_account_id)[4]
+}
+
+
 
 resource "azurerm_storage_account_network_rules" "transport" {
   count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
@@ -301,14 +303,12 @@ resource "azurerm_storage_account_network_rules" "transport" {
 }
 
 resource "azurerm_private_endpoint" "transport" {
-
   provider = azurerm.main
   depends_on = [
     azurerm_subnet.app
   ]
-
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_transport_storage_account_id) > 0 ? (
+    length(var.transport_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -322,7 +322,7 @@ resource "azurerm_private_endpoint" "transport" {
   )
 
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -339,7 +339,7 @@ resource "azurerm_private_endpoint" "transport" {
       local.resource_suffixes.storage_private_svc_transport
     )
     is_manual_connection = false
-    private_connection_resource_id = length(var.azure_files_transport_storage_account_id) > 0 ? (
+    private_connection_resource_id = length(var.transport_storage_account_id) > 0 ? (
       data.azurerm_storage_account.transport[0].id) : (
       azurerm_storage_account.transport[0].id
     )
@@ -347,6 +347,20 @@ resource "azurerm_private_endpoint" "transport" {
       "File"
     ]
   }
+}
+
+data "azurerm_private_endpoint_connection" "transport" {
+  provider = azurerm.main
+  count = var.NFS_provider == "AFS" ? (
+    length(var.transport_private_endpoint_id) > 0 ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+  name                = split("/",var.transport_private_endpoint_id)[8]
+  resource_group_name = split("/",var.transport_private_endpoint_id)[4]
+
 }
 
 ################################################################################
@@ -357,7 +371,7 @@ resource "azurerm_private_endpoint" "transport" {
 
 resource "azurerm_storage_account" "install" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -374,7 +388,7 @@ resource "azurerm_storage_account" "install" {
     ""
   )
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -389,30 +403,28 @@ resource "azurerm_storage_account" "install" {
 
 data "azurerm_storage_account" "install" {
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       1) : (
       0
     )) : (
     0
   )
-  name                = split("/", var.azure_files_storage_account_id)[8]
-  resource_group_name = split("/", var.azure_files_storage_account_id)[4]
+  name                = split("/", var.install_storage_account_id)[8]
+  resource_group_name = split("/", var.install_storage_account_id)[4]
 }
-
-resource "azurerm_storage_share" "install" {
+ 
+data "azurerm_private_endpoint_connection" "install" {
+  provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
-      0) : (
-      1
+    length(var.install_private_endpoint_id) > 0 ? (
+      1) : (
+      0
     )) : (
     0
   )
+  name                = split("/",var.install_private_endpoint_id)[8]
+  resource_group_name = split("/",var.install_private_endpoint_id)[4]
 
-  name                 = format("%s", local.resource_suffixes.install_volume)
-  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
-  enabled_protocol     = "NFS"
-
-  quota = 256
 }
 
 resource "azurerm_storage_account_network_rules" "install" {
@@ -422,7 +434,7 @@ resource "azurerm_storage_account_network_rules" "install" {
     azurerm_subnet.web
   ]
   count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       0
     )) : (
@@ -459,7 +471,7 @@ resource "azurerm_private_endpoint" "install" {
   ]
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_storage_account_id) > 0 ? (
+    length(var.install_storage_account_id) > 0 ? (
       0) : (
       1
     )) : (
@@ -471,7 +483,7 @@ resource "azurerm_private_endpoint" "install" {
     local.resource_suffixes.storage_private_link_install
   )
   resource_group_name = local.rg_name
-  location = local.rg_exists ? (
+  location = local.resource_group_exists ? (
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
@@ -487,7 +499,7 @@ resource "azurerm_private_endpoint" "install" {
       local.resource_suffixes.storage_private_svc_install
     )
     is_manual_connection = false
-    private_connection_resource_id = length(var.azure_files_storage_account_id) > 0 ? (
+    private_connection_resource_id = length(var.install_storage_account_id) > 0 ? (
       data.azurerm_storage_account.install[0].id) : (
       azurerm_storage_account.install[0].id
     )
@@ -497,4 +509,35 @@ resource "azurerm_private_endpoint" "install" {
   }
 }
 
+resource "azurerm_storage_share" "install" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.install_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+
+  name                 = format("%s", local.resource_suffixes.install_volume)
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
+  enabled_protocol     = "NFS"
+
+  quota = var.install_volume_size
+}
+
+resource "azurerm_storage_share" "install_smb" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.install_storage_account_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+
+  name                 = format("%s", local.resource_suffixes.install_volume_smb)
+  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.install[0].name : ""
+  enabled_protocol     = "SMB"
+
+  quota = var.install_volume_size
+}
 

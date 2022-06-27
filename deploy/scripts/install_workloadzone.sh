@@ -822,6 +822,10 @@ if [ 0 == $return_value ] ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
     fi
+    workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}"  output workload_zone_prefix | tr -d \")
+    save_config_var "workload_zone_prefix" "${workload_config_information}"
+
+    
     unset TF_DATA_DIR
 
     # if [ "$private_link_used" == "true" ]; then

@@ -13,7 +13,22 @@
 #               If not, download from storage account location.
 #
 
-- name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
+- name:                                "3.3.1 BoM Processing: - Create BOM download directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              0755
+  delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
+  become_user:                         root
+  loop:
+    - path: "{{ download_directory }}"
+    - path: "{{ download_directory }}/tmp"
+    - path: "{{ download_directory }}/bom"
+    - path: "{{ download_directory }}/files"
+
+
+- name:                                "3.3.1 BoM Processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python2'
 
@@ -22,13 +37,13 @@
     python_version:                    'python3'
   when:                                distribution_id in ['suse15', 'redhat8']
 
-- name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml?{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   ignore_errors:                       true
   register:                            result
   vars:
@@ -37,13 +52,13 @@
     - distribution_id in ['suse15', 'redhat8']
     - not always_upload_jinja_templates
 
-- name:                                "BOM: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml?{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   register:                            result
   ignore_errors:                       true
   when:
@@ -57,7 +72,7 @@
 #       - "{{ result }}"
 #       - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
 
-- name:                                "BOM: Register BOM ({{ bom_name }}) from Storage Account"
+- name:                                "3.3.1 BoM Processing: Register BOM ({{ bom_name }}) from Storage Account"
   block:
 
     - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"

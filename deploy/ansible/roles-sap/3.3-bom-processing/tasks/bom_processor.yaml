@@ -46,7 +46,7 @@
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              0755
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   delegate_to:                         localhost
   loop:
@@ -92,7 +92,7 @@
   ansible.builtin.debug:
     msg:
       - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
-               {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+               {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
       - "DEST: {{ target_media_location }}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
       - "MODE: {% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     verbosity:                         2
@@ -119,15 +119,16 @@
 # deleted if the checksum does not match and will be downloaded from URL
 
 - name:                               "3.3 BoM Processing: - Creates temporary download directory"
+  become:                             true
   ansible.builtin.file:
-    path:                             '/mnt/resource'
+    path:                             "{{ tmp_directory }}/tmp"
     state:                            directory
     mode:                             0775
 
 - name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
-                                       {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
@@ -148,7 +149,7 @@
 - name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
-                                       {% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
@@ -163,6 +164,7 @@
   when:
     - item.download is undefined or item.download
     - distribution_id != 'suse15'
+    - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
 
 #   05) Extract files - SAPCAR

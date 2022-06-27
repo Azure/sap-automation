@@ -17,6 +17,7 @@
     - name:                            "ANF Mount: Create /{{ item.temppath }}"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}"
+        mode:                          0755
         state:                         directory
         group:                         sapsys
 
@@ -39,9 +40,9 @@
             name:                      rpcbind
             state:                     restarted
 
-    - name:                            "ANF Mount: Create SAP Directories ({{ item.temppath }})"
+    - name:                            "ANF Mount: Create Directories ({{ item.temppath }})"
       ansible.builtin.file:
-        path:                          "/{{ item.temppath }}/{{ item.temppath }}"
+        path:                          "/{{ item.temppath }}/{{ item.folder }}"
         state:                         directory
         mode:                          0755
 
@@ -67,6 +68,8 @@
   when:
     - item.mount is defined
     - ansible_hostname == primary_host
+    - item.create_temp_folders
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -77,11 +80,12 @@
 
 - name:                                "ANF Mount: Create SAP Directories ({{ item.path }})"
   ansible.builtin.file:
-    owner:                             "{{ sidadm_uid }}"
+    owner:                             '{{ sidadm_uid }}'
     group:                             sapsys
     mode:                              0755
     path:                              "{{ item.path }}"
     state:                             directory
+    recurse:                           true
   register:                            is_created_now
 
   tags:
@@ -107,9 +111,9 @@
   tags:
     - skip_ansible_lint
 
-- name:                                "ANF Mount: ({{ item.path }} on {{ item.mount }})"
+- name:                                "ANF Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
   ansible.builtin.mount:
-    src:                               "{{ item.mount }}/{{ item.temppath }}"
+    src:                               "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
     path:                              "{{ item.path }}"
     fstype:                            "nfs4"
     opts:                              "{{ item.opts }}"

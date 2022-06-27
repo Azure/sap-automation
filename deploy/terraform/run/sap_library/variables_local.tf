@@ -1,14 +1,9 @@
 
-variable "tfstate_resource_id" {
-  description = "The resource id of tfstate storage account"
-  validation {
-    condition = (
-      length(split("/", var.tfstate_resource_id)) == 9
-    )
-    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
-  }
-
-}
+###############################################################################
+#                                                                             # 
+#                            Local Variables                                  # 
+#                                                                             # 
+###############################################################################
 
 
 locals {

@@ -75,6 +75,7 @@
               vars:
                 tier:                  bom_download
                 always_upload_jinja_templates: false
+                primary_instance_name: ansible_play_hosts[0]
               tags:
                 - 3.3-bom-processing
 

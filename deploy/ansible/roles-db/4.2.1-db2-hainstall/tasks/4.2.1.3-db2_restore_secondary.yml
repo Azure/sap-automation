@@ -22,7 +22,7 @@
         msg:                           "Result: {{ whoami_result.stdout }}"
 
     - name:                           "DB2: Create SAPTMP directories"
-    
+
     - name:                                " DB2 Backup -  Create SAPTMP Directories"
       ansible.builtin.file:
         path:                              "{{ item.dest }}"
@@ -33,9 +33,9 @@
          - { dest: '/db2/{{ db_sid }}/saptmp2' }
          - { dest: '/db2/{{ db_sid }}/saptmp3' }
          - { dest: '/db2/{{ db_sid }}/saptmp4' }
-      run_once: true 
-         
-         
+      run_once: true
+
+
     - name:                            "DB2 - Start the Secondary/Standby DB"
       ansible.builtin.shell:           db2start
       args:
@@ -80,8 +80,3 @@
 #   -  db2standby_deployment_encryption == 'true'
 
 ########## END of Restore with Encryption ################################
-
-
-
-
-

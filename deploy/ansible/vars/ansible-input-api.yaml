@@ -15,7 +15,7 @@ sapbits_bom_files:            "sapfiles"
 target_media_location:        "/usr/sap/install"
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
-# ---------------------- End - BOM Processing variables ----------------------8
+bom_processing_become:        true                                                      # BOM processing as root user
 
 always_upload_jinja_templates: true
 
@@ -51,6 +51,7 @@ db2hadr_port2:                51013
 
 tmp_directory:                "/tmp"
 url_internet:                 "http://www.github.com"                                   # URL to use for internet access checks"
+check_outbound:               false
 
 # Oracle specific parameters
 ora_sid:                      "ORA"
