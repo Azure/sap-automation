@@ -590,7 +590,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[0], "")) > 0 ? (
         local.scs_lb_ips[0]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 0 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[0], "")) > 0 ? "Static" : "Dynamic"
     },
@@ -611,7 +611,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[1], "")) > 0 ? (
         local.scs_lb_ips[1]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 1 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[1], "")) > 0 ? "Static" : "Dynamic"
     },
