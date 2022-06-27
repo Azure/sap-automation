@@ -25,7 +25,7 @@ resource "azurerm_netapp_volume" "hanadata" {
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
   export_policy_rule {
-    allowed_clients     = ["0.0.0.0/0"]
+    allowed_clients     = [azurerm_network_interface.nics_dbnodes_db[count.index].private_ip_address]
     protocols_enabled   = ["NFSv4.1"]
     rule_index          = 1
     unix_read_only      = false
@@ -34,6 +34,8 @@ resource "azurerm_netapp_volume" "hanadata" {
   }
   storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
   throughput_in_mibps = var.hana_ANF_volumes.data_volume_throughput
+
+  snapshot_directory_visible = true
 
 }
 
@@ -81,7 +83,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
   export_policy_rule {
-    allowed_clients     = ["0.0.0.0/0"]
+    allowed_clients     = [azurerm_network_interface.nics_dbnodes_db[count.index].private_ip_address]
     protocols_enabled   = ["NFSv4.1"]
     rule_index          = 1
     unix_read_only      = false
@@ -92,6 +94,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   storage_quota_in_gb = var.hana_ANF_volumes.log_volume_size
   throughput_in_mibps = var.hana_ANF_volumes.log_volume_throughput
 
+  snapshot_directory_visible = true
 }
 
 data "azurerm_netapp_volume" "hanalog" {
@@ -137,15 +140,17 @@ resource "azurerm_netapp_volume" "hanashared" {
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
   export_policy_rule {
-    allowed_clients     = ["0.0.0.0/0"]
+    allowed_clients     = [azurerm_network_interface.nics_dbnodes_db[count.index].private_ip_address]
     protocols_enabled   = ["NFSv4.1"]
     rule_index          = 1
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
   }
-  storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
+  storage_quota_in_gb = var.hana_ANF_volumes.shared_volume_size
   throughput_in_mibps = var.hana_ANF_volumes.shared_volume_throughput
+
+  snapshot_directory_visible = true
 
 }
 
