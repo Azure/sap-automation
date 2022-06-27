@@ -1,5 +1,15 @@
 ---
+# /*---------------------------------------------------------------------------8---------------------------------------------|
+# |                                                                                                                                                                    |
+# |   DB2 -  Ensure the offline log dir parameter is set before the primary backup                                        |
+# |                                                                                                                                                                     |
+# +------------------------------------4------------------------------------------------------------------------------------*/
 
+- name:                          "DB2 Primary DB - Set Offline log Dir path "
+  ansible.builtin.shell:           db2 update db cfg for HDB using LOGARCHMETH1 "/db2/{{ db_sid }}/offline_logdir"
+  when:       ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |   DB2 -  Create Primary DB backup                                          |
