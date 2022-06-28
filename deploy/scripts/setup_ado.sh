@@ -22,11 +22,9 @@ sudo ./svc.sh install azureadm
 sudo ./svc.sh start
 
 # Install dotnet for the web app
-if [[ "${TF_VAR_use_webapp}" == "true" ]]; then
-    sudo snap install dotnet-sdk --classic --channel=3.1
-    sudo snap alias dotnet-sdk.dotnet dotnet
-    export DOTNET_ROOT=/snap/dotnet-sdk/current
-fi
+sudo snap install dotnet-sdk --classic --channel=3.1
+sudo snap alias dotnet-sdk.dotnet dotnet
+export DOTNET_ROOT=/snap/dotnet-sdk/current
 
 # install mongosh for configuration management
 wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
