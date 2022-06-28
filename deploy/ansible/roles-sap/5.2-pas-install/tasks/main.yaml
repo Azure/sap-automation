@@ -239,7 +239,7 @@
       register:                        saphostexec_result
 
     - name:                            "PAS Install: SAPHostCtrl output"
-      ansible.builtin.debug:           
+      ansible.builtin.debug:
         var:                           saphostexec_result
 
   when:
