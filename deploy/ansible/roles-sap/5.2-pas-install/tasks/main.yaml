@@ -201,6 +201,7 @@
         - db_high_availability
         - platform == 'HANA'
 
+
     - name:                            "PAS Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -215,6 +216,8 @@
       when:
         - db_high_availability
         - platform == 'HANA'
+
+
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
       become:                          true
@@ -231,6 +234,15 @@
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
+
+    - name:                            "PAS Install: Restart SAPHostCtrl"
+      become:                          true
+      ansible.builtin.command:         saphostctrl -restart
+      environment:
+        TMPDIR:                        /usr/sap/hostctrl/exe/
+      tags:
+        - skip_ansible_lint
+
 
   when:
     - not pas_installed.stat.exists
