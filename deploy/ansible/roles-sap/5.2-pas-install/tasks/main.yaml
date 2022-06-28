@@ -201,6 +201,7 @@
         - db_high_availability
         - platform == 'HANA'
 
+
     - name:                            "PAS Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -231,6 +232,15 @@
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
+
+    - name:                            "PAS Install: Restart SAPHostCtrl"
+      become:                          true
+      ansible.builtin.command:         /usr/sap/hostctrl/exe/saphostexec -restart
+      register:                        saphostexec_result
+
+    - name:                            "PAS Install: SAPHostCtrl output"
+      ansible.builtin.debug:
+        var:                           saphostexec_result
 
   when:
     - not pas_installed.stat.exists
