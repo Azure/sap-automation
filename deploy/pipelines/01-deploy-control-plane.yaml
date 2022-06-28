@@ -204,7 +204,13 @@ stages:
                     error_message=$(cat .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
                     echo "##vso[task.logissue type=error]Error message: $error_message."
                   fi
-
+                else
+                  if [ $(use_webapp) = "true" ]; then
+                    echo -e "$green--- Updating the web app reply urls ---$reset"
+                    az ad app update --id $(TF_VAR_app_registration_app_id) \
+                    --web-home-page-url https://${webapp_url_base}.azurewebsites.net \
+                    --web-redirect-uris https://${webapp_url_base}.azurewebsites.net/ https://${webapp_url_base}.azurewebsites.net/.auth/login/aad/callback
+                  fi
                 fi
 
                 if [[ 1 -eq $ip_added ]]; then
@@ -216,13 +222,6 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
-              if [ $(use_webapp) = "true" ]; then
-                echo -e "$green--- Updating the web app reply urls ---$reset"
-                az ad app update --id $(TF_VAR_app_registration_app_id) \
-                --homepage https://$(WEBAPP_URL_BASE).azurewebsites.net \
-                --reply-urls https://$(WEBAPP_URL_BASE).azurewebsites.net/ https://$(WEBAPP_URL_BASE).azurewebsites.net/.auth/login/aad/callback
-              fi
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 added=0
