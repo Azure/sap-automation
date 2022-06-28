@@ -217,8 +217,6 @@
         - db_high_availability
         - platform == 'HANA'
 
-
-
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
       become:                          true
       ansible.builtin.shell: |
@@ -242,7 +240,6 @@
         TMPDIR:                        /usr/sap/hostctrl/exe/
       tags:
         - skip_ansible_lint
-
 
   when:
     - not pas_installed.stat.exists
