@@ -35,6 +35,8 @@ sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
 
+hana_components:              "all"
+
 tmp_directory:                "/tmp"
 url_internet:                 "http://www.github.com"                                   # URL to use for internet access checks"
 check_outbound:               false

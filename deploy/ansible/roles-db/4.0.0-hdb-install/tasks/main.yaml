@@ -66,7 +66,7 @@
         always_upload_jinja_templates: false
         task_prefix:                   "SAP HANA: "
         _rsp_component_root:           "../COMPONENTS"
-        _rsp_components:               "all"
+        _rsp_components:               "{{ hana_components }}"
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
         _rsp_hostname:                 "{{ hana_host }}"
         _rsp_sid:                      "{{ db_sid | upper }}"
