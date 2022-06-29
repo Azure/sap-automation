@@ -70,18 +70,18 @@
         - name:                                       3.3-bom-processing role
           block:
             - name:                                   "Set the Path for Linux distros"
-              set_fact:
+              ansible.builtin.set_fact:
                 path:                                 "roles-sap"
               when:                                   ansible_os_family != "Windows"
 
             - name:                                   "Check if the OS is Windows"
-              set_fact:
+              ansible.builtin.set_fact:
                 path:                                 "roles-sap/windows"
               when:                                   ansible_os_family == "Windows"
 
             - name:                                   Include the 3.3-bom-processing role
               ansible.builtin.include_role:
-                name:                                 "{{ path }}/3.3-bom-processing"  #make it a variable for win or Linux
+                name:                                 "{{ path }}/3.3-bom-processing"  
               vars:
                 tier:                  bom_download
                 always_upload_jinja_templates: false
