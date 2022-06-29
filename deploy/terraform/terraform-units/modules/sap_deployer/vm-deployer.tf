@@ -194,7 +194,7 @@ resource "azurerm_virtual_machine_extension" "configure" {
       pool            = var.agent_pool
       pat             = var.agent_pat
       ado_repo        = var.agent_ado_url
-
+      use_webapp      = var.use_webapp
     }
   )
 )

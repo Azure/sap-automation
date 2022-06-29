@@ -29,7 +29,8 @@ resource "null_resource" "prepare-deployer" {
       local_user      = local.username,
       pool            = var.agent_pool,
       pat             = var.agent_pat,
-      ado_repo        = var.agent_ado_url
+      ado_repo        = var.agent_ado_url,
+      use_webapp      = var.use_webapp
       }
     )
 
@@ -66,7 +67,8 @@ resource "local_file" "configure_deployer" {
     local_user      = local.username,
     pool            = var.agent_pool,
     pat             = var.agent_pat,
-    ado_repo        = var.agent_ado_url
+    ado_repo        = var.agent_ado_url,
+    use_webapp      = var.use_webapp
     }
   )
   filename             = format("%s/configure_deployer.sh", path.cwd)

@@ -145,7 +145,7 @@ stages:
                 git pull
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az extension add --name azure-devops
+                az extension add --name azure-devops --only-show-errors
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
@@ -204,7 +204,6 @@ stages:
                     error_message=$(cat .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
                     echo "##vso[task.logissue type=error]Error message: $error_message."
                   fi
-
                 fi
 
                 if [[ 1 -eq $ip_added ]]; then
