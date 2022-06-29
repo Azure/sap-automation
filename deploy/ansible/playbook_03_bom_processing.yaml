@@ -47,7 +47,7 @@
   name:                                               BOM Processing
   remote_user:                                        "{{ orchestration_ansible_user }}"
   become:                                             true
-  become_user:                                        "{{ become_user }}"
+  become_user:                                        "{{ become_user_name }}"
   gather_facts:                                       true
   vars_files:
     - vars/ansible-input-api.yaml                     # API Input template with defaults
@@ -81,7 +81,7 @@
 
             - name:                                   Include the 3.3-bom-processing role
               ansible.builtin.include_role:
-                name:                                 "{{ path }}/3.3-bom-processing"  
+                name:                                 "{{ path }}/3.3-bom-processing"
               vars:
                 tier:                  bom_download
                 always_upload_jinja_templates: false

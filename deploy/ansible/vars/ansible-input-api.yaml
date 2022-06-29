@@ -2,6 +2,9 @@
 
 # API Input template with defaults
 
+
+become_user_name:             "root"
+
 # OS Config Settings variables
 chrony_pool:                  ""
 chrony_servers:               []
