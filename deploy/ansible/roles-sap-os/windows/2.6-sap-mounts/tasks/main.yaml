@@ -1,0 +1,35 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "PAS Install: Set the SCS Server name list"
+  ansible.builtin.set_fact:
+    scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "PAS Install: Set the SCS Server name"
+  ansible.builtin.set_fact:
+    scs_server:                        "{{ hostvars[ scs_server_temp | first]['virtual_host'] }}"
+
+
+# Mount Filesystems
+- name:                                "2.6 SAP Mounts: - Create a Mapped Drive under Z"
+  community.windows.win_mapped_drive:
+    letter: Z
+    path: '\\{{ scs_server }}\SAP'
+    state: present
+  become: true
+  become_method: runas
+  loop:
+    - { node_tier: 'all' }
+  when:
+    - node_tier != 'scs'
+
+
+...

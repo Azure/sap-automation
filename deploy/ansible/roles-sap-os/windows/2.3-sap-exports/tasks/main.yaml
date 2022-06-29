@@ -1,0 +1,26 @@
+---
+
+- name:                               "Exports: Create SAP Directories"
+  win_dsc:
+    resource_name:                    File
+    DestinationPath:                  "{{ item.path }}"
+    Type:                             Directory
+    Ensure:                           Present
+  loop:
+    - { path: '{{ target_media_location_windows }}' }
+  when:
+    - node_tier == 'scs'
+
+- name:                               "2.3 SAP Exports: - Enable Folder Sharing"
+  ansible.windows.win_share:
+    name:                             SAP
+    description:                      Share Installation Files Accross Servers
+    path:                             "{{ target_media_location_windows }}"
+    list:                             true
+    full:                             "{{ orchestration_ansible_user }}"
+    state:                            present
+  when:
+    - node_tier == 'scs'
+
+
+...
