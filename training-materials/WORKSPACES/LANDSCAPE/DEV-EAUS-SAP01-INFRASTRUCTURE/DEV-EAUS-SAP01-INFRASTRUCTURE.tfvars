@@ -276,7 +276,7 @@ use_private_endpoint = true
 #anf_subnet_address_prefix="10.114.64.0/27"
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
-use_private_endpoint = false
+#use_private_endpoint = false
 
 ###########################################################################
 #                                                                         #
