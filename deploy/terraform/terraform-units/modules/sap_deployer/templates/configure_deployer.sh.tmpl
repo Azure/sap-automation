@@ -442,6 +442,12 @@ done
 # Ensure that Python argcomplete is enabled for all users interactive shell sessions
 sudo $${ansible_bin}/activate-global-python-argcomplete
 
+# Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
+sudo mkdir -p ${ansible_collections}
+sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
+sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
+
+
 #
 # Create /etc/profile.d script to setup environment for interactive sessions
 #
@@ -482,6 +488,10 @@ else
         cd $${agent_home}
         ./env.sh
 
+        if [ -f $${agent_home}/config_fixed_params.sh ]; then
+            sudo rm $${agent_home}/config_fixed_params.sh
+        fi
+        
         echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
         sudo chmod +x $${agent_home}/config_fixed_params.sh
         

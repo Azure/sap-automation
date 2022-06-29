@@ -419,6 +419,9 @@ sudo ${ansible_bin}/activate-global-python-argcomplete
 sudo mkdir -p ${ansible_collections}
 sudo -H ${ansible_venv_bin}/ansible-galaxy collection install azure.azcollection --force --collections-path ${ansible_collections}
 
+sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
+sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
+
 # Install the Python requirements associated with the Ansible Azure collection
 # that was just installed into the Ansible venv.
 azure_azcollection_version=$(jq -r '.collection_info.version' ${ansible_collections}/ansible_collections/azure/azcollection/MANIFEST.json)
