@@ -143,7 +143,9 @@ fi
 
 if [ "$workload" != 1 ]; then
     load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
-    subscription=${STATE_SUBSCRIPTION}
+    if [ "$STATE_SUBSCRIPTION" ]; then
+        subscription=${STATE_SUBSCRIPTION}
+    fi
 fi
 
 if [ -z "$keyvault" ]; then
