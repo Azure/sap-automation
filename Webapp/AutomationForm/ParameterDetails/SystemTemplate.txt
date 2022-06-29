@@ -381,7 +381,7 @@ $$sapmnt_volume_size$$
 
 $$azure_files_sapmnt_id$$
 
-$$azurerm_private_endpoint_connection_sapmnt_id$$
+$$sapmnt_private_endpoint_id$$
 
 #########################################################################################
 #                                                                                       #

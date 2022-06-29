@@ -204,7 +204,7 @@ variable "use_private_endpoint" {
   default = false
 }
 
-variable "azurerm_private_endpoint_connection_sapmnt_id" {
+variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
   default = ""

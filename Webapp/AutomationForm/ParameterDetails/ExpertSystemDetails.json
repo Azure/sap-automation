@@ -1380,7 +1380,7 @@
           "Overrules": ""
         },
         {
-          "Name": "azurerm_private_endpoint_connection_sapmnt_id",
+          "Name": "sapmnt_private_endpoint_id",
           "Required": false,
           "Description": "Azure Resource Identifier for an private endpoint connection",
           "Type": "lookup",

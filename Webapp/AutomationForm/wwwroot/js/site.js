@@ -33,7 +33,7 @@ var azureResourceIds = [
     "proximityplacementgroup_arm_ids",
     "database_vm_avset_arm_ids",
     "application_server_vm_avset_arm_ids",
-    "azurerm_private_endpoint_connection_sapmnt_id",
+    "sapmnt_private_endpoint_id",
     "user_keyvault_id",
     "spn_keyvault_id"
 ];
@@ -340,7 +340,7 @@ $("#subscription").on("change", function () {
         {
             ids: ["transport_private_endpoint_id",
                 "install_private_endpoint_id",
-                "azurerm_private_endpoint_connection_sapmnt_id"
+                "sapmnt_private_endpoint_id"
             ],
             controller: "/Armclient/GetPrivateEndpointOptions",
             errorMessage: "Error retrieving private endpoints for specified subscription",

@@ -432,7 +432,7 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
          [PrivateEndpointIdValidator]
-        public string azurerm_private_endpoint_connection_sapmnt_id { get; set; }
+        public string sapmnt_private_endpoint_id { get; set; }
 
         // ANF Settings
 
