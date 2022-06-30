@@ -417,18 +417,9 @@ sudo ${ansible_bin}/activate-global-python-argcomplete
 
 # Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
 sudo mkdir -p ${ansible_collections}
-sudo -H ${ansible_venv_bin}/ansible-galaxy collection install azure.azcollection --force --collections-path ${ansible_collections}
 
-sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
-sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
-
-# Install the Python requirements associated with the Ansible Azure collection
-# that was just installed into the Ansible venv.
-azure_azcollection_version=$(jq -r '.collection_info.version' ${ansible_collections}/ansible_collections/azure/azcollection/MANIFEST.json)
-wget -nv -O /tmp/requirements-azure.txt https://raw.githubusercontent.com/ansible-collections/azure/v${azure_azcollection_version}/requirements-azure.txt  || :
-if [ -f /tmp/requirements-azure.txt ]; then
-  sudo ${ansible_venv_bin}/pip3 install  -r /tmp/requirements-azure.txt 
-fi
+# sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
+# sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
 
 curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
 
