@@ -265,7 +265,7 @@
     # Specify the active tier for this playbook run
     - name:                            "Observer Playbook: Setting the os tier facts"
       ansible.builtin.set_fact:
-        tier:                          os                                     
+        tier:                          os
       tags:
         - always
 

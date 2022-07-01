@@ -71,7 +71,7 @@
             - name:                    "Rescue - AFS Mount: sap_mnt - Pause for 5 seconds"
               ansible.builtin.pause:
                 seconds:               15
-        
+
             - name:                    "Rescue - AFS Mount: sap_mnt (preparation)"
               ansible.builtin.mount:
                 src:                   "{{ sap_mnt }}"
@@ -167,7 +167,7 @@
             - name:                    "Rescue - AFS Mount: sap_trans - Pause for 5 seconds"
               ansible.builtin.pause:
                 seconds:               15
-        
+
             - name:                    "Rescue - AFS Mount: sap_trans (preparation)"
               ansible.builtin.mount:
                 src:                   "{{ sap_trans }}"
@@ -241,7 +241,7 @@
             - name:                    "Rescue - AFS Mount: install - Pause for 5 seconds"
               ansible.builtin.pause:
                 seconds:               15
-        
+
             - name:                    "Rescue - AFS Mount: install (preparation)"
               ansible.builtin.mount:
                 src:                   "{{ usr_sap_install_mountpoint }}"
