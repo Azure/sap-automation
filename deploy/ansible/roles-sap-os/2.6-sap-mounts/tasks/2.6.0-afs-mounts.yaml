@@ -327,10 +327,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
 - name:                                "AFS Mount: sap_mnt (scs & ers)"
   block:
-
     - name:                            "AFS Mount: Create SAP Directories (scs & ers)"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
@@ -534,18 +532,6 @@
   register: is_created_now_install
   when: usr_sap_install_mountpoint is defined
 
-- name:                                "AFS Mount: Change attribute only when we create Directories"
-  ansible.builtin.file:
-    path:                              "{{ item.item.path }}"
-    state:                             directory
-    attr:                              i+
-  loop: "{{ is_created_now_install.results }}"
-  when:
-    - item.item is changed
-  register: set_immutable_attribute
-  tags:
-    - skip_ansible_lint
-
 - name:                                "AFS Mount: Mount Install"
   block:
 
@@ -562,6 +548,11 @@
     - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
       ansible.builtin.debug:
         msg:                           "Trying to remount Install Folder"
+
+    - name:                            "AFS Mount: Pause for 5 seconds"
+      ansible.builtin.pause:
+        seconds:                       15
+
     - name:                            Mount Install folder when using AFS
       ansible.builtin.mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
@@ -589,30 +580,51 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            "AFS Mount: Change attribute only when we create SAP Directories (transport)"
-      ansible.builtin.file:
-        path:                          "{{ item.item.path }}"
-        state:                         directory
-        attr:                          i+
-      loop: "{{ is_created_now2.results }}"
-      when:
-        - item.item is changed
-      register: set_immutable_attribute
-      tags:
-        - skip_ansible_lint
+    # - name:                            "AFS Mount: Change attribute only when we create SAP Directories (transport)"
+    #   ansible.builtin.file:
+    #     path:                          "{{ item.item.path }}"
+    #     state:                         directory
+    #     attr:                          i+
+    #   loop: "{{ is_created_now2.results }}"
+    #   when:
+    #     - item.item is changed
+    #   register: set_immutable_attribute
+    #   tags:
+    #     - skip_ansible_lint
   when:
     - tier == 'sapos'
     - sap_trans is defined
 
-- name:                                "AFS Mount: (transport)"
-  ansible.builtin.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-    state:                             mounted
-  loop:
-    - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
+- name:                                "AFS Mount: usr/sap/trans"
+  block:
+
+    - name:                            "AFS Mount: (transport)"
+      ansible.builtin.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+        state:                         mounted
+      loop:
+        - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
+  rescue:
+    - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
+      ansible.builtin.debug:
+        msg:                           "Trying to remount /usr/sap/trans Folder"
+
+    - name:                            "AFS Mount: Pause for 5 seconds"
+      ansible.builtin.pause:
+        seconds:                       15
+
+    - name:                            "AFS Mount: (transport)"
+      ansible.builtin.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+        state:                         mounted
+      loop:
+        - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
   when:
     - node_tier in ['scs','ers','pas','app']
     - sap_trans is defined
