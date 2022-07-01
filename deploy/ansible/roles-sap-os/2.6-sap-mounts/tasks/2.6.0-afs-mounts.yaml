@@ -52,13 +52,33 @@
 
   # Mount Filesystem on AFS
   # This is needed so that we can create the correct directory
-        - name:                        "AFS Mount: File systems on AFS (sapmnt)"
-          ansible.builtin.mount:
-            src:                       "{{ sap_mnt }}"
-            path:                      "/saptmp"
-            fstype:                    "nfs4"
-            opts:                      "vers=4,minorversion=1,sec=sys"
-            state:                     mounted
+
+        - name:                        "AFS Mount: sap_mnt (preparation)"
+          block:
+            - name:                    "AFS Mount: sap_mnt (preparation)"
+              ansible.builtin.mount:
+                src:                   "{{ sap_mnt }}"
+                path:                  "/saptmp"
+                fstype:                "nfs4"
+                opts:                  "vers=4,minorversion=1,sec=sys"
+                state:                 mounted
+
+          rescue:
+            - name:                    "Rescue - AFS Mount: sap_mnt (preparation) - logging"
+              ansible.builtin.debug:
+                msg:                   "Rescue - AFS Mount: sap_mnt (preparation)"
+
+            - name:                    "Rescue - AFS Mount: sap_mnt - Pause for 5 seconds"
+              ansible.builtin.pause:
+                seconds:               15
+        
+            - name:                    "Rescue - AFS Mount: sap_mnt (preparation)"
+              ansible.builtin.mount:
+                src:                   "{{ sap_mnt }}"
+                path:                  "/saptmp"
+                fstype:                "nfs4"
+                opts:                  "vers=4,minorversion=1,sec=sys"
+                state:                 mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS)"
           ansible.builtin.file:
@@ -128,13 +148,33 @@
 
 # Mount Filesystem on AFS
 # This is needed so that we can create the correct directory
-        - name:                        "AFS Mount: File systems on AFS (transport)"
-          ansible.builtin.mount:
-            src:                       "{{ sap_trans }}"
-            path:                      "/saptrans"
-            fstype:                    "nfs4"
-            opts:                      "vers=4,minorversion=1,sec=sys"
-            state:                     mounted
+
+        - name:                        "AFS Mount: sap_trans (preparation)"
+          block:
+            - name:                    "AFS Mount: sap_trans (preparation)"
+              ansible.builtin.mount:
+                src:                   "{{ sap_trans }}"
+                path:                  "/saptrans"
+                fstype:                "nfs4"
+                opts:                  "vers=4,minorversion=1,sec=sys"
+                state:                 mounted
+
+          rescue:
+            - name:                    "Rescue - AFS Mount: sap_trans (preparation) - logging"
+              ansible.builtin.debug:
+                msg:                   "Rescue - AFS Mount: sap_trans (preparation)"
+
+            - name:                    "Rescue - AFS Mount: sap_trans - Pause for 5 seconds"
+              ansible.builtin.pause:
+                seconds:               15
+        
+            - name:                    "Rescue - AFS Mount: sap_trans (preparation)"
+              ansible.builtin.mount:
+                src:                   "{{ sap_trans }}"
+                path:                  "/saptrans"
+                fstype:                "nfs4"
+                opts:                  "vers=4,minorversion=1,sec=sys"
+                state:                 mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS) (transport)"
           ansible.builtin.file:
@@ -182,13 +222,33 @@
 
 # Mount Filesystem on AFS
 # This is needed so that we can create the correct directory
-        - name:                        "AFS Mount: File systems on AFS (install)"
-          ansible.builtin.mount:
-            src:                       "{{ usr_sap_install_mountpoint }}"
-            path:                      "/tmpinstall"
-            fstype:                    "nfs4"
-            opts:                      "vers=4,minorversion=1,sec=sys"
-            state:                     mounted
+
+        - name:                        "AFS Mount: install (preparation)"
+          block:
+            - name:                    "AFS Mount: install (preparation)"
+              ansible.builtin.mount:
+                src:                   "{{ usr_sap_install_mountpoint }}"
+                path:                  "/tmpinstall"
+                fstype:                "nfs4"
+                opts:                  "vers=4,minorversion=1,sec=sys"
+                state:                 mounted
+
+          rescue:
+            - name:                    "Rescue - AFS Mount: install (preparation) - logging"
+              ansible.builtin.debug:
+                msg:                   "Rescue - AFS Mount: install (preparation)"
+
+            - name:                    "Rescue - AFS Mount: install - Pause for 5 seconds"
+              ansible.builtin.pause:
+                seconds:               15
+        
+            - name:                    "Rescue - AFS Mount: install (preparation)"
+              ansible.builtin.mount:
+                src:                   "{{ usr_sap_install_mountpoint }}"
+                path:                  "/tmpinstall"
+                fstype:                "nfs4"
+                opts:                  "vers=4,minorversion=1,sec=sys"
+                state:                 mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS) (install)"
           ansible.builtin.file:
