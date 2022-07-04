@@ -1,0 +1,27 @@
+########################################################################################################################################################################################################
+#                                                                                                                                                                                                      #
+# Installation service 'SAP S/4HANA Server 2021 > SAP HANA Database > Installation > Application Server ABAP > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAP' #
+#                                                                                                                                                                                                      #
+########################################################################################################################################################################################################
+
+archives.downloadBasket = /usr/sap/install/download_basket
+
+nwUsers.sapadmUID = 2100
+nwUsers.sapsysGID = 2000
+nwUsers.sidAdmUID = 2000
+nwUsers.sidadmPassword = 
+
+NW_GetMasterPassword.masterPwd = 
+NW_GetSidNoProfiles.sid = X00
+
+NW_SCS_Instance.ascsInstallGateway = true
+NW_SCS_Instance.instanceNumber = 00
+NW_SCS_Instance.scsVirtualHostname = x00scs00l014
+
+NW_Unpack.sapExeSar = /usr/sap/install/download_basket/SAPEXE_100-80005374.SAR
+NW_SAPCrypto.SAPCryptoFile = /usr/sap/install/download_basket/SAPEXE_100-80005374.SAR
+
+NW_adaptProfile.skipSecurityProfileSettings = true
+NW_getFQDN.FQDN = sap.contoso.net
+
+NW_Delete_Sapinst_Users.removeUsers = true

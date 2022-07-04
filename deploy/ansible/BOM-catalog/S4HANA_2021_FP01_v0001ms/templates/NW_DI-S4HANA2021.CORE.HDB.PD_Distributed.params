@@ -1,0 +1,19 @@
+###########################################################################################################################################################################################################
+#                                                                                                                                                                                                         #
+# Installation service 'SAP S/4HANA Server 2021 > SAP HANA Database > Installation > Additional SAP System Instances > Additional Application Server Instance', product id 'NW_DI:S4HANA2021.CORE.HDB.PD' #
+#                                                                                                                                                                                                         #
+###########################################################################################################################################################################################################
+
+HDB_Schema_Check_Dialogs.schemaName = SAPHANADB
+HDB_Schema_Check_Dialogs.schemaPassword = 
+NW_AS.instanceNumber = 01
+NW_DI_Instance.virtualHostname = x00app00l014
+NW_Delete_Sapinst_Users.removeUsers = true
+NW_GetMasterPassword.masterPwd = 
+NW_HDB_getDBInfo.instanceNumber = 00
+NW_checkMsgServer.abapMSPort = 3600
+NW_getLoadType.loadType = SAP
+NW_readProfileDir.profileDir = /usr/sap/X00/SYS/profile
+archives.downloadBasket = /usr/sap/install/download_basket/SAPHOSTAGENT55_55-80004822.SAR
+nwUsers.sapsysGID = 2000
+nwUsers.sidAdmUID = 2000

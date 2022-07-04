@@ -1,9 +1,11 @@
+
+---
+
 # /*---------------------------------------------------------------------------------------------------8
 # |                                                                                                    |
 # |                      Playbook for SAP SCS HA Install and Pacemaker configuration                   |
 # |                                                                                                    |
 # +------------------------------------4--------------------------------------------------------------*/
----
 
 - hosts:                               localhost
   name:                                "SCS Installation Playbook: - Initialization"
@@ -100,15 +102,17 @@
       vars:
         sap_sid:                      "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:          "{{ sid_to_be_deployed.ascs_inst_no }}"
-        sidadm_uid:                   "{{ sid_to_be_deployed.sidadm_uid }}"  
+        sidadm_uid:                   "{{ sid_to_be_deployed.sidadm_uid }}"
         tier:                          generic
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
       loop:                            "{{ all_sids }}"
-      loop_control:   
+      loop_control:
         loop_var:                      sid_to_be_deployed
-      when:                            platform != "ORACLE"
+      when:
+        - platform != "ORACLE"
+        - platform != "DB2"
       tags:
         - 2.5-sap-users
 
@@ -194,7 +198,7 @@
               vars:
                 scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
               loop:                    "{{ all_sids }}"
-              loop_control:   
+              loop_control:
                 loop_var:              sid_to_be_deployed
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
@@ -368,7 +372,7 @@
               vars:
                 scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
               loop:                    "{{ all_sids }}"
-              loop_control:   
+              loop_control:
                 loop_var:              sid_to_be_deployed
 
             - name:                    "SCS Installation Playbook: - Ensure scs-install-done flag exists"
