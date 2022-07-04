@@ -195,6 +195,7 @@ packages:
     - { tier: 'ha',    package: 'cloud-netconfig-azure>=1.3',                   node_tier: 'all',     state: 'present' }
   # Assumption: Public_Cloud_Module_x86_64 already available
     - { tier: 'ha',    package: 'python-azure-mgmt-compute',                    node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'python-azure-identity',                                node_tier: 'all',     state: 'present' }  # Added as part of documentation update 
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
   sles_sap12.4:
@@ -257,6 +258,7 @@ packages:
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                                node_tier: 'ers',     state: 'present' } #Added as part of documentation update
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8

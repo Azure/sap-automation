@@ -349,7 +349,79 @@
         when:
           - db_high_availability
           - platform == 'DB2'
+     
+      
+    
+    - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
+      block:
 
+        - name:                        "Database Installation Playbook: - Setting the facts"
+          ansible.builtin.set_fact:
+            tier:                      ha
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
+            primary_instance_name:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:         "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            sap_hana_fencing_spn_client_id:  "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+            sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+            sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+
+        - block:
+            - name:                    "Database Installation Playbook: - Ensure the correct repositories are set"
+              ansible.builtin.include_role:
+                name:                  roles-os/1.3-repository
+          tags:
+            - 1.3-repository
+
+        - block:
+            - name:                    "Database Installation Playbook: - Ensure the correct packages are installed"
+              ansible.builtin.include_role:
+                name:                  roles-os/1.4-packages
+          tags:
+            - 1.4-packages
+
+        - block:
+          # Setup the kernel parameters required for pacemaker cluster VMs
+            - name:                    "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+              ansible.builtin.include_role:
+                name:                  roles-os/1.9-kernelparameters
+          tags:
+            - 1.9-kernelparameters
+
+        - block:
+            - name:                    "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+              ansible.builtin.include_role:
+                name:                  roles-os/1.16-services
+          tags:
+            - 1.16-services
+
+        - block:
+            - name:                    "Database Installation Playbook: - Ensure the accounts are present"
+              ansible.builtin.include_role:
+                name:                  roles-os/1.11-accounts
+          tags:
+            - 1.11-accounts
+
+        - block:
+            - name:                    "Database Installation Playbook: - Install Pacemaker"
+              ansible.builtin.include_role:
+                name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+              when:                    node_tier != 'oracle'
+          tags:
+            - 1.17-generic-pacemaker
+
+        - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
+            state:                     touch
+            mode:                      0755
+
+      when:
+        - db_high_availability
+        - node_tier == 'db2'
+  
       - name:                          "DB2 HA - Install DB2 Pacemaker resources"
         block:
           - name:                      "DB2 HA - Pacemaker - Initialize facts"

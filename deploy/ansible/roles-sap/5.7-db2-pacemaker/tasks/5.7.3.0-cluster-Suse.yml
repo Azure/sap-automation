@@ -17,7 +17,7 @@
 - name:                                      Change to ksh Shell 
   ansible.builtin.user:
     name:                                    db2{{ db_sid | lower }}
-    ansible.builtin.shell:              /bin/ksh
+    shell:                                     /bin/ksh
 
 
 
@@ -34,14 +34,14 @@
 
     - name:                            Ensure SAP DB2 primitive resource is configured
       ansible.builtin.shell: >
-                                       crm configure primitive rsc_Db2_db2{{ db_sid | lower }}_{{ db_sid }}
-                                       params instance="db2{{ db_sid | lower }}" dblist="{{ db_sid }}" 
-                                       op start interval="0" timeout="{{ cluster_sap_db2_timeouts.start }}" 
-                                       op stop interval="0" timeout="{{ cluster_sap_db2_timeouts.stop }}" 
-                                       op promote interval="0" timeout="{{ cluster_sap_db2_timeouts.promote }}" 
-                                       op demote interval="0" timeout="{{ cluster_sap_db2_timeouts.demote }}" 
-                                       op monitor interval="30" timeout="{{ cluster_sap_db2_timeouts.monitor }}" 
-                                       op monitor interval="31" role="Master" timeout="{{ cluster_sap_db2_timeouts.monitor_master }}"
+                                       crm configure primitive rsc_Db2_db2{{ db_sid | lower }}_{{ db_sid }} \
+                                       params instance="db2{{ db_sid | lower }}" dblist="{{ db_sid }}"  \
+                                       op start interval="0" timeout="130"  \
+                                       op stop interval="0" timeout="120"  \
+                                       op promote interval="0" timeout="120" \ 
+                                       op demote interval="0" timeout="120"  \
+                                       op monitor interval="30" timeout="60" \ 
+                                       op monitor interval="31" role="Master" timeout="60"
                               
       register:                        sap_db2_topology_rsc
       failed_when:                     sap_db2_topology_rsc.rc > 1
