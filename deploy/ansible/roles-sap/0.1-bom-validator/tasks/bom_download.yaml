@@ -135,7 +135,7 @@
       ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name {{ account }}
-                                         --account-key {{ sapbits_access_key }}
+                                         --sas-token {{ sapbits_sas_token }}
                                          --container-name {{ container }}
                                          --name {{ item.archive }}
                                          --file {{ result.dest }}
