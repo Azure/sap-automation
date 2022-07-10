@@ -1,0 +1,115 @@
+﻿@model AutomationForm.Models.SystemViewModel
+
+@{
+    ViewBag.Title = "System details";
+}
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Details</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>@Model.System.Id</h2>
+</div>
+
+<fluent-switch onchange="toggleNullParameters()">
+    <span slot="checked-message">On</span>
+    <span slot="unchecked-message">Off</span>
+    <label for="cap-switch">Hide null values:</label>
+</fluent-switch>
+
+<table class="details-table">
+    <caption>@Model.System.Id parameter details</caption>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+            <th class="is-null-value">Section</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{ bool everyOther = true; }
+        @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
+        {
+            @foreach (Grouping g in pg.Groupings)
+            {
+                bool firstRow = true;
+                @foreach (ParameterModel p in g.Parameters)
+                {
+                    var value = Model.System.GetType().GetProperty(p.Name).GetValue(Model.System);
+                    var nullClass = (value == null) ? "is-null-value" : "";
+                    if (value != null && value.GetType() == typeof(Image))
+                    {
+                        Image img = (Image)value;
+                        if (!img.IsInitialized) nullClass = "is-null-value";
+                    }
+                    <tr class="@nullClass">                    
+                        <td>@p.Name</td>
+
+                        @if (value == null)
+                        {
+                            <td> </td>
+                        }
+                        else
+                        {
+                            @if (value.GetType() == typeof(Image))
+                            {
+                                Image img = (Image)value;
+                                if (img.IsInitialized)
+                                {
+                                    <td>
+                                        os_type:         @img.os_type <br>
+                                        source_image_id: @img.source_image_id <br>
+                                        publisher:       @img.publisher <br>
+                                        offer:           @img.offer <br>
+                                        sku:             @img.sku <br>
+                                        version:         @img.version
+                                    </td>
+                                }
+                                else {
+                                    <td> </td>
+                                }
+                            }
+                            else
+                            {
+                                <td>
+                                    @if (p.Type == "list")
+                                    {
+                                        var tmp = (string[])value;
+                                        foreach (var t in tmp)
+                                        {
+                                            @t <br>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @value.ToString()
+                                    }
+                                </td>
+                            }
+                        }
+                        @if (firstRow)
+                        {
+                            <td rowspan="@g.Parameters.Length" class="details-section is-null-value" style="@(everyOther ? "background: #eee" : "background: none")">
+                                @g.Section
+                            </td>
+                            firstRow = false;
+                            everyOther = !everyOther;
+                        }
+                    </tr>
+                }
+            }
+        }
+    </tbody>
+</table>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "System", new { id = Model.System.Id })">
+        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
+    </fluent-anchor>
+    <fluent-anchor href="@Url.Action("Index", "System")">
+        Back to list
+    </fluent-anchor>
+</p>

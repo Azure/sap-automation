@@ -101,12 +101,12 @@ management_firewall_subnet_address_prefix = "10.16.20.0/26"
 # bastion_deployment is a boolean flag controlling if Azure bastion is to be deployed in the deployer VNet
 bastion_deployment = true
 
-# bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource 
+# management_bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource 
 # identifier for the existing AzureBastion subnet
-# bastion_subnet_arm_id= ""
+# management_bastion_subnet_arm_id= ""
 
-# bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
-bastion_subnet_address_prefix = "10.16.20.128/26"
+#management_bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
+management_bastion_subnet_address_prefix = "10.16.20.128/26"
 
 #########################################################################################
 #                                                                                       #
@@ -191,8 +191,8 @@ deployer_authentication_username = "azureadm"
 #                                                                                       #
 #########################################################################################
 
-# assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
-assign_subscription_permissions=false
+# deployer_assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
+deployer_assign_subscription_permissions=false
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false

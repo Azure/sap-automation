@@ -1,0 +1,86 @@
+# This pipeline publishes and deploys the control plane UI
+
+trigger:
+- none
+
+pool:
+  name: $(Agent)
+  vmImage: 'ubuntu-latest'
+
+parameters:
+  - name: webappName
+    displayName: Web App Name
+    type: string
+    default: $(WEBAPP_URL_BASE)
+
+  - name: environment
+    displayName: "Environment name (MGMT, DEV, QA, etc)"
+    type: string
+    default: MGMT
+
+variables:
+  - group: "SDAF-General"
+  - group: SDAF-${{ parameters.environment }}
+  - name: solution
+    value: '**/*.sln'
+  - name: buildPlatform
+    value: Any CPU
+  - name: buildConfiguration
+    value: Release
+  - name: webappName
+    value: ${{ parameters.webappName }}
+
+steps:
+- script: |
+    #!/bin/bash
+    az extension add --name azure-devops
+    az devops configure --defaults organization=$(System.CollectionUri) project=$(System.TeamProject)
+    export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+
+    WORKLOADZONE_PIPELINE_ID=$(az pipelines list --query "[?name=='SAP workload zone deployment'].id | [0]")
+    SYSTEM_PIPELINE_ID=$(az pipelines list --query "[?name=='SAP system deployment (infrastructure)'].id | [0]")
+
+    if [ -z $(PAT) ]; then 
+      echo "##vso[task.logissue type=error]Variable PAT was not defined"
+      exit 2
+    fi
+    if [ -z $WORKLOADZONE_PIPELINE_ID ]; then 
+      echo "##vso[task.logissue type=error]Pipeline 'SAP workload zone deployment' does not exist. Please create it or correct the name to continue"
+      exit 2
+    fi
+    if [ -z $SYSTEM_PIPELINE_ID ]; then
+      echo "##vso[task.logissue type=error]Pipeline 'SAP system deployment (infrastructure)' does not exist. Please create it or correct the name to continue"
+      exit 2
+    fi
+
+    echo "##vso[task.setvariable variable=WORKLOADZONE_PIPELINE_ID]${WORKLOADZONE_PIPELINE_ID}"
+    echo "##vso[task.setvariable variable=SYSTEM_PIPELINE_ID]${SYSTEM_PIPELINE_ID}"
+  displayName: 'Configure pipeline ids'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '$(System.DefaultWorkingDirectory)/**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: $(AZURE_CONNECTION_NAME)
+    appType: 'webApp'
+    appName: $(webappName)
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    deploymentMethod: 'auto'
+    appSettings: '-AZURE_CLIENT_ID $(ARM_CLIENT_ID)
+    -AZURE_CLIENT_SECRET $(ARM_CLIENT_SECRET) 
+    -AZURE_TENANT_ID $(ARM_TENANT_ID)
+    -CollectionUri $(System.CollectionUri)
+    -Project $(System.TeamProject)
+    -RepositoryId $(Build.Repository.ID)
+    -PAT $(PAT)
+    -SourceBranch $(Build.SourceBranchName)
+    -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
+    -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
+    -IS_PIPELINE_DEPLOYMENT true'

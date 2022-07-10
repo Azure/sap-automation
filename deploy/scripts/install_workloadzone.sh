@@ -866,7 +866,7 @@ Date : "${now}"
 EOF
 
 if [ -f "${workload_config_information}".err ]; then
-    "${workload_config_information}".err
+    cat "${workload_config_information}".err
 fi
 
 unset TF_DATA_DIR

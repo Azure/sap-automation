@@ -50,10 +50,10 @@
   name:                                DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -247,10 +247,10 @@
   name:                                Observer Playbook
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "root"
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 
@@ -265,7 +265,7 @@
     # Specify the active tier for this playbook run
     - name:                            "Observer Playbook: Setting the os tier facts"
       ansible.builtin.set_fact:
-        tier:                          os                                     # Actions for HANA DB Serve
+        tier:                          os
       tags:
         - always
 

@@ -230,7 +230,7 @@ function validate_exports {
         echo "#                                                                                       #"
         echo -e "#  $boldred Missing environment variables (DEPLOYMENT_REPO_PATH)!!! $resetformatting                            #"
         echo "#                                                                                       #"
-        echo "#   Please export the folloing variables:                                               #"
+        echo "#   Please export the following variables:                                               #"
         echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
         echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
         echo "#                                                                                       #"
@@ -244,9 +244,46 @@ function validate_exports {
         echo "#                                                                                       #"
         echo -e "#  $boldred Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $resetformatting                             #"
         echo "#                                                                                       #"
-        echo "#   Please export the folloing variables:                                               #"
+        echo "#   Please export the following variables:                                               #"
         echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
         echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        return 65                                                                                           #data format error
+    fi
+    
+    return 0
+}
+
+function validate_webapp_exports {
+    if [ -z "$TF_VAR_app_registration_app_id" ]; then
+        echo ""
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#        $boldred Missing environment variables (TF_VAR_app_registration_app_id)!!! $resetformatting             #"
+        echo "#                                                                                       #"
+        echo "#   Please export the following variables to successfully deploy the Webapp:            #"
+        echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
+        echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
+        echo "#                                                                                       #"
+        echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        return 65                                                                                           #data format error
+    fi
+    
+    if [ -z "$TF_VAR_webapp_client_secret" ]; then
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#            $boldred Missing environment variables (TF_VAR_webapp_client_secret)!!! $resetformatting           #"
+        echo "#                                                                                       #"
+        echo "#   Please export the following variables to successfully deploy the Webapp:            #"
+        echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
+        echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
+        echo "#                                                                                       #"
+        echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         return 65                                                                                           #data format error

@@ -152,7 +152,7 @@ output "sapmnt_path" {
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
 
-      length(var.azurerm_private_endpoint_connection_sapmnt_id) > 0 ?
+      length(var.sapmnt_private_endpoint_id) > 0 ?
       (
         data.azurerm_private_endpoint_connection.sapmnt[0].private_service_connection[0].private_ip_address
         ) : (
