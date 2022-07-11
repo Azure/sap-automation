@@ -93,6 +93,7 @@
       ansible.builtin.set_fact:
         sapbits_sas_token: >-
                                        {{ az_sapbits_sas_token.stdout }}
+  when: sapbits_sas_token is not defined
 
 - name:                                "0.4 Installation Media: - Debug storage account details"
   ansible.builtin.debug:
