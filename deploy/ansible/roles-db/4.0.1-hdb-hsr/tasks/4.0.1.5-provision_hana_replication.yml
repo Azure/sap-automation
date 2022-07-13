@@ -71,7 +71,7 @@
     - name:                            "HANA HSR: - Check whether replication has already been set up"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
-      ansible.builtin.shell: |         
+      ansible.builtin.shell: |
                                        {{ hdbnsutil_command }} -sr_state
       register:                        hana_replication_status
       changed_when:                    false
@@ -85,7 +85,7 @@
     - name:                            "HANA HSR: - Ensure Primary node is configured for System Replication"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
-      ansible.builtin.shell: |         
+      ansible.builtin.shell: |
                                        {{ hdbnsutil_command }} -sr_enable --name=SITEA
       register:                        hana_status
       # rc == 102 means nameserver is already active

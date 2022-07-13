@@ -152,17 +152,17 @@
       changed_when:                    false
       args:
         warn:                          false
-    
+
     - name:                                "0.0 Validations - Show IMDS results"
       ansible.builtin.debug:
         var:                               azure_metadata
         verbosity:                         2
-    
+
     - name:                                "0.0 Validations - Save the Json data to a Variable as a Fact"
       ansible.builtin.set_fact:
         json_azure_data:                   "{{ azure_metadata.stdout | from_json }}"
       no_log:                              true
-    
+
     - name:                                "0.0 Validations - Extract details"
       ansible.builtin.set_fact:
         subscription_id:                   "{{ json_azure_data | json_query('compute.subscriptionId') }}"
@@ -218,7 +218,7 @@
         url:                           "https://management.azure.com/subscriptions/{{ subscription_id }}/resourcegroups/{{ resource_group_name }}?api-version=2021-04-01"
         validate_certs:                false
       when:                            check_outbound
-      
+
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h
       register:                        mounts

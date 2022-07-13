@@ -36,8 +36,8 @@
     - name:                            "HANA HSR: - Results for backup check for SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.debug:
         msg:
-         - "Backup needed:             {{ backup_systemdb }}"
-         - "Backup query results:      {{ backup_exists_cmd_for_systemdb_result.stdout }}"
+          - "Backup needed:             {{ backup_systemdb }}"
+          - "Backup query results:      {{ backup_exists_cmd_for_systemdb_result.stdout }}"
 
     - name:                            "HANA HSR: - Backup SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
@@ -59,8 +59,8 @@
         - name:                            "HANA HSR: - Results for backup check for {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
           ansible.builtin.debug:
             msg:
-             - "Backup needed:         {{ backup_tenantdb }}"
-             - "Backup query results:  {{ backup_exists_cmd_for_tenant_result.stdout }}"
+              - "Backup needed:         {{ backup_tenantdb }}"
+              - "Backup query results:  {{ backup_exists_cmd_for_tenant_result.stdout }}"
 
         - name:                        "HANA HSR: - Backup {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
           ansible.builtin.shell: >

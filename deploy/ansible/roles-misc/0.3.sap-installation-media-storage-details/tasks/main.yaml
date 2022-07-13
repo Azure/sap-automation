@@ -96,7 +96,7 @@
       ansible.builtin.set_fact:
         sapbits_sas_token:             "{{ az_sapbits_sas_token.stdout }}"
 
-  when: 
+  when:
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
 
 - name:                                "0.4 Installation Media: - Debug storage account details"
