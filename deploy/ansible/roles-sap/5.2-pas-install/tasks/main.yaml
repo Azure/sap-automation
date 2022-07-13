@@ -103,7 +103,7 @@
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    virt_do_not_resolve_hostname:      "{{ db_virtual_host }}"
+    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
 
   tags:
     - skip_ansible_lint

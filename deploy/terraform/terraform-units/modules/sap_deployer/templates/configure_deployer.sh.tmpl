@@ -314,7 +314,7 @@ if [[ ! -d "$${asad_dir}" ]]; then
 fi
 
 
-chown -R "$${local_user}" "$${asad_dir}"
+chown -R "$${local_user}" "$${asad_home}"
 
 #
 # Install terraform for all users
@@ -529,3 +529,5 @@ echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':'$${HOME}/Azure_SAP_Aut
 # Ensure that the user's account is logged in to Azure with specified creds
 echo az login --identity --output none | sudo tee -a /etc/profile.d/deploy_server.sh
 echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
+
+sudo runuser -l "$${local_user}" -c 'az login --identity --allow-no-subscriptions --output none'

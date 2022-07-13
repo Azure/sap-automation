@@ -119,5 +119,15 @@
     - inventory_hostname == primary_instance_name
     - ensa1 is not defined
 
+- name:                                "5.6 SCSERS - SUSE - Cleanup resources"
+  ansible.builtin.command:             crm resource cleanup 
+  when:
+    - inventory_hostname == primary_instance_name
+
+- name:                                "5.6 SCSERS - SUSE - Cleanup stonith"
+  ansible.builtin.command:             stonith_admin --cleanup --history={{ primary_instance_name }}
+  when:
+    - inventory_hostname == primary_instance_name
+
 # End of SAP Resources Cluster configuration
 ...

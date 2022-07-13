@@ -25,10 +25,6 @@
         path:                                         "{{ _workspace_directory }}/.progress/bom-processing-done"
         state:                                        absent
 
-    - name:                                           Set 'bom' tier
-      ansible.builtin.set_fact:
-        tier:                                         bom_download
-
     - name:                                           Include 0.3.sap-installation-media-storage-details role
       ansible.builtin.include_role:
         name:                                         roles-misc/0.3.sap-installation-media-storage-details
