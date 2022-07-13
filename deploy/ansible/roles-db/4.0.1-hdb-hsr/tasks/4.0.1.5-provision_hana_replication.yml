@@ -76,6 +76,8 @@
       register:                        hana_replication_status
       changed_when:                    false
       failed_when:                     hana_replication_status.rc != 0
+      args:
+        executable: /bin/sh
 
     - name:                            "HANA HSR: - Debug replication status"
       ansible.builtin.debug:
@@ -163,6 +165,8 @@
       changed_when:                    "'adding site' in hsr_secondary_registration.stdout"
       tags:
         - skip_ansible_lint
+      args:
+        executable: /bin/bash
 
     - name:                            "HANA HSR: - Start HANA on {{ ansible_hostname }}"
       import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
