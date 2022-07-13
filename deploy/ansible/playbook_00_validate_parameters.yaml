@@ -250,8 +250,8 @@
     - name:                            "0.0 Validations - Show internet connectivity results"
       ansible.builtin.debug:
         var:                           internet_check
+        verbosity:                     2
       when:                            internet_check is defined
-      verbosity:                       2
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h
