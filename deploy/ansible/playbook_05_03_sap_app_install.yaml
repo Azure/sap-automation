@@ -133,7 +133,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
+        file_path:                     INSTALL/AS/APPS/
         always_upload_jinja_templates: false
 
     - name:                            "APP Installation Playbook: Define this SID"
@@ -192,7 +192,7 @@
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_APP"
-            prefix:                    "{{ app_bom_id.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+            prefix:                    "{{ app_bom_id.replace('.','/').replace('/PD','').split(':')[1] }}"
             path:                      "{{ file_path }}"
             tier:                      'app'
 
