@@ -3,8 +3,8 @@
 # @TODO- Check if any modification is required from ASCS/SCS resources perspective
 
 - name:                                "5.6 SCSERS - SUSE - Cleanup resources"
-  ansible.builtin.command:             crm resource cleanup 
-  when:                                
+  ansible.builtin.command:             crm resource cleanup
+  when:
     - ansible_os_family | upper == 'SUSE'
     - inventory_hostname == primary_instance_name
 
