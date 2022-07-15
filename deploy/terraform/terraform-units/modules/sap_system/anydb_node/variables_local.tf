@@ -154,7 +154,7 @@ locals {
     }
   }
 
-  anydb_os = {
+  anydb_os = local.enable_deployment ? {
     "source_image_id" = local.anydb_custom_image ? (
       local.anydb.os.source_image_id) : (
       ""
@@ -187,7 +187,7 @@ locals {
         local.os_defaults[upper(local.anydb_platform)].version
       )
     )
-  }
+  } : null
 
   //Observer VM
   observer = try(local.anydb.observer, {})
