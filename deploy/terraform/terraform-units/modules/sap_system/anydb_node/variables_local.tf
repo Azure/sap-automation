@@ -200,7 +200,7 @@ locals {
   observer_size            = "Standard_D4s_v3"
   observer_authentication  = local.authentication
   observer_custom_image    = local.anydb_custom_image
-  observer_custom_image_id = local.enable_deployment ? local.anydb_os.source_image_id ; ""
+  observer_custom_image_id = local.enable_deployment ? local.anydb_os.source_image_id : ""
   observer_os              = local.enable_deployment ? local.anydb_os : null
 
   // Subnet IP Offsets
