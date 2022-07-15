@@ -296,6 +296,7 @@
         verbosity:                     0
       when:
         - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'sles_sap15' ]
+        - zypper_results is defined
 
     - name:                            "0.0 Validations - Get repository listing (RHEL)"
       ansible.builtin.command:         yum repolist
@@ -313,6 +314,7 @@
         var:                           yum_results.stdout_lines
       when:
         - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7', 'redhat8']
+        - yum_results is defined
 
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command:         df -h
