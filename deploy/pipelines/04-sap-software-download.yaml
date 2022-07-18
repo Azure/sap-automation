@@ -20,6 +20,7 @@ parameters:
       - S41909SPS03_v0011ms
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
+      - HANA_2_00_063_v0001ms
       - HANA_2_00_061_v0001ms
       - HANA_2_00_059_v0003ms
       - HANA_2_00_055_v0006ms
