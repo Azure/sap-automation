@@ -1,8 +1,9 @@
 ---
 
-name:    "SAP S4HANA 2020 SPS 3"
-target:  "ABAP PLATFORM 2020"
-version: 1
+name:     "SAP S/4HANA 2020 SPS 03"
+filename: "S42020SPS03_v0002ms"
+target:   "ABAP PLATFORM 2020"
+version:  1
 platform: HANA
 
 product_ids:
