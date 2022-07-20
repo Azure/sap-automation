@@ -2,7 +2,7 @@
 # Download time:  70 Minutes (Full - 63GB)
 # Download time:  43 Minutes (Partial - 38GB)
 #
-name:      "SAP S4HANA 1909 SPS 03"
+name:      "SAP S/4HANA 1909 SPS 03"
 filename:  'S41909SPS03_v00011ms'
 target:    'S/4 HANA 1909 SPS 03'
 version:   11
