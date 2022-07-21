@@ -102,7 +102,8 @@
   register:                            lvscreated
   when:
     - tier == "sapos"
-    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
+      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.vg in vgcreatedlist
 
 - name:                                "1.5 Disk setup - Filter the logical volumes created results"
@@ -126,7 +127,8 @@
   register :                           filesystemscreated
   when:
     - item.tier in ["all", tier ]
-    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
+      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.fstype is defined
     - item.lv in lvcreatedlist
 

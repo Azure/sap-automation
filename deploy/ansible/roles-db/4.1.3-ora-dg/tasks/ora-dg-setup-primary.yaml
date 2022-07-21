@@ -23,7 +23,7 @@
   register:                            archive_primary_stat
   when:  current_host == ora_primary
 
-- name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary"  #In a typical SWPM installation archive log is always enabled.
+- name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary"  # In a typical SWPM installation archive log is always enabled.
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.shell:               sqlplus / as sysdba @enablearchivelog.sql
@@ -109,7 +109,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Create oracle standbylog directory"
   ansible.builtin.file:
-    path:                              /oracle/{{ db_sid|upper }}/oraarch/standbylog
+    path:                              /oracle/{{ db_sid | upper }}/oraarch/standbylog
     mode:                              0755
     state:                             directory
     owner:                             oracle
@@ -190,7 +190,7 @@
     - current_host == ora_primary
     - turn_on_flashback_results.rc == 0
 
-#STEP3 DGMGRL Config on Primary
+# STEP3 DGMGRL Config on Primary
 
 # Restart the LSNRCTL START
 # - name:                               "RESTART LSNRCTL ON PRIMARY"

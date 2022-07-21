@@ -1,6 +1,7 @@
 ---
 # 3015539 - SAP S/4HANA 2021: Release Information Note
-name:                                  "S4HANA_2021_ISS_v0001ms"
+name:                                  "SAP S/4HANA 2021 ISS 00"
+filename:                              "S4HANA_2021_ISS_v0001ms"
 target:                                "S/4 HANA 2021 ISS 00"
 version:                               1
 platform:                              'HANA'
@@ -23,9 +24,9 @@ product_ids:
 
 materials:
   dependencies:
-    - name:                            "HANA_2_00_061_latest"
+    - name:                            "HANA_2_00_061_v0001ms"
     - name:                            "SWPM20SP12_latest"
-    - name:                            "SUM20SP13_latest"
+    - name:                            "SUM20SP14_latest"
   media:
 
     # SAPCAR 7.22
@@ -70,7 +71,7 @@ materials:
       url:                             https://softwaredownloads.sap.com/file/0020000000703122018
       path:                            download_basket
 
-    #MISC
+    # MISC
     - name:                            "SP12 Patch6 for UMML4HANA 1"
       archive:                         HANAUMML12_6-70001054.ZIP
       checksum:                        f103c2434f0762bb6210e8fcf26b99490bb26d13be6d6d1981a3e4bbf4f2c8be
@@ -266,7 +267,7 @@ materials:
       path:                            download_basket
 
     # other components
-    #SPAM
+    # SPAM
     - name:                            "SPAM/SAINT Update - Version 756/0081"
       archive:                         KD75681.SAR
       checksum:                        cf77cad942140eb1034d6415906c6573dd4bd39ae0a01487522acd86ff42ea10

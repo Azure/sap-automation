@@ -2,12 +2,11 @@
 
 bom_base_name:                 S41909SPS03_vxxxxxx
 
-#Name of the key vault containing the S user credentials
+# Name of the key vault containing the S user credentials
 deployer_kv_name:              MGMTWEEUDEP00user###
 
 # Set the following value to true to calculate checksums for the downloaded files
 # Not needed for the Microsoft provided BOMs
-#create_checksums:              true
-
+# create_checksums:              true
 
 ...

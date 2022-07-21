@@ -30,14 +30,14 @@
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "DBLoad: -  Set the DB Server name list"
   ansible.builtin.set_fact:
     db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "DBLoad: - Set dbload facts"
   ansible.builtin.set_fact:
@@ -52,7 +52,13 @@
   ansible.builtin.file:
     path:                              "{{ dir_params }}"
     state:                             directory
-    mode:                              '0755'
+    mode:                              0755
+
+- name:                                "DBLoad: Create temp directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
 
 - name:                                "DBLoad: - Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -124,6 +130,7 @@
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}            \
                                                  SAPINST_SKIP_DIALOGS=true                                       \
@@ -138,43 +145,41 @@
       tags:
         - skip_ansible_lint
       async:                           7200
-      poll:                            60
+      poll:                            0
 
     - name:                            "DBLoad Install -Wait for asynchronous job to end"
       ansible.builtin.async_status:
-        jid:                           '{{ dbload_results.ansible_job_id }}'
+        jid:                           "{{ dbload_results.ansible_job_id }}"
       register:                        job_result
       until:                           job_result.finished
-      retries:                         90
-      delay:                           120
+      retries:                         120
+      delay:                           60
       when:                            dbload_results.ansible_job_id is defined
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         msg:
           - "DBLoad : {{ dbload_results }}"
-          - "Job    : {{ job_result }}"
-
+          - "Job result: {{ job_result }}"
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         var:                           dbload_results
       when:
-        - dbload_results is defined
-        - dbload_results.rc > 0
+        - job_result is defined
+        - job_result.rc > 0
 
     - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
-      when: 1==2
 
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
         msg:                           "DBLoad Installation succeeded"
       when:
-        - dbload_results.rc is defined
-        - dbload_results.rc == 0
+        - job_result.rc is defined
+        - job_result.rc == 0
 
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
@@ -182,8 +187,8 @@
         state:                         touch
         mode:                          0755
       when:
-        - dbload_results is defined
-        - dbload_results.rc == 0
+        - job_result is defined
+        - job_result.rc > 0
 
   when:
     - not dbload_installed.stat.exists
@@ -199,7 +204,7 @@
       ansible.builtin.set_fact:
         dbload_already_performed:      true
   when:
-    -  dbload_installed.stat.exists
+    - dbload_installed.stat.exists
 
 
 ...

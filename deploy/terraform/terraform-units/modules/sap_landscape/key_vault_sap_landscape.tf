@@ -1,7 +1,7 @@
 ###############################################################################
-#                                                                             # 
-#                            Workload zone key vault                          #  
-#                                                                             # 
+#                                                                             #
+#                            Workload zone key vault                          #
+#                                                                             #
 ###############################################################################
 
 // Create user KV with access policy
@@ -20,7 +20,7 @@ resource "azurerm_key_vault" "kv_user" {
 
   network_acls {
     bypass         = "AzureServices"
-    default_action = "Deny"
+    default_action = var.use_private_endpoint || local.management_subnet_exists ? "Deny" : "Allow"
 
     ip_rules = compact(
       [
@@ -29,12 +29,12 @@ resource "azurerm_key_vault" "kv_user" {
       ]
     )
 
-    virtual_network_subnet_ids = [
-      local.deployer_subnet_management_id
-    ]
+    virtual_network_subnet_ids = compact(
+      [
+        local.deployer_subnet_management_id
+      ]
+    )
   }
-
-
 
   lifecycle {
     ignore_changes = [
@@ -93,9 +93,9 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                                       Secrets                               # 
-#                                                                             # 
+#                                                                             #
+#                                       Secrets                               #
+#                                                                             #
 ###############################################################################
 
 // Using TF tls to generate SSH key pair for SID
@@ -113,7 +113,7 @@ resource "random_password" "created_password" {
 }
 
 
-// Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV 
+// Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_ppk" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,
@@ -155,7 +155,7 @@ data "azurerm_key_vault_secret" "sid_pk" {
 }
 
 
-// Credentials will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV 
+// Credentials will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_username" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user,

@@ -23,11 +23,11 @@ materials:
       download:     true
       extractDir:   oraserver
       path:         download_basket
-      #creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0030000002299742019          #Not all S-users have permissions to download the oracle software.
+      # creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0030000002299742019          # Not all S-users have permissions to download the oracle software.
 
 
-#SBP Patches are downloaded based on SAP Note 2799920 - Patches 19c: Database
+# SBP Patches are downloaded based on SAP Note 2799920 - Patches 19c: Database
 
     - name:         "Oracle SBP - Bundle patches for 19c: GIRU"
       archive:      GIRU19P_2108-70004508.ZIP
@@ -36,7 +36,7 @@ materials:
       download:     true
       extractDir:   SBP/GIRU19P
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000001214732021
 
     - name:         "Oracle SBP - Bundle patches for 19c: SAP19P"
@@ -46,7 +46,7 @@ materials:
       download:     true
       extractDir:   SBP/SAPSBP
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000001213832021
 
     - name:         "Oracle SBP - Bundle patches for 19c: SBPJDK19P"
@@ -56,7 +56,7 @@ materials:
       download:     true
       extractDir:   SBP/SBPJDK
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000001213892021
 
     - name:         "Oracle SBP - Bundle patches for 19c: OPatch"
@@ -66,7 +66,7 @@ materials:
       download:     true
       extractDir:   SBP/OPATCH
       path:         SBP
-      #creates:     SIGNATURE.SMF
+      # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000751692021
 
 

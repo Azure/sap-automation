@@ -23,23 +23,36 @@ output "hdb_sid" {
 // Output for DNS
 output "dns_info_vms" {
   value = local.enable_deployment ? (
-    zipmap(
-      concat(
-        (
-          var.hana_dual_nics ? slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count) : [""]
+    var.hana_dual_nics ? (
+      zipmap(
+        compact(
+          concat(
+            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count),
+            slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, var.database_server_count)
+          )
         ),
-        (
-          slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, var.database_server_count)
+        compact(
+          concat(
+            slice(azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address, 0, var.database_server_count),
+            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, var.database_server_count)
+          )
         )
-      ),
-      concat(
-        (
-          var.hana_dual_nics ? slice(azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address, 0, var.database_server_count) : [""]
+      )
+    ) : (
+      zipmap(
+        compact(
+          concat(
+            slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, var.database_server_count)
+          )
         ),
-        (
-          slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, var.database_server_count)
+        compact(
+          concat(
+            slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, var.database_server_count)
+          )
         )
-    ))) : (
+      )
+    )
+  ) : (
     null
   )
 }

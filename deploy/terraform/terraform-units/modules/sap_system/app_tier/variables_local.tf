@@ -526,7 +526,7 @@ locals {
     false
   )
 
-  winha_ips = [
+  winha_ips = upper(local.scs_ostype) == "WINDOWS" ? [
     {
       name = format("%s%s%s%s",
         var.naming.resource_prefixes.scs_clst_feip,
@@ -544,7 +544,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[2], "")) > 0 ? (
         local.scs_lb_ips[2]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 2 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[2], "")) > 0 ? "Static" : "Dynamic"
 
@@ -566,11 +566,11 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[3], "")) > 0 ? (
         local.scs_lb_ips[3]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 3 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[3], "")) > 0 ? "Static" : "Dynamic"
     }
-  ]
+  ] : []
 
   std_ips = [
     {
@@ -590,7 +590,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[0], "")) > 0 ? (
         local.scs_lb_ips[0]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 0 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[0], "")) > 0 ? "Static" : "Dynamic"
     },
@@ -611,7 +611,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[1], "")) > 0 ? (
         local.scs_lb_ips[1]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 1 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[1], "")) > 0 ? "Static" : "Dynamic"
     },

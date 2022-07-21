@@ -17,6 +17,9 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = true
     }
+    key_vault {
+      purge_soft_delete_on_destroy = !var.enable_purge_control_for_keyvaults
+    }
   }
   subscription_id = local.spn.subscription_id
   client_id       = var.use_spn ? local.spn.client_id : null
