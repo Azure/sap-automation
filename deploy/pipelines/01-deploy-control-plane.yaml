@@ -11,12 +11,12 @@ parameters:
   - name:                              deployer
     displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
+    default:                           MGMT-NOEU-DEP01-INFRASTRUCTURE
 
   - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
     type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
+    default:                           MGMT-NOEU-SAP_LIBRARY
 
   - name:                              environment
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
