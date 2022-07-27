@@ -118,6 +118,10 @@ locals {
           arm_id = var.management_bastion_subnet_arm_id
           prefix = var.management_bastion_subnet_address_prefix
         }
+        subnet_cmdb = {
+          arm_id = var.cmdb_subnet_arm_id
+          prefix = var.cmdb_subnet_address_prefix
+        }
       }
     }
   }
@@ -228,5 +232,5 @@ locals {
   firewall_rule_subnets        = try(var.firewall_rule_subnets, [])
   firewall_allowed_ipaddresses = try(var.firewall_allowed_ipaddresses, [])
 
-  assign_subscription_permissions = try(var.assign_subscription_permissions, false)
+  assign_subscription_permissions = try(var.deployer_assign_subscription_permissions, false)
 }

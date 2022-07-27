@@ -154,7 +154,7 @@ locals {
     }
   }
 
-  anydb_os = {
+  anydb_os = local.enable_deployment ? {
     "source_image_id" = local.anydb_custom_image ? (
       local.anydb.os.source_image_id) : (
       ""
@@ -187,7 +187,7 @@ locals {
         local.os_defaults[upper(local.anydb_platform)].version
       )
     )
-  }
+  } : null
 
   //Observer VM
   observer = try(local.anydb.observer, {})
@@ -200,8 +200,8 @@ locals {
   observer_size            = "Standard_D4s_v3"
   observer_authentication  = local.authentication
   observer_custom_image    = local.anydb_custom_image
-  observer_custom_image_id = local.anydb_os.source_image_id
-  observer_os              = local.anydb_os
+  observer_custom_image_id = local.enable_deployment ? local.anydb_os.source_image_id : ""
+  observer_os              = local.enable_deployment ? local.anydb_os : null
 
   // Subnet IP Offsets
   // Note: First 4 IP addresses in a subnet are reserved by Azure
@@ -228,6 +228,14 @@ locals {
     ]
     "NONE" = [
       "80"
+    ]
+    "HANA" = [
+      "30013",
+      "30014",
+      "30015",
+      "30040",
+      "30041",
+      "30042",
     ]
   }
 

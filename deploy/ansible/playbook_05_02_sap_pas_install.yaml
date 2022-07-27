@@ -63,11 +63,12 @@
 
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
+  remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
     - name:                            "PAS Installation Playbook: Define this SID"
@@ -118,10 +119,10 @@
   name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
@@ -136,7 +137,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
+        file_path:                     INSTALL/DISTRIBUTED/ABAP/APP1
         always_upload_jinja_templates: false
       tags:
         - always

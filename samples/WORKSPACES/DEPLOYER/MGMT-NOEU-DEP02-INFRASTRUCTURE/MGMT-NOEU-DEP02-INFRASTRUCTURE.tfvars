@@ -63,6 +63,19 @@ management_firewall_subnet_address_prefix="10.11.20.0/26"
 # firewall_rule_allowed_ipaddresses is an optional list of IP Addresses to be added to the Azure firewall
 #firewall_rule_allowed_ipaddresses=[]
 
+##################################################
+#
+# Cosmos Database Subnet
+#
+##################################################
+
+# one of the following two parameters is required when deploying the web app as a part of the control plane infrastructure
+
+# cmdb_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
+#cmdb_subnet_address_prefix="10.10.20.128/26"
+
+# cmdb_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing cmdb subnet
+# cmdb_subnet_arm_id= ""
 
 ##################################################
 #
@@ -153,8 +166,8 @@ This block describes the variables for the authentication section block in the j
 # deployer_password_secret_name if provided contains the secret name for the password 
 #deployer_password_secret_name=""
 
-# assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
-#assign_subscription_permissions=true
+# deployer_assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
+#deployer_assign_subscription_permissions=true
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false

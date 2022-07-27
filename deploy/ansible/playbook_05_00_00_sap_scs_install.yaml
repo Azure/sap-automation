@@ -68,11 +68,13 @@
                                         {{ sap_sid | upper }}_ERS"
   serial:                              1
   name:                                SAP Generic OS Groups and User Creation
+  remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  any_errors_fatal:                    true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
     - name:                        "SCS Installation Playbook: Define this SID"
@@ -123,10 +125,10 @@
   name:                                "SCS Installation Playbook: - SCS"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -220,7 +222,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_SCS"
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ bom.product_ids.scs.replace('.','/').replace('/ABAP','').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/ASCS'
                 tier:                  'scs'
 
@@ -250,10 +252,10 @@
   name:                                "SCS HA Install and Pacemaker Resources"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml      # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -349,7 +351,7 @@
 
         - name:                        "SCS Installation Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
-            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ [ this_sid ] }}{% endif %}"
 
         - name:                        Run the SCS HA Installation Playbook
           block:
@@ -358,7 +360,7 @@
                 name:                  roles-sap/5.6-scsers-pacemaker
                 public:                true
               vars:
-                scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
+                scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed

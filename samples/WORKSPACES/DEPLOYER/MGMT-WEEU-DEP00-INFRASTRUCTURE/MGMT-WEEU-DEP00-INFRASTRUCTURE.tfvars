@@ -92,6 +92,20 @@ management_firewall_subnet_address_prefix="10.10.20.0/26"
 
 #########################################################################################
 #                                                                                       #
+#                           Cosmos Database Subnet                                      #
+#                                                                                       #
+#########################################################################################
+
+# one of the following two parameters is required when deploying the web app as a part of the control plane infrastructure
+
+# cmdb_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
+#cmdb_subnet_address_prefix="10.10.20.128/26"
+
+# cmdb_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing cmdb subnet
+# cmdb_subnet_arm_id= ""
+
+#########################################################################################
+#                                                                                       #
 #                                   Azure Bastion                                       #
 #                                                                                       #
 #########################################################################################
@@ -189,8 +203,8 @@ deployer_authentication_username="azureadm"
 #                                                                                       #
 #########################################################################################
 
-# assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
-#assign_subscription_permissions=true
+# deployer_assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
+#deployer_assign_subscription_permissions=true
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false

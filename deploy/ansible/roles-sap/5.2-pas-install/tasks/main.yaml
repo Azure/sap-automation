@@ -103,7 +103,7 @@
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    virt_do_not_resolve_hostname:      "{{ db_virtual_host }}"
+    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
 
   tags:
     - skip_ansible_lint
@@ -232,6 +232,25 @@
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
 
+    - name:                            "PAS Install: Check if Standalone"
+      ansible.builtin.set_fact:
+        servers_temp:                  "{{ servers_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
+
+    - name:                            "PAS Install: Restart SAPHostCtrl"
+      become:                          true
+      ansible.builtin.command:         /usr/sap/hostctrl/exe/saphostexec -restart
+      register:                        saphostexec_result
+      when:                            (servers_temp | length) == 1
+
+    - name:                            "PAS Install: SAPHostCtrl output"
+      ansible.builtin.debug:
+        var:                           saphostexec_result
+      when:                            (servers_temp | length) == 1
+
   when:
     - not pas_installed.stat.exists
 
@@ -273,7 +292,7 @@
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ hdb_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        hdbuserstore

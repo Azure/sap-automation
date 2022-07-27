@@ -2,6 +2,17 @@
 
 # @TODO- Check if any modification is required from ASCS/SCS resources perspective
 
+- name:                                "5.6 SCSERS - SUSE - Cleanup resources"
+  ansible.builtin.command:             crm resource cleanup
+  when:
+    - ansible_os_family | upper == 'SUSE'
+    - inventory_hostname == primary_instance_name
+
+- name:                                "5.6 SCSERS - SUSE - Cleanup stonith"
+  ansible.builtin.command:             stonith_admin --cleanup --history={{ primary_instance_name }}
+  when:
+    - ansible_os_family | upper == 'SUSE'
+    - inventory_hostname == primary_instance_name
 
 - name:                                "5.6 SCSERS - Pause to give cluster time to stabilize"
   ansible.builtin.pause:
@@ -13,9 +24,8 @@
   changed_when:                        false
   failed_when:                         false
 
-
 - name:                                "5.6 SCSERS - Output cluster status"
   ansible.builtin.debug:
-    msg:                               "{{ cluster_status_report.stdout }}"
+    msg:                               "{{ cluster_status_report.stdout_lines }}"
 
 ...

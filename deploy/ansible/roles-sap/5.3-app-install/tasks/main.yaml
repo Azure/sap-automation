@@ -43,7 +43,7 @@
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
   register:                            app_installed
 
-- name:                                "PAS Install: Set the SCS Server name list"
+- name:                                "APP Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
@@ -98,7 +98,7 @@
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    virt_do_not_resolve_hostname:      "{{ db_virtual_host }}"
+    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
   tags:
     - skip_ansible_lint
 
@@ -190,7 +190,6 @@
       when:
         - db_high_availability
         - platform == 'HANA'
-
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -198,7 +197,6 @@
         - db_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-
     - name:                            "APP Install: show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
@@ -209,7 +207,7 @@
     - name:                            "APP Install: Set DB Virtual Host name"
       become:                          true
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ hdb_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        hdbuserstore

@@ -30,3 +30,6 @@ override.tf.json
 **/.terraform.lock.hcl
 **/settings.json
 .vscode/settings.json
+**/obj/*
+.vscode/launch.json
+.vscode/tasks.json

@@ -371,6 +371,8 @@ resource_offset = 1
 # vm_disk_encryption_set_id if defined defines the custom encryption key 
 #vm_disk_encryption_set_id=""
 
+# deploy_application_security_groups is a boolean flag controlling if the application  security groups should be created
+deploy_application_security_groups = true
 
 #########################################################################################
 #                                                                                       #

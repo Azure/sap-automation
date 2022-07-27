@@ -314,7 +314,7 @@ if [[ ! -d "$${asad_dir}" ]]; then
 fi
 
 
-chown -R "$${local_user}" "$${asad_dir}"
+chown -R "$${local_user}" "$${asad_home}"
 
 #
 # Install terraform for all users
@@ -442,6 +442,12 @@ done
 # Ensure that Python argcomplete is enabled for all users interactive shell sessions
 sudo $${ansible_bin}/activate-global-python-argcomplete
 
+# Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
+sudo mkdir -p $${ansible_collections}
+sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path $${ansible_collections}
+sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path $${ansible_collections}
+
+
 #
 # Create /etc/profile.d script to setup environment for interactive sessions
 #
@@ -482,10 +488,14 @@ else
         cd $${agent_home}
         ./env.sh
 
-        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
-        chmod +x $${agent_home}/config_fixed_params.sh
+        if [ -f $${agent_home}/config_fixed_params.sh ]; then
+            sudo rm $${agent_home}/config_fixed_params.sh
+        fi
         
-        runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
+        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
+        sudo chmod +x $${agent_home}/config_fixed_params.sh
+        
+        sudo runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
 
         # automatic start configuration after VM reboot
 
@@ -519,3 +529,5 @@ echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':'$${HOME}/Azure_SAP_Aut
 # Ensure that the user's account is logged in to Azure with specified creds
 echo az login --identity --output none | sudo tee -a /etc/profile.d/deploy_server.sh
 echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
+
+sudo runuser -l "$${local_user}" -c 'az login --identity --allow-no-subscriptions --output none'

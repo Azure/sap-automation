@@ -1,6 +1,7 @@
 ---
 # 3015539 - SAP S/4HANA 2021: Release Information Note
-name:                                  "S4HANA_2021_ISS_v0001ms"
+name:                                  "SAP S/4HANA 2021 ISS 00"
+filename:                              "S4HANA_2021_ISS_v0001ms"
 target:                                "S/4 HANA 2021 ISS 00"
 version:                               1
 platform:                              'HANA'
@@ -23,7 +24,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:                            "HANA_2_00_061_latest"
+    - name:                            "HANA_2_00_061_v0001ms"
     - name:                            "SWPM20SP12_latest"
     - name:                            "SUM20SP14_latest"
   media:
