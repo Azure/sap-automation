@@ -446,7 +446,7 @@ sudo $${ansible_bin}/activate-global-python-argcomplete
 sudo mkdir -p $${ansible_collections}
 sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path $${ansible_collections}
 sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path $${ansible_collections}
-
+sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path $${ansible_collections}
 
 #
 # Create /etc/profile.d script to setup environment for interactive sessions
