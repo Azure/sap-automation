@@ -40,7 +40,7 @@
   register: monitor_repo
 
 - name: Add monitoring repository if it does not exist
-  ansible.builtin.zypper_repository:
+  zypper_repository:
     repo: "https://download.opensuse.org/repositories/server:/monitoring/{{ distro }}/server:monitoring.repo"
     state: present
   when: not monitor_repo.stat.exists
