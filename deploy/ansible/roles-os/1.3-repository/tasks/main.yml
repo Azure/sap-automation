@@ -201,7 +201,7 @@
 
 # Add repositories
 - name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
-  zypper_repository:
+  community.general.zypper_repository:
     repo:                              "{{ item.repo }}"
     state:                             "{{ item.state }}"
     overwrite_multiple:                true

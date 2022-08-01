@@ -918,7 +918,7 @@ then
 fi
 
 if [ -f "${system_config_information}".err ]; then
-    "${system_config_information}".err
+   cat "${system_config_information}".err
 fi
 
 
