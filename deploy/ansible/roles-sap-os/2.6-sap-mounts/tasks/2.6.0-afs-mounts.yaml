@@ -56,7 +56,7 @@
         - name:                        "AFS Mount: sap_mnt (preparation)"
           block:
             - name:                    "AFS Mount: sap_mnt (preparation)"
-              ansible.builtin.mount:
+              mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
@@ -73,7 +73,7 @@
                 seconds:               15
 
             - name:                    "Rescue - AFS Mount: sap_mnt (preparation)"
-              ansible.builtin.mount:
+              mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
@@ -103,7 +103,7 @@
           loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
-          ansible.builtin.mount:
+          mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             state:                     unmounted
@@ -125,7 +125,7 @@
           loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
-          ansible.builtin.mount:
+          mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
@@ -152,7 +152,7 @@
         - name:                        "AFS Mount: sap_trans (preparation)"
           block:
             - name:                    "AFS Mount: sap_trans (preparation)"
-              ansible.builtin.mount:
+              mount:
                 src:                   "{{ sap_trans }}"
                 path:                  "/saptrans"
                 fstype:                "nfs4"
@@ -169,7 +169,7 @@
                 seconds:               15
 
             - name:                    "Rescue - AFS Mount: sap_trans (preparation)"
-              ansible.builtin.mount:
+              mount:
                 src:                   "{{ sap_trans }}"
                 path:                  "/saptrans"
                 fstype:                "nfs4"
@@ -185,7 +185,7 @@
             - { path: '/saptrans/usrsaptrans' }
 
         - name:                        "AFS Mount: Unmount file systems (transport)"
-          ansible.builtin.mount:
+          mount:
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             state:                     unmounted
@@ -198,7 +198,7 @@
             - { path: '/saptrans/usrsaptrans' }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (transport)"
-          ansible.builtin.mount:
+          mount:
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             fstype:                    "nfs4"
@@ -226,7 +226,7 @@
         - name:                        "AFS Mount: install (preparation)"
           block:
             - name:                    "AFS Mount: install (preparation)"
-              ansible.builtin.mount:
+              mount:
                 src:                   "{{ usr_sap_install_mountpoint }}"
                 path:                  "/tmpinstall"
                 fstype:                "nfs4"
@@ -243,7 +243,7 @@
                 seconds:               15
 
             - name:                    "Rescue - AFS Mount: install (preparation)"
-              ansible.builtin.mount:
+              mount:
                 src:                   "{{ usr_sap_install_mountpoint }}"
                 path:                  "/tmpinstall"
                 fstype:                "nfs4"
@@ -259,7 +259,7 @@
             - { path: '/tmpinstall/{{ bom_base_name }}' }
 
         - name:                        "AFS Mount: Unmount file systems (install)"
-          ansible.builtin.mount:
+          mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             state:                     unmounted
@@ -272,7 +272,7 @@
             - { path: '/tmpinstall' }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (install)"
-          ansible.builtin.mount:
+          mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             fstype:                    "nfs4"
@@ -364,7 +364,7 @@
   block:
 
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -387,7 +387,7 @@
         msg:                           "Rescue - AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
 
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -404,7 +404,7 @@
 - name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
   become:                              true
   become_user:                         root
-  ansible.builtin.mount:
+  mount:
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
@@ -419,7 +419,7 @@
 - name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
   block:
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
@@ -430,7 +430,7 @@
       ansible.builtin.pause:
         seconds:                       15
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
@@ -446,7 +446,7 @@
   block:
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -468,7 +468,7 @@
         var:                           sys_mounted
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -486,7 +486,7 @@
   block:
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -508,7 +508,7 @@
         var:                           sys_mounted
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -536,7 +536,7 @@
   block:
 
     - name:                            "AFS Mount: Mount Install folder when using AFS ({{ usr_sap_install_mountpoint }}/{{ bom_base_name }})"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
@@ -554,7 +554,7 @@
         seconds:                       15
 
     - name:                            Mount Install folder when using AFS
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
@@ -599,7 +599,7 @@
   block:
 
     - name:                            "AFS Mount: (transport)"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -617,7 +617,7 @@
         seconds:                       15
 
     - name:                            "AFS Mount: (transport)"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
