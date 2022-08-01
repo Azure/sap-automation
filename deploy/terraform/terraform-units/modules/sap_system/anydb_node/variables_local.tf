@@ -58,7 +58,7 @@ locals {
   enable_deployment = (length(local.anydb_databases) > 0) ? true : false
 
   anydb          = local.enable_deployment ? local.anydb_databases[0] : null
-  anydb_platform = local.enable_deployment ? upper(try(local.anydb.platform, "NONE")) : "NONE"
+  anydb_platform = local.enable_deployment ? upper(try(local.anydb.platform, "NONE")) : "hana"
   // Enable deployment based on length of local.anydb_databases
 
   // Imports database sizing information
