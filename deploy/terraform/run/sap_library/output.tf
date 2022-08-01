@@ -10,6 +10,11 @@ output "created_resource_group_id" {
   value = module.sap_library.created_resource_group_id
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.sap_library.created_resource_group_name
+}
+
 output "created_resource_group_subscription_id" {
   description = "Created resource group' subscription ID"
     value = module.sap_library.created_resource_group_subscription_id
