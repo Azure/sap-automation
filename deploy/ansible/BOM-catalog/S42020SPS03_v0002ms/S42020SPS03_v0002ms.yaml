@@ -1,6 +1,7 @@
 ---
 
-name:      "SAP S/4HANA 2020 SPS 02"
+name:      "SAP S/4HANA 2020 SPS 03"
+filename:  "S42020SPS03_v0002ms"
 target:    'S/4 HANA 2020 SPS 01'
 version:   1
 platform:  HANA
