@@ -79,12 +79,16 @@ variable "cloudinit_growpart_config" {
 variable "license_type" {
   description = "Specifies the license type for the OS"
   default     = ""
-
 }
 
 variable "use_loadbalancers_for_standalone_deployments" {
   description = "Defines if load balancers are used even for standalone deployments"
   default     = true
+}
+
+variable "idle_timeout_scs_ers" {
+  description = "Sets the idle timeout setting for the SCS and ERS loadbalancer"
+  default     = 4
 }
 
 variable "network_location" {

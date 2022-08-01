@@ -189,6 +189,7 @@ resource "azurerm_lb_rule" "scs" {
   probe_id                 = azurerm_lb_probe.scs[0].id
   enable_floating_ip       = true
   enable_tcp_reset         = true
+  idle_timeout_in_minutes  = var.idle_timeout_scs_ers
 }
 
 # Create the ERS Load balancer rules only in High Availability configurations
@@ -215,6 +216,7 @@ resource "azurerm_lb_rule" "ers" {
   probe_id                 = azurerm_lb_probe.scs[1].id
   enable_floating_ip       = true
   enable_tcp_reset         = true
+  idle_timeout_in_minutes  = var.idle_timeout_scs_ers
 }
 
 resource "azurerm_lb_rule" "clst" {

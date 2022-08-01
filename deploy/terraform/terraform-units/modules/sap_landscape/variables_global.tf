@@ -148,7 +148,7 @@ variable "ANF_settings" {
 }
 
 variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
+  description = "Disables the purge protection for Azure keyvaults."
 }
 
 variable "dns_label" {
