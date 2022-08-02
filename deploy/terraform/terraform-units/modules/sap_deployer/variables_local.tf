@@ -127,7 +127,22 @@ locals {
     try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
   )
 
-  firewall_service_tags = format("AzureCloud.%s", var.infrastructure.region)
+# Not all region names are the same as their service tags
+# https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags
+ regioncode_exceptions = {
+    "francecentral"      = "centralfrance"
+    "francesouth"        = "southfrance"
+    "germanynorth"       = "germanyn"
+    "germanywestcentral" = "germanywc"
+    "norwayeast"         = "norwaye"
+    "norwaywest"         = "norwayw"
+    "southcentralus"     = "usstagee"
+    "southcentralusstg"  = "usstagec"
+    "switzerlandnorth"   = "switzerlandn"
+    "switzerlandwest"    = "switzerlandw"
+  }
+
+  firewall_service_tags = format("AzureCloud.%s", lookup(local.regioncode_exceptions,var.infrastructure.region,var.infrastructure.region))
 
   // Bastion subnet
   management_bastion_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")

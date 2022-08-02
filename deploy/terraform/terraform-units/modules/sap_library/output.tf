@@ -18,6 +18,14 @@ output "created_resource_group_subscription_id" {
   )
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value = local.resource_group_exists ? (
+    data.azurerm_resource_group.library[0].name) : (
+    azurerm_resource_group.library[0].name
+  )
+}
+
 output "tfstate_storage_account" {
   value = local.sa_tfstate_exists ? (
     split("/", local.sa_tfstate_arm_id)[8]) : (

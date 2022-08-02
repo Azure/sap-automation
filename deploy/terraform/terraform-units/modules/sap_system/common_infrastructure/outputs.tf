@@ -12,6 +12,14 @@ output "created_resource_group_id" {
   )
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
+}
+
 output "created_resource_group_subscription_id" {
   description = "Created resource group' subscription ID"
   value = local.resource_group_exists ? (

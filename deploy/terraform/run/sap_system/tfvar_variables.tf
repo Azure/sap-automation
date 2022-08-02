@@ -246,8 +246,9 @@ variable "spn_keyvault_id" {
 }
 
 variable "enable_purge_control_for_keyvaults" {
-  description = "Disables the purge protection for Azure keyvaults. USE THIS ONLY FOR TEST ENVIRONMENTS"
-  default     = true
+  description = "Disables the purge protection for Azure keyvaults."
+  default = false
+  type = bool
 }
 
 #########################################################################################
