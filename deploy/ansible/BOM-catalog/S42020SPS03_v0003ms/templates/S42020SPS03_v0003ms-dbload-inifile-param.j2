@@ -1,0 +1,41 @@
+##########################################################################################################################################################################################################
+#                                                                                                                                                                                                        #
+# Installation service 'SAP S/4HANA Server 2020 > SAP HANA Database > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:S4HANA2020.CORE.HDB.ABAP' #
+#                                                                                                                                                                                                        #
+##########################################################################################################################################################################################################
+
+archives.downloadBasket                          = {{ target_media_location }}/download_basket
+
+nwUsers.sapadmUID                                = {{ sapadm_uid }}
+nwUsers.sapsysGID                                = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                = {{ sidadm_uid }}
+nwUsers.sidadmPassword                           = {{ main_password }}
+
+NW_Delete_Sapinst_Users.removeUsers              = true
+NW_GetMasterPassword.masterPwd                   = {{ main_password }}
+
+NW_HDB_DB.abapSchemaName                         = {{ hana_schema }}
+NW_HDB_DB.abapSchemaPassword                     = {{ main_password }}
+NW_HDB_getDBInfo.dbhost                          = {{ sap_db_hostname }}
+NW_HDB_getDBInfo.dbport                          = 3{{ hdb_instance_number }}15
+NW_HDB_getDBInfo.dbsid                           = {{ db_sid| upper }}
+NW_HDB_getDBInfo.instanceNumber                  = {{ hdb_instance_number }}
+NW_HDB_getDBInfo.systemDbPassword                = {{ main_password }}
+NW_HDB_getDBInfo.systemPassword                  = {{ main_password }}
+NW_HDB_getDBInfo.systemid                        = {{ db_sid| upper }}
+NW_HDB_getDBInfo.usingSSL                        = true
+NW_HDB_DB.dbacockpitPassword                     = {{ main_password }}
+
+NW_Recovery_Install_HDB.extractLocation          = /hana/backup/{{ db_sid| upper }}/HDB{{ hdb_instance_number }}/backup/data/DB_{{ db_sid| upper }}{{ hdb_instance_number }}
+NW_Recovery_Install_HDB.extractParallelJobs      = 24
+NW_Recovery_Install_HDB.sidAdmName               = {{ db_sid|lower }}adm
+NW_Recovery_Install_HDB.sidAdmPassword           = {{ main_password }}
+
+NW_Unpack.sapExeDbSar                            = {{ target_media_location }}/SAPEXEDB_200-70005282.SAR
+
+NW_checkMsgServer.abapMSPort                     = 36{{ scs_instance_number }}
+NW_getLoadType.loadType                          = SAP
+NW_readProfileDir.profileDir                     = {{ sap_profile_dir }}
+
+HDB_Schema_Check_Dialogs.schemaName              = {{ hana_schema }}
+HDB_Schema_Check_Dialogs.schemaPassword          = {{ main_password }}
