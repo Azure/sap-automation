@@ -160,7 +160,6 @@ data "azurerm_storage_account" "witness_storage" {
 resource "azurerm_private_endpoint" "witness_storage" {
   provider = azurerm.main
   count    = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
-
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_witness,
     local.prefix,
@@ -231,7 +230,15 @@ resource "azurerm_storage_account" "transport" {
     ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
     bypass         = ["AzureServices", "Logging", "Metrics"]
     virtual_network_subnet_ids = var.use_private_endpoint ? (
-      []
+      compact(
+        [
+          local.application_subnet_existing ? (
+            local.application_subnet_arm_id) : (
+            azurerm_subnet.app[0].id
+          ),
+          local.deployer_subnet_management_id
+        ]
+      )
       ) : (
       compact(
         [
@@ -385,7 +392,23 @@ resource "azurerm_storage_account" "install" {
     ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
     bypass         = ["AzureServices", "Logging", "Metrics"]
     virtual_network_subnet_ids = var.use_private_endpoint ? (
-      []
+      compact(
+        [
+          local.application_subnet_existing ? (
+            local.application_subnet_arm_id) : (
+            azurerm_subnet.app[0].id
+          ),
+          local.database_subnet_existing ? (
+            local.database_subnet_arm_id) : (
+            azurerm_subnet.db[0].id
+          ),
+          local.web_subnet_existing ? (
+            local.web_subnet_arm_id) : (
+            azurerm_subnet.web[0].id
+          ),
+          local.deployer_subnet_management_id
+        ]
+      )
       ) : (
       compact(
         [

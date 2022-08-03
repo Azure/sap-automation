@@ -38,8 +38,7 @@ variable "assign_subscription_permissions" {
 }
 
 variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
-  type = bool
+  description = "Disables the purge protection for Azure keyvaults."
 }
 
 variable "bootstrap" {}

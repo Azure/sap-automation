@@ -166,8 +166,8 @@ This block describes the variables for the authentication section block in the j
 # deployer_password_secret_name if provided contains the secret name for the password 
 #deployer_password_secret_name=""
 
-# assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
-#assign_subscription_permissions=true
+# deployer_assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
+#deployer_assign_subscription_permissions=true
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false

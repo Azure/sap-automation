@@ -145,7 +145,7 @@ stages:
                 git pull
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az extension add --name azure-devops --only-show-errors
+                az extension add --name azure-devops
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)

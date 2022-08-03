@@ -156,7 +156,9 @@ variable "library_ansible_blob_container_name" {
 }
 
 variable "enable_purge_control_for_keyvaults" {
-  default = true
+  description = "Disables the purge protection for Azure keyvaults."
+  default = false
+  type = bool
 }
 
 variable "use_private_endpoint" {

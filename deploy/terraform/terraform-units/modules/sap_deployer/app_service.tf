@@ -21,25 +21,30 @@ resource "azurerm_windows_web_app" "webapp" {
   auth_settings {
     enabled = true
     issuer  = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
+    default_provider = "AzureActiveDirectory"
     active_directory {
       client_id     = var.app_registration_app_id
       client_secret = var.webapp_client_secret
     }
+    unauthenticated_client_action = "RedirectToLoginPage"
   }
 
   site_config {
-    ip_restriction = [{
-      action                    = "Allow"
-      name                      = "Allow subnet access"
-      virtual_network_subnet_id = azurerm_subnet.subnet_mgmt[0].id
-      priority                  = 1
-      headers                   = []
-      ip_address                = null
-      service_tag               = null
-    }]
-    scm_use_main_ip_restriction = true
+    # ip_restriction = [{
+    #   action                    = "Allow"
+    #   name                      = "Allow subnet access"
+    #   virtual_network_subnet_id = azurerm_subnet.subnet_mgmt[0].id
+    #   priority                  = 1
+    #   headers                   = []
+    #   ip_address                = null
+    #   service_tag               = null
+    # }]
+    # scm_use_main_ip_restriction = true
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
   connection_string {
     name  = "CMDB"
     type  = "Custom"

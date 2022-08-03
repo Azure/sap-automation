@@ -294,9 +294,9 @@ terraform -chdir="${terraform_module_directory}" init  -reconfigure \
 --backend-config "key=${key}.terraform.tfstate"
 
 
-created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output created_resource_group_id | tr -d \")
+created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_id | tr -d \")
 created_resource_group_id_length=$(expr length "$created_resource_group_id")
-created_resource_group_subscription_id=$(terraform -chdir="${terraform_module_directory}" output created_resource_group_subscription_id | tr -d \")
+created_resource_group_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
 created_resource_group_subscription_id_length=$(expr length "$created_resource_group_subscription_id")
 
 if [ "${created_resource_group_id_length}" -eq 0 ] && [ "${created_resource_group_subscription_id_length}" -eq 0 ]; then

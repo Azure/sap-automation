@@ -62,7 +62,7 @@
 
 - name:                                "1.9 Kernel parameters - Set relevant kernel parameters"
   become:                              true
-  ansible.builtin.sysctl:
+  sysctl:
     name:                              "{{ item.name }}"
     value:                             "{{ item.value }}"
     state:                             "{{ item.state }}"

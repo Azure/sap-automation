@@ -15,6 +15,10 @@ output "created_resource_group_subscription_id" {
     value = module.sap_landscape.created_resource_group_subscription_id
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.sap_landscape.created_resource_group_name
+}
 
 output "workload_zone_prefix" {
   value = module.sap_landscape.workload_zone_prefix

@@ -23,6 +23,12 @@ output "created_resource_group_id" {
   value       = module.common_infrastructure.created_resource_group_id
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.common_infrastructure.created_resource_group_name
+}
+
+
 output "created_resource_group_subscription_id" {
   description = "Created resource group' subscription ID"
   value       = module.common_infrastructure.created_resource_group_subscription_id
@@ -117,3 +123,4 @@ output "disks" {
 output "sapmnt_path" {
   value = module.common_infrastructure.sapmnt_path
 }
+

@@ -246,8 +246,9 @@ variable "spn_keyvault_id" {
 }
 
 variable "enable_purge_control_for_keyvaults" {
-  description = "Disables the purge protection for Azure keyvaults. USE THIS ONLY FOR TEST ENVIRONMENTS"
-  default     = true
+  description = "Disables the purge protection for Azure keyvaults."
+  default = false
+  type = bool
 }
 
 #########################################################################################
@@ -757,7 +758,7 @@ variable "azure_files_sapmnt_id" {
   default     = ""
 }
 
-variable "azurerm_private_endpoint_connection_sapmnt_id" {
+variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
   default     = ""

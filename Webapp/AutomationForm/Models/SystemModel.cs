@@ -233,6 +233,9 @@ namespace AutomationForm.Models
         public string database_HANA_use_ANF_scaleout_scenario { get; set; }
 
         [BsonIgnoreIfNull]
+        public string dual_nics { get; set; }
+
+        [BsonIgnoreIfNull]
         [IpAddressValidator]
         public string[] database_vm_db_nic_secondary_ips { get; set; }
 
@@ -429,7 +432,7 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
          [PrivateEndpointIdValidator]
-        public string azurerm_private_endpoint_connection_sapmnt_id { get; set; }
+        public string sapmnt_private_endpoint_id { get; set; }
 
         // ANF Settings
 

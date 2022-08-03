@@ -19,14 +19,14 @@
 
     - name:                            Ensure the SAP HANA Topology resource is created
       ansible.builtin.shell: >
-                                      pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ hdb_instance_number }} SAPHanaTopology
-                                      SID={{ db_sid | upper }} InstanceNumber={{ hdb_instance_number }}
-                                      op start timeout=600
-                                      op stop timeout=300
-                                      op monitor interval=10 timeout=600
-                                      clone clone-max=2 clone-node-max=1 interleave=true
-      register:                       sap_hana_topology
-      failed_when:                    sap_hana_topology.rc > 1
+                                       pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ hdb_instance_number }} SAPHanaTopology
+                                       SID={{ db_sid | upper }} InstanceNumber={{ hdb_instance_number }}
+                                       op start timeout=600
+                                       op stop timeout=300
+                                       op monitor interval=10 timeout=600
+                                       clone clone-max=2 clone-node-max=1 interleave=true
+      register:                        sap_hana_topology
+      failed_when:                     sap_hana_topology.rc > 1
 
     - name:                            Ensure the SAP HANA resource is created
       ansible.builtin.shell: >

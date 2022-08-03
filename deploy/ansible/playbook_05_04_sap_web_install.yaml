@@ -61,14 +61,13 @@
 - hosts:                               "{{ sap_sid | upper }}_WEB"
 
   name:                                SAP Installation - WebDispatcher
-  become:                              true
+  serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
-  serial:                              1                                       # "{{ target_media_location }} is an NFS and we share SID/instance number
-  become_user:                         root
-  gather_facts:                        true
-
+  become:                              true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8

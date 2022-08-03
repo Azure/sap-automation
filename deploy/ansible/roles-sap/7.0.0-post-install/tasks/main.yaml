@@ -52,7 +52,7 @@
   when:                                sapinst_list_of_files is defined
 
 - name:                                "Post Installation: Compress the installation log files"
-  ansible.builtin.archive:
+  archive:
     path:                              "{{ sapinst_list_of_files }}"
     dest:                              "{{ tmp_directory }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
     format:                            zip
@@ -87,7 +87,7 @@
         - hana_log_files.files | length > 0
 
     - name:                            "Post Installation: Compress the installation log files (hana)"
-      ansible.builtin.archive:
+      archive:
         path:                          "{{ hana_list_of_files }}"
         dest:                          "/var/tmp/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
         format:                        zip
@@ -128,7 +128,7 @@
         - oracle_log_files.files | length > 0
 
     - name:                                "Post Installation: Compress the installation log files (Oracle)"
-      ansible.builtin.archive:
+      archive:
         path:                              "{{ oracle_list_of_files }}"
         dest:                              "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
         format:                            zip
