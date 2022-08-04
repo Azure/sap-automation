@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.1.7"
+  TF_VERSION="1.2.6"
 fi
 
 
