@@ -86,8 +86,8 @@ output "sa_connection_string" {
   sensitive = true
   value = var.use_webapp ? (
     local.sa_tfstate_exists ? (
-      data.azurerm_storage_account.storage_tfstate[0].id) : (
-      azurerm_storage_account.storage_tfstate[0].id
+      data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
+      azurerm_storage_account.storage_tfstate[0].primary_connection_string
     )
   ) : ""
 }
