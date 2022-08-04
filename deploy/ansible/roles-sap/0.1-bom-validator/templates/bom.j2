@@ -1,5 +1,6 @@
 name:      {{ root_bom.name }}
 filename:  {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
+
 target:    {{ root_bom.target }}
 version:   {{ root_bom.version }}
 platform:  {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
