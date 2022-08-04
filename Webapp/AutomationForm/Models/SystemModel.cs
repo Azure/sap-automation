@@ -11,31 +11,47 @@ namespace AutomationForm.Models
     [BsonIgnoreExtraElements]
     public class SystemModel
     {
+        public bool IsValid()
+        {
+            return
+                environment != null &&
+                location != null &&
+                network_logical_name != null &&
+                sid != null
+                ;
+        }
+
         [BsonId]
         [DisplayName("System ID")]
         public string Id { get; set; }
 
         // BASIC
 
+        public bool IsDefault { get; set; } = false;
+
         [BsonIgnoreIfNull]
         [DisplayName("Workload zone")]
         public string workload_zone { get; set; }
         
-        [Required]
+        [RequiredIfNotDefault]
+        [BsonIgnoreIfNull]
         [DisplayName("Environment")]
         public string environment { get; set; }
 
-        [Required]
+        [RequiredIfNotDefault]
+        [BsonIgnoreIfNull]
         [DisplayName("Location")]
         [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
         public string location { get; set; }
 
-        [Required]
+        [RequiredIfNotDefault]
+        [BsonIgnoreIfNull]
         [DisplayName("Network name")]
         [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
         public string network_logical_name { get; set; }
 
-        [Required]
+        [RequiredIfNotDefault]
+        [BsonIgnoreIfNull]
         [DisplayName("System ID")]
         public string sid { get; set; }
 
@@ -52,22 +68,22 @@ namespace AutomationForm.Models
 
         //[Required]
         [BsonIgnoreIfNull]
-        [IpAddressValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
+        [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
         public string admin_subnet_address_prefix { get; set; }
 
         //[Required]
         [BsonIgnoreIfNull]
-        [IpAddressValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
+        [AddressPrefixValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
         public string db_subnet_address_prefix { get; set; }
 
         //[Required]
         [BsonIgnoreIfNull]
-        [IpAddressValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
+        [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
         public string app_subnet_address_prefix { get; set; }
 
         //[Required]
         [BsonIgnoreIfNull]
-        [IpAddressValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
+        [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
         public string web_subnet_address_prefix { get; set; }
 
         [BsonIgnoreIfNull]
@@ -213,10 +229,10 @@ namespace AutomationForm.Models
         public string[] database_vm_avset_arm_ids { get; set; }
         
         [BsonIgnoreIfNull]
-        public string database_no_ppg { get; set; }
+        public bool? database_no_ppg { get; set; }
 
         [BsonIgnoreIfNull]
-        public string database_no_avset { get; set; }
+        public bool? database_no_avset { get; set; }
 
         [BsonIgnoreIfNull]
         public string[] database_tags { get; set; }
@@ -552,6 +568,9 @@ namespace AutomationForm.Models
 
         [BsonIgnoreIfNull]
         public bool? enable_purge_control_for_keyvaults { get; set; }
+
+        [BsonIgnoreIfNull]
+        public bool? deploy_application_security_groups { get; set; }
     }
 
     public class Image

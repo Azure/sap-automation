@@ -152,6 +152,23 @@ $$web_subnet_nsg_arm_id$$
 
 #########################################################################################
 #                                                                                       #
+#  ANF Subnet variables                                                                 #
+#                                                                                       #
+#########################################################################################
+
+# If defined these parameters control the subnet name and the subnet prefix
+# anf_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+$$anf_subnet_name$$
+
+# anf_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet
+$$anf_subnet_arm_id$$
+
+# ANF requires a dedicated subnet, the address space for the subnet is provided with  anf_subnet_address_prefix 
+# anf_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
+$$anf_subnet_address_prefix$$
+
+#########################################################################################
+#                                                                                       #
 #  Azure Keyvault support                                                               #
 #                                                                                       #
 #########################################################################################
@@ -167,6 +184,10 @@ $$automation_keyvault_id$$
 # The SPN keyvault is designed to host the SPN credentials used by the automation
 # spn_keyvault_id is an optional parameter that if provided specifies the Azure resource identifier for an existing keyvault
 $$spn_keyvault_id$$
+
+# enable_purge_control_for_keyvaults is an optional parameter that czan be used to disable the purge protection fro Azure keyvaults
+# USE THIS ONLY FOR TEST ENVIRONMENTS
+$$enable_purge_control_for_keyvaults$$
 
 #########################################################################################
 #                                                                                       #
@@ -192,10 +213,6 @@ $$automation_path_to_private_key$$
 $$diagnostics_storage_account_arm_id$$
 
 $$witness_storage_account_arm_id$$
-
-# enable_purge_control_for_keyvaults is an optional parameter that czan be used to disable the purge protection fro Azure keyvaults
-# USE THIS ONLY FOR TEST ENVIRONMENTS
-$$enable_purge_control_for_keyvaults$$
 
 #########################################################################################
 #                                                                                       #
@@ -342,6 +359,8 @@ $$iscsi_nic_ips$$
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
 # The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
 # The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+
+$$subscription$$
 
 $$resourcegroup_name$$
 

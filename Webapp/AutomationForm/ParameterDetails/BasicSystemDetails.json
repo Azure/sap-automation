@@ -2,8 +2,35 @@
   "Tab": "Basic",
   "Groupings": [
     {
+      "Section": "Set as default",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+      "Parameters": [
+        {
+          "Name": "IsDefault",
+          "Required": false,
+          "Description": "Controls if this workload zone will be set as the default. If true, missing required parameters will be allowed.",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
       "Section": "Existing workload zone",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deploy-workload-zone?branch=main&tabs=linux%2Cdevops",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-deploy-workload-zone?branch=main&tabs=linux%2Cdevops",
       "Parameters": [
         {
           "Name": "workload_zone",
@@ -21,17 +48,9 @@
       ]
     },
     {
-      "Section": "Common infrastructure",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#environment-parameters",
+      "Section": "Environment",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#environment-parameters",
       "Parameters": [
-        {
-          "Name": "sid",
-          "Required": true,
-          "Description": "The sid is a mandatory field that defines the SAP Application System ID",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
         {
           "Name": "environment",
           "Required": true,
@@ -77,13 +96,7 @@
             }
           ],
           "Overrules": ""
-        }
-      ]
-    },
-    {
-      "Section": "Network",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
-      "Parameters": [
+        },
         {
           "Name": "network_logical_name",
           "Required": true,
@@ -93,6 +106,357 @@
           "Overrules": ""
         }
       ]
+    },
+    {
+      "Section": "Database tier",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
+      "Parameters": [
+        {
+          "Name": "database_platform",
+          "Required": false,
+          "Description": "The type of database backend",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "HANA",
+              "Value": "HANA"
+            },
+            {
+              "Text": "DB2",
+              "Value": "DB2"
+            },
+            {
+              "Text": "ORACLE",
+              "Value": "ORACLE"
+            },
+            {
+              "Text": "ASE",
+              "Value": "ASE"
+            },
+            {
+              "Text": "SQL SERVER",
+              "Value": "SQL SERVER"
+            },
+            {
+              "Text": "NONE",
+              "Value": "NONE"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_high_availability",
+          "Required": false,
+          "Description": "Defines if the database tier is deployed highly available",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_size",
+          "Required": false,
+          "Description": "If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_sid",
+          "Required": false,
+          "Description": "Defines the database SID",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_server_count",
+          "Required": false,
+          "Description": "The number of database servers",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_image",
+          "Required": false,
+          "Description": "Defines the Virtual machine image to use",
+          "Type": "image",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "database_vm_zones",
+          "Required": false,
+          "Description": "Defines the availability zones to which the database servers are deployed",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "1",
+              "Value": "1"
+            },
+            {
+              "Text": "2",
+              "Value": "2"
+            },
+            {
+              "Text": "3",
+              "Value": "3"
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Application tier",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
+      "Parameters": [
+        {
+          "Name": "sid",
+          "Required": true,
+          "Description": "The sid is a mandatory field that defines the SAP Application System ID",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "enable_app_tier_deployment",
+          "Required": false,
+          "Description": "Controls if the application tier should be deployed",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "app_tier_vm_sizing",
+          "Required": false,
+          "Description": "Defines the VM SKU and the disk layout for the application tier servers. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "SAP Central Services",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
+      "Parameters": [
+        {
+          "Name": "scs_server_count",
+          "Required": false,
+          "Description": "Defines how many scs servers to deploy",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "scs_high_availability",
+          "Required": false,
+          "Description": "Provides the SKU to use for the scs servers",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "scs_server_image",
+          "Required": false,
+          "Description": "Defines the virtual machine image to use for the scs servers",
+          "Type": "image",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "scs_server_zones",
+          "Required": false,
+          "Description": "Defines the availability zones to which deploy the scs servers",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Application servers",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
+      "Parameters": [
+        {
+          "Name": "application_server_count",
+          "Required": false,
+          "Description": "Defines how many application servers to deploy",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "application_server_image",
+          "Required": false,
+          "Description": "Defines the virtual machine image to use for the application servers",
+          "Type": "image",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "application_server_zones",
+          "Required": false,
+          "Description": "Defines the availability zones to which deploy the application servers",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Web dispatchers",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
+      "Parameters": [
+        {
+          "Name": "webdispatcher_server_count",
+          "Required": false,
+          "Description": "Defines how many webdispatcher servers to deploy",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "webdispatcher_server_image",
+          "Required": false,
+          "Description": "Defines the virtual machine image to use for the webdispatcher servers",
+          "Type": "image",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        },
+        {
+          "Name": "webdispatcher_server_zones",
+          "Required": false,
+          "Description": "Defines the availability zones to which deploy the webdispatcher servers",
+          "Type": "list",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "NFS and Shared Files Settings",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
+      "Parameters": [
+        {
+          "Name": "NFS_provider",
+          "Required": false,
+          "Description": "Defines how NFS services are provided to the SAP systems: AFS (Azure Files for NFS), ANF (Azure NetApp Files), NFS (custom solution)",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "AFS",
+              "Value": "AFS"
+            },
+            {
+              "Text": "ANF",
+              "Value": "ANF"
+            },
+            {
+              "Text": "NFS",
+              "Value": "NFS"
+            },
+            {
+              "Text": "NONE",
+              "Value": "NONE"
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
     }
+
   ]
 }

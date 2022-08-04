@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Templates";
+    string sourceController = ViewBag.SourceController;
 }
 
 <script>
@@ -23,7 +24,7 @@
 <table class="table">
     <tr>
         <th>
-            Landscapes
+            Workload zones
         </th>
         <th></th>
     </tr>
@@ -35,7 +36,7 @@
                 @file.Substring(file.LastIndexOf('/') + 1)
             </td>
             <td class="td-align-right">
-                @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file })
+                @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file, sourceController=$"{sourceController}" })
             </td>
         </tr>
     }
@@ -53,7 +54,7 @@
                 @file.Substring(file.LastIndexOf('/') + 1)
             </td>
             <td class="td-align-right">
-                @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file })
+                @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file, sourceController=$"{sourceController}" })
             </td>
         </tr>
     }
@@ -61,7 +62,7 @@
 </table>
 
 <p>
-    <fluent-anchor href="@Url.Action("Index", "File")">
+    <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
         Back to list
     </fluent-anchor>
 </p>

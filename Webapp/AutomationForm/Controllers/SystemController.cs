@@ -1,26 +1,33 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AutomationForm.Models;
 using AutomationForm.Services;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.Net.Http.Headers;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Azure;
+using Azure.Data.Tables;
 
 namespace AutomationForm.Controllers
 {
     public class SystemController : Controller
     {
 
-        private readonly ILandscapeService<SystemModel> _systemService;
+        private readonly ITableStorageService<SystemEntity> _systemService;
+        private readonly ITableStorageService<AppFile> _appFileService;
         private SystemViewModel systemView;
         private readonly IConfiguration _configuration;
         private RestHelper restHelper;
 
-        public SystemController(ILandscapeService<SystemModel> systemService, IConfiguration configuration)
+        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _systemService = systemService;
+            _appFileService = appFileService;
             _configuration = configuration;
             restHelper = new RestHelper(configuration);
             systemView = SetViewData();
@@ -48,17 +55,41 @@ namespace AutomationForm.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
-            ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
-            return View(await _systemService.GetAllAsync());
+            SystemIndexModel systemIndex = new SystemIndexModel();
+            
+            List<SystemEntity> systemEntities = await _systemService.GetAllAsync();
+            List<SystemModel> systems = systemEntities.FindAll(s => s.System != null).ConvertAll(s => JsonConvert.DeserializeObject<SystemModel>(s.System));
+            systemIndex.Systems = systems;
+
+            List<AppFile> appfiles = await _appFileService.GetAllAsync();
+            systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+
+            return View(systemIndex);
         }
 
         [HttpGet]
-        public async Task<ActionResult<SystemModel>> GetById(string id)
+        public async Task<SystemModel> GetById(string id, string partitionKey)
         {
-            var system = await _systemService.GetByIdAsync(id);
-            if (system == null) return NotFound();
+            if (id == null || partitionKey == null) throw new ArgumentNullException();
+            var systemEntity = await _systemService.GetByIdAsync(id, partitionKey);
+            if (systemEntity == null || systemEntity.System == null) throw new KeyNotFoundException();
+            return JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
+        }
 
-            return system;
+        [HttpGet]
+        public async Task<SystemModel> GetDefault()
+        {
+            SystemEntity defaultSystem = await _systemService.GetDefault();
+            if (defaultSystem == null || defaultSystem.System == null) return null;
+            return JsonConvert.DeserializeObject<SystemModel>(defaultSystem.System);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetDefaultJson()
+        {
+            SystemEntity systemEntity = await _systemService.GetDefault();
+            if (systemEntity == null) return NotFound();
+            return Json(systemEntity.System);
         }
 
         [ActionName("Create")]
@@ -76,9 +107,14 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
+                    if (system.IsDefault)
+                    {
+                        await UnsetDefault(system.Id);
+                    }
                     system.Id = Helper.GenerateId(system);
-                    await _systemService.CreateAsync(system);
-                    TempData["success"] = "Successfully created sytsem " + system.Id;
+                    SystemEntity systemEntity = new SystemEntity(system);
+                    await _systemService.CreateAsync(systemEntity);
+                    TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
                 catch (Exception e)
@@ -93,29 +129,31 @@ namespace AutomationForm.Controllers
         }
 
         [ActionName("Deploy")]
-        public async Task<IActionResult> DeployAsync(string id)
+        public async Task<IActionResult> DeployAsync(string id, string partitionKey)
         {
-            if (id == null)
+            try
             {
-                return BadRequest();
-            }
+                SystemModel system = await GetById(id, partitionKey);
 
-            SystemModel system = await _systemService.GetByIdAsync(id);
-            if (system == null)
+                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                ViewBag.Environments = environments;
+
+                return View(system);
+            }
+            catch (Exception e)
             {
-                return NotFound();
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
             }
-
-            return View(system);
         }
 
         [HttpPost]
         [ActionName("Deploy")]
-        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string workload_environment)
+        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string workload_environment)
         {
             try
             {
-                SystemModel system = GetById(id).Result.Value;
+                SystemModel system = await GetById(id, partitionKey);
 
                 string path = $"samples/WORKSPACES/SYSTEM/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
@@ -162,22 +200,19 @@ namespace AutomationForm.Controllers
         // }
 
         [ActionName("Edit")]
-        public async Task<IActionResult> EditAsync(string id)
+        public async Task<IActionResult> EditAsync(string id, string partitionKey)
         {
-            if (id == null)
+            try
             {
-                return BadRequest();
+                SystemModel system = await GetById(id, partitionKey);
+                systemView.System = system;
+                return View(systemView);
             }
-
-            SystemModel system = await _systemService.GetByIdAsync(id);
-            if (system == null)
+            catch (Exception e)
             {
-                return NotFound();
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
             }
-
-            systemView.System = system;
-
-            return View(systemView);
         }
 
         [HttpPost]
@@ -195,7 +230,11 @@ namespace AutomationForm.Controllers
                 }
                 else
                 {
-                    await _systemService.UpdateAsync(system);
+                    if (system.IsDefault)
+                    {
+                        await UnsetDefault(system.Id);
+                    }
+                    await _systemService.UpdateAsync(new SystemEntity(system));
                     TempData["success"] = "Successfully updated system " + system.Id;
                     return RedirectToAction("Index");
                 }
@@ -215,8 +254,12 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
+                    if (system.IsDefault)
+                    {
+                        await UnsetDefault(system.Id);
+                    }
                     system.Id = Helper.GenerateId(system);
-                    await _systemService.CreateAsync(system);
+                    await _systemService.CreateAsync(new SystemEntity(system));
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
@@ -232,21 +275,27 @@ namespace AutomationForm.Controllers
         }
 
         [ActionName("Details")]
-        public async Task<IActionResult> DetailsAsync(string id)
-        {
-            SystemModel system = await _systemService.GetByIdAsync(id);
-            if (system == null) return NotFound();
-            systemView.System = system;
-            return View(systemView);
-        }
-
-        [ActionName("Download")]
-        public ActionResult DownloadFile(string id)
+        public async Task<IActionResult> DetailsAsync(string id, string partitionKey)
         {
             try
             {
-                if (id == null) return BadRequest();
-                SystemModel system = GetById(id).Result.Value;
+                SystemModel system = await GetById(id, partitionKey);
+                systemView.System = system;
+                return View(systemView);
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [ActionName("Download")]
+        public ActionResult DownloadFile(string id, string partitionKey)
+        {
+            try
+            {
+                SystemModel system = GetById(id, partitionKey).Result;
 
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
@@ -257,10 +306,49 @@ namespace AutomationForm.Controllers
                     FileDownloadName = path
                 };
             }
-            catch
+            catch (Exception e)
             {
-                TempData["error"] = "Something went wrong downloading file " + id;
+                TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
                 return RedirectToAction("Index");
+            }
+        }
+
+        [ActionName("MakeDefault")]
+        public async Task<IActionResult> MakeDefault(string id, string partitionKey)
+        {
+            try
+            {
+                // Unset the existing default
+                await UnsetDefault(id);
+
+                // Update current system as default
+                SystemModel system = await GetById(id, partitionKey);
+                system.IsDefault = true;
+                SystemEntity systemEntity = new SystemEntity(system);
+                await _systemService.UpdateAsync(systemEntity);
+            }
+            catch (Exception e)
+            {
+                ModelState.AddModelError("SystemId", "Error setting default for system: " + e.Message);
+            }
+            return RedirectToAction("Index");
+        }
+
+        public async Task UnsetDefault(string id)
+        {
+            try
+            {
+                SystemModel existingDefault = await GetDefault();
+                if (existingDefault != null && existingDefault.Id != id)
+                {
+                    existingDefault.IsDefault = false;
+                    await _systemService.UpdateAsync(new SystemEntity(existingDefault));
+                    Console.WriteLine("Unset existing default " + existingDefault.Id);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error unsetting the current default object: " + e.Message);
             }
         }
 

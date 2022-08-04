@@ -331,7 +331,7 @@ variable "agent_ado_url" {
 }
 
 /*
-This block describes the variables for use with the web app and cosmos db
+This block describes the variables for use with the web app
 */
 
 variable "use_webapp" {
@@ -342,7 +342,7 @@ variable "app_registration_app_id" {
   default = ""
 }
 
-variable "cmdb_connection_string" {
+variable "sa_connection_string" {
   type = string
   default = ""
 }
@@ -352,10 +352,3 @@ variable "webapp_client_secret" {
   default = ""
 }
 
-variable "cmdb_subnet_arm_id" {
-  default = ""
-}
-
-variable "cmdb_subnet_address_prefix" {
-  default = ""
-}

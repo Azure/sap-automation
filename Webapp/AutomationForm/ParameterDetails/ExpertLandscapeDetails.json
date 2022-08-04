@@ -3,7 +3,7 @@
   "Groupings": [
     {
       "Section": "Subscription *",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
       "Parameters": [
         {
           "Name": "subscription",
@@ -22,7 +22,7 @@
     },
     {
       "Section": "Common infrastructure",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#resource-group-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#resource-group-parameters",
       "Parameters": [
         {
           "Name": "resourcegroup_arm_id",
@@ -49,7 +49,7 @@
     },
     {
       "Section": "Network",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "network_arm_id",
@@ -76,7 +76,7 @@
     },
     {
       "Section": "Admin subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "admin_subnet_arm_id",
@@ -103,7 +103,7 @@
     },
     {
       "Section": "Admin subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "admin_subnet_nsg_arm_id",
@@ -130,7 +130,7 @@
     },
     {
       "Section": "Database subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "db_subnet_arm_id",
@@ -157,7 +157,7 @@
     },
     {
       "Section": "Database subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "db_subnet_nsg_arm_id",
@@ -184,7 +184,7 @@
     },
     {
       "Section": "Application subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "app_subnet_arm_id",
@@ -211,7 +211,7 @@
     },
     {
       "Section": "Application subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "app_subnet_nsg_arm_id",
@@ -238,7 +238,7 @@
     },
     {
       "Section": "Web subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "web_subnet_arm_id",
@@ -265,7 +265,7 @@
     },
     {
       "Section": "Web subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "web_subnet_nsg_arm_id",
@@ -292,7 +292,7 @@
     },
     {
       "Section": "ISCSI subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
       "Parameters": [
         {
           "Name": "iscsi_subnet_arm_id",
@@ -327,7 +327,7 @@
     },
     {
       "Section": "ISCSI subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
       "Parameters": [
         {
           "Name": "iscsi_subnet_nsg_arm_id",
@@ -354,7 +354,7 @@
     },
     {
       "Section": "ANF subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "anf_subnet_arm_id",
@@ -442,7 +442,7 @@
     },
     {
       "Section": "ANF Support",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-netapp-files-support",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-netapp-files-support",
       "Parameters": [
         {
           "Name": "ANF_use_existing_pool",
@@ -567,7 +567,7 @@
     },
     {
       "Section": "ANF subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "anf_subnet_nsg_arm_id",
@@ -594,7 +594,7 @@
     },
     {
       "Section": "Azure keyvault support",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#key-vault-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#key-vault-parameters",
       "Parameters": [
         {
           "Name": "user_keyvault_id",
@@ -660,7 +660,7 @@
     },
     {
       "Section": "Credentials",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#authentication-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#authentication-parameters",
       "Parameters": [
         {
           "Name": "automation_password",
@@ -690,7 +690,7 @@
     },
     {
       "Section": "Private DNS support",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#private-dns",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#private-dns",
       "Parameters": [
         {
           "Name": "dns_label",
@@ -712,7 +712,7 @@
     },
     {
       "Section": "NFS support",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#nfs-support",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#nfs-support",
       "Parameters": [
         {
           "Name": "NFS_provider",
@@ -751,7 +751,7 @@
     },
     {
       "Section": "Storage Account",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-files-nfs-support",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-files-nfs-support",
       "Parameters": [
         {
           "Name": "diagnostics_storage_account_arm_id",
@@ -843,7 +843,7 @@
     },
     {
       "Section": "Terraform system parameters",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#terraform-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#terraform-parameters",
       "Parameters": [
         {
           "Name": "deployer_tfstate_key",

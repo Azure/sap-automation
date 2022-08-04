@@ -350,7 +350,7 @@ $$webdispatcher_server_image$$
 
 #########################################################################################
 #                                                                                       #
-#  Miscallaneous settings                                                               #
+#  Miscellaneous settings                                                               #
 #                                                                                       #
 #########################################################################################
 
@@ -364,6 +364,9 @@ $$resource_offset$$
 
 # vm_disk_encryption_set_id if defined defines the custom encryption key 
 $$vm_disk_encryption_set_id$$
+
+# deploy_application_security_groups if defined will create application security groups
+$$deploy_application_security_groups$$
 
 #########################################################################################
 #                                                                                       #
@@ -477,6 +480,8 @@ $$nsg_asg_with_vnet$$
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
 # The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
 # The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+
+$$subscription$$
 
 $$resourcegroup_name$$
 

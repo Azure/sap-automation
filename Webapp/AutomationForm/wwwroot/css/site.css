@@ -369,6 +369,10 @@ label.required:after {
 
 
 /* Table */
+td {
+    vertical-align: middle !important;
+}
+
 .table-scroll {
     overflow-y: auto;
     max-height: 60vh;
@@ -383,6 +387,7 @@ label.required:after {
 .table-scroll thead th {
     background: #eee;
     position: sticky;
+    z-index: 1;
     top: 0;
 }
 
@@ -424,4 +429,31 @@ label.required:after {
 
 .td-align-right {
     text-align: right;
+}
+
+/* Cards */
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-content: flex-start;
+    gap: 10px;
+    margin: auto;
+    margin-bottom: 1rem;
+}
+
+.card-inner {
+    margin: 4%;
+    text-align: center;
+}
+
+fluent-card {
+    flex-grow: 1;
+    max-width: 21%;
+    height: auto;
+    transition: 0.3s;
+}
+
+fluent-card:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
 }

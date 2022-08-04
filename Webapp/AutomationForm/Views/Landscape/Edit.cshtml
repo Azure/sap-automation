@@ -3,7 +3,7 @@
 @using System.Text.Json
 
 @{
-    ViewBag.Title = "Edit landscape";
+    ViewBag.Title = "Edit workload zone";
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -45,7 +45,7 @@
 
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
-    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Landscapes</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Workload zones</fluent-breadcrumb-item>
     <fluent-breadcrumb-item href="#">Edit</fluent-breadcrumb-item>
 </fluent-breadcrumb>
 
@@ -54,7 +54,7 @@
     <div class="text-center">
         <h2 style="text-align: center">@Model.Landscape.Id</h2>
         <p>
-            <a href="https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
+            <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
                 More information on configuring the workload zone
             </a>
         </p>
@@ -143,10 +143,6 @@
         <fluent-anchor href="@Url.Action("Index", "Landscape")">
             Cancel
         </fluent-anchor>
-        
-        <fluent-button appearance="accent" style="margin-top: 15px; float: right" type="submit" onclick="submitting=true" formaction="/Landscape/SubmitNew">
-            Save as new landscape
-        </fluent-button>
 
     </form>
 </div>

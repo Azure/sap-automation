@@ -40,11 +40,11 @@ namespace AutomationForm
             services.AddSingleton<IDatabaseSettings>(sp =>
                 sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
 
-            services.AddSingleton<MongoService>();
+            services.AddSingleton<TableStorageService>();
 
-            services.AddScoped<ILandscapeService<LandscapeModel>, LandscapeService>();
-            services.AddScoped<ILandscapeService<SystemModel>, SystemService>();
-            services.AddScoped<ILandscapeService<AppFile>, AppFileService>();
+            services.AddScoped<ITableStorageService<LandscapeEntity>, LandscapeService>();
+            services.AddScoped<ITableStorageService<SystemEntity>, SystemService>();
+            services.AddScoped<ITableStorageService<AppFile>, AppFileService>();
 
             services.AddAzureClients(builder =>
             {
@@ -53,7 +53,9 @@ namespace AutomationForm
                 });
             });
 
-            services.AddControllersWithViews();
+            services.AddControllersWithViews(options => {
+                options.Filters.Add<Controllers.ViewBagActionFilter>();
+            });
             services.AddRazorPages();
         }
 
