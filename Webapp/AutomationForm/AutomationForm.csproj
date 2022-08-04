@@ -26,8 +26,6 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="1.10.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.10.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.5" />
-    <PackageReference Include="MongoDB.Bson" Version="2.13.2" />
-    <PackageReference Include="MongoDB.Driver" Version="2.13.2" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 

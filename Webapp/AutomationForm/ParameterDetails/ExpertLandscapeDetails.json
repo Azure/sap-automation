@@ -81,7 +81,7 @@
         {
           "Name": "admin_subnet_arm_id",
           "Required": false,
-          "Description": "Specifies Azure resource identifier for the existing subnet to use",
+          "Description": "Specifies Azure resource identifier for the existing admin subnet to use",
           "Type": "lookup",
           "Options": [
             {
@@ -108,7 +108,7 @@
         {
           "Name": "admin_subnet_nsg_arm_id",
           "Required": false,
-          "Description": "Specifies Azure resource identifier for the existing network security group to use",
+          "Description": "Specifies Azure resource identifier for the existing admin network security group to use",
           "Type": "lookup",
           "Options": [
             {
