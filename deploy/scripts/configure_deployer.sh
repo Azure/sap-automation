@@ -454,7 +454,7 @@ export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation
 
 # Set env for ansible
 export ANSIBLE_HOST_KEY_CHECKING=False 
-export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} 
+export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections:${ansible_collections} 
 
 # Set env for MSI
 export ARM_USE_MSI=true
