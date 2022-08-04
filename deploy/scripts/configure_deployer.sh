@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.1.7"
+  TF_VERSION="1.2.6"
 fi
 
 
@@ -454,7 +454,7 @@ export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation
 
 # Set env for ansible
 export ANSIBLE_HOST_KEY_CHECKING=False 
-export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} 
+export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections:${ansible_collections} 
 
 # Set env for MSI
 export ARM_USE_MSI=true
