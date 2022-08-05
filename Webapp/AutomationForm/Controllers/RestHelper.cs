@@ -65,9 +65,9 @@ namespace AutomationForm.Controllers
             string ooId;
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
-            response.EnsureSuccessStatusCode();
-
             string responseBody = await response.Content.ReadAsStringAsync();
+            HandleResponse(response, responseBody);
+
             ooId = JsonDocument.Parse(responseBody).RootElement.GetProperty("value")[0].GetProperty("objectId").GetString();
 
             // Create request body
