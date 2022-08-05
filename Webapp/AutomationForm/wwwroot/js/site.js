@@ -470,6 +470,30 @@ $("#database_platform").on("change", function () {
 // TOGGLE FUNCTIONS
 // ========================
 
+function toggleDefault(checkbox, id, modelType) {
+    var modelDisplayText = (modelType == "Landscape") ? "workload zone." : "system."
+    if (checkbox.checked) {
+        var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the default " + modelDisplayText;
+        if (confirm(confirmMessage)) {
+            $.ajax({
+                type: "GET",
+                url: "/" + modelType + "/GetDefaultJson",
+                data: {},
+                success: function (data) {
+                    data = JSON.parse(data);
+                    data['IsDefault'] = false;
+                    updateModel(data);
+                },
+                error: function () {
+                    alert("Error populating data using the default " + modelDisplayText);
+                }
+            });
+        } else {
+            $("#" + id).prop('checked', false);
+        }
+    }
+}
+
 function toggleDisableViaCheckbox(checkbox, id) {
     if (checkbox.checked) {
         $("#" + id).prop('disabled', false);

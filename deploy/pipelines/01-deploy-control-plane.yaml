@@ -204,7 +204,6 @@ stages:
                     error_message=$(cat .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
                     echo "##vso[task.logissue type=error]Error message: $error_message."
                   fi
-
                 fi
 
                 if [[ 1 -eq $ip_added ]]; then

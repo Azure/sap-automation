@@ -2,8 +2,35 @@
   "Tab": "Basic",
   "Groupings": [
     {
-      "Section": "Common infrastructure",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#environment-parameters",
+      "Section": "Set as default",
+      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+      "Parameters": [
+        {
+          "Name": "IsDefault",
+          "Required": false,
+          "Description": "Controls if this workload zone will be set as the default. If true, missing required parameters will be allowed.",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
+        }
+      ]
+    },
+    {
+      "Section": "Environment",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone#environment-parameters",
       "Parameters": [
         {
           "Name": "environment",
@@ -50,7 +77,13 @@
             }
           ],
           "Overrules": ""
-        },
+        }
+      ]
+    },
+    {
+      "Section": "Network",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone#network-parameterss",
+      "Parameters": [
         {
           "Name": "network_logical_name",
           "Required": true,
@@ -62,11 +95,52 @@
         {
           "Name": "network_address_space",
           "Required": true,
-          "Description": "Mandatory when an existing virtual network is not used",
+          "Description": "Virtual network address space. Ensure sufficient size for all the workload Virtual machines and other network resources",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "admin_subnet_address_prefix",
+          "Required": true,
+          "Description": "Admin subnet address prefix",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "db_subnet_address_prefix",
+          "Required": true,
+          "Description": "Database subnet address prefix",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "app_subnet_address_prefix",
+          "Required": true,
+          "Description": "Application subnet address prefix",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "web_subnet_address_prefix",
+          "Required": true,
+          "Description": "Web subnet address prefix",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
+        {
+          "Name": "anf_subnet_address_prefix",
+          "Required": true,
+          "Description": "ANF subnet address prefix",
           "Type": "field",
           "Options": [],
           "Overrules": ""
         }
+
       ]
     }
   ]

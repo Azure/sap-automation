@@ -55,7 +55,7 @@
     <div class="text-center">
         <h2 style="text-align: center">New system</h2>
         <p>
-            <a href="https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main" target="_blank" rel="noopener noreferrer">
+            <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main" target="_blank" rel="noopener noreferrer">
                 More information on configuring the system
             </a>
         </p>
@@ -87,6 +87,7 @@
                 }
             </ul>
 
+            <fluent-checkbox id="system-default-checkbox" onchange="toggleDefault(this, 'system-default-checkbox', 'System')">Use default</fluent-checkbox><br />
             <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
 
             @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)

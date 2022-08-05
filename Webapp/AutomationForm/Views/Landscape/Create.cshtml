@@ -2,7 +2,7 @@
 @using System.Text.Json
 
 @{
-    ViewBag.Title = "Create landscape";
+    ViewBag.Title = "Create workload zone";
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -42,7 +42,7 @@
 
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
-    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Landscapes</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Workload zones</fluent-breadcrumb-item>
     <fluent-breadcrumb-item href="#">Create</fluent-breadcrumb-item>
 </fluent-breadcrumb>
 
@@ -51,7 +51,7 @@
     <div class="text-center">
         <h2 style="text-align: center">New workload zone</h2>
         <p>
-            <a href="https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
+            <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
                 More information on configuring the workload zone
             </a>
         </p>
@@ -83,6 +83,7 @@
                 }
             </ul>
 
+            <fluent-checkbox id="landscape-default-checkbox" onchange="toggleDefault(this, 'landscape-default-checkbox','Landscape')">Use default</fluent-checkbox><br />
             <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
 
             @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)

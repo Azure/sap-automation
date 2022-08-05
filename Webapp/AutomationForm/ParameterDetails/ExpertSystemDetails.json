@@ -3,7 +3,7 @@
   "Groupings": [
     {
       "Section": "Subscription *",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
       "Parameters": [
         {
           "Name": "subscription",
@@ -21,9 +21,18 @@
       ]
     },
     {
-      "Section": "Common infrastructure",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#environment-parameters",
+      "Section": "Environment settings",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#environment-parameters",
       "Parameters": [
+        
+        {
+          "Name": "resourcegroup_name",
+          "Required": false,
+          "Description": "Override the name of the resource group that will be provisioned",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
         {
           "Name": "resourcegroup_arm_id",
           "Required": false,
@@ -36,14 +45,6 @@
             }
           ],
           "Overrules": "resourcegroup_name"
-        },
-        {
-          "Name": "resourcegroup_name",
-          "Required": false,
-          "Description": "Override the name of the resource group that will be provisioned",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
         },
         {
           "Name": "custom_prefix",
@@ -77,28 +78,18 @@
       ]
     },
     {
-      "Section": "Network",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
-      "Parameters": [
-        {
-          "Name": "network_arm_id",
-          "Required": false,
-          "Description": "Specifies Azure resource identifier for the existing virtual network",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
-          "Overrules": ""
-        }
-      ]
-    },
-    {
       "Section": "Admin subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
+        
+        {
+          "Name": "admin_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
         {
           "Name": "admin_subnet_arm_id",
           "Required": false,
@@ -113,19 +104,13 @@
           "Overrules": "admin_subnet_address_prefix"
         },
         {
-          "Name": "admin_subnet_name",
+          "Name": "admin_subnet_nsg_name",
           "Required": false,
-          "Description": "Should only be used if the default naming is not acceptable",
+          "Description": "Should only be used if the default admin network security group name is not acceptable",
           "Type": "field",
           "Options": [],
           "Overrules": ""
-        }
-      ]
-    },
-    {
-      "Section": "Admin subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
-      "Parameters": [
+        },
         {
           "Name": "admin_subnet_nsg_arm_id",
           "Required": false,
@@ -138,21 +123,21 @@
             }
           ],
           "Overrules": "admin_subnet_nsg_name"
-        },
-        {
-          "Name": "admin_subnet_nsg_name",
-          "Required": false,
-          "Description": "Should only be used if the default admin network security group name is not acceptable",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
         }
       ]
     },
     {
       "Section": "Database subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
+        {
+          "Name": "db_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
         {
           "Name": "db_subnet_arm_id",
           "Required": false,
@@ -167,19 +152,13 @@
           "Overrules": "db_subnet_address_prefix"
         },
         {
-          "Name": "db_subnet_name",
+          "Name": "db_subnet_nsg_name",
           "Required": false,
-          "Description": "Should only be used if the default naming is not acceptable",
+          "Description": "Should only be used if the default database network security group name is not acceptable",
           "Type": "field",
           "Options": [],
           "Overrules": ""
-        }
-      ]
-    },
-    {
-      "Section": "Database subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
-      "Parameters": [
+        },
         {
           "Name": "db_subnet_nsg_arm_id",
           "Required": false,
@@ -192,21 +171,21 @@
             }
           ],
           "Overrules": "db_subnet_nsg_name"
-        },
-        {
-          "Name": "db_subnet_nsg_name",
-          "Required": false,
-          "Description": "Should only be used if the default database network security group name is not acceptable",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        }
+        }        
       ]
     },
     {
       "Section": "Application subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
+        {
+          "Name": "app_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
         {
           "Name": "app_subnet_arm_id",
           "Required": false,
@@ -221,19 +200,13 @@
           "Overrules": "app_subnet_address_prefix"
         },
         {
-          "Name": "app_subnet_name",
+          "Name": "app_subnet_nsg_name",
           "Required": false,
-          "Description": "Should only be used if the default naming is not acceptable",
+          "Description": "Should only be used if the default application network security group name is not acceptable",
           "Type": "field",
           "Options": [],
           "Overrules": ""
-        }
-      ]
-    },
-    {
-      "Section": "Application subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
-      "Parameters": [
+        },
         {
           "Name": "app_subnet_nsg_arm_id",
           "Required": false,
@@ -246,21 +219,21 @@
             }
           ],
           "Overrules": "app_subnet_nsg_name"
-        },
-        {
-          "Name": "app_subnet_nsg_name",
-          "Required": false,
-          "Description": "Should only be used if the default application network security group name is not acceptable",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
         }
       ]
     },
     {
       "Section": "Web subnet",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
       "Parameters": [
+        {
+          "Name": "web_subnet_name",
+          "Required": false,
+          "Description": "Should only be used if the default naming is not acceptable",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        },
         {
           "Name": "web_subnet_arm_id",
           "Required": false,
@@ -275,19 +248,13 @@
           "Overrules": "web_subnet_address_prefix"
         },
         {
-          "Name": "web_subnet_name",
+          "Name": "web_subnet_nsg_name",
           "Required": false,
-          "Description": "Should only be used if the default naming is not acceptable",
+          "Description": "Should only be used if the default web network security group name is not acceptable",
           "Type": "field",
           "Options": [],
           "Overrules": ""
-        }
-      ]
-    },
-    {
-      "Section": "Web subnet network security group",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
-      "Parameters": [
+        },
         {
           "Name": "web_subnet_nsg_arm_id",
           "Required": false,
@@ -300,79 +267,13 @@
             }
           ],
           "Overrules": "web_subnet_nsg_name"
-        },
-        {
-          "Name": "web_subnet_nsg_name",
-          "Required": false,
-          "Description": "Should only be used if the default web network security group name is not acceptable",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
         }
       ]
     },
     {
       "Section": "Database tier",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#database-tier-parameters",
       "Parameters": [
-        {
-          "Name": "database_platform",
-          "Required": false,
-          "Description": "The type of database backend",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "HANA",
-              "Value": "HANA"
-            },
-            {
-              "Text": "DB2",
-              "Value": "DB2"
-            },
-            {
-              "Text": "ORACLE",
-              "Value": "ORACLE"
-            },
-            {
-              "Text": "ASE",
-              "Value": "ASE"
-            },
-            {
-              "Text": "SQL SERVER",
-              "Value": "SQL SERVER"
-            },
-            {
-              "Text": "NONE",
-              "Value": "NONE"
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "database_high_availability",
-          "Required": false,
-          "Description": "Defines if the database tier is deployed highly available",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
-          "Overrules": ""
-        },
         {
           "Name": "database_dual_nics",
           "Required": false,
@@ -395,35 +296,6 @@
           "Overrules": ""
         },
         {
-          "Name": "database_size",
-          "Required": false,
-          "Description": "If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename. See <a href='https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "database_sid",
-          "Required": false,
-          "Description": "Defines the database SID",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "database_server_count",
-          "Required": false,
-          "Description": "The number of database servers",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
           "Name": "database_instance_number",
           "Required": false,
           "Description": "Defines the database instance number",
@@ -434,7 +306,7 @@
         {
           "Name": "db_disk_sizes_filename",
           "Required": false,
-          "Description": "Defines the custom disk size file. See <a href='https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
+          "Description": "Defines the custom disk size file. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
           "Type": "field",
           "Options": [],
           "Overrules": ""
@@ -456,44 +328,6 @@
             {
               "Text": "False",
               "Value": "false"
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "database_vm_image",
-          "Required": false,
-          "Description": "Defines the Virtual machine image to use",
-          "Type": "image",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "database_vm_zones",
-          "Required": false,
-          "Description": "Defines the availability zones to which the database servers are deployed",
-          "Type": "list",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "1",
-              "Value": "1"
-            },
-            {
-              "Text": "2",
-              "Value": "2"
-            },
-            {
-              "Text": "3",
-              "Value": "3"
             }
           ],
           "Overrules": ""
@@ -698,7 +532,7 @@
     },
     {
       "Section": "Application tier",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
       "Parameters": [
         {
           "Name": "enable_app_tier_deployment",
@@ -795,7 +629,7 @@
         {
           "Name": "app_disk_sizes_filename",
           "Required": false,
-          "Description": "If you want to customise the disk sizes for application tier use the following parameter. See <a href='https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
+          "Description": "If you want to customise the disk sizes for application tier use the following parameter. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-extra-disks?branch=main' target='_blank' rel='noopener noreferrer'>custom disk sizing</a>",
           "Type": "field",
           "Options": [],
           "Overrules": ""
@@ -825,7 +659,7 @@
     },
     {
       "Section": "Application servers",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
       "Parameters": [
         {
           "Name": "application_server_count",
@@ -980,7 +814,7 @@
     },
     {
       "Section": "SAP central services",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
       "Parameters": [
         {
           "Name": "scs_server_count",
@@ -1172,7 +1006,7 @@
     },
     {
       "Section": "Web dispatchers",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
       "Parameters": [
         {
           "Name": "webdispatcher_server_count",
@@ -1327,7 +1161,7 @@
     },
     {
       "Section": "NFS and Shared Files Settings",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
       "Parameters": [
         {
           "Name": "NFS_provider",
@@ -1396,7 +1230,7 @@
     },
     {
       "Section": "ANF Settings",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
       "Parameters": [
         {
           "Name": "ANF_use_for_HANA_data",
@@ -1732,7 +1566,7 @@
     },
     {
       "Section": "Anchor VM",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#anchor-virtual-machine-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#anchor-virtual-machine-parameters",
       "Parameters": [
         {
           "Name": "deploy_anchor_vm",
@@ -1872,7 +1706,7 @@
     },
     {
       "Section": "Authentication",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#authentication-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#authentication-parameters",
       "Parameters": [
         {
           "Name": "automation_password",
@@ -1902,7 +1736,7 @@
     },
     {
       "Section": "Other Parameters",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#other-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#other-parameters",
       "Parameters": [
         {
           "Name": "resource_offset",
@@ -1956,12 +1790,34 @@
           "Type": "list",
           "Options": [],
           "Overrules": ""
+        },
+        {
+          "Name": "deploy_application_security_groups",
+          "Required": false,
+          "Description": "Defines if application security groups will be created",
+          "Type": "lookup",
+          "Options": [
+            {
+              "Text": "",
+              "Value": ""
+            },
+            {
+              "Text": "True",
+              "Value": "true"
+            },
+            {
+              "Text": "False",
+              "Value": "false"
+            }
+          ],
+          "Overrules": ""
         }
+
       ]
     },
     {
       "Section": "Keyvault",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#key-vault-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#key-vault-parameters",
       "Parameters": [
         {
           "Name": "user_keyvault_id",
@@ -2014,7 +1870,7 @@
     },
     {
       "Section": "Terraform system parameters",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#terraform-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#terraform-parameters",
       "Parameters": [
         {
           "Name": "deployer_tfstate_key",

@@ -10,10 +10,27 @@ namespace AutomationForm.Models
 {
     public class CustomValidators
     {
+        public class RequiredIfNotDefault : RequiredAttribute
+        {
+            protected override ValidationResult IsValid(object value, ValidationContext context)
+            {
+                bool isDefault = (bool) context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
+                if (isDefault) return ValidationResult.Success;
+                else
+                {
+                    if (base.IsValid(value))
+                    {
+                        return ValidationResult.Success;
+                    }
+                    else return new ValidationResult(ErrorMessage);
+                }
+            }
+        }
         public class LocationValidator : ValidationAttribute
         {
             public override bool IsValid(object value)
             {
+                if (value == null) return true;
                 if (value != null && Helper.regionMapping.ContainsKey((string)value)) return true;
                 else return false;
             }
@@ -23,28 +40,28 @@ namespace AutomationForm.Models
             if (value == null || Regex.IsMatch((string)value, pattern)) return true;
             else return false;
         }
+        public class AddressPrefixValidator : ValidationAttribute 
+        {
+            public override bool IsValid(object value)
+            {
+                string pattern = @"^\d+\.\d+\.\d+\.\d+\/\d+$";
+                return RegexValidation(value, pattern);
+            }
+        }
         public class IpAddressValidator : ValidationAttribute
         {
             public override bool IsValid(object value)
             {
                 if (value == null) return true;
-                string pattern = @"^\d+\.\d+\.\d+\.\d+\/\d+$";
-                if (value.GetType().IsArray)
+                string pattern = @"^\d+\.\d+\.\d+\.\d+$";
+                if (!value.GetType().IsArray) return false;
+                string[] values = (string[])value;
+                foreach (string v in values)
                 {
-                    string[] values = (string[])value;
-                    foreach (string v in values)
-                    {
-                        if (!RegexValidation(v, pattern)) return false;
-                    }
-                    return true;
+                    if (!RegexValidation(v, pattern)) return false;
                 }
-                else if (value.GetType() == typeof(string)) {
-                    return RegexValidation(value, pattern);
-                }
-                else
-                {
-                    return false;
-                }
+                return true;
+            
             }
         }
         public class SubnetArmIdValidator : ValidationAttribute
@@ -171,6 +188,9 @@ namespace AutomationForm.Models
             }
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
+                bool isDefault = (bool) context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
+                if (isDefault) return ValidationResult.Success;
+
                 string prefix = (string)value;
                 string armId = (string)context.ObjectInstance.GetType().GetProperty(targetProperty).GetValue(context.ObjectInstance);
 
@@ -189,6 +209,9 @@ namespace AutomationForm.Models
         {
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
+                bool isDefault = (bool) context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
+                if (isDefault) return ValidationResult.Success;
+
                 string prefix = (string)value;
                 string armId = (string)context.ObjectInstance.GetType().GetProperty("network_arm_id").GetValue(context.ObjectInstance);
 

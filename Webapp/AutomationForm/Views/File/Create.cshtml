@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Create file";
+    string sourceController = ViewBag.SourceController;
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -21,7 +22,7 @@
             var templateName = '@ViewBag.TemplateName';
             $('<input />').attr('type', 'hidden').attr('name', 'fileContent').attr('value', fileContent).appendTo('#file-form');
             $('<input />').attr('type', 'hidden').attr('name', 'templateName').attr('value', templateName).appendTo('#file-form');
-
+            $('<input />').attr('type', 'hidden').attr('name', 'sourceController').attr('value', "@sourceController").appendTo('#file-form');
             return true;
         });
     });
@@ -83,7 +84,7 @@
             }
             else
             {
-                <fluent-anchor href="@Url.Action("Index", "File")">
+                <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
                     Back to list
                 </fluent-anchor>
             }

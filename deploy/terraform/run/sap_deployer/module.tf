@@ -25,7 +25,7 @@ module "sap_deployer" {
   configure                          = true
   tf_version                         = var.tf_version
   app_registration_app_id            = var.app_registration_app_id
-  cmdb_connection_string             = var.cmdb_connection_string
+  sa_connection_string               = var.sa_connection_string
   webapp_client_secret               = var.webapp_client_secret
   bastion_deployment                 = var.bastion_deployment
   auto_configure_deployer            = var.auto_configure_deployer

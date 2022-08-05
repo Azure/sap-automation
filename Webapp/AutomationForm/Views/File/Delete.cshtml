@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Delete file";
+    string sourceController = ViewBag.SourceController;
 }
 
 <fluent-breadcrumb>
@@ -32,7 +33,7 @@
                 <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i> Delete
             </fluent-button>
 
-            <fluent-anchor href="@Url.Action("Index", "File")">
+            <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
                 Back to list
             </fluent-anchor>
         </div>

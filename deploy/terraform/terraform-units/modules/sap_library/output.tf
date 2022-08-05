@@ -82,7 +82,12 @@ output "tfstate_resource_id" {
   )
 }
 
-output "cmdb_connection_string" {
+output "sa_connection_string" {
   sensitive = true
-  value = var.use_webapp ? azurerm_cosmosdb_account.cmdb[0].connection_strings[0] : ""
+  value = var.use_webapp ? (
+    local.sa_tfstate_exists ? (
+      data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
+      azurerm_storage_account.storage_tfstate[0].primary_connection_string
+    )
+  ) : ""
 }

@@ -1,4 +1,3 @@
-using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -7,7 +6,6 @@ namespace AutomationForm.Models
 {
     public class AppFile
     {
-        [BsonId]
         [DisplayName("File ID")]
         public string Id { get; set; }
 

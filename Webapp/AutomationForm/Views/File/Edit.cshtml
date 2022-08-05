@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Edit file";
+    string sourceController = ViewBag.SourceController;
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -20,6 +21,7 @@
             var fileContent = document.getElementById('file-content').textContent;
             $('<input />').attr('type', 'hidden').attr('name', 'id').attr('value', '@Model.Id').appendTo('#file-form');
             $('<input />').attr('type', 'hidden').attr('name', 'fileContent').attr('value', fileContent).appendTo('#file-form');
+            $('<input />').attr('type', 'hidden').attr('name', 'sourceController').attr('value', "@sourceController").appendTo('#file-form');
             return true;
         });
     });
@@ -69,7 +71,7 @@
                 <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
             </fluent-button>
 
-            <fluent-anchor href="@Url.Action("Index", "File")">
+            <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
                 Back to list
             </fluent-anchor>
 

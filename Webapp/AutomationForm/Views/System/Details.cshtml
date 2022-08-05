@@ -106,7 +106,7 @@
 </table>
 
 <p>
-    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "System", new { id = Model.System.Id })">
+    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "System", new { id = Model.System.Id, partitionKey = Model.System.environment })">
         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
     </fluent-anchor>
     <fluent-anchor href="@Url.Action("Index", "System")">

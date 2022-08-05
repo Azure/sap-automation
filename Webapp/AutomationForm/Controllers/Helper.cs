@@ -129,6 +129,7 @@ namespace AutomationForm.Controllers
             }
             else if (property.PropertyType == typeof(Image))
             {
+                if (value == null) return "#" + property.Name + " = {}";
                 Image img = (Image)value;
                 if (img.IsInitialized)
                 {
@@ -221,12 +222,13 @@ namespace AutomationForm.Controllers
             }
             else
             {
-                throw new Exception("Object provided is neither a system nor a landscape");
+                throw new Exception("Object provided is neither a system nor a workload zone");
             }
             return id;
         }
         private static string MapRegion(string region)
         {
+            if (region == null) return "";
             if (regionMapping.ContainsKey(region))
             {
                 return regionMapping[region];

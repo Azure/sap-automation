@@ -1,51 +1,61 @@
-﻿using MongoDB.Driver;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Collections.Generic;
 using AutomationForm.Models;
+using Azure.Data.Tables;
+using System;
+using Azure;
+using System.Linq;
 
 namespace AutomationForm.Services
 {
-    public class SystemService : ILandscapeService<SystemModel>
+    public class SystemService : ITableStorageService<SystemEntity>
     {
-        private readonly IMongoCollection<SystemModel> _systems;
+        private readonly TableClient client;
 
-        public SystemService(MongoService mongo, IDatabaseSettings settings)
+        public SystemService(TableStorageService tableStorageService, IDatabaseSettings settings)
         {
-            var db = mongo.GetClient().GetDatabase(settings.DatabaseName);
-            _systems = db.GetCollection<SystemModel>(settings.SystemCollectionName);
+            client = tableStorageService.GetTableClient(settings.SystemCollectionName).Result;
         }
 
-        public Task<List<SystemModel>> GetNAsync(int n)
+        public async Task<List<SystemEntity>> GetNAsync(int n)
         {
-            return _systems.Find(system => true).Limit(n).ToListAsync();
-        }
-        
-        public Task<List<SystemModel>> GetAllAsync()
-        {
-            return _systems.Find(system => true).ToListAsync();
+            return await client.QueryAsync<SystemEntity>(entity => true, n).ToListAsync();
         }
 
-        public Task<SystemModel> GetByIdAsync(string id)
+        public async Task<List<SystemEntity>> GetAllAsync()
         {
-            return _systems.Find(p => p.Id == id).FirstOrDefaultAsync();
+            return await client.QueryAsync<SystemEntity>(entity => true).ToListAsync();
         }
 
-        public Task CreateAsync(SystemModel system)
+        public async Task<List<SystemEntity>> GetAllAsync(string partitionKey)
         {
-            return _systems.InsertOneAsync(system);
+            return await client.QueryAsync<SystemEntity>(entity => entity.PartitionKey == partitionKey).ToListAsync();
         }
 
-        public Task<SystemModel> UpdateAsync(SystemModel update)
+        public async Task<SystemEntity> GetByIdAsync(string rowKey, string partitionKey)
         {
-            return _systems.FindOneAndReplaceAsync(
-                Builders<SystemModel>.Filter.Eq(p => p.Id, update.Id),
-                update,
-                new FindOneAndReplaceOptions<SystemModel> { ReturnDocument = ReturnDocument.After });
+            return await client.GetEntityAsync<SystemEntity>(partitionKey, rowKey);
         }
 
-        public Task DeleteAsync(string id)
+        public async Task<SystemEntity> GetDefault()
         {
-            return _systems.DeleteOneAsync(p => p.Id == id);
+            AsyncPageable<SystemEntity> defaults = client.QueryAsync<SystemEntity>(entity => entity.IsDefault);
+            return await defaults.FirstOrDefaultAsync();
+        }
+
+        public Task CreateAsync(SystemEntity entity)
+        {
+            return client.AddEntityAsync(entity);
+        }
+
+        public Task UpdateAsync(SystemEntity entity)
+        {
+            return client.UpsertEntityAsync(entity, TableUpdateMode.Merge);
+        }
+
+        public Task DeleteAsync(string rowKey, string partitionKey)
+        {
+            return client.DeleteEntityAsync(partitionKey, rowKey);
         }
     }
 }

@@ -1,53 +1,89 @@
-using MongoDB.Driver;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using AutomationForm.Models;
+using System;
+using Azure.Data.Tables;
+using System.Linq;
+using Azure.Storage.Blobs;
+using System.IO;
+using Azure.Storage.Blobs.Models;
 
 namespace AutomationForm.Services
 {
-    public class AppFileService : ILandscapeService<AppFile>
+    public class AppFileService : ITableStorageService<AppFile>
     {
-        private readonly IMongoCollection<AppFile> _files;
-        private readonly IMongoCollection<AppFile> _templates;
-
-        public AppFileService(MongoService mongo, IDatabaseSettings settings)
+        private readonly TableClient client;
+        private readonly BlobContainerClient blobContainerClient;
+        public AppFileService(TableStorageService tableStorageService, IDatabaseSettings settings)
         {
-            var db = mongo.GetClient().GetDatabase(settings.DatabaseName);
-            _files = db.GetCollection<AppFile>(settings.AppFileCollectionName);
-            _templates = db.GetCollection<AppFile>(settings.TemplateCollectionName);
+            client = tableStorageService.GetTableClient(settings.AppFileCollectionName).Result;
+            blobContainerClient = tableStorageService.GetBlobClient(settings.AppFileBlobCollectionName).Result;
         }
 
-        public Task<List<AppFile>> GetNAsync(int n)
+        public async Task<List<AppFile>> GetNAsync(int n)
         {
-            return _files.Find(file => true).Limit(n).ToListAsync();
+            List<AppFile> files = new List<AppFile>();
+            await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
+            {
+                files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
+            }
+            return files;
         }
 
-        public Task<List<AppFile>> GetAllAsync()
+        public async Task<List<AppFile>> GetAllAsync()
         {
-            return _files.Find(file => true).ToListAsync();
+            List<AppFile> files = new List<AppFile>();
+            await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
+            {
+                files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
+            }
+            return files;
         }
 
-        public Task<AppFile> GetByIdAsync(string id)
+        public async Task<List<AppFile>> GetAllAsync(string partitionKey)
         {
-            return _files.Find(p => p.Id == id).FirstOrDefaultAsync();
+            List<AppFile> files = new List<AppFile>();
+            await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
+            {
+                files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
+            }
+            return files;
+        }
+
+        public async Task<AppFile> GetByIdAsync(string rowKey, string partitionKey)
+        {
+            BlobClient blobClient = blobContainerClient.GetBlobClient(rowKey);
+            using var memoryStream = new MemoryStream();
+            await blobClient.DownloadToAsync(memoryStream);
+            return new AppFile() { Id = rowKey, Content = memoryStream.ToArray() };
+        }
+
+        public Task<AppFile> GetDefault()
+        {
+            return null;
         }
 
         public Task CreateAsync(AppFile file)
         {
-            return _files.InsertOneAsync(file);
+            BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
+            blobClient.UploadAsync(new BinaryData(file.Content));
+            AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
+            return client.AddEntityAsync(fileEntity);
         }
 
-        public Task<AppFile> UpdateAsync(AppFile update)
+        public Task UpdateAsync(AppFile file)
         {
-            return _files.FindOneAndReplaceAsync(
-                Builders<AppFile>.Filter.Eq(p => p.Id, update.Id),
-                update,
-                new FindOneAndReplaceOptions<AppFile> { ReturnDocument = ReturnDocument.After });
+            BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
+            blobClient. UploadAsync(new BinaryData(file.Content));
+            AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
+            return client.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
         }
-
-        public Task DeleteAsync(string id)
+        
+        public Task DeleteAsync(string rowKey, string partitionKey)
         {
-            return _files.DeleteOneAsync(p => p.Id == id);
+            BlobClient blobClient = blobContainerClient.GetBlobClient(rowKey);
+            blobClient.DeleteAsync();
+            return client.DeleteEntityAsync(partitionKey, rowKey);
         }
     }
 }

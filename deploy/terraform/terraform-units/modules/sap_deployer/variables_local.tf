@@ -152,12 +152,6 @@ locals {
     "") : (
     try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
   )
-  
-  // CMDB - App service subnet
-  cmdb_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_cmdb.arm_id, "")
-  cmdb_subnet_exists = length(local.cmdb_subnet_arm_id) > 0
-  cmdb_subnet_name   = "AzureCmdbSubnet"
-  cmdb_subnet_prefix = local.cmdb_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_cmdb.prefix, "")
 
   enable_password = try(var.deployer.authentication.type, "key") == "password"
   enable_key      = !local.enable_password

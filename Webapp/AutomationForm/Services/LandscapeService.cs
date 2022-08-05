@@ -1,51 +1,60 @@
-﻿using MongoDB.Driver;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Collections.Generic;
 using AutomationForm.Models;
+using Azure.Data.Tables;
+using System.Linq;
+using Azure;
 
 namespace AutomationForm.Services
 {
-    public class LandscapeService : ILandscapeService<LandscapeModel>
+    public class LandscapeService : ITableStorageService<LandscapeEntity>
     {
-        private readonly IMongoCollection<LandscapeModel> _landscapes;
+        private readonly TableClient client;
 
-        public LandscapeService(MongoService mongo, IDatabaseSettings settings)
+        public LandscapeService(TableStorageService tableStorageService, IDatabaseSettings settings)
         {
-            var db = mongo.GetClient().GetDatabase(settings.DatabaseName);
-            _landscapes = db.GetCollection<LandscapeModel>(settings.LandscapeCollectionName);
+            client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
         }
 
-        public Task<List<LandscapeModel>> GetNAsync(int n)
+        public async Task<List<LandscapeEntity>> GetNAsync(int n)
         {
-            return _landscapes.Find(landscape => true).Limit(n).ToListAsync();
-        }
-        
-        public Task<List<LandscapeModel>> GetAllAsync()
-        {
-            return _landscapes.Find(landscape => true).ToListAsync();
+            return await client.QueryAsync<LandscapeEntity>(entity => true, n).ToListAsync();
         }
 
-        public Task<LandscapeModel> GetByIdAsync(string id)
+        public async Task<List<LandscapeEntity>> GetAllAsync()
         {
-            return _landscapes.Find(p => p.Id == id).FirstOrDefaultAsync();
+            return await client.QueryAsync<LandscapeEntity>(entity => true).ToListAsync();
         }
 
-        public Task CreateAsync(LandscapeModel landscape)
+        public async Task<List<LandscapeEntity>> GetAllAsync(string partitionKey)
         {
-            return _landscapes.InsertOneAsync(landscape);
+            return await client.QueryAsync<LandscapeEntity>(entity => entity.PartitionKey == partitionKey).ToListAsync();
         }
 
-        public Task<LandscapeModel> UpdateAsync(LandscapeModel update)
+        public async Task<LandscapeEntity> GetByIdAsync(string rowKey, string partitionKey)
         {
-            return _landscapes.FindOneAndReplaceAsync(
-                Builders<LandscapeModel>.Filter.Eq(p => p.Id, update.Id),
-                update,
-                new FindOneAndReplaceOptions<LandscapeModel> { ReturnDocument = ReturnDocument.After });
+            return await client.GetEntityAsync<LandscapeEntity>(partitionKey, rowKey);
         }
 
-        public Task DeleteAsync(string id)
+        public async Task<LandscapeEntity> GetDefault()
         {
-            return _landscapes.DeleteOneAsync(p => p.Id == id);
+            AsyncPageable<LandscapeEntity> defaults = client.QueryAsync<LandscapeEntity>(entity => entity.IsDefault);
+            return await defaults.FirstOrDefaultAsync();
+        }
+
+        public Task CreateAsync(LandscapeEntity entity)
+        {
+            return client.AddEntityAsync(entity);
+        }
+
+        public Task UpdateAsync(LandscapeEntity entity)
+        {
+            return client.UpsertEntityAsync(entity, TableUpdateMode.Merge);
+        }
+
+        public Task DeleteAsync(string rowKey, string partitionKey)
+        {
+            return client.DeleteEntityAsync(partitionKey, rowKey);
         }
     }
 }

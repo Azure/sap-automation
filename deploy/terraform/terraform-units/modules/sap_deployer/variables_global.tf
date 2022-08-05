@@ -19,7 +19,7 @@ variable "use_webapp" {
   default = false
 }
 variable "app_registration_app_id" {}
-variable "cmdb_connection_string" {}
+variable "sa_connection_string" {}
 variable "webapp_client_secret" {}
 
 

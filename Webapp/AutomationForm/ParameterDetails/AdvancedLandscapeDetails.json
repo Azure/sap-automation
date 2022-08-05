@@ -2,46 +2,8 @@
   "Tab": "Advanced",
   "Groupings": [
     {
-      "Section": "Existing subnets",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
-      "Parameters": [
-        {
-          "Name": "admin_subnet_address_prefix",
-          "Required": true,
-          "Description": "Mandatory if the subnets are not defined in the workload, or if existing subnets are not used",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "db_subnet_address_prefix",
-          "Required": true,
-          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "app_subnet_address_prefix",
-          "Required": true,
-          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "web_subnet_address_prefix",
-          "Required": true,
-          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        }
-      ]
-    },
-    {
       "Section": "Credentials",
-      "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
       "Parameters": [
         {
           "Name": "automation_username",
