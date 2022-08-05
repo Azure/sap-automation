@@ -48,11 +48,6 @@ output "remote_state_storage_account_name" {
   value = module.sap_library.remote_state_storage_account_name
 }
 
-
-output "remote_state_resource_group_name" {
-  description = "Resource group name for Terraform remote state"
-  value = module.sap_library.remote_state_resource_group_name
-}
 output "saplibrary_environment" {
   description = "Name of enfironment"
   value = local.infrastructure.environment
@@ -63,6 +58,7 @@ output "automation_version" {
 }
 
 output "sa_connection_string" {
+  description = "Connection string to storage account"
   sensitive = true
   value = var.use_webapp ? module.sap_library.sa_connection_string : ""
 }

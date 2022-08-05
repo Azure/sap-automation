@@ -159,6 +159,15 @@ locals {
   webapp_subnet_name   = "AzureWebappSubnet"
   webapp_subnet_prefix = local.webapp_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_webapp.prefix, "")
 
+  // WebApp subnet
+  webapp_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_webapp.arm_id, "")
+  webapp_subnet_exists = length(local.webapp_subnet_arm_id) > 0
+  webapp_subnet_name   = "AzureWebAppSubnet"
+  webapp_subnet_prefix = local.webapp_subnet_exists ? (
+    "") : (
+    try(var.infrastructure.vnets.management.subnet_webapp.prefix, "")
+  )
+
   enable_password = try(var.deployer.authentication.type, "key") == "password"
   enable_key      = !local.enable_password
 

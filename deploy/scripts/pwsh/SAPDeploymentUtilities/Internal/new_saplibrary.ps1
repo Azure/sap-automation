@@ -231,7 +231,7 @@ Licensed under the MIT license.
             Out-IniFile -InputObject $iniContent -Path $fileINIPath
         }
         
-        $Command = " output remote_state_resource_group_name"
+        $Command = " output created_resource_group_name"
         $Cmd = "terraform -chdir=$terraform_module_directory $Command"
         $rgName = & ([ScriptBlock]::Create($Cmd)) | Out-String 
         if ($LASTEXITCODE -ne 0) {

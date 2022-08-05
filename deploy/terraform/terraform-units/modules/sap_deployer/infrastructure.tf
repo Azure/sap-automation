@@ -120,7 +120,8 @@ resource "azurerm_subnet" "subnet_mgmt" {
   enforce_private_link_endpoint_network_policies = true
   enforce_private_link_service_network_policies  = false
 
-  service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]
+  service_endpoints = var.use_webapp ? ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"] : ["Microsoft.Storage", "Microsoft.KeyVault"]
+
 }
 
 data "azurerm_subnet" "subnet_mgmt" {
