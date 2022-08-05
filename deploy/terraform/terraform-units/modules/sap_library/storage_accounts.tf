@@ -37,10 +37,11 @@ resource "azurerm_storage_account" "storage_tfstate" {
       []
     )
     virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
-      [var.deployer_tfstate.subnet_mgmt_id]) : (
+      var.use_webapp ? (
+        [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
+        [var.deployer_tfstate.subnet_mgmt_id])) : (
       []
-    )
-
+    ) 
   }
 
   min_tls_version                 = "TLS1_2"
