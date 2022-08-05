@@ -92,6 +92,20 @@ management_firewall_subnet_address_prefix="10.10.20.0/26"
 
 #########################################################################################
 #                                                                                       #
+#                                  Webapp Subnet                                        #
+#                                                                                       #
+#########################################################################################
+
+# one of the following two parameters is required when deploying the web app as a part of the control plane infrastructure
+
+# webapp_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
+# webapp_subnet_address_prefix = "10.10.20.128/26"
+
+# webapp_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing webapp subnet
+# webapp_subnet_arm_id= ""
+
+#########################################################################################
+#                                                                                       #
 #                                   Azure Bastion                                       #
 #                                                                                       #
 #########################################################################################

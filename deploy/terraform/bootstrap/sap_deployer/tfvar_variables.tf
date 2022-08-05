@@ -352,3 +352,10 @@ variable "webapp_client_secret" {
   default = ""
 }
 
+variable "webapp_subnet_arm_id" {
+  default = ""
+}
+
+variable "webapp_subnet_address_prefix" {
+  default = ""
+}

@@ -30,6 +30,10 @@ output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
 }
 
+output "subnet_webapp_id" {
+  value = module.sap_deployer.subnet_webapp_id
+}
+
 # output "subnet_mgmt" {
 #   sensitive = true
 #   value     = module.sap_deployer.subnet_mgmt

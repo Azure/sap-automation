@@ -77,7 +77,7 @@ steps:
     -AZURE_CLIENT_SECRET $(ARM_CLIENT_SECRET) 
     -AZURE_TENANT_ID $(ARM_TENANT_ID)
     -CollectionUri $(System.CollectionUri)
-    -Project $(System.TeamProject)
+    -ProjectName $(System.TeamProject)
     -RepositoryId $(Build.Repository.ID)
     -PAT $(PAT)
     -SourceBranch $(Build.SourceBranchName)
