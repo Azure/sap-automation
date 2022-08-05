@@ -450,6 +450,11 @@ if [ 2 == $step ]; then
     fi
 
     if [ $TF_VAR_use_webapp = "true" ]; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                           $cyan Configuring the Web App $resetformatting                                   #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
         terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
         export TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
         az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}"

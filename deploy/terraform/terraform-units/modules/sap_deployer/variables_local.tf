@@ -153,7 +153,7 @@ locals {
     try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
   )
   
-  // webapp - App service subnet
+  // Webapp subnet
   webapp_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_webapp.arm_id, "")
   webapp_subnet_exists = length(local.webapp_subnet_arm_id) > 0
   webapp_subnet_name   = "AzureWebappSubnet"

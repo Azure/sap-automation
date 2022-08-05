@@ -422,7 +422,7 @@ then
     fi
 fi
 
-REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_resource_group_name| tr -d \")
+REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
 if [ -z "${temp}" ]
 then

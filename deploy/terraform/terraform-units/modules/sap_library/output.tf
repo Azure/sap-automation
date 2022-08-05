@@ -26,7 +26,15 @@ output "created_resource_group_name" {
   )
 }
 
+
+###############################################################################
+#                                                                             # 
+#                             Storage Accounts                                # 
+#                                                                             # 
+###############################################################################
+
 output "tfstate_storage_account" {
+  description = "TFState storage account name"
   value = local.sa_tfstate_exists ? (
     split("/", local.sa_tfstate_arm_id)[8]) : (
     length(var.storage_account_tfstate.name) > 0 ? (
@@ -35,7 +43,14 @@ output "tfstate_storage_account" {
   ))
 }
 
+output "storagecontainer_tfstate" {
+  description = "TFState container name"
+  value = var.storage_account_tfstate.tfstate_blob_container.name
+}
+
+
 output "sapbits_storage_account_name" {
+  description = "SAPBits storage account name"
   value = local.sa_sapbits_exists ? (
     split("/", var.storage_account_sapbits.arm_id)[8]) : (
     length(var.storage_account_sapbits.name) > 0 ? (
@@ -46,14 +61,12 @@ output "sapbits_storage_account_name" {
 }
 
 output "sapbits_sa_resource_group_name" {
+  description = "SAPBits storage account resource group name"
   value = local.resource_group_name
 }
 
-output "storagecontainer_tfstate" {
-  value = var.storage_account_tfstate.tfstate_blob_container.name
-}
-
 output "storagecontainer_sapbits_name" {
+  description = "SAP Bits container name"
   value = var.storage_account_sapbits.file_share.name
 }
 
@@ -61,9 +74,6 @@ output "random_id" {
   value = random_id.post_fix.hex
 }
 
-output "remote_state_resource_group_name" {
-  value = local.resource_group_name
-}
 
 output "remote_state_storage_account_name" {
   value = local.sa_tfstate_exists ? (
@@ -83,6 +93,7 @@ output "tfstate_resource_id" {
 }
 
 output "sa_connection_string" {
+  description = "Connection string to storage account"
   sensitive = true
   value = var.use_webapp ? (
     local.sa_tfstate_exists ? (

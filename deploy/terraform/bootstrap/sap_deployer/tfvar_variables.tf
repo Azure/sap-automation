@@ -330,9 +330,11 @@ variable "agent_ado_url" {
   default     = ""
 }
 
-/*
-This block describes the variables for use with the web app
-*/
+#########################################################################################
+#                                                                                       #
+#  Web Application settings                                                             #
+#                                                                                       #
+#########################################################################################
 
 variable "use_webapp" {
   default = false
@@ -353,9 +355,11 @@ variable "webapp_client_secret" {
 }
 
 variable "webapp_subnet_arm_id" {
+  description = "Azure resource identifier Web App subnet"
   default = ""
 }
 
 variable "webapp_subnet_address_prefix" {
+  description = "Subnet adress range for the Web App subnet"
   default = ""
 }
