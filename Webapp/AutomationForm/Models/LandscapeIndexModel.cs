@@ -9,5 +9,11 @@ namespace AutomationForm.Models
     {
         public List<AppFile> AppFiles { get; set; }
         public List<LandscapeModel> Landscapes { get; set; }
+
+        public LandscapeIndexModel()
+        {
+            AppFiles = new List<AppFile>();
+            Landscapes = new List<LandscapeModel>();
+        }
     }
 }

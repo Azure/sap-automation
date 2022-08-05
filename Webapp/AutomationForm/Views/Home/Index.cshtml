@@ -11,7 +11,7 @@
     <div class="wrapper grouping">
         <h2> Getting started </h2>
         <p>
-            Click on the <b>Landscape</b>, <b>System</b>, or <b>Files</b> tab to begin creation.
+            Click on the <b>Workload zones</b> or <b>Systems</b> tab to begin creation.
         </p>
         <h2>Creating</h2>
         <p>
@@ -19,7 +19,7 @@
         </p>
         <h2>Editing</h2>
         <p>
-            In the <b>Edit</b> page you can update existing landscapes, systems, and files, or choose to save as a new item.
+            Click on <b>Edit</b> to update existing workload zones, systems, or files.
         </p>
         <h2>Details</h2>
         <p>
@@ -27,9 +27,10 @@
         </p>
         <h2>Defaults</h2>
         <p>
-            In the workload zones page and systems page, click on the star next to an object to set it as the default. <br />
-            If you would like to auto populate values from the default you have set, click the checkbox next to "Use default" when creating new objects. <br />
-            You can also set a default object from the edit or create page. There can only be one default workload zone and one default system at a time. <br />
+            Click on the star next to an object to set it as the default. <br />
+            When creating new objects, if you would like to auto populate values from the default you have set, click the "Use default" checkbox. <br />
+            You can also set an object as the default from the edit or create page. <br />
+            There can only be one default workload zone and one default system at a time. <br />
             When an object is selected to be the default, there are no required parameters. Note that if you remove this object as the default later, <br />
             missing required parameters will make this object invalid for deployment until further edited.
         </p>
@@ -43,7 +44,14 @@
         </p>
         <h2>Converting</h2>
         <p>
-            Clicking <b>Convert</b> will turn the specified file into a landscape or system object, which can then be deployed.
+            Clicking <b>Convert</b> will turn the specified file into a workload zone or system object, which can then be deployed.
+        </p>
+        <h2>Environments</h2>
+        <p>
+            Click on the <b>Environments</b> tab to view your current variable groups in Azure devops. <br />
+            This tab will not appear if you performed a deployment via the Azure CLI. <br />
+            You can view and edit the parameters of your existing variable groups here, or create a new one from scratch. <br />
+            Not all parameters will be displayed. Any parameters not displayed will not be overwritten.
         </p>
     </div>
 

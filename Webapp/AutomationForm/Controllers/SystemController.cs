@@ -56,13 +56,20 @@ namespace AutomationForm.Controllers
         public async Task<IActionResult> Index()
         {
             SystemIndexModel systemIndex = new SystemIndexModel();
-            
-            List<SystemEntity> systemEntities = await _systemService.GetAllAsync();
-            List<SystemModel> systems = systemEntities.FindAll(s => s.System != null).ConvertAll(s => JsonConvert.DeserializeObject<SystemModel>(s.System));
-            systemIndex.Systems = systems;
 
-            List<AppFile> appfiles = await _appFileService.GetAllAsync();
-            systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+            try 
+            {
+                List<SystemEntity> systemEntities = await _systemService.GetAllAsync();
+                List<SystemModel> systems = systemEntities.FindAll(s => s.System != null).ConvertAll(s => JsonConvert.DeserializeObject<SystemModel>(s.System));
+                systemIndex.Systems = systems;
+
+                List<AppFile> appfiles = await _appFileService.GetAllAsync();
+                systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error retrieving existing systems: " + e.Message;
+            }
 
             return View(systemIndex);
         }
@@ -165,9 +172,9 @@ namespace AutomationForm.Controllers
                 
                 TempData["success"] = "Successfully deployed system " + id;
             }
-            catch
+            catch (Exception e)
             {
-                TempData["error"] = "Error deploying system " + id;
+                TempData["error"] = "Error deploying system " + id + ": " + e.Message;
             }
             return RedirectToAction("Index");
         }
@@ -222,21 +229,28 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                string newId = Helper.GenerateId(system);
-                if (system.Id == null) system.Id = newId;
-                if (newId != system.Id)
+                try
                 {
-                    return SubmitNewAsync(system).Result;
-                }
-                else
-                {
-                    if (system.IsDefault)
+                    string newId = Helper.GenerateId(system);
+                    if (system.Id == null) system.Id = newId;
+                    if (newId != system.Id)
                     {
-                        await UnsetDefault(system.Id);
+                        return SubmitNewAsync(system).Result;
                     }
-                    await _systemService.UpdateAsync(new SystemEntity(system));
-                    TempData["success"] = "Successfully updated system " + system.Id;
-                    return RedirectToAction("Index");
+                    else
+                    {
+                        if (system.IsDefault)
+                        {
+                            await UnsetDefault(system.Id);
+                        }
+                        await _systemService.UpdateAsync(new SystemEntity(system));
+                        TempData["success"] = "Successfully updated system " + system.Id;
+                        return RedirectToAction("Index");
+                    }
+                }
+                catch (Exception e)
+                {
+                    ModelState.AddModelError("SystemId", "Error editing system: " + e.Message);
                 }
             }
 

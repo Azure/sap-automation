@@ -73,10 +73,7 @@ steps:
     appName: $(webappName)
     package: '$(System.DefaultWorkingDirectory)/**/*.zip'
     deploymentMethod: 'auto'
-    appSettings: '-AZURE_CLIENT_ID $(ARM_CLIENT_ID)
-    -AZURE_CLIENT_SECRET $(ARM_CLIENT_SECRET) 
-    -AZURE_TENANT_ID $(ARM_TENANT_ID)
-    -CollectionUri $(System.CollectionUri)
+    appSettings: '-CollectionUri $(System.CollectionUri)
     -ProjectName $(System.TeamProject)
     -RepositoryId $(Build.Repository.ID)
     -PAT $(PAT)

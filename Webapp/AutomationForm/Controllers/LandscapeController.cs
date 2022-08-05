@@ -59,12 +59,19 @@ namespace AutomationForm.Controllers
         {
             LandscapeIndexModel landscapeIndex = new LandscapeIndexModel();
 
-            List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
-            List<LandscapeModel> landscapes = landscapeEntities.FindAll(l => l.Landscape != null).ConvertAll(l => JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape));
-            landscapeIndex.Landscapes = landscapes;
+            try
+            {
+                List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
+                List<LandscapeModel> landscapes = landscapeEntities.FindAll(l => l.Landscape != null).ConvertAll(l => JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape));
+                landscapeIndex.Landscapes = landscapes;
 
-            List<AppFile> appfiles = await _appFileService.GetAllAsync();
-            landscapeIndex.AppFiles = appfiles.FindAll(file => file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+                List<AppFile> appfiles = await _appFileService.GetAllAsync();
+                landscapeIndex.AppFiles = appfiles.FindAll(file => file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error retrieving existing workload zones: " + e.Message;
+            }
 
             return View(landscapeIndex);
         }
@@ -203,9 +210,9 @@ namespace AutomationForm.Controllers
                 
                 TempData["success"] = "Successfully deployed workload zone " + id;
             }
-            catch
+            catch (Exception e)
             {
-                TempData["error"] = "Error deploying workload zone " + id;
+                TempData["error"] = "Error deploying workload zone " + id + ": " + e.Message;
             }
             return RedirectToAction("Index");
         }
@@ -261,22 +268,29 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                string newId = Helper.GenerateId(landscape);
-                if (landscape.Id == null) landscape.Id = newId;
-                if (newId != landscape.Id)
+                try
                 {
-                    landscape.Id = newId;
-                    return SubmitNewAsync(landscape).Result;
-                }
-                else
-                {
-                    if (landscape.IsDefault)
+                    string newId = Helper.GenerateId(landscape);
+                    if (landscape.Id == null) landscape.Id = newId;
+                    if (newId != landscape.Id)
                     {
-                        await UnsetDefault(landscape.Id);
+                        landscape.Id = newId;
+                        return SubmitNewAsync(landscape).Result;
                     }
-                    await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
-                    TempData["success"] = "Successfully updated workload zone " + landscape.Id;
-                    return RedirectToAction("Index");
+                    else
+                    {
+                        if (landscape.IsDefault)
+                        {
+                            await UnsetDefault(landscape.Id);
+                        }
+                        await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
+                        TempData["success"] = "Successfully updated workload zone " + landscape.Id;
+                        return RedirectToAction("Index");
+                    }
+                }
+                catch (Exception e)
+                {
+                    ModelState.AddModelError("LandscapeId", "Error editing workload zone: " + e.Message);
                 }
             }
 
