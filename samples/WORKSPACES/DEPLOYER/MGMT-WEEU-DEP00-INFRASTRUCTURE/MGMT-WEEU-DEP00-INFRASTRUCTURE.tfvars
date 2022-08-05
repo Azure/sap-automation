@@ -49,7 +49,7 @@ resourcegroup_tags = {
 
 
 #management_network_name=""
-management_network_logical_name="DEP00"
+management_network_logical_name="DEP01"
 #management_network_arm_id=""
 management_network_address_space="10.10.20.0/24"
 
@@ -89,6 +89,20 @@ management_firewall_subnet_address_prefix="10.10.20.0/26"
 
 # firewall_rule_allowed_ipaddresses is an optional list of IP Addresses to be added to the Azure firewall
 #firewall_rule_allowed_ipaddresses=[]
+
+#########################################################################################
+#                                                                                       #
+#                                  Webapp Subnet                                        #
+#                                                                                       #
+#########################################################################################
+
+# one of the following two parameters is required when deploying the web app as a part of the control plane infrastructure
+
+# webapp_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
+# webapp_subnet_address_prefix = "10.10.20.128/26"
+
+# webapp_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing webapp subnet
+# webapp_subnet_arm_id= ""
 
 #########################################################################################
 #                                                                                       #
