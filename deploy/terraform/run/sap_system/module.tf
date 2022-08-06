@@ -73,7 +73,7 @@ module "common_infrastructure" {
   )
   Agent_IP                           = var.Agent_IP
   use_private_endpoint               = var.use_private_endpoint
-  hana_dual_nics                     = var.hana_dual_nics
+  database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
   hana_ANF_volumes                   = local.hana_ANF_volumes
   sapmnt_private_endpoint_id         = var.sapmnt_private_endpoint_id
@@ -123,7 +123,7 @@ module "hdb_node" {
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
-  hana_dual_nics                               = module.common_infrastructure.admin_subnet == null ? false : var.hana_dual_nics
+  database_dual_nics                           = module.common_infrastructure.admin_subnet == null ? false : var.database_dual_nics
   database_vm_db_nic_ips                       = var.database_vm_db_nic_ips
   database_vm_db_nic_secondary_ips             = var.database_vm_db_nic_secondary_ips
   database_vm_admin_nic_ips                    = var.database_vm_admin_nic_ips

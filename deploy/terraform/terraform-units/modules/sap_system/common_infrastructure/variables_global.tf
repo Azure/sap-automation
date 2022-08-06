@@ -210,7 +210,7 @@ variable "sapmnt_private_endpoint_id" {
   default = ""
 }
 
-variable "hana_dual_nics" {
+variable "database_dual_nics" {
   description = "value to indicate if dual nics are used for HANA"
 }
 

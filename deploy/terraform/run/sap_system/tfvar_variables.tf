@@ -409,10 +409,6 @@ variable "database_HANA_use_ANF_scaleout_scenario" {
   default = false
 }
 
-variable "hana_dual_nics" {
-  description = "If defined, will use dual NICs for HANA"
-  default     = true
-}
 
 #########################################################################################
 #                                                                                       #
