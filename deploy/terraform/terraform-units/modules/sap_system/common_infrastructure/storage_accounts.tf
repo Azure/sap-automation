@@ -130,13 +130,7 @@ data "azurerm_private_endpoint_connection" "sapmnt" {
 #########################################################################################
 
 resource "azurerm_storage_share" "sapmnt" {
-  count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_sapmnt_id) > 0 ? (
-      0) : (
-      1
-    )) : (
-    0
-  )
+  count = var.NFS_provider == "AFS" ? ( 1 ) : ( 0  )
 
   name                 = format("%s", local.resource_suffixes.sapmnt)
   storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
