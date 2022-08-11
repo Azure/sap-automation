@@ -307,10 +307,14 @@ namespace AutomationForm.Controllers
             dynamic dynamicEnvironment      = JsonConvert.DeserializeObject(environmentJsonString);
             dynamic dynamicVariables        = JsonConvert.DeserializeObject(variablesJsonString);
 
-            dynamicVariables.SPN_secret         = JToken.FromObject(environment.variables.SPN_secret);
-            dynamicVariables.SPN_tenant         = JToken.FromObject(environment.variables.SPN_tenant);
-            dynamicVariables.SPN_subscriptionID = JToken.FromObject(environment.variables.SPN_subscriptionID);
-            dynamicVariables.SPN_App_ID         = JToken.FromObject(environment.variables.SPN_App_ID);
+            dynamicVariables.SPN_secret             = JToken.FromObject(environment.variables.SPN_secret);
+            dynamicVariables.SPN_tenant             = JToken.FromObject(environment.variables.SPN_tenant);
+            dynamicVariables.SPN_subscriptionID     = JToken.FromObject(environment.variables.SPN_subscriptionID);
+            dynamicVariables.SPN_App_ID             = JToken.FromObject(environment.variables.SPN_App_ID);
+            dynamicVariables.Agent                  = JToken.FromObject(environment.variables.Agent);
+            dynamicVariables.ARM_CLIENT_ID          = JToken.FromObject(environment.variables.ARM_CLIENT_ID);
+            dynamicVariables.ARM_SUBSCRIPTION_ID    = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
+            dynamicVariables.sap_fqdn               = JToken.FromObject(environment.variables.sap_fqdn);
 
             dynamicEnvironment.variables = dynamicVariables;
 

@@ -9,21 +9,8 @@
           "Name": "IsDefault",
           "Required": false,
           "Description": "Controls if this workload zone will be set as the default. If true, missing required parameters will be allowed.",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]

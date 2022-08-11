@@ -117,6 +117,10 @@
                                                 {
                                                     @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
                                                 }
+                                                else if (@p.Type == "checkbox") 
+                                                {
+                                                    <fluent-checkbox id="@p.Name" name="@p.Name" onchange="this.value=this.checked"></fluent-checkbox>
+                                                }
                                                 else
                                                 {
                                                     <p>Invalid parameter</p>

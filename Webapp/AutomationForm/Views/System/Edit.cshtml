@@ -122,6 +122,11 @@
                                                 {
                                                     @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
                                                 }
+                                                else if (@p.Type == "checkbox")
+                                                {
+                                                    var isChecked = (value != null && (bool)value) ? "checked" : "";
+                                                    <fluent-checkbox id="@p.Name" name="@p.Name" @isChecked value="@value" onchange="this.value=this.checked"></fluent-checkbox>
+                                                }
                                                 else if (@p.Type == "list")
                                                 {
                                                     @Html.ListBox(p.Name, p.Options, new { @class = "js-example-placeholder-multiple", @style = "width: 100%;", @multiple = "multiple" })
