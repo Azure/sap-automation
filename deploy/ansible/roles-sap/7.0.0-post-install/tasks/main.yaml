@@ -14,16 +14,20 @@
     state:                             directory
     mode:                              0755
 
+- name:                                "Get the SID"
+  ansible.builtin.set_fact:
+    this_sid:                          "{% if tier == 'web' %}{{ web_sid | upper }}{% else %}{{ sap_sid | upper }}{% endif %}"
+
 - name:                                "Post Installation: Show path"
   ansible.builtin.debug:
-    msg:                               "{{ tmp_directory }}/{{ sap_sid |upper }}/sapinst_instdir/{{ prefix }}{{ path }}"
+    msg:                               "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
   when:
     - tier != 'hana'
     - tier != 'oracle'
 
 - name:                                "Post Installation: Find the log files (SAPINST)"
   ansible.builtin.find:
-    paths:                             "{{ tmp_directory }}/{{ sap_sid |upper }}/sapinst_instdir/{{ prefix }}{{ path }}"
+    paths:                             "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
     file_type:                         file
     patterns:                          'sa*.log,Hd*.log'
     recurse:                           true
@@ -54,7 +58,7 @@
 - name:                                "Post Installation: Compress the installation log files"
   archive:
     path:                              "{{ sapinst_list_of_files }}"
-    dest:                              "{{ tmp_directory }}/{{ sap_sid | upper }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
+    dest:                              "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}.zip"
     format:                            zip
     mode:                              0755
   when:
@@ -62,8 +66,8 @@
 
 - name:                                "Post Installation: Copy installation logs"
   ansible.builtin.fetch:
-    src:                               "{{ tmp_directory }}/{{ sap_sid | upper }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
-    dest:                              "{{ _workspace_directory }}/logs/{{ sap_sid }}{{ suffix }}.zip"
+    src:                               "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}.zip"
+    dest:                              "{{ _workspace_directory }}/logs/{{ this_sid }}{{ suffix }}.zip"
     flat:                              true
   when:
     - sapinst_list_of_files is defined

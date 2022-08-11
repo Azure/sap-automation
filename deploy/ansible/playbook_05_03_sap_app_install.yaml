@@ -68,7 +68,7 @@
 
   tasks:
 
-    - name:                            "PAS Installation Playbook: Define this SID"
+    - name:                            "APP Installation Playbook: Define this SID"
       ansible.builtin.set_fact:
         this_sid:
           {
@@ -80,7 +80,7 @@
             'app_inst_no': '{{ app_instance_number }}'
           }
 
-    - name:                            "PAS Installation Playbook: Define list of SIDs"
+    - name:                            "APP Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
 
@@ -133,7 +133,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        file_path:                     INSTALL/AS/APPS/
+        app_file_path:                 /INSTALL/AS/APPS/
         always_upload_jinja_templates: false
 
     - name:                            "APP Installation Playbook: Define this SID"
@@ -193,7 +193,7 @@
           vars:
             suffix:                    "_APP"
             prefix:                    "{{ app_bom_id.replace('.','/').replace('/PD','').split(':')[1] }}"
-            path:                      "{{ file_path }}"
+            path:                      "{{ app_file_path }}"
             tier:                      'app'
 
         - name:                        "APP Playbook - Install: Errors from APP installation"
