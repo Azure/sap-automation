@@ -49,7 +49,6 @@
                 @Html.Label("newName", "Environment name", new { @class = $"ms-Label required" })
                 <p>Name of the variable group. "SDAF-" will be prepended.</p>
             </div>
-
             <div class="right-input">
                 @Html.TextBox("newName", "", new { @class = "ms-TextField-field" })
             </div>
@@ -59,49 +58,8 @@
                 @Html.Label("description", "Description", new { @class = $"ms-Label" })
                 <p>Add a description for the variable group. </p>
             </div>
-
             <div class="right-input">
                 @Html.TextBox("description", Model.description, new { @class = "ms-TextField-field" })
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.SPN_App_ID, new { @class = $"ms-Label" })
-                <p>Description here</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.SPN_App_ID.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.SPN_App_ID)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.SPN_secret, new { @class = $"ms-Label" })
-                <p>Description here</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.SPN_secret.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.SPN_secret)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.SPN_subscriptionID, new { @class = $"ms-Label" })
-                <p>Description here</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.SPN_subscriptionID.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.SPN_subscriptionID)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.SPN_tenant, new { @class = $"ms-Label" })
-                <p>Description here</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.SPN_tenant.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.SPN_tenant)
             </div>
         </div>
         <div class="ms-TextField">
@@ -126,12 +84,32 @@
         </div>
         <div class="ms-TextField">
             <div class="left-input">
+                @Html.LabelFor(m => m.variables.ARM_CLIENT_SECRET, new { @class = $"ms-Label" })
+                <p>Enter the Service principal password</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.ARM_CLIENT_SECRET.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.ARM_CLIENT_SECRET)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
                 @Html.LabelFor(m => m.variables.ARM_SUBSCRIPTION_ID, new { @class = $"ms-Label" })
                 <p>Enter the target subscription ID</p>
             </div>
             <div class="right-input">
                 @Html.TextBoxFor(m => m.variables.ARM_SUBSCRIPTION_ID.value, new { @class = "ms-TextField-field" })
                 @Html.ValidationMessageFor(m => m.variables.ARM_SUBSCRIPTION_ID)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.ARM_TENANT_ID, new { @class = $"ms-Label" })
+                <p>Enter the subscription's Tenant ID</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.ARM_TENANT_ID.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.ARM_TENANT_ID)
             </div>
         </div>
         <div class="ms-TextField">
