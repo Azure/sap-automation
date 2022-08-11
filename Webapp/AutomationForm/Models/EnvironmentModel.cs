@@ -23,6 +23,10 @@ namespace AutomationForm.Models
         public Variable SPN_secret { get; set; }
         public Variable SPN_tenant { get; set; }
         public Variable SPN_subscriptionID { get; set; }
+        public Variable Agent { get; set; }
+        public Variable ARM_CLIENT_ID { get; set; }
+        public Variable ARM_SUBSCRIPTION_ID { get; set; }
+        public Variable sap_fqdn { get; set; }
     }
 
     public class Variable

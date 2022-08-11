@@ -9,21 +9,8 @@
           "Name": "IsDefault",
           "Required": false,
           "Description": "Controls if this workload zone will be set as the default. If true, missing required parameters will be allowed.",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -152,21 +139,8 @@
           "Name": "database_high_availability",
           "Required": false,
           "Description": "Defines if the database tier is deployed highly available",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -254,21 +228,8 @@
           "Name": "enable_app_tier_deployment",
           "Required": false,
           "Description": "Controls if the application tier should be deployed",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -297,21 +258,8 @@
           "Name": "scs_high_availability",
           "Required": false,
           "Description": "Provides the SKU to use for the scs servers",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {

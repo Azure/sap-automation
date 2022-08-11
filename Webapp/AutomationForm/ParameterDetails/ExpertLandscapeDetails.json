@@ -370,14 +370,6 @@
           "Overrules": "anf_subnet_address_prefix"
         },
         {
-          "Name": "anf_subnet_address_prefix",
-          "Required": false,
-          "Description": "Mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
           "Name": "anf_subnet_name",
           "Required": false,
           "Description": "Should only be used if the default naming is not acceptable",
@@ -421,21 +413,8 @@
           "Name": "use_private_endpoint",
           "Required": false,
           "Description": "Controlls if the keyvaults and storage accounts have private endpoints",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -448,21 +427,8 @@
           "Name": "ANF_use_existing_pool",
           "Required": false,
           "Description": "Use existing storage pool",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -477,21 +443,8 @@
           "Name": "ANF_use_existing_transport_volume",
           "Required": false,
           "Description": "Use existing transport volume",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -522,21 +475,8 @@
           "Name": "ANF_use_existing_install_volume",
           "Required": false,
           "Description": "Use existing install volume",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -626,21 +566,8 @@
           "Name": "enable_purge_control_for_keyvaults",
           "Required": false,
           "Description": "Used to disable the purge protection for Azure keyvaults",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
