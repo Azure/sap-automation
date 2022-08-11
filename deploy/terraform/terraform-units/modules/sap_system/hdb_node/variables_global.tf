@@ -87,7 +87,7 @@ variable "use_loadbalancers_for_standalone_deployments" {
   default     = true
 }
 
-variable "hana_dual_nics" {
+variable "database_dual_nics" {
   description = "Defines if the HANA DB uses dual network interfaces"
   default     = true
 }

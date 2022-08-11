@@ -224,7 +224,7 @@ locals {
     (
       var.application.dual_nics ||
       var.databases[0].dual_nics ||
-      (local.isHANA && var.hana_dual_nics)
+      (local.isHANA && var.database_dual_nics)
     )
     &&
     (

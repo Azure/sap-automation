@@ -117,8 +117,8 @@ data "azurerm_private_endpoint_connection" "sapmnt" {
     )) : (
     0
   )
-  name                = split("/",var.sapmnt_private_endpoint_id)[8]
-  resource_group_name = split("/",var.sapmnt_private_endpoint_id)[4]
+  name                = split("/", var.sapmnt_private_endpoint_id)[8]
+  resource_group_name = split("/", var.sapmnt_private_endpoint_id)[4]
 
 }
 
@@ -130,17 +130,18 @@ data "azurerm_private_endpoint_connection" "sapmnt" {
 #########################################################################################
 
 resource "azurerm_storage_share" "sapmnt" {
-  count = var.NFS_provider == "AFS" ? (
-    length(var.azure_files_sapmnt_id) > 0 ? (
-      0) : (
-      1
-    )) : (
-    0
-  )
+  count = var.NFS_provider == "AFS" ? (1) : (0)
 
-  name                 = format("%s", local.resource_suffixes.sapmnt)
-  storage_account_name = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
-  enabled_protocol     = "NFS"
+  name = format("%s", local.resource_suffixes.sapmnt)
+  storage_account_name = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
+      data.azurerm_storage_account.sapmnt[0].name) : (
+      azurerm_storage_account.sapmnt[0].name
+    )
+    ) : (
+    ""
+  )
+  enabled_protocol = "NFS"
 
   quota = var.sapmnt_volume_size
 }
@@ -152,7 +153,7 @@ resource "azurerm_storage_share" "sapmnt" {
 #########################################################################################
 
 resource "azurerm_storage_share" "sapmnt_smb" {
-  count = var.NFS_provider == "AFS" && local.app_tier_os == "WINDOWS"? (
+  count = var.NFS_provider == "AFS" && local.app_tier_os == "WINDOWS" ? (
     length(var.azure_files_sapmnt_id) > 0 ? (
       0) : (
       1

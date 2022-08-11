@@ -4,7 +4,7 @@ output "hdb_vms" {
 }
 
 output "nics_dbnodes_admin" {
-  value = local.enable_deployment && var.hana_dual_nics ? azurerm_network_interface.nics_dbnodes_admin : []
+  value = local.enable_deployment && var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin : []
 }
 
 output "nics_dbnodes_db" {
@@ -23,7 +23,7 @@ output "hdb_sid" {
 // Output for DNS
 output "dns_info_vms" {
   value = local.enable_deployment ? (
-    var.hana_dual_nics ? (
+    var.database_dual_nics ? (
       zipmap(
         compact(
           concat(
@@ -95,7 +95,7 @@ output "db_lb_ip" {
 }
 
 output "db_admin_ip" {
-  value = local.enable_deployment && var.hana_dual_nics ? (
+  value = local.enable_deployment && var.database_dual_nics ? (
     azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address) : (
     []
   )

@@ -409,10 +409,6 @@ variable "database_HANA_use_ANF_scaleout_scenario" {
   default = false
 }
 
-variable "hana_dual_nics" {
-  description = "If defined, will use dual NICs for HANA"
-  default     = true
-}
 
 #########################################################################################
 #                                                                                       #
@@ -622,6 +618,12 @@ variable "webdispatcher_server_count" {
   description = "The number of web dispatchers"
   default     = 0
 }
+
+variable "web_sid" {
+  description = "The sid of the web dispatchers"
+  default     = ""
+}
+
 
 variable "webdispatcher_server_zones" {
   description = "The zones for the web dispatchers"

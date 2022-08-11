@@ -91,6 +91,7 @@ resource "local_file" "ansible_inventory_new_yml" {
     scs_supported_tiers = local.scs_supported_tiers
     ips_observers       = var.observer_ips
     observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : [],
+    web_sid             = var.web_sid
 
     }
   )
