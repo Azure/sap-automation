@@ -162,7 +162,7 @@ namespace AutomationForm.Controllers
             {
                 SystemModel system = await GetById(id, partitionKey);
 
-                string path = $"samples/WORKSPACES/SYSTEM/{id}/{id}.tfvars";
+                string path = $"/SYSTEM/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
                 string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
                 bool isSystem = true;
@@ -170,7 +170,7 @@ namespace AutomationForm.Controllers
                 await restHelper.UpdateRepo(path, content);
                 await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "");
                 
-                TempData["success"] = "Successfully deployed system " + id;
+                TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
             }
             catch (Exception e)
             {

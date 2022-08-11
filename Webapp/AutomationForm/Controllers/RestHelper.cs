@@ -24,6 +24,7 @@ namespace AutomationForm.Controllers
         private readonly string repositoryId;
         private readonly string PAT;
         private readonly string branch;
+        private readonly string sdafGeneralId;
         private HttpClient client;
         public RestHelper(IConfiguration configuration)
         {
@@ -32,6 +33,7 @@ namespace AutomationForm.Controllers
             repositoryId    = configuration["RepositoryId"];
             PAT             = configuration["PAT"];
             branch          = configuration["SourceBranch"];
+            sdafGeneralId   = configuration["SDAF_GENERAL_GROUP_ID"];
 
             client = new HttpClient();
             
@@ -69,6 +71,10 @@ namespace AutomationForm.Controllers
             HandleResponse(response, responseBody);
 
             ooId = JsonDocument.Parse(responseBody).RootElement.GetProperty("value")[0].GetProperty("objectId").GetString();
+
+            // Dynamically retrieve path
+            string pathBase = await GetVariableFromVariableGroup(sdafGeneralId, "Deployment_Configuration_Path");
+            path = pathBase + path;
 
             // Create request body
             Refupdate refUpdate = new Refupdate()
@@ -174,8 +180,8 @@ namespace AutomationForm.Controllers
             return Encoding.UTF8.GetString(Convert.FromBase64String(bitstring));
         }
 
-        // List all variable groups from azure devops
-        public async Task<EnvironmentModel[]> GetVariableGroups()
+        // Get the json response for all variable groups in an ado project
+        public async Task<JsonElement> GetVariableGroupsJson()
         {
             string getUri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups?api-version=6.0-preview.2";
 
@@ -184,6 +190,13 @@ namespace AutomationForm.Controllers
             HandleResponse(response, responseBody);
 
             JsonElement values = JsonDocument.Parse(responseBody).RootElement.GetProperty("value");
+            return values;
+        }
+
+        // List all variable groups from azure devops
+        public async Task<EnvironmentModel[]> GetVariableGroups()
+        {
+            JsonElement values = await GetVariableGroupsJson();
             
             List<EnvironmentModel> variableGroups = new List<EnvironmentModel>();
 
@@ -204,13 +217,7 @@ namespace AutomationForm.Controllers
         // Get a list of all variable group names for use in a dropdown
         public async Task<List<SelectListItem>> GetEnvironmentsList()
         {
-            string getUri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups?api-version=6.0-preview.2";
-
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
-            string responseBody = await response.Content.ReadAsStringAsync();
-            HandleResponse(response, responseBody);
-
-            JsonElement values = JsonDocument.Parse(responseBody).RootElement.GetProperty("value");
+            JsonElement values = await GetVariableGroupsJson();
             
             List<SelectListItem> variableGroups = new List<SelectListItem>
             {
@@ -242,6 +249,54 @@ namespace AutomationForm.Controllers
             EnvironmentModel environment = JsonSerializer.Deserialize<EnvironmentModel>(responseBody);
             environment.name = environment.name.Replace("SDAF-", "");
             return environment;
+        }
+
+        // Get a variable group id by name in ado
+        public async Task<string> GetVariableGroupIdFromName(string name)
+        {
+            JsonElement values = await GetVariableGroupsJson();
+
+            foreach (var value in values.EnumerateArray())
+            {
+                if (value.GetProperty("name").ToString() == name)
+                {
+                    return value.GetProperty("id").ToString();
+                }
+            }
+            return null;
+        }
+
+        // Get a specific variables value from a variable group in ado
+        public async Task<string> GetVariableFromVariableGroup(string id, string variableName)
+        {
+            try
+            {
+                if (id == null || id == "")
+                {
+                    id = await GetVariableGroupIdFromName("SDAF-General");
+                    if (id == null)
+                    {
+                        throw new Exception();
+                    }
+                }
+                string getUri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups/{id}?api-version=6.0-preview.2";
+
+                using HttpResponseMessage response = client.GetAsync(getUri).Result;
+                string responseBody = await response.Content.ReadAsStringAsync();
+                HandleResponse(response, responseBody);
+
+                JsonElement variables = JsonDocument.Parse(responseBody).RootElement.GetProperty("variables");
+                string value = variables.GetProperty(variableName).GetProperty("value").GetString();
+                if (value.EndsWith("/"))
+                {
+                    value = value.Remove(value.Length - 1);
+                }
+                return value;
+            }
+            catch
+            {
+                return "WORKSPACES";
+            }
         }
 
         // Create a variable group in azure devops
