@@ -230,7 +230,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] application_server_admin_nic_ips { get; set; }
 
-        public string[] application_server_tags { get; set; } // change data structure
+        public string[] application_server_tags { get; set; }
 
         [IpAddressValidator]
         public string[] application_server_app_nic_ips { get; set; }
@@ -270,7 +270,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_loadbalancer_ips { get; set; }
 
-        public string[] scs_server_tags { get; set; } // change data structure
+        public string[] scs_server_tags { get; set; } 
 
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
@@ -294,7 +294,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] webdispatcher_server_loadbalancer_ips { get; set; }
 
-        public string[] webdispatcher_server_tags { get; set; } // change data structure
+        public string[] webdispatcher_server_tags { get; set; } 
 
         public string[] webdispatcher_server_zones { get; set; }
 
@@ -431,7 +431,7 @@ namespace AutomationForm.Models
         
         public string version { get; set; }
 
-        public bool IsInitialized { 
+        public bool IsInitialized {
             get
             {
                 return (os_type != null

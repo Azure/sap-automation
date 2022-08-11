@@ -58,21 +58,8 @@
           "Name": "use_prefix",
           "Required": false,
           "Description": "Defines if a prefix will be added to the resource names",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -278,21 +265,8 @@
           "Name": "database_dual_nics",
           "Required": false,
           "Description": "Defines if the database tier will have two NICs",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -315,21 +289,8 @@
           "Name": "database_vm_use_DHCP",
           "Required": false,
           "Description": "Controls if Azure subnet provided IP addresses should be used",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -369,43 +330,17 @@
         {
           "Name": "database_no_ppg",
           "Required": false,
-          "Description": "Defines the that the database virtual machines will not be placed in a proximity placement group",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Description": "Defines that the database virtual machines will not be placed in a proximity placement group",
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
           "Name": "database_no_avset",
           "Required": false,
-          "Description": "Defines the that the database virtual machines will not be placed in an availability set",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Description": "Defines that the database virtual machines will not be placed in an availability set",
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -490,42 +425,16 @@
           "Name": "database_HANA_use_ANF_scaleout_scenario",
           "Required": false,
           "Description": "",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
           "Name": "hana_dual_nics",
           "Required": false,
           "Description": "If defined, will use dual NICs for HANA",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -534,27 +443,6 @@
       "Section": "Application tier",
       "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#common-application-tier-parameters",
       "Parameters": [
-        {
-          "Name": "enable_app_tier_deployment",
-          "Required": false,
-          "Description": "Controlls if the application tier should be deployed",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
-          "Overrules": ""
-        },
         {
           "Name": "app_tier_authentication_type",
           "Required": false,
@@ -580,49 +468,15 @@
           "Name": "app_tier_use_DHCP",
           "Required": false,
           "Description": "Controlls if Azure subnet provided IP addresses should be used (true)",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
           "Name": "app_tier_dual_nics",
           "Required": false,
           "Description": "Controlls if the application tier servers should have two network cards",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "app_tier_vm_sizing",
-          "Required": false,
-          "Description": "Defines the VM SKU and the disk layout for the application tier servers",
-          "Type": "field",
+          "Type": "checkbox",
           "Options": [],
           "Overrules": ""
         },
@@ -638,21 +492,8 @@
           "Name": "use_loadbalancers_for_standalone_deployments",
           "Required": false,
           "Description": "Used to control if standalone deployments (non HA) will have load balancers",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -662,45 +503,11 @@
       "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#application-server-parameters",
       "Parameters": [
         {
-          "Name": "application_server_count",
-          "Required": false,
-          "Description": "Defines how many application servers to deploy",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
           "Name": "application_server_sku",
           "Required": false,
           "Description": "Provides the SKU to use for the application servers",
           "Type": "field",
           "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "application_server_image",
-          "Required": false,
-          "Description": "Defines the virtual machine image to use for the application servers",
-          "Type": "image",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "application_server_zones",
-          "Required": false,
-          "Description": "Defines the availability zones to which deploy the application servers",
-          "Type": "list",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
           "Overrules": ""
         },
         {
@@ -759,21 +566,8 @@
           "Name": "application_server_no_avset",
           "Required": false,
           "Description": "If true, the application tier will not use an availability set",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -793,21 +587,8 @@
           "Name": "application_server_no_ppg",
           "Required": false,
           "Description": "If provided, the application servers will not be placed in a proximity placement group",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -817,40 +598,11 @@
       "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#sap-central-services-parameters",
       "Parameters": [
         {
-          "Name": "scs_server_count",
-          "Required": false,
-          "Description": "Defines how many scs servers to deploy",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
           "Name": "scs_server_sku",
           "Required": false,
           "Description": "Provides the SKU to use for the scs servers",
           "Type": "field",
           "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "scs_high_availability",
-          "Required": false,
-          "Description": "Provides the SKU to use for the scs servers",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
           "Overrules": ""
         },
         {
@@ -867,32 +619,6 @@
           "Description": "",
           "Type": "field",
           "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "scs_server_image",
-          "Required": false,
-          "Description": "Defines the virtual machine image to use for the scs servers",
-          "Type": "image",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "scs_server_zones",
-          "Required": false,
-          "Description": "Defines the availability zones to which deploy the scs servers",
-          "Type": "list",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
           "Overrules": ""
         },
         {
@@ -964,42 +690,16 @@
           "Name": "scs_server_no_avset",
           "Required": false,
           "Description": "If true, the SAP Central Services tier will not use an availability set",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
           "Name": "scs_server_no_ppg",
           "Required": false,
           "Description": "If provided, the Central Services will not be placed in a proximity placement group",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -1009,45 +709,11 @@
       "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#web-dispatcher-parameters",
       "Parameters": [
         {
-          "Name": "webdispatcher_server_count",
-          "Required": false,
-          "Description": "Defines how many webdispatcher servers to deploy",
-          "Type": "field",
-          "Options": [],
-          "Overrules": ""
-        },
-        {
           "Name": "webdispatcher_server_sku",
           "Required": false,
           "Description": "Provides the SKU to use for the webdispatcher servers",
           "Type": "field",
           "Options": [],
-          "Overrules": ""
-        },
-        {
-          "Name": "webdispatcher_server_image",
-          "Required": false,
-          "Description": "Defines the virtual machine image to use for the webdispatcher servers",
-          "Type": "image",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
-          "Overrules": ""
-        },
-        {
-          "Name": "webdispatcher_server_zones",
-          "Required": false,
-          "Description": "Defines the availability zones to which deploy the webdispatcher servers",
-          "Type": "list",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            }
-          ],
           "Overrules": ""
         },
         {
@@ -1119,42 +785,16 @@
           "Name": "webdispatcher_server_no_avset",
           "Required": false,
           "Description": "If true, the Web Dispatcher tier will not use an availability set",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
           "Name": "webdispatcher_server_no_ppg",
           "Required": false,
           "Description": "If provided, the web dispatchers will not be placed in a proximity placement group",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]
@@ -1163,35 +803,6 @@
       "Section": "NFS and Shared Files Settings",
       "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#nfs-support",
       "Parameters": [
-        {
-          "Name": "NFS_provider",
-          "Required": false,
-          "Description": "Defines how NFS services are provided to the SAP systems: AFS (Azure Files for NFS), ANF (Azure NetApp Files), NFS (custom solution)",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "AFS",
-              "Value": "AFS"
-            },
-            {
-              "Text": "ANF",
-              "Value": "ANF"
-            },
-            {
-              "Text": "NFS",
-              "Value": "NFS"
-            },
-            {
-              "Text": "NONE",
-              "Value": "NONE"
-            }
-          ],
-          "Overrules": ""
-        },
         {
           "Name": "sapmnt_volume_size",
           "Required": false,
@@ -1236,21 +847,8 @@
           "Name": "ANF_use_for_HANA_data",
           "Required": false,
           "Description": "If defined, will create ANF volumes for HANA data",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1265,21 +863,8 @@
           "Name": "ANF_use_existing_data_volume",
           "Required": false,
           "Description": "Use existing data volume",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1302,21 +887,8 @@
           "Name": "ANF_use_for_HANA_log",
           "Required": false,
           "Description": "If defined, will create ANF volumes for HANA log",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1331,21 +903,8 @@
           "Name": "ANF_use_existing_log_volume",
           "Required": false,
           "Description": "Use existing log volume",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1368,21 +927,8 @@
           "Name": "ANF_use_for_HANA_shared",
           "Required": false,
           "Description": "If defined, will create ANF volumes for HANA shared",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1397,21 +943,8 @@
           "Name": "ANF_use_existing_shared_volume",
           "Required": false,
           "Description": "Use existing shared volume",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1434,21 +967,8 @@
           "Name": "ANF_use_for_usr_sap",
           "Required": false,
           "Description": "If defined, will create ANF volumes for /usr/sap",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1463,21 +983,8 @@
           "Name": "ANF_use_existing_usr_sap_volume",
           "Required": false,
           "Description": "Use existing  /usr/sap volume",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1500,42 +1007,16 @@
           "Name": "use_private_endpoint",
           "Required": false,
           "Description": "Use private endpoint for the deployment",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
           "Name": "ANF_use_existing_sapmnt_volume",
           "Required": false,
           "Description": "Use existing sapmnt volume",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1572,21 +1053,8 @@
           "Name": "deploy_anchor_vm",
           "Required": false,
           "Description": "Controls if an anchor VM should be deployed",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1630,21 +1098,8 @@
           "Name": "anchor_vm_accelerated_networking",
           "Required": false,
           "Description": "Defines if the anchor VM should use accelerated networking",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1677,21 +1132,8 @@
           "Name": "anchor_vm_use_DHCP",
           "Required": false,
           "Description": "Controlls if Azure subnet provided IP addresses should be used",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1758,21 +1200,8 @@
           "Name": "nsg_asg_with_vnet",
           "Required": false,
           "Description": "Controls where the Application Security Groups are created",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         },
         {
@@ -1795,21 +1224,8 @@
           "Name": "deploy_application_security_groups",
           "Required": false,
           "Description": "Defines if application security groups will be created",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
 
@@ -1849,21 +1265,8 @@
           "Name": "enable_purge_control_for_keyvaults",
           "Required": false,
           "Description": "Disables the purge protection for Azure keyvaults. USE THIS ONLY FOR TEST ENVIRONMENTS",
-          "Type": "lookup",
-          "Options": [
-            {
-              "Text": "",
-              "Value": ""
-            },
-            {
-              "Text": "True",
-              "Value": "true"
-            },
-            {
-              "Text": "False",
-              "Value": "false"
-            }
-          ],
+          "Type": "checkbox",
+          "Options": [],
           "Overrules": ""
         }
       ]

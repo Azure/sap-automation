@@ -229,9 +229,10 @@ function populateAzureDropdownData(id, data) {
 function setCurrentValue(id) {
     var currentValue = model[id];
     if (typeof currentValue == "boolean") {
-        currentValue = currentValue.toString();
+        $("#" + id).prop('checked', currentValue);
+        $("#" + id).trigger('change');
     }
-    if (currentValue) {
+    else if (currentValue) {
         if (Array.isArray(currentValue)) {
             populateListData(id, currentValue);
         }
