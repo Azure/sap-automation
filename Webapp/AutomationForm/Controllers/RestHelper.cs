@@ -73,7 +73,7 @@ namespace AutomationForm.Controllers
             ooId = JsonDocument.Parse(responseBody).RootElement.GetProperty("value")[0].GetProperty("objectId").GetString();
 
             // Dynamically retrieve path
-            string pathBase = await GetVariableFromVariableGroup(sdafGeneralId, "Deployment_Configuration_Path");
+            string pathBase = await GetVariableFromVariableGroup(sdafGeneralId, "SDAF-General", "Deployment_Configuration_Path");
             path = pathBase + path;
 
             // Create request body
@@ -267,13 +267,13 @@ namespace AutomationForm.Controllers
         }
 
         // Get a specific variables value from a variable group in ado
-        public async Task<string> GetVariableFromVariableGroup(string id, string variableName)
+        public async Task<string> GetVariableFromVariableGroup(string id, string variableGroupName, string variableName)
         {
             try
             {
                 if (id == null || id == "")
                 {
-                    id = await GetVariableGroupIdFromName("SDAF-General");
+                    id = await GetVariableGroupIdFromName(variableGroupName);
                     if (id == null)
                     {
                         throw new Exception();
