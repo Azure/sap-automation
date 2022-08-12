@@ -200,7 +200,7 @@ namespace AutomationForm.Controllers
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
 
-                string path = $"samples/WORKSPACES/LANDSCAPE/{id}/{id}.tfvars";
+                string path = $"/LANDSCAPE/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
                 string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
                 bool isSystem = false;
@@ -208,7 +208,7 @@ namespace AutomationForm.Controllers
                 await restHelper.UpdateRepo(path, content);
                 await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment);
                 
-                TempData["success"] = "Successfully deployed workload zone " + id;
+                TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }
             catch (Exception e)
             {
