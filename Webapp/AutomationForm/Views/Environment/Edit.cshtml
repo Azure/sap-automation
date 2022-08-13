@@ -43,7 +43,6 @@
                 @Html.Label("newName", "Environment name", new { @class = $"ms-Label required" })
                 <p>Modify the variable group name. "SDAF-" will be prepended. </p>
             </div>
-
             <div class="right-input">
                 @Html.TextBox("newName", Model.name, new { @class = "ms-TextField-field" })
             </div>
@@ -53,7 +52,6 @@
                 @Html.Label("description", "Description", new { @class = $"ms-Label" })
                 <p>Add a description for the variable group. </p>
             </div>
-
             <div class="right-input">
                 @Html.TextBox("description", Model.description, new { @class = "ms-TextField-field" })
             </div>
