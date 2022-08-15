@@ -396,9 +396,12 @@ then
             allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" )
 
             "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-            if [ $? -eq 255 ]
-            then
-                exit $?
+
+            if [ -f secret.err ]; then
+                error_message=$(cat secret.err)
+                echo "##vso[task.logissue type=error]${error_message}"
+
+                exit 65
             fi
         else
             read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
@@ -672,6 +675,8 @@ echo ""
 
 terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
 return_value=$?
+
+echo "Terraform Plan return code: " $return_value
 if [ 1 == $return_value ]
 then
     echo "#########################################################################################"
@@ -690,6 +695,22 @@ then
 fi
 
 ok_to_proceed=0
+if [ -f plan_output.log ]; then
+    echo "2"
+    cat plan_output.log
+    LASTERROR=$(grep -m1 'Error: ' plan_output.log )
+
+    if [ -n "${LASTERROR}" ] ; then
+        echo "3"
+        if [ 1 == $called_from_ado ] ; then
+            echo "##vso[task.logissue type=error]$LASTERROR"
+        fi
+        
+
+        return_value=1
+    fi
+fi
+
 if [ 0 == $return_value ] ; then
     echo ""
     echo "#########################################################################################"
@@ -769,27 +790,6 @@ if [ 1 == $ok_to_proceed ]; then
 
     return_value=$?
 
-    if [ 0 != $return_value ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        if [ -f error.log ]; then
-            cat error.log
-            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
-            echo $LASTERROR > "${workload_config_information}".err
-            if [ 1 == $called_from_ado ] ; then
-                echo "##vso[task.logissue type=error]$LASTERROR"
-            fi
-            rm error.log
-        fi
-        unset TF_DATA_DIR
-        exit $return_value
-    fi
-
 fi
 
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
@@ -822,6 +822,45 @@ if [ 0 == $return_value ] ; then
     workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
     save_config_var "workload_zone_prefix" "${workload_config_information}"
 
+fi
+
+echo "1"
+
+if [ -f error.log ]; then
+    echo "2"
+    cat error.log
+    LASTERROR=$(grep -m1 'Error: ' error.log )
+
+    if [ -n "${LASTERROR}" ] ; then
+        echo "3"
+        if [ 1 == $called_from_ado ] ; then
+            echo "##vso[task.logissue type=error]$LASTERROR"
+        fi
+        
+
+        return_value=1
+    fi
+fi
+        
+
+if [ 0 != $return_value ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    if [ -f error.log ]; then
+        export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
+        echo $LASTERROR > "${workload_config_information}".err
+        if [ 1 == $called_from_ado ] ; then
+            echo "##vso[task.logissue type=error]$LASTERROR"
+        fi
+        rm error.log
+    fi
+    unset TF_DATA_DIR
+    exit $return_value
 fi
 
 echo ""

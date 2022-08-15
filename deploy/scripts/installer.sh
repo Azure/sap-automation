@@ -380,9 +380,9 @@ fi
 
 ok_to_proceed=false
 
-echo "Terraform state subscription_id     =${STATE_SUBSCRIPTION}"
-echo "Terraform state resource group name =${REMOTE_STATE_RG}"
-echo "Terraform state storage account name=${REMOTE_STATE_SA}"
+echo "Terraform state subscription_id      = ${STATE_SUBSCRIPTION}"
+echo "Terraform state resource group name  = ${REMOTE_STATE_RG}"
+echo "Terraform state storage account name = ${REMOTE_STATE_SA}"
 
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
@@ -565,7 +565,12 @@ if [ 0 == $return_value ] ; then
 
         if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
             webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-            az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+            if [ -z "${az_var}" ]; then
+                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+            else
+                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+            fi
         fi
 
         save_config_var "keyvault" "${system_config_information}"
@@ -856,7 +861,12 @@ then
 
     if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
         webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-        az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
+        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE")
+        if [ -z "${az_var}" ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+        else
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+        fi
     fi
 
     save_config_var "keyvault" "${system_config_information}"
@@ -866,7 +876,7 @@ fi
 if [ "${deployment_system}" == sap_system ]
 then
     re_run=0
-    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
@@ -877,11 +887,13 @@ then
     if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
     then
       database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
-      save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
-      re_run=1
+      if [ -n "${database_loadbalancer_ips}" ]; then
+          save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+          re_run=1
+      fi
     fi
 
-    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
@@ -892,8 +904,10 @@ then
     if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
     then
       scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
-      save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
-      re_run=1
+      if [ -n "${scs_server_loadbalancer_ips}" ]; then
+          save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+          re_run=1
+      fi
     fi
 
     if [ 1 == $re_run ] ; then
