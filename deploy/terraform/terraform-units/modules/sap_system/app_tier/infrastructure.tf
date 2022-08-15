@@ -414,7 +414,7 @@ resource "azurerm_lb_rule" "web" {
 resource "azurerm_network_interface_backend_address_pool_association" "web" {
   provider                = azurerm.main
   depends_on              = [azurerm_lb_backend_address_pool.web]
-  count                   = local.enable_web_lb_deployment ? 1 : 0
+  count                   = local.enable_web_lb_deployment ? local.webdispatcher_count : 0
   network_interface_id    = azurerm_network_interface.web[count.index].id
   ip_configuration_name   = azurerm_network_interface.web[count.index].ip_configuration[0].name
   backend_address_pool_id = azurerm_lb_backend_address_pool.web[0].id
@@ -472,7 +472,7 @@ resource "azurerm_application_security_group" "app" {
 resource "azurerm_application_security_group" "web" {
   provider = azurerm.main
   count = local.webdispatcher_count > 0 ? (
-    var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
+    var.deploy_application_security_groups ? 1 : 0) : (
     0
   )
 

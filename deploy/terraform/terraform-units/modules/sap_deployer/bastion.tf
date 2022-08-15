@@ -19,8 +19,8 @@ resource "azurerm_subnet" "bastion" {
   )
   address_prefixes = [var.infrastructure.vnets.management.subnet_bastion.prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
+  private_endpoint_network_policies_enabled = true
+  private_link_service_network_policies_enabled  = false
 
   service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }

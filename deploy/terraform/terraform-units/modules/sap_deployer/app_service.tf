@@ -1,4 +1,8 @@
 resource "azurerm_subnet" "webapp_subnet" {
+    depends_on = [
+    azurerm_subnet.subnet_mgmt
+  ]
+
   count = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
   name  = local.webapp_subnet_name
   resource_group_name = local.vnet_mgmt_exists ? (

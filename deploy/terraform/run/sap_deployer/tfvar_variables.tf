@@ -238,6 +238,13 @@ variable "deployer_authentication_path_to_private_key" {
   default = ""
 }
 
+
+###############################################################################
+#                                                                             # 
+#                            Key Vault Information                            # 
+#                                                                             # 
+###############################################################################
+
 variable "user_keyvault_id" {
   description = "Azure resource identifier for the deployment credentials Azure Key Vault"
   default = ""
@@ -268,6 +275,10 @@ variable "enable_purge_control_for_keyvaults" {
   type = bool
 }
 
+variable "additional_users_to_add_to_keyvault_policies" {
+  description = "List of object IDs to add to key vault policies"
+  default = [""]
+}
 
 #########################################################################################
 #                                                                                       #

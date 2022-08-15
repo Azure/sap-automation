@@ -7,8 +7,8 @@ resource "azurerm_subnet" "admin" {
   virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.admin_subnet_prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
+  private_endpoint_network_policies_enabled     = true
+  private_link_service_network_policies_enabled = false
 
   service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }
@@ -22,9 +22,9 @@ resource "azurerm_subnet" "db" {
   virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.database_subnet_prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.KeyVault"]
+  private_endpoint_network_policies_enabled     = true
+  private_link_service_network_policies_enabled = false
+  service_endpoints                             = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }
 
 // Creates app subnet of SAP VNET
@@ -36,9 +36,9 @@ resource "azurerm_subnet" "app" {
   virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.application_subnet_prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.KeyVault"]
+  private_endpoint_network_policies_enabled     = true
+  private_link_service_network_policies_enabled = false
+  service_endpoints                             = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }
 
 // Creates web subnet of SAP VNET
@@ -50,9 +50,9 @@ resource "azurerm_subnet" "web" {
   virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes     = [local.web_subnet_prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
-  service_endpoints                              = ["Microsoft.Storage", "Microsoft.KeyVault"]
+  private_endpoint_network_policies_enabled     = true
+  private_link_service_network_policies_enabled = false
+  service_endpoints                             = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }
 
 // Creates anf subnet of SAP VNET

@@ -15,6 +15,11 @@ output "created_resource_group_subscription_id" {
     value = module.sap_library.created_resource_group_subscription_id
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.sap_library.created_resource_group_name
+}
+
 
 ###############################################################################
 #                                                                             # 
@@ -60,5 +65,5 @@ output "automation_version" {
 output "sa_connection_string" {
   description = "Connection string to storage account"
   sensitive = true
-  value = var.use_webapp ? module.sap_library.sa_connection_string : ""
+  value = module.sap_library.sa_connection_string
 }

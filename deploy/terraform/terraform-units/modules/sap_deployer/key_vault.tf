@@ -225,3 +225,30 @@ resource "azurerm_private_endpoint" "kv_user" {
     ]
   }
 }
+
+
+###############################################################################
+#                                                                             # 
+#                                Additional Users                             # 
+#                                                                             # 
+###############################################################################
+
+resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
+
+  count = !local.user_keyvault_exist && length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
+    length(var.additional_users_to_add_to_keyvault_policies)) : (
+    0
+  )
+  key_vault_id = azurerm_key_vault.kv_user[0].id
+
+  tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
+  object_id = var.additional_users_to_add_to_keyvault_policies[count.index]
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Recover"
+  ]
+
+}
+

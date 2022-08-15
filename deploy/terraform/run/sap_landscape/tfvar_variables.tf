@@ -257,6 +257,10 @@ variable "enable_rbac_authorization_for_keyvault" {
   default = false
 }
 
+variable "additional_users_to_add_to_keyvault_policies" {
+  description = "List of object IDs to add to key vault policies"
+  default = [""]
+}
 
 #########################################################################################
 #                                                                                       #

@@ -1,20 +1,35 @@
 
 variable "infrastructure" {}
-variable "deployer" {}
 variable "options" {}
 variable "ssh-timeout" {}
 variable "authentication" {}
+
+#########################################################################################
+#                                                                                       #
+#  KeyVault                                                                             #
+#                                                                                       #
+#########################################################################################
+
 variable "key_vault" {
   description = "The user brings existing Azure Key Vaults"
   default     = ""
 }
 
+variable "additional_users_to_add_to_keyvault_policies" {
+  description = "List of object IDs to add to key vault policies"
+} 
 
-variable "arm_client_id" {
-  default = ""
+
+variable "enable_purge_control_for_keyvaults" {
+  description = "Disables the purge protection for Azure keyvaults."
 }
 
-// Web app variables
+#########################################################################################
+#                                                                                       #
+#  Web App                                                                              #
+#                                                                                       #
+#########################################################################################
+
 variable "use_webapp" {
   default = false
 }
@@ -35,10 +50,6 @@ variable "firewall_deployment" {
 variable "assign_subscription_permissions" {
   description = "Assign permissions on the subscription"
   type = bool
-}
-
-variable "enable_purge_control_for_keyvaults" {
-  description = "Disables the purge protection for Azure keyvaults."
 }
 
 variable "bootstrap" {}
@@ -63,10 +74,20 @@ variable "bastion_deployment" {
   default = false
 }
 
+###############################################################################
+#                                                                             # 
+#                            Deployer Information                             # 
+#                                                                             # 
+###############################################################################
+
+variable "deployer" {}
+
+
 variable "auto_configure_deployer" {
   description = "Value indicating if the deployer should be configured automatically"
   default     = true
 }
+
 
 variable "deployer_vm_count" {
   description = "Number of deployer VMs to create"
@@ -74,6 +95,9 @@ variable "deployer_vm_count" {
   default = 1
 }
 
+variable "arm_client_id" {
+  default = ""
+}
 
 #########################################################################################
 #                                                                                       #

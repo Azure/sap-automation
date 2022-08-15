@@ -54,8 +54,8 @@ data "azurerm_key_vault" "kv_user" {
 
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
-  count                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
-  scope                = local.user_keyvault_exist ? (
+  count = var.enable_rbac_authorization_for_keyvault ? 1 : 0
+  scope = local.user_keyvault_exist ? (
     local.user_key_vault_id) : (
     azurerm_key_vault.kv_user[0].id
   )
@@ -64,8 +64,8 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
-  count                = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" ? 1 : 0
-  scope                = local.user_keyvault_exist ? (
+  count = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" ? 1 : 0
+  scope = local.user_keyvault_exist ? (
     local.user_key_vault_id) : (
     azurerm_key_vault.kv_user[0].id
   )
@@ -356,3 +356,36 @@ resource "azurerm_private_endpoint" "kv_user" {
     ]
   }
 }
+
+
+###############################################################################
+#                                                                             # 
+#                                Additional Users                             # 
+#                                                                             # 
+###############################################################################
+
+resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
+
+  count = var.enable_rbac_authorization_for_keyvault ? (
+    0) : (
+    length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
+      length(var.additional_users_to_add_to_keyvault_policies)) : (
+      0
+    )
+  )
+
+  key_vault_id = local.user_keyvault_exist ? (
+    local.user_key_vault_id) : (
+    azurerm_key_vault.kv_user[0].id
+  )
+
+
+  tenant_id = local.service_principal.tenant_id
+  object_id = var.additional_users_to_add_to_keyvault_policies[count.index]
+  secret_permissions = [
+    "Get",
+    "List"
+  ]
+
+}
+
