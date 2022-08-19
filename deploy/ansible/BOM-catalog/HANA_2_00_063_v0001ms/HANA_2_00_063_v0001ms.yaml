@@ -24,15 +24,15 @@ materials:
       path:         download_basket
       url:          https://softwaredownloads.sap.com/file/0020000000919882022
 
-    # v2_00_063 Revision 2.00.063.0 (SPS06) for HANA DB 2.0
+    # v2_00_064 Revision 2.00.064.0 (SPS06) for HANA DB 2.0
     - name:         HANA Server
-      archive:      IMDB_SERVER20_063_0-80002031.SAR
-      checksum:     6fe1756fc83b21035ff93b1bb6f5547accbed0d2360f51b894de0465c45d8fff
+      archive:      IMDB_SERVER20_064_0-80002031.SAR
+      checksum:     b01352dfd27bd54687e1e27d18d73922e30fc4db3b4b609e6e0ceeb8a9624e94
       extract:      true
       extractDir:   CD_HDBSERVER
       creates:      SIGNATURE.SMF
       path:         download_basket
-      url:          https://softwaredownloads.sap.com/file/0020000000830732022
+      url:          https://softwaredownloads.sap.com/file/0020000001065102022
 
     - name:         SAP HANA AFL Rev 63.1 only for HANA 2.0 Rev 63
       archive:      IMDB_AFL20_063_1-80001894.SAR
