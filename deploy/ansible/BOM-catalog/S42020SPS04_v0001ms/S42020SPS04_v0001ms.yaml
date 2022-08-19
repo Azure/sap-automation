@@ -23,7 +23,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     HANA_2_00_063_v0001ms
+    - name:     HANA_2_00_064_v0001ms
     - name:     SWPM20SP12_latest
     - name:     SUM20SP14_latest
 
@@ -683,8 +683,9 @@ materials:
       url: https://softwaredownloads.sap.com/file/0010000000324432022
       download: false
 
-    - name: "UIAPFI70 800: SP         1"
+    - name: "UIAPFI70 800: SP 0001"
       archive: K-80001INUIAPFI70.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000003002021
       download: false
 
     - name: "UIAPFI70 800: SP 0002"
