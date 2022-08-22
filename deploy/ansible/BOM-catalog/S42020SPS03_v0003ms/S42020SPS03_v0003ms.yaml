@@ -23,7 +23,7 @@
     
     materials:
       dependencies:
-        - name:     HANA_2_00_063_v0001ms
+        - name:     HANA_2_00_064_v0001ms
         - name:     SWPM20SP12_latest
         - name:     SUM20SP14_latest
     
