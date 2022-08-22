@@ -3,6 +3,11 @@
   Set up storage accounts for sap library 
 */
 
+locals {
+  deployer_public_ip_address_used = length(local.deployer_public_ip_address) > 0
+  deployer_tfstate_subnet_used    = length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0
+}
+
 // Creates storage account for storing tfstate
 resource "azurerm_storage_account" "storage_tfstate" {
   provider = azurerm.main
@@ -26,15 +31,17 @@ resource "azurerm_storage_account" "storage_tfstate" {
   }
 
   network_rules {
-    default_action = "Allow"
-    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0 ? (
+    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
+    ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
-      [var.deployer_tfstate.subnet_mgmt_id]) : (
+    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
+      var.use_webapp ? (
+        [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
+        [var.deployer_tfstate.subnet_mgmt_id])) : (
       []
-    )
+    ) 
   }
 
   min_tls_version                 = "TLS1_2"
@@ -126,12 +133,12 @@ resource "azurerm_storage_account" "storage_sapbits" {
   enable_https_traffic_only = true
 
   network_rules {
-    default_action = "Allow"
-    ip_rules = var.use_private_endpoint && length(local.deployer_public_ip_address) > 0 ? (
+    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
+    ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && length(try(var.deployer_tfstate.subnet_mgmt_id, "")) > 0 ? (
+    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
       [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )

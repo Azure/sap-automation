@@ -1,0 +1,163 @@
+﻿@model AutomationForm.Models.LandscapeIndexModel
+
+@{
+    ViewBag.Title = "Workload zones";
+}
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Workload zones</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Existing workload zones</h2>
+    <p>
+        <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
+            More information on configuring the workload zone
+        </a>
+    </p>
+</div>
+
+<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<div class="table-scroll">
+    <table class="table" aria-label="Existing workload zones">
+        <thead>
+            <tr>
+                <th>
+                    Default
+                </th>
+                <th>
+                    Workload zone ID
+                </th>
+                <th class="wideonly">
+                    Environment
+                </th>
+                <th class="wideonly">
+                    Location
+                </th>
+                <th class="wideonly">
+                    Network name
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var landscape in Model.Landscapes)
+        {
+            var iconType = (landscape.IsDefault) ? "FavoriteStarFill" : "FavoriteStar";
+            <tr>
+                <td>
+                    <fluent-anchor appearance="stealth" href="@Url.Action("MakeDefault", "Landscape", new { id=landscape.Id, partitionKey=landscape.environment })">
+                        <i class="ms-Icon ms-Icon--@iconType" aria-hidden="true"></i>
+                    </fluent-anchor>
+                <td>
+                    @Html.DisplayFor(modelItem => landscape.Id)
+                </td>
+                <td class="wideonly">
+                    @Html.DisplayFor(modelItem => landscape.environment)
+                    @if (landscape.environment==null && !landscape.IsDefault) 
+                    {
+                        <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
+                    }
+                </td>
+                <td class="wideonly">
+                    @Html.DisplayFor(modelItem => landscape.location)
+                    @if (landscape.location==null && !landscape.IsDefault) 
+                    {
+                        <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
+                    }
+                </td>
+                <td class="wideonly">
+                    @Html.DisplayFor(modelItem => landscape.network_logical_name)
+                    @if (landscape.network_logical_name==null && !landscape.IsDefault) 
+                    {
+                        <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
+                    }
+                </td>
+                <td class="td-align-right">
+                    @Html.ActionLink("Edit", "Edit", new { id=landscape.Id, partitionKey=landscape.environment }) |
+                    @Html.ActionLink("Details", "Details", new { id=landscape.Id, partitionKey=landscape.environment }) |
+                    @Html.ActionLink("Download", "Download", new { id=landscape.Id, partitionKey=landscape.environment })
+                    @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment) && landscape.IsValid())
+                    {
+                        @: | @Html.ActionLink("Deploy", "Deploy", new { id=landscape.Id, partitionKey=landscape.environment })
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<p style="margin-bottom: 20px;">
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", "Landscape")">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create new
+    </fluent-anchor>
+</p>
+
+<div class="text-center">
+    <h2>Workload zone files</h2>
+</div>
+
+<div class="table-scroll">
+    <table class="table" aria-label="Workload zone files">
+        <thead>
+            <tr>
+                <th>
+                    File ID
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var file in Model.AppFiles)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => file.Id)
+                </td>
+                <td class="td-align-right">
+                    @Html.ActionLink("Edit", "Edit", "File", new { id=file.Id, sourceController="Landscape" }, null) |
+                    @Html.ActionLink("Details", "Details", "File", new { id=file.Id, sourceController="Landscape" }, null) |
+                    @Html.ActionLink("Convert", "Convert", "File", new { id=file.Id, sourceController="Landscape" }, null) |
+                    @Html.ActionLink("Download", "Download", "File", new { id=file.Id, sourceController="Landscape" }, null) |
+                    @Html.ActionLink("Delete", "Delete", "File", new { id=file.Id, sourceController="Landscape" }, null)
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", "File", new { sourceController="Landscape" })">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create
+    </fluent-anchor>
+
+    <fluent-anchor href="@Url.Action("Upload", "File", new { sourceController="Landscape" })">
+        <i class="ms-Icon ms-Icon--Upload" aria-hidden="true"></i> Upload
+    </fluent-anchor>
+
+    <fluent-anchor appearance="accent" style="float: right" href="@Url.Action("Templates", "File", new { sourceController="Landscape" })">
+        Templates
+    </fluent-anchor>
+</p>

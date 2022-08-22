@@ -154,13 +154,9 @@ packages:
   redhat8.1:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.2:
-    - { tier: 'ha',    package: 'python3-libselinux',                           node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'libselinux-python3',                           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.4:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-libselinux',                           node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'libselinux-python3',                           node_tier: 'hana',    state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }
@@ -195,7 +191,7 @@ packages:
     - { tier: 'ha',    package: 'cloud-netconfig-azure>=1.3',                   node_tier: 'all',     state: 'present' }
   # Assumption: Public_Cloud_Module_x86_64 already available
     - { tier: 'ha',    package: 'python-azure-mgmt-compute',                    node_tier: 'all',     state: 'present' }
-    - { tier: 'ha',    package: 'python-azure-identity',                                node_tier: 'all',     state: 'present' }  # Added as part of documentation update 
+    - { tier: 'ha',    package: 'python-azure-identity',                                node_tier: 'all',     state: 'present' }  # Added as part of documentation update
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
   sles_sap12.4:
@@ -266,8 +262,8 @@ packages:
   sles_sap15.2:
   sles_sap15.3:
 #    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
-    #Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
-    #Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
+    # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
+    # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
   oraclelinux8:
     - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }

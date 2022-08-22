@@ -73,8 +73,8 @@
   ansible.builtin.set_fact:
     nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
@@ -202,13 +202,13 @@
   loop:
     - { tier: 'ora',            type: 'xfs',     src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
     - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',                 path: '{{ target_media_location }}' }                # Special Install Structure; Destroy on Completion
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ db_sid|upper }}',       path: '/sapmnt/{{ db_sid|upper }}' }
+    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ db_sid | upper }}',       path: '/sapmnt/{{ db_sid | upper }}' }
     - { tier: 'ora',            type: 'xfs',     src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle'         }
   when:
     item.tier == "ora"
 
 
-#ASM Specific Configuration.
+# ASM Specific Configuration.
 
 # Create a run flag directory
 - name:     "Create run flag directory"
@@ -236,7 +236,7 @@
 # Setup and configure ORACLE ASM.
 
 
-#STEP1 Install ASMLIB and ASMSUPPORT Packages
+# STEP1 Install ASMLIB and ASMSUPPORT Packages
 
 - name:               "Install ASM RPM Packages"
   ansible.builtin.shell: |
@@ -414,7 +414,7 @@
 - name:                                Initialize ASM DISKS DATA"
   ansible.builtin.shell: |
                      set -o errexit
-                     /usr/sbin/oracleasm createdisk DATA"{{ db_sid|upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
+                     /usr/sbin/oracleasm createdisk DATA"{{ db_sid | upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
                      chown -R oracle:oinstall "{{ item }}1"
   loop:                                "{{ datadisklist }}"
   loop_control:
@@ -473,7 +473,7 @@
 - name:         Initialize ASM DISKS ARCH"
   ansible.builtin.shell: |
                      set -o errexit
-                     /usr/sbin/oracleasm createdisk ARCH"{{ db_sid|upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
+                     /usr/sbin/oracleasm createdisk ARCH"{{ db_sid | upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
                      chown -R oracle:oinstall "{{ item }}1"
   loop:                                "{{ archdisklist }}"
   loop_control:
@@ -532,7 +532,7 @@
 - name:                                Initialize ASM DISKS RECO"
   ansible.builtin.shell: |
                      set -o errexit
-                     /usr/sbin/oracleasm createdisk RECO"{{ db_sid|upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
+                     /usr/sbin/oracleasm createdisk RECO"{{ db_sid | upper }}"0"{{ ansible_loop.index }}"  "{{ item }}1"
                      chown -R oracle:oinstall "{{ item }}1"
   loop:                                "{{ recodisklist }}"
   loop_control:

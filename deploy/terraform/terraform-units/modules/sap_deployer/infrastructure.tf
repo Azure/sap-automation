@@ -117,10 +117,11 @@ resource "azurerm_subnet" "subnet_mgmt" {
   virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes     = [local.management_subnet_prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
+  private_endpoint_network_policies_enabled = true
+  private_link_service_network_policies_enabled = false
 
-  service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
+  service_endpoints = var.use_webapp ? ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"] : ["Microsoft.Storage", "Microsoft.KeyVault"]
+
 }
 
 data "azurerm_subnet" "subnet_mgmt" {

@@ -1,0 +1,19 @@
+{
+  "Tab": "Advanced",
+  "Groupings": [
+    {
+      "Section": "Credentials",
+      "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+      "Parameters": [
+        {
+          "Name": "automation_username",
+          "Required": false,
+          "Description": "Defines the user account used by the automation",
+          "Type": "field",
+          "Options": [],
+          "Overrules": ""
+        }
+      ]
+    }
+  ]
+}

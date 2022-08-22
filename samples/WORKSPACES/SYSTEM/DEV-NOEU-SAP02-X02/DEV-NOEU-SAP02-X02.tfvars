@@ -94,6 +94,9 @@ database_size = "S4Demo"
 #If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
 #db_disk_sizes_filename="custom-sizing.json"
 
+# database_dual_nics is a boolean flag controlling if the database servers should have two network cards
+# database_dual_nics = false
+
 # database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 database_vm_use_DHCP = true
 
@@ -367,6 +370,8 @@ resource_offset = 1
 # vm_disk_encryption_set_id if defined defines the custom encryption key 
 #vm_disk_encryption_set_id=""
 
+# deploy_application_security_groups is a boolean flag controlling if the application  security groups should be created
+deploy_application_security_groups = true
 
 #########################################################################################
 #                                                                                       #

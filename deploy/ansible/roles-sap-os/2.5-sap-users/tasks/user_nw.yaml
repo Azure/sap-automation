@@ -18,10 +18,10 @@
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid|upper }}_DB') }}"
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid|upper }}_PAS') }}"
-    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid|upper }}_APP') }}"
+    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_PAS') }}"
+    - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_APP') }}"
 
 - name:                                "User Creation: Set the SCS Server name"
   ansible.builtin.set_fact:
@@ -92,7 +92,7 @@
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
     param_directory:                   "{{ dir_params }}"
-    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"                       
+    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
   tags:
     - skip_ansible_lint
 
@@ -162,7 +162,7 @@
   ansible.builtin.debug:
     msg:                               "Users already created"
   when:
-    -  users_created.stat.exists
+    - users_created.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -45,7 +45,7 @@
 
 - name:                                "Combine dependent BoMs"
   ansible.builtin.set_fact:
-    root_media_list:                   "{{ root_media_list + bom.materials.media|flatten(levels=1) }}"
+    root_media_list:                   "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
   when: root_media_list is defined
 
 # ------------------<DEBUGGING>-------------------
@@ -71,6 +71,31 @@
 #   02) Validate media from SAP
 #   Loop through BOM media URLs
 
+- name:                                "BoM Validator: - Extract SAP Binaries Storage Account SAS secret"
+  block:
+
+    - name:                            "BoM Validator: - Set Expiry"
+      ansible.builtin.command:         "date +'%Y-%m-%d' -d '+3 days'"
+      register: expiry
+
+    - name:                            "BoM Validator: - Create SAP Binaries Storage Account SAS"
+      ansible.builtin.shell: >-
+                                       az storage account generate-sas \
+                                         --services b \
+                                         --resource-types sco \
+                                         --permissions cdlrw \
+                                         --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }} \
+                                         --account-key {{ sapbits_access_key }} \
+                                         --expiry {{ expiry.stdout }} \
+                                         | tr -d \"
+      changed_when:                    false
+      register:                        az_sapbits_sas_token
+
+    - name:                            "BoM Validator: - Extract SAP Binaries Storage Account SAS (temp)"
+      ansible.builtin.set_fact:
+        sapbits_sas_token: >-
+                                       {{ az_sapbits_sas_token.stdout }}
+
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
 
@@ -85,7 +110,7 @@
   ansible.builtin.command: >-
                                        az storage blob delete-batch
                                          --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
-                                         --account-key {{ sapbits_access_key }}
+                                         --sas-token {{ sapbits_sas_token }}
                                          --source {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
                                          --pattern "{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/*"
   delegate_to:                         localhost
@@ -93,7 +118,7 @@
   changed_when:                        false
   when:
     - upload is defined
-    - upload is true
+    - upload
 
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Upload Folder"
   vars:
@@ -103,7 +128,7 @@
                                          --account-name {{ account }}
                                          --account-key {{ sapbits_access_key }}
                                          --destination "{{ bom_container_name }}/{{ bom_name }}/templates"
-                                         --source "{{ bom_file.rpartition('/')[0]}}/templates"
+                                         --source "{{ bom_file.rpartition('/')[0] }}/templates"
                                          --overwrite true
                                          --if-none-match "*"
                                          --no-progress
@@ -117,7 +142,7 @@
     - bom_upload_azresult.stderr.find("BlobAlreadyExists") == -1
   when:
     - upload is defined
-    - upload is true
+    - upload
 
 # ------------------<DEBUGGING>-------------------
 # - name: "List error codes"

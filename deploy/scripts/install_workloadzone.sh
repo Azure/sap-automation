@@ -305,14 +305,25 @@ fi
 
 #setting the user environment variables
 set_executing_user_environment_variables "none"
+if [[ -z ${REMOTE_STATE_SA} ]]; then
+    load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
+fi
 
-load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
 load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
 load_config_vars "${workload_config_information}" "tfstate_resource_id"
-load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
-load_config_vars "${workload_config_information}" "subscription"
+
+if [[ -z ${STATE_SUBSCRIPTION} ]]; then
+    load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
+fi
+
+if [[ -z ${subscription} ]]; then
+    load_config_vars "${workload_config_information}" "subscription"
+fi
+
 load_config_vars "${workload_config_information}" "keyvault"
-load_config_vars "${workload_config_information}" "deployer_tfstate_key"
+if [[ -z ${deployer_tfstate_key} ]]; then
+    load_config_vars "${workload_config_information}" "deployer_tfstate_key"
+fi
 
 if [ -n "$tfstate_resource_id" ]
 then
@@ -385,9 +396,12 @@ then
             allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" )
 
             "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-            if [ $? -eq 255 ]
-            then
-                exit $?
+
+            if [ -f secret.err ]; then
+                error_message=$(cat secret.err)
+                echo "##vso[task.logissue type=error]${error_message}"
+
+                exit 65
             fi
         else
             read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
@@ -498,16 +512,6 @@ fi
 export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
 root_dirname=$(pwd)
 
-check_output=0
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#       $cyan Changing the subscription to: ${subscription} $resetformatting            #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-az account set --sub "${subscription}"
-
 if [ ! -d ./.terraform/ ];
 then
     terraform -chdir="${terraform_module_directory}" init -upgrade=true  \
@@ -552,6 +556,16 @@ then
     exit $return_value
 fi
 
+check_output=0
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "#       $cyan Changing the subscription to: ${subscription} $resetformatting            #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+az account set --sub "${subscription}"
+
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
 save_config_var "subscription" "${workload_config_information}"
 save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
@@ -577,12 +591,12 @@ then
         echo "#########################################################################################"
         echo ""
 
-        workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
+        workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
         if valid_kv_name "$keyvault" ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
 
-        deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output automation_version)
+        deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
         if [ -z "${deployed_using_version}" ]; then
             echo ""
             echo "#########################################################################################"
@@ -659,8 +673,10 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter > plan_output.log
+terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
 return_value=$?
+
+echo "Terraform Plan return code: " $return_value
 if [ 1 == $return_value ]
 then
     echo "#########################################################################################"
@@ -679,6 +695,22 @@ then
 fi
 
 ok_to_proceed=0
+if [ -f plan_output.log ]; then
+    echo "2"
+    cat plan_output.log
+    LASTERROR=$(grep -m1 'Error: ' plan_output.log )
+
+    if [ -n "${LASTERROR}" ] ; then
+        echo "3"
+        if [ 1 == $called_from_ado ] ; then
+            echo "##vso[task.logissue type=error]$LASTERROR"
+        fi
+        
+
+        return_value=1
+    fi
+fi
+
 if [ 0 == $return_value ] ; then
     echo ""
     echo "#########################################################################################"
@@ -692,28 +724,13 @@ if [ 0 == $return_value ] ; then
         rm plan_output.log
     fi
 
-    # if [ "$private_link_used" == "true" ]; then
-    #     echo "#########################################################################################"
-    #     echo "#                                                                                       #"
-    #     echo -e "#                             $cyan Configuring Private Link $resetformatting                                #"
-    #     echo "#                                                                                       #"
-    #     echo "#########################################################################################"
-    #     echo ""
-
-    #     app_subnet_id=$(terraform -chdir="${terraform_module_directory}" output app_subnet_id| tr -d \")
-    #     az storage account network-rule add -g $REMOTE_STATE_RG --account-name $REMOTE_STATE_SA   --subnet $app_subnet_id  --only-show-errors  --output none
-
-    # fi
-
-    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
+    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
     if valid_kv_name "$keyvault" ; then
         save_config_var "workloadkeyvault" "${workload_config_information}"
     fi
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
 
-    azure_files_transport_storage_account_id=$(terraform -chdir="${terraform_module_directory}"  output azure_files_transport_storage_account_id | tr -d \")
-    save_config_var "azure_files_transport_storage_account_id" "${workload_config_information}"
-    ok_to_proceed=0
+    ok_to_proceed=1
 fi
 
 if [ 2 == $return_value ] ; then
@@ -766,41 +783,21 @@ if [ 1 == $ok_to_proceed ]; then
     fi
 
     if [ 1 == $called_from_ado ] ; then
-        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  2>error.log
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  | tee -a error.log
     else
-        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  2>error.log
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter   | tee -a error.log
     fi
 
     return_value=$?
-
-    if [ 0 != $return_value ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        if [ -f error.log ]; then
-            cat error.log
-            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
-            echo $LASTERROR > "${workload_config_information}".err
-            if [ 1 == $called_from_ado ] ; then
-                echo "##vso[task.logissue type=error]$LASTERROR"
-            fi
-            rm error.log
-        fi
-        unset TF_DATA_DIR
-        exit $return_value
-    fi
 
 fi
 
 save_config_var "landscape_tfstate_key" "${workload_config_information}"
 
 if [ 0 == $return_value ] ; then
+
     save_config_vars "landscape_tfstate_key" "${workload_config_information}"
-    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}"  output workloadzone_kv_name | tr -d \")
+    workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
     temp=$(echo "${workloadkeyvault}" | grep "Warning")
     if [ -z "${temp}" ]
@@ -822,32 +819,60 @@ if [ 0 == $return_value ] ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
     fi
-    workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}"  output workload_zone_prefix | tr -d \")
+    workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
     save_config_var "workload_zone_prefix" "${workload_config_information}"
-
-    
-    unset TF_DATA_DIR
-
-    # if [ "$private_link_used" == "true" ]; then
-    #     echo "#########################################################################################"
-    #     echo "#                                                                                       #"
-    #     echo -e "#                             $cyan Configuring Private Link $resetformatting                                #"
-    #     echo "#                                                                                       #"
-    #     echo "#########################################################################################"
-    #     echo ""
-
-    #     app_subnet_id=$(terraform -chdir="${terraform_module_directory}" output app_subnet_id| tr -d \")
-    #     az storage account network-rule add -g $REMOTE_STATE_RG --account-name $REMOTE_STATE_SA   --subnet $app_subnet_id  --only-show-errors  --output none
-
-    # fi
 
 fi
 
-# if [ 1 == $ip_saved ] ; then
+echo "1"
 
-#     az storage account network-rule remove --resource-group "${RG}" --account-name "${SA}" --subscription "${SUB}" --ip-address $this_ip
-# fi
+if [ -f error.log ]; then
+    echo "2"
+    cat error.log
+    LASTERROR=$(grep -m1 'Error: ' error.log )
 
+    if [ -n "${LASTERROR}" ] ; then
+        echo "3"
+        if [ 1 == $called_from_ado ] ; then
+            echo "##vso[task.logissue type=error]$LASTERROR"
+        fi
+        
+
+        return_value=1
+    fi
+fi
+        
+
+if [ 0 != $return_value ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    if [ -f error.log ]; then
+        export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
+        echo $LASTERROR > "${workload_config_information}".err
+        if [ 1 == $called_from_ado ] ; then
+            echo "##vso[task.logissue type=error]$LASTERROR"
+        fi
+        rm error.log
+    fi
+    unset TF_DATA_DIR
+    exit $return_value
+fi
+
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo  -e "#                            $cyan Creating deployment     $resetformatting                                  #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+
+rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+az deployment group create --resource-group ${rg_name} --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription  ${subscription} --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 now=$(date)
 cat <<EOF > "${workload_config_information}".md
@@ -866,7 +891,7 @@ Date : "${now}"
 EOF
 
 if [ -f "${workload_config_information}".err ]; then
-    "${workload_config_information}".err
+    cat "${workload_config_information}".err
 fi
 
 unset TF_DATA_DIR

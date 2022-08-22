@@ -14,16 +14,20 @@
     state:                             directory
     mode:                              0755
 
+- name:                                "Get the SID"
+  ansible.builtin.set_fact:
+    this_sid:                          "{% if tier == 'web' %}{{ web_sid | upper }}{% else %}{{ sap_sid | upper }}{% endif %}"
+
 - name:                                "Post Installation: Show path"
   ansible.builtin.debug:
-    msg:                               "{{ tmp_directory }}/sapinst_instdir/{{ prefix }}{{ path }}"
+    msg:                               "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
   when:
     - tier != 'hana'
     - tier != 'oracle'
 
 - name:                                "Post Installation: Find the log files (SAPINST)"
   ansible.builtin.find:
-    paths:                             "{{ tmp_directory }}/sapinst_instdir/{{ prefix }}{{ path }}"
+    paths:                             "{{ tmp_directory }}/{{ this_sid }}/sapinst_instdir/{{ prefix }}/{{ path }}"
     file_type:                         file
     patterns:                          'sa*.log,Hd*.log'
     recurse:                           true
@@ -52,9 +56,9 @@
   when:                                sapinst_list_of_files is defined
 
 - name:                                "Post Installation: Compress the installation log files"
-  ansible.builtin.archive:
+  archive:
     path:                              "{{ sapinst_list_of_files }}"
-    dest:                              "{{ tmp_directory }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
+    dest:                              "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}.zip"
     format:                            zip
     mode:                              0755
   when:
@@ -62,8 +66,8 @@
 
 - name:                                "Post Installation: Copy installation logs"
   ansible.builtin.fetch:
-    src:                               "{{ tmp_directory }}/sapinst_instdir/{{ sap_sid }}{{ suffix }}.zip"
-    dest:                              "{{ _workspace_directory }}/logs/{{ sap_sid }}{{ suffix }}.zip"
+    src:                               "{{ tmp_directory }}/{{ this_sid }}/{{ this_sid }}{{ suffix }}.zip"
+    dest:                              "{{ _workspace_directory }}/logs/{{ this_sid }}{{ suffix }}.zip"
     flat:                              true
   when:
     - sapinst_list_of_files is defined
@@ -81,13 +85,13 @@
 
     - name:                            "Post Installation: Create List (hana)"
       ansible.builtin.set_fact:
-        hana_list_of_files:            "{{ hana_log_files.files | map(attribute='path')| list }}"
+        hana_list_of_files:            "{{ hana_log_files.files | map(attribute='path') | list }}"
       when:
         - hana_log_files.files is defined
         - hana_log_files.files | length > 0
 
     - name:                            "Post Installation: Compress the installation log files (hana)"
-      ansible.builtin.archive:
+      archive:
         path:                          "{{ hana_list_of_files }}"
         dest:                          "/var/tmp/{{ sap_sid }}{{ suffix }}{{ ansible_hostname }}.zip"
         format:                        zip
@@ -122,13 +126,13 @@
 
     - name:                            "Post Installation: Create List (Oracle)"
       ansible.builtin.set_fact:
-        oracle_list_of_files:          "{{ oracle_log_files.files | map(attribute='path')| list }}"
+        oracle_list_of_files:          "{{ oracle_log_files.files | map(attribute='path') | list }}"
       when:
         - oracle_log_files.files is defined
         - oracle_log_files.files | length > 0
 
     - name:                                "Post Installation: Compress the installation log files (Oracle)"
-      ansible.builtin.archive:
+      archive:
         path:                              "{{ oracle_list_of_files }}"
         dest:                              "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
         format:                            zip

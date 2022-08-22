@@ -44,14 +44,16 @@
     state:                             directory
     mode:                              '0755'
 
-- name:                                "{{ task_prefix }} Download BOM ({{ bom_base_name }}) template from Storage Account"
+
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
-                                        {{ sap_inifile_template }}?{{ sapbits_sas_token }}"
+                                        {{ sap_inifile_template }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
     force:                             true
   delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
   register:                            result
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
@@ -59,14 +61,15 @@
     - distribution_id in ['suse15', 'redhat8']
     - not always_upload_jinja_templates
 
-- name:                                "{{ task_prefix }} Check if file: ({{ bom_base_name }}) is already downloaded to the storage account"
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
-                                        {{ sap_inifile_template }}?{{ sapbits_sas_token }}"
+                                        {{ sap_inifile_template }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
     force:                             true
   delegate_to:                         localhost
+  become:                              "{{ bom_processing_become }}"
   register:                            result
   when:
     - distribution_id != 'suse15'
@@ -80,7 +83,7 @@
       ansible.builtin.template:
         src:                           "{{ download_directory }}/bom/{{ sap_inifile_template }}"
         dest:                          "{{ param_directory }}/{{ sap_inifile }}"
-        #remote_src:                    yes
+        # remote_src:                    yes
         mode:                          0644
         force:                         true
 
@@ -100,6 +103,7 @@
         path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
       register:                        microsoft_supplied_bom_template
       delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
 
     - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
       ansible.builtin.template:
@@ -123,6 +127,7 @@
             path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
           register:                    microsoft_supplied_bom_template_archive
           delegate_to:                 localhost
+          become:                      "{{ bom_processing_become }}"
 
         - name:                        "{{ task_prefix }} Create ini file {{ sap_inifile }}"
           ansible.builtin.template:

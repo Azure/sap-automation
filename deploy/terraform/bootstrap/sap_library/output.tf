@@ -15,6 +15,11 @@ output "created_resource_group_subscription_id" {
     value = module.sap_library.created_resource_group_subscription_id
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.sap_library.created_resource_group_name
+}
+
 
 ###############################################################################
 #                                                                             # 
@@ -48,11 +53,6 @@ output "remote_state_storage_account_name" {
   value = module.sap_library.remote_state_storage_account_name
 }
 
-
-output "remote_state_resource_group_name" {
-  description = "Resource group name for Terraform remote state"
-  value = module.sap_library.remote_state_resource_group_name
-}
 output "saplibrary_environment" {
   description = "Name of enfironment"
   value = local.infrastructure.environment
@@ -60,4 +60,10 @@ output "saplibrary_environment" {
 
 output "automation_version" {
   value = local.version_label
+}
+
+output "sa_connection_string" {
+  description = "Connection string to storage account"
+  sensitive = true
+  value = module.sap_library.sa_connection_string
 }

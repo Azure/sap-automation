@@ -11,7 +11,7 @@
 - name:                                "SCS Install"
   ansible.builtin.debug:
     msg:
-     - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 - name:                                "SCS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
@@ -52,7 +52,13 @@
   ansible.builtin.file:
     path:                              "{{ dir_params }}"
     state:                             directory
-    mode:                              '0755'
+    mode:                              0755
+
+- name:                                "SCS Install: Create temp directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
 
 - name:                                "SCS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -119,6 +125,7 @@
 
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
                                        export SAPSYSTEMNAME={{ sid_to_be_deployed.sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
@@ -140,7 +147,6 @@
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
-      when: 1 == 2
 
     - name:                            "SCS Install: Installation results"
       ansible.builtin.debug:

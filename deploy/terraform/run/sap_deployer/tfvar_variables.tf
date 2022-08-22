@@ -238,6 +238,13 @@ variable "deployer_authentication_path_to_private_key" {
   default = ""
 }
 
+
+###############################################################################
+#                                                                             # 
+#                            Key Vault Information                            # 
+#                                                                             # 
+###############################################################################
+
 variable "user_keyvault_id" {
   description = "Azure resource identifier for the deployment credentials Azure Key Vault"
   default = ""
@@ -263,11 +270,15 @@ variable "deployer_password_secret_name" {
 }
 
 variable "enable_purge_control_for_keyvaults" {
-  description = "Disables the purge protection for Azure keyvaults. USE THIS ONLY FOR TEST ENVIRONMENTS"
-  default = true
+  description = "Disables the purge protection for Azure keyvaults."
+  default = false
   type = bool
 }
 
+variable "additional_users_to_add_to_keyvault_policies" {
+  description = "List of object IDs to add to key vault policies"
+  default = [""]
+}
 
 #########################################################################################
 #                                                                                       #
@@ -296,7 +307,7 @@ variable "deployer_diagnostics_account_arm_id" {
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default = "1.1.7"
+  default = "1.2.6"
 }
 
 variable "name_override_file" {
@@ -329,4 +340,38 @@ variable "agent_pat" {
 variable "agent_ado_url" {
   description = "If provided, contains the Url to the ADO repository"
   default     = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  Web Application settings                                                             #
+#                                                                                       #
+#########################################################################################
+
+variable "use_webapp" {
+  default = false
+}
+
+variable "app_registration_app_id" {
+  default = ""
+}
+
+variable "sa_connection_string" {
+  type = string
+  default = ""
+}
+
+variable "webapp_client_secret" {
+  type = string
+  default = ""
+}
+
+variable "webapp_subnet_arm_id" {
+  description = "Azure resource identifier Web App subnet"
+  default = ""
+}
+
+variable "webapp_subnet_address_prefix" {
+  description = "Subnet adress range for the Web App subnet"
+  default = ""
 }

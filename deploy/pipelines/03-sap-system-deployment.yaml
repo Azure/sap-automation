@@ -87,7 +87,7 @@ stages:
                   exit 2
                 fi
 
-                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+                if [ ! -n $ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
@@ -114,7 +114,7 @@ stages:
                 unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                 rm -f terraform_$(tf_version)_linux_amd64.zip
               echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"

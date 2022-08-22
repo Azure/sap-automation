@@ -1,0 +1,153 @@
+﻿@model AutomationForm.Models.LandscapeViewModel;
+@using AutomationForm.Models
+@using System.Text.Json
+
+@{
+    ViewBag.Title = "Edit workload zone";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+        var landscape = @Html.Raw(JsonSerializer.Serialize(Model.Landscape));
+        createModel(landscape);
+        setSubscriptionFromResource();
+        retainFormValues();
+    });
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+
+        var PivotElements = document.querySelectorAll(".ms-Pivot");
+        for (var i = 0; i < PivotElements.length; i++) {
+          new fabric['Pivot'](PivotElements[i]);
+        }
+        $("#Basic-pivot").addClass("is-selected");
+    }
+
+    var submitting = false;
+    window.onbeforeunload = function(){
+        if (!submitting) {
+            return "";
+        }
+    };
+
+</script>
+
+<div id="loading-background">
+    <fluent-progress-ring class="width-full"></fluent-progress-ring>
+</div>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Workload zones</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Edit</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div>
+
+    <div class="text-center">
+        <h2 style="text-align: center">@Model.Landscape.Id</h2>
+        <p>
+            <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main" target="_blank" rel="noopener noreferrer">
+                More information on configuring the workload zone
+            </a>
+        </p>
+    </div>
+    
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+            <div class="notificationInner">
+                <span class="notificationText">
+                    @Html.ValidationSummary(false)
+                </span>
+            </div>
+        </div>
+    }
+
+    <form class="wrapper" asp-controller="landscape" asp-action="edit">
+        @Html.AntiForgeryToken()
+
+        <div class="ms-Pivot ms-Pivot--large">
+
+            <ul class="ms-Pivot-links" style="text-align: center">
+                @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
+                {
+                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="0">
+                        @pg.Tab
+                    </li>
+                }
+            </ul>
+
+            <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
+
+            @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
+            {
+                <div class="ms-Pivot-content" data-content="@pg.Tab">
+                    <fieldset id="@pg.Tab">
+                        
+                        @foreach (Grouping g in pg.Groupings)
+                        {
+                            <div class="grouping">
+                                <h2><a href="@g.Link" target="_blank" rel="noopener noreferrer">@g.Section</a></h2>
+                                <div class="parameters">
+                                    
+                                    @foreach (ParameterModel p in g.Parameters)
+                                    {
+                                        var required = (@p.Required) ? "required" : "";
+                                        var value = Model.Landscape.GetType().GetProperty(p.Name).GetValue(Model.Landscape);
+                                        
+                                        <div class="ms-TextField">
+                                            
+                                            <div class="left-input">
+                                                @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
+                                                <p>@Html.Raw(p.Description)</p>
+                                            </div>
+
+                                            <div class="right-input">
+                                                @if (@p.Type == "field")
+                                                {
+                                                    @Html.TextBox(p.Name, value, new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                                }
+                                                else if (@p.Type == "lookup")
+                                                {
+                                                    @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                                }
+                                                else if (@p.Type == "checkbox")
+                                                {
+                                                    var isChecked = (value != null && (bool)value) ? "checked" : "";
+                                                    <fluent-checkbox id="@p.Name" name="@p.Name" @isChecked value="@value" onchange="this.value=this.checked"></fluent-checkbox>
+                                                }
+                                                else
+                                                {
+                                                    <p>Invalid parameter</p>
+                                                }
+
+                                                @Html.ValidationMessage(p.Name)
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </fieldset>
+                </div>
+            }
+        </div>
+
+        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "Landscape")">
+            Cancel
+        </fluent-anchor>
+
+    </form>
+</div>

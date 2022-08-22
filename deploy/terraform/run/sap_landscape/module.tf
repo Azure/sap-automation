@@ -44,7 +44,9 @@ module "sap_landscape" {
   install_storage_account_id  = var.install_storage_account_id
   install_private_endpoint_id = var.install_private_endpoint_id
 
-  enable_rbac_authorization_for_keyvault = var.enable_rbac_authorization_for_keyvault
+  enable_rbac_authorization_for_keyvault       = var.enable_rbac_authorization_for_keyvault
+  additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
+
 
 }
 

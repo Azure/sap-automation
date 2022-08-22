@@ -189,6 +189,7 @@ resource "azurerm_lb_rule" "scs" {
   probe_id                 = azurerm_lb_probe.scs[0].id
   enable_floating_ip       = true
   enable_tcp_reset         = true
+  idle_timeout_in_minutes  = var.idle_timeout_scs_ers
 }
 
 # Create the ERS Load balancer rules only in High Availability configurations
@@ -215,6 +216,7 @@ resource "azurerm_lb_rule" "ers" {
   probe_id                 = azurerm_lb_probe.scs[1].id
   enable_floating_ip       = true
   enable_tcp_reset         = true
+  idle_timeout_in_minutes  = var.idle_timeout_scs_ers
 }
 
 resource "azurerm_lb_rule" "clst" {
@@ -412,7 +414,7 @@ resource "azurerm_lb_rule" "web" {
 resource "azurerm_network_interface_backend_address_pool_association" "web" {
   provider                = azurerm.main
   depends_on              = [azurerm_lb_backend_address_pool.web]
-  count                   = local.enable_web_lb_deployment ? 1 : 0
+  count                   = local.enable_web_lb_deployment ? local.webdispatcher_count : 0
   network_interface_id    = azurerm_network_interface.web[count.index].id
   ip_configuration_name   = azurerm_network_interface.web[count.index].ip_configuration[0].name
   backend_address_pool_id = azurerm_lb_backend_address_pool.web[0].id
@@ -470,7 +472,7 @@ resource "azurerm_application_security_group" "app" {
 resource "azurerm_application_security_group" "web" {
   provider = azurerm.main
   count = local.webdispatcher_count > 0 ? (
-    var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
+    var.deploy_application_security_groups ? 1 : 0) : (
     0
   )
 

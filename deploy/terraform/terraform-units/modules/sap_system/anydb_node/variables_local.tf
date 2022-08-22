@@ -1,24 +1,5 @@
 
 locals {
-  // Imports database sizing information
-
-  default_filepath = format("%s%s",
-    path.module,
-    "/../../../../../configs/anydb_sizes.json"
-  )
-  custom_sizing = length(var.custom_disk_sizes_filename) > 0
-
-  // Imports database sizing information
-  file_name = local.custom_sizing ? (
-    fileexists(var.custom_disk_sizes_filename) ? (
-      var.custom_disk_sizes_filename) : (
-      format("%s/%s", path.cwd, var.custom_disk_sizes_filename)
-    )) : (
-    local.default_filepath
-
-  )
-
-  sizes = jsondecode(file(local.file_name))
 
   faults = jsondecode(file(format("%s%s",
     path.module,
@@ -79,6 +60,27 @@ locals {
   anydb          = local.enable_deployment ? local.anydb_databases[0] : null
   anydb_platform = local.enable_deployment ? upper(try(local.anydb.platform, "NONE")) : "NONE"
   // Enable deployment based on length of local.anydb_databases
+
+  // Imports database sizing information
+
+  default_filepath = format("%s%s",
+    path.module,
+    format("/../../../../../configs/%s_sizes.json", lower(local.anydb_platform))
+  )
+  custom_sizing = length(var.custom_disk_sizes_filename) > 0
+
+  // Imports database sizing information
+  file_name = local.custom_sizing ? (
+    fileexists(var.custom_disk_sizes_filename) ? (
+      var.custom_disk_sizes_filename) : (
+      format("%s/%s", path.cwd, var.custom_disk_sizes_filename)
+    )) : (
+    local.default_filepath
+
+  )
+
+  sizes = jsondecode(file(local.file_name))
+
 
   // If custom image is used, we do not overwrite os reference with default value
   anydb_custom_image = try(local.anydb.os.source_image_id, "") != "" ? true : false
@@ -152,7 +154,7 @@ locals {
     }
   }
 
-  anydb_os = {
+  anydb_os = local.enable_deployment ? {
     "source_image_id" = local.anydb_custom_image ? (
       local.anydb.os.source_image_id) : (
       ""
@@ -185,7 +187,7 @@ locals {
         local.os_defaults[upper(local.anydb_platform)].version
       )
     )
-  }
+  } : null
 
   //Observer VM
   observer = try(local.anydb.observer, {})
@@ -198,8 +200,8 @@ locals {
   observer_size            = "Standard_D4s_v3"
   observer_authentication  = local.authentication
   observer_custom_image    = local.anydb_custom_image
-  observer_custom_image_id = local.anydb_os.source_image_id
-  observer_os              = local.anydb_os
+  observer_custom_image_id = local.enable_deployment ? local.anydb_os.source_image_id : ""
+  observer_os              = local.enable_deployment ? local.anydb_os : null
 
   // Subnet IP Offsets
   // Note: First 4 IP addresses in a subnet are reserved by Azure
@@ -226,6 +228,14 @@ locals {
     ]
     "NONE" = [
       "80"
+    ]
+    "HANA" = [
+      "30013",
+      "30014",
+      "30015",
+      "30040",
+      "30041",
+      "30042",
     ]
   }
 

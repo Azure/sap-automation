@@ -2,6 +2,9 @@
 
 # API Input template with defaults
 
+
+become_user_name:             "root"
+
 # ------------------- Begin - OS Config Settings variables -------------------8
 chrony_pool:                  ""
 chrony_servers:               []
@@ -37,6 +40,8 @@ sap_fqdn:                     ""                                  # SAP Install
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
+
+hana_components:              "all"
 
 # DB2 specific parameters
 # db2_sid:                      "DB6"

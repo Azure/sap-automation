@@ -171,7 +171,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 resource "azurerm_virtual_machine_extension" "configure" {
 
-  count = !local.enable_deployer_public_ip && var.configure && var.auto_configure_deployer ? var.deployer_vm_count : 0
+  count = var.configure && var.auto_configure_deployer ? var.deployer_vm_count : 0
 
   name                 = "configure_deployer"
   virtual_machine_id   = azurerm_linux_virtual_machine.deployer[count.index].id
@@ -194,7 +194,7 @@ resource "azurerm_virtual_machine_extension" "configure" {
       pool            = var.agent_pool
       pat             = var.agent_pat
       ado_repo        = var.agent_ado_url
-
+      use_webapp      = var.use_webapp
     }
   )
 )

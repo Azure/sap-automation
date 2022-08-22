@@ -17,6 +17,10 @@ output "subnet_mgmt_id" {
   value = module.sap_deployer.subnet_mgmt_id
 }
 
+output "subnet_webapp_id" {
+  value = module.sap_deployer.subnet_webapp_id
+}
+
 output "deployer_uai" {
   sensitive = true
   value = {

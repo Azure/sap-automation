@@ -34,3 +34,6 @@ override.tf.json
 ### VisualStudioCode ###
 **/settings.json
 .vscode/settings.json
+**/obj/*
+.vscode/launch.json
+.vscode/tasks.json

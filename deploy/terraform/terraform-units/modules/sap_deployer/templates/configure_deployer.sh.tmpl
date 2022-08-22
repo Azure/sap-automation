@@ -61,6 +61,7 @@ client_id="${client_id}"
 subscription_id="${subscription_id}"
 tenant_id="${tenant_id}"
 local_user="${local_user}"
+use_webapp="${use_webapp}"
 
 TOKEN="${pat}"
 DEVURL="${ado_repo}"
@@ -290,6 +291,9 @@ case "$(get_distro_name_version)" in
     ;;
 esac
 
+# Upgrade packages
+pkg_mgr_upgrade
+
 
 # Ensure our package metadata cache is up to date
 pkg_mgr_refresh
@@ -314,7 +318,7 @@ if [[ ! -d "$${asad_dir}" ]]; then
 fi
 
 
-chown -R "$${local_user}" "$${asad_dir}"
+chown -R "$${local_user}" "$${asad_home}"
 
 #
 # Install terraform for all users
@@ -442,6 +446,12 @@ done
 # Ensure that Python argcomplete is enabled for all users interactive shell sessions
 sudo $${ansible_bin}/activate-global-python-argcomplete
 
+# Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
+sudo mkdir -p $${ansible_collections}
+sudo -H $${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path $${ansible_collections}
+sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path $${ansible_collections}
+sudo -H $${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path $${ansible_collections}
+
 #
 # Create /etc/profile.d script to setup environment for interactive sessions
 #
@@ -459,9 +469,10 @@ if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
     echo "Agent already installed"
 else
     sudo mkdir -p "$${agent_home}"; cd $_
-    wget -nv https://aka.ms/AAftpys -O agent.tar.gz
-    tar zxvf agent.tar.gz >/dev/null 2>&1
     sudo chown -R "$${local_user}" $${agent_home}
+
+    sudo wget -nv https://aka.ms/AAftpys -O agent.tar.gz
+    sudo tar zxvf agent.tar.gz >/dev/null 2>&1
 
     sudo touch $${agent_home}/agent_installed
 fi
@@ -481,10 +492,14 @@ else
         cd $${agent_home}
         ./env.sh
 
-        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token $${TOKEN} --pool $${POOL} --agent $${AGENTNAME} --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
-        chmod +x $${agent_home}/config_fixed_params.sh
+        if [ -f $${agent_home}/config_fixed_params.sh ]; then
+            sudo rm $${agent_home}/config_fixed_params.sh
+        fi
         
-        runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
+        echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
+        sudo chmod +x $${agent_home}/config_fixed_params.sh
+        
+        sudo runuser -l "$${local_user}" -c $${agent_home}/config_fixed_params.sh  | sudo tee -a $${agent_home}/log.txt
 
         # automatic start configuration after VM reboot
 
@@ -499,8 +514,17 @@ else
 
     fi
 fi
+
+# Install dotnet for the web app
+if [[ "$${use_webapp}" == "true" ]]; then
+    sudo snap install dotnet-sdk --classic --channel=3.1
+    sudo snap alias dotnet-sdk.dotnet dotnet
+    export DOTNET_ROOT=/snap/dotnet-sdk/current
+fi
+
 # Set env for ansible
 echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export ANSIBLE_COLLECTIONS_PATHS=$${ansible_collections} | sudo tee -a /tmp/deploy_server.sh
 
 # Set env for MSI
 echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -510,11 +534,17 @@ echo export ARM_TENANT_ID=$${tenant_id} | sudo tee -a /etc/profile.d/deploy_serv
 
 echo export DEPLOYMENT_REPO_PATH='$${HOME}/Azure_SAP_Automated_Deployment/sap-automation' | sudo tee -a /etc/profile.d/deploy_server.sh
 
+if [[ -n $${TOKEN} ]]; then
+    echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
+fi
+
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
 echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}':'$${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
 
 
 # Ensure that the user's account is logged in to Azure with specified creds
-echo az login --identity --output none | sudo tee -a /etc/profile.d/deploy_server.sh
+echo az login --identity --allow-no-subscriptions --output none | sudo tee -a /etc/profile.d/deploy_server.sh
 echo 'echo $${USER} account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh
+
+sudo runuser -l "$${local_user}" -c 'az login --identity --allow-no-subscriptions --output none'

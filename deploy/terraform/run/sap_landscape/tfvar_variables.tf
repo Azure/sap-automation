@@ -247,8 +247,9 @@ variable "spn_keyvault_id" {
 }
 
 variable "enable_purge_control_for_keyvaults" {
-  description = "Disables the purge protection for Azure keyvaults. USE THIS ONLY FOR TEST ENVIRONMENTS"
-  default = true
+  description = "Disables the purge protection for Azure keyvaults."
+  default = false
+  type = bool
 }
 
 variable "enable_rbac_authorization_for_keyvault" {
@@ -256,6 +257,10 @@ variable "enable_rbac_authorization_for_keyvault" {
   default = false
 }
 
+variable "additional_users_to_add_to_keyvault_policies" {
+  description = "List of object IDs to add to key vault policies"
+  default = [""]
+}
 
 #########################################################################################
 #                                                                                       #

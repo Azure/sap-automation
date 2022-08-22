@@ -16,12 +16,13 @@ parameters:
     default:
     values:
       - S4HANA_2021_ISS_v0001ms
-      - S42020SPS03_v0002ms
+      - S42020SPS03_v0003ms
       - S41909SPS03_v0011ms
       - HCMT_v0001ms
       - BW4HANA2021SPS01_v0001ms
+      - HANA_2_00_063_v0001ms
       - HANA_2_00_061_v0001ms
-      - HANA_2_00_059_v0002ms
+      - HANA_2_00_059_v0003ms
       - HANA_2_00_055_v0006ms
       - NW750SPS20_v0004ms
       - NW752SPS09_v0001ms

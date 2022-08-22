@@ -59,6 +59,13 @@ variable "authentication" {
   }
 }
 
+#########################################################################################
+#                                                                                       #
+#  Key Vault variables                                                                  #
+#                                                                                       #
+#########################################################################################
+
+
 variable "key_vault" {
   description = "The user brings existing Azure Key Vaults"
   default = {
@@ -92,8 +99,27 @@ variable "key_vault" {
     error_message = "If specified, the kv_prvt_id needs to be a correctly formed Azure resource ID."
   }
 
-
 }
+
+variable "additional_users_to_add_to_keyvault_policies" {
+  description = "Additional users to add to the key vault policies"
+}
+
+variable "enable_purge_control_for_keyvaults" {
+  description = "Disables the purge protection for Azure keyvaults."
+}
+
+
+variable "enable_rbac_authorization_for_keyvault" {
+  description = "Enables RBAC authorization for Azure keyvault"
+}
+
+#########################################################################################
+#                                                                                       #
+#  Storage Account Variables                                                            #
+#                                                                                       #
+#########################################################################################
+
 
 variable "diagnostics_storage_account" {
   description = "Storage account information for diagnostics account"
@@ -108,6 +134,45 @@ variable "witness_storage_account" {
     arm_id = ""
   }
 }
+
+
+variable "transport_volume_size" {
+  description = "The volume size in GB for transport volume"
+}
+
+variable "install_volume_size" {
+  description = "The volume size in GB for install volume"
+}
+
+
+variable "transport_storage_account_id" {
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
+}
+
+variable "transport_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+}
+
+variable "install_storage_account_id" {
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
+}
+
+variable "install_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  Miscallaneous variables                                                              #
+#                                                                                       #
+#########################################################################################
+
+
 
 variable "deployment" {
   description = "The type of deployment"
@@ -147,9 +212,13 @@ variable "ANF_settings" {
   }
 }
 
-variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
-}
+#########################################################################################
+#                                                                                       #
+#  DNS Settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
 
 variable "dns_label" {
   description = "DNS label"
@@ -167,36 +236,6 @@ variable "use_private_endpoint" {
   default     = false
 }
 
-variable "transport_volume_size" {
-  description = "The volume size in GB for transport volume"
-}
-
-variable "install_volume_size" {
-  description = "The volume size in GB for install volume"
-}
-
-
-variable "transport_storage_account_id" {
-  description = "Azure Resource Identifier for an existing storage account"
-  type        = string
-}
-
-variable "transport_private_endpoint_id" {
-  description = "Azure Resource Identifier for an private endpoint connection"
-  type        = string
-}
-
-variable "install_storage_account_id" {
-  description = "Azure Resource Identifier for an existing storage account"
-  type        = string
-}
-
-variable "install_private_endpoint_id" {
-  description = "Azure Resource Identifier for an private endpoint connection"
-  type        = string
-  default = ""
-}
-
 variable "NFS_provider" {
   description = "Describes the NFS solution used"
   type        = string
@@ -205,8 +244,4 @@ variable "NFS_provider" {
 variable "Agent_IP" {
   type    = string
   default = ""
-}
-
-variable "enable_rbac_authorization_for_keyvault" {
-  description = "Enables RBAC authorization for Azure keyvault"
 }

@@ -68,15 +68,15 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
-
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - HANA
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  any_errors_fatal:                    true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -101,7 +101,8 @@
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - block:
+        - name:                        Run the Database installation Playbook
+          block:
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
@@ -148,7 +149,6 @@
 
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
       block:
-
         - name:                        "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
             tier:                      ha
@@ -160,47 +160,41 @@
             sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
             sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the correct repositories are set"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.3-repository
+        - name:                    "Database Installation Playbook: - Ensure the correct repositories are set"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.3-repository
           tags:
             - 1.3-repository
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the correct packages are installed"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.4-packages
+        - name:                    "Database Installation Playbook: - Ensure the correct packages are installed"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.4-packages
           tags:
             - 1.4-packages
 
-        - block:
-          # Setup the kernel parameters required for pacemaker cluster VMs
-            - name:                    "Database Installation Playbook: - Ensure the correct kernel parameters are set"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.9-kernelparameters
+        # Setup the kernel parameters required for pacemaker cluster VMs
+        - name:                    "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.16-services
+        - name:                    "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.16-services
           tags:
             - 1.16-services
 
-        - block:
-            - name:                    "Database Installation Playbook: - Ensure the accounts are present"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.11-accounts
+        - name:                    "Database Installation Playbook: - Ensure the accounts are present"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.11-accounts
           tags:
             - 1.11-accounts
 
-        - block:
-            - name:                    "Database Installation Playbook: - Install Pacemaker"
-              ansible.builtin.include_role:
-                name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
-              when:                    node_tier != 'oracle'
+        - name:                    "Database Installation Playbook: - Install Pacemaker"
+          ansible.builtin.include_role:
+            name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+          when:                    node_tier != 'oracle'
           tags:
             - 1.17-generic-pacemaker
 
@@ -264,7 +258,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -305,7 +299,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -454,7 +448,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
 
   name:                                SAP Post Installation - DB
   remote_user:                         "{{ orchestration_ansible_user }}"
