@@ -94,6 +94,15 @@ output "db_lb_ip" {
   ]
 }
 
+output "db_lb_id" {
+  value = [
+    local.enable_db_lb_deployment ? (
+      azurerm_lb.hdb[0].id) : (
+      ""
+    )
+  ]
+}
+
 output "db_admin_ip" {
   value = local.enable_deployment && var.database_dual_nics ? (
     azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address) : (
