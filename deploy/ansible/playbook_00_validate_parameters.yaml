@@ -21,6 +21,17 @@
 
   tasks:
 
+    - name:                            "0.0 Validations - Create Progress folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "0.0 Validations - Remove os-install-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/validation-done"
+        state:                          absent
+
     - name:                            "0.0 Validations - Initialize tier"
       ansible.builtin.set_fact:
         tier:                          fencing
