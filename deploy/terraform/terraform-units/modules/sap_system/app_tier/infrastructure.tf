@@ -406,7 +406,7 @@ resource "azurerm_lb_rule" "web" {
   backend_port                   = 0
   frontend_ip_configuration_name = azurerm_lb.web[0].frontend_ip_configuration[0].name
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.web[0].id]
-  enable_floating_ip             = true
+  enable_floating_ip             = false
   probe_id                       = azurerm_lb_probe.web[0].id
 }
 
