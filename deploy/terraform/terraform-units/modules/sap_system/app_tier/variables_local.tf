@@ -714,7 +714,7 @@ locals {
   web_dispatcher_primary_ips = [
     {
       name = "IPConfig1"
-      subnet_id = local.enable_deployment ? (
+      subnet_id = local.enable_deployment && local.web_subnet_defined ? (
         local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
         ) : (
         ""
@@ -729,7 +729,7 @@ locals {
   web_dispatcher_secondary_ips = [
     {
       name = "IPConfig2"
-      subnet_id = local.enable_deployment ? (
+      subnet_id = local.enable_deployment && local.web_subnet_defined ? (
         local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
         ) : (
         ""

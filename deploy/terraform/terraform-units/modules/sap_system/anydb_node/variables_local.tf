@@ -215,7 +215,7 @@ locals {
   // Ports used for specific DB Versions
   lb_ports = {
     "ASE" = [
-      "1433"
+      "63500"
     ]
     "ORACLE" = [
       "1521"
