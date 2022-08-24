@@ -31,9 +31,9 @@ parameters:
     - { tier: 'os',    node_tier: 'all', name: 'kernel.core_uses_pid',                       value: '1',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all', name: 'kernel.ctrl-alt-del',                        value: '0',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all', name: 'kernel.dmesg_restrict',                      value: '1',                    state: 'present' }
-    - { tier: 'os',    node_tier: 'all', name: 'kernel.kptr_restrict',                       value: '2',                    state: 'present' }
-    - { tier: 'os',    node_tier: 'all', name: 'kernel.perf_event_paranoid',                 value: '3',                    state: 'present' }
-    - { tier: 'os',    node_tier: 'all', name: 'kernel.randomize_va_space',                  value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.kptr_restrict',                       value: '1',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.perf_event_paranoid',                 value: '2',                    state: 'present' }
+    - { tier: 'os',    node_tier: 'all', name: 'kernel.randomize_va_space',                  value: '2',                    state: 'present' } # 2 - full randomization. Need to disable for db2.
     - { tier: 'os',    node_tier: 'all', name: 'kernel.sysrq',                               value: '0',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.accept_redirects',         value: '0',                    state: 'present' }
     - { tier: 'os',    node_tier: 'all', name: 'net.ipv4.conf.all.accept_source_route',      value: '0',                    state: 'present' }
@@ -72,6 +72,9 @@ parameters:
     - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmax',                              value: '65536',                state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'kernel.msgmnb',                              value: '65536',                state: 'present' }
     - { tier: 'sapos', node_tier: 'db2', name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
+    # Need to disable ASLR for db2: https://www.ibm.com/support/pages/various-db2-failures-may-occur-linux-address-space-layout-randomization-aslr
+    # 2781247 - Db2 reports an address space conflict while executing command 'db2gcf'
+    - { tier: 'sapos', node_tier: 'db2', name: 'kernel.randomize_va_space',                  value: '0',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.memory_failure_early_kill',               value: '1',                    state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'vm.max_map_count',                           value: '2147483647',           state: 'present' }
     - { tier: 'sapos', node_tier: 'hana',name: 'kernel.shmmax',                              value: '1073741824',           state: 'present' }
