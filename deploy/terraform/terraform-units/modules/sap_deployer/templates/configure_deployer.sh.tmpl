@@ -487,7 +487,7 @@ if [ -f "/home/$${local_user}/agent/agent_configured" ]; then
 else
     if [[ -n $${TOKEN} ]];
     then
-        sudo chmod -R 777 $${agent_home} 
+        sudo chmod -R 664 $${agent_home} 
 
         cd $${agent_home}
         ./env.sh
