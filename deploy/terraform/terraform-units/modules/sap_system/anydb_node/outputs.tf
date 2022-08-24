@@ -36,6 +36,15 @@ output "db_lb_ip" {
   ]
 }
 
+output "db_lb_id" {
+  value = [
+    local.enable_db_lb_deployment && (var.use_loadbalancers_for_standalone_deployments || local.anydb_ha) ? (
+      try(azurerm_lb.anydb[0].id, "")) : (
+      ""
+    )
+  ]
+}
+
 output "anydb_loadbalancers" {
   value = azurerm_lb.anydb
 }
