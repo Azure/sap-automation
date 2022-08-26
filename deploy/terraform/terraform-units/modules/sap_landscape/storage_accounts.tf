@@ -45,9 +45,9 @@ resource "azurerm_storage_account" "storage_bootdiag" {
             local.database_subnet_arm_id) : (
             azurerm_subnet.db[0].id
           ),
-          local.web_subnet_existing ? (
+          try(local.web_subnet_existing ? (
             local.web_subnet_arm_id) : (
-            azurerm_subnet.web[0].id
+            azurerm_subnet.web[0].id, "")
           ),
           local.deployer_subnet_management_id
         ]
