@@ -4,7 +4,10 @@ Description:
   Example to deploy deployer(s) using local backend.
 */
 module "sap_deployer" {
-  source         = "../../terraform-units/modules/sap_deployer"
+  source = "../../terraform-units/modules/sap_deployer"
+  providers = {
+    azurerm.dnsmanagement = azurerm.dnsmanagement
+  }
   infrastructure = local.infrastructure
   deployer       = local.deployer
   options        = local.options
@@ -21,6 +24,9 @@ module "sap_deployer" {
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
   arm_client_id                                = var.arm_client_id
   use_private_endpoint                         = var.use_private_endpoint
+  use_custom_dns_a_registration                = var.use_custom_dns_a_registration
+  management_dns_subscription_id               = var.management_dns_subscription_id
+  management_dns_resourcegroup_name            = var.management_dns_resourcegroup_name
   use_webapp                                   = var.use_webapp
   configure                                    = false
   tf_version                                   = var.tf_version

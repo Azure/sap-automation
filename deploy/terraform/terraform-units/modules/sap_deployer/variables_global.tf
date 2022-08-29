@@ -17,7 +17,7 @@ variable "key_vault" {
 
 variable "additional_users_to_add_to_keyvault_policies" {
   description = "List of object IDs to add to key vault policies"
-} 
+}
 
 
 variable "enable_purge_control_for_keyvaults" {
@@ -44,34 +44,52 @@ variable "naming" {
 
 variable "firewall_deployment" {
   description = "Boolean flag indicating if an Azure Firewall should be deployed"
-  type = bool
+  type        = bool
 }
 
 variable "assign_subscription_permissions" {
   description = "Assign permissions on the subscription"
-  type = bool
+  type        = bool
 }
 
 variable "bootstrap" {}
 
 variable "use_private_endpoint" {
   description = "Boolean value indicating if private endpoint should be used for the deployment"
-  default = false
+  default     = false
+}
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
 }
 
 variable "configure" {
   description = "Value indicating if deployer should be configured"
-  default = false
+  default     = false
 }
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default = ""
+  default     = ""
 }
 
 variable "bastion_deployment" {
   description = "Value indicating if Azure Bastion should be deployed"
-  default = false
+  default     = false
 }
 
 ###############################################################################
@@ -91,8 +109,8 @@ variable "auto_configure_deployer" {
 
 variable "deployer_vm_count" {
   description = "Number of deployer VMs to create"
-  type    = number
-  default = 1
+  type        = number
+  default     = 1
 }
 
 variable "arm_client_id" {

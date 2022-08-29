@@ -157,12 +157,30 @@ variable "library_ansible_blob_container_name" {
 
 variable "enable_purge_control_for_keyvaults" {
   description = "Disables the purge protection for Azure keyvaults."
-  default = false
-  type = bool
+  default     = false
+  type        = bool
 }
 
 variable "use_private_endpoint" {
   default = false
+}
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
 }
 
 variable "use_webapp" {
@@ -171,5 +189,5 @@ variable "use_webapp" {
 
 variable "name_override_file" {
   description = "If provided, contains a json formatted file defining the name overrides"
-  default = ""
+  default     = ""
 }
