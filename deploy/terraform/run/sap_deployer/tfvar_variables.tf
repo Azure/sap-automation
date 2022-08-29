@@ -298,6 +298,12 @@ variable "use_private_endpoint" {
   type        = bool
 }
 
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false

@@ -57,6 +57,13 @@ variable "bootstrap" {}
 variable "use_private_endpoint" {
   description = "Boolean value indicating if private endpoint should be used for the deployment"
   default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
 }
 
 variable "use_custom_dns_a_registration" {

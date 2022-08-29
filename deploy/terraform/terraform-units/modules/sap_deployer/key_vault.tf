@@ -273,7 +273,6 @@ resource "azurerm_private_endpoint" "kv_user" {
 ###############################################################################
 
 resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
-
   count = !local.user_keyvault_exist && length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
     length(var.additional_users_to_add_to_keyvault_policies)) : (
     0

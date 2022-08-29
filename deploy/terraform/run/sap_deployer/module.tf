@@ -40,6 +40,7 @@ module "sap_deployer" {
   agent_pat                                    = var.agent_pat
   agent_ado_url                                = var.agent_ado_url
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
+  use_service_endpoint                         = var.use_service_endpoint
 }
 
 module "sap_namegenerator" {
