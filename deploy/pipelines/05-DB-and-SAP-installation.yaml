@@ -13,19 +13,19 @@ parameters:
   - name:                              sap_system_configuration_name
     displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
     type:                              string
-    default:                           DEV-WEEU-SAP01-X00
+    default:                           PRD-UKSO-SAP07-RHB
 
   - name:                              environment
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
-    default:                           DEV
+    default:                           PRD
 
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
     type:                              string
     values:
       - S4HANA_2021_ISS_v0001ms
-      - S42020SPS03_v0003ms
+      - S42020SPS04_v0001ms
       - S41909SPS03_v0011ms
       - HANA_2_00_063_v0001ms
       - HANA_2_00_061_v0001ms
@@ -95,9 +95,11 @@ variables:
     value:                             ${{ parameters.sap_system_configuration_name }}
   - name:                              bom
     value:                             ${{ parameters.bom_base_name }}
+  - name:                              agent_name
+    value:                             $[coalesce(variables['POOL'], variables['Agent'])]
 
 pool:
-  name:                                $(Agent)
+  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
 
 stages:
   - stage:                             Preparation_for_Ansible
@@ -126,10 +128,15 @@ stages:
                 VIRTUAL_NET=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $VIRTUAL_NET
                         SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
 
-                        ls $HOME/SYSTEM/$(sap_system_folder)
-
                 environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION ; echo configuration_file $environment_file_name
                           params_file=$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ;  echo sap_parameters_file $params_file
+
+                agent_name=$(echo $(agent_name) | tr '[:upper:]' '[:lower:]')
+
+                if [[ "azure pipelines" == "${agent_name}" ]]; then
+                  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group"
+                  exit 2
+                fi
 
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $environment_file_name was not found ---$reset"
@@ -144,9 +151,7 @@ stages:
                 else
                   dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                 fi
-                echo "3"
                 
-
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sap_system_folder)."
                   exit 2
@@ -189,7 +194,7 @@ stages:
                   exit 2
                 fi
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -208,8 +213,12 @@ stages:
               echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
                 mkdir -p artifacts
 
-                export kv_name=$(cat $environment_file_name  | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
-                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${VIRTUAL_NET}-sid-sshkey --vault-name $kv_name --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
+                if [ -n $(Workload_Key_Vault) ]; then
+                  export workload_key_vault=$(Workload_Key_Vault) ; echo 'Workload Key Vault' ${workload_key_vault}
+                else
+                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workload_key_vault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                fi
+                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${VIRTUAL_NET}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
@@ -282,9 +291,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             Core_Operating_System_Configuration
@@ -331,9 +339,9 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
               ANSIBLE_HOST_KEY_CHECKING: false
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             SAP_Operating_System_Configuration
@@ -379,9 +387,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             Software_Acquisition
@@ -429,9 +436,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage: Database_Installation
@@ -481,9 +487,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
           - script: |
               #!/bin/bash
@@ -553,9 +558,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
               continueOnError:           true
           - script: |
               #!/bin/bash
@@ -629,8 +633,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash
@@ -701,8 +705,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
             name: HA
 
@@ -758,8 +762,8 @@ stages:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash
@@ -835,8 +839,8 @@ stages:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash
@@ -901,9 +905,8 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash

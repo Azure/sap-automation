@@ -45,10 +45,15 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              environment
-    displayName:                       Environment (DEV, QUA, PRD)
+  - name:                              workload_environment_parameter
+    displayName:                       Workload environment (DEV, QUA, PRD)
     type:                              string
     default:                           DEV
+
+  - name:                              deployer_environment_parameter
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
 
 trigger:                               none
 
@@ -57,7 +62,12 @@ pool:
 
 variables:
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.environment }}
+
+  - name:                              parent_variable_group
+    value:                             SDAF-${{ parameters.deployer_environment_parameter }}
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.workload_environment_parameter }}
 
   - name:                              deployer_folder
     value:                             ${{ parameters.deployer }}
@@ -93,6 +103,8 @@ stages:
     jobs:
       - job:                           Remove_SAP_systems
         displayName:                   "Removing the SAP System"
+        variables:
+          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
         workspace:
           clean:                       all
         steps:
@@ -125,15 +137,31 @@ stages:
 
                 workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
-                if [ ! -f ${workload_environment_file_name} ]; then
-                  echo -e "$boldred--- $workload_environment_file_name was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Workload Zone configuration file ${workload_environment_file_name} was not found."
-                  exit 2
+                if [ ! -n $(Deployer_Key_Vault) ]; then
+                  if [ ! -f ${workload_environment_file_name} ]; then
+                    echo -e "$boldred--- $workload_environment_file_name was not found ---$reset"
+                    echo "##vso[task.logissue type=error]Workload Zone configuration file ${workload_environment_file_name} was not found."
+                    exit 2
+                  fi
                 fi
 
-                export             keyvault=$(cat ${workload_environment_file_name}  | grep keyvault=   -m1      | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
-                export     workloadkeyvault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
-                export   STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                if [ -n $(Deployer_Key_Vault) ]; then
+                  export key_vault=$(Deployer_Key_Vault) ; echo 'Deployer Key Vault' ${key_vault}
+                else
+                  export key_vault=$(cat ${workload_environment_file_name}  | grep keyvault=   -m1      | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                fi
+                
+                if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
+                  export STATE_SUBSCRIPTION=$(Terraform_Remote_Storage_Subscription)  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                else
+                  export STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                fi
+
+                if [ ! -n $(Workload_Key_Vault) ]; then
+                  export workload_key_vault=$(Workload_Key_Vault) ; echo 'Workload Key Vault' ${workload_key_vault}
+                else
+                  export workload_key_vault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                fi
 
               echo -e "$green--- az login ---$reset"
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
@@ -152,7 +180,7 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -165,7 +193,7 @@ stages:
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
-                  az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --output none --only-show-errors
+                  az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
                   ip_added=1
                 fi
 
@@ -174,7 +202,7 @@ stages:
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
-                  az keyvault network-rule add --name ${workloadkeyvault} --ip-address ${this_ip}  --output none --only-show-errors
+                  az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip}  --output none --only-show-errors
                   ip_added=1
                 fi
 
@@ -254,6 +282,8 @@ stages:
     jobs:
       - job:                           Remove_SAP_workload_zone
         displayName:                   Remove the SAP Workload Zone
+        variables:
+          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
         workspace:
           clean:                       all
         steps:
@@ -268,6 +298,16 @@ stages:
               echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+
+                az devops configure -d organization=$(System.CollectionUri)
+                az devops configure -d project=$(System.TeamProject)
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]"); echo VARIABLE_GROUP_ID $VARIABLE_GROUP_ID
+
+                export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]"); echo PARENT_VARIABLE_GROUP_ID $PARENT_VARIABLE_GROUP_ID
 
               echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
@@ -283,16 +323,33 @@ stages:
                 export          ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                 export             LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
 
-                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
+                workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION
 
-                export             keyvault=$(cat ${environment_file_name}  | grep keyvault=  -m1       | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
-                export     workloadkeyvault=$(cat ${environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workloadkeyvault}
-                export   STATE_SUBSCRIPTION=$(cat ${environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                if [ -n $(Deployer_Key_Vault) ]; then
+                  export key_vault=$(Deployer_Key_Vault) ; echo 'Deployer Key Vault' ${key_vault}
+                else
+                  export key_vault=$(cat ${workload_environment_file_name}  | grep keyvault=   -m1      | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                fi
+                
+                az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
+                if [ ! -z "${az_var}" ]; then
+                  export STATE_SUBSCRIPTION="${az_var}"  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                else
+                  export STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                fi
 
-                if [ ! -f $environment_file_name ]; then
-                  echo -e "$boldred--- $ENVIRONMENT$LOCATION was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Workload zone configuration file $ENVIRONMENT$LOCATION was not found."
-                  exit 2
+                if [ -n $(Workload_Key_Vault) ]; then
+                  export workload_key_vault=$(Workload_Key_Vault) ; echo 'Workload Key Vault' ${workload_key_vault}
+                else
+                  export workload_key_vault=$(cat ${workload_environment_file_name}  | grep workloadkey_vault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                fi
+
+                if [ ! -n $(Workload_Key_Vault) ]; then
+                  if [ ! -f $workload_environment_file_name ]; then
+                    echo -e "$boldred--- $ENVIRONMENT$LOCATION was not found ---$reset"
+                    echo "##vso[task.logissue type=error]Workload zone configuration file $ENVIRONMENT$LOCATION was not found."
+                    exit 2
+                  fi
                 fi
 
               echo -e "$green--- az login ---$reset"
@@ -312,7 +369,8 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)
+
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -325,7 +383,7 @@ stages:
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
-                  az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --output none --only-show-errors
+                  az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
                   ip_added=1
                 fi
 
@@ -334,7 +392,7 @@ stages:
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
-                  az keyvault network-rule add --name ${workloadkeyvault} --ip-address ${this_ip} --output none --only-show-errors
+                  az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
                   ip_added=1
                 fi
 
@@ -376,12 +434,12 @@ stages:
                   git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
                   changed=1
                 fi
-                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                if [ -f  ${workload_environment_file_name} ]; then
+                  git rm -q -f ${workload_environment_file_name}
                   changed=1
                 fi
-                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                if [ -f  ${workload_environment_file_name}.md ]; then
+                  git rm -q -f ${workload_environment_file_name}.md
                   changed=1
                 fi
 
@@ -389,6 +447,36 @@ stages:
                   git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
+
+              echo -e "$green--- Deleting variables ---$reset"
+                az logout
+                if [ -n $VARIABLE_GROUP_ID ]; then
+                  echo "Deleting variables"
+                  if [ -n $(Terraform_Remote_Storage_Account_Name) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                  fi
+
+                  if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
+                  fi
+
+                  if [ -n $(Deployer_State_FileName) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
+                  fi
+
+                  if [ -n $(Deployer_Key_Vault) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
+                  fi
+
+                  if [ -n $(Workload_Key_Vault) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Workload_Key_Vault                    --yes --only-show-errors
+                  fi
+
+                  if [ -n $(Workload_Zone_State_FileName) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Workload_Zone_State_FileName          --yes --only-show-errors
+                  fi
+                fi
+
 
               exit $return_code
             displayName:               Remove SAP workload_zone
@@ -400,19 +488,14 @@ stages:
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr:              false
 
-  - stage:                             Remove_controlplane
+  - stage:                             Remove_control_plane
     displayName:                       "Remove the control plane"
-    dependsOn:
-      - Remove_SAP_workload_zone
-    condition: |
-      and
-      (
-        eq(${{ parameters.cleanup_region }}, true),
-        in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped')
-      )
+    condition:                         eq(${{ parameters.cleanup_region }}, true)
     jobs:
-      - job:                           Remove_controlplane
+      - job:                           Remove_control_plane
         displayName:                   "Remove the control plane"
+        variables:
+          - group:                     SDAF-${{ parameters.deployer_environment_parameter }}
         workspace:
           clean:                       all
         steps:
@@ -457,7 +540,7 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -484,22 +567,22 @@ stages:
 
                 export    REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 export    REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
-                export           keyvault=$(cat ${deployer_environment_file_name}  | grep keyvault -m1         | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${keyvault}
+                export           key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault -m1         | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                 export STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
                 ip_added=0
                 az account set --subscription ${STATE_SUBSCRIPTION}
 
                 if [[ "Azure Pipelines" == "$(Agent)" ]]; then
-                  if [ -n ${keyvault} ]; then
+                  if [ -n ${key_vault} ]; then
                     echo -e "$green--- Set IP ---$reset"
                     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                    az keyvault network-rule add --name ${keyvault} --ip-address ${this_ip} --no-wait
+                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --no-wait
                     ip_added=1
                   fi
                 fi
 
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_region.sh                                  \
+                $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_controlplane.sh                                  \
                   --deployer_parameter_file DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) \
                   --library_parameter_file LIBRARY/$(library_folder)/$(library_configuration_file)     \
                   --storage_account $REMOTE_STATE_SA                                                   \
@@ -509,9 +592,9 @@ stages:
 
                 return_code=$?
                 git pull
-                echo "Return code from remove_region $return_code."
+                echo "Return code from remove_controlplane $return_code."
                 if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from remove_region $return_code."
+                  echo "##vso[task.logissue type=error]Return code from remove_controlplane $return_code."
                 fi
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
@@ -557,6 +640,58 @@ stages:
                   git commit -m "Control Plane ${deployer_folder} removal[skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az logout
+                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                if [ -n $(PAT) ]; then
+                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
+                else
+                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                fi
+
+                az devops configure -d organization=$(System.CollectionUri)
+                az devops configure -d project=$(System.TeamProject)
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+                if [ -n $VARIABLE_GROUP_ID ]; then
+                  echo "Deleting variables"
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
+                  fi                  
+                fi
+
+
               exit $return_code
             displayName:               Remove control plane
             env:
