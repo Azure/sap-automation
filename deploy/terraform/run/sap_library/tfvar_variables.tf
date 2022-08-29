@@ -160,8 +160,11 @@ variable "library_ansible_blob_container_name" {
 }
 
 variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
   default = false
+  type = bool
 }
+
 
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"

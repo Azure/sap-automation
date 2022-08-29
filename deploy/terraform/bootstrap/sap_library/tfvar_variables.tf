@@ -162,7 +162,9 @@ variable "enable_purge_control_for_keyvaults" {
 }
 
 variable "use_private_endpoint" {
-  default = false
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
 }
 
 variable "use_custom_dns_a_registration" {
