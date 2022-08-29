@@ -515,3 +515,7 @@ variable "deployer_location" {
   default     = ""
 }
 
+variable "utility_vm_count" {
+  type    = number
+  default = 0
+}
