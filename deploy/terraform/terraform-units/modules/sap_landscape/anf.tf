@@ -59,6 +59,8 @@ resource "azurerm_netapp_pool" "workload_netapp_pool" {
 
   service_level = var.ANF_settings.service_level
   size_in_tb    = var.ANF_settings.size_in_tb
+
+  qos_type = var.ANF_settings.qos_type
 }
 
 data "azurerm_netapp_pool" "workload_netapp_pool" {
@@ -222,7 +224,7 @@ resource "azurerm_netapp_volume" "install" {
     ) : (
     azurerm_netapp_pool.workload_netapp_pool[0].name
   )
-  
+
   throughput_in_mibps = var.ANF_settings.use_existing_pool ? (
     var.ANF_settings.install_volume_throughput
     ) : (

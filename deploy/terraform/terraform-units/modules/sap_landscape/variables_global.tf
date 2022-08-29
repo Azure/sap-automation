@@ -208,6 +208,7 @@ variable "ANF_settings" {
     arm_id        = ""
     service_level = "Standard"
     size_in_tb    = 4
+    qos_type      = "Manual"
 
   }
 }
@@ -231,9 +232,15 @@ variable "dns_resource_group_name" {
 }
 
 variable "use_private_endpoint" {
-  type        = bool
-  description = "Private endpoint"
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
   default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
 }
 
 variable "use_custom_dns_a_registration" {
@@ -262,4 +269,11 @@ variable "NFS_provider" {
 variable "Agent_IP" {
   type    = string
   default = ""
+}
+
+variable "vm_settings" {
+  description = "Details of the jumpbox to deploy"
+  default = {
+    count = 0
+  }
 }

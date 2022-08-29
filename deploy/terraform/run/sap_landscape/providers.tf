@@ -25,7 +25,7 @@ provider "azurerm" {
 
     }
   }
-  subscription_id = local.spn.subscription_id
+  subscription_id = data.azurerm_key_vault_secret.subscription_id.value
   client_id       = var.use_spn ? local.spn.client_id : null
   client_secret   = var.use_spn ? local.spn.client_secret : null
   tenant_id       = var.use_spn ? local.spn.tenant_id : null

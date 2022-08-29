@@ -73,6 +73,18 @@ variable "network_arm_id" {
   default     = ""
 }
 
+variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #
@@ -309,12 +321,6 @@ variable "witness_storage_account_arm_id" {
   default     = ""
 }
 
-variable "use_private_endpoint" {
-  description = "Boolean value indicating if private endpoint should be used for the deployment"
-  default     = false
-  type        = bool
-}
-
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false
@@ -409,7 +415,11 @@ variable "ANF_pool_size" {
   default     = 4
 }
 
-variable "ANF_use_existing_transport_volume" {
+variable "ANF_qos_type" {
+  description = "The Quality of Service type of the pool (Auto or Manual)"
+  default     = "Manual"
+}
+variable "ANF_transport_volume_use_existing" {
   description = "Use existing transport volume"
   default     = false
 }
@@ -429,7 +439,7 @@ variable "ANF_transport_volume_size" {
   default     = 128
 }
 
-variable "ANF_use_existing_install_volume" {
+variable "ANF_install_volume_use_existing" {
   description = "Use existing install volume"
   default     = false
 }
@@ -519,5 +529,45 @@ variable "iscsi_authentication_username" {
 
 variable "iscsi_nic_ips" {
   description = "IP addresses for the iSCSI Virtual Machine NICs"
+  default     = []
+}
+
+
+#########################################################################################
+#                                                                                       #
+#  Workload VM definitions                                                              #
+#                                                                                       #
+#########################################################################################
+
+
+variable "utility_vm_count" {
+  description = "The number of utility_vmes to create"
+  default     = 0
+}
+
+variable "utility_vm_size" {
+  description = "The size of the utility_vm Virtual Machine"
+  default     = "Standard_D4ds_v4"
+}
+
+variable "utility_vm_useDHCP" {
+  description = "value indicating if utility_vm should use DHCP"
+  default     = true
+}
+
+variable "utility_vm_image" {
+  description = "The virtual machine image for the utility_vm Virtual Machine"
+  default = {
+    "os_type"         = "WINDOWS"
+    "source_image_id" = ""
+    "publisher"       = "MicrosoftWindowsServer"
+    "offer"           = "windowsserver"
+    "sku"             = "2019-datacenter"
+    "version"         = "latest"
+  }
+}
+
+variable "utility_vm_nic_ips" {
+  description = "IP addresses for the utility_vm Virtual Machine NICs"
   default     = []
 }
