@@ -299,15 +299,17 @@ if [ 0 == $step ]; then
             fi
         fi
         
-    else
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                          $cyan Deployer is bootstrapped $resetformatting                                   #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
     fi
+    echo "##vso[task.setprogress value=20;]Progress Indicator"
+else
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $cyan Deployer is bootstrapped $resetformatting                                   #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo "##vso[task.setprogress value=20;]Progress Indicator"
 fi
 
 cd "$root_dirname" || exit
@@ -421,8 +423,11 @@ if [ 1 == $step ]; then
         echo "User account ${val} does not have access to: $keyvault" > "${deployer_config_information}".err
 
         exit 65
+        echo "##vso[task.setprogress value=40;]Progress Indicator"
         
     fi
+else
+    echo "##vso[task.setprogress value=40;]Progress Indicator"
 fi
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
@@ -460,19 +465,13 @@ if [ 2 == $step ]; then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
     STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id  | tr -d \")
 
-    if [ $TF_VAR_use_webapp = "true" ]; then
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                           $cyan Configuring the Web App $resetformatting                                   #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        export TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
-        az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}" --output none
-    fi
+    export TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
+    az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}" --output none
     
     cd "${curdir}" || exit
     export step=3
     save_config_var "step" "${deployer_config_information}"
+    echo "##vso[task.setprogress value=60;]Progress Indicator"
     
 else
     echo ""
@@ -482,11 +481,13 @@ else
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
+    echo "##vso[task.setprogress value=60;]Progress Indicator"
     
 fi
 
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
+echo "##vso[task.setprogress value=80;]Progress Indicator"
 
 if [ 3 == $step ]; then
     echo ""
@@ -521,6 +522,7 @@ if [ 3 == $step ]; then
     cd "${curdir}" || exit
     export step=4
     save_config_var "step" "${deployer_config_information}"
+    
 fi
 
 unset TF_DATA_DIR
@@ -645,6 +647,7 @@ fi
 
 step=3
 save_config_var "step" ${deployer_config_information}
+echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 unset TF_DATA_DIR
 
