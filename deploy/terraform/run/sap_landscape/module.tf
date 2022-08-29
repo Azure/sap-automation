@@ -5,8 +5,9 @@
 
 module "sap_landscape" {
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   source         = "../../terraform-units/modules/sap_landscape"
   infrastructure = local.infrastructure
@@ -31,6 +32,10 @@ module "sap_landscape" {
   )
   enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   use_private_endpoint               = var.use_private_endpoint
+  use_custom_dns_a_registration      = var.use_custom_dns_a_registration
+  management_dns_subscription_id     = var.management_dns_subscription_id
+  management_dns_resourcegroup_name  = var.management_dns_resourcegroup_name
+
 
   Agent_IP = var.Agent_IP
 
