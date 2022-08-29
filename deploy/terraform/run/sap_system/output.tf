@@ -71,7 +71,7 @@ output "dns_information_loadbalancers_app" {
 }
 
 output "database_loadbalancer_ip" {
-  value = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_ip : module.anydb_node.db_lb_ip
+  value = upper(try(local.database.platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_ip : module.anydb_node.db_lb_ip
 }
 
 output "scs_loadbalancer_ips" {
@@ -80,7 +80,7 @@ output "scs_loadbalancer_ips" {
 }
 
 output "database_loadbalancer_id" {
-  value       = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_id : module.anydb_node.db_lb_id
+  value = upper(try(local.database.platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_id : module.anydb_node.db_lb_id
 }
 
 output "scs_loadbalancer_id" {
@@ -132,4 +132,3 @@ output "disks" {
 output "sapmnt_path" {
   value = module.common_infrastructure.sapmnt_path
 }
-

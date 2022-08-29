@@ -9,11 +9,8 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.SDU
   resource_suffixes    = var.naming.resource_suffixes
 
-  region = var.infrastructure.region
-  anydb_sid = (length(local.anydb_databases) > 0) ? (
-    try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))) : (
-    lower(substr(local.anydb_platform, 0, 3))
-  )
+  region                = var.infrastructure.region
+  anydb_sid             = try(var.database.sid, "")
   sid                   = length(var.sap_sid) > 0 ? var.sap_sid : local.anydb_sid
   prefix                = trimspace(var.naming.prefix.SDU)
   resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
@@ -36,7 +33,7 @@ locals {
   //Allowing to keep the old nic order
   legacy_nic_order = try(var.options.legacy_nic_order, false)
   // Availability Set 
-  availabilityset_arm_ids = try(local.anydb.avset_arm_ids, [])
+  availabilityset_arm_ids = try(var.database.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
 
   // Return the max fault domain count for the region
@@ -46,26 +43,17 @@ locals {
   ])[0]), 2)
 
   // Dual network cards
-  anydb_dual_nics = try(local.anydb.dual_nics, false)
+  anydb_dual_nics = try(var.database.dual_nics, false)
 
-  // Filter the list of databases to only AnyDB platform entries
-  // Supported databases: Oracle, DB2, SQLServer, ASE 
-  anydb_databases = [
-    for database in var.databases : database
-    if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(database.platform, "NONE")))
-  ]
+  enable_deployment = try(var.database.platform, "NONE") != "NONE"
 
-  enable_deployment = (length(local.anydb_databases) > 0) ? true : false
-
-  anydb          = local.enable_deployment ? local.anydb_databases[0] : null
-  anydb_platform = local.enable_deployment ? upper(try(local.anydb.platform, "NONE")) : "NONE"
   // Enable deployment based on length of local.anydb_databases
 
   // Imports database sizing information
 
   default_filepath = format("%s%s",
     path.module,
-    format("/../../../../../configs/%s_sizes.json", lower(local.anydb_platform))
+    format("/../../../../../configs/%s_sizes.json", lower(var.database.platform))
   )
   custom_sizing = length(var.custom_disk_sizes_filename) > 0
 
@@ -83,36 +71,36 @@ locals {
 
 
   // If custom image is used, we do not overwrite os reference with default value
-  anydb_custom_image = try(local.anydb.os.source_image_id, "") != "" ? true : false
+  anydb_custom_image = try(var.database.os.source_image_id, "") != "" ? true : false
 
-  anydb_ostype = upper(local.anydb_platform) == "SQLSERVER" ? "WINDOWS" : try(local.anydb.os.os_type, "LINUX")
+  anydb_ostype = upper(var.database.platform) == "SQLSERVER" ? "WINDOWS" : try(var.database.os.os_type, "LINUX")
   anydb_oscode = upper(local.anydb_ostype) == "LINUX" ? "l" : "w"
-  anydb_size   = try(local.anydb.db_sizing_key, "Default")
+  anydb_size   = try(var.database.db_sizing_key, "Default")
 
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).storage : []
   db_size   = local.enable_deployment ? lookup(local.sizes.db, local.anydb_size).compute : {}
 
   anydb_sku = try(local.db_size.vm_size, "Standard_E16_v3")
 
-  anydb_ha = try(local.anydb.high_availability, false)
-  db_sid   = try(local.anydb.instance.sid, lower(substr(local.anydb_platform, 0, 3)))
+  anydb_ha = try(var.database.high_availability, false)
+  db_sid   = try(var.database.instance.sid, lower(substr(var.database.platform, 0, 3)))
 
   # Oracle deployments do not need a load balancer
   enable_db_lb_deployment = (
     var.database_server_count > 0 &&
     (var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1) &&
-    local.anydb_platform != "ORACLE" &&
-    local.anydb_platform != "NONE"
+    var.database.platform != "ORACLE" &&
+    var.database.platform != "NONE"
   )
 
-  anydb_cred = try(local.anydb.credentials, {})
+  anydb_cred = try(var.database.credentials, {})
 
-  sid_auth_type        = try(local.anydb.authentication.type, "key")
+  sid_auth_type        = try(var.database.authentication.type, "key")
   enable_auth_password = local.enable_deployment && local.sid_auth_type == "password"
   enable_auth_key      = local.enable_deployment && local.sid_auth_type == "key"
 
   // Tags
-  tags = try(local.anydb.tags, {})
+  tags = try(var.database.tags, {})
 
   authentication = {
     "type"     = local.sid_auth_type
@@ -156,45 +144,45 @@ locals {
 
   anydb_os = local.enable_deployment ? {
     "source_image_id" = local.anydb_custom_image ? (
-      local.anydb.os.source_image_id) : (
+      var.database.os.source_image_id) : (
       ""
     )
     "publisher" = try(
-      local.anydb.os.publisher,
+      var.database.os.publisher,
       local.anydb_custom_image ? (
         "") : (
-        local.os_defaults[upper(local.anydb_platform)].publisher
+        local.os_defaults[upper(var.database.platform)].publisher
       )
     )
     "offer" = try(
-      local.anydb.os.offer,
+      var.database.os.offer,
       local.anydb_custom_image ? (
         "") : (
-        local.os_defaults[upper(local.anydb_platform)].offer
+        local.os_defaults[upper(var.database.platform)].offer
       )
     )
     "sku" = try(
-      local.anydb.os.sku,
+      var.database.os.sku,
       local.anydb_custom_image ? (
         "") : (
-        local.os_defaults[upper(local.anydb_platform)].sku
+        local.os_defaults[upper(var.database.platform)].sku
       )
     )
     "version" = try(
-      local.anydb.os.version,
+      var.database.os.version,
       local.anydb_custom_image ? (
         "") : (
-        local.os_defaults[upper(local.anydb_platform)].version
+        local.os_defaults[upper(var.database.platform)].version
       )
     )
   } : null
 
   //Observer VM
-  observer = try(local.anydb.observer, {})
+  observer = try(var.database.observer, {})
 
   #If using an existing VM for observer set use_observer to false in .tfvars
   deploy_observer = var.use_observer ? (
-    upper(local.anydb_platform) == "ORACLE" && local.anydb_ha) : (
+    upper(var.database.platform) == "ORACLE" && local.anydb_ha) : (
     false
   )
   observer_size            = "Standard_D4s_v3"
@@ -240,7 +228,7 @@ locals {
   }
 
   loadbalancer_ports = flatten([
-    for port in local.lb_ports[upper(local.anydb_platform)] : {
+    for port in local.lb_ports[upper(var.database.platform)] : {
       port = tonumber(port)
     }
   ])
@@ -356,7 +344,7 @@ locals {
   )
 
   // Zones
-  zones         = try(local.anydb.zones, [])
+  zones         = try(var.database.zones, [])
   db_zone_count = length(local.zones)
 
   //Ultra disk requires zonal deployment
@@ -365,7 +353,7 @@ locals {
   //If we deploy more than one server in zone put them in an availability set
   use_avset = local.zonal_deployment ? (
     false) : (
-    var.database_server_count > 0 && try(!local.anydb.no_avset, false)
+    var.database_server_count > 0 && try(!var.database.no_avset, false)
   )
 
   full_observer_names = flatten([for vm in var.naming.virtualmachine_names.OBSERVER_VMNAME :
@@ -379,7 +367,7 @@ locals {
   )
 
   //PPG control flag
-  no_ppg = var.databases[0].no_ppg
+  no_ppg = var.database.no_ppg
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
@@ -389,7 +377,7 @@ locals {
       name                          = "IPConfig1"
       subnet_id                     = var.db_subnet.id
       nic_ips                       = var.database_vm_db_nic_ips
-      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = var.database.use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
       primary                       = true
     }
@@ -400,7 +388,7 @@ locals {
       name                          = "IPConfig2"
       subnet_id                     = var.db_subnet.id
       nic_ips                       = var.database_vm_db_nic_secondary_ips
-      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = var.database.use_DHCP ? "Dynamic" : "Static"
       offset                        = var.database_server_count
       primary                       = false
     }

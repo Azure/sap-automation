@@ -1,4 +1,4 @@
-variable "databases" {}
+variable "database" {}
 variable "infrastructure" {}
 variable "authentication" {}
 

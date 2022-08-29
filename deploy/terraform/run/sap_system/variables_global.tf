@@ -10,7 +10,7 @@ variable "application" {
 }
 
 variable "databases" {
-  description = "Details of the HANA database nodes"
+  description = "Details of the database node"
   default = [
     {
       use_DHCP = false
