@@ -31,22 +31,48 @@ resource "azurerm_storage_account" "storage_tfstate" {
   }
 
   network_rules {
-    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
+    default_action = var.use_private_endpoint ? "Deny" : "Allow"
     ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
+    virtual_network_subnet_ids = !var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
       var.use_webapp ? (
         [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
-        [var.deployer_tfstate.subnet_mgmt_id])) : (
+      [var.deployer_tfstate.subnet_mgmt_id])) : (
       []
-    ) 
+    )
   }
 
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
+}
+
+resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
+  count               = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+#Errors can occure when the dns record has not properly been activated, add a wait timer to give
+#it just a little bit more time
+resource "time_sleep" "wait_for_dns_refresh" {
+  create_duration = "120s"
+
+  depends_on = [
+    azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry,
+    azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
+  ]
 }
 
 // Imports existing storage account to use for tfstate
@@ -68,6 +94,11 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
     azurerm_storage_account.storage_tfstate[0].name
   )
   container_access_type = "private"
+
+  depends_on = [
+    time_sleep.wait_for_dns_refresh,
+    azurerm_private_endpoint.storage_tfstate
+  ]
 }
 
 data "azurerm_storage_container" "storagecontainer_tfstate" {
@@ -78,6 +109,11 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
     data.azurerm_storage_account.storage_tfstate[0].name) : (
     azurerm_storage_account.storage_tfstate[0].name
   )
+
+  depends_on = [
+    time_sleep.wait_for_dns_refresh,
+    azurerm_private_endpoint.storage_tfstate
+  ]
 }
 
 resource "azurerm_private_endpoint" "storage_tfstate" {
@@ -108,7 +144,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
       azurerm_storage_account.storage_tfstate[0].id
     )
     subresource_names = [
-      "File"
+      "Blob"
     ]
   }
 }
@@ -133,12 +169,12 @@ resource "azurerm_storage_account" "storage_sapbits" {
   enable_https_traffic_only = true
 
   network_rules {
-    default_action = var.use_private_endpoint  ? "Deny" : "Allow"
+    default_action = var.use_private_endpoint ? "Deny" : "Allow"
     ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
       [local.deployer_public_ip_address]) : (
       []
     )
-    virtual_network_subnet_ids = var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
+    virtual_network_subnet_ids = !var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
       [var.deployer_tfstate.subnet_mgmt_id]) : (
       []
     )
@@ -147,6 +183,21 @@ resource "azurerm_storage_account" "storage_sapbits" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
+}
+
+resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
+  count               = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.blob.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 data "azurerm_storage_account" "storage_sapbits" {
@@ -186,7 +237,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
       azurerm_storage_account.storage_sapbits[0].id
     )
     subresource_names = [
-      "File"
+      "Blob"
     ]
   }
 }
@@ -201,6 +252,10 @@ data "azurerm_storage_container" "storagecontainer_sapbits" {
     data.azurerm_storage_account.storage_sapbits[0].name) : (
     azurerm_storage_account.storage_sapbits[0].name
   )
+  depends_on = [
+    azurerm_private_endpoint.storage_sapbits,
+    time_sleep.wait_for_dns_refresh
+  ]
 }
 
 // Creates the storage container inside the storage account for SAP bits
@@ -213,6 +268,10 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
     azurerm_storage_account.storage_sapbits[0].name
   )
   container_access_type = "private"
+  depends_on = [
+    azurerm_private_endpoint.storage_sapbits,
+    time_sleep.wait_for_dns_refresh
+  ]
 }
 
 // Creates file share inside the storage account for SAP bits
