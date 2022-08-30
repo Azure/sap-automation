@@ -46,14 +46,6 @@ namespace AutomationForm.Models
         [DisplayName("System ID")]
         public string sid { get; set; }
 
-        // ADVANCED
-
-        public string tfstate_resource_id { get; set; }
-
-        public string deployer_tfstate_key { get; set; }
-
-        public string landscape_tfstate_key { get; set; }
-
         //[Required]
         [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
         public string admin_subnet_address_prefix { get; set; }
@@ -87,6 +79,7 @@ namespace AutomationForm.Models
         public string custom_prefix { get; set; }
 
         public bool? use_prefix { get; set; }
+        public bool? use_secondary_ips { get; set; }        
         
         public string[] proximityplacementgroup_names { get; set; }
         
@@ -161,7 +154,7 @@ namespace AutomationForm.Models
 
         public string database_instance_number { get; set; }
 
-        public string db_disk_sizes_filename { get; set; }
+        public string custom_disk_sizes_filename { get; set; }
 
         public bool? database_vm_use_DHCP { get; set; }
 
@@ -178,7 +171,7 @@ namespace AutomationForm.Models
 
         public bool? database_no_avset { get; set; }
 
-        public string[] database_tags { get; set; }
+        //public string[] database_tags { get; set; }
 
         [IpAddressValidator]
         public string[] database_loadbalancer_ips { get; set; }
@@ -211,9 +204,11 @@ namespace AutomationForm.Models
 
         public bool? app_tier_dual_nics { get; set; }
 
-        public string app_tier_vm_sizing { get; set; }
+        public string app_tier_sizing_dictionary_key { get; set; }
 
-        public string app_disk_sizes_filename { get; set; }
+        public bool? save_naming_information { get; set; }
+
+        public string name_override_file { get; set; }
         
         public bool? use_loadbalancers_for_standalone_deployments { get; set; }
 
@@ -230,7 +225,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] application_server_admin_nic_ips { get; set; }
 
-        public string[] application_server_tags { get; set; }
+        //public string[] application_server_tags { get; set; }
 
         [IpAddressValidator]
         public string[] application_server_app_nic_ips { get; set; }
@@ -270,7 +265,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_loadbalancer_ips { get; set; }
 
-        public string[] scs_server_tags { get; set; } 
+        //public string[] scs_server_tags { get; set; } 
 
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
@@ -294,7 +289,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] webdispatcher_server_loadbalancer_ips { get; set; }
 
-        public string[] webdispatcher_server_tags { get; set; } 
+        //public string[] webdispatcher_server_tags { get; set; } 
 
         public string[] webdispatcher_server_zones { get; set; }
 
@@ -334,55 +329,55 @@ namespace AutomationForm.Models
 
         // ANF Settings
 
-        public bool? ANF_use_for_HANA_data { get; set; }
+        public bool? ANF_HANA_data { get; set; }
 
         public int? ANF_HANA_data_volume_size { get; set; }
         
-        public bool? ANF_use_existing_data_volume { get; set; }
+        public bool? ANF_HANA_data_use_existing_volume { get; set; }
 
-        public string ANF_data_volume_name { get; set; }
+        public string ANF_HANA_data_volume_name { get; set; }
         
         public int? ANF_HANA_data_volume_throughput { get; set; }
 
-        public bool? ANF_use_for_HANA_log { get; set; }
+        public bool? ANF_HANA_log { get; set; }
         
         public int? ANF_HANA_log_volume_size { get; set; }
 
-        public bool? ANF_use_existing_log_volume { get; set; }
+        public bool? ANF_HANA_log_use_existing { get; set; }
         
-        public string ANF_log_volume_name { get; set; }
+        public string ANF_HANA_log_volume_name { get; set; }
 
         public int? ANF_HANA_log_volume_throughput { get; set; }
         
-        public bool? ANF_use_for_HANA_shared { get; set; }
+        public bool? ANF_HANA_shared { get; set; }
 
         public int? ANF_HANA_shared_volume_size { get; set; }
         
-        public bool? ANF_use_existing_shared_volume { get; set; }
+        public bool? ANF_HANA_shared_use_existing { get; set; }
 
         public string ANF_HANA_shared_volume_name { get; set; }
         
         public int? ANF_HANA_shared_volume_throughput { get; set; }
 
-        public bool? ANF_use_for_usr_sap { get; set; }
+        public bool? ANF_usr_sap { get; set; }
         
         public int? ANF_usr_sap_volume_size { get; set; }
 
-        public bool? ANF_use_existing_usr_sap_volume { get; set; }
+        public bool? ANF_usr_sap_use_existing { get; set; }
         
-        public string ANF_HANA_usr_sap_volume_name { get; set; }
+        public string ANF_usr_sap_volume_name { get; set; }
 
-        public int? ANF_HANA_usr_sap_throughput { get; set; }
+        public int? ANF_usr_sap_throughput { get; set; }
 
         public bool? use_private_endpoint { get; set; }
 
-        public bool? ANF_use_existing_sapmnt_volume { get; set; }
+        public bool? ANF_sapmnt { get; set; }
         
         public string ANF_sapmnt_volume_name { get; set; }
 
-        public int? ANF_HANA_sapmnt_volume_size { get; set; }
+        public int? ANF_sapmnt_volume_size { get; set; }
         
-        public int? ANF_HANA_sapmnt_volume_throughput { get; set; }
+        public int? ANF_sapmnt_volume_throughput { get; set; }
 
         // Anchor VM
 

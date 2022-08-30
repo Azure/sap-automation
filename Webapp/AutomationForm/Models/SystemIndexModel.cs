@@ -9,11 +9,13 @@ namespace AutomationForm.Models
     {
         public List<AppFile> AppFiles { get; set; }
         public List<SystemModel> Systems { get; set; }
+        public AppFile ImagesFile { get; set; }
 
         public SystemIndexModel()
         {
             AppFiles = new List<AppFile>();
             Systems = new List<SystemModel>();
+            ImagesFile = new AppFile();
         }
     }
 }

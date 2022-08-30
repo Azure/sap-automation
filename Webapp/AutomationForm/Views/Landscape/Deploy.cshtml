@@ -56,19 +56,19 @@
 
         <div class="ms-TextField">                    
             <div class="left-input">
-                @Html.Label("environment", "Environment", new { @class = $"ms-Label required" })
-                <p>Deployer Environment name (MGMT, DEV, QA, PRD, ...)</p>
+                @Html.Label("environment", "Control Plane Environment", new { @class = $"ms-Label required" })
+                <p>Deployer environment name</p>
             </div>
 
             <div class="right-input">
-                @Html.TextBox("environment", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaTwoInputs('environment', 'workload_environment', 'confirm-deploy-landscape-checkbox')" })
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaTwoInputs('environment', 'workload_environment', 'confirm-deploy-landscape-checkbox')" })
             </div>
         </div>
 
         <div class="ms-TextField">                    
             <div class="left-input">
-                @Html.Label("workload_environment", "Workload Environment", new { @class = $"ms-Label required" })
-                <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
+                @Html.Label("workload_environment", "Workload Zone Environment", new { @class = $"ms-Label required" })
+                <p>Please specify the workload environment to deploy to</p>
             </div>
 
             <div class="right-input">
