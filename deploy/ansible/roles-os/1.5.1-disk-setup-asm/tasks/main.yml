@@ -193,7 +193,7 @@
 # Mount Filesystems required for install.
 
 - name:                                "Mount SAP Filesystems on Database for installation"
-  mount:
+  ansible.posix.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
