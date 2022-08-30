@@ -14,9 +14,9 @@ module "sap_namegenerator" {
   sap_vnet_name    = local.vnet_logical_name
   sap_sid          = local.sap_sid
   db_sid           = local.db_sid
-  app_ostype       = try(local.application.os.os_type, "LINUX")
+  app_ostype       = upper(try(local.application.os.os_type, "LINUX"))
   anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = try(local.database.os.os_type, "LINUX")
+  db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
   db_server_count  = var.database_server_count
   app_server_count = try(local.application.application_server_count, 0)
   web_server_count = try(local.application.webdispatcher_count, 0)

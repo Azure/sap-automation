@@ -309,7 +309,7 @@ resource "azurerm_windows_virtual_machine" "web" {
       )
       caching                = disk.value.caching
       storage_account_type   = disk.value.disk_type
-      disk_size_gb           = disk.value.size_gb
+      disk_size_gb           = min(storage_type.size_gb,128),
       disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
     }
   }

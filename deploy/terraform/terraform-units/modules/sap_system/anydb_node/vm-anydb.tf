@@ -261,7 +261,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
       )
       caching                = local.os_disk[0].caching
       storage_account_type   = local.os_disk[0].storage_account_type
-      disk_size_gb           = local.os_disk[0].disk_size_gb
+      disk_size_gb           = min(local.os_disk[0].disk_size_gb,128)
       disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
     }

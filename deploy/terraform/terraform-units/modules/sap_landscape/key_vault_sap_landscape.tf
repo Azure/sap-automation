@@ -20,20 +20,24 @@ resource "azurerm_key_vault" "kv_user" {
 
   network_acls {
     bypass         = "AzureServices"
-    default_action = var.use_private_endpoint || local.management_subnet_exists ? "Deny" : "Allow"
+    default_action = local.management_subnet_exists ? "Deny" : "Allow"
 
-    ip_rules = var.use_private_endpoint ? (
-      []
-      ) : compact(
+    ip_rules = compact(
       [
         length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
         length(var.Agent_IP) > 0 ? var.Agent_IP : ""
       ]
     )
 
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
-      []) : compact(
+    virtual_network_subnet_ids = compact(
       [
+        local.database_subnet_defined ? (
+          local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+          ""
+          ), local.application_subnet_defined ? (
+          local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+          ""
+        ),
         local.deployer_subnet_management_id
       ]
     )
