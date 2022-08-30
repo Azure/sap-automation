@@ -5,7 +5,7 @@ locals {
 
   temp_infrastructure = {
     environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
-    region      = coalesce(var.location, try(var.infrastructure.region, ""))
+    region      = lower(coalesce(var.location, try(var.infrastructure.region, "")))
     codename    = try(var.codename, try(var.infrastructure.codename, ""))
     tags        = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
   }
