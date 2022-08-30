@@ -45,7 +45,7 @@ locals {
   // Dual network cards
   anydb_dual_nics = try(var.database.dual_nics, false)
 
-  enable_deployment = try(var.database.platform, "NONE") != "NONE"
+  enable_deployment = contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], var.database.platform)
 
   // Enable deployment based on length of local.anydb_databases
 
@@ -110,10 +110,10 @@ locals {
 
   // Default values in case not provided
   os_defaults = {
-    ORACLE = {
-      "publisher" = "Oracle",
-      "offer"     = "Oracle-Linux",
-      "sku"       = "ol8_2-gen2"
+    ASE = {
+      "publisher" = "SUSE",
+      "offer"     = "sles-sap-15-sp3",
+      "sku"       = "gen2"
       "version"   = "latest"
     }
     DB2 = {
@@ -122,10 +122,16 @@ locals {
       "sku"       = "gen2"
       "version"   = "latest"
     }
-    ASE = {
+    HANA = {
       "publisher" = "SUSE",
       "offer"     = "sles-sap-15-sp3",
       "sku"       = "gen2"
+      "version"   = "latest"
+    }
+    ORACLE = {
+      "publisher" = "Oracle",
+      "offer"     = "Oracle-Linux",
+      "sku"       = "ol8_2-gen2"
       "version"   = "latest"
     }
     SQLSERVER = {
