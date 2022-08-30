@@ -199,7 +199,7 @@ stages:
                    deployer_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                    
                    export key_vault=""
-                   agent_name=$(echo $(Agent) | tr '[:upper:]' '[:lower:]') ; echo "Agent name: $agent_name"
+                   agent_name=$(echo $(Agent) | tr '[:upper:]' '[:lower:]') ; echo "Dev Ops Agent name: $agent_name"
                    
                    if [ -f ${deployer_environment_file_name} ]; then
                        export key_vault=$(cat ${deployer_environment_file_name} | grep key_vault | awk -F'=' '{print $2}' | xargs) ; echo "Key Vault: $key_vault"
@@ -234,6 +234,7 @@ stages:
                        echo 'Deployer Agent PAT is defined'
                    fi
                    
+
                    if [ -n $(POOL) ]; then
                        export TF_VAR_agent_pool=$(POOL)
                        echo 'Deployer Agent Pool' ${TF_VAR_agent_pool}
