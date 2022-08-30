@@ -296,7 +296,7 @@
 #   DB2 - High Availabiliy Setup                                               |
 #     a. Install DB2 on Primary Server                                         |
 #     b. Take offline backup of Primary DB                                     |
-#     c.  Install DB2 on Secondary Server using backup restore option          |
+#     c. Install DB2 on Secondary Server using backup restore option           |
 #     d. Rrestore Secondary/Standby from backup of primary system              |
 #     e. HADR  parameters on primary and secodary                              |
 #     f. HADR definition on primary & Secondary                                |
@@ -304,7 +304,7 @@
 #    Split the following section into the pacemaker roles-sap/5.7db2-pacemaker |
 #     c. Pacemaker setup on both nodes                                         |
 #     d. Stonith Checks                                                        |
-#     e.  Changes to SAP profile                                               |
+#     e. Changes to SAP profile                                               |
 # -------------------------------------+--------------------------------------*/
 - hosts:                               "{{ sap_sid|upper }}_DB"
   name:                                "DB HA Installation - SAP DB2"
@@ -321,7 +321,7 @@
   # # Build the list of tasks to be executed in order here.
   # #
   # # ---------------------------------+---------------------------------------8
-  - name:                              "DB2 HA - Install SAP DB2"
+  - name:                              "DB2 HA - Install SAP DB2 on both nodes"
     block:
       - name:                          "DB2 HA - Setting the DB facts"
         ansible.builtin.set_fact:
@@ -344,14 +344,12 @@
           - db_high_availability
           - platform == 'DB2'
 
-      - name:                          "DB2 HA - Installing DB2"
+      - name:                          "DB2 HA - Installing DB2 on both nodes and configure HADR"
         ansible.builtin.include_role:
           name:                        roles-db/4.2.1-db2-hainstall
         when:
           - db_high_availability
           - platform == 'DB2'
-
-
 
       - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
         block:
