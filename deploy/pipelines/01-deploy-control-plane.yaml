@@ -150,7 +150,7 @@ stages:
                        exit 2
                    fi
                    
-                   if [ $(use_webapp) == "True" ]; then
+                   if [ $(use_webapp) ]; then
                        echo "Use WebApp is selected"
                    
                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "APP_REGISTRATION_APP_ID")
@@ -180,17 +180,15 @@ stages:
                    echo -e "$green--- Exporting webapp variables ---$reset"
                    export IS_PIPELINE_DEPLOYMENT=true
                    export TF_VAR_use_webapp=$(use_webapp)
-                   if [ $(use_webapp) == "True" ]; then
+                   if [ $(use_webapp) ]; then
                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "APP_REGISTRATION_APP_ID")
-                       if [ ! -z "${az_var}" ]; then
-                           export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID)
-                           echo 'App ID' "${TF_VAR_app_registration_app_id}"
+                       if [ -n "${az_var}" ]; then
+                           export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration ID' "${TF_VAR_app_registration_app_id}"
                        fi
                    
                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEB_APP_CLIENT_SECRET")
                        if [ ! -z "${az_var}" ]; then
-                           export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
-                           echo 'Secret' "${TF_VAR_webapp_client_secret}"
+                           export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET); echo 'Secret defined' 
                        fi
                    fi
                    
