@@ -510,6 +510,7 @@ if [ 3 == $step ]; then
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
     echo "calling installer.sh with parameters: $allParams"
+    echo pwd
 
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh "${allParams}"
     return_code=$?
