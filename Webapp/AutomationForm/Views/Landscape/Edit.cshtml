@@ -24,12 +24,10 @@
             allowClear: true,
             tags: true
         });
-
-        var PivotElements = document.querySelectorAll(".ms-Pivot");
-        for (var i = 0; i < PivotElements.length; i++) {
-          new fabric['Pivot'](PivotElements[i]);
-        }
-        $("#Basic-pivot").addClass("is-selected");
+        $(".js-example-placeholder-multiple").select2({
+            placeholder: "Add items...",
+            tags: true
+        });
     }
 
     var submitting = false;
