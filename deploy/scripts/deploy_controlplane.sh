@@ -506,13 +506,12 @@ if [ 3 == $step ]; then
     fi
 
     export TF_VAR_sa_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "sa-connection-string" | jq -r .value)
-
+   
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
     echo "calling installer.sh with parameters: $allParams"
-    echo pwd
 
-    "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh "${allParams}"
+    "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Migrating the deployer state failed" > "${deployer_config_information}".err
