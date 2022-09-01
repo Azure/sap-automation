@@ -161,3 +161,31 @@
         Templates
     </fluent-anchor>
 </p>
+
+<div class="text-center">
+    <h2>Virtual Machine Images</h2>
+</div>
+
+<div class="table-scroll">
+    <table class="table" aria-label="Virtual Machine Images">
+        <thead>
+            <tr>
+                <th>
+                    File ID
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => Model.ImagesFile.Id)
+                </td>
+                <td class="td-align-right">
+                    @Html.ActionLink("Edit", "Edit", "File", new { id = Model.ImagesFile.Id, sourceController = "System", isImagesFile = true }, null) |
+                    @Html.ActionLink("Download", "Download", "File", new { id = Model.ImagesFile.Id, sourceController = "System", isImagesFile = true }, null)
+                </td>
+            </tr>
+            </tbody>
+    </table>
+</div>

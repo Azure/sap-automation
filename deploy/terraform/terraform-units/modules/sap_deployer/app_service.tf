@@ -1,4 +1,8 @@
 resource "azurerm_subnet" "webapp_subnet" {
+  depends_on = [
+    azurerm_subnet.subnet_mgmt
+  ]
+
   count = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
   name  = local.webapp_subnet_name
   resource_group_name = local.vnet_mgmt_exists ? (
@@ -11,14 +15,24 @@ resource "azurerm_subnet" "webapp_subnet" {
   )
   address_prefixes = [local.webapp_subnet_prefix]
 
-  service_endpoints = var.use_webapp ? ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"] : ["Microsoft.Storage", "Microsoft.KeyVault"]
+  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  private_link_service_network_policies_enabled = false
+
+  service_endpoints = var.use_service_endpoint ? (
+    var.use_webapp ? (
+      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
+      ["Microsoft.Storage", "Microsoft.KeyVault"]
+    )) : (
+    null
+  )
 
   dynamic "delegation" {
     for_each = range(var.use_webapp ? 1 : 0)
     content {
       name = "delegation"
       service_delegation {
-        name = "Microsoft.Web/serverFarms"
+        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+        name    = "Microsoft.Web/serverFarms"
       }
     }
   }
@@ -85,6 +99,14 @@ resource "azurerm_windows_web_app" "webapp" {
     type  = "Custom"
     value = var.sa_connection_string
   }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings,
+      zip_deploy_file
+    ]
+  }
+
 }
 
 # Create/Import webapp subnet
@@ -96,15 +118,22 @@ resource "azurerm_subnet" "webapp" {
   address_prefixes     = [local.webapp_subnet_prefix]
 
   delegation {
-    name = "webapp-delegation"
+    name = "delegation"
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
+  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  private_link_service_network_policies_enabled = false
 
-  service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]
+  service_endpoints = var.use_service_endpoint ? (
+    ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]
+    ) : (
+    null
+  )
+
 }
 
 data "azurerm_subnet" "webapp" {

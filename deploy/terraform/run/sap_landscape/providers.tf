@@ -18,10 +18,14 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = true
     }
     key_vault {
-      purge_soft_delete_on_destroy = !var.enable_purge_control_for_keyvaults
+      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+
     }
   }
-  subscription_id = local.spn.subscription_id
+  subscription_id = data.azurerm_key_vault_secret.subscription_id.value
   client_id       = var.use_spn ? local.spn.client_id : null
   client_secret   = var.use_spn ? local.spn.client_secret : null
   tenant_id       = var.use_spn ? local.spn.tenant_id : null
@@ -35,6 +39,13 @@ provider "azurerm" {
   features {}
   subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
   alias           = "deployer"
+}
+
+provider "azurerm" {
+  features {}
+  alias                      = "dnsmanagement"
+  subscription_id            = try(var.management_dns_subscription_id, null)
+  skip_provider_registration = true
 }
 
 provider "azurerm" {

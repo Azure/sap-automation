@@ -90,7 +90,7 @@ stages:
               echo -e "$green--- Get SID and copy hosts file over for ansible runs ---$reset"
                 cp -p $HOME/SYSTEM/$(sapsystemfolder)/${SID}_hosts.yaml $(Build.Repository.LocalPath)/sap_hosts.yaml
               echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)  --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"

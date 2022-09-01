@@ -128,6 +128,31 @@ namespace AutomationForm.Models
                 return RegexValidation(value, pattern);
             }
         }
+        public class GuidValidator : ValidationAttribute
+        {
+            public override bool IsValid(object value)
+            {
+                if (value == null) return true;
+                string pattern = @"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+                if (value.GetType().IsArray)
+                {
+                    string[] values = (string[])value;
+                    foreach (string v in values)
+                    {
+                        if (!RegexValidation(v, pattern)) return false;
+                    }
+                    return true;
+                }
+                else if (value.GetType() == typeof(string))
+                {
+                    return RegexValidation(value, pattern);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
         public class AvSetIdValidator : ValidationAttribute
         {
             public override bool IsValid(object value)
@@ -235,7 +260,7 @@ namespace AutomationForm.Models
                     "DB2",
                     "ORACLE",
                     "ASE",
-                    "SQL SERVER",
+                    "SQLSERVER",
                     "NONE"
                 };
                 return (value == null) || acceptedPlatforms.Contains(value);
@@ -247,7 +272,17 @@ namespace AutomationForm.Models
             {
                 string[] hanadb_sizes = new string[] {
                     "Default",
-                    "S4DEMO",
+                    "S4Demo",
+                    "E20ds_v4",
+                    "E20ds_v5",
+                    "E32ds_v4",
+                    "E32ds_v5",
+                    "E48ds_v4",
+                    "E48ds_v5",
+                    "E64s_v3",
+                    "E64ds_v4",
+                    "E64ds_v5",
+                    "E96ds_v5",
                     "M32ts",
                     "M32ls",
                     "M64ls",
@@ -262,8 +297,8 @@ namespace AutomationForm.Models
                 };
                 string[] anydb_sizes = new string[] {
                     "Default",
-                    "200",
-                    "500",
+                    "256",
+                    "512",
                     "1024",
                     "2048",
                     "5120",

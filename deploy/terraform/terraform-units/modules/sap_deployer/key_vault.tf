@@ -36,6 +36,29 @@ resource "azurerm_key_vault" "kv_user" {
   }
 }
 
+resource "azurerm_private_dns_a_record" "kv_user" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.vaultcore.azure.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+#Errors can occure when the dns record has not properly been activated, add a wait timer to give
+#it just a little bit more time
+resource "time_sleep" "wait_for_dns_refresh" {
+  create_duration = "120s"
+
+  depends_on = [azurerm_private_dns_a_record.kv_user]
+}
+
 // Import an existing user Key Vault
 data "azurerm_key_vault" "kv_user" {
   count               = (local.user_keyvault_exist) ? 1 : 0
@@ -104,7 +127,8 @@ resource "tls_private_key" "deployer" {
 resource "azurerm_key_vault_secret" "ppk" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0]
+    azurerm_key_vault_access_policy.kv_user_msi[0],
+    time_sleep.wait_for_dns_refresh
   ]
   count        = (local.enable_key && !local.key_exist) ? 1 : 0
   name         = local.ppk_secret_name
@@ -115,7 +139,8 @@ resource "azurerm_key_vault_secret" "ppk" {
 resource "azurerm_key_vault_secret" "pk" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0]
+    azurerm_key_vault_access_policy.kv_user_msi[0],
+    time_sleep.wait_for_dns_refresh
   ]
   count        = (local.enable_key && !local.key_exist) ? 1 : 0
   name         = local.pk_secret_name
@@ -126,7 +151,8 @@ resource "azurerm_key_vault_secret" "pk" {
 resource "azurerm_key_vault_secret" "username" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0]
+    azurerm_key_vault_access_policy.kv_user_msi[0],
+    time_sleep.wait_for_dns_refresh
   ]
   count        = (!local.username_exist) ? 1 : 0
   name         = local.username_secret_name
@@ -153,7 +179,8 @@ resource "random_password" "deployer" {
 resource "azurerm_key_vault_secret" "pwd" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0]
+    azurerm_key_vault_access_policy.kv_user_msi[0],
+    time_sleep.wait_for_dns_refresh
   ]
   count = (local.enable_password && !local.pwd_exist) ? 1 : 0
   name  = local.pwd_secret_name
@@ -165,24 +192,36 @@ resource "azurerm_key_vault_secret" "pwd" {
 }
 
 data "azurerm_key_vault_secret" "pk" {
+  depends_on = [
+    time_sleep.wait_for_dns_refresh
+  ]
   count        = (local.enable_key && local.key_exist) ? 1 : 0
   name         = local.pk_secret_name
   key_vault_id = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "ppk" {
+  depends_on = [
+    time_sleep.wait_for_dns_refresh
+  ]
   count        = (local.enable_key && local.key_exist) ? 1 : 0
   name         = local.ppk_secret_name
   key_vault_id = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "username" {
+  depends_on = [
+    time_sleep.wait_for_dns_refresh
+  ]
   count        = (local.username_exist) ? 1 : 0
   name         = local.username_secret_name
   key_vault_id = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "pwd" {
+  depends_on = [
+    time_sleep.wait_for_dns_refresh
+  ]
   count        = (local.enable_password && local.pwd_exist) ? 1 : 0
   name         = local.pwd_secret_name
   key_vault_id = local.user_key_vault_id
@@ -225,3 +264,29 @@ resource "azurerm_private_endpoint" "kv_user" {
     ]
   }
 }
+
+
+###############################################################################
+#                                                                             # 
+#                                Additional Users                             # 
+#                                                                             # 
+###############################################################################
+
+resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
+  count = !local.user_keyvault_exist && length(compact(var.additional_users_to_add_to_keyvault_policies)) > 0 ? (
+    length(var.additional_users_to_add_to_keyvault_policies)) : (
+    0
+  )
+  key_vault_id = azurerm_key_vault.kv_user[0].id
+
+  tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
+  object_id = var.additional_users_to_add_to_keyvault_policies[count.index]
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Recover"
+  ]
+
+}
+

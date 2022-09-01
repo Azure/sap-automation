@@ -23,7 +23,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     HANA_2_00_063_v0001ms
+    - name:     HANA_2_00_064_v0001ms
     - name:     SWPM20SP12_latest
     - name:     SUM20SP14_latest
 
@@ -39,11 +39,6 @@ materials:
     - name: "SAP HANA CLIENT Version 2.13"
       archive: IMDB_CLIENT20_013_22-80002082.SAR
       url: https://softwaredownloads.sap.com/file/0020000000919882022
-      path: download_basket
-
-    - name: "Revision 2.00.063.0 (SPS06) for HANA DB 2.0"
-      archive: IMDB_SERVER20_063_0-80002031.SAR
-      url: https://softwaredownloads.sap.com/file/0020000000830732022
       path: download_basket
 
     - name: "Kernel Part II (785)"
@@ -64,19 +59,6 @@ materials:
     - name: "Predi. Analy. APL 2008 for SAP HANA 2.0 SPS03 and beyond"
       archive: SAPPAAPL4_2008_0-80004547.ZIP
       url: https://softwaredownloads.sap.com/file/0020000000410162020
-      path: download_basket
-
-    - name: "Patch 3 for SOFTWARE UPDATE MANAGER 2.0 SP14"
-      archive: SUM20SP14_3-80002456.SAR
-      url: https://softwaredownloads.sap.com/file/0020000000957392022
-      path: download_basket
-
-    - name: "SWPM20SP12"
-      archive: SWPM20SP12_5-80003424.SAR
-      override_target_filename: "SWPM.SAR"
-      extract: true
-      extractDir: SWPM
-      url: https://softwaredownloads.sap.com/file/0020000001000642022
       path: download_basket
 
     - name: "Installation for SAP IGS integrated in SAP Kernel"
@@ -683,8 +665,9 @@ materials:
       url: https://softwaredownloads.sap.com/file/0010000000324432022
       download: false
 
-    - name: "UIAPFI70 800: SP         1"
+    - name: "UIAPFI70 800: SP 0001"
       archive: K-80001INUIAPFI70.SAR
+      url: https://softwaredownloads.sap.com/file/0010000000003002021
       download: false
 
     - name: "UIAPFI70 800: SP 0002"

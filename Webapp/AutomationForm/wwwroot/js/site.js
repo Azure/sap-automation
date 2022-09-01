@@ -43,51 +43,91 @@ var hanadb_sizes = [
         "value": "Default"
     },
     {
-        "text": "S4DEMO",
-        "value": "S4DEMO"
+        "text": "S4Demo",
+        "value": "S4Demo"
     },
     {
-        "text": "M32ts",
+        "text": "Standard E20ds v4",
+        "value": "E20ds_v4"
+    },
+    {
+        "text": "Standard E20ds v5",
+        "value": "E20ds_v5"
+    },
+    {
+        "text": "Standard E32ds v4",
+        "value": "E32ds_v4"
+    },
+    {
+        "text": "Standard E32ds v5",
+        "value": "E32ds_v5"
+    },
+    {
+        "text": "Standard E48ds v4",
+        "value": "E48ds_v4"
+    },
+    {
+        "text": "Standard E48ds v5",
+        "value": "E48ds_v5"
+    },
+    {
+        "text": "Standard E64s v3",
+        "value": "E64s_v3"
+    },
+    {
+        "text": "Standard E64s v4",
+        "value": "E64s_v4"
+    },
+    {
+        "text": "Standard E64s v5",
+        "value": "E64s_v5"
+    },
+    {
+        "text": "Standard E96s v5",
+        "value": "E96s_v5"
+    },
+    {
+        "text": "Standard M32ts",
         "value": "M32ts"
     },
     {
-        "text": "M32ls",
+        "text": "Standard M32ls",
         "value": "M32ls"
     },
     {
-        "text": "M64ls",
+        "text": "Standard M64ls",
         "value": "M64ls"
     },
     {
-        "text": "M64s",
+        "text": "Standard M64s",
         "value": "M64s"
     },
     {
-        "text": "M64ms",
+        "text": "Standard M64ms",
         "value": "M64ms"
     },
     {
-        "text": "M128s",
+        "text": "Standard M128s",
         "value": "M128s"
     },
     {
-        "text": "M128ms",
+        "text": "Standard M128ms",
         "value": "M128ms"
     },
     {
-        "text": "M208s_v2",
+        "text": "Standard M208s_v2",
         "value": "M208s_v2"
     },
     {
-        "text": "M208ms_v2",
+        "text": "Standard M208ms_v2",
         "value": "M208ms_v2"
     },
     {
-        "text": "M416s_v2",
+        "text": "Standard M416s_v2",
         "value": "M416s_v2"
     },
     {
-        "text": "M416ms_v2",
+        "text": "Standard M416ms_v2",
         "value": "M416ms_v2"
     }
 ];
@@ -97,12 +137,12 @@ var anydb_sizes = [
         "value": "Default"
     },
     {
-        "text": "200 GB",
-        "value": "200"
+        "text": "256 GB",
+        "value": "256"
     },
     {
-        "text": "500 GB",
-        "value": "500"
+        "text": "512 GB",
+        "value": "512"
     },
     {
         "text": "1 TB",
@@ -161,6 +201,13 @@ function updateModel(object) {
 // retain all other form values selected for editing or on submit error
 // remove the loading background and access the form
 function retainFormValues() {
+    
+    // default to only show basic parameters
+    $("#advanced-filter").prop("checked", false);
+    $("#advanced-filter").trigger("change");
+    $("#expert-filter").prop("checked", false);
+    $("#expert-filter").trigger("change");
+
     var dropdownsAffected = [
         {
             ids: ["location"],
@@ -278,9 +325,7 @@ function setSubscriptionFromResource() {
         var alreadySetArmId = null;
         for (i = 3; i < azureResourceIds.length; i++) {
             var currArmId = azureResourceIds[i];
-            console.log("currARmId" + currArmId);
             if (model[currArmId] != null) {
-                console.log("model[currArmId] was not null: " + model[currArmId]);
                 alreadySetArmId = model[currArmId];
                 break;
             }
@@ -299,6 +344,34 @@ function setSubscriptionFromResource() {
                     console.log("Couldn't get subscription from any existing resources");
                 }
             });
+        }
+    }
+}
+
+function updateImage(source, target) {
+    var sourceVal = $(source).val();
+    if (sourceVal) {
+        var confirmMessage = "Are you sure? Selecting this value will populate values for the parameter " + target;
+        if (confirm(confirmMessage)) {
+            $.ajax({
+                type: "GET",
+                url: "/System/GetImage",
+                data: {
+                    name: sourceVal
+                },
+                success: function (data) {
+                    $("#" + target + "_os_type").val(data["os_type"]);
+                    $("#" + target + "_source_image_id").val(data["source_image_id"]);
+                    $("#" + target + "_publisher").val(data["publisher"]);
+                    $("#" + target + "_offer").val(data["offer"]);
+                    $("#" + target + "_sku").val(data["sku"]);
+                    $("#" + target + "_version").val(data["version"]);
+                },
+                error: function () { alert("Error getting image details"); }
+            });
+        }
+        else {
+            $(source).val(null).trigger('change');
         }
     }
 }
@@ -432,7 +505,7 @@ $("#network_arm_id").on("change", function () {
 $("#workload_zone").on("change", function () {
     var workloadzoneid = $(this).val();
     if (workloadzoneid) {
-        var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the landscape: " + workloadzoneid;
+        var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the workload zone: " + workloadzoneid;
         if (confirm(confirmMessage)) {
             $.ajax({
                 type: "GET",
@@ -441,7 +514,12 @@ $("#workload_zone").on("change", function () {
                     id: workloadzoneid,
                 },
                 success: function (data) {
-                    updateModel(JSON.parse(data));
+                    entireLandscape = JSON.parse(data);
+                    partialLandscape = {};
+                    partialLandscape["location"] = entireLandscape["location"];
+                    partialLandscape["environment"] = entireLandscape["environment"];
+                    partialLandscape["network_logical_name"] = entireLandscape["network_logical_name"];
+                    updateModel(partialLandscape);
                 },
                 error: function () { alert("Error populating data for given workload zone"); }
             });
@@ -470,6 +548,21 @@ $("#database_platform").on("change", function () {
 // ========================
 // TOGGLE FUNCTIONS
 // ========================
+
+// Hide and show basic, advanced, expert views
+function toggleParams(checkbox, displayNum) {
+    var displayClass = (displayNum == 1) ? ".basic-parameter" : ((displayNum == 2) ? ".advanced-parameter" : ".expert-parameter");
+    if (checkbox.checked) {
+        $(displayClass).show();
+        $(".grouping").has("div" + displayClass).show();
+    }
+    else {
+        $(displayClass).hide();
+        var matchingHeaders = $(".grouping").has("div.parameters > div:visible");
+        $(".grouping").hide();
+        matchingHeaders.show();
+    }
+}
 
 function toggleDefault(checkbox, id, modelType) {
     var modelDisplayText = (modelType == "Landscape") ? "workload zone." : "system."
@@ -554,6 +647,9 @@ function filterResults(searchText) {
     if (searchText == "") {
         $(".grouping").show();
         $(".ms-TextField").show();
+        $("#basic-filter").trigger("change");
+        $("#advanced-filter").trigger("change");
+        $("#expert-filter").trigger("change");
     }
     else {
         $(".grouping").hide();

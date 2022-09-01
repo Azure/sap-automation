@@ -63,27 +63,27 @@ namespace AutomationForm.Services
             return null;
         }
 
-        public Task CreateAsync(AppFile file)
+        public async Task CreateAsync(AppFile file)
         {
             BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
-            blobClient.UploadAsync(new BinaryData(file.Content));
+            await blobClient.UploadAsync(new BinaryData(file.Content));
             AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
-            return client.AddEntityAsync(fileEntity);
+            await client.AddEntityAsync(fileEntity);
         }
 
-        public Task UpdateAsync(AppFile file)
+        public async Task UpdateAsync(AppFile file)
         {
             BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
-            blobClient. UploadAsync(new BinaryData(file.Content));
+            await blobClient. UploadAsync(new BinaryData(file.Content));
             AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
-            return client.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
+            await client.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
         }
         
-        public Task DeleteAsync(string rowKey, string partitionKey)
+        public async Task DeleteAsync(string rowKey, string partitionKey)
         {
             BlobClient blobClient = blobContainerClient.GetBlobClient(rowKey);
-            blobClient.DeleteAsync();
-            return client.DeleteEntityAsync(partitionKey, rowKey);
+            await blobClient.DeleteAsync();
+            await client.DeleteEntityAsync(partitionKey, rowKey);
         }
     }
 }

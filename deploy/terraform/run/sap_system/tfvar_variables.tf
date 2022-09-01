@@ -81,11 +81,6 @@ variable "proximityplacementgroup_arm_ids" {
   default     = []
 }
 
-variable "use_secondary_ips" {
-  description = "Use secondary IPs for the SAP System"
-  default     = false
-}
-
 #########################################################################################
 #                                                                                       #
 #  Virtual Network variables                                                            #
@@ -96,6 +91,12 @@ variable "network_logical_name" {
   description = "The logical name of the virtual network, used for resource naming"
   default     = ""
 }
+
+variable "use_secondary_ips" {
+  description = "Use secondary IPs for the SAP System"
+  default     = false
+}
+
 
 #########################################################################################
 #                                                                                       #
@@ -247,8 +248,8 @@ variable "spn_keyvault_id" {
 
 variable "enable_purge_control_for_keyvaults" {
   description = "Disables the purge protection for Azure keyvaults."
-  default = false
-  type = bool
+  default     = false
+  type        = bool
 }
 
 #########################################################################################
@@ -774,7 +775,7 @@ variable "sapmnt_private_endpoint_id" {
 #########################################################################################
 
 
-variable "ANF_use_for_HANA_data" {
+variable "ANF_HANA_data" {
   description = "If defined, will create ANF volumes for HANA data"
   default     = false
 }
@@ -784,12 +785,12 @@ variable "ANF_HANA_data_volume_size" {
   default     = 512
 }
 
-variable "ANF_use_existing_data_volume" {
+variable "ANF_HANA_data_use_existing_volume" {
   description = "Use existing data volume"
   default     = false
 }
 
-variable "ANF_data_volume_name" {
+variable "ANF_HANA_data_volume_name" {
   description = "Data volume name"
   default     = [""]
 }
@@ -799,7 +800,7 @@ variable "ANF_HANA_data_volume_throughput" {
   default     = 128
 }
 
-variable "ANF_use_for_HANA_log" {
+variable "ANF_HANA_log" {
   description = "If defined, will create ANF volumes for HANA log"
   default     = false
 }
@@ -809,12 +810,12 @@ variable "ANF_HANA_log_volume_size" {
   default     = 512
 }
 
-variable "ANF_use_existing_log_volume" {
+variable "ANF_HANA_log_use_existing" {
   description = "Use existing log volume"
   default     = false
 }
 
-variable "ANF_log_volume_name" {
+variable "ANF_HANA_log_volume_name" {
   description = "Log volume name"
   default     = [""]
 }
@@ -824,7 +825,7 @@ variable "ANF_HANA_log_volume_throughput" {
   default     = 128
 }
 
-variable "ANF_use_for_HANA_shared" {
+variable "ANF_HANA_shared" {
   description = "If defined, will create ANF volumes for HANA shared"
   default     = false
 }
@@ -834,7 +835,7 @@ variable "ANF_HANA_shared_volume_size" {
   default     = 512
 }
 
-variable "ANF_use_existing_shared_volume" {
+variable "ANF_HANA_shared_use_existing" {
   description = "Use existing shared volume"
   default     = false
 }
@@ -850,7 +851,7 @@ variable "ANF_HANA_shared_volume_throughput" {
 }
 
 
-variable "ANF_use_for_usr_sap" {
+variable "ANF_usr_sap" {
   description = "If defined, will create ANF volumes for /usr/sap"
   default     = false
 }
@@ -860,27 +861,34 @@ variable "ANF_usr_sap_volume_size" {
   default     = 512
 }
 
-variable "ANF_use_existing_usr_sap_volume" {
+variable "ANF_usr_sap_use_existing" {
   description = "Use existing  /usr/sap volume"
   default     = false
 }
 
-variable "ANF_HANA_usr_sap_volume_name" {
+variable "ANF_usr_sap_volume_name" {
   description = "If defined provides the name of the /usr/sap volume"
   default     = ""
 }
 
-variable "ANF_HANA_usr_sap_throughput" {
+variable "ANF_usr_sap_throughput" {
   description = "If defined provides the throughput of the /usr/sap volume"
   default     = 128
 }
 
 variable "use_private_endpoint" {
-  description = "Use private endpoint for the deployment"
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
   default     = false
+  type        = bool
 }
 
-variable "ANF_use_existing_sapmnt_volume" {
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "ANF_sapmnt" {
   description = "Use existing sapmnt volume"
   default     = false
 }
@@ -890,12 +898,12 @@ variable "ANF_sapmnt_volume_name" {
   default     = ""
 }
 
-variable "ANF_HANA_sapmnt_volume_size" {
+variable "ANF_sapmnt_volume_size" {
   description = "If defined provides the size of the sapmnt volume"
   default     = 64
 }
 
-variable "ANF_HANA_sapmnt_volume_throughput" {
+variable "ANF_sapmnt_volume_throughput" {
   description = "If defined provides the throughput of the sapmnt volume"
   default     = 64
 }
@@ -955,3 +963,7 @@ variable "anchor_vm_accelerated_networking" {
   default     = true
 }
 
+variable "subscription" {
+  description = "Target subscription"
+  default     = ""
+}

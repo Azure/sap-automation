@@ -17,7 +17,7 @@ resource "azurerm_network_interface" "observer" {
   ip_configuration {
     name      = "IPConfig1"
     subnet_id = var.db_subnet.id
-    private_ip_address = var.databases[0].use_DHCP ? (
+    private_ip_address = var.database.use_DHCP ? (
       null) : (
       try(local.observer.nic_ips[count.index],
         cidrhost(
@@ -26,7 +26,7 @@ resource "azurerm_network_interface" "observer" {
         )
       )
     )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.database.use_DHCP ? "Dynamic" : "Static"
 
   }
 }

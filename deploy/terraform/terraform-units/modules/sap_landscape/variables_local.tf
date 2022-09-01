@@ -472,11 +472,11 @@ locals {
   # Store the Deployer KV in workload zone KV
   deployer_keyvault_user_name = try(var.deployer_tfstate.deployer_kv_user_name, "")
 
-#########################################################################################
-#                                                                                       #
-#  iSCSI definitioms                                                                    #
-#                                                                                       #
-#########################################################################################
+  #########################################################################################
+  #                                                                                       #
+  #  iSCSI definitioms                                                                    #
+  #                                                                                       #
+  #########################################################################################
   iscsi_count  = try(var.infrastructure.iscsi.iscsi_count, 0)
   enable_iscsi = local.iscsi_count > 0
   iscsi_size   = try(var.infrastructure.iscsi.size, "Standard_D2s_v3")

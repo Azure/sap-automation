@@ -24,16 +24,16 @@ resource "azurerm_lb" "anydb" {
       local.resource_suffixes.db_alb_feip
     )
     subnet_id = var.db_subnet.id
-    private_ip_address = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? (
-      local.anydb.loadbalancer.frontend_ips[0]) : (
-      var.databases[0].use_DHCP ? (
+    private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
+      var.database.loadbalancer.frontend_ips[0]) : (
+      var.database.use_DHCP ? (
         null) : (
         cidrhost(
           var.db_subnet.address_prefixes[0],
           tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
       ))
     )
-    private_ip_address_allocation = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
+    private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
     zones                         = ["1", "2", "3"]
   }
 }
@@ -85,9 +85,10 @@ resource "azurerm_lb_rule" "anydb" {
     var.naming.separator,
     local.resource_suffixes.db_alb_feip
   )
-  probe_id                = azurerm_lb_probe.anydb[0].id
-  enable_floating_ip      = true
-  idle_timeout_in_minutes = 30
+  probe_id                 = azurerm_lb_probe.anydb[0].id
+  backend_address_pool_ids = [azurerm_lb_backend_address_pool.anydb[0].id]
+  enable_floating_ip       = true
+  idle_timeout_in_minutes  = 30
 }
 
 

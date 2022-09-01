@@ -29,15 +29,40 @@
 
 #########################################################################################
 #                                                                                       #
-#  Environment definitioms                                                              #
+#  Environment definitions                                                              #
 #                                                                                       #
 #########################################################################################
 
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
 $$environment$$
 
-# The location valus is a mandatory field, it is used to control where the resources are deployed
+# The location value is a mandatory field, it is used to control where the resources are deployed
 $$location$$
+
+#If you want to customize the disk sizes for VMs use the following parameter to specify the custom sizing file.
+$$custom_disk_sizes_filename$$
+
+#If you want to provide a custom naming json use the following parameter.
+$$name_override_file$$
+
+# save_naming_information,defines that a json formatted file defining the resource names will be created
+$$save_naming_information$$
+
+# custom_prefix defines the prefix that will be added to the resource names
+$$custom_prefix$$
+
+# use_prefix defines if a prefix will be added to the resource names
+$$use_prefix$$
+
+# use_secondary_ips controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support
+$$use_secondary_ips$$
+
+# subscription is the subscription in which the system will be deployed (informational only)
+$$subscription$$
+
+# bom_name is the name of the SAP Bill of Materials file
+$$bom_name$$
+
 
 #########################################################################################
 #                                                                                       #
@@ -60,11 +85,13 @@ $$location$$
 #########################################################################################
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-$$network_name$$
-
-$$network_arm_id$$
-
 $$network_logical_name$$
+
+# use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
+$$use_loadbalancers_for_standalone_deployments$$
+
+# use_private_endpoint is a boolean flag controlling if the key vaults and storage accounts have private endpoints
+$$use_private_endpoint$$
 
 #########################################################################################
 #                                                                                       #
@@ -83,21 +110,24 @@ $$database_sid$$
 # - NONE (in this case no database tier is deployed)
 $$database_platform$$
 
-# database_instance_number if provided defines the instance number of the HANA database
-$$database_instance_number$$
+# Defines the number of database servers
+$$database_server_count$$
 
 # database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
 $$database_high_availability$$
 
 # For M series VMs use the SKU name for instance "M32ts"
-# If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
+# If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
 $$database_size$$
 
-#If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
-$$db_disk_sizes_filename$$
+# database_instance_number if provided defines the instance number of the HANA database
+$$database_instance_number$$
 
 # database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 $$database_vm_use_DHCP$$
+
+# Optional, Defines if the database server will have two network interfaces
+$$database_dual_nics$$
 
 # database_vm_db_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the database subnet
@@ -111,9 +141,12 @@ $$database_vm_db_nic_secondary_ips$$
 # for the network interface cards connected to the admin subnet
 $$database_vm_admin_nic_ips$$
 
-# The vm_image defines the Virtual machine image to use, 
-# if source_image_id is specified the deployment will use the custom image provided, 
-# in this case os_type must also be specified
+# database_loadbalancer_ips defines the load balancer IP addresses for the database tier's load balancer.
+$$database_loadbalancer_ips$$
+
+# database_vm_admin_nic_ips, if provided provides the static IP addresses 
+# for the network interface cards connected to the storage subnet
+$$database_vm_storage_nic_ips$$
 
 # Sample Images for different database backends
 
@@ -146,6 +179,10 @@ $$database_vm_admin_nic_ips$$
 #  version="8.2.2021040902"
 #}
 
+# The vm_image defines the Virtual machine image to use, 
+# if source_image_id is specified the deployment will use the custom image provided, 
+# in this case os_type must also be specified
+
 $$database_vm_image$$
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
@@ -163,27 +200,18 @@ $$database_no_ppg$$
 # Optional, Defines the that the database virtual machines will not be placed in an availability set
 $$database_no_avset$$
 
-$$database_dual_nics$$
-
-$$database_server_count$$
-
+# Optional, Defines if the tags for the database virtual machines
 $$database_tags$$
 
-$$database_loadbalancer_ips$$
-
-$$database_vm_storage_nic_ips$$
-
 $$database_HANA_use_ANF_scaleout_scenario$$
-
-$$hana_dual_nics$$
 
 #########################################################################################
 #                                                                                       #
 #  Application tier                                                                        #                                                                                       #
 #                                                                                       #
 #########################################################################################
-
-$$app_tier_vm_sizing$$
+# app_tier_sizing_dictionary_key defines the VM SKU and the disk layout for the application tier servers.
+$$app_tier_sizing_dictionary_key$$
 
 # enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
 $$enable_app_tier_deployment$$
@@ -193,9 +221,6 @@ $$app_tier_use_DHCP$$
 
 # sid is a mandatory field that defines the SAP Application SID
 $$sid$$
-
-# use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
-$$use_loadbalancers_for_standalone_deployments$$
 
 #########################################################################################
 #                                                                                       #
@@ -354,10 +379,6 @@ $$webdispatcher_server_image$$
 #                                                                                       #
 #########################################################################################
 
-# use_secondary_ips, if defined will 
-# use secondary IP addresses for the network interface cards
-$$use_secondary_ips$$
-
 # resource_offset can be used to provide an offset for resource naming
 # server#, disk# 
 $$resource_offset$$
@@ -388,59 +409,110 @@ $$sapmnt_private_endpoint_id$$
 
 #########################################################################################
 #                                                                                       #
-#  ANF Settings                                                                         #
+#  HANA Data                                                                            #
 #                                                                                       #
 #########################################################################################
 
-$$ANF_use_for_HANA_data$$
+# ANF_HANA_data, if defined, will create Azure NetApp Files volume(s) for HANA data.
+$$ANF_HANA_data$$
 
+# ANF_HANA_data_volume_size, if defined, provides the size of the HANA data volume(s).
 $$ANF_HANA_data_volume_size$$
 
-$$ANF_use_existing_data_volume$$
-
-$$ANF_data_volume_name$$
-
+# ANF_HANA_data_volume_throughput, if defined, provides the throughput of the HANA data volume(s).
 $$ANF_HANA_data_volume_throughput$$
 
-$$ANF_use_for_HANA_log$$
+# Use existing Azure NetApp volumes for HANA data.
+$$ANF_HANA_data_use_existing_volume$$
 
+# ANF_HANA_data_volume_name, if defined, provides the name of the HANA data volume(s).
+$$ANF_HANA_data_volume_name$$
+
+
+#########################################################################################
+#                                                                                       #
+#  HANA Log                                                                            #
+#                                                                                       #
+#########################################################################################
+
+# ANF_HANA_log, if defined, will create Azure NetApp Files volume(s) for HANA log.
+$$ANF_HANA_log$$
+
+# ANF_HANA_log_volume_size, if defined, provides the size of the HANA log volume(s).
 $$ANF_HANA_log_volume_size$$
 
-$$ANF_use_existing_log_volume$$
-
-$$ANF_log_volume_name$$
-
+# ANF_HANA_log_volume_throughput, if defined, provides the throughput of the HANA log volume(s).
 $$ANF_HANA_log_volume_throughput$$
 
-$$ANF_use_for_HANA_shared$$
+# Use existing Azure NetApp volumes for HANA log.
+$$ANF_HANA_log_use_existing$$
 
+# ANF_HANA_log_volume_name, if defined, provides the name of the HANA log volume(s).
+$$ANF_HANA_log_volume_name$$
+
+
+#########################################################################################
+#                                                                                       #
+#  HANA Log                                                                            #
+#                                                                                       #
+#########################################################################################
+
+# ANF_HANA_shared, if defined, will create Azure NetApp Files volume(s) for HANA shared.
+$$ANF_HANA_shared$$
+
+# ANF_HANA_shared_volume_size, if defined, provides the size of the HANA shared volume(s).
 $$ANF_HANA_shared_volume_size$$
 
-$$ANF_use_existing_shared_volume$$
-
-$$ANF_HANA_shared_volume_name$$
-
+# ANF_HANA_shared_volume_throughput, if defined, provides the throughput of the HANA shared volume(s).
 $$ANF_HANA_shared_volume_throughput$$
 
-$$ANF_use_for_usr_sap$$
+# Use existing Azure NetApp volumes for HANA shared.
+$$ANF_HANA_shared_use_existing$$
 
+# ANF_HANA_shared_volume_name, if defined, provides the name of the HANA shared volume(s).
+$$ANF_HANA_shared_volume_name$$
+
+
+#########################################################################################
+#                                                                                       #
+#  HANA Log                                                                            #
+#                                                                                       #
+#########################################################################################
+
+# ANF_usr_sap, if defined, will create Azure NetApp Files volume /usr/sap
+$$ANF_usr_sap$$
+
+# ANF_usr_sap_volume_size, if defined, provides the size of the /usr/sap volume.
 $$ANF_usr_sap_volume_size$$
 
-$$ANF_use_existing_usr_sap_volume$$
+# ANF_usr_sap_throughput, if defined, provides the throughput of the /usr/sap volume.
+$$ANF_usr_sap_throughput$$
 
-$$ANF_HANA_usr_sap_volume_name$$
+# Use existing Azure NetApp volumes for /usr/sap.
+$$ANF_usr_sap_use_existing$$
 
-$$ANF_HANA_usr_sap_throughput$$
+# ANF_usr_sap_volume_name, if defined, provides the name of the /usr/sap volume.
+$$ANF_usr_sap_volume_name$$
 
-$$use_private_endpoint$$
 
-$$ANF_use_existing_sapmnt_volume$$
+#########################################################################################
+#                                                                                       #
+#  HANA Log                                                                            #
+#                                                                                       #
+#########################################################################################
 
+# ANF_sapmnt, if defined, will create Azure NetApp Files volume for /sapmnt
+$$ANF_sapmnt$$
+
+# ANF_sapmnt_volume_size, if defined, provides the size of the /sapmnt volume.
+$$ANF_sapmnt_volume_size$$
+
+# ANF_sapmnt_volume_throughput, if defined, provides the throughput of the /sapmnt volume.
+$$ANF_sapmnt_volume_throughput$$
+
+# ANF_sapmnt_volume_name, if defined, provides the name of the /sapmnt volume.
 $$ANF_sapmnt_volume_name$$
 
-$$ANF_HANA_sapmnt_volume_size$$
-
-$$ANF_HANA_sapmnt_volume_throughput$$
 
 
 #########################################################################################
@@ -466,10 +538,6 @@ $$automation_path_to_public_key$$
 # If empty Terraform will create the ssh key and persist it in keyvault
 $$automation_path_to_private_key$$
 
-# resource_offset can be used to provide an offset for resource naming
-# server#, disk# 
-$$resource_offset$$
-
 # vm_disk_encryption_set_id if defined defines the custom encryption key 
 $$vm_disk_encryption_set_id$$
 
@@ -481,17 +549,9 @@ $$nsg_asg_with_vnet$$
 # The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
 # The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
 
-$$subscription$$
-
 $$resourcegroup_name$$
 
 $$resourcegroup_arm_id$$
-
-# custom_prefix defines the prefix that will be added to the resource names
-$$custom_prefix$$
-
-# use_prefix defines if a prefix will be added to the resource names
-$$use_prefix$$
 
 # PPG
 # The proximity placement group names and arm_ids are optional can be used to 
@@ -639,9 +699,9 @@ $$anchor_vm_nic_ips$$
 # anchor_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 $$anchor_vm_use_DHCP$$
 
+# anchor_vm_authentication_username defines the username for the anchor VM
 $$anchor_vm_authentication_username$$
 
-$$bom_name$$
 
 #########################################################################################
 #                                                                                       #

@@ -74,6 +74,10 @@ pre code {
     outline: none;
 }
 
+.editable:hover {
+    cursor: text;
+}
+
 fluent-checkbox {
     padding-bottom: 10px;
 }
@@ -456,4 +460,13 @@ fluent-card {
 
 fluent-card:hover {
     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+/* Basic, advanced, expert filters */
+.filter-checkboxes {
+    text-align: center;
+}
+
+.parameters-filter {
+    padding-left: 10px;
 }

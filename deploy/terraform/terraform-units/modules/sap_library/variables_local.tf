@@ -1,8 +1,8 @@
 
 locals {
 
-#  storageaccount_names = var.naming.storageaccount_names.LIBRARY
-#  resource_suffixes    = var.naming.resource_suffixes
+  #  storageaccount_names = var.naming.storageaccount_names.LIBRARY
+  #  resource_suffixes    = var.naming.resource_suffixes
 
   // Infrastructure
   var_infra = try(var.infrastructure, {})

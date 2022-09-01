@@ -370,7 +370,7 @@ variable "resource_suffixes" {
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"
     "db_alb_hp"                      = "dbAlb-hp"
-    "db_alb_rule"                    = "dbAlb-rule_"
+    "db_alb_rule"                    = "dbAlb-rule"
     "db_asg"                         = "db-asg"
     "db_avset"                       = "db-avset"
     "db_nic"                         = "-db-nic"
@@ -515,3 +515,7 @@ variable "deployer_location" {
   default     = ""
 }
 
+variable "utility_vm_count" {
+  type    = number
+  default = 0
+}

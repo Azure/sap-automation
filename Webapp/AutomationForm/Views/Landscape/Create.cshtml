@@ -3,6 +3,8 @@
 
 @{
     ViewBag.Title = "Create workload zone";
+    List<SelectListItem> imageOptions = ViewBag.ImageOptions;
+    bool validImageOptions = ViewBag.ValidImageOptions;
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -20,11 +22,10 @@
             allowClear: true,
             tags: true
         });
-        var PivotElements = document.querySelectorAll(".ms-Pivot");
-        for (var i = 0; i < PivotElements.length; i++) {
-          new fabric['Pivot'](PivotElements[i]);
-        }
-        $("#Basic-pivot").addClass("is-selected");
+        $(".js-example-placeholder-multiple").select2({
+            placeholder: "Add items...",
+            tags: true
+        });
     }
 
     var submitting = false;
@@ -72,70 +73,110 @@
     <form class="wrapper" asp-controller="landscape" asp-action="create">
         @Html.AntiForgeryToken()
 
-        <div class="ms-Pivot ms-Pivot--large">
+        <div>
 
-            <ul class="ms-Pivot-links" style="text-align: center">
-                @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
-                {
-                    <li class="ms-Pivot-link" id="@pg.Tab-pivot" data-content="@pg.Tab" title="@pg.Tab" tabindex="0">
-                        @pg.Tab
-                    </li>
-                }
-            </ul>
+            <div class="filter-checkboxes">
+                <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 1)" id="basic-filter">Basic</fluent-checkbox>
+                <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 2)" id="advanced-filter">Advanced</fluent-checkbox>
+                <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 3)" id="expert-filter">Expert</fluent-checkbox>
+            </div>
 
-            <fluent-checkbox id="landscape-default-checkbox" onchange="toggleDefault(this, 'landscape-default-checkbox','Landscape')">Use default</fluent-checkbox><br />
+            <fluent-checkbox id="landscape-default-checkbox" onchange="toggleDefault(this, 'landscape-default-checkbox', 'Landscape')">Use default</fluent-checkbox><br />
             <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
 
-            @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
-            {
-                <div class="ms-Pivot-content" data-content="@pg.Tab">
-                    <fieldset id="@pg.Tab">
-
-                        @foreach (Grouping g in pg.Groupings)
+            <div>
+                <fieldset>
+                @for (int i = 0; i < Model.ParameterGroupings.Length; i++)
+                {
+                    Grouping g = Model.ParameterGroupings[i];
+                    <div class="grouping">
+                        <h2><a href="@g.Link" target="_blank" rel="noopener noreferrer">@g.Section</a></h2>
+                        <div class="parameters">
+                        @for (int k = 0; k < g.Parameters.Length; k++)
                         {
-                            <div class="grouping">
-                                <h2><a href="@g.Link" target="_blank" rel="noopener noreferrer">@g.Section</a></h2>
-                                <div class="parameters">
+                            ParameterModel p = g.Parameters[k];
+                            var required = (@p.Required) ? "required" : "";
+                            var displayClass = (p.Display == 1) ? "basic-parameter" : ((p.Display == 2) ? "advanced-parameter" : "expert-parameter");
 
-                                    @foreach (ParameterModel p in g.Parameters)
-                                    {
-                                        var required = (@p.Required) ? "required" : "";
-
-                                        <div class="ms-TextField">
+                            <div class="ms-TextField @displayClass">
                                             
-                                            <div class="left-input">
-                                                @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
-                                                <p>@Html.Raw(p.Description)</p>
-                                            </div>
+                                <div class="left-input">
+                                    @Html.Label(p.Name, p.Name, new { @class = $"ms-Label {required}" })
+                                    <p>@Html.Raw(p.Description)</p>
+                                </div>
 
-                                            <div class="right-input">
-                                                @if (@p.Type == "field")
-                                                {
-                                                    @Html.TextBox(p.Name, "", new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                                }
-                                                else if (@p.Type == "lookup")
-                                                {
-                                                    @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
-                                                }
-                                                else if (@p.Type == "checkbox") 
-                                                {
-                                                    <fluent-checkbox id="@p.Name" name="@p.Name" onchange="this.value=this.checked"></fluent-checkbox>
-                                                }
-                                                else
-                                                {
-                                                    <p>Invalid parameter</p>
-                                                }
+                                <div class="right-input">
+                                    @if (@p.Type == "field")
+                                    {
+                                        @Html.TextBox(p.Name, "", new { @class = "ms-TextField-field", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                    }
+                                    else if (@p.Type == "lookup")
+                                    {
+                                        @Html.DropDownList(p.Name, p.Options, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"overrulesHandler({p.Name}, {p.Overrules})" })
+                                    }
+                                    else if (@p.Type == "checkbox") 
+                                    {
+                                        <fluent-checkbox id="@p.Name" name="@p.Name" onchange="this.value=this.checked"></fluent-checkbox>
+                                    }
+                                    else if (@p.Type == "list")
+                                    {
+                                        @Html.ListBox(p.Name, p.Options, new { @class = "js-example-placeholder-multiple", @style = "width: 100%;", @multiple = "multiple" })
+                                    }
+                                    else if (@p.Type == "image")
+                                    {
+                                        <h3 style="font-size: 20px;">Marketplace Image</h3>
+                                        <div class="image-container">
+                                            <span>
+                                                @Html.Label("publisher", "publisher", new { @class = $"ms-Label image-label" })
+                                                @Html.TextBox(p.Name + ".publisher", "", new { @class = "ms-TextField-field image-input" })
+                                            </span>
 
-                                                @Html.ValidationMessage(p.Name)
-                                            </div>
+                                            <span>
+                                                @Html.Label("offer", "offer", new { @class = $"ms-Label image-label" })
+                                                @Html.TextBox(p.Name + ".offer", "", new { @class = "ms-TextField-field image-input" })
+                                            </span>
+
+                                            <span>
+                                                @Html.Label("sku", "sku", new { @class = $"ms-Label image-label" })
+                                                @Html.TextBox(p.Name + ".sku", "", new { @class = "ms-TextField-field image-input" })
+                                            </span>
+
+                                            <span>
+                                                @Html.Label("version", "version", new { @class = $"ms-Label image-label" })
+                                                @Html.TextBox(p.Name + ".version", "", new { @class = "ms-TextField-field image-input" })
+                                            </span>
+                                        </div>
+                                        <h3 style="font-size: 20px;">Custom Image</h3>
+                                        <div class="image-container">
+                                            <span>
+                                                @Html.Label("os_type", "os_type", new { @class = $"ms-Label image-label" })
+                                                @Html.TextBox(p.Name + ".os_type", "", new { @class = "ms-TextField-field image-input" })
+                                            </span>
+
+                                            <span>
+                                                @Html.Label("source_image_id", "source_image_id", new { @class = $"ms-Label image-label" })
+                                                @Html.TextBox(p.Name + ".source_image_id", "", new { @class = "ms-TextField-field image-input" })
+                                            </span>
                                         </div>
                                     }
+                                    else if (p.Type == "image_dropdown")
+                                    {
+                                        @Html.DropDownList(p.Name, imageOptions, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"updateImage(this, '{p.Overrules}')" })
+                                    }
+                                    else
+                                    {
+                                        <p>Invalid parameter</p>
+                                    }
+
+                                    @Html.ValidationMessage(p.Name)
                                 </div>
                             </div>
                         }
-                    </fieldset>
-                </div>
-            }
+                        </div>
+                    </div>
+                }
+                </fieldset>
+            </div>
         </div>
 
         <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">

@@ -380,9 +380,9 @@ fi
 
 ok_to_proceed=false
 
-echo "Terraform state subscription_id     =${STATE_SUBSCRIPTION}"
-echo "Terraform state resource group name =${REMOTE_STATE_RG}"
-echo "Terraform state storage account name=${REMOTE_STATE_SA}"
+echo "Terraform state subscription_id      = ${STATE_SUBSCRIPTION}"
+echo "Terraform state resource group name  = ${REMOTE_STATE_RG}"
+echo "Terraform state storage account name = ${REMOTE_STATE_SA}"
 
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
@@ -565,7 +565,12 @@ if [ 0 == $return_value ] ; then
 
         if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
             webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-            az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+            if [ -z "${az_var}" ]; then
+                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+            else
+                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+            fi
         fi
 
         save_config_var "keyvault" "${system_config_information}"
@@ -815,30 +820,72 @@ if [ $ok_to_proceed ]; then
     allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}  "${approve}"" )
 
     if [ 1 == $called_from_ado ] ; then
-        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings $allParams  2>error.log
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
     else
-        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
     fi
     return_value=$?
 
-    if [ 0 != $return_value ] ; then
+    if [ -f apply_output.json ]
+    then
+      errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+      if [[ -n $errors_occurred ]]
+      then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+        return_value=2
+        all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+        if [[ -n ${all_errors} ]]
+        then
+            readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+            for errors_string in "${errors_strings[@]}"; do
+                string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+                if [[ -z ${string_to_report} ]]
+                then
+                    string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+                fi
+                
+                echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                if [ 1 == $called_from_ado ] ; then
+                    echo "##vso[task.logissue type=error]${string_to_report}"
+                fi
+            
+            done
+          
+        fi
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        if [ -f error.log ]; then
-            cat error.log
-            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
-            echo "$LASTERROR" > "${system_config_information}".err
 
-            if [ 1 == $called_from_ado ] ; then
-                echo "##vso[task.logissue type=error]$LASTERROR"
-            fi
-            rm error.log
+        # Check for resource that can be imported
+        existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+        if [[ -n ${existing} ]]
+        then
+            
+          readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+          for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+            echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+          done
         fi
+      fi
+
+    fi
+
+    if [ -f apply_output.json ]
+    then
+        rm apply_output.json
+    fi
+
+    if [ 0 != $return_value ] ; then
         unset TF_DATA_DIR
         exit $return_value
     fi
@@ -850,13 +897,32 @@ then
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
     
-    deployer_rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_rg_name | tr -d \")
+    created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
     
-    az deployment group create --resource-group ${deployer_rg_name} --name "ControlPlane_Deployer_${deployer_rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+    az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
     if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
         webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-        az pipelines variable-group variable create --group-id $VARIABLE_GROUP_ID --name WEBAPP_URL_BASE --value $webapp_url_base
+        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+        if [ -z "${az_var}" ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+        else
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+        fi
+
+        webapp_identity=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_identity | tr -d \")
+        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value")
+        if [ -z "${az_var}" ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity
+        else
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity
+        fi
+    fi
+    deployer_extension_ids=$(terraform -chdir="${terraform_module_directory}"  output -no-color -json deployer_extension_ids | jq -r '.[]')
+
+    if [[ -n ${deployer_extension_ids} ]]
+    then
+        az resource delete --ids ${deployer_extension_ids}
     fi
 
     save_config_var "keyvault" "${system_config_information}"
@@ -866,7 +932,7 @@ fi
 if [ "${deployment_system}" == sap_system ]
 then
     re_run=0
-    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
@@ -877,11 +943,13 @@ then
     if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
     then
       database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
-      save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
-      re_run=1
+      if [ -n "${database_loadbalancer_ips}" ]; then
+          save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+          re_run=1
+      fi
     fi
 
-    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
@@ -892,8 +960,10 @@ then
     if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
     then
       scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
-      save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
-      re_run=1
+      if [ -n "${scs_server_loadbalancer_ips}" ]; then
+          save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+          re_run=1
+      fi
     fi
 
     if [ 1 == $re_run ] ; then
@@ -906,7 +976,7 @@ then
 
     rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
     
-    az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+    az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --subscription  $ARM_SUBSCRIPTION_ID --template-file "${script_directory}/templates/empty-deployment.json"  --output none
 
 fi
 

@@ -38,7 +38,7 @@ output "dns_info_vms" {
           )
         )
       )
-    ) : (
+      ) : (
       zipmap(
         compact(
           concat(
@@ -52,7 +52,7 @@ output "dns_info_vms" {
         )
       )
     )
-  ) : (
+    ) : (
     null
   )
 }
@@ -89,6 +89,15 @@ output "db_lb_ip" {
   value = [
     local.enable_db_lb_deployment ? (
       azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address) : (
+      ""
+    )
+  ]
+}
+
+output "db_lb_id" {
+  value = [
+    local.enable_db_lb_deployment ? (
+      azurerm_lb.hdb[0].id) : (
       ""
     )
   ]

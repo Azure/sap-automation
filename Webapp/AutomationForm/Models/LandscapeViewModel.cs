@@ -7,7 +7,7 @@ namespace AutomationForm.Models
 {
     public class LandscapeViewModel
     {
-        public ParameterGroupingModel[] ParameterGroupings { get; set; }
+        public Grouping[] ParameterGroupings { get; set; }
         public LandscapeModel Landscape { get; set; }
     }
 }

@@ -60,13 +60,14 @@ locals {
     use_existing_pool = var.ANF_use_existing_pool
     service_level     = var.ANF_service_level
     size_in_tb        = var.ANF_pool_size
+    qos_type          = var.ANF_qos_type
 
-    use_existing_transport_volume = var.ANF_use_existing_transport_volume
+    use_existing_transport_volume = var.ANF_transport_volume_use_existing
     transport_volume_name         = var.ANF_transport_volume_name
     transport_volume_size         = var.ANF_transport_volume_size
     transport_volume_throughput   = var.ANF_transport_volume_throughput
 
-    use_existing_install_volume = var.ANF_use_existing_install_volume
+    use_existing_install_volume = var.ANF_install_volume_use_existing
     install_volume_name         = var.ANF_install_volume_name
     install_volume_size         = var.ANF_install_volume_size
     install_volume_throughput   = var.ANF_install_volume_throughput
@@ -78,5 +79,15 @@ locals {
     ) : (
     null
   )
+
+  vm_settings = {
+    count              = var.utility_vm_count
+    size               = var.utility_vm_size
+    use_DHCP           = var.utility_vm_useDHCP
+    image              = var.utility_vm_image
+    private_ip_address = var.utility_vm_nic_ips
+
+  }
+
 
 }

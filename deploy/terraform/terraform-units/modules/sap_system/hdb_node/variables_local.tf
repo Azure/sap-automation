@@ -45,24 +45,17 @@ locals {
     )
   )
 
-  hdb_list = [
-    for db in var.databases : db
-    if try(db.platform, "NONE") == "HANA"
-  ]
+  enable_deployment = (var.database.platform == "HANA")
 
-  enable_deployment = (length(local.hdb_list) > 0) ? true : false
-
-  // Filter the list of databases to only HANA platform entries
-  hdb = var.databases[0]
 
   //ANF support
-  use_ANF = try(local.hdb.use_ANF, false)
+  use_ANF = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node 
-  dbnode_per_site       = length(try(local.hdb.dbnodes, [{}]))
+  dbnode_per_site       = length(try(var.database.dbnodes, [{}]))
   enable_storage_subnet = local.use_ANF && local.dbnode_per_site > 1
 
   // Availability Set 
-  availabilityset_arm_ids = try(local.hdb.avset_arm_ids, [])
+  availabilityset_arm_ids = try(var.database.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
 
   // Return the max fault domain count for the region
@@ -72,62 +65,59 @@ locals {
   ])[0]), 2)
 
   // Tags
-  tags = try(local.hdb.tags, {})
+  tags = try(var.database.tags, {})
 
-  // Support dynamic addressing
-
-  hdb_platform = try(local.hdb.platform, "NONE")
-  hdb_version  = try(local.hdb.db_version, "2.00.043")
+  hdb_version = try(var.database.db_version, "2.00.043")
   // If custom image is used, we do not overwrite os reference with default value
-  hdb_custom_image = length(try(local.hdb.os.source_image_id, "")) > 0
+  hdb_custom_image = length(try(var.database.os.source_image_id, "")) > 0
   hdb_os = {
     os_type = "LINUX"
     source_image_id = local.hdb_custom_image ? (
-      local.hdb.os.source_image_id) : (
+      var.database.os.source_image_id) : (
       ""
     )
     publisher = local.hdb_custom_image ? (
       "") : (
-      length(try(local.hdb.os.publisher, "")) > 0 ? (
-        local.hdb.os.publisher) : (
+      length(try(var.database.os.publisher, "")) > 0 ? (
+        var.database.os.publisher) : (
         "SUSE"
       )
     )
     offer = local.hdb_custom_image ? (
       "") : (
-      length(try(local.hdb.os.offer, "")) > 0 ? (
-        local.hdb.os.offer) : (
+      length(try(var.database.os.offer, "")) > 0 ? (
+        var.database.os.offer) : (
         "sles-sap-15-sp3"
       )
     )
     sku = local.hdb_custom_image ? (
       "") : (
-      length(try(local.hdb.os.sku, "")) > 0 ? (
-        local.hdb.os.sku) : (
+      length(try(var.database.os.sku, "")) > 0 ? (
+        var.database.os.sku) : (
         "gen2"
       )
     )
     version = local.hdb_custom_image ? (
       "") : (
-      length(try(local.hdb.os.version, "")) > 0 ? (
-        local.hdb.os.version) : (
+      length(try(var.database.os.version, "")) > 0 ? (
+        var.database.os.version) : (
         "latest"
       )
     )
   }
 
-  db_sizing_key = try(local.hdb.db_sizing_key, "Default")
+  db_sizing_key = try(var.database.db_sizing_key, "Default")
 
   db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).storage : []
   db_size   = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute.vm_size : ""
 
   hdb_vm_sku = length(local.db_size) > 0 ? local.db_size : "Standard_E4s_v3"
 
-  hdb_ha = try(local.hdb.high_availability, false)
+  hdb_ha = try(var.database.high_availability, false)
 
-  sid_auth_type        = try(local.hdb.authentication.type, "key")
-  enable_auth_password = try(var.databases[0].authentication.type, "key") == "password"
-  enable_auth_key      = try(var.databases[0].authentication.type, "key") == "key"
+  sid_auth_type        = try(var.database.authentication.type, "key")
+  enable_auth_password = try(var.database.authentication.type, "key") == "password"
+  enable_auth_key      = try(var.database.authentication.type, "key") == "key"
 
   authentication = {
     "type"     = local.sid_auth_type
@@ -138,11 +128,11 @@ locals {
   enable_db_lb_deployment = var.database_server_count > 0 && (
   var.use_loadbalancers_for_standalone_deployments || var.database_server_count > 1)
 
-  hdb_ins = try(local.hdb.instance, {})
+  hdb_ins = try(var.database.instance, {})
   hdb_sid = try(local.hdb_ins.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
   hdb_nr  = try(local.hdb_ins.instance_number, "00")
 
-  loadbalancer = try(local.hdb.loadbalancer, {})
+  loadbalancer = try(var.database.loadbalancer, {})
 
   // Subnet IP Offsets
   // Note: First 4 IP addresses in a subnet are reserved by Azure
@@ -173,7 +163,7 @@ locals {
   loadbalancer_ports = local.enable_deployment ? flatten([
     for port in local.lb_ports[split(".", local.hdb_version)[0]] : {
       sid  = var.sap_sid
-      port = tonumber(port) + (tonumber(try(var.databases[0].instance.instance_number, 0)) * 100)
+      port = tonumber(port) + (tonumber(try(var.database.instance.instance_number, 0)) * 100)
     }
   ]) : null
 
@@ -288,20 +278,20 @@ locals {
   )
 
   // Zones
-  zones         = try(local.hdb.zones, [])
+  zones         = try(var.database.zones, [])
   db_zone_count = length(local.zones)
 
   //Ultra disk requires zonal deployment
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = var.database_server_count > 0 && !try(local.hdb.no_avset, false) ? (
+  use_avset = var.database_server_count > 0 && !try(var.database.no_avset, false) ? (
     !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
     false
   )
 
   //PPG control flag
-  no_ppg = var.databases[0].no_ppg
+  no_ppg = var.database.no_ppg
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
   dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
@@ -316,7 +306,7 @@ locals {
       name                          = "IPConfig1"
       subnet_id                     = var.db_subnet.id
       nic_ips                       = var.database_vm_db_nic_ips
-      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = var.database.use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
       primary                       = true
     }
@@ -327,7 +317,7 @@ locals {
       name                          = "IPConfig2"
       subnet_id                     = var.db_subnet.id
       nic_ips                       = var.database_vm_db_nic_secondary_ips
-      private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+      private_ip_address_allocation = var.database.use_DHCP ? "Dynamic" : "Static"
       offset                        = var.database_server_count
       primary                       = false
     }

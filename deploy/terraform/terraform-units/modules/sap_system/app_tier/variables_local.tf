@@ -713,12 +713,9 @@ locals {
 
   web_dispatcher_primary_ips = [
     {
-      name = "IPConfig1"
-      subnet_id = local.enable_deployment ? (
-        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
-        ) : (
-        ""
-      )
+      name      = "IPConfig1"
+      subnet_id = local.enable_deployment ? local.web_subnet_deployed.id : ""
+
       nic_ips                       = local.web_nic_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
@@ -728,12 +725,8 @@ locals {
 
   web_dispatcher_secondary_ips = [
     {
-      name = "IPConfig2"
-      subnet_id = local.enable_deployment ? (
-        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
-        ) : (
-        ""
-      )
+      name                          = "IPConfig2"
+      subnet_id                     = local.enable_deployment ? local.web_subnet_deployed.id : ""
       nic_ips                       = local.web_nic_secondary_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = local.webdispatcher_count

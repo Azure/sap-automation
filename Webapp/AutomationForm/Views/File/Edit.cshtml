@@ -3,6 +3,8 @@
 @{
     ViewBag.Title = "Edit file";
     string sourceController = ViewBag.SourceController;
+    bool isImagesFile = ViewBag.IsImagesFile;
+    string language = (isImagesFile) ? "language-json" : "language-hcl";
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -22,6 +24,7 @@
             $('<input />').attr('type', 'hidden').attr('name', 'id').attr('value', '@Model.Id').appendTo('#file-form');
             $('<input />').attr('type', 'hidden').attr('name', 'fileContent').attr('value', fileContent).appendTo('#file-form');
             $('<input />').attr('type', 'hidden').attr('name', 'sourceController').attr('value', "@sourceController").appendTo('#file-form');
+            $('<input />').attr('type', 'hidden').attr('name', 'isImagesFile').attr('value', "@isImagesFile").appendTo('#file-form');
             return true;
         });
     });
@@ -50,19 +53,19 @@
 }
 
 <div>
-    <pre><code id="file-content" class="language-hcl" contenteditable="true" spellcheck="false">@ViewBag.Message</code></pre>
+    <pre class="line-numbers editable"><code id="file-content" class="@language" contenteditable="true" spellcheck="false">@ViewBag.Message</code></pre>
 
     <form class="wrapper" id="file-form" asp-controller="file" asp-action="edit">
         @Html.AntiForgeryToken()
 
-        <div class="ms-TextField">
+        <div class="ms-TextField @(isImagesFile ? "hidden" : "")">
             <div class="left-input">
                 @Html.Label("newId", "File name", new { @class = $"ms-Label required" })
                 <p>Enter a name for the file, ending in .tfvars</p>
             </div>
 
             <div class="right-input">
-                @Html.TextBox("newId", Model.Id, new { @class = "ms-TextField-field", required = "required", pattern = @"^[\w-]+\.tfvars$" })
+                @Html.TextBox("newId", Model.Id, new { @class = "ms-TextField-field", required = "required", pattern = isImagesFile ? "VM-Images.json" : @"^[\w-]+\.tfvars$" })
             </div>
         </div>
 
@@ -75,9 +78,12 @@
                 Back to list
             </fluent-anchor>
 
+            @if (!isImagesFile)
+            {
             <fluent-button appearance="accent" style="float: right" type="submit" onclick="submitting=true" formaction="/File/SubmitNew">
                 Save as new file
             </fluent-button>
+            }
         </div>
         
     </form>

@@ -33,13 +33,8 @@ locals {
 
   )
 
-  // Zonal support - 1 PPG by default and with zonal 1 PPG per zone
-  db_list = [
-    for db in var.databases : db
-    if try(db.platform, "NONE") != "NONE"
-  ]
 
-  db_zones         = try(local.db_list[0].zones, [])
+  db_zones         = try(var.database.zones, [])
   app_zones        = try(var.application.app_zones, [])
   scs_zones        = try(var.application.scs_zones, [])
   web_zones        = try(var.application.web_zones, [])
@@ -52,56 +47,39 @@ locals {
   // If the environment deployment created a route table use it to populate a route
   route_table_name = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
 
-  //Filter the list of databases 
-  databases = [
-    for database in var.databases : database
-    if try(database.platform, "NONE") != "NONE"
-  ]
 
-  db    = try(local.databases[0], {})
-  db_ha = try(local.db.high_availability, "false")
+  db_ha = try(var.database.high_availability, "false")
 
   //If custom image is used, we do not overwrite os reference with default value
-  db_custom_image = try(local.db.os.source_image_id, "") != "" ? true : false
+  db_custom_image = try(var.database.os.source_image_id, "") != "" ? true : false
 
   db_os = {
-    "source_image_id" = local.db_custom_image ? local.db.os.source_image_id : ""
-    "publisher"       = try(local.db.os.publisher, local.db_custom_image ? "" : "SUSE")
-    "offer"           = try(local.db.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp3")
-    "sku"             = try(local.db.os.sku, local.db_custom_image ? "" : "gen1")
-    "version"         = try(local.db.os.version, local.db_custom_image ? "" : "latest")
+    "source_image_id" = local.db_custom_image ? var.database.os.source_image_id : ""
+    "publisher"       = try(var.database.os.publisher, local.db_custom_image ? "" : "SUSE")
+    "offer"           = try(var.database.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp3")
+    "sku"             = try(var.database.os.sku, local.db_custom_image ? "" : "gen1")
+    "version"         = try(var.database.os.version, local.db_custom_image ? "" : "latest")
   }
 
-  db_ostype = upper(try(local.db.os.os_type, "LINUX"))
+  db_ostype = upper(try(var.database.os.os_type, "LINUX"))
 
-  db_auth = try(local.db.authentication,
+  db_auth = try(var.database.authentication,
     {
       "type" = "key"
   })
 
-  //Enable DB deployment 
-  hdb_list = [
-    for db in var.databases : db
-    if contains(["HANA"], upper(try(db.platform, "NONE")))
-  ]
 
-  enable_hdb_deployment = (length(local.hdb_list) > 0) ? true : false
-
-  //Enable xDB deployment 
-  xdb_list = [
-    for db in var.databases : db
-    if contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], upper(try(db.platform, "NONE")))
-  ]
-
-  enable_xdb_deployment = (length(local.xdb_list) > 0) ? true : false
+  enable_hdb_deployment = var.database.platform == "HANA"
+  enable_xdb_deployment = contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], var.database.platform)
   enable_db_deployment  = local.enable_xdb_deployment || local.enable_hdb_deployment
 
-  dbnode_per_site = length(try(local.db.dbnodes, [{}]))
+  dbnode_per_site = length(try(var.database.dbnodes, [{}]))
 
-  default_filepath = local.enable_hdb_deployment ? (
-    format("%s%s", path.module, "/../../../../../configs/hdb_sizes.json")) : (
-    format("%s%s", path.module, "/../../../../../configs/anydb_sizes.json")
+  default_filepath = format("%s%s",
+    path.module,
+    format("/../../../../../configs/%s_sizes.json", lower(var.database.platform))
   )
+
   custom_sizing = length(var.custom_disk_sizes_filename) > 0
 
   // Imports database sizing information
@@ -123,7 +101,7 @@ locals {
   sizes = jsondecode(file(local.file_name))
 
   db_sizing = local.enable_sid_deployment ? (
-    lookup(local.sizes.db, var.databases[0].db_sizing_key).storage) : (
+    lookup(local.sizes.db, var.database.db_sizing_key).storage) : (
     []
   )
 
@@ -137,7 +115,7 @@ locals {
   )
 
   //ANF support
-  use_ANF = try(local.db.use_ANF, false)
+  use_ANF = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node 
   enable_storage_subnet = local.use_ANF && local.dbnode_per_site > 1
 
@@ -150,7 +128,7 @@ locals {
   //If the db uses ultra disks ensure that the anchore sets the ultradisk flag but only for the zones that will contain db servers
   enable_anchor_ultra = [
     for zone in local.zones :
-    try(contains(local.db_list[0].zones, zone) ? local.enable_ultradisk : false, false)
+    try(contains(var.database.zones, zone) ? local.enable_ultradisk : false, false)
   ]
 
   anchor_custom_image = length(
@@ -202,7 +180,7 @@ locals {
     )
   ])
 
-  isHANA = try(upper(local.db.platform), "NONE") == "HANA"
+  isHANA = try(upper(var.database.platform), "NONE") == "HANA"
 
   ##############################################################################################
   #
@@ -223,7 +201,7 @@ locals {
   enable_admin_subnet = (
     (
       var.application.dual_nics ||
-      var.databases[0].dual_nics ||
+      var.database.dual_nics ||
       (local.isHANA && var.database_dual_nics)
     )
     &&
@@ -501,7 +479,7 @@ locals {
   )
 
   password_required = (
-    try(var.databases[0].authentication.type, "key") == "password" ||
+    try(var.database.authentication.type, "key") == "password" ||
     try(var.application.authentication.type, "key") == "password"
   )
 
@@ -515,12 +493,12 @@ locals {
   )
 
 
-# This needs more though as changing of it is a destructive action 
-# try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
+  # This needs more though as changing of it is a destructive action 
+  # try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
   // 'Cg==` is empty string, base64 encoded.
   cloudinit_growpart_config = null
 
-  app_tier_os=upper(try(var.application.app_os.os_type, "LINUX"))
+  app_tier_os = upper(try(var.application.app_os.os_type, "LINUX"))
 
 
 

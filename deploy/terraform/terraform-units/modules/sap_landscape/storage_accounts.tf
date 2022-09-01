@@ -30,7 +30,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 
   network_rules {
     default_action = "Deny"
-    ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
+    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
     bypass         = ["AzureServices", "Logging", "Metrics"]
     virtual_network_subnet_ids = var.use_private_endpoint ? (
       []
@@ -45,14 +45,29 @@ resource "azurerm_storage_account" "storage_bootdiag" {
             local.database_subnet_arm_id) : (
             azurerm_subnet.db[0].id
           ),
-          local.web_subnet_existing ? (
+          try(local.web_subnet_existing ? (
             local.web_subnet_arm_id) : (
             azurerm_subnet.web[0].id
-          ),
+          ), ""),
           local.deployer_subnet_management_id
         ]
       )
     )
+  }
+}
+
+resource "azurerm_private_dns_a_record" "storage_bootdiag" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.storage_bootdiag[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.storage_bootdiag[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 
@@ -128,7 +143,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
   network_rules {
     default_action = "Deny"
-    ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
+    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
     bypass         = ["AzureServices", "Logging", "Metrics"]
     virtual_network_subnet_ids = var.use_private_endpoint ? (
       []
@@ -147,6 +162,21 @@ resource "azurerm_storage_account" "witness_storage" {
         ]
       )
     )
+  }
+}
+
+resource "azurerm_private_dns_a_record" "witness_storage" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.witness_storage[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.witness_storage[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 
@@ -227,7 +257,7 @@ resource "azurerm_storage_account" "transport" {
 
   network_rules {
     default_action = "Deny"
-    ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
+    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
     bypass         = ["AzureServices", "Logging", "Metrics"]
     virtual_network_subnet_ids = var.use_private_endpoint ? (
       compact(
@@ -250,6 +280,21 @@ resource "azurerm_storage_account" "transport" {
         ]
       )
     )
+  }
+}
+
+resource "azurerm_private_dns_a_record" "transport" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration && var.NFS_provider == "AFS" ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.transport[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.transport[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 
@@ -389,7 +434,7 @@ resource "azurerm_storage_account" "install" {
 
   network_rules {
     default_action = "Deny"
-    ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
+    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
     bypass         = ["AzureServices", "Logging", "Metrics"]
     virtual_network_subnet_ids = var.use_private_endpoint ? (
       compact(
@@ -428,6 +473,21 @@ resource "azurerm_storage_account" "install" {
         ]
       )
     )
+  }
+}
+
+resource "azurerm_private_dns_a_record" "install" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration && var.NFS_provider == "AFS" ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.install[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.install[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 
