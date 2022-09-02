@@ -23,7 +23,7 @@ parameters:
     type:                              string
     default:                           MGMT
 
-  - name:                              use_webapp
+  - name:                              use_webapp_param
     displayName:                       "Deploy the configuration web application"
     type:                              boolean
     default:                           true
@@ -39,7 +39,7 @@ variables:
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
   - name:                              use_webapp
-    value:                             ${{ lower(parameters.use_webapp) }}
+    value:                             ${{ lower(parameters.use_webapp_param) }}
   - name:                              deployerfolder
     value:                             ${{ parameters.deployer }}
   - name:                              deployerconfig
@@ -84,11 +84,11 @@ stages:
                    
                    echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                    
-                   export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                   export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-                   export ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs)
+                   DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
+                   HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                   ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs)
                    echo Environment ${ENVIRONMENT}
-                   export LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs)
+                   LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs)
                    echo Location ${LOCATION}
                    
                    cd $HOME
@@ -150,7 +150,7 @@ stages:
                        exit 2
                    fi
                    
-                   if [ $(use_webapp) ]; then
+                   if [ $(use_webapp) == "true" ]; then
                        echo "Use WebApp is selected"
                    
                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "APP_REGISTRATION_APP_ID")
@@ -177,20 +177,6 @@ stages:
                    dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                    dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
                    
-                   echo -e "$green--- Exporting webapp variables ---$reset"
-                   export IS_PIPELINE_DEPLOYMENT=true
-                   export TF_VAR_use_webapp=$(use_webapp)
-                   if [ $(use_webapp) ]; then
-                       az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "APP_REGISTRATION_APP_ID")
-                       if [ -n "${az_var}" ]; then
-                           export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration ID' "${TF_VAR_app_registration_app_id}"
-                       fi
-                   
-                       az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEB_APP_CLIENT_SECRET")
-                       if [ ! -z "${az_var}" ]; then
-                           export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET); echo 'Secret defined' 
-                       fi
-                   fi
                    
                    echo -e "$green--- Configuring variables ---$reset"
                    
@@ -228,14 +214,12 @@ stages:
                    echo -e "$green--- Deploy the Control Plane ---$reset"
                    
                    if [ -n $(PAT) ]; then
-                       export TF_VAR_agent_pat=$(PAT)
                        echo 'Deployer Agent PAT is defined'
                    fi
                    
 
                    if [ -n $(POOL) ]; then
-                       export TF_VAR_agent_pool=$(POOL)
-                       echo 'Deployer Agent Pool' ${TF_VAR_agent_pool}
+                       echo 'Deployer Agent Pool' $(POOL)
                    fi
                    
                    storage_account_parameter=""
@@ -284,11 +268,11 @@ stages:
                    
                    if [ -f ${deployer_environment_file_name} ]; then
                    
-                       export deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs)
+                       deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs)
                        echo 'Deployer State File' $deployer_tfstate_key
-                       export key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
+                       key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
                        echo 'Deployer Key Vault' ${key_vault}
-                       export REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
+                       REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
                        echo 'Terraform state file storage account' $REMOTE_STATE_SA
                    
                        git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
@@ -370,15 +354,23 @@ stages:
                    
                    exit $return_code
                    
-            displayName:               Deploy control plane
+            displayName:                      Deploy control plane
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              TF_VAR_agent_ado_url:    $(System.CollectionUri)
-              AZURE_DEVOPS_EXT_PAT:    $(PAT)
+              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+              TF_VAR_agent_ado_url:           $(System.CollectionUri)
+              AZURE_DEVOPS_EXT_PAT:           $(PAT)
+              TF_VAR_agent_pool:              $(POOL)
+              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
+              TF_VAR_agent_pat:               $(PAT)
+              TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
+              IS_PIPELINE_DEPLOYMENT:         true
+              TF_VAR_use_webapp:              $(use_webapp)
+              DEPLOYMENT_REPO_PATH:           $(Build.Repository.LocalPath)
+
             failOnStderr:              false
 
 ...
