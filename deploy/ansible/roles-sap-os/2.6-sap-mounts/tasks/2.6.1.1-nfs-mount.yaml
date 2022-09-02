@@ -103,6 +103,7 @@
   ansible.builtin.file:
     path:                              "{{ is_created_now.path }}"
     state:                             directory
+    mode:                              0755
     attr:                              i+
   when:
     - node_tier in item.target_nodes or item.target_nodes == "all"

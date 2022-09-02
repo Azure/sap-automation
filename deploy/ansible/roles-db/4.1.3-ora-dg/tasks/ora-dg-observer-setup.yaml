@@ -115,6 +115,7 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
+    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   tags:
     - skip_ansible_lint
 
@@ -127,6 +128,7 @@
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
+    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   tags:
     - skip_ansible_lint
 

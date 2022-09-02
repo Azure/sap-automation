@@ -67,11 +67,12 @@
         path:                          "{{ item.path }}"
         owner:                         "{{ sap_sid | lower }}adm"
         group:                         sapsys
+        mode:                          "{{ item.mode }}"
         state:                         directory
       loop:
-        - { path: '/sapmnt/{{ sap_sid | upper }}' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-        - { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}' }
+        - { path: '/sapmnt/{{ sap_sid | upper }}', mode: '0755' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
+        - { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}', mode: '0755' }
       when: inventory_hostname == primary_instance_name
       tags:
         - skip_ansible_lint
@@ -142,11 +143,12 @@
         path:                          "{{ item.path }}"
         owner:                         "{{ sap_sid | lower }}adm"
         group:                         sapsys
+        mode:                          "{{ item.mode }}"
         state:                         directory
       loop:
-        - { path: '/sapmnt/{{ sap_sid | upper }}' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
+        - { path: '/sapmnt/{{ sap_sid | upper }}', mode: '0755' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
+        - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}', mode: '0755' }
       when: inventory_hostname == secondary_instance_name
       tags:
         - skip_ansible_lint

@@ -19,7 +19,7 @@
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [ this_sid ] }}{% endif %}"
+    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
@@ -308,6 +308,7 @@
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
         state:                         directory
+        mode:                          0755
         attr:                          i+
       loop: "{{ is_created_now.results }}"
       when:
@@ -347,6 +348,7 @@
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
         state:                         directory
+        mode:                          0755
         attr:                          i+
       loop: "{{ is_created_now3.results }}"
       when:
