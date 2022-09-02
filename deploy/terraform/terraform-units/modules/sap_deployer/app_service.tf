@@ -1,4 +1,4 @@
-resource "azurerm_subnet" "webapp_subnet" {
+resource "azurerm_subnet" "webapp" {
   depends_on = [
     azurerm_subnet.subnet_mgmt
   ]
@@ -39,7 +39,7 @@ resource "azurerm_subnet" "webapp_subnet" {
 
 }
 
-data "azurerm_subnet" "webapp_subnet" {
+data "azurerm_subnet" "webapp" {
   count                = var.use_webapp ? local.webapp_subnet_exists ? 1 : 0 : 0
   name                 = split("/", local.webapp_subnet_arm_id)[10]
   resource_group_name  = split("/", local.webapp_subnet_arm_id)[4]
@@ -109,43 +109,10 @@ resource "azurerm_windows_web_app" "webapp" {
 
 }
 
-# Create/Import webapp subnet
-resource "azurerm_subnet" "webapp" {
-  count                = var.use_webapp && !local.webapp_subnet_exists ? 1 : 0
-  name                 = local.webapp_subnet_name
-  resource_group_name  = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
-  virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
-  address_prefixes     = [local.webapp_subnet_prefix]
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
-  private_link_service_network_policies_enabled = false
-
-  service_endpoints = var.use_service_endpoint ? (
-    ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]
-    ) : (
-    null
-  )
-
-}
-
-data "azurerm_subnet" "webapp" {
-  count                = var.use_webapp && local.webapp_subnet_exists ? 1 : 0
-  name                 = split("/", local.webapp_subnet_arm_id)[10]
-  resource_group_name  = split("/", local.webapp_subnet_arm_id)[4]
-  virtual_network_name = split("/", local.webapp_subnet_arm_id)[8]
-}
 
 # Set up Vnet integration for webapp and storage account interaction
 resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
   count          = var.use_webapp ? (var.configure ? 1 : 0) : 0
   app_service_id = azurerm_windows_web_app.webapp[0].id
-  subnet_id      = local.webapp_subnet_exists ? data.azurerm_subnet.webapp_subnet[0].id : azurerm_subnet.webapp_subnet[0].id
+  subnet_id      = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
 }
