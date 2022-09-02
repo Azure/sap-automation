@@ -35,9 +35,9 @@ disk_type_to_name_map:
 
 # Dynamically determine list of volume groups associated with
 # the current node.
-volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
+volume_groups: "{{ lookup('template', 'volume_groups.j2') }}"
 
-logical_volume_groups: "{{ lookup ('template', 'logical_volume_group.j2') }}"
+logical_volume_groups: "{{ lookup('template', 'logical_volume_group.j2') }}"
 
 
 # Table of possible logical volumes that need to be managed.

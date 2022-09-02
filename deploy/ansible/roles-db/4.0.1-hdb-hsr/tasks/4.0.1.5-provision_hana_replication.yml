@@ -96,7 +96,7 @@
 
     - name:                            "HANA HSR: - Check replication state on primary"
       ansible.builtin.set_fact:
-        primary_replication_enabled:   "{{ ('mode: primary'  in hana_replication_status.stdout_lines) | bool }}"
+        primary_replication_enabled:   "{{ ('mode: primary' in hana_replication_status.stdout_lines) | bool }}"
   vars:
     ansible_python_interpreter:        python3
   environment:

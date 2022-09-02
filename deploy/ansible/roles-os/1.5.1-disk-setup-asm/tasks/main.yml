@@ -296,11 +296,11 @@
 
 - name:                                "Filter the logical volumes created results1"
   ansible.builtin.set_fact:
-    datadisklist:                     "{{ datadiskgroup | map(attribute='stdout')  | list }}"
+    datadisklist:                     "{{ datadiskgroup | map(attribute='stdout') | list }}"
 
 - name:                                Set datalistrsp
   ansible.builtin.set_fact:
-    datalistrsp:                "{{ datadisklist | join ('1,') }}"
+    datalistrsp:                "{{ datadisklist | join('1,') }}"
 
 # - fail: msg"{{ datadiskcount }}"
 
@@ -326,11 +326,11 @@
 
 - name:                                "Create the ARCH DISKS List"
   ansible.builtin.set_fact:
-    archdisklist:                     "{{ archdiskgroup | map(attribute='stdout')  | list }}"
+    archdisklist:                     "{{ archdiskgroup | map(attribute='stdout') | list }}"
 
 - name:                                Set archlistrsp
   ansible.builtin.set_fact:
-    archlistrsp:                       "{{ archdisklist | join ('1,') }}"
+    archlistrsp:                       "{{ archdisklist | join('1,') }}"
 
 # Capture the list of disks to create list for RECO disk group.
 
@@ -351,11 +351,11 @@
 
 - name:                                "Create the ARCH DISKS List"
   ansible.builtin.set_fact:
-    recodisklist:                     "{{ recodiskgroup | map(attribute='stdout')  | list }}"
+    recodisklist:                     "{{ recodiskgroup | map(attribute='stdout') | list }}"
 
 - name:                                Set recolistrsp fact
   ansible.builtin.set_fact:
-    recolistrsp:                       "{{ recodisklist | join ('1,') }}"
+    recolistrsp:                       "{{ recodisklist | join('1,') }}"
 
 - name:                                Print datadisklist
   ansible.builtin.debug:

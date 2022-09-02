@@ -31,7 +31,7 @@
 
     - name:                            "HANA HSR: - Ensure backup exists for SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.set_fact:
-        backup_systemdb:               "{{ ( backup_cmd_no_rows_found in backup_exists_cmd_for_systemdb_result.stdout) | bool }}"
+        backup_systemdb:               "{{ (backup_cmd_no_rows_found in backup_exists_cmd_for_systemdb_result.stdout) | bool }}"
 
     - name:                            "HANA HSR: - Results for backup check for SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.debug:
@@ -54,7 +54,7 @@
 
         - name:                        "HANA HSR: - Ensure backup exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
           ansible.builtin.set_fact:
-            backup_tenantdb:           "{{ ( backup_cmd_no_rows_found in backup_exists_cmd_for_tenant_result.stdout) | bool }}"
+            backup_tenantdb:           "{{ (backup_cmd_no_rows_found in backup_exists_cmd_for_tenant_result.stdout) | bool }}"
 
         - name:                            "HANA HSR: - Results for backup check for {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
           ansible.builtin.debug:

@@ -101,7 +101,7 @@
 
     - name:                            "WEB Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
-        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
 
     - name:                            Run the WEB installation Playbook
