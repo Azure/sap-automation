@@ -278,7 +278,7 @@ resource "azurerm_windows_virtual_machine" "app" {
             name      = storage_type.name,
             id        = disk_count,
             disk_type = storage_type.disk_type,
-            size_gb   = storage_type.size_gb < 128 ? 128 : storage_type.size_gb
+            size_gb   = storage_type.size_gb < 128 ? 128 : storage_type.size_gb,
             caching   = storage_type.caching
           }
         ]
@@ -360,7 +360,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "app" {
 }
 
 
-# VM Extension 
+# VM Extension
 resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   provider = azurerm.main
   count = local.enable_deployment && upper(local.app_ostype) == "LINUX" ? (
