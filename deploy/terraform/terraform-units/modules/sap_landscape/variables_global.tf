@@ -283,3 +283,7 @@ variable "peer_with_control_plane_vnet" {
   type        = bool
 }
 
+variable "enable_firewall_for_keyvaults_and_storage" {
+  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  type        = bool
+}

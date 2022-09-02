@@ -17,30 +17,33 @@ resource "azurerm_key_vault" "kv_user" {
   sku_name                   = "standard"
   enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
 
+  dynamic "network_acls" {
+    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
 
-  network_acls {
-    bypass         = "AzureServices"
-    default_action = local.management_subnet_exists ? "Deny" : "Allow"
+      bypass         = "AzureServices"
+      default_action = local.management_subnet_exists ? "Deny" : "Allow"
 
-    ip_rules = compact(
-      [
-        length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-        length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-      ]
-    )
+      ip_rules = compact(
+        [
+          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+        ]
+      )
 
-    virtual_network_subnet_ids = compact(
-      [
-        local.database_subnet_defined ? (
-          local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
-          ""
-          ), local.application_subnet_defined ? (
-          local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
-          ""
-        ),
-        local.deployer_subnet_management_id
-      ]
-    )
+      virtual_network_subnet_ids = compact(
+        [
+          local.database_subnet_defined ? (
+            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+            ""
+            ), local.application_subnet_defined ? (
+            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+            ""
+          ),
+          local.deployer_subnet_management_id
+        ]
+      )
+    }
   }
 
   lifecycle {

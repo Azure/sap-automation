@@ -55,8 +55,10 @@ module "sap_landscape" {
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
 
   vm_settings = local.vm_settings
-  
+
   peer_with_control_plane_vnet = var.peer_with_control_plane_vnet
+
+  enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
 
 
 }

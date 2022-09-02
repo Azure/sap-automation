@@ -28,31 +28,35 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  network_rules {
-    default_action = "Deny"
-    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
-    bypass         = ["AzureServices", "Logging", "Metrics"]
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
-      []
-      ) : (
-      compact(
+  dynamic "network_rules" {
+    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
+      default_action = "Deny"
+      ip_rules = compact(
         [
-          local.application_subnet_existing ? (
-            local.application_subnet_arm_id) : (
-            azurerm_subnet.app[0].id
+          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+        ]
+      )
+
+      bypass = ["AzureServices", "Logging", "Metrics"]
+      virtual_network_subnet_ids = compact(
+        [
+          local.database_subnet_defined ? (
+            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+            ""
+            ), local.application_subnet_defined ? (
+            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+            ""
+            ), local.web_subnet_defined ? (
+            local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
+            ""
           ),
-          local.database_subnet_existing ? (
-            local.database_subnet_arm_id) : (
-            azurerm_subnet.db[0].id
-          ),
-          try(local.web_subnet_existing ? (
-            local.web_subnet_arm_id) : (
-            azurerm_subnet.web[0].id
-          ), ""),
           local.deployer_subnet_management_id
         ]
       )
-    )
+
+    }
   }
 }
 
@@ -141,27 +145,32 @@ resource "azurerm_storage_account" "witness_storage" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  network_rules {
-    default_action = "Deny"
-    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
-    bypass         = ["AzureServices", "Logging", "Metrics"]
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
-      []
-      ) : (
-      compact(
+  dynamic "network_rules" {
+    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
+      default_action = "Deny"
+      ip_rules = compact(
         [
-          local.application_subnet_existing ? (
-            local.application_subnet_arm_id) : (
-            azurerm_subnet.app[0].id
-          ),
-          local.database_subnet_existing ? (
-            local.database_subnet_arm_id) : (
-            azurerm_subnet.db[0].id
+          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+        ]
+      )
+
+      bypass = ["AzureServices", "Logging", "Metrics"]
+      virtual_network_subnet_ids = compact(
+        [
+          local.database_subnet_defined ? (
+            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+            ""
+            ), local.application_subnet_defined ? (
+            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+            ""
           ),
           local.deployer_subnet_management_id
         ]
       )
-    )
+
+    }
   }
 }
 
@@ -255,32 +264,30 @@ resource "azurerm_storage_account" "transport" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  network_rules {
-    default_action = "Deny"
-    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
-    bypass         = ["AzureServices", "Logging", "Metrics"]
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
-      compact(
+  dynamic "network_rules" {
+    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
+      default_action = "Deny"
+      ip_rules = compact(
         [
-          local.application_subnet_existing ? (
-            local.application_subnet_arm_id) : (
-            azurerm_subnet.app[0].id
-          ),
-          local.deployer_subnet_management_id
+          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
         ]
       )
-      ) : (
-      compact(
+
+      bypass = ["AzureServices", "Logging", "Metrics"]
+      virtual_network_subnet_ids = compact(
         [
-          local.application_subnet_existing ? (
-            local.application_subnet_arm_id) : (
-            azurerm_subnet.app[0].id
-          ),
-          local.deployer_subnet_management_id
+          local.application_subnet_defined ? (
+            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+            ""
+          ), local.deployer_subnet_management_id
         ]
       )
-    )
+
+    }
   }
+
 }
 
 resource "azurerm_private_dns_a_record" "transport" {
@@ -432,47 +439,35 @@ resource "azurerm_storage_account" "install" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  network_rules {
-    default_action = "Deny"
-    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
-    bypass         = ["AzureServices", "Logging", "Metrics"]
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
-      compact(
+  dynamic "network_rules" {
+    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
+      default_action = "Deny"
+      ip_rules = compact(
         [
-          local.application_subnet_existing ? (
-            local.application_subnet_arm_id) : (
-            azurerm_subnet.app[0].id
-          ),
-          local.database_subnet_existing ? (
-            local.database_subnet_arm_id) : (
-            azurerm_subnet.db[0].id
-          ),
-          local.web_subnet_existing ? (
-            local.web_subnet_arm_id) : (
-            azurerm_subnet.web[0].id
+          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+        ]
+      )
+
+      bypass = ["AzureServices", "Logging", "Metrics"]
+      virtual_network_subnet_ids = compact(
+        [
+          local.database_subnet_defined ? (
+            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+            ""
+            ), local.application_subnet_defined ? (
+            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+            ""
+            ), local.web_subnet_defined ? (
+            local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
+            ""
           ),
           local.deployer_subnet_management_id
         ]
       )
-      ) : (
-      compact(
-        [
-          local.application_subnet_existing ? (
-            local.application_subnet_arm_id) : (
-            azurerm_subnet.app[0].id
-          ),
-          local.database_subnet_existing ? (
-            local.database_subnet_arm_id) : (
-            azurerm_subnet.db[0].id
-          ),
-          local.web_subnet_existing ? (
-            local.web_subnet_arm_id) : (
-            azurerm_subnet.web[0].id
-          ),
-          local.deployer_subnet_management_id
-        ]
-      )
-    )
+
+    }
   }
 }
 
