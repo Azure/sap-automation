@@ -276,6 +276,10 @@ transport_volume_size = 128
 use_private_endpoint = true
 
 
+# use_service_endpoint is a boolean flag controlling service_endpoints are used
+#use_service_endpoint=false
+
+
 ###########################################################################
 #                                                                         #
 #                                    ISCSI                                #

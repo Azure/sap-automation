@@ -58,7 +58,7 @@ network_logical_name = "SAP03"
 #network_name=""
 
 # network_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing Virtual Network
-network_arm_id="<azure_resource_id>"
+network_arm_id = "<azure_resource_id>"
 
 # network_address_space is a mandatory parameter when an existing Virtual network is not used
 #network_address_space = "10.110.0.0/16"
@@ -75,13 +75,13 @@ network_arm_id="<azure_resource_id>"
 # admin_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 #admin_subnet_address_prefix = "10.110.0.0/19"
 # admin_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
-admin_subnet_arm_id="<azure_resource_id>"
+admin_subnet_arm_id = "<azure_resource_id>"
 
 # admin_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
 #admin_subnet_nsg_name=""
 
 # admin_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
-admin_subnet_nsg_arm_id="<azure_resource_id>"
+admin_subnet_nsg_arm_id = "<azure_resource_id>"
 
 #########################################################################################
 #                                                                                       #
@@ -97,13 +97,13 @@ admin_subnet_nsg_arm_id="<azure_resource_id>"
 #db_subnet_address_prefix = "10.110.96.0/19"
 
 # db_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
-db_subnet_arm_id="<azure_resource_id>"
+db_subnet_arm_id = "<azure_resource_id>"
 
 # db_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
 #db_subnet_nsg_name=""
 
 # db_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
-db_subnet_nsg_arm_id="<azure_resource_id>"
+db_subnet_nsg_arm_id = "<azure_resource_id>"
 
 #########################################################################################
 #                                                                                       #
@@ -119,13 +119,13 @@ db_subnet_nsg_arm_id="<azure_resource_id>"
 #app_subnet_address_prefix = "10.110.32.0/19"
 
 # app_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
-app_subnet_arm_id="<azure_resource_id>"
+app_subnet_arm_id = "<azure_resource_id>"
 
 # app_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
 #app_subnet_nsg_name=""
 
 # app_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
-app_subnet_nsg_arm_id="<azure_resource_id>"
+app_subnet_nsg_arm_id = "<azure_resource_id>"
 
 #########################################################################################
 #                                                                                       #
@@ -141,13 +141,13 @@ app_subnet_nsg_arm_id="<azure_resource_id>"
 #web_subnet_address_prefix = "10.110.128.0/19"
 
 # web_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
-web_subnet_arm_id="<azure_resource_id>"
+web_subnet_arm_id = "<azure_resource_id>"
 
 # web_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
 #web_subnet_nsg_name=""
 
 # web_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
-web_subnet_nsg_arm_id="<azure_resource_id>"
+web_subnet_nsg_arm_id = "<azure_resource_id>"
 
 #########################################################################################
 #                                                                                       #
@@ -203,11 +203,11 @@ enable_purge_control_for_keyvaults = false
 #########################################################################################
 
 # If defined provides the DNS label for the Virtual Network
-dns_label="sap.contoso.net"
+dns_label = "sap.contoso.net"
 
 # If defined provides the name of the resource group hosting the Private DNS zone
 #dns_resourcegroup_name=""
- 
+
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #
@@ -218,7 +218,7 @@ dns_label="sap.contoso.net"
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider          = "NONE"
+NFS_provider = "NONE"
 
 # Defines the size of the install volume
 install_volume_size = 256
@@ -241,6 +241,10 @@ transport_storage_account_id = "<azure_resource_id>"
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 use_private_endpoint = true
+
+
+# use_service_endpoint is a boolean flag controlling service_endpoints are used
+#use_service_endpoint=false
 
 
 #########################################################################################

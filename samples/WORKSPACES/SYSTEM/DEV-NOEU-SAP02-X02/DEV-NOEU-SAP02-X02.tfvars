@@ -89,7 +89,7 @@ database_platform = "HANA"
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
-database_size = "S4Demo"
+db_sizing_dictionary_key = "S4Demo"
 
 #If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
 #db_disk_sizes_filename="custom-sizing.json"
@@ -149,7 +149,7 @@ database_vm_image = {
 # }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
-database_vm_zones=["1"]
+database_vm_zones = ["1"]
 
 # Optional, Defines the default authentication model for the Database VMs (key/password)
 #database_vm_authentication_type="key"
@@ -170,7 +170,7 @@ database_vm_zones=["1"]
 #                                                                                       #
 #########################################################################################
 
-app_tier_vm_sizing = "Optimized"
+app_tier_sizing_dictionary_key = "Optimized"
 
 # enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
 # enable_app_tier_deployment=false
@@ -203,7 +203,7 @@ scs_instance_number = "01"
 ers_instance_number = "02"
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-scs_server_zones=["1"]
+scs_server_zones = ["1"]
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku="Standard_D4s_v3"
@@ -211,12 +211,12 @@ scs_server_zones=["1"]
 # The vm_image defines the Virtual machine image to use for the application servers, 
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
-scs_server_image= {
- os_type=""
- source_image_id=""
- publisher="SUSE"
- offer="sles-sap-15-sp3"
- sku="gen2"
+scs_server_image = {
+  os_type         = ""
+  source_image_id = ""
+  publisher       = "SUSE"
+  offer           = "sles-sap-15-sp3"
+  sku             = "gen2"
 }
 
 # scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
@@ -251,7 +251,7 @@ scs_server_image= {
 #########################################################################################
 
 # application_server_count defines how many application servers to deploy
-application_server_count=2
+application_server_count = 2
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
 #application_server_zones=["1","2","3"]
@@ -408,10 +408,6 @@ sapmnt_volume_size = 128
 # The automation_path_to_private_key is an optional parameter that can be used to provide a path to an existing ssh private key file
 # If empty Terraform will create the ssh key and persist it in keyvault
 #automation_path_to_private_key=""
-
-# resource_offset can be used to provide an offset for resource naming
-# server#, disk# 
-#resource_offset=1
 
 # vm_disk_encryption_set_id if defined defines the custom encryption key 
 #vm_disk_encryption_set_id=""
