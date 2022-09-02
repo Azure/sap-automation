@@ -85,6 +85,13 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+variable "peer_with_control_plane_vnet" {
+  description = "Defines in the SAP VNet will be peered with the controlplane VNet"
+  type        = bool
+  default     = true
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #
