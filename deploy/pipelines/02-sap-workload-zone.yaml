@@ -13,15 +13,68 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
+  - name:                              workload_environment_parameter
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
   - name:                              deployer_environment_parameter
     displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
     type:                              string
     default:                           MGMT
 
-  - name:                              workload_environment_parameter
-    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+  - name:                              deployer_region_parameter
+    displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
     type:                              string
-    default:                           DEV
+    default:                           WEEU
+    values:
+      - AUCE
+      - AUC2
+      - AUEA
+      - AUSE
+      - BRSO
+      - BRSE
+      - BRUS
+      - CACE
+      - CAEA
+      - CEIN
+      - CEUS
+      - CEUA
+      - EAAS
+      - EAUS
+      - EUS2
+      - FRCE
+      - FRSO
+      - GENO
+      - GEWC
+      - JAEA
+      - JAWE
+      - JINC
+      - JINW
+      - KOCE
+      - KOSO
+      - NCUS
+      - NOEU
+      - NOEA
+      - NOWE
+      - SANO
+      - SAWE
+      - SCUS
+      - SCUG
+      - SOEA
+      - SOIN
+      - SECE
+      - SWNO
+      - SWWE
+      - UACE
+      - UANO
+      - UKSO
+      - UKWE
+      - WCUS
+      - WEEU
+      - WEIN
+      - WEUS
+      - WUS2
 
 trigger:                               none
 
@@ -49,6 +102,9 @@ variables:
 
   - name:                              deployer_environment
     value:                             ${{ parameters.deployer_environment_parameter }}
+
+  - name:                              deployer_region
+    value:                             ${{ parameters.deployer_region_parameter }}
 
   - name:                              tf_url
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
@@ -93,21 +149,21 @@ stages:
                 fi
               echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
 
-                export        HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-                export ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
-                export    LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+                HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs ) ; echo Location    $LOCATION
 
                 cd $HOME; mkdir -p .sap_deployment_automation
+
+              echo -e "$green --- Install dos2unix ---$reset"
+                sudo apt-get -qq install dos2unix
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                if [ -n $(PAT) ]; then
-                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
-                else
-                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                fi
+                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
@@ -116,8 +172,11 @@ stages:
               echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
-                deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$LOCATION
+                deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
                 workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
+
+                dos2unix -q ${deployer_environment_file_name}
+                dos2unix -q ${workload_environment_file_name}
 
                 if [ ! -f $HOME/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
                   echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
@@ -132,7 +191,6 @@ stages:
                 fi
 
               echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
 
                 dos2unix -q ${deployer_environment_file_name}
@@ -193,7 +251,7 @@ stages:
                   exit $return_code
                 fi
 
-                az account set --subscription "${STATE_SUBSCRIPTION}"
+                az account set --subscription ${ARM_SUBSCRIPTION_ID}
                 ip_added=0
 
                 agent_name=$(echo $(Agent) | tr '[:upper:]' '[:lower:]')
@@ -201,20 +259,20 @@ stages:
 
                 if [[ "azure pipelines" == "${agent_name}" ]]; then
                   echo -e "$green--- Set IP ---$reset"
-                  if [ -n ${key_vault} ]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                  if [ ! -z ${workload_key_vault} ]; then
+                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip} --only-show-errors --output none
                     ip_added=1
                   fi
                 fi
 
-                az account set --subscription ${ARM_SUBSCRIPTION_ID}
+                az account set --subscription "${STATE_SUBSCRIPTION}"
                 if [[ "azure pipelines" == "${agent_name}" ]]; then
                   echo -e "$green--- Set IP ---$reset"
-                  if [ ! -z ${workload_key_vault} ]; then
-                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                  if [ -n ${key_vault} ]; then
+                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
                     ip_added=2
                   fi
-                  
+
                 fi
 
               echo -e "$green--- Install Terraform ---$reset"
@@ -269,24 +327,24 @@ stages:
                 agent_name=$(echo $(Agent) | tr '[:upper:]' '[:lower:]')
                 length=$(expr length "$key_vault")
 
-                az account set --subscription "${STATE_SUBSCRIPTION}"
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 if [[ 2 -eq $ip_added ]]; then
                   ip_added=1
                   if [[ "azure pipelines" == "${agent_name}" ]]; then
                     if [ 0 != $length ]; then
-                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --no-wait --output none --only-show-errors 
+                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --no-wait --output none --only-show-errors
                     fi
                   fi
                 fi
 
                 length=$(expr length "$workload_key_vault")
 
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                az account set --subscription "${STATE_SUBSCRIPTION}"
                 if [[ 1 -eq $ip_added ]]; then
 
                   if [[ "azure pipelines" == "${agent_name}" ]]; then
                     if [ 0 != $length ]; then
-                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --no-wait --output none --only-show-errors
+                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --no-wait --output none --only-show-errors
                     fi
 
                   fi
