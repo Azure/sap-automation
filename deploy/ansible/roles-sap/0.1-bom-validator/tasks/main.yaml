@@ -129,7 +129,7 @@
 
 - name:                                "0.1 BOM Validator: - Assemble combined BoM"
   ansible.builtin.set_fact:
-    new_bom:                           "{{ lookup ('template', 'bom.j2') }}"
+    new_bom:                           "{{ lookup('template', 'bom.j2') }}"
 
 - name:                                "0.1 BOM Validator: - remove BoM"
   become:                              true

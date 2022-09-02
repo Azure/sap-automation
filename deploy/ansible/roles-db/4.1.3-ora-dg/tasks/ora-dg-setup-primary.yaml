@@ -71,7 +71,9 @@
 - name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               sqlplus / as sysdba @enableforcelogging.sql |tee
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sqlplus / as sysdba @enableforcelogging.sql | tee
   register:                            enable_force_logging_results
   failed_when:                         enable_force_logging_results.rc >= 2
   args:

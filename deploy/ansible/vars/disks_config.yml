@@ -10,7 +10,7 @@ disktypes: >-
 
 # Dynamically determine list of volume groups associated with
 # the current node.
-volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
+volume_groups: "{{ lookup('template', 'volume_groups.j2') }}"
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
