@@ -201,8 +201,8 @@ variable "deployer_image" {
   default = {
     "source_image_id" = ""
     "publisher"       = "Canonical"
-    "offer"           = "UbuntuServer"
-    "sku"             = "18.04-LTS"
+    "offer"           = "0001-com-ubuntu-server-focal"
+    "sku"             = "20_04-lts-gen2"
     "version"         = "latest"
   }
 }
@@ -397,4 +397,11 @@ variable "webapp_subnet_arm_id" {
 variable "webapp_subnet_address_prefix" {
   description = "Subnet adress range for the Web App subnet"
   default     = ""
+}
+
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  default     = false
+  type        = bool
 }

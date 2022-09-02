@@ -41,6 +41,7 @@ module "sap_deployer" {
   agent_ado_url                                = var.agent_ado_url
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   use_service_endpoint                         = var.use_service_endpoint
+  enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
 }
 
 module "sap_namegenerator" {

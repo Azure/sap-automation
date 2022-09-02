@@ -62,7 +62,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
   count               = var.use_webapp ? (var.configure ? 1 : 0) : 0
-  name                = lower(format("%s%s%s", local.prefix, local.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
+  name                = lower(format("%s%s%s", var.naming.prefix.LIBRARY, local.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
   resource_group_name = local.rg_name
   location            = local.rg_appservice_location
   service_plan_id     = azurerm_service_plan.appserviceplan[0].id

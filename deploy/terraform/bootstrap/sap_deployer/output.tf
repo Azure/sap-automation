@@ -92,6 +92,11 @@ output "firewall_id" {
   value = module.sap_deployer.firewall_id
 }
 
+
+output "enable_firewall_for_keyvaults_and_storage" {
+  value = var.enable_firewall_for_keyvaults_and_storage
+}
+
 output "automation_version" {
   value = local.version_label
 }
