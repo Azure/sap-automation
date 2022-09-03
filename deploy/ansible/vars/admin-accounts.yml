@@ -289,7 +289,7 @@ admin_users:
 #    enabled:      true
 
 # DB2 users and groups will be created as part of the generic install process
-#  - name:         "db2{{ sap_sid|lower }}adm"
+#  - name:         "db2{{ sap_sid| lower }}adm"
 #    comment:      "SAP System Administrator"
 #    uid:          "{{ sidadm_uid }}"
 #    group:        "{{ db{{ db_sid | lower }}adm }}"

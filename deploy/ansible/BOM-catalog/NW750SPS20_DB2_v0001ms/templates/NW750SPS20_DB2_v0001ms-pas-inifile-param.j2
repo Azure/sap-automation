@@ -21,11 +21,11 @@ NW_CI_Instance.ciInstanceNumber                                                 
 NW_CI_Instance.ciVirtualHostname                                                            = {{ sap_ciVirtualHostname }}
 NW_CI_Instance.scsVirtualHostname                                                           = {{ sap_scs_hostname }}
 NW_CI_Instance_ABAP_Reports.executeReportsForDepooling                                      = true
-NW_DB6_DB.db6.abap.connect.user                                                             = sap{{ db_sid |lower }}
-NW_DB6_DB.db6.abap.schema                                                                   = sap{{ db_sid |lower }}
+NW_DB6_DB.db6.abap.connect.user                                                             = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                                                   = sap{{ db_sid | lower }}
 NW_DDIC_Password.needDDICPasswords                                                          = false
 NW_GetMasterPassword.masterPwd                                                              = {{ main_password }}
-NW_readProfileDir.profileDir                                                                = {{ sap_profile_dir }} 
+NW_readProfileDir.profileDir                                                                = {{ sap_profile_dir }}
 
 NW_checkMsgServer.abapMSPort                                                                = 36{{ scs_instance_number }}
 NW_getLoadType.loadType                                                                     = SAP

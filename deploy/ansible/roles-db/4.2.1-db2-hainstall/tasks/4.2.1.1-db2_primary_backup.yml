@@ -56,7 +56,7 @@
       environment:
         PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 
-#TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome
+# TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome
     - name:                            "DB2 HA: - Backup DB2 database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
                              db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}
@@ -104,6 +104,6 @@
 #      ansible.builtin.shell: >
 #                              db2start
 
-#TBC - Need a check here for the successfull backup
+# TBC - Need a check here for the successfull backup
   when:
     - ansible_hostname == primary_instance_name

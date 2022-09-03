@@ -1,10 +1,5 @@
 ---
-#- name:                                "Check if port 5912 is being used on the host"
-#  shell:                               "netstat -an | grep 5912"
-#  register:                            result
-#  failed_when:                         result.rc == 0
-#  ignore_errors:                       true
-
+# This playbook is used to check for issues identified in the system.
 # based on issues identified for other systems, check if any services are using
 # the required ports.
 - name:                                "comment services using port 5912 in /etc/services"
@@ -12,14 +7,14 @@
     path:                              /etc/services
     regexp:                            '^([a-z\-]+\s+5912/.*)$'
     replace:                           '# \1'
-    backup:                            yes
+    backup:                            true
 
 - name:                                "comment services using port 59120 in /etc/services"
   ansible.builtin.replace:
     path:                              /etc/services
     regexp:                            '^([a-z\-]+\s+59120/.*)$'
     replace:                           '# \1'
-    backup:                            yes
+    backup:                            true
 
 # additional checks for issues identified.
 ...

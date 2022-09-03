@@ -10,19 +10,20 @@ db_sid_admin_user:                     "db2{{ db_sid | lower }}"
 
 # DB2 utility commands
 db2sql_command:                        "db2 connect to {{ db_sid }} "
-#sapcontrol_command:                    "sapcontrol -nr {{ hdb_instance_number }}"
+# sapcontrol_command:                    "sapcontrol -nr {{ hdb_instance_number }}"
 
 # SQL Commands to Stop DB2 Database
-#SQL Command to Start DB2 Database 
-# SQL 
+# SQL Command to Start DB2 Database
+# SQL
 
 # SQL to take a Offline full backup
 backup_cmd_for_db:                     "db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}"
 
-#TBC - Introduce Puase here for 1 min
+# TBC - Introduce Puase here for 1 min
 
-# SQL to confirm a system backup has been taken for SYSTEMDB
-backup_exists_cmd_for_db2db:  #TBC#
+# SQL to confirm a system backup has been taken for a database
+# https://www.ibm.com/docs/en/db2/11.5?topic=commands-list-history
+backup_exists_cmd_for_db2db:         "db2 list history backup for {{ db_sid }}"
 
 # Expected response if no backups have been taken
-#backup_cmd_no_rows_found:              "BACKUP_ID\n0 rows selected"
+# backup_cmd_no_rows_found:              "BACKUP_ID\n0 rows selected"

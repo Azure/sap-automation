@@ -21,13 +21,13 @@ NW_Unpack.sapExeSar                                                 = {{ db2_cd_
 
 #NW Parameters
 
-NW_DB6_DB.db6.abap.connect.user                                      = sap{{ db_sid |lower }}
-NW_DB6_DB.db6.abap.schema                                            = sap{{ db_sid |lower }}
+NW_DB6_DB.db6.abap.connect.user                                      = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                            = sap{{ db_sid | lower }}
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
 NW_GetSidNoProfiles.sapdrive = undefined
-NW_GetSidNoProfiles.sid                                              = {{ sap_sid |upper }}
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid | upper }}
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
-NW_getDBInfoGeneric.dbsid                                            = {{ db_sid |upper }}
+NW_getDBInfoGeneric.dbsid                                            = {{ db_sid | upper }}
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
 NW_getLoadType.loadType = DB6BR
 NW_readProfileDir.profilesAvailable = false
@@ -46,7 +46,7 @@ nwUsers.sidadmPassword                                              = {{ main_pa
 
 #Database Parameters
 
-db6.DB2SoftwarePath                                                 = /db2/db2{{ db_sid |upper }}/db2_software
+db6.DB2SoftwarePath                                                 = /db2/db2{{ db_sid | upper }}/db2_software
 db6.DatabaseMemory                                                  = 42980
 db6.TablespacePoolSizes                                             = SAPSID#DATA{20}
 db6.UseStandardTablespacePool                                       = true

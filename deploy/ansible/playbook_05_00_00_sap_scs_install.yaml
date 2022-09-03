@@ -1,11 +1,10 @@
 
 ---
-
-# /*---------------------------------------------------------------------------------------------------8
-# |                                                                                                    |
-# |                      Playbook for SAP SCS HA Install and Pacemaker configuration                   |
-# |                                                                                                    |
-# +------------------------------------4--------------------------------------------------------------*/
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |        Playbook for SAP SCS HA Install and Pacemaker configuration         |
+# |                                                                            |
+# +------------------------------------4---------------------------------------*/
 
 - hosts:                               localhost
   name:                                "SCS Installation Playbook: - Initialization"
@@ -29,7 +28,6 @@
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/ers-install-done"
         state:                          absent
-
 
     - name:                            "SCS Installation Playbook: - Set scs fact"
       ansible.builtin.set_fact:

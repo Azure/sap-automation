@@ -218,7 +218,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_DB"
+- hosts:                               "{{ sap_sid| upper }}_DB"
   name:                                DB Installation - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
@@ -392,7 +392,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_DB[0]"
+- hosts:                               "{{ sap_sid| upper }}_DB[0]"
   name:                                "DB Installation - SAP DB2"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true

@@ -28,7 +28,7 @@ NW_HDB_DB.dbacockpitPassword                     = {{ main_password }}
 
 NW_Recovery_Install_HDB.extractLocation          = /hana/backup/{{ db_sid| upper }}/HDB{{ hdb_instance_number }}/backup/data/DB_{{ db_sid| upper }}{{ hdb_instance_number }}
 NW_Recovery_Install_HDB.extractParallelJobs      = 24
-NW_Recovery_Install_HDB.sidAdmName               = {{ db_sid|lower }}adm
+NW_Recovery_Install_HDB.sidAdmName               = {{ db_sid| lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword           = {{ main_password }}
 
 NW_Unpack.sapExeDbSar                            = {{ target_media_location }}/SAPEXEDB_200-70005282.SAR

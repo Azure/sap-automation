@@ -1,9 +1,9 @@
-# Add DB2 based OSS NOTES 
+# Add DB2 based OSS NOTES
 # Add DB2 based OSS NOTES
 
 #####################################################################################################################################################################################################################
 #
-# Installation service 'SAP NetWeaver 7.5 > IBM Db2 for Linux, UNIX, and Windows > Installation 
+# Installation service 'SAP NetWeaver 7.5 > IBM Db2 for Linux, UNIX, and Windows > Installation
 #                                                                   > Application Server ABAP > High-Availability System                                #
 #                                                                   > Database Instance', product id 'NW_ABAP_DB:NW750.DB6.ABAPHA'  #
 #
@@ -11,7 +11,7 @@
 # IMPORTANT DO NOT DELETE!!! SAPInstDes25Hash=$B5iS1qadmMox$I7Y7Mx4O2+SGJEohrzn+FAH0k7om+oFwbvqmA8vT5XdHp8FZVBk2REqj5vIDmInUiaoK9Pu
 c218uT9ErLbhCtKU1mVWJPPJV
 
-# Location of Export CD / Software Path 
+# Location of Export CD / Software Path
 ## The folder containing Installation Export
 SAPINST.CD.PACKAGE.LOAD                                               = {{ db2_cd_package_exportcd }}
 # The folder containing Database Client
@@ -30,9 +30,9 @@ NW_Unpack.sapExeDbSar = /usr/sap/install/DB2_Linux_x86_software/LINUXX86_64/DB6/
 NW_Unpack.sapExeSar = /usr/sap/install/DB2_Linux_x86_client/LINUXX86_64/DBINDEP/SAPEXE.SAR
 
 # Location of the database software
-db6.DB2SoftwarePath = /db2/db2{{ db_sid|lower }}/db2_software
+db6.DB2SoftwarePath = /db2/db2{{ db_sid | lower }}/db2_software
 
-## All Encryption Parameters 
+## All Encryption Parameters
 
 #Db2 Native Encryption Type - values are AES or 3DES
 db6.Encryption.EncryptionAlgorithm = {{ db2_encryption_algo_type }}
@@ -154,7 +154,7 @@ NW_GetSidNoProfiles.sapdrive = undefined
 # NW_GetSidNoProfiles.sapmnt = /sapmnt
 
 # The SAP system ID <SAPSID> of the system to be installed
-NW_GetSidNoProfiles.sid = "{{ db_sid|upper }}"
+NW_GetSidNoProfiles.sid = "{{ db_sid | upper }}"
 
 # Only use this parameter if recommended by SAP.
 # NW_GetSidNoProfiles.strictSidCheck = true
@@ -190,7 +190,7 @@ NW_GetSidNoProfiles.sid = "{{ db_sid|upper }}"
 # NW_getDBInfoGeneric.dbhost =
 
 # The database ID (DBSID)
-NW_getDBInfoGeneric.dbsid = {{ db_sid|upper }}
+NW_getDBInfoGeneric.dbsid = {{ db_sid | upper }}
 
 # Only use this parameter if recommended by SAP.
 # NW_getDBInfoGeneric.strictDbSidCheck = true

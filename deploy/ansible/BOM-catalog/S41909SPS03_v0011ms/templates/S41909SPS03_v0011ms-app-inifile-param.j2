@@ -31,7 +31,7 @@ NW_AS.instanceNumber                                                  = {{ app_i
 NW_DI_Instance.virtualHostname                                        = {{ sap_appVirtualHostname }}
 
 NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
-NW_HDB_getDBInfo.dbsid                                                = {{ db_sid| upper }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
 
 NW_Delete_Sapinst_Users.removeUsers                                   = true
 NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
