@@ -21,7 +21,8 @@ output "created_resource_group_name" {
 }
 
 output "workload_zone_prefix" {
-  value = module.sap_landscape.workload_zone_prefix
+  description = "Workload zone prefix"
+  value       = module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE
 }
 
 ###############################################################################

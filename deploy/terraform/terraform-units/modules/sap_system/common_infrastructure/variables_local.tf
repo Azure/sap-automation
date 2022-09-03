@@ -201,8 +201,7 @@ locals {
   enable_admin_subnet = (
     (
       var.application.dual_nics ||
-      var.database.dual_nics ||
-      (local.isHANA && var.database_dual_nics)
+      var.database.dual_nics
     )
     &&
     (

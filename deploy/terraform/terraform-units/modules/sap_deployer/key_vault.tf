@@ -40,7 +40,7 @@ resource "azurerm_key_vault" "kv_user" {
     }
   }
 
-  
+
 }
 
 resource "azurerm_private_dns_a_record" "kv_user" {

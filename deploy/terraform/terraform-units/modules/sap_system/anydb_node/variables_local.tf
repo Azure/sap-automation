@@ -43,7 +43,7 @@ locals {
   ])[0]), 2)
 
   // Dual network cards
-  anydb_dual_nics = try(var.database.dual_nics, false)
+  anydb_dual_nics = try(var.database.dual_nics, false) && length(try(var.admin_subnet.id, "")) > 0
 
   enable_deployment = contains(["ORACLE", "DB2", "SQLSERVER", "ASE"], var.database.platform)
 
