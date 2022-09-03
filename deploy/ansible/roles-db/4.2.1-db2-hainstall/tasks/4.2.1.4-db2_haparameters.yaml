@@ -1,6 +1,6 @@
-
 ---
-####################  Setting DB2 HA parameters on Primary DB  #########################
+
+# ###################  Setting DB2 HA parameters on Primary DB  #########################
 - name:                                "DB2 - Set up HA parameters on Primary DB"
   block:
     - name:                            " DB2 Primary DB - Set Fact for hadr local host and remote host "
@@ -40,10 +40,10 @@
       when:                                pridb2status != 0 and "Active" not in pridb2status.stdout
 
     - name:                            "DB2 Primary DB - HA Config - SLES"
-      ## SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
-      ## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
-      ## HADR timeout value (HADR_TIMEOUT) = 60
-      ## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
+      # SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+      # HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
+      # HADR timeout value (HADR_TIMEOUT) = 60
+      # Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
       block:
         - name:                        "DB2 Primary DB - Set HA parameters - SLES"
           ansible.builtin.shell: |
@@ -61,13 +61,13 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family=='Suse'
+      when:   ansible_os_family == 'Suse'
 
     - name:                            "DB2 Primary DB - HA Config - RHEL"
-      ##RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
-      ## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
-      ## HADR timeout value (HADR_TIMEOUT) = 45
-      ## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
+      # RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+      # HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
+      # HADR timeout value (HADR_TIMEOUT) = 45
+      # Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
       block:
         - name:                        "DB2 Primary DB - Set HA parameters - RHEL"
           ansible.builtin.shell: |
@@ -85,16 +85,16 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family=='RedHat'
+      when:   ansible_os_family == 'RedHat'
 
   when:       ansible_hostname == primary_instance_name
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
 
-#################### End of Section for Primary DB   ######################
+# ################### End of Section for Primary DB   ######################
 
-###################  Section Start for Secondary DB               ###############################
-###################  Setup DB2 HA parameters on Secondary ###############################
+# ##################  Section Start for Secondary DB               ###############################
+# ##################  Setup DB2 HA parameters on Secondary ###############################
 
 - name:                                "DB2 - Set up HA parameters on Secondary DB"
   block:
@@ -132,13 +132,13 @@
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:                              secdb2status !=0 and "Active" not in secdb2status.stdout
+      when:                              secdb2status != 0 and "Active" not in secdb2status.stdout
 
     - name:                            "DB2 Secondary DB - HA Config - SLES"
-      ## SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
-      ## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
-      ## HADR timeout value (HADR_TIMEOUT) = 60
-      ## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
+      # SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+      # HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
+      # HADR timeout value (HADR_TIMEOUT) = 60
+      # Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
       block:
         - name:                        "DB2 Secondary DB - Set HA parameters - SLES"
           ansible.builtin.shell: |
@@ -156,13 +156,13 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when: ansible_os_family=='Suse'
+      when: ansible_os_family == 'Suse'
 
     - name:                            "DB2 Secondary DB - HA Config - RHEL"
-      ##RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
-      ## HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
-      ## HADR timeout value (HADR_TIMEOUT) = 45
-      ## Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
+      # RHEL - Settings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+      # HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 240
+      # HADR timeout value (HADR_TIMEOUT) = 45
+      # Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-ibm-db2-luw
       block:
         - name:                        "DB2 Secondary DB - Set HA parameters - RHEL"
           ansible.builtin.shell: |
@@ -180,12 +180,12 @@
             executable:                /bin/csh
           environment:
             PATH:                      "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-      when:   ansible_os_family=='RedHat'
+      when:   ansible_os_family == 'RedHat'
 
   when:       ansible_hostname == secondary_instance_name
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
 
-#################### End of Section for Secondary DB   ######################
+# ################### End of Section for Secondary DB   ######################
 
 ...

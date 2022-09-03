@@ -254,7 +254,7 @@ packages:
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-identity',                                node_tier: 'ers',     state: 'present' } #Added as part of documentation update
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' } # Added as part of documentation update
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'ers',     state: 'present' }
   # ------------------------ End - packages required for Clustering --------------------------------------8

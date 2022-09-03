@@ -21,7 +21,7 @@
       ansible.builtin.debug:
         msg:                           "Result: {{ whoami_result.stdout }}"
 
-    - name:                            "DB2: Create SAPTMP directories"
+    # - name:                            "DB2: Create SAPTMP directories"
 
     - name:                            " DB2 Backup -  Create SAPTMP Directories"
       ansible.builtin.file:
@@ -29,10 +29,10 @@
         state:                         directory
         mode:                          0755
       with_items:
-         - { dest: '/db2/{{ db_sid }}/saptmp1' }
-         - { dest: '/db2/{{ db_sid }}/saptmp2' }
-         - { dest: '/db2/{{ db_sid }}/saptmp3' }
-         - { dest: '/db2/{{ db_sid }}/saptmp4' }
+        - { dest: '/db2/{{ db_sid }}/saptmp1' }
+        - { dest: '/db2/{{ db_sid }}/saptmp2' }
+        - { dest: '/db2/{{ db_sid }}/saptmp3' }
+        - { dest: '/db2/{{ db_sid }}/saptmp4' }
       run_once: true
 
     - name:                            "DB2 - Start the Secondary/Standby DB"
@@ -55,7 +55,7 @@
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
 
-##################Start of Restore with Encryption############################
+# #################Start of Restore with Encryption############################
 # Restore with Encryption - commented now till we decide on the DB2 encrpytion Strategy
 # - name: Import Master Key
 #   shell: >-

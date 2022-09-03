@@ -5,25 +5,24 @@
 #
 # They may be overridden, if required, but normally are not
 
-db_sid_backup_dir:                     "{{ target_media_location }}/db2backup"
+db_sid_backup_dir :                    "{{ target_media_location }}/db2backup"
 db_sid_admin_user:                     "db2{{ db_sid | lower }}"
 
 # DB2 utility commands
 db2sql_command:                        "db2 connect to {{ db_sid }} "
-# sapcontrol_command:                    "sapcontrol -nr {{ hdb_instance_number }}"
 
-# SQL Commands to Stop DB2 Database
-# SQL Command to Start DB2 Database
-# SQL
-
-# SQL to take a Offline full backup
+# Db2 command to take a Offline full backup
 backup_cmd_for_db:                     "db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}"
 
-# TBC - Introduce Puase here for 1 min
-
-# SQL to confirm a system backup has been taken for a database
+# Db2 command to confirm a backup has been taken for a database
 # https://www.ibm.com/docs/en/db2/11.5?topic=commands-list-history
-backup_exists_cmd_for_db2db:         "db2 list history backup for {{ db_sid }}"
+# https://www.ibm.com/docs/en/db2/11.5?topic=backup-monitoring-operations
+# backup_exists_cmd_for_db:              "db2 list history backup for {{ db_sid }} | grep -i 'backup id' | wc -l"
+# or select START_TIME,OPERATION from SYSIBMADM.DB_HISTORY WHERE OPERATION = 'B' AND OPERATIONTYPE = 'N' AND DATABASENAME = '{{ db_sid }}';
+backup_exists_cmd_for_db2db:           "db2 list history backup for {{ db_sid }}"
 
 # Expected response if no backups have been taken
 # backup_cmd_no_rows_found:              "BACKUP_ID\n0 rows selected"
+backup_cmd_no_rows_found:              "0 rows selected"
+
+...

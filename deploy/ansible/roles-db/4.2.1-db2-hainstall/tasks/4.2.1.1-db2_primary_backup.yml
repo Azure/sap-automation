@@ -44,8 +44,8 @@
 # /*---------------------------------------------------------------------------8
 
 - name:                                "DB2 Backup:- Ensure backup is taken on primary node"
-  become:                             yes
-  become_user:                     "db2{{ db_sid | lower }}"
+  become:                              true
+  become_user:                         "db2{{ db_sid | lower }}"
   block:
     - name:                            "DB2 Backup - Prepare for offline backup"
       ansible.builtin.shell: |
@@ -87,10 +87,10 @@
 
     - name:                            "DB2 Backup  - Waiting for backup to finish"
       ansible.builtin.pause:
-        seconds:                         60
+        seconds:                       60
 
-    - name:                                "DB2 Backup:- Ensure the DB is activated after the backup"
-      become:                             yes
+    - name:                            "DB2 Backup:- Ensure the DB is activated after the backup"
+      become:                          true
       become_user:                     "db2{{ db_sid | lower }}"
       ansible.builtin.shell: >
                                db2 activate database {{ db_sid }}

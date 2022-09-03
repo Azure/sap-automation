@@ -1,7 +1,7 @@
-#TBC -
-#Execute command as db2<sid> db2pd -hadr -db <SID>
-## and check the following values
-##
+# TBC -
+# Execute command as db2<sid> db2pd -hadr -db <SID>
+# and check the following values
+#
 #                        HADR_ROLE = PRIMARY
 #                           REPLAY_TYPE = PHYSICAL
 #                         HADR_SYNCMODE = NEARSYNC

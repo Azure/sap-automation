@@ -26,7 +26,7 @@ disk_type_to_name_map:
   mirrloga:        '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:        '{{ node_tier | lower }}_mirrlogB'
   oraarch:         '{{ node_tier | lower }}_oraarch'
-  #orabackup: '{{ node_tier | lower }}_orabackup'
+  # orabackup: '{{ node_tier | lower }}_orabackup'
   # ------------------- Begin - disktypes required for DB2 -------------------8
   sapdata:         '{{ node_tier | lower }}_sapdata'
   log_dir:         '{{ node_tier | lower }}_logdir'
@@ -234,8 +234,8 @@ logical_volumes:
     size:       '25%VG'
     stripesize: 256
     fstype:     'xfs'
-  #Here we are left with 25%VG so we assign 100%FREE so as to not fail because
-  #the calculated size is less than what is available on disk xD
+  # Here we are left with 25%VG so we assign 100%FREE so as to not fail because
+  # the calculated size is less than what is available on disk xD
   - tier:       'sapos'
     node_tier:  'db2'
     vg:         'vg_db2_sapdata'

@@ -26,8 +26,8 @@
   ansible.builtin.set_fact:
     lvexists:                          "{{ db2volstat.results |
                                             selectattr(
-                                              'stat.exists','equalto',true
-                                            ) | map(attribute='item.lv') |list
+                                              'stat.exists', 'equalto', true
+                                            ) | map(attribute='item.lv') | list
                                         }}"
 
 - name:                                "DB2: Show lvexists"
@@ -37,7 +37,7 @@
 
 # Mount Filesystems
 - name:                                "DB2: Mount Filesystems for DB2"
-  ansible.builtin.mount:
+  ansible.posix.mount:
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
                                         {%- set lv_parts = item.lv.split('_') -%}
@@ -80,7 +80,7 @@
     mode:                              0644
     state:                             touch
 
-#Debug - Fail
+# Debug - Fail
 # - name:                                "DB2: fail here"
 #   ansible.builtin.fail:
 #     msg:                               "Fail after printing lv details"
@@ -122,12 +122,12 @@
 - name:                                "DB2: Set NFS Server variable"
   ansible.builtin.set_fact:
     sapmnt_nfs_mount: >-
-                                        {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}/sapmnt{{ sap_sid| upper }}{%else%}{{ query('inventory_hostnames','{{ sap_sid| upper }}_SCS') |first }}:/sapmnt/{{ sap_sid| upper }}{% endif %}
+                                        {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}{% else %}{{ query('inventory_hostnames','{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
 
 - name:                                "DB2: Set NFS Server options"
   ansible.builtin.set_fact:
     sapmnt_nfs_opts: >-
-                                        {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{%else%}defaults{% endif %}
+                                        {% if ( NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
 
 # Mount Filesystems
 - name:                                "Mount SAP Filesystems on Database for installation"
@@ -147,7 +147,7 @@
   when:
     - item.tier == "db2"
 
-#Debug for testing
+# Debug for testing
 - name:                                "DB2: Print filesystems"
   ansible.builtin.debug:
     var:                               db2fsmounts

@@ -6,7 +6,7 @@
 - name:                                " DB2 - Stop the primary DB"
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
-  shell:                               db2stop force
+  ansible.builtin.shell:               db2stop force
   args:
     executable: /bin/csh
   environment:

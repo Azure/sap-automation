@@ -457,7 +457,7 @@
             - db_high_availability
 
       when:
-        - db_high_availability == true
+        - db_high_availability
         - platform == 'DB2'
 
 ...

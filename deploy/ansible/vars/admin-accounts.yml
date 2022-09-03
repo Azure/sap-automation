@@ -40,7 +40,7 @@ admin_groups:
     enabled:      true
     node_tier:    all
 
-  #Admin groups for DB2
+  # Admin groups for DB2
   - name:         db{{ db_sid | lower }}adm
     gid:          "{{ db2sysadm_gid }}"
     state:        present
@@ -356,7 +356,7 @@ admin_users:
     node_tier:    observer
     enabled:      true
 
-#####
+# ####
 # Admin users for Oracle Non-ASM Multi-SID
 
   # - name:         "ora{{ sap_sid | lower }}"
