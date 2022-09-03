@@ -362,9 +362,11 @@
       ansible.builtin.debug:
         msg:
           - "Netmask: {{ hostvars[ansible_hostname]['ansible_eth0']['ipv4']['netmask'] }}"
-          - "CIDR:    {{ ((hostvars[ansible_hostname]['ansible_eth0']['ipv4']['address'] | string)+'/'+
-                        (hostvars[ ansible_hostname ]['ansible_eth0']['ipv4']['netmask'] | string)) | ipaddr('prefix') }}"
-          - "IPV4:    {{ hostvars[ ansible_hostname ]['ansible_eth0']['ipv4'] }}"
+          - "CIDR:    {{ (
+                          (hostvars['ansible_eth0']['ipv4']['address'] | string) + '/' +
+                          (hostvars['ansible_eth0']['ipv4']['netmask'] | string)
+                         ) | ipaddr('prefix') }}"
+          - "IPV4:    {{ hostvars[ansible_hostname]['ansible_eth0']['ipv4'] }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
