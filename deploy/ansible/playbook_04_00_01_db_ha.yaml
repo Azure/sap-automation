@@ -321,7 +321,6 @@
   # #
   # # ---------------------------------+---------------------------------------8
   tasks:
-
   - name:                              "DB2 HA - Install SAP DB2 on both nodes"
     block:
       - name:                          "DB2 HA - Setting the DB facts"

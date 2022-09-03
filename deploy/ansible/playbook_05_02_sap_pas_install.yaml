@@ -239,7 +239,7 @@
 # |                       Playbook for Restting the DB2 parameters             |
 # |  2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912            |
 # +------------------------------------4--------------------------------------*/
-- hosts:                               "{{ sap_sid|upper }}_DB[0]"
+- hosts:                               "{{ sap_sid | upper }}_DB[0]"
 
   name:                                "Restting the DB2 LOCK escalationparameters"
   serial:                              1
@@ -259,7 +259,7 @@
 
     - name:                            "Set LOCK variable for PAS"                  #2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
       become:                          true
-      become_user:                     db2{{ db_sid| lower }}
+      become_user:                     db2{{ db_sid | lower }}
       ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=
       args:
         executable:                    /bin/csh
