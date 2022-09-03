@@ -67,7 +67,7 @@ resource "azurerm_network_interface_application_security_group_association" "web
 
 resource "azurerm_network_interface" "web_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.application.dual_nics ? (
+  count = local.enable_deployment && var.application.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     local.webdispatcher_count) : (
     0
   )

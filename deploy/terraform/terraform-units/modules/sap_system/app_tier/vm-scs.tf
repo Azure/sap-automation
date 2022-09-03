@@ -63,7 +63,7 @@ resource "azurerm_network_interface_application_security_group_association" "scs
 
 resource "azurerm_network_interface" "scs_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.application.dual_nics ? (
+  count = local.enable_deployment && var.application.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     local.scs_server_count) : (
     0
   )

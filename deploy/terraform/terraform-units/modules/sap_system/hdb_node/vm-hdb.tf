@@ -19,7 +19,7 @@ HANA DB Linux Server private IP range: .10 -
 
 resource "azurerm_network_interface" "nics_dbnodes_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.database_dual_nics ? (
+  count = local.enable_deployment && var.database_dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     var.database_server_count) : (
     0
   )
