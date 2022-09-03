@@ -73,7 +73,7 @@
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version != "8"
       tags:
         - skip_ansible_lint
@@ -84,7 +84,7 @@
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version == "8"
       tags:
         - skip_ansible_lint

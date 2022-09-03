@@ -43,6 +43,19 @@ namespace AutomationForm.Controllers
             return View(variableGroups);
         }
 
+        [HttpGet]
+        public async Task<ActionResult> GetEnvironments()
+        {
+            try
+            {
+                return Json(await restHelper.GetEnvironmentsList());
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         [ActionName("Create")]
         public ActionResult Create()
         {

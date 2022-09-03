@@ -38,7 +38,7 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
   ip_configuration {
     name      = "ipconfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.databases[0].use_DHCP ? (
+    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.database.use_DHCP ? (
       null) : (
       cidrhost(
         var.admin_subnet.address_prefixes[0],
@@ -79,7 +79,7 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
       name      = pub.value.name
       subnet_id = pub.value.subnet_id
       private_ip_address = try(pub.value.nic_ips[count.index],
-        var.databases[0].use_DHCP ? (
+        var.database.use_DHCP ? (
           null) : (
           cidrhost(
             var.db_subnet.address_prefixes[0],
@@ -98,7 +98,7 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "db" {
-  provider                      = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? var.database_server_count : 0) : (
     0
@@ -129,7 +129,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
     name      = "ipconfig1"
     subnet_id = var.storage_subnet.id
 
-    private_ip_address = var.databases[0].use_DHCP ? (
+    private_ip_address = var.database.use_DHCP ? (
       null) : (
       length(try(var.database_vm_storage_nic_ips[count.index], "")) > 0 ? (
         var.database_vm_storage_nic_ips[count.index]) : (
@@ -140,7 +140,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
       )
 
     )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.database.use_DHCP ? "Dynamic" : "Static"
   }
 }
 

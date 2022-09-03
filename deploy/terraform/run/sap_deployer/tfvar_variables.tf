@@ -12,13 +12,13 @@ variable "environment" {
 
 variable "codename" {
   description = "Additional component for naming the resources"
-  default = ""
-  type    = string
+  default     = ""
+  type        = string
 }
 
 variable "location" {
   description = "Defines the Azure location where the resources will be deployed"
-  type = string
+  type        = string
 }
 
 ###############################################################################
@@ -30,17 +30,17 @@ variable "location" {
 
 variable "resourcegroup_name" {
   description = "If defined, the name of the resource group into which the resources will be deployed"
-  default = ""
+  default     = ""
 }
 
 variable "resourcegroup_arm_id" {
   description = "Azure resource identifier for the resource group into which the resources will be deployed"
-  default = ""
+  default     = ""
 }
 
 variable "resourcegroup_tags" {
   description = "tags to be added to the resource group"
-  default = {}
+  default     = {}
 }
 
 ###############################################################################
@@ -51,22 +51,22 @@ variable "resourcegroup_tags" {
 
 variable "management_network_name" {
   description = "The name of the VNet into which the deployer will be deployed"
-  default = ""
+  default     = ""
 }
 
 variable "management_network_logical_name" {
   description = "The logical name of the VNet, used for naming purposes"
-  default = ""
+  default     = ""
 }
 
 variable "management_network_arm_id" {
   description = "Azure resource identifier for the existing VNet into which the deployer will be deployed"
-  default = ""
+  default     = ""
 }
 
 variable "management_network_address_space" {
   description = "The address space of the VNet into which the deployer will be deployed"
-  default = ""
+  default     = ""
 }
 
 ###############################################################################
@@ -77,17 +77,17 @@ variable "management_network_address_space" {
 
 variable "management_subnet_name" {
   description = "The name of the subnet into which the deployer will be deployed"
-  default = ""
+  default     = ""
 }
 
 variable "management_subnet_arm_id" {
   description = "Azure resource identifier for the existing subnet into which the deployer will be deployed"
-  default = ""
+  default     = ""
 }
 
 variable "management_subnet_address_prefix" {
   description = "The address prefix of the subnet into which the deployer will be deployed"
-  default = ""
+  default     = ""
 }
 
 ###############################################################################
@@ -98,19 +98,19 @@ variable "management_subnet_address_prefix" {
 
 variable "management_firewall_subnet_arm_id" {
   description = "Azure resource identifier for the existing subnet into which the firewall will be deployed"
-  default = ""
+  default     = ""
 }
 
 variable "management_firewall_subnet_address_prefix" {
   description = "value of the address prefix of the subnet into which the firewall will be deployed"
-  default = ""
+  default     = ""
 }
 
 
 variable "firewall_deployment" {
   description = "Boolean flag indicating if an Azure Firewall should be deployed"
   default     = false
-  type = bool
+  type        = bool
 }
 
 variable "firewall_rule_subnets" {
@@ -131,12 +131,12 @@ variable "firewall_allowed_ipaddresses" {
 
 variable "management_bastion_subnet_arm_id" {
   description = "Azure resource identifier Azure Bastion subnet"
-  default = ""
+  default     = ""
 }
 
 variable "management_bastion_subnet_address_prefix" {
   description = "Subnet adress range for the bastion subnet"
-  default = ""
+  default     = ""
 }
 
 
@@ -153,12 +153,12 @@ variable "bastion_deployment" {
 
 variable "management_subnet_nsg_name" {
   description = "The name of the network security group"
-  default = ""
+  default     = ""
 }
 
 variable "management_subnet_nsg_arm_id" {
   description = "value of the Azure resource identifier for the network security group"
-  default = ""
+  default     = ""
 }
 
 variable "management_subnet_nsg_allowed_ips" {
@@ -167,8 +167,8 @@ variable "management_subnet_nsg_allowed_ips" {
 
 variable "deployer_enable_public_ip" {
   description = "value to enable/disable public ip"
-  default = false
-  type = bool
+  default     = false
+  type        = bool
 }
 
 ###############################################################################
@@ -179,30 +179,30 @@ variable "deployer_enable_public_ip" {
 
 variable "deployer_size" {
   description = "The size of the deployer VM"
-  default = ""
+  default     = ""
 }
 
 variable "deployer_count" {
   description = "Number of deployer VMs to be created"
-  default = 1
+  default     = 1
 }
 
 variable "deployer_disk_type" {
   description = "The type of the disk for the deployer VM"
-  default = "Premium_LRS"
+  default     = "Premium_LRS"
 }
 
 variable "deployer_use_DHCP" {
   description = "If true, the deployers will use Azure Provided IP addresses"
-  default = false
+  default     = false
 }
 
 variable "deployer_image" {
   default = {
     "source_image_id" = ""
     "publisher"       = "Canonical"
-    "offer"           = "UbuntuServer"
-    "sku"             = "18.04-LTS"
+    "offer"           = "0001-com-ubuntu-server-focal"
+    "sku"             = "20_04-lts-gen2"
     "version"         = "latest"
   }
 }
@@ -247,37 +247,37 @@ variable "deployer_authentication_path_to_private_key" {
 
 variable "user_keyvault_id" {
   description = "Azure resource identifier for the deployment credentials Azure Key Vault"
-  default = ""
+  default     = ""
 }
 
 variable "deployer_private_key_secret_name" {
   description = "Defines the name of the secret in the Azure Key Vault that contains the private key"
-  default = ""
+  default     = ""
 }
 variable "deployer_public_key_secret_name" {
   description = "Defines the name of the secret in the Azure Key Vault that contains the public key"
-  default = ""
+  default     = ""
 }
 
 variable "deployer_username_secret_name" {
   description = "Defines the name of the secret in the Azure Key Vault that contains the user name"
-  default = ""
+  default     = ""
 }
 
 variable "deployer_password_secret_name" {
   description = "Defines the name of the secret in the Azure Key Vault that contains the password"
-  default = ""
+  default     = ""
 }
 
 variable "enable_purge_control_for_keyvaults" {
   description = "Disables the purge protection for Azure keyvaults."
-  default = false
-  type = bool
+  default     = false
+  type        = bool
 }
 
 variable "additional_users_to_add_to_keyvault_policies" {
   description = "List of object IDs to add to key vault policies"
-  default = [""]
+  default     = [""]
 }
 
 #########################################################################################
@@ -288,26 +288,49 @@ variable "additional_users_to_add_to_keyvault_policies" {
 
 variable "deployer_assign_subscription_permissions" {
   description = "Boolean flag indicating if the subscription permissions should be assigned"
-  default = false
-  type = bool
+  default     = false
+  type        = bool
 }
 
 variable "use_private_endpoint" {
   description = "Boolean value indicating if private endpoint should be used for the deployment"
-  default = false
-  type = bool
+  default     = false
+  type        = bool
 }
 
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
+}
 
 variable "deployer_diagnostics_account_arm_id" {
   description = "Azure resource identifier for an existing storage accout that will be used for diagnostic logs"
-  default = ""
+  default     = ""
 }
 
 
 variable "tf_version" {
   description = "Terraform version to install on deployer"
-  default = "1.2.6"
+  default     = "1.2.6"
 }
 
 variable "name_override_file" {
@@ -357,21 +380,28 @@ variable "app_registration_app_id" {
 }
 
 variable "sa_connection_string" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "webapp_client_secret" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "webapp_subnet_arm_id" {
   description = "Azure resource identifier Web App subnet"
-  default = ""
+  default     = ""
 }
 
 variable "webapp_subnet_address_prefix" {
   description = "Subnet adress range for the Web App subnet"
-  default = ""
+  default     = ""
+}
+
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  default     = false
+  type        = bool
 }

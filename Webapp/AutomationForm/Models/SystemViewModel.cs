@@ -7,7 +7,7 @@ namespace AutomationForm.Models
 {
     public class SystemViewModel
     {
-        public ParameterGroupingModel[] ParameterGroupings { get; set; }
+        public Grouping[] ParameterGroupings { get; set; }
         public SystemModel System { get; set; }
     }
 }

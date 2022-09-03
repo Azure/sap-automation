@@ -255,10 +255,11 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars
+terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars  | tee -a error.log
 return_value=$?
 
 if [ 0 != $return_value ] ; then
+   
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"

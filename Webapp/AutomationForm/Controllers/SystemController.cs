@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Net.Http.Headers;
 using System;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -23,6 +24,10 @@ namespace AutomationForm.Controllers
         private SystemViewModel systemView;
         private readonly IConfiguration _configuration;
         private RestHelper restHelper;
+        
+        private ImageDropdown[] imagesOffered;
+        private List<SelectListItem> imageOptions;
+        private Dictionary<string, Image> imageMapping;
 
         public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
@@ -31,6 +36,9 @@ namespace AutomationForm.Controllers
             _configuration = configuration;
             restHelper = new RestHelper(configuration);
             systemView = SetViewData();
+
+            imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
+            InitializeImageOptionsAndMapping();
         }
         private SystemViewModel SetViewData()
         {
@@ -38,15 +46,17 @@ namespace AutomationForm.Controllers
             systemView.System = new SystemModel();
             try
             {
-                ParameterGroupingModel basicParameterArray = Helper.ReadJson("ParameterDetails/BasicSystemDetails.json");
-                ParameterGroupingModel advancedParameterArray = Helper.ReadJson("ParameterDetails/AdvancedSystemDetails.json");
-                ParameterGroupingModel expertParameterArray = Helper.ReadJson("ParameterDetails/ExpertSystemDetails.json");
+                // ParameterGroupingModel basicParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/BasicSystemDetails.json");
+                // ParameterGroupingModel advancedParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/AdvancedSystemDetails.json");
+                // ParameterGroupingModel expertParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/ExpertSystemDetails.json");
+                Grouping[] parameterArray = Helper.ReadJson<Grouping[]>("ParameterDetails/SystemDetails.json");
 
-                systemView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
+                // systemView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
+                systemView.ParameterGroupings = parameterArray;
             }
             catch
             {
-                systemView.ParameterGroupings = new ParameterGroupingModel[0];
+                systemView.ParameterGroupings = new Grouping[0];
             }
 
             return systemView;
@@ -65,6 +75,8 @@ namespace AutomationForm.Controllers
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
                 systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+
+                systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService);
             }
             catch (Exception e)
             {
@@ -99,9 +111,46 @@ namespace AutomationForm.Controllers
             return Json(systemEntity.System);
         }
 
+        public void InitializeImageOptionsAndMapping()
+        {
+            imageMapping = new Dictionary<string, Image>();
+            imageOptions = new List<SelectListItem>
+            {
+                new SelectListItem()
+            };
+
+            if (imagesOffered.Length > 0)
+            {
+                foreach (ImageDropdown imageDropdown in imagesOffered)
+                {
+                    if (!imageMapping.ContainsKey(imageDropdown.name))
+                    {
+                        imageMapping.Add(imageDropdown.name, imageDropdown.data);
+                        imageOptions.Add(new SelectListItem(imageDropdown.name, imageDropdown.name));
+                    }
+                }
+            }
+        }
+
+        [HttpGet]
+        public ActionResult GetImage(string name)
+        {
+            if (name != null && imageMapping.ContainsKey(name))
+            {
+                Image image = imageMapping[name];
+                return Json(image);
+            }
+            else
+            {
+                throw new Exception();
+            }
+        }
+
         [ActionName("Create")]
         public IActionResult Create()
         {
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
             return View(systemView);
         }
 
@@ -131,6 +180,9 @@ namespace AutomationForm.Controllers
             }
 
             systemView.System = system;
+
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View(systemView);
         }
@@ -168,7 +220,7 @@ namespace AutomationForm.Controllers
                 bool isSystem = true;
 
                 await restHelper.UpdateRepo(path, content);
-                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "");
+                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "", "");
                 
                 TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
             }
@@ -213,6 +265,10 @@ namespace AutomationForm.Controllers
             {
                 SystemModel system = await GetById(id, partitionKey);
                 systemView.System = system;
+                
+                ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+                ViewBag.ImageOptions = imageOptions;
+                
                 return View(systemView);
             }
             catch (Exception e)
@@ -253,8 +309,11 @@ namespace AutomationForm.Controllers
                     ModelState.AddModelError("SystemId", "Error editing system: " + e.Message);
                 }
             }
-
+            
             systemView.System = system;
+
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View(systemView);
         }
@@ -284,6 +343,9 @@ namespace AutomationForm.Controllers
             }
 
             systemView.System = system;
+
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View("Edit", systemView);
         }

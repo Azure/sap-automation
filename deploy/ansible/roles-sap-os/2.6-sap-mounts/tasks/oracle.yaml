@@ -36,7 +36,7 @@
 
 - name:                                "ORACLE: Gather existing LVs"
   ansible.builtin.set_fact:
-    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists','equalto',true) | map(attribute='item.lv') | list }}"
+    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
 
 - name:                                "ORACLE: Show lvexists"
   ansible.builtin.debug:
@@ -52,7 +52,7 @@
                                        {%- if lv_parts | length == 2 -%}
                                        {%- set _path = '/' ~ lv_parts[-1] -%}
                                        {%- else -%}
-                                       {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
+                                       {%- set _path = ['/' ~lv_parts[-2], db_sid |upper, lv_parts[-1]] | join('/') -%}
                                        {%- endif -%}
                                        {{- _path -}}
     fstype:                            "{{ item.fstype }}"
@@ -62,7 +62,7 @@
   register:  oracle_filesystem_mounts
   when:
     - item.node_tier == "oracle"
-    - item.lv in  lvexists
+    - item.lv in lvexists
 
 - name:                                "ORACLE: Create sap_deployment_automation folder"
   become:                              true

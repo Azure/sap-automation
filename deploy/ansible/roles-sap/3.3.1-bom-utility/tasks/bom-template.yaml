@@ -44,6 +44,12 @@
     state:                             directory
     mode:                              '0755'
 
+#   Ensure the download directory exists on the agent
+- name:                                "3.3 BoM Processing: Ensure download directory exists"
+  ansible.builtin.file:
+    path:                              "{{ download_directory }}/bom"
+    state:                             directory
+    mode:                              '0755'
 
 - name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
   ansible.builtin.get_url:

@@ -277,5 +277,5 @@ output "apptier_disks" {
 
 output "scs_ha" {
   description = "Defines if high availability is used"
-  value = local.scs_high_availability
+  value       = local.scs_high_availability
 }

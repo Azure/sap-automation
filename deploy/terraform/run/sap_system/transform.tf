@@ -5,7 +5,7 @@ locals {
 
   temp_infrastructure = {
     environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
-    region      = coalesce(var.location, try(var.infrastructure.region, ""))
+    region      = lower(coalesce(var.location, try(var.infrastructure.region, "")))
     codename    = try(var.codename, try(var.infrastructure.codename, ""))
     tags        = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
   }
@@ -81,7 +81,7 @@ locals {
     high_availability = var.database_high_availability || try(var.databases[0].high_availability, false)
     use_DHCP          = var.database_vm_use_DHCP || try(var.databases[0].use_DHCP, false)
 
-    platform      = coalesce(var.database_platform, try(var.databases[0].platform, ""))
+    platform      = var.database_platform
     db_sizing_key = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
 
     use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
@@ -511,7 +511,7 @@ locals {
     )
   )
 
-  databases = [merge(local.databases_temp, (
+  database = merge(local.databases_temp, (
     local.db_os_specified ? { os = local.db_os } : null), (
     local.db_authentication_defined ? { authentication = local.db_authentication } : null), (
     local.db_avset_arm_ids_defined ? { avset_arm_ids = local.avset_arm_ids } : null), (
@@ -519,8 +519,8 @@ locals {
     length(local.frontend_ips) > 0 ? { loadbalancer = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }), (
     length(local.db_tags) > 0 ? { tags = local.db_tags } : null), (
     local.db_sid_specified ? { instance = local.instance } : null)
-    )
-  ]
+  )
+
 
   authentication = merge(local.authentication_temp, (
     local.username_specified ? { username = local.username } : null), (

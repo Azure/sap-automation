@@ -90,7 +90,7 @@ database_platform = "SQLSERVER"
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
-database_size = 1024
+db_sizing_dictionary_key = 1024
 
 #If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
 #db_disk_sizes_filename="custom-sizing.json"
@@ -126,12 +126,12 @@ database_vm_use_DHCP = true
 
 #Windows
 database_vm_image = {
-  os_type=""
-  source_image_id=""
-  offer="windowsserver"
-  publisher= "MicrosoftWindowsServer"
-  sku= "2019-datacenter-smalldisk-g2"
-  version= "latest"
+  os_type         = ""
+  source_image_id = ""
+  offer           = "windowsserver"
+  publisher       = "MicrosoftWindowsServer"
+  sku             = "2019-datacenter-smalldisk-g2"
+  version         = "latest"
 }
 
 #RedHat
@@ -145,7 +145,7 @@ database_vm_image = {
 # }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
-database_vm_zones=["1"]
+database_vm_zones = ["1"]
 
 # Optional, Defines the default authentication model for the Database VMs (key/password)
 #database_vm_authentication_type="key"
@@ -166,7 +166,7 @@ database_vm_zones=["1"]
 #                                                                                       #
 #########################################################################################
 
-app_tier_vm_sizing = "Optimized"
+app_tier_sizing_dictionary_key = "Optimized"
 
 # enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
 # enable_app_tier_deployment=false
@@ -199,7 +199,7 @@ scs_instance_number = "01"
 ers_instance_number = "02"
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-scs_server_zones=["1"]
+scs_server_zones = ["1"]
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku="Standard_D4s_v3"
@@ -207,13 +207,13 @@ scs_server_zones=["1"]
 # The vm_image defines the Virtual machine image to use for the application servers, 
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
-scs_server_image= {
-  os_type=""
-  source_image_id=""
-  offer="windowsserver"
-  publisher= "MicrosoftWindowsServer"
-  sku= "2019-datacenter-smalldisk-g2"
-  version= "latest"
+scs_server_image = {
+  os_type         = ""
+  source_image_id = ""
+  offer           = "windowsserver"
+  publisher       = "MicrosoftWindowsServer"
+  sku             = "2019-datacenter-smalldisk-g2"
+  version         = "latest"
 }
 
 # scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
@@ -244,7 +244,7 @@ scs_server_image= {
 #########################################################################################
 
 # application_server_count defines how many application servers to deploy
-application_server_count=2
+application_server_count = 2
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
 #application_server_zones=["1","2","3"]
@@ -282,12 +282,12 @@ application_server_count=2
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
 application_server_image = {
-  os_type=""
-  source_image_id=""
-  offer="windowsserver"
-  publisher= "MicrosoftWindowsServer"
-  sku= "2019-datacenter-smalldisk-g2"
-  version= "latest"
+  os_type         = ""
+  source_image_id = ""
+  offer           = "windowsserver"
+  publisher       = "MicrosoftWindowsServer"
+  sku             = "2019-datacenter-smalldisk-g2"
+  version         = "latest"
 }
 
 ############################################################################################
@@ -343,7 +343,7 @@ webdispatcher_server_count = 0
 #                                                                                       #
 #########################################################################################
 
-# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# NFS_provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS

@@ -154,7 +154,7 @@ resource "local_file" "sap-parameters_yml" {
       ""
     )
 
-    web_sid             = var.web_sid
+    web_sid = var.web_sid
 
     }
   )

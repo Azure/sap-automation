@@ -16,10 +16,10 @@ parameters:
     default:
     values:
       - S4HANA_2021_ISS_v0001ms
-      - S42020SPS03_v0003ms
+      - S42020SPS04_v0001ms
       - S41909SPS03_v0011ms
       - HCMT_v0001ms
-      - BW4HANA2021SPS01_v0001ms
+      - BW4HANA2021SPS01_v0003ms
       - HANA_2_00_063_v0001ms
       - HANA_2_00_061_v0001ms
       - HANA_2_00_059_v0003ms
@@ -31,6 +31,7 @@ parameters:
       - DB2_UDB_11_5_v0001ms
       - ORACLE_19_00_ORA_MSID_v0001ms
       - ORACLE_19_00_ORA_MSID_v0002ms
+      - ERP6_EHP8_WIN_MSS2019_v0001ms
 
   - name:                              environment
     displayName:                       Control Plane Environment
@@ -49,7 +50,7 @@ parameters:
 trigger:                               none
 
 pool:
-  name:                                $(Agent)
+  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
 
 variables:
   - group:                             "SDAF-General"
@@ -100,6 +101,11 @@ stages:
                   exit 2
                 fi
 
+                if [ "Azure Pipelines" == $(Agent) ]; then
+                  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
+                  exit 2
+                fi
+                
                 if [ ! -n $(ARM_CLIENT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
@@ -115,7 +121,7 @@ stages:
                   exit 2
                 fi
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -235,6 +241,5 @@ stages:
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
 
 ...

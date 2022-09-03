@@ -276,6 +276,10 @@ transport_volume_size = 128
 use_private_endpoint = true
 
 
+# use_service_endpoint is a boolean flag controlling service_endpoints are used
+#use_service_endpoint=false
+
+
 ###########################################################################
 #                                                                         #
 #                                    ISCSI                                #
@@ -329,3 +333,30 @@ use_private_endpoint = true
 
 tfstate_resource_id  = null
 deployer_tfstate_key = null
+
+
+#########################################################################################
+#                                                                                       #
+#  Utility VM definitions                                                               #
+#                                                                                       #
+#########################################################################################
+
+
+# Defines the number of workload _vms to create
+utility_vm_count = 0
+
+# Defines the SKU for the workload virtual machine
+utility_vm_size = "Standard_D4ds_v4"
+
+#utility_vm_useDHCP = true
+
+# utility_vm_image = {
+#   "os_type"         = "WINDOWS"
+#   "source_image_id" = ""
+#   "publisher"       = "MicrosoftWindowsServer"
+#   "offer"           = "windowsserver"
+#   "sku"             = "2019-datacenter"
+#   "version"         = "latest"
+# }
+
+#utility_vm_nic_ips =[""]

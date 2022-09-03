@@ -167,6 +167,9 @@ web_subnet_address_prefix = "10.110.128.0/19"
 # spn_keyvault_id is an optional parameter that if provided specifies the Azure resource identifier for an existing keyvault
 #spn_keyvault_id=""
 
+# enable_rbac_authorization_for_keyvault is an optional parameter that if set to true will enable RBAC authorization for key vault
+enable_rbac_authorization_for_keyvault = false
+
 #########################################################################################
 #                                                                                       #
 #  Credentials                                                                          #
@@ -203,22 +206,22 @@ enable_purge_control_for_keyvaults = false
 #########################################################################################
 
 # If defined provides the DNS label for the Virtual Network
-dns_label="sap.contoso.net"
+dns_label = "sap.contoso.net"
 
 # If defined provides the name of the resource group hosting the Private DNS zone
 #dns_resourcegroup_name=""
- 
+
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #
 #                                                                                       #
 #########################################################################################
 
-# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# NFS_provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider          = "NONE"
+NFS_provider = "NONE"
 
 # Defines the size of the install volume
 install_volume_size = 256
@@ -238,9 +241,12 @@ transport_volume_size = 128
 # transport_private_endpoint_id defines the Azure resource id for the transport storage accounts private endpoint connection
 #transport_private_endpoint_id=""
 
-
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
-use_private_endpoint = true
+#use_private_endpoint = true
+
+# use_service_endpoint is a boolean flag controlling service_endpoints are used
+#use_service_endpoint=false
+
 
 
 #########################################################################################
@@ -338,3 +344,29 @@ use_private_endpoint = true
 tfstate_resource_id  = null
 deployer_tfstate_key = null
 
+
+#########################################################################################
+#                                                                                       #
+#  Utility VM definitions                                                               #
+#                                                                                       #
+#########################################################################################
+
+
+# Defines the number of workload _vms to create
+utility_vm_count = 0
+
+# Defines the SKU for the workload virtual machine
+utility_vm_size = "Standard_D4ds_v4"
+
+#utility_vm_useDHCP = true
+
+# utility_vm_image = {
+#   "os_type"         = "WINDOWS"
+#   "source_image_id" = ""
+#   "publisher"       = "MicrosoftWindowsServer"
+#   "offer"           = "windowsserver"
+#   "sku"             = "2019-datacenter"
+#   "version"         = "latest"
+# }
+
+#utility_vm_nic_ips =[""]

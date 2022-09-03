@@ -44,7 +44,7 @@ resource "azurerm_network_interface" "scs" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "scs" {
-  provider                      = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? local.scs_server_count : 0) : (
     0
@@ -289,7 +289,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
             name      = storage_type.name,
             id        = disk_count,
             disk_type = storage_type.disk_type,
-            size_gb   = storage_type.size_gb,
+            size_gb   = storage_type.size_gb < 128 ? 128 : storage_type.size_gb,
             caching   = storage_type.caching
           }
         ]

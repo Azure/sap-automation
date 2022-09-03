@@ -224,24 +224,25 @@ namespace AutomationForm.Controllers
         }
         
         [ActionName("Edit")]
-        public async Task<IActionResult> EditAsync(string id, string sourceController)
+        public async Task<IActionResult> EditAsync(string id, string sourceController, bool isImagesFile=false)
         {
-            AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+            AppFile file = (isImagesFile) ? await GetImagesFile() : await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
             if (file == null) return NotFound();
 
             byte[] bytes = file.Content;
             string bitString = Encoding.UTF8.GetString(bytes);
             ViewBag.Message = bitString;
             ViewBag.SourceController = sourceController;
+            ViewBag.IsImagesFile = isImagesFile;
             return View(file);
         }
 
         [HttpPost]
         [ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAsync(string id, string newId, string fileContent, string sourceController)
+        public async Task<IActionResult> EditAsync(string id, string newId, string fileContent, string sourceController, bool isImagesFile=false)
         {
-            AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+            AppFile file = (isImagesFile) ? await GetImagesFile() : await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
             if (file == null) return NotFound();
             try
             {
@@ -268,6 +269,7 @@ namespace AutomationForm.Controllers
             }
             ViewBag.Message = fileContent;
             ViewBag.SourceController = sourceController;
+            ViewBag.IsImagesFile = isImagesFile;
             return View(file);
 
         }
@@ -333,11 +335,11 @@ namespace AutomationForm.Controllers
         }
 
         [ActionName("Download")]
-        public async Task<ActionResult> DownloadFile(string id, string sourceController)
+        public async Task<ActionResult> DownloadFile(string id, string sourceController, bool isImagesFile=false)
         {
             try
             {
-                AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+                AppFile file = (isImagesFile) ? await GetImagesFile() : await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
                 if (file == null) return NotFound();
 
                 var stream = new MemoryStream(file.Content);
@@ -356,6 +358,34 @@ namespace AutomationForm.Controllers
         private string GetPartitionKey(string id)
         {
             return id.Substring(0, id.IndexOf('-'));
+        }
+
+        public async Task<AppFile> GetImagesFile()
+        {
+            string filename = "VM-Images.json";
+            string partitionKey = "VM";
+            AppFile file = null;
+            try
+            {
+                file = await _appFileService.GetByIdAsync(filename, partitionKey);
+            }
+            catch
+            {
+                byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + filename);
+
+                using (MemoryStream memory = new MemoryStream(byteContent))
+                {
+                    file = new AppFile()
+                    {
+                        Id = WebUtility.HtmlEncode(filename),
+                        Content = byteContent,
+                        UntrustedName = filename,
+                        Size = memory.Length,
+                        UploadDT = DateTime.UtcNow
+                    };
+                }
+            }
+            return file ?? new AppFile();
         }
     }
 }

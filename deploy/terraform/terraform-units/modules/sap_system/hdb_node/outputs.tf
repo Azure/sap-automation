@@ -38,7 +38,7 @@ output "dns_info_vms" {
           )
         )
       )
-    ) : (
+      ) : (
       zipmap(
         compact(
           concat(
@@ -52,7 +52,7 @@ output "dns_info_vms" {
         )
       )
     )
-  ) : (
+    ) : (
     null
   )
 }

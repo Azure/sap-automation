@@ -31,75 +31,73 @@
     </thead>
     <tbody>
         @{ bool everyOther = true; }
-        @foreach (ParameterGroupingModel pg in Model.ParameterGroupings)
+        @foreach (Grouping g in Model.ParameterGroupings)
         {
-            @foreach (Grouping g in pg.Groupings)
+            bool firstRow = true;
+            var rowSpan = g.Parameters.Length;
+            @foreach (ParameterModel p in g.Parameters)
             {
-                bool firstRow = true;
-                @foreach (ParameterModel p in g.Parameters)
+                var value = (p.Type != "image_dropdown") ? Model.System.GetType().GetProperty(p.Name).GetValue(Model.System) : null;
+                var nullClass = (value == null) ? "is-null-value" : "";
+                if (value != null && value.GetType() == typeof(Image))
                 {
-                    var value = Model.System.GetType().GetProperty(p.Name).GetValue(Model.System);
-                    var nullClass = (value == null) ? "is-null-value" : "";
-                    if (value != null && value.GetType() == typeof(Image))
-                    {
-                        Image img = (Image)value;
-                        if (!img.IsInitialized) nullClass = "is-null-value";
-                    }
-                    <tr class="@nullClass">                    
-                        <td>@p.Name</td>
+                    Image img = (Image)value;
+                    if (!img.IsInitialized) nullClass = "is-null-value";
+                }
+                <tr class="@nullClass">                    
+                    <td>@p.Name</td>
 
-                        @if (value == null)
+                    @if (value == null)
+                    {
+                        <td> </td>
+                    }
+                    else
+                    {
+                        @if (value.GetType() == typeof(Image))
                         {
-                            <td> </td>
+                            Image img = (Image)value;
+                            if (img.IsInitialized)
+                            {
+                                <td>
+                                    os_type:         @img.os_type <br>
+                                    source_image_id: @img.source_image_id <br>
+                                    publisher:       @img.publisher <br>
+                                    offer:           @img.offer <br>
+                                    sku:             @img.sku <br>
+                                    version:         @img.version
+                                </td>
+                            }
+                            else {
+                                <td> </td>
+                            }
                         }
                         else
                         {
-                            @if (value.GetType() == typeof(Image))
-                            {
-                                Image img = (Image)value;
-                                if (img.IsInitialized)
+                            <td>
+                                @if (p.Type == "list")
                                 {
-                                    <td>
-                                        os_type:         @img.os_type <br>
-                                        source_image_id: @img.source_image_id <br>
-                                        publisher:       @img.publisher <br>
-                                        offer:           @img.offer <br>
-                                        sku:             @img.sku <br>
-                                        version:         @img.version
-                                    </td>
-                                }
-                                else {
-                                    <td> </td>
-                                }
-                            }
-                            else
-                            {
-                                <td>
-                                    @if (p.Type == "list")
+                                    var tmp = (string[])value;
+                                    foreach (var t in tmp)
                                     {
-                                        var tmp = (string[])value;
-                                        foreach (var t in tmp)
-                                        {
-                                            @t <br>
-                                        }
+                                        @t <br>
                                     }
-                                    else
-                                    {
-                                        @value.ToString()
-                                    }
-                                </td>
-                            }
-                        }
-                        @if (firstRow)
-                        {
-                            <td rowspan="@g.Parameters.Length" class="details-section is-null-value" style="@(everyOther ? "background: #eee" : "background: none")">
-                                @g.Section
+                                }
+                                else
+                                {
+                                    @value.ToString()
+                                }
                             </td>
-                            firstRow = false;
-                            everyOther = !everyOther;
                         }
-                    </tr>
-                }
+                    }
+                    @if (firstRow)
+                    {
+                        <td rowspan="@rowSpan" class="details-section is-null-value" style="@(everyOther ? "background: #eee" : "background: none")">
+                            @g.Section
+                        </td>
+                        firstRow = false;
+                        everyOther = !everyOther;
+                    }
+                </tr>
             }
         }
     </tbody>

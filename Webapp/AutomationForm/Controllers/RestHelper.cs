@@ -28,15 +28,15 @@ namespace AutomationForm.Controllers
         private HttpClient client;
         public RestHelper(IConfiguration configuration)
         {
-            collectionUri   = configuration["CollectionUri"];
-            project         = configuration["ProjectName"];
-            repositoryId    = configuration["RepositoryId"];
-            PAT             = configuration["PAT"];
-            branch          = configuration["SourceBranch"];
-            sdafGeneralId   = configuration["SDAF_GENERAL_GROUP_ID"];
+            collectionUri = configuration["CollectionUri"];
+            project = configuration["ProjectName"];
+            repositoryId = configuration["RepositoryId"];
+            PAT = configuration["PAT"];
+            branch = configuration["SourceBranch"];
+            sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
 
             client = new HttpClient();
-            
+
             client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -102,7 +102,7 @@ namespace AutomationForm.Controllers
         }
 
         // Trigger a pipeline in azure devops
-        public async Task TriggerPipeline(string pipelineId, string id, bool system, string workload_environment, string environment)
+        public async Task TriggerPipeline(string pipelineId, string id, bool system, string workload_environment, string environment,  string deployer_region_parameter)
         {
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
 
@@ -132,8 +132,10 @@ namespace AutomationForm.Controllers
                 requestBody.templateParameters = new Templateparameters
                 {
                     workload_zone = id,
+                    workload_environment_parameter = workload_environment,
                     deployer_environment_parameter = environment,
-                    workload_environment_parameter = workload_environment
+                    deployer_region_parameter = deployer_region_parameter,
+                    
                 };
             }
 
@@ -153,7 +155,7 @@ namespace AutomationForm.Controllers
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
-            
+
             List<string> fileNames = new List<string>();
 
             JsonElement values = JsonDocument.Parse(responseBody).RootElement;
@@ -197,7 +199,7 @@ namespace AutomationForm.Controllers
         public async Task<EnvironmentModel[]> GetVariableGroups()
         {
             JsonElement values = await GetVariableGroupsJson();
-            
+
             List<EnvironmentModel> variableGroups = new List<EnvironmentModel>();
 
             foreach (var value in values.EnumerateArray())
@@ -208,17 +210,17 @@ namespace AutomationForm.Controllers
                     environment.name = environment.name.Replace("SDAF-", "");
                     variableGroups.Add(environment);
                 }
-                
+
             }
 
             return variableGroups.ToArray();
         }
-        
+
         // Get a list of all variable group names for use in a dropdown
         public async Task<List<SelectListItem>> GetEnvironmentsList()
         {
             JsonElement values = await GetVariableGroupsJson();
-            
+
             List<SelectListItem> variableGroups = new List<SelectListItem>
             {
                 new SelectListItem { Text = "", Value = "" }
@@ -226,12 +228,17 @@ namespace AutomationForm.Controllers
 
             foreach (var value in values.EnumerateArray())
             {
-                string text = value.GetProperty("name").ToString().Replace("SDAF-", "");
-                variableGroups.Add(new SelectListItem
+                string groupName = value.GetProperty("name").ToString();
+                if (groupName.StartsWith("SDAF-"))
                 {
-                    Text = text,
-                    Value = text
-                });
+                    string text = value.GetProperty("name").ToString().Replace("SDAF-", "");
+                    variableGroups.Add(new SelectListItem
+                    {
+                        Text = text,
+                        Value = text
+                    });
+
+                }
             }
 
             return variableGroups;
@@ -324,7 +331,7 @@ namespace AutomationForm.Controllers
 
             string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), new JsonSerializerOptions() { IgnoreNullValues = true });
             StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
-            
+
             HttpResponseMessage response = await client.PostAsync(postUri, content);
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
@@ -357,17 +364,17 @@ namespace AutomationForm.Controllers
             }
 
             // Persist any existing variables
-            string environmentJsonString    = JsonConvert.SerializeObject(environment);
-            string variablesJsonString      = JsonDocument.Parse(getResponseBody).RootElement.GetProperty("variables").ToString();
-            dynamic dynamicEnvironment      = JsonConvert.DeserializeObject(environmentJsonString);
-            dynamic dynamicVariables        = JsonConvert.DeserializeObject(variablesJsonString);
+            string environmentJsonString = JsonConvert.SerializeObject(environment);
+            string variablesJsonString = JsonDocument.Parse(getResponseBody).RootElement.GetProperty("variables").ToString();
+            dynamic dynamicEnvironment = JsonConvert.DeserializeObject(environmentJsonString);
+            dynamic dynamicVariables = JsonConvert.DeserializeObject(variablesJsonString);
 
-            dynamicVariables.Agent                  = JToken.FromObject(environment.variables.Agent);
-            dynamicVariables.ARM_CLIENT_ID          = JToken.FromObject(environment.variables.ARM_CLIENT_ID);
-            dynamicVariables.ARM_CLIENT_SECRET      = JToken.FromObject(environment.variables.ARM_CLIENT_SECRET);
-            dynamicVariables.ARM_TENANT_ID          = JToken.FromObject(environment.variables.ARM_TENANT_ID);
-            dynamicVariables.ARM_SUBSCRIPTION_ID    = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
-            dynamicVariables.sap_fqdn               = JToken.FromObject(environment.variables.sap_fqdn);
+            dynamicVariables.Agent = JToken.FromObject(environment.variables.Agent);
+            dynamicVariables.ARM_CLIENT_ID = JToken.FromObject(environment.variables.ARM_CLIENT_ID);
+            dynamicVariables.ARM_CLIENT_SECRET = JToken.FromObject(environment.variables.ARM_CLIENT_SECRET);
+            dynamicVariables.ARM_TENANT_ID = JToken.FromObject(environment.variables.ARM_TENANT_ID);
+            dynamicVariables.ARM_SUBSCRIPTION_ID = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
+            dynamicVariables.sap_fqdn = JToken.FromObject(environment.variables.sap_fqdn);
 
             dynamicEnvironment.variables = dynamicVariables;
 

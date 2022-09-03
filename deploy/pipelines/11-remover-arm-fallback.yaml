@@ -46,10 +46,15 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              environment
+  - name:                              workload_environment_parameter
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
     default:                           DEV
+
+  - name:                              deployer_environment_parameter
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
 
 trigger:                               none
 
@@ -58,7 +63,13 @@ pool:
 
 variables:
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.workload_environment_parameter }}
+
+  - name:                              parent_variable_group
+    value:                             SDAF-${{ parameters.deployer_environment_parameter }}
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.workload_environment_parameter }}
   - name:                              deployer_folder
     value:                             ${{ parameters.deployer }}
   - name:                              deployer_config
@@ -83,6 +94,8 @@ stages:
     jobs:
       - job:                           Remove_SAP_system_RG
         displayName:                   Remove SAP System ${{ parameters.cleanup_sap }}
+        variables:
+          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
             displayName:               Remove Resource Group $(sap_system_folder)
@@ -95,6 +108,8 @@ stages:
 
       - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove SAP System deployment artifacts from WORKSPACES
+        variables:
+          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
         steps:
           - bash: |
               #!/bin/bash
@@ -149,6 +164,8 @@ stages:
     jobs:
       - job:                           Remove_SAP_workload_zone
         displayName:                   Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
+        variables:
+          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
             displayName:               Remove Resource Group
@@ -161,6 +178,8 @@ stages:
 
       - job:                           Remove_zone_deployment_artefacts_in_WORKSPACES
         displayName:                   Remove Workload Zone deployment artifacts
+        variables:
+          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
         steps:
           - bash: |
               #!/bin/bash
@@ -195,55 +214,119 @@ stages:
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                az devops configure -d organization=$(System.CollectionUri)
+                az devops configure -d project=$(System.TeamProject)
+                if [ -n $(PAT) ]; then
+                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
+                else
+                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                fi
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+
+                echo "Variable Group: " $VARIABLE_GROUP_ID
+                
+                if [ -n $VARIABLE_GROUP_ID ]; then
+                  echo "Deleting variables"
+                  if [ -n $(Terraform_Remote_Storage_Account_Name) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                  fi
+
+                  if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors >/dev/null 2>&1
+                  fi
+
+                  if [ -n $(Deployer_State_FileName) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors >/dev/null 2>&1
+                  fi
+
+                  if [ -n $(Deployer_Key_Vault) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors >/dev/null 2>&1
+                  fi
+
+                  if [ -n $(Workload_Key_Vault) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Workload_Key_Vault                    --yes --only-show-errors >/dev/null 2>&1
+                  fi
+
+                  if [ -n $(Workload_Zone_State_FileName) ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Workload_Zone_State_FileName          --yes --only-show-errors >/dev/null 2>&1
+                  fi
+                fi
 
             displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              true
+            failOnStderr:              false
 
   - stage:                             Remove_Control_plane
     displayName:                       Remove Control Plane
-    dependsOn:
-      - Remove_SAP_workload_zone
-    condition: |
-      and
-      (
-        eq(${{ parameters.cleanup_control_plane }}, true),
-        in(dependencies.Remove_SAP_workload_zone.result, 'Succeeded', 'Skipped')
-      )
+    condition:                         eq(${{ parameters.cleanup_control_plane }}, true)
+   
     jobs:
-      - job:                           Remove_SAP_library
-        displayName:                   Remove SAP Library ${{ parameters.library }}
-        steps:
-          - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group ${{ parameters.library }}
-            inputs:
-              deploymentScope:         "Resource Group"
-              azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
-              action:                  "DeleteRG"
-              resourceGroupName:       "${{ parameters.library }}"
-
-      - job:                           Remove_Deployer
-        displayName:                   Remove Deployer ${{ parameters.deployer }}
-        steps:
-          - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Deployer ${{ parameters.deployer }}
-            inputs:
-              deploymentScope:         "Resource Group"
-              azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
-              action:                  "DeleteRG"
-              resourceGroupName:       "${{ parameters.deployer }}"
-
-      - job:                           Remove_region_deployment_artifacts_in_WORKSPACES
-        displayName:                   Remove Control Plane deployment artifacts from WORKSPACES
+      - job:                           Remove_control_plane_deployment
+        displayName:                   Remove Control Plane deployment 
+        variables:
+          - group:                     SDAF-${{ parameters.deployer_environment_parameter }}
         steps:
           - checkout:                  self
             persistCredentials:        true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                az devops configure -d organization=$(System.CollectionUri)
+                az devops configure -d project=$(System.TeamProject)
+                if [ -n $(PAT) ]; then
+                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
+                else
+                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                fi
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+
+
+              echo -e "$green--- az login ---$reset"
+                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+                if [ ! -n $ARM_CLIENT_SECRET ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+                if [ ! -n $(ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID) --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+
+                variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription")
+
+                if [ -z $variable_value ]; then
+                  subscription=$(ARM_SUBSCRIPTION_ID)
+                else
+                  subscription=$(Terraform_Remote_Storage_Subscription)
+                fi
+
+                echo "Subscription: $subscription"
+
+                az account set --subscription ${subscription}
+                az group delete --name $(library_folder) --yes --no-wait --only-show-errors
+                az group delete --name $(deployer_folder) --yes --no-wait --only-show-errors
 
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
@@ -283,8 +366,47 @@ stages:
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
+              echo -e "$green--- Deleting variables ---$reset"
+                if [ -n $VARIABLE_GROUP_ID ]; then
+                  echo "Deleting variables"
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors 
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
+
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                  fi
+
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
+                  fi                  
+
+                fi
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              true
+            failOnStderr:              false
 ...

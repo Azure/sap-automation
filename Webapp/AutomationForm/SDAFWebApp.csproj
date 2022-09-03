@@ -7,10 +7,13 @@
   <ItemGroup>
     <None Include="wwwroot\css\prism.css" />
     <None Include="wwwroot\js\prism.js" />
+    <Folder Include="wwwroot\images\" />
     <None Include="ParameterDetails/LandscapeTemplate.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Include="ParameterDetails/SystemTemplate.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
+  
+  
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.6.1" />
     <PackageReference Include="Azure.ResourceManager" Version="1.1.0" />

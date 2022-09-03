@@ -34,7 +34,7 @@ locals {
     )
   )
   rg_appservice_location = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  
+
   // Post fix for all deployed resources
   postfix = random_id.deployer.hex
 
@@ -127,9 +127,9 @@ locals {
     try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
   )
 
-# Not all region names are the same as their service tags
-# https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags
- regioncode_exceptions = {
+  # Not all region names are the same as their service tags
+  # https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags
+  regioncode_exceptions = {
     "francecentral"      = "centralfrance"
     "francesouth"        = "southfrance"
     "germanynorth"       = "germanyn"
@@ -142,17 +142,17 @@ locals {
     "switzerlandwest"    = "switzerlandw"
   }
 
-  firewall_service_tags = format("AzureCloud.%s", lookup(local.regioncode_exceptions,var.infrastructure.region,var.infrastructure.region))
+  firewall_service_tags = format("AzureCloud.%s", lookup(local.regioncode_exceptions, var.infrastructure.region, var.infrastructure.region))
 
   // Bastion subnet
   management_bastion_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")
-  bastion_subnet_exists = length(local.management_bastion_subnet_arm_id) > 0
-  bastion_subnet_name   = "AzureBastionSubnet"
+  bastion_subnet_exists            = length(local.management_bastion_subnet_arm_id) > 0
+  bastion_subnet_name              = "AzureBastionSubnet"
   bastion_subnet_prefix = local.bastion_subnet_exists ? (
     "") : (
     try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
   )
-  
+
   // Webapp subnet
   webapp_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_webapp.arm_id, "")
   webapp_subnet_exists = length(local.webapp_subnet_arm_id) > 0
@@ -194,10 +194,10 @@ locals {
   )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
-  user_key_vault_id = try(var.key_vault.kv_user_id, "")
-  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
-  user_keyvault_exist     = length(local.user_key_vault_id) > 0
-  automation_keyvault_exist     = length(local.prvt_key_vault_id) > 0
+  user_key_vault_id         = try(var.key_vault.kv_user_id, "")
+  prvt_key_vault_id         = try(var.key_vault.kv_prvt_id, "")
+  user_keyvault_exist       = length(local.user_key_vault_id) > 0
+  automation_keyvault_exist = length(local.prvt_key_vault_id) > 0
 
   // If the user specifies the secret name of key pair/password in input, the secrets will be imported instead of creating new secrets
   input_public_key_secret_name  = try(var.key_vault.kv_sshkey_pub, "")

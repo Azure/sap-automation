@@ -32,6 +32,9 @@ namespace AutomationForm.Models
         [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
         public string location { get; set; }
 
+        public string name_override_file { get; set; }
+        public bool? save_naming_information { get; set; }
+
         [RequiredIfNotDefault]
         [DisplayName("Network name")]
         [RegularExpression(@"^\w{0,7}$", ErrorMessage = "Logical network name cannot exceed seven characters")]
@@ -60,7 +63,7 @@ namespace AutomationForm.Models
         [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
         public string web_subnet_address_prefix { get; set; }
 
-        public string automation_username { get; set; }
+        public string automation_username { get; set; } = "azureadm";
 
         // EXPERT 
 
@@ -163,14 +166,21 @@ namespace AutomationForm.Models
 
         public int? ANF_pool_size { get; set; }
 
+        public string ANF_qos_type { get; set; }
+
         public bool? use_private_endpoint { get; set; }
 
+        public bool? use_service_endpoint { get; set; } = true;
+
+        public bool? peer_with_control_plane_vnet { get; set; }
+
+        public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
         
         public bool? ANF_use_existing_pool { get; set; }
 
         public string ANF_pool_name { get; set; }
         
-        public bool? ANF_use_existing_transport_volume { get; set; }
+        public bool? ANF_transport_volume_use_existing { get; set; }
 
         public string ANF_transport_volume_name { get; set; }
 
@@ -178,7 +188,7 @@ namespace AutomationForm.Models
 
         public int? ANF_transport_volume_size { get; set; }
 
-        public bool? ANF_use_existing_install_volume { get; set; }
+        public bool? ANF_install_volume_use_existing { get; set; }
 
         public string ANF_install_volume_name { get; set; }
 
@@ -189,9 +199,6 @@ namespace AutomationForm.Models
 
         [KeyvaultIdValidator]
         public string user_keyvault_id { get; set; }
-
-        [KeyvaultIdValidator]
-        public string automation_keyvault_id { get; set; }
 
         public bool? enable_purge_control_for_keyvaults { get; set; }
 
@@ -214,7 +221,9 @@ namespace AutomationForm.Models
 
         public int? transport_volume_size { get; set; }
 
-
+        [GuidValidator]
+        public string[] additional_users_to_add_to_keyvault_policies  { get; set; }
+        
         [StorageAccountIdValidator]
         public string diagnostics_storage_account_arm_id { get; set; }
         
@@ -234,5 +243,16 @@ namespace AutomationForm.Models
 
         [PrivateEndpointIdValidator]
         public string install_private_endpoint_id { get; set; }
+
+        public int? utility_vm_count { get; set; } = 0;
+
+        public string utility_vm_size { get; set; }
+
+        public bool? utility_vm_useDHCP { get; set; }
+
+        public Image utility_vm_image { get; set; }
+
+        [IpAddressValidator]
+        public string[] utility_vm_nic_ips { get; set; }
     }
 }

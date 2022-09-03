@@ -89,7 +89,7 @@ database_platform = "HANA"
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file db_disk_sizes_filename
-database_size = "S4Demo"
+db_sizing_dictionary_key = "S4Demo"
 
 #If you want to customise the disk sizes for database VMs use the following parameter to specify the custom sizing file.
 #db_disk_sizes_filename="custom-sizing.json"
@@ -170,7 +170,7 @@ database_vm_zones=["1"]
 #                                                                                       #
 #########################################################################################
 
-app_tier_vm_sizing = "Optimized"
+app_tier_sizing_dictionary_key = "Optimized"
 
 # enable_app_tier_deployment is a boolean flag controlling if the application tier should be deployed
 # enable_app_tier_deployment=false
@@ -379,7 +379,7 @@ deploy_application_security_groups = true
 #                                                                                       #
 #########################################################################################
 
-# NFS_Provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
+# NFS_provider defines how NFS services are provided to the SAP systems, valid options are "ANF", "AFS", "NFS" or "NONE"
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
@@ -408,10 +408,6 @@ sapmnt_volume_size = 128
 # The automation_path_to_private_key is an optional parameter that can be used to provide a path to an existing ssh private key file
 # If empty Terraform will create the ssh key and persist it in keyvault
 #automation_path_to_private_key=""
-
-# resource_offset can be used to provide an offset for resource naming
-# server#, disk# 
-#resource_offset=1
 
 # vm_disk_encryption_set_id if defined defines the custom encryption key 
 #vm_disk_encryption_set_id=""

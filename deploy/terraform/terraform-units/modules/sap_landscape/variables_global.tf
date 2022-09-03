@@ -163,7 +163,7 @@ variable "install_storage_account_id" {
 variable "install_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
-  default = ""
+  default     = ""
 }
 
 #########################################################################################
@@ -208,6 +208,7 @@ variable "ANF_settings" {
     arm_id        = ""
     service_level = "Standard"
     size_in_tb    = 4
+    qos_type      = "Manual"
 
   }
 }
@@ -231,9 +232,33 @@ variable "dns_resource_group_name" {
 }
 
 variable "use_private_endpoint" {
-  type        = bool
-  description = "Private endpoint"
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
   default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
 }
 
 variable "NFS_provider" {
@@ -244,4 +269,21 @@ variable "NFS_provider" {
 variable "Agent_IP" {
   type    = string
   default = ""
+}
+
+variable "vm_settings" {
+  description = "Details of the jumpbox to deploy"
+  default = {
+    count = 0
+  }
+}
+
+variable "peer_with_control_plane_vnet" {
+  description = "Defines in the SAP VNet will be peered with the controlplane VNet"
+  type        = bool
+}
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  type        = bool
 }

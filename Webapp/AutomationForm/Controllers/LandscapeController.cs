@@ -25,6 +25,9 @@ namespace AutomationForm.Controllers
         private LandscapeViewModel landscapeView;
         private readonly IConfiguration _configuration;
         private RestHelper restHelper;
+        private ImageDropdown[] imagesOffered;
+        private List<SelectListItem> imageOptions;
+        private Dictionary<string, Image> imageMapping;
 
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
@@ -33,6 +36,8 @@ namespace AutomationForm.Controllers
             _configuration = configuration;
             restHelper = new RestHelper(configuration);
             landscapeView = SetViewData();
+            imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
+            InitializeImageOptionsAndMapping();
         }
         private LandscapeViewModel SetViewData()
         {
@@ -40,15 +45,17 @@ namespace AutomationForm.Controllers
             landscapeView.Landscape = new LandscapeModel();
             try
             {
-                ParameterGroupingModel basicParameterArray = Helper.ReadJson("ParameterDetails/BasicLandscapeDetails.json");
-                ParameterGroupingModel advancedParameterArray = Helper.ReadJson("ParameterDetails/AdvancedLandscapeDetails.json");
-                ParameterGroupingModel expertParameterArray = Helper.ReadJson("ParameterDetails/ExpertLandscapeDetails.json");
+                // ParameterGroupingModel basicParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/LandscapeDetails.json");
+                // ParameterGroupingModel advancedParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/AdvancedLandscapeDetails.json");
+                // ParameterGroupingModel expertParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/ExpertLandscapeDetails.json");
+                Grouping[] parameterArray = Helper.ReadJson<Grouping[]>("ParameterDetails/LandscapeDetails.json");
 
-                landscapeView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
+                // landscapeView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
+                landscapeView.ParameterGroupings = parameterArray;
             }
             catch
             {
-                landscapeView.ParameterGroupings = new ParameterGroupingModel[0];
+                landscapeView.ParameterGroupings = new Grouping[0];
             }
 
             return landscapeView;
@@ -74,6 +81,27 @@ namespace AutomationForm.Controllers
             }
 
             return View(landscapeIndex);
+        }
+
+        public void InitializeImageOptionsAndMapping()
+        {
+            imageMapping = new Dictionary<string, Image>();
+            imageOptions = new List<SelectListItem>
+            {
+                new SelectListItem()
+            };
+
+            if (imagesOffered.Length > 0)
+            {
+                foreach (ImageDropdown imageDropdown in imagesOffered)
+                {
+                    if (!imageMapping.ContainsKey(imageDropdown.name))
+                    {
+                        imageMapping.Add(imageDropdown.name, imageDropdown.data);
+                        imageOptions.Add(new SelectListItem(imageDropdown.name, imageDropdown.name));
+                    }
+                }
+            }
         }
 
         [HttpGet]
@@ -141,6 +169,8 @@ namespace AutomationForm.Controllers
         [ActionName("Create")]
         public IActionResult Create()
         {
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
             return View(landscapeView);
         }
 
@@ -169,6 +199,8 @@ namespace AutomationForm.Controllers
             }
 
             landscapeView.Landscape = landscape;
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View(landscapeView);
         }
@@ -194,7 +226,7 @@ namespace AutomationForm.Controllers
 
         [HttpPost]
         [ActionName("Deploy")]
-        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string environment, string workload_environment)
+        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string environment, string workload_environment, string deployer_region_parameter)
         {
             try
             {
@@ -206,7 +238,7 @@ namespace AutomationForm.Controllers
                 bool isSystem = false;
 
                 await restHelper.UpdateRepo(path, content);
-                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment);
+                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment, deployer_region_parameter);
                 
                 TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }
@@ -252,6 +284,8 @@ namespace AutomationForm.Controllers
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
                 landscapeView.Landscape = landscape;
+                ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+                ViewBag.ImageOptions = imageOptions;
                 return View(landscapeView);
             }
             catch (Exception e)
@@ -295,6 +329,8 @@ namespace AutomationForm.Controllers
             }
 
             landscapeView.Landscape = landscape;
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View(landscapeView);
         }
@@ -324,6 +360,8 @@ namespace AutomationForm.Controllers
             }
 
             landscapeView.Landscape = landscape;
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View("Edit", landscapeView);
         }

@@ -7,19 +7,19 @@ variable "application" {
   }
 
 }
-variable "databases" {
+variable "database" {
   validation {
     condition = (
-      length(trimspace(try(var.databases[0].platform, ""))) != 7
+      length(trimspace(try(var.database.platform, ""))) != 7
     )
-    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2) must be specified in the databases block."
+    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2) must be specified."
   }
 
   validation {
     condition = (
-      length(trimspace(try(var.databases[0].db_sizing_key, ""))) != 0
+      length(trimspace(try(var.database.db_sizing_key, ""))) != 0
     )
-    error_message = "The db_sizing_key must be specified in the databases block."
+    error_message = "The db_sizing_key must be specified."
   }
 }
 variable "infrastructure" {
@@ -201,13 +201,21 @@ variable "Agent_IP" {
 }
 
 variable "use_private_endpoint" {
-  default = false
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
 }
 
 variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
-  default = ""
+  default     = ""
 }
 
 variable "database_dual_nics" {
