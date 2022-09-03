@@ -226,7 +226,7 @@ namespace AutomationForm.Controllers
 
         [HttpPost]
         [ActionName("Deploy")]
-        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string environment, string workload_environment)
+        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string environment, string workload_environment, string deployer_region_parameter)
         {
             try
             {
@@ -238,7 +238,7 @@ namespace AutomationForm.Controllers
                 bool isSystem = false;
 
                 await restHelper.UpdateRepo(path, content);
-                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment);
+                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment, deployer_region_parameter);
                 
                 TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }

@@ -73,6 +73,12 @@ $$use_private_endpoint$$
 # use_service_endpoint is a boolean flag controlling if the key vaults and storage accounts have service endpoints
 $$use_service_endpoint$$
 
+#Defines if the SAP VNet will be peered with the control plane VNet
+$$peer_with_control_plane_vnet$$
+
+# Boolean value indicating if firewall should be enabled for key vaults and storage accounts
+$$enable_firewall_for_keyvaults_and_storage$$
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #

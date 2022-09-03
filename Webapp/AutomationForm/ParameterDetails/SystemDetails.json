@@ -268,7 +268,7 @@
         "Type": "image_dropdown",
         "Options": [],
         "Overrules": "database_vm_image",
-        "Display": 2
+        "Display": 1
       },
       {
         "Name": "database_vm_image",
@@ -282,7 +282,7 @@
           }
         ],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "database_size",
@@ -621,7 +621,7 @@
         "Type": "image_dropdown",
         "Options": [],
         "Overrules": "scs_server_image",
-        "Display": 2
+        "Display": 1
       },
       {
         "Name": "scs_server_image",
@@ -635,7 +635,7 @@
           }
         ],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "scs_server_app_nic_ips",
@@ -756,7 +756,7 @@
         "Type": "image_dropdown",
         "Options": [],
         "Overrules": "application_server_image",
-        "Display": 2
+        "Display": 1
       },
       {
         "Name": "application_server_image",
@@ -770,7 +770,7 @@
           }
         ],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "application_server_app_nic_ips",
@@ -891,7 +891,7 @@
         "Type": "image_dropdown",
         "Options": [],
         "Overrules": "web_server_image",
-        "Display": 2
+        "Display": 1
       },
       {
         "Name": "webdispatcher_server_image",
@@ -905,7 +905,7 @@
           }
         ],
         "Overrules": "",
-        "Display": 3
+        "Display": 2
       },
       {
         "Name": "webdispatcher_server_app_nic_ips",

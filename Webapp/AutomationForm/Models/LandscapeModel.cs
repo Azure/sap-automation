@@ -63,7 +63,7 @@ namespace AutomationForm.Models
         [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
         public string web_subnet_address_prefix { get; set; }
 
-        public string automation_username { get; set; }
+        public string automation_username { get; set; } = "azureadm";
 
         // EXPERT 
 
@@ -170,7 +170,11 @@ namespace AutomationForm.Models
 
         public bool? use_private_endpoint { get; set; }
 
-        public bool? use_service_endpoint { get; set; }
+        public bool? use_service_endpoint { get; set; } = true;
+
+        public bool? peer_with_control_plane_vnet { get; set; }
+
+        public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
         
         public bool? ANF_use_existing_pool { get; set; }
 
@@ -240,7 +244,7 @@ namespace AutomationForm.Models
         [PrivateEndpointIdValidator]
         public string install_private_endpoint_id { get; set; }
 
-        public int? utility_vm_count { get; set; }
+        public int? utility_vm_count { get; set; } = 0;
 
         public string utility_vm_size { get; set; }
 

@@ -220,7 +220,7 @@ namespace AutomationForm.Controllers
                 bool isSystem = true;
 
                 await restHelper.UpdateRepo(path, content);
-                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "");
+                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "", "");
                 
                 TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
             }

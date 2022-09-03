@@ -102,7 +102,7 @@ namespace AutomationForm.Controllers
         }
 
         // Trigger a pipeline in azure devops
-        public async Task TriggerPipeline(string pipelineId, string id, bool system, string workload_environment, string environment)
+        public async Task TriggerPipeline(string pipelineId, string id, bool system, string workload_environment, string environment,  string deployer_region_parameter)
         {
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
 
@@ -132,8 +132,10 @@ namespace AutomationForm.Controllers
                 requestBody.templateParameters = new Templateparameters
                 {
                     workload_zone = id,
+                    workload_environment_parameter = workload_environment,
                     deployer_environment_parameter = environment,
-                    workload_environment_parameter = workload_environment
+                    deployer_region_parameter = deployer_region_parameter,
+                    
                 };
             }
 
