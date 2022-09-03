@@ -104,8 +104,8 @@
 #   become:                              true
 #   become_user:                         root
 #   ansible.posix.mount:
-#     src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid| upper }}'
-#     path:                              '/sapmnt/{{ item.sid| upper }}'
+#     src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
+#     path:                              '/sapmnt/{{ item.sid | upper }}'
 #     fstype:                            'nfs4'
 #     opts:                              defaults
 #     state:                             mounted
@@ -159,7 +159,7 @@
   become_user:                         root
   ansible.posix.mount:
     src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
-    path:                              '/sapmnt/{{ item.sid| upper }}'
+    path:                              '/sapmnt/{{ item.sid | upper }}'
     fstype:                            'nfs4'
     opts:                              defaults
     state:                             mounted

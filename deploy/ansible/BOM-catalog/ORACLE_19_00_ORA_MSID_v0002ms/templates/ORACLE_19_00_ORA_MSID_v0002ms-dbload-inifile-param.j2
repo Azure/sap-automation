@@ -29,7 +29,7 @@ NW_GetSidNoProfiles.sid                                              = {{ sid_to
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
 hostAgent.sapAdmPassword                                             = {{ main_password }}
 nwUsers.sidadmPassword                                               = {{ main_password }}
-#NW_readProfileDir.profileDir                                         = /sapmnt/{{ sap_sid| upper }}/profile
+#NW_readProfileDir.profileDir                                         = /sapmnt/{{ sap_sid | upper }}/profile
 
 #Oracle Database parameters
 
@@ -79,29 +79,29 @@ storageBasedCopy.ora.serverVersion                                   = {{ ora_re
 storageBasedCopy.ora.clientVersion                                   = {{ ora_release }}
 
 # Name of Oracle Listener. Default value is: LISTENER
-# storageBasedCopy.ora.listenerName = 
+# storageBasedCopy.ora.listenerName =
 
 # Port of Oracle Listener. Default value ist: 1521
-# storageBasedCopy.ora.listenerPort = 
+# storageBasedCopy.ora.listenerPort =
 
 # Set Oracle advanced parameters. Default value is 'false'.
 # ora.advanced.parameter = false
 
 # Set advanced parameter maxDatafileSize in MB. Default value is 2000.
-# ora.maxDatafileSize = 
+# ora.maxDatafileSize =
 
 # Oracle mirrlog drive.
-# ora.mirrlogDrive = 
+# ora.mirrlogDrive =
 
 # Oracle oraarch drive.
-# ora.oraarchDrive = 
+# ora.oraarchDrive =
 
 
 # Oracle origlog drive.
-# ora.origlogDrive = 
+# ora.origlogDrive =
 
 # Radio button for database creation. Possible values are: 'CREATEDB', 'MCOD', 'PDBINST'
 ora.rbDatabase = CREATEDB
 
 # Oracle sapdata drive.
-# ora.sapdataDrive = 
+# ora.sapdataDrive =
