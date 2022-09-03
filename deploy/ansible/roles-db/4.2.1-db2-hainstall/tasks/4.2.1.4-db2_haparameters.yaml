@@ -16,7 +16,7 @@
       ansible.builtin.debug:
         msg:                           "Result: {{ whoami_result.stdout }}"
 
-     - name:                            "DB2 Primary DB : check if the DB is up and running"
+    - name:                            "DB2 Primary DB : check if the DB is up and running"
       ansible.builtin.shell:            db2pd - | grep 'Active'
       args:
         executable:                    /bin/csh
@@ -110,7 +110,7 @@
     - name:                            "DB2 Secondary DB - Task to capture result of whomai"
       ansible.builtin.debug:
         msg:                           "Result: {{ whoami_result.stdout }}"
-    
+
     - name:                                "DB2 Secondary DB : check if the DB is up and running"
       ansible.builtin.shell:            db2pd - | grep 'Active'
       args:
