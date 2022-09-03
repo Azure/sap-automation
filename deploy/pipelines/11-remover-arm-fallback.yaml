@@ -188,6 +188,7 @@ stages:
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 export ENVIRONMENT=$(echo $(zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                 export    LOCATION=$(echo $(zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+                export     NETWORK=$(echo $(zone_folder) | awk -F'-' '{print $3}' | xargs) ; echo Network     $NETWORK
 
                 git config --global user.email "$(Build.RequestedForEmail)"
                 git config --global user.name "$(Build.RequestedFor)"
@@ -201,12 +202,12 @@ stages:
                   git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(zone_folder)/.terraform
                   changed=1
                 fi
-                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                  git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK} ]; then
+                  git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
                   changed=1
                 fi
-                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                  git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                if [ -f  $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md ]; then
+                  git rm    -f $(Deployment_Configuration_Path)/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md
                   changed=1
                 fi
 
@@ -246,12 +247,14 @@ stages:
                     az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors >/dev/null 2>&1
                   fi
 
-                  if [ -n $(Workload_Key_Vault) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Workload_Key_Vault                    --yes --only-show-errors >/dev/null 2>&1
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Key_Vault"           --yes --only-show-errors
                   fi
 
-                  if [ -n $(Workload_Zone_State_FileName) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Workload_Zone_State_FileName          --yes --only-show-errors >/dev/null 2>&1
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Zone_State_FileName.value")
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Zone_State_FileName" --yes --only-show-errors
                   fi
                 fi
 
@@ -289,19 +292,19 @@ stages:
 
 
               echo -e "$green--- az login ---$reset"
-                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                if [ -z $(ARM_CLIENT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
-                if [ ! -n $ARM_CLIENT_SECRET ]; then
+                if [ -z $ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-                if [ ! -n $(ARM_TENANT_ID) ]; then
+                if [ -z $(ARM_TENANT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
@@ -394,7 +397,6 @@ stages:
                   fi
 
                   variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
-
                   if [ ! -z $variable_value ]; then
                     az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
                   fi

@@ -59,6 +59,8 @@ deployment_system="sap_landscape"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
+deployer_environment=$(echo "${deployer_environment}" | tr "[:lower:]" "[:upper:]")
+
 echo "Deployer environment: $deployer_environment"
 
 if [ 1 == $called_from_ado ] ; then
@@ -114,11 +116,25 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
+load_config_vars "$workload_file_parametername" "network_logical_name"
+network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+
+if [ -z "${network_logical_name}" ]; then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                         $boldred  Incorrect parameter file. $resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#             The file must contain the network_logical_name attribute!!                #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    return 64 #script usage wrong
+fi
+
+        
 # Convert the region to the correct code
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 get_region_code "$region"
-
-private_link_used=$(grep  "use_private_endpoint=" "${param_dirname}"/"${parameterfile}" |  cut -d'=' -f2 | tr -d '"')
 
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 landscape_tfstate_key=${key}.terraform.tfstate
@@ -128,7 +144,14 @@ landscape_tfstate_key=${key}.terraform.tfstate
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-workload_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+if [ $deployer_environment != $environment ]; then
+    if [ -f "${automation_config_directory}"/"${environment}""${region_code}" ]; then
+        # Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
+        mv "${automation_config_directory}"/"${environment}""${region_code}" "${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+    fi
+fi
+
+workload_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
 
 if [ "${force}" == 1 ]
 then
@@ -385,7 +408,7 @@ if [ -n "$keyvault" ]
 then
     secretname="${environment}"-client-id
 
-    az keyvault secret show --name "$secretname" --vault "$keyvault" --only-show-errors 2>error.log
+    secretvalue=$(az keyvault secret list-versions --name "$secretname" --vault "$keyvault" --only-show-errors 2>error.log)
     if [ -s error.log ]
     then
         save_config_var "client_id" "${workload_config_information}"
@@ -834,17 +857,22 @@ then
         
         readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
-        moduleID=$(jq -c -r '.address '  <<< "$item")
-        resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-        echo "Trying to import" $resourceID "into" $moduleID
-        allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
-        echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
-        terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+            echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
         done
+
+        echo "##vso[task.logissue type=error]Resources imported into Terraform state file. Please re-run the pipeline."
     fi
     fi
 
 fi
+
+workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
+save_config_var "workload_zone_prefix" "${workload_config_information}"
 
 if [ -f apply_output.json ]
 then
@@ -878,9 +906,7 @@ if [ 0 == $return_value ] ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
     fi
-    workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-    save_config_var "workload_zone_prefix" "${workload_config_information}"
-
+    
 fi
 
 if [ 0 != $return_value ] ; then

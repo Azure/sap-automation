@@ -133,11 +133,20 @@ fi
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
+network_logical_name=""
+
+if [ "${deployment_system}" == sap_system ]
+then
+    load_config_vars "$parameterfile_name" "network_logical_name"
+    network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+
+fi
+
 #Persisting the parameters across executions
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}""${environment}""${region_code}"
+system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 
 echo "Configuration file: $system_config_information"
 echo "Deployment region: $region"
@@ -565,12 +574,22 @@ if [ 0 == $return_value ] ; then
 
         if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
             webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+
             az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
-            if [ -z "${az_var}" ]; then
-                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+            if [ -z ${az_var} ]; then
+                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
             else
-                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
             fi
+
+            webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+            if [ -z ${az_var} ]; then
+                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+            else
+                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+            fi
+
         fi
 
         save_config_var "keyvault" "${system_config_information}"
@@ -871,10 +890,11 @@ if [ $ok_to_proceed ]; then
             moduleID=$(jq -c -r '.address '  <<< "$item")
             resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
             echo "Trying to import" $resourceID "into" $moduleID
-            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+            allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
             echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
             terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
           done
+          echo "##vso[task.logissue type=error]Resources imported into Terraform state file. Please re-run the pipeline."
         fi
       fi
 
@@ -904,19 +924,28 @@ then
     if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
         webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
         az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
-        if [ -z "${az_var}" ]; then
-            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+        if [ -z ${az_var} ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
         else
-            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
         fi
 
         webapp_identity=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_identity | tr -d \")
         az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value")
-        if [ -z "${az_var}" ]; then
-            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity
+        if [ -z ${az_var} ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
         else
-            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
         fi
+
+        webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+        if [ -z ${az_var} ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+        else
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+        fi
+
     fi
     deployer_extension_ids=$(terraform -chdir="${terraform_module_directory}"  output -no-color -json deployer_extension_ids | jq -r '.[]')
 
