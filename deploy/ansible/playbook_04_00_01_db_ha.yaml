@@ -315,12 +315,13 @@
   vars_files:
     - vars/ansible-input-api.yaml             # API Input template with defaults
 
-  tasks:
   # # ---------------------------------+---------------------------------------8
   # #
   # # Build the list of tasks to be executed in order here.
   # #
   # # ---------------------------------+---------------------------------------8
+  tasks:
+
   - name:                              "DB2 HA - Install SAP DB2 on both nodes"
     block:
       - name:                          "DB2 HA - Setting the DB facts"
@@ -351,10 +352,10 @@
           - db_high_availability
           - platform == 'DB2'
 
-      - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
+      - name:                          "DB2 HA - Install Pacemaker (base)"
         block:
 
-          - name:                        "Database Installation Playbook: - Setting the facts"
+          - name:                      "DB2 HA - Setting the facts"
             ansible.builtin.set_fact:
               tier:                      ha
               main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -365,57 +366,63 @@
               sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
               sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
 
-          - block:
-              - name:                    "Database Installation Playbook: - Ensure the correct repositories are set"
+          - name:                      "DB2 HA - repository check"
+            block:
+              - name:                  "DB2 HA - Ensure the correct repositories are set"
                 ansible.builtin.include_role:
                   name:                  roles-os/1.3-repository
             tags:
               - 1.3-repository
 
-          - block:
-              - name:                    "Database Installation Playbook: - Ensure the correct packages are installed"
+          - name:                      "DB2 HA - package check"
+            block:
+              - name:                  "DB2 HA - Ensure the correct packages are installed"
                 ansible.builtin.include_role:
-                  name:                  roles-os/1.4-packages
+                  name:                roles-os/1.4-packages
             tags:
               - 1.4-packages
 
-          - block:
+          - name:                      "DB2 HA - set kernel parameters"
+            block:
             # Setup the kernel parameters required for pacemaker cluster VMs
-              - name:                    "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+              - name:                  "DB2 HA - Ensure the correct kernel parameters are set"
                 ansible.builtin.include_role:
-                  name:                  roles-os/1.9-kernelparameters
+                  name:                roles-os/1.9-kernelparameters
             tags:
               - 1.9-kernelparameters
 
-          - block:
-              - name:                    "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+          - name:                      "DB2 HA - services check"
+            block:
+              - name:                  "DB2 HA - Ensure the needed services are enabled/disabled"
                 ansible.builtin.include_role:
-                  name:                  roles-os/1.16-services
+                  name:                roles-os/1.16-services
             tags:
               - 1.16-services
 
-          - block:
-              - name:                    "Database Installation Playbook: - Ensure the accounts are present"
+          - name:                      "DB2 HA - accounts check"
+            block:
+              - name:                  "DB2 HA - Ensure the accounts are present"
                 ansible.builtin.include_role:
-                  name:                  roles-os/1.11-accounts
+                  name:                roles-os/1.11-accounts
             tags:
               - 1.11-accounts
 
-          - block:
-              - name:                    "Database Installation Playbook: - Install Pacemaker"
+          - name:                      "DB2 HA - Generic pacemaker Configuration"
+            block:
+              - name:                  "DB2 HA - Install Pacemaker"
                 ansible.builtin.include_role:
-                  name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
-                when:                    node_tier != 'oracle'
+                  name:                roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+                when:                  node_tier != 'oracle'
             tags:
               - 1.17-generic-pacemaker
 
-          - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
-            delegate_to:                 localhost
-            become:                      false
+          - name:                      "DB2 HA - Create pacemaker-install-done flag"
+            delegate_to:               localhost
+            become:                    false
             ansible.builtin.file:
-              path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
-              state:                     touch
-              mode:                      0755
+              path:                    "{{ _workspace_directory }}/.progress/pacemaker-install-done"
+              state:                   touch
+              mode:                    0755
 
         when:
           - db_high_availability
@@ -438,7 +445,8 @@
             tags:
               - always
 
-          - block:                     # Why is this block needed?
+          - name:                      "DB2 HA - DB2 pacemaker resources"
+            block:                     # Why is this block needed?
               - name:                  "DB2 HA - Pacemaker - Run the Pacemaker setup"
                 ansible.builtin.include_role:
                   name:                roles-sap/5.7-db2-pacemaker

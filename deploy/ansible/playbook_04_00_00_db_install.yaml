@@ -481,9 +481,6 @@
         mode:                          0755
       when:                            find_progress_files.matched == (ansible_play_hosts | length)
 
-
-
-
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
