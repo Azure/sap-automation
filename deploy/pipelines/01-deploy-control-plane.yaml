@@ -55,6 +55,14 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+  - name:                              REMOTE_STATE_SA
+    value:                             $[variables['Terraform_Remote_Storage_Account_Name']]
+  - name:                              REMOTE_STATE_RG
+    value:                             $[variables['Terraform_Remote_Storage_Resource_Group_Name']]
+  - name:                              deployer_tfstate_key
+    value:                             $[variables['Deployer_State_FileName']]
+  - name:                              keyvault
+    value:                             $[variables['Deployer_Key_Vault']]
 
 stages:
   - stage:                             Deploy_controlplane
@@ -86,6 +94,11 @@ stages:
                     az devops configure -d project=$(System.TeamProject)
                     export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                     echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
+                    if [ -z ${VARIABLE_GROUP_ID} ]; then
+                        echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                        exit 2
+                    fi
+                echo -e "$green--- Variables ---$reset"
 
                     if [ -n $(POOL) ]; then
                        export POOL_NAME=$(az pipelines pool list --query "[?name=='$(POOL)'].name | [0]")
@@ -134,43 +147,38 @@ stages:
                     fi
 
                     deployer_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                    bootstrapped=0
 
-                    if [ ! -f $deployer_environment_file_name ]; then
+                    if [ ! -f $deployer_environment_file_name ]; then # Line 74
 
-                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
-                        if [ -n ${az_var} ]; then
-                            echo "REMOTE_STATE_SA = "$(Terraform_Remote_Storage_Account_Name) | tee -a  $deployer_environment_file_name > /dev/null
+                        if [ $(REMOTE_STATE_SA) ]; then
+                            echo "REMOTE_STATE_SA="$(REMOTE_STATE_SA)
+                            echo "REMOTE_STATE_SA="$(REMOTE_STATE_SA) | tee -a  $deployer_environment_file_name > /dev/null
+                            echo "step=3" | tee -a  $deployer_environment_file_name > /dev/null
                         fi
 
-                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value")
-                        if [ -n ${az_var} ]; then
-                            echo "REMOTE_STATE_RG = "$(Terraform_Remote_Storage_Resource_Group_Name) | tee -a  $deployer_environment_file_name > /dev/null
+                        if [ $(REMOTE_STATE_RG) ]; then
+                            echo "REMOTE_STATE_RG="$(REMOTE_STATE_RG)
+                            echo "REMOTE_STATE_RG="$(REMOTE_STATE_RG) | tee -a  $deployer_environment_file_name > /dev/null
                         fi
 
-                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ARM_SUBSCRIPTION_ID.value")
-                        if [ -n ${az_var} ]; then
-                            echo "subscription = "$(ARM_SUBSCRIPTION_ID) | tee -a  $deployer_environment_file_name > /dev/null
-                            echo "REMOTE_STATE_RG = "$(ARM_SUBSCRIPTION_ID) | tee -a  $deployer_environment_file_name > /dev/null
-                            echo "STATE_SUBSCRIPTION = "$(ARM_SUBSCRIPTION_ID) | tee -a  $deployer_environment_file_name > /dev/null
+                        if [ -n "$subscription" ]; then
+                            echo "subscription="$subscription | tee -a  $deployer_environment_file_name > /dev/null
+                            echo "STATE_SUBSCRIPTION="$subscription | tee -a  $deployer_environment_file_name > /dev/null
                         fi
 
-
-                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
-                        if [ -n ${az_var} ]; then
-                            echo "deployer_tfstate_key=" $(Deployer_State_FileName)  | tee -a  $deployer_environment_file_name > /dev/null
+                        if [ $(deployer_tfstate_key) ]; then
+                            echo "deployer_tfstate_key="$(deployer_tfstate_key)  | tee -a  $deployer_environment_file_name > /dev/null
                         fi
 
-                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value")
-                        if [ -z ${az_var} ]; then
-                            echo "keyvault=" $(Deployer_Key_Vault)  | tee -a  $deployer_environment_file_name > /dev/null
+                        if [ $(keyvault) ]; then
+                            echo "keyvault="$(keyvault)  | tee -a  $deployer_environment_file_name > /dev/null
+                            bootstrapped=1
                         fi
-                        echo "step=3" | tee -a  $deployer_environment_file_name > /dev/null
 
                     fi
 
                 echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-
-
                     cd $HOME
                     mkdir -p .sap_deployment_automation
                     echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH >.sap_deployment_automation/config
@@ -217,17 +225,19 @@ stages:
                     export key_vault=""
 
                     if [ -f ${deployer_environment_file_name} ]; then
-                       export key_vault=$(cat ${deployer_environment_file_name} | grep key_vault | awk -F'=' '{print $2}' | xargs) ; echo "Key Vault: $key_vault"
-                       if [ -n "${key_vault}" ]; then
-                          echo 'Deployer Key Vault' ${key_vault}
-                          ip_added=0
+                        if [ 0 == $bootstrapped ]; then
+                            export key_vault=$(cat ${deployer_environment_file_name} | grep key_vault | awk -F'=' '{print $2}' | xargs) ; echo "Key Vault: $key_vault"
+                            if [ -n "${key_vault}" ]; then
+                                echo 'Deployer Key Vault' ${key_vault}
+                                ip_added=0
 
-                          if [[ "azure pipelines" == $(this_agent) ]]; then
-                            this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                            az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
-                            ip_added=1
-                          fi
-                       fi
+                                if [[ "azure pipelines" == $(this_agent) ]]; then
+                                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
+                                    ip_added=1
+                                fi
+                            fi
+                        fi
                     fi
 
                 echo -e "$green--- az login ---$reset"
@@ -253,9 +263,8 @@ stages:
                     fi
 
                     storage_account_parameter=""
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
-                    if [ -n ${az_var} ]; then
-                       storage_account_parameter='--storageaccountname $(Terraform_Remote_Storage_Account_Name)'
+                    if [ -n "${REMOTE_STATE_SA}" ]; then
+                       storage_account_parameter='--storageaccountname $(REMOTE_STATE_SA)'
                     fi
 
                     $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
@@ -298,17 +307,17 @@ stages:
 
                     if [ -f ${deployer_environment_file_name} ]; then
 
-                       deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs)
-                       echo 'Deployer State File' $deployer_tfstate_key
+                       file_deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs)
+                       echo 'Deployer State File' $file_deployer_tfstate_key
 
-                       key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
-                       echo 'Deployer Key Vault' ${key_vault}
+                       file_key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
+                       echo 'Deployer Key Vault' ${file_key_vault}
 
-                       REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
-                       echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                       file_REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
+                       echo 'Terraform state file storage account' $file_REMOTE_STATE_SA
 
-                       REMOTE_STATE_RG=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_RG | awk -F'=' '{print $2}' | xargs)
-                       echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                       file_REMOTE_STATE_RG=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_RG | awk -F'=' '{print $2}' | xargs)
+                       echo 'Terraform state file resource group' $file_REMOTE_STATE_RG
                     fi
 
                 echo -e "$green--- Update repo ---$reset"
@@ -362,39 +371,41 @@ stages:
                     fi
 
                 echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
-                    if [ -z ${az_var} ]; then
-                        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value $REMOTE_STATE_SA --output none --only-show-errors
-                    else
-                        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value $REMOTE_STATE_SA --output none --only-show-errors
-                    fi
+                    if [ 0 == $return_code ]; then
+                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
+                        if [ -z ${az_var} ]; then
+                            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value ${file_REMOTE_STATE_SA} --output none --only-show-errors
+                        else
+                            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value ${file_REMOTE_STATE_SA} --output none --only-show-errors
+                        fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value")
-                    if [ -z ${az_var} ]; then
-                        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --value $REMOTE_STATE_RG --output none --only-show-errors
-                    else
-                        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --value $REMOTE_STATE_RG --output none --only-show-errors
-                    fi
+                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value")
+                        if [ -z ${az_var} ]; then
+                            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --value ${file_REMOTE_STATE_RG} --output none --only-show-errors
+                        else
+                            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --value ${file_REMOTE_STATE_RG} --output none --only-show-errors
+                        fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value")
-                    if [ -z ${az_var} ]; then
-                        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $(ARM_SUBSCRIPTION_ID) --output none --only-show-errors
-                    else
-                        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $(ARM_SUBSCRIPTION_ID) --output none --only-show-errors
-                    fi
+                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value")
+                        if [ -z ${az_var} ]; then
+                            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $(ARM_SUBSCRIPTION_ID) --output none --only-show-errors
+                        else
+                            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $(ARM_SUBSCRIPTION_ID) --output none --only-show-errors
+                        fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
-                    if [ -z ${az_var} ]; then
-                        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value $deployer_tfstate_key --output none --only-show-errors
-                    else
-                        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value $deployer_tfstate_key --output none --only-show-errors
-                    fi
+                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
+                        if [ -z ${az_var} ]; then
+                            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value ${file_deployer_tfstate_key} --output none --only-show-errors
+                        else
+                            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value ${file_deployer_tfstate_key} --output none --only-show-errors
+                        fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value")
-                    if [ -z ${az_var} ]; then
-                        az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${key_vault} --output none --only-show-errors
-                    else
-                        az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${key_vault} --output none --only-show-errors
+                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value")
+                        if [ -z ${az_var} ]; then
+                            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
+                        else
+                            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
+                        fi
                     fi
                 exit $return_code
 
@@ -414,7 +425,8 @@ stages:
               IS_PIPELINE_DEPLOYMENT:         true
               TF_VAR_use_webapp:              $(use_webapp)
               DEPLOYMENT_REPO_PATH:           $(Build.Repository.LocalPath)
-
+              subscription:                   $(ARM_SUBSCRIPTION_ID)
+        
             failOnStderr:              false
 
 ...

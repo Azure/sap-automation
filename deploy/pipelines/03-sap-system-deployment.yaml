@@ -44,6 +44,22 @@ variables:
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
 
+  - name:                              REMOTE_STATE_SA
+    value:                             $[variables['Terraform_Remote_Storage_Account_Name']]
+
+  - name:                              REMOTE_STATE_RG
+    value:                             $[variables['Terraform_Remote_Storage_Resource_Group_Name']]
+
+  - name:                              STATE_SUBSCRIPTION
+    value:                             $[variables['Terraform_Remote_Storage_Subscription']]
+
+  - name:                              deployer_tfstate_key
+    value:                             $[variables['Deployer_State_FileName']]
+
+  - name:                              key_vault
+    value:                             $[variables['Deployer_Key_Vault']]
+
+
 stages:
   - stage:                             Deploy_SAP_infrastructure
     displayName:                       Deploy SAP infrastructure
@@ -142,28 +158,20 @@ stages:
               echo -e "$green--- Define variables ---$reset"
                 cd $HOME/SYSTEM/$(sap_system_folder)
 
-                if [ -n $(Terraform_Remote_Storage_Account_Name) ]; then
-                  export REMOTE_STATE_SA=$(Terraform_Remote_Storage_Account_Name)  ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                else
-                  export REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                if [ -z $(REMOTE_STATE_SA) ]; then
+                  export REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 fi
 
-                if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
-                  export STATE_SUBSCRIPTION=$(Terraform_Remote_Storage_Subscription)  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                else
-                  export STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                if [ -z $(STATE_SUBSCRIPTION) ]; then
+                  export STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 fi
 
-                if [ -n $(Deployer_State_FileName) ]; then
-                  export deployer_tfstate_key=$(Deployer_State_FileName); echo 'Deployer State File' $deployer_tfstate_key
-                else
-                  export deployer_tfstate_key=$(cat ${deployer_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                if [ -z $(deployer_tfstate_key) ]; then
+                  export deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
                 fi
 
-                if [ -n $(Deployer_Key_Vault) ]; then
-                  export key_vault=$(Deployer_Key_Vault) ; echo 'Deployer Key Vault' ${key_vault}
-                else
-                  export key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                if [ -z $(key_vault) ]; then
+                  export key_vault=$(cat ${deployer_environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value)  | tr -d \"
@@ -189,29 +197,31 @@ stages:
                   exit $return_code
                 fi
 
-                az account set --subscription "${STATE_SUBSCRIPTION}"
-                ip_added=0
-                agent_name=$(echo $(Agent) | tr '[:upper:]' '[:lower:]')
-
-                if [[ "azure pipelines" == $(this_agent) ]]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  if [ -n "${key_vault}" ]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --only-show-errors --output none
-                    ip_added=1
-                  fi
-                fi
+                ip_added_workload=0
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
                 if [[ "azure pipelines" == $(this_agent) ]]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ${this_ip} ---$reset"
+                  echo -e "$green--- Set IP ---$reset"
                   if [ -n "${workload_key_vault}" ]; then
-                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip} --only-show-errors --output none 
-                    ip_added=2
+                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip}  --output none --only-show-errors
+                    ip_added_workload=1
                   fi
                 fi
+
+                ip_added_control_plane=0
+                az account set --subscription ${STATE_SUBSCRIPTION}
+
+                if [[ "azure pipelines" == $(this_agent) ]]; then
+                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+                  echo -e "$green--- Set IP ${this_ip} ---$reset"
+                  if [ -n "${key_vault}" ]; then
+                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
+                    ip_added_control_plane=1
+                  fi
+                fi
+
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
 
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
@@ -228,24 +238,22 @@ stages:
                   fi
                 fi
 
-                az account set --subscription "${STATE_SUBSCRIPTION}"
-                if [[ 1 -eq $ip_added ]]; then
-
+                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                if [[ ip_added_workload -eq 1 ]]; then
+                  echo -e "$green--- Remove IP ---$reset"
                   if [[ "azure pipelines" == $(this_agent) ]]; then
-                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                    if [ -n ${key_vault} ]; then
-                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --no-wait  --only-show-errors --output none
+                    if [ -n "${workload_key_vault}" ]; then
+                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
                     fi
                   fi
                 fi
 
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-                if [[ 1 -eq $ip_added ]]; then
-
+                az account set --subscription ${STATE_SUBSCRIPTION}
+                if [[ ip_added_control_plane -eq 1 ]]; then
+                  echo -e "$green--- Remove IP ---$reset"
                   if [[ "azure pipelines" == $(this_agent) ]]; then
-                    this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                    if [ -n ${workload_key_vault} ]; then
-                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --no-wait  --only-show-errors --output none
+                    if [ -n "${key_vault}" ]; then
+                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
                     fi
                   fi
                 fi
@@ -293,6 +301,7 @@ stages:
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
+
                 if [ -f ${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
                 fi

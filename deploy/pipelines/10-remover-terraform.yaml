@@ -58,7 +58,7 @@ parameters:
 trigger:                               none
 
 pool:
-  name:                                $(Agent)
+  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
 
 variables:
   - group:                             "SDAF-General"
@@ -171,14 +171,22 @@ stages:
                 az devops configure -d project=$(System.TeamProject)
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]"); echo VARIABLE_GROUP_ID $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                    exit 2
+                fi
 
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]"); echo PARENT_VARIABLE_GROUP_ID $PARENT_VARIABLE_GROUP_ID
+                if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
+                    exit 2
+                fi
 
               echo -e "$green--- Set variables ---$reset"
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
-                if [ -z "${az_var}" ]; then
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value" | tr -d \")
+                if [ -z ${az_var} ]; then
                   export workload_key_vault=$(cat "${workload_environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
                 else
                   export workload_key_vault="${az_var}" ; echo 'Workload Key Vault' ${workload_key_vault}
@@ -357,7 +365,7 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-                if -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $(ARM_CLIENT_ID) ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
@@ -384,9 +392,19 @@ stages:
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
 
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]"); echo VARIABLE_GROUP_ID $VARIABLE_GROUP_ID
+                export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+                echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID
+                if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
+                    exit 2
+                fi
 
-                export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]"); echo PARENT_VARIABLE_GROUP_ID $PARENT_VARIABLE_GROUP_ID
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                    exit 2
+                fi
 
               echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
 
@@ -402,7 +420,7 @@ stages:
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
-                if [ -z "${az_var}" ]; then
+                if [ -z ${az_var} ]; then
                   export workload_key_vault=$(cat "${workload_environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
                 else
                   export workload_key_vault="${az_var}" ; echo 'Workload Key Vault' ${workload_key_vault}
@@ -609,6 +627,11 @@ stages:
                 az devops configure -d project=$(System.TeamProject)
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
+                    exit 2
+                fi
 
               echo -e "$green--- Convert config files to UX format ---$reset"
                 sudo apt-get -qq install dos2unix
