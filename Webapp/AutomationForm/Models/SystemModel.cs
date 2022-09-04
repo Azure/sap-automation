@@ -143,7 +143,7 @@ namespace AutomationForm.Models
 
         public bool? database_high_availability { get; set; }
 
-        public int? database_server_count { get; set; } = 1
+        public int? database_server_count { get; set; } = 1;
 
         public bool? database_dual_nics { get; set; }
 

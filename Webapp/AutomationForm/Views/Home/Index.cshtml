@@ -5,56 +5,55 @@
 <div class="wrapper">
 
     <div class="text-center" style="padding: 20px">
-        <h1>Deploy SAP on Azure</h1>
+        <h1>SAP Deployment Automation Framework - Configuration Editor</h1>
     </div>
 
     <div class="wrapper grouping">
+        <h2> Overview </h2>
+        <p>
+            This application can be used to perform the infrastructure configuration for the SDAF Workload zone(s) and the SAP systems. The image below illustrates the dependency between the workload zone and the systems.
+            <p><img src="./images/SDAF.png" alt="SDAF" width="300"></p>
+
+        </p>
         <h2> Getting started </h2>
         <p>
-            This application can be used to perform the infrastructure configuration for the Workload zone(s) and the SAP systems.
-            <p><img src="./images/SDAF.png" alt="SDAF"</p>
-    
-            Click on the <b>Workload zones</b> or <b>Systems</b> tab to start.
+            To get started, click on the <a href="/Landscape"><b>Workload Zones</b></a> tab. This will take you to the Workload Zones page where you can create a new workload zone definition. Once you have created a workload zone definition, you can create a new SAP system by clicking on the <a href="/Systems"><b>Systems</b></a>  tab. This will take you to the SAP Systems page where you can create a new SAP system definition.<br />
+
+            <br />You can create a new definition by either using a predefined sample which is part of the <a href="https://github.com/Azure/sap-automation/tree/main/samples/WORKSPACES" target='_blank'>SDAF GitHub repository</a>, by uploading an existing workload zone definition tfvars file or by creating a new workload zone definition from scratch.<br />
+
+            Click on <b>Edit</b> to update existing definitions. <br />Click on <b>Details</b> to see more information about your configuration item.    
+            
         </p>
-        <h2>Creating a new configuration item</h2>
+        <h2>Editing</h2>
         <p>
-            Click the <b>Create New</b> button and enter the parameters. You can toggle the display using the 'Basic', 'Advanced' or 'Expert' checkboxes.
-        </p>
-        <h2>Editing an existing configuration item</h2>
-        <p>
-            Click on <b>Edit</b> to update existing workload zones, systems, or files.
-        </p>
-        <h2>Details</h2>
-        <p>
-            Click on <b>Details</b> to see more information about your workload zone, system, or file.    
-        </p>
-        <h2>Defaults</h2>
-        <p>
-            Click on the star next to an object to set it as the default. <br />
-            When creating new objects, if you would like to auto populate values from the default you have set, click the "Use default" checkbox. <br />
-            You can also set an object as the default from the edit or create page. <br />
+            
+            When in edit mode you can toggle the displayed parameters using the 'Basic', 'Advanced' or 'Expert' checkboxes. The 'Basic' parameters are the mandatory parameters. The 'Advanced' option displays more configuration options and the 'Expert' option displays all the configuration options.<br />
+
+            <br /><b>Defaults</b><br />
+            Click on the star next to an definition item to set it as the default item. You can also set an object as the default from the edit or create page.<br /><br /> 
+            
+            When creating new configuration items, you can copy the values from the default item to new item by selecting the "Use default" checkbox. <br /><
+            
             There can only be one default workload zone and one default system at a time. <br />
-            When an object is selected to be the default, there are no required parameters. Note that if you remove this object as the default later, <br />
-            missing required parameters will make this object invalid for deployment until further edited.
+            
+            <b>Note</b> When an object is selected to be the default, there are no mandatory parameters. Note that if you remove this object as the default later, missing required parameters will make this object invalid for deployment until further edited.
         </p>
-        <h2>Deploying</h2>
+        <h2>Deployment</h2>
         <p>
-            Clicking <b>Deploy</b> will kick off a pipeline to officially create the workload zone or system specified.
-        </p>
-        <h2>Files</h2>
-        <p>
-            Click on <b>Create</b> to make a new file from scratch, <b>Upload</b> to import an existing tfvars file, or browse to use an existing <b>Template</b>. <br />
-        </p>
-        <h2>Converting</h2>
-        <p>
-            Clicking <b>Convert</b> will turn the specified file into a workload zone or system object, which can then be deployed.
+            Clicking <b>Deploy</b> will kick off a pipeline to create the workload zone or system based on the definition.
         </p>
         <h2>Environments</h2>
         <p>
-            Click on the <b>Environments</b> tab to view your current variable groups in Azure devops. <br />
-            This tab will not appear if you performed a deployment via the Azure CLI. <br />
-            You can view and edit the parameters of your existing variable groups here, or create a new one from scratch. <br />
-            Not all parameters will be displayed. Any parameters not displayed will not be overwritten.
+            Click on the <a href="/Environment"><b>Environments</b></a> tab to view your environment definitions defined in Azure DevOps. <br />
+            You can view and edit the parameters of your existing environment definitions here, or create a new one from scratch. <br />
+            
+        </p>
+        <h2>Files</h2>
+        <p>
+            The Files section provides a way to create and manage files that can be used when creating the definition items. <br /><br />
+            Click on <b>Create</b> to make a new file from scratch, <b>Upload</b> to import an existing tfvars file, or browse to use an existing <b>Template</b>. <br />
+        <b>Converting</b>
+            Clicking <b>Convert</b> will turn the specified file into a workload zone or system definition, which can then be edited or deployed.
         </p>
     </div>
 
