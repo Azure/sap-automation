@@ -406,6 +406,11 @@ stages:
                     az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
                   fi                  
 
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
+                  if [ -n "${variable_value}" ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
+                  fi                  
+
                 fi
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
