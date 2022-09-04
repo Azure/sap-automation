@@ -232,6 +232,19 @@ if [ 0 == $step ]; then
         exit 10
     fi
 
+    load_config_vars "${deployer_config_information}" "keyvault"
+    echo "Key vault:" $keyvault
+
+    if [ -z "$keyvault" ]; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                       $boldred  Bootstrapping of the deployer failed $resetformatting                         #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
+        exit 10
+    fi
+
     #Persist the parameters
     if [ -n "$subscription" ]; then
         save_config_var "subscription" "${deployer_config_information}"
@@ -362,6 +375,17 @@ if [ 1 == $step ]; then
 
     if [ -z "$keyvault" ]; then
         read -r -p "Deployer keyvault name: " keyvault
+    fi
+    access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "Max retries exceeded attempting to connect to Vault")
+    if [ -n "${access_error}" ]; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo "#                    ${boldred} Unable to access keyvault: MGMTWEEUDEP01user05A {resetformatting}                  #"
+        echo "#                             Please ensure the key vault exists.                       #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        exit 10
     fi
 
     access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
@@ -506,7 +530,7 @@ if [ 3 == $step ]; then
     fi
 
     export TF_VAR_sa_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "sa-connection-string" | jq -r .value)
-   
+
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
     echo "calling installer.sh with parameters: $allParams"

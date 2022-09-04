@@ -380,14 +380,85 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
+deployer_parameter=""
 if [ -n "${deployer_statefile_foldername}" ]; 
 then
     echo "Deployer folder specified:" "${deployer_statefile_foldername}"
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" 
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -json | tee -a  apply_output.json
 else
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" 
+    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -json | tee -a  apply_output.json
 fi
 return_value=$?
+
+rerun_apply=0 
+if [ -f apply_output.json ]
+then
+    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+    if [[ -n $errors_occurred ]]
+    then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+    return_value=2
+    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+    if [[ -n ${all_errors} ]]
+    then
+        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+        for errors_string in "${errors_strings[@]}"; do
+            string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+            if [[ -z ${string_to_report} ]]
+            then
+                string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+            fi
+            
+            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+            echo "##vso[task.logissue type=error]${string_to_report}"
+        
+        done
+        
+    fi
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    # Check for resource that can be imported
+    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+    if [[ -n ${existing} ]]
+    then
+        
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+        moduleID=$(jq -c -r '.address '  <<< "$item")
+        resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+        echo "Trying to import" $resourceID "into" $moduleID
+        
+        terraform -chdir="${terraform_module_directory}" import -allow-missing-config  -var-file="${var_file}" "${deployer_parameter}" $moduleID $resourceID
+        done
+        rerun_apply=1 
+    fi
+    fi
+
+fi
+
+if [ -f apply_output.json ]
+then
+    rm apply_output.json
+fi
+
+if [ $rerun_apply == 1 ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                          Re-running Terraform apply                                   #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" "${deployer_parameter}" $moduleID $resourceID
+    return_value=$?
+fi
 
 if [ 1 == $return_value ] ; then
     echo ""
@@ -400,6 +471,7 @@ if [ 1 == $return_value ] ; then
     unset TF_DATA_DIR
     exit $return_value
 fi
+
 REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
 temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
 if [ -z "${temp}" ]

@@ -817,6 +817,7 @@ else
     ok_to_proceed=true
 fi
 
+rerun_apply=0
 if [ $ok_to_proceed ]; then
 
     if [ -f error.log ]
@@ -836,7 +837,7 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
 
-    allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}  "${approve}"" )
+    allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}"  "${approve}" )
 
     if [ 1 == $called_from_ado ] ; then
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
@@ -894,7 +895,7 @@ if [ $ok_to_proceed ]; then
             echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
             terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
           done
-          echo "##vso[task.logissue type=error]Resources imported into Terraform state file. Please re-run the pipeline."
+          rerun_apply=1
         fi
       fi
 
@@ -905,7 +906,32 @@ if [ $ok_to_proceed ]; then
         rm apply_output.json
     fi
 
+    if [ $rerun_apply == 1 ] ; then
+        echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+        echo ""
+        if [ 1 == $called_from_ado ] ; then
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -compact-warnings $allParams
+        else
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
+        fi
+        return_value=$?
+    fi
+
     if [ 0 != $return_value ] ; then
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
         unset TF_DATA_DIR
         exit $return_value
     fi
