@@ -55,7 +55,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
   count               = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
   name                = split(".", azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].fqdn)[0]
   zone_name           = "privatelink.blob.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
+  resource_group_name = try(var.management_dns_resourcegroup_name, local.resource_group_name)
   ttl                 = 3600
   records             = azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].ip_addresses
 
@@ -195,7 +195,7 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
   count               = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
   name                = split(".", azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].fqdn)[0]
   zone_name           = "privatelink.blob.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
+  resource_group_name = try(var.management_dns_resourcegroup_name, local.resource_group_name)
   ttl                 = 3600
   records             = azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].ip_addresses
 
