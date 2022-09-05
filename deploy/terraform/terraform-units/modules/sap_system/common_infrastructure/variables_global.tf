@@ -212,6 +212,24 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
+}
+
 variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string

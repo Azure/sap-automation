@@ -31,9 +31,50 @@ resource "azurerm_storage_account" "sapmnt" {
   account_tier                    = "Premium"
   account_replication_type        = "ZRS"
   account_kind                    = "FileStorage"
-  enable_https_traffic_only       = false
+  enable_https_traffic_only       = true
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
+
+  network_rules {
+    default_action = "Deny"
+    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
+    virtual_network_subnet_ids = var.use_private_endpoint ? (
+      []
+      ) : (
+      compact(
+        [
+          try(var.landscape_tfstate.admin_subnet_id, ""),
+          try(var.landscape_tfstate.app_subnet_id, ""),
+          try(var.landscape_tfstate.db_subnet_id, ""),
+          try(var.landscape_tfstate.subnet_mgmt_id, "")
+        ]
+      )
+    )
+    bypass = ["AzureServices", "Logging", "Metrics"]
+  }
+}
+
+resource "azurerm_private_dns_a_record" "sapmnt" {
+  count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  name                = split(".", azurerm_private_endpoint.sapmnt[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name           = "privatelink.file.core.windows.net"
+  resource_group_name = var.management_dns_resourcegroup_name
+  ttl                 = 3600
+  records             = azurerm_private_endpoint.sapmnt[count.index].custom_dns_configs[count.index].ip_addresses
+
+  provider = azurerm.dnsmanagement
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+#Errors can occure when the dns record has not properly been activated, add a wait timer to give
+#it just a little bit more time
+resource "time_sleep" "wait_for_dns_refresh" {
+  create_duration = "120s"
+
+  depends_on = [azurerm_private_dns_a_record.sapmnt]
 }
 
 data "azurerm_storage_account" "sapmnt" {
@@ -47,29 +88,6 @@ data "azurerm_storage_account" "sapmnt" {
   name                = split("/", var.azure_files_sapmnt_id)[8]
   resource_group_name = split("/", var.azure_files_sapmnt_id)[4]
 }
-
-resource "azurerm_storage_account_network_rules" "sapmnt" {
-  count = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
-    1) : (
-    0
-  )
-  provider           = azurerm.main
-  storage_account_id = azurerm_storage_account.sapmnt[0].id
-
-  default_action = "Deny"
-  ip_rules       = length(var.Agent_IP) > 0 ? [var.Agent_IP] : [""]
-  virtual_network_subnet_ids = compact(
-    [
-      try(var.landscape_tfstate.admin_subnet_id, ""),
-      try(var.landscape_tfstate.app_subnet_id, ""),
-      try(var.landscape_tfstate.db_subnet_id, ""),
-      try(var.landscape_tfstate.subnet_mgmt_id, "")
-    ]
-  )
-  bypass = ["AzureServices", "Logging", "Metrics"]
-
-}
-
 
 resource "azurerm_private_endpoint" "sapmnt" {
   provider = azurerm.main
@@ -131,6 +149,11 @@ data "azurerm_private_endpoint_connection" "sapmnt" {
 
 resource "azurerm_storage_share" "sapmnt" {
   count = var.NFS_provider == "AFS" ? (1) : (0)
+  depends_on = [
+    azurerm_storage_account.sapmnt,
+    azurerm_private_endpoint.sapmnt,
+    time_sleep.wait_for_dns_refresh
+  ]
 
   name = format("%s", local.resource_suffixes.sapmnt)
   storage_account_name = var.NFS_provider == "AFS" ? (
