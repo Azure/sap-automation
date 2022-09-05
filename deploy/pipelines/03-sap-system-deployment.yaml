@@ -166,6 +166,7 @@ stages:
 
               echo -e "$green--- Define variables ---$reset"
                 cd $HOME/SYSTEM/$(sap_system_folder)
+                deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
 
                 if [ -z $(REMOTE_STATE_SA) ]; then
                   export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
