@@ -252,13 +252,7 @@ stages:
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-<<<<<<< HEAD
               ANSIBLE_HOST_KEY_CHECKING: false
-=======
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
->>>>>>> 618c5b740abfe86e128691aa4abe5edd33a1edb8
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact:                  ansible_data
