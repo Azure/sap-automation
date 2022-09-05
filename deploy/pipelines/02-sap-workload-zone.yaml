@@ -167,7 +167,6 @@ stages:
                 az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
 
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID
@@ -450,5 +449,6 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:    $(PAT)
             failOnStderr:              false
 ...
