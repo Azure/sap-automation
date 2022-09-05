@@ -53,8 +53,10 @@ variables:
     value:                             logfile_$(Build.BuildId)
   - name:                              tf_url
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
+
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
   - name:                              REMOTE_STATE_SA
     value:                             $[variables['Terraform_Remote_Storage_Account_Name']]
   - name:                              REMOTE_STATE_RG
@@ -89,7 +91,11 @@ stages:
                     echo "Agent: " $(this_agent)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                    az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                    devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+                    if [ -z "$devops_extension_installed" ]; then
+                      az extension add --name azure-devops --output none
+                    fi
+
                     az devops configure -d organization=$(System.CollectionUri)
                     az devops configure -d project=$(System.TeamProject)
                     export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
@@ -100,11 +106,11 @@ stages:
                     fi
                 echo -e "$green--- Variables ---$reset"
 
-                    if [ -n $(POOL) ]; then
-                       export POOL_NAME=$(az pipelines pool list --query "[?name=='$(POOL)'].name | [0]")
+                    if [ -n $TF_VAR_agent_pool ]; then
+                       export POOL_NAME=$(az pipelines pool list --query "[?name=='$TF_VAR_agent_pool'].name | [0]")
                        echo POOL ${POOL_NAME}
                        if [ -z ${POOL_NAME} ]; then
-                           echo "##vso[task.logissue type=error]Agent Pool $(POOL) does not exist."
+                           echo "##vso[task.logissue type=error]Agent Pool $TF_VAR_agent_pool does not exist."
                            exit 2
                        fi
 
@@ -183,17 +189,6 @@ stages:
                     mkdir -p .sap_deployment_automation
                     echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH >.sap_deployment_automation/config
 
-                echo -e "$green--- Install Terraform ---$reset"
-                    wget -q $(tf_url)
-                    return_code=$?
-                    if [ 0 != $return_code ]; then
-                        echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-                        exit 2
-                    fi
-                    unzip -qq terraform_$(tf_version)_linux_amd64.zip
-                    sudo mv terraform /bin/
-                    rm terraform_$(tf_version)_linux_amd64.zip
-
                 echo -e "$green--- File Validations ---$reset"
                     if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                         echo -e "$boldred--- File DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
@@ -207,6 +202,22 @@ stages:
                         exit 2
                     fi
 
+                if [[ "azure pipelines" == $(this_agent) ]]; then
+                    echo -e "$green --- Install dos2unix ---$reset"
+                    sudo apt-get -qq install dos2unix
+
+                    echo -e "$green --- Install terraform ---$reset"
+    
+                    wget -q $(tf_url)
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                        echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                        exit 2
+                    fi
+                    unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                    rm -f terraform_$(tf_version)_linux_amd64.zip
+                fi
+
                 echo -e "$green--- Pull the latest content from DevOps ---$reset"
                     git config --global user.email "$(Build.RequestedForEmail)"
                     git config --global user.name "$(Build.RequestedFor)"
@@ -214,7 +225,6 @@ stages:
                     git pull
 
                     echo -e "$green--- Convert config files to UX format ---$reset"
-                    sudo apt-get -qq install dos2unix
                     dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
                     dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
 
@@ -411,7 +421,7 @@ stages:
 
             displayName:                      Deploy control plane
             env:
-              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN:             
               ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
               ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)

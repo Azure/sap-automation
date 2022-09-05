@@ -344,7 +344,6 @@ then
 
 fi
 
-
 #setting the user environment variables
 set_executing_user_environment_variables "none"
 if [[ -z ${REMOTE_STATE_SA} ]]; then
@@ -362,7 +361,6 @@ if [[ -z ${subscription} ]]; then
     load_config_vars "${workload_config_information}" "subscription"
 fi
 
-load_config_vars "${workload_config_information}" "keyvault"
 if [[ -z ${deployer_tfstate_key} ]]; then
     load_config_vars "${workload_config_information}" "deployer_tfstate_key"
 fi
@@ -411,7 +409,7 @@ else
     fi
 fi
 
-if [ -n "$keyvault" ]
+if [ -n "${keyvault}" ]
 then
     secretname="${environment}"-client-id
     echo "Setting secrets"

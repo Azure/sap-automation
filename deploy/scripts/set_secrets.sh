@@ -305,10 +305,17 @@ if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    echo $v ${subscription}
+    if [ "${v}" != "${subscription}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${subscription}" ] ; then
+        echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+    fi
 fi
 
 result=$(grep "ERROR: The user, group or application" stdout.az)
@@ -350,10 +357,16 @@ if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${client_id}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${client_id}" ] ; then
+        echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+    fi
 fi
 
 
@@ -362,10 +375,17 @@ if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${tenant_id}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${tenant_id}" ] ; then
+        echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+    fi
+    
 fi
 
 
@@ -374,10 +394,16 @@ if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${client_secret}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${client_secret}" ] ; then
+        echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+    fi
 fi
 
 exit $return_code 

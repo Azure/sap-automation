@@ -13,12 +13,12 @@ parameters:
   - name:                              sap_system_configuration_name
     displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
     type:                              string
-    default:                           PRD-UKSO-SAP07-RHB
+    default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
     type:                              string
-    default:                           PRD
+    default:                           DEV
 
   - name:                              bom_base_name
     displayName:                       Bill of Materials name
@@ -125,14 +125,20 @@ stages:
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              if [[ "azure pipelines" == $(this_agent) ]]; then
+                echo -e "$green --- Install dos2unix ---$reset"
+                  sudo apt-get -qq install dos2unix
+              fi
               echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+                if [ -z "$devops_extension_installed" ]; then
+                  az extension add --name azure-devops --output none
+                fi
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
@@ -154,7 +160,7 @@ stages:
                           params_file=$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml              ;  echo sap_parameters_file $params_file
 
               if [[ "azure pipelines" == $(this_agent) ]]; then
-                  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group"
+                  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group using the 'POOL' variable."
                   exit 2
                 fi
 
@@ -193,35 +199,6 @@ stages:
                 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
                 echo "##vso[task.setvariable variable=CONFIGURATION_NAME;isOutput=true]$(sap_system_folder)"
 
-              echo -e "$green--- az login ---$reset"
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-                  exit 2
-                fi
-
-                if [ -z $(ARM_CLIENT_ID) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                  exit 2
-                fi
-
-                if [ -z $(ARM_CLIENT_SECRET) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                  exit 2
-                fi
-
-                if [ -z $(ARM_TENANT_ID) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                  exit 2
-                fi
-
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID) --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
-                fi
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
               echo -e "$green--- Get Files from the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)
                 sap_params_updated=0
@@ -240,6 +217,15 @@ stages:
                   export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
                 fi
 
+              echo -e "$green--- az login ---$reset"
+
+                az login --identity --allow-no-subscriptions --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
                 az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
@@ -265,6 +251,8 @@ stages:
             displayName:               Preparation for Ansible
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_HOST_KEY_CHECKING: false
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact:                  ansible_data
@@ -312,6 +300,7 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
@@ -361,7 +350,7 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
@@ -408,6 +397,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
@@ -457,6 +447,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
@@ -508,6 +499,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
@@ -579,6 +571,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
@@ -654,6 +647,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
@@ -726,6 +720,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
@@ -782,6 +777,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
@@ -859,6 +855,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
@@ -926,6 +923,7 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
               ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections

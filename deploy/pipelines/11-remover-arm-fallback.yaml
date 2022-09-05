@@ -216,7 +216,10 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+                if [ -z "$devops_extension_installed" ]; then
+                  az extension add --name azure-devops --output none
+                fi
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
                 if [ -n $(PAT) ]; then
@@ -279,14 +282,13 @@ stages:
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+                if [ -z "$devops_extension_installed" ]; then
+                  az extension add --name azure-devops --output none
+                fi
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                if [ -n $(PAT) ]; then
-                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
-                else
-                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                fi
+                
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
 
@@ -317,7 +319,7 @@ stages:
                   exit $return_code
                 fi
 
-                variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription")
+                variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value")
 
                 if [ -z $variable_value ]; then
                   subscription=$(ARM_SUBSCRIPTION_ID)
@@ -372,14 +374,18 @@ stages:
               echo -e "$green--- Deleting variables ---$reset"
                 if [ -n $VARIABLE_GROUP_ID ]; then
                   echo "Deleting variables"
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
 
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
                   if [ ! -z $variable_value ]; then
                     az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
                   fi
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
+                  if [ ! -z $variable_value ]; then
+                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors 
+                  fi
 
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
                   if [ ! -z $variable_value ]; then
                     az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors 
                   fi
@@ -415,5 +421,10 @@ stages:
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
             failOnStderr:              false
 ...
