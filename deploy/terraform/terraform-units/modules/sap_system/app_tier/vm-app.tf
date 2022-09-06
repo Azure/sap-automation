@@ -210,6 +210,15 @@ resource "azurerm_linux_virtual_machine" "app" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.app_custom_image ? 1 : 0)
+    content {
+      name      = local.app_os.offer
+      publisher = local.app_os.publisher
+      product   = local.app_os.sku
+    }
+  }
+
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
   }
@@ -304,6 +313,14 @@ resource "azurerm_windows_virtual_machine" "app" {
       offer     = local.app_os.offer
       sku       = local.app_os.sku
       version   = local.app_os.version
+    }
+  }
+  dynamic "plan" {
+    for_each = range(local.app_custom_image ? 1 : 0)
+    content {
+      name      = local.app_os.offer
+      publisher = local.app_os.publisher
+      product   = local.app_os.sku
     }
   }
 

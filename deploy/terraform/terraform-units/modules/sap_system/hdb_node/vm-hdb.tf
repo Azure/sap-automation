@@ -261,6 +261,14 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
       version   = local.hdb_os.version
     }
   }
+  dynamic "plan" {
+    for_each = range(local.hdb_custom_image ? 1 : 0)
+    content {
+      name      = local.hdb_os.offer
+      publisher = local.hdb_os.publisher
+      product   = local.hdb_os.sku
+    }
+  }
 
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk

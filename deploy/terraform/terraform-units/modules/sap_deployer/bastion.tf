@@ -47,7 +47,7 @@ resource "azurerm_public_ip" "bastion" {
   name = format("%s%s%s",
     var.naming.resource_prefixes.bastion_pip,
     local.prefix,
-    local.resource_suffixes.bastion_pip
+    var.naming.resource_suffixes.bastion_pip
   )
   location = local.vnet_mgmt_exists ? (
     data.azurerm_virtual_network.vnet_mgmt[0].location) : (
@@ -67,7 +67,7 @@ resource "azurerm_bastion_host" "bastion" {
   name = format("%s%s%s",
     var.naming.resource_prefixes.bastion_host,
     local.prefix,
-    local.resource_suffixes.bastion_host
+    var.naming.resource_suffixes.bastion_host
   )
   location = local.vnet_mgmt_exists ? (
     data.azurerm_virtual_network.vnet_mgmt[0].location) : (

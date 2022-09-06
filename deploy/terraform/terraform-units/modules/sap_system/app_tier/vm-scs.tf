@@ -212,6 +212,15 @@ resource "azurerm_linux_virtual_machine" "scs" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.scs_custom_image ? 1 : 0)
+    content {
+      name      = local.scs_os.offer
+      publisher = local.scs_os.publisher
+      product   = local.scs_os.sku
+    }
+  }
+
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
   }
@@ -321,6 +330,15 @@ resource "azurerm_windows_virtual_machine" "scs" {
       offer     = local.scs_os.offer
       sku       = local.scs_os.sku
       version   = local.scs_os.version
+    }
+  }
+
+  dynamic "plan" {
+    for_each = range(local.scs_custom_image ? 1 : 0)
+    content {
+      name      = local.scs_os.offer
+      publisher = local.scs_os.publisher
+      product   = local.scs_os.sku
     }
   }
 
