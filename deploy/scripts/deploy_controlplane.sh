@@ -195,6 +195,17 @@ load_config_vars "${deployer_config_information}" "step"
 
 load_config_vars "${deployer_config_information}" "keyvault"
 
+kv_found=$(az keyvault list --subscription $subscription --query [].name | grep -q "${keyvault}")
+
+if [ -z "${kv_found}" ] ; then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                    $boldred Detected a failed deployment - restarting  $resetformatting                       #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    step=0
+fi
+
 if [ $recover == 1 ]; then
     if [ -n "$REMOTE_STATE_SA" ]; then
         save_config_var "REMOTE_STATE_SA" "${deployer_config_information}"

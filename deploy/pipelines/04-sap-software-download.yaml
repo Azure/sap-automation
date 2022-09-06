@@ -244,14 +244,14 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-          - task:                      Ansible@0
-            displayName:               Download software
-            timeoutInMinutes:          0
+          - task:                            Ansible@0
+            displayName:                     Download software
+            timeoutInMinutes:                0
             inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: $DEPLOYMENT_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
-              args:                    ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
-              failOnStderr:            false
+              ansibleInterface:              "agentMachine"
+              playbookPathOnAgentMachine:    deploy/ansible/playbook_bom_downloader.yaml
+              args:                          ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
+              failOnStderr:                  false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
