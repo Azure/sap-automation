@@ -191,9 +191,10 @@ if [ -n "${subscription}" ]; then
      echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
+        step=0
     fi
 
-    step=0
+  
 fi
 
 if [ 3 == $step ]; then
