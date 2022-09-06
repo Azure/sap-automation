@@ -227,6 +227,9 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   tags = try(var.application.app_tags, {})
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Create the Windows Application VM(s)
@@ -394,6 +397,10 @@ resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 

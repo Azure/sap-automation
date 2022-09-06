@@ -34,6 +34,10 @@ resource "azurerm_storage_account" "sapmnt" {
   enable_https_traffic_only       = false
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 data "azurerm_storage_account" "sapmnt" {
@@ -105,6 +109,10 @@ resource "azurerm_private_endpoint" "sapmnt" {
     subresource_names = [
       "File"
     ]
+  }
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 
