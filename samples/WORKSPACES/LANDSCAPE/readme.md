@@ -49,10 +49,10 @@ This configuration deploys a Workload zone with the following components:
 | Network security group (web)         | QA-WEEU-SAP02_webSubnet-nsg     | westeurope      |                                                |
 | Network security group (admin)       | QA-WEEU-SAP02_appSubnet-nsg     | westeurope      |                                                |
 |                                      |                                 |                 |                                                |
-| Key Vault                            | DEVWEEUSAP01user###             | westeurope      | '###' Is a random identifier                   |
+| Key Vault                            | QAWEEUSAP02user###              | westeurope      | '###' Is a random identifier                   |
 |                                      |                                 |                 |                                                |
-| Storage Account                      | devweeusap01diag###             | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
-| Storage Account                      | devweeusap01witness###          | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
+| Storage Account                      | qaweeusap02diag###              | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
+| Storage Account                      | qaweeusap02witness###           | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
 
 ## PRD-WEEU-SAP03-INFRASTRUCTURE ##
 
@@ -73,7 +73,7 @@ This configuration deploys a Workload zone with the following components:
 | Network security group (web)         | PRD-WEEU-SAP03_webSubnet-nsg    | westeurope      |                                                |
 | Network security group (admin)       | PRD-WEEU-SAP03_appSubnet-nsg    | westeurope      |                                                |
 |                                      |                                 |                 |                                                |
-| Key Vault                            | DEVWEEUSAP01user###             | westeurope      | '###' Is a random identifier                   |
+| Key Vault                            | PRDWEEUSAP03user###             | westeurope      | '###' Is a random identifier                   |
 |                                      |                                 |                 |                                                |
-| Storage Account                      | devweeusap01diag###             | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
-| Storage Account                      | devweeusap01witness###          | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
+| Storage Account                      | prdweeusap03diag###             | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
+| Storage Account                      | prdweeusap03witness###          | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
