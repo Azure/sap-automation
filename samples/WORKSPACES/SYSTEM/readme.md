@@ -4,8 +4,7 @@ This folder contains sample system configurations.
 
 - DEV-WEEU-SAP01-X00
 - DEV-WEEU-SAP01-WIN
-- QA-WEEU-SAP02-INFRASTRUCTURE
-- PRD-WEEU-SAP03-INFRASTRUCTURE
+
 
 ## DEV-WEEU-SAP01-X00 ##
 
