@@ -78,13 +78,14 @@ function missing {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:hi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:ahi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,ado,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
     showhelp
 fi
 
+called_from_ado=0
 eval set -- "$INPUT_ARGUMENTS"
 while :
 do
@@ -94,6 +95,7 @@ do
         -s | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
         -t | --type)                               deployment_system="$2"           ; shift 2 ;;
         -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
+        -a | --ado)                                called_from_ado=1                ; shift ;;
         -h | --help)                               showhelp
         exit 3                           ; shift ;;
         --) shift; break ;;
@@ -112,7 +114,10 @@ landscape_tfstate_key_parameter=""
 #show_help=false
 #deployer_tfstate_key_exists=false
 #landscape_tfstate_key_exists=false
+echo "parameterfile: $parameterfile"
+
 working_directory=$(pwd)
+
 parameterfile_path=$(realpath "${parameterfile}")
 parameterfile_name=$(basename "${parameterfile_path}")
 parameterfile_dirname=$(dirname "${parameterfile_path}")
@@ -368,11 +373,63 @@ then
         
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
         terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-        $tfstate_parameter \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
+            $tfstate_parameter \
+            $landscape_tfstate_key_parameter \
+            $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
+
+        return_value=$?    
+
+        if [ -f destroy_output.json ]
+        then
+            errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+
+            if [[ -n $errors_occurred ]]
+            then
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                         $boldreduscore!Errors during the destroy phase!$resetformatting                             #"
+
+                return_value=2
+                all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
+                if [[ -n ${all_errors} ]]
+                then
+                    readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+                    for errors_string in "${errors_strings[@]}"; do
+                        string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+                        if [[ -z ${string_to_report} ]]
+                        then
+                            string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+                        fi
+
+                        report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
+                        if [[ -n ${report} ]] ; then
+                            echo -e "#                          $boldreduscore  $report $resetformatting"
+                            echo "##vso[task.logissue type=error]${report}"
+                        else
+                            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                            echo "##vso[task.logissue type=error]${string_to_report}"
+                        fi
+                        
+                    
+                    done
+                
+                fi
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+
+            fi
+
+        fi
+
+        if [ -f destroy_output.json ]
+        then
+            rm destroy_output.json
+        fi
+
     fi
-    
+
     
 else
     return_value=0
