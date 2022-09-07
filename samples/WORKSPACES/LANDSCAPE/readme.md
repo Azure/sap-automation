@@ -53,6 +53,8 @@ This configuration deploys a Workload zone with the following components:
 |                                      |                                 |                 |                                                |
 | Storage Account                      | qaweeusap02diag###              | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
 | Storage Account                      | qaweeusap02witness###           | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
+| Storage Account                      | qaweeusap02install              | westeurope      | NFS Share for installation media. Will be used across all SIDS | |
+| Storage Account                      | qaweeusap02transport            | westeurope      | NFS Share for transport. Will be used across all SIDS | |
 
 ## PRD-WEEU-SAP03-INFRASTRUCTURE ##
 
@@ -77,3 +79,10 @@ This configuration deploys a Workload zone with the following components:
 |                                      |                                 |                 |                                                |
 | Storage Account                      | prdweeusap03diag###             | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
 | Storage Account                      | prdweeusap03witness###          | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
+|                                      |                                 |                 |                                                |
+| NetApp Account                       | PRD-WEEU-SAP03_netapp_account   | westeurope      |                                                |
+| NetApp Capacity Pool                 | PRD-WEEU-SAP03_netapp_pool      | westeurope      |                                                |
+| NetApp Volume                        | PRD-WEEU-SAP03_install          | westeurope      | Volume for installation media. Will be used across all SIDS |
+| NetApp Volume                        | PRD-WEEU-SAP03_transport        | westeurope      |                                                |
+|                                      |                                 |                 |                                                |
+| Virtual Machine                      | PRD-WEEU-SAP03_wz-vm00          | westeurope      | Utilisy VM, use it for SAPGUI etc.              |
