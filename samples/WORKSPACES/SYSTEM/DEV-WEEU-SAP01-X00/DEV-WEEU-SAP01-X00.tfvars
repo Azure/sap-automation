@@ -60,8 +60,7 @@ use_prefix = true
 # subscription is the subscription in which the system will be deployed (informational only)
 #subscription = ""
 
-# bom_name is the name of the SAP Bill of Materials file
-bom_name = "S41909SPS03_v0011ms"
+use_zonal_markers = false
 
 
 #########################################################################################
@@ -99,7 +98,7 @@ use_loadbalancers_for_standalone_deployments = true
 #                                                                                       #
 #########################################################################################
 
-#database_sid = ""
+database_sid = "XDB"
 
 # database_platform defines the database backend, supported values are
 # - HANA
@@ -118,10 +117,10 @@ database_server_count = 1
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
-database_size = "Default"
+database_size = "E20ds_v4"
 
 # database_instance_number if provided defines the instance number of the HANA database
-#database_instance_number = ""
+database_instance_number = "00"
 
 # database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 database_vm_use_DHCP = true
@@ -186,14 +185,14 @@ database_vm_use_DHCP = true
 database_vm_image = {
   os_type="linux",
   source_image_id="",
-  publisher="RedHat",
-  offer="RHEL-SAP-HA",
-  sku="8_4",
+  publisher="SUSE",
+  offer="sles-sap-15-sp3",
+  sku="gen2",
   version="latest"
 }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
-#database_vm_zones = []
+database_vm_zones = ["1"]
 
 # Optional, Defines the default authentication model for the Database VMs (key/password)
 #database_vm_authentication_type = ""
@@ -248,7 +247,7 @@ scs_high_availability = false
 #ers_instance_number = ""
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-#scs_server_zones = []
+scs_server_zones = ["1"]
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku = ""
@@ -259,9 +258,9 @@ scs_high_availability = false
 scs_server_image = {
   os_type="linux",
   source_image_id="",
-  publisher="RedHat",
-  offer="RHEL-SAP-HA",
-  sku="8_4",
+  publisher="SUSE",
+  offer="sles-sap-15-sp3",
+  sku="gen2",
   version="latest"
 }
 
@@ -324,7 +323,7 @@ application_server_count = 2
 #app_disk_sizes_filename = null
 
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
-#app_tier_authentication_type = ""
+app_tier_authentication_type = "key"
 
 # application_server_no_ppg defines the that the application server virtual machines will not be placed in a proximity placement group
 #application_server_no_ppg = false
@@ -341,9 +340,9 @@ application_server_count = 2
 application_server_image = {
   os_type="linux",
   source_image_id="",
-  publisher="RedHat",
-  offer="RHEL-SAP-HA",
-  sku="8_4",
+  publisher="SUSE",
+  offer="sles-sap-15-sp3",
+  sku="gen2",
   version="latest"
 }
 
@@ -356,7 +355,7 @@ application_server_image = {
 ############################################################################################
 
 # webdispatcher_server_count defines how many web dispatchers to deploy
-webdispatcher_server_count = 1
+webdispatcher_server_count = 0
 
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the application subnet

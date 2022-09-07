@@ -63,7 +63,7 @@ use_prefix = true
 # bom_name is the name of the SAP Bill of Materials file
 #bom_name = ""
 
-
+use_zonal_markers = false
 #########################################################################################
 #                                                                                       #
 #  Networking                                                                           #
@@ -99,7 +99,7 @@ network_logical_name = "SAP01"
 #                                                                                       #
 #########################################################################################
 
-database_sid = "HDB"
+database_sid = "WIN"
 
 # database_platform defines the database backend, supported values are
 # - HANA
@@ -118,7 +118,7 @@ database_server_count = 1
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
-database_size = "Default"
+database_size = "512"
 
 # database_instance_number if provided defines the instance number of the HANA database
 #database_instance_number = ""
@@ -184,11 +184,11 @@ database_vm_use_DHCP = true
 # in this case os_type must also be specified
 
 database_vm_image = {
-  os_type="windows",
+  os_type="WINDOWS",
   source_image_id="",
   publisher="MicrosoftWindowsServer",
   offer="windowsserver",
-  sku="2019-datacenter",
+  sku="2022-datacenter",
   version="latest"
 }
 
@@ -257,11 +257,11 @@ scs_server_zones = ["1"]
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
 scs_server_image = {
-  os_type="windows",
+  os_type="WINDOWS",
   source_image_id="",
   publisher="MicrosoftWindowsServer",
   offer="windowsserver",
-  sku="2019-datacenter",
+  sku="2022-datacenter",
   version="latest"
 }
 
@@ -300,7 +300,7 @@ scs_server_image = {
 application_server_count = 2
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
-#application_server_zones = []
+application_server_zones = ["1"]
 
 # application_server_sku, if defined provides the SKU to use for the application servers
 #application_server_sku = ""
@@ -339,11 +339,11 @@ application_server_count = 2
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
 application_server_image = {
-  os_type="windows",
+  os_type="WINDOWS",
   source_image_id="",
   publisher="MicrosoftWindowsServer",
   offer="windowsserver",
-  sku="2019-datacenter",
+  sku="2022-datacenter",
   version="latest"
 }
 
