@@ -1,8 +1,8 @@
 
 locals {
 
-#  storageaccount_names = var.naming.storageaccount_names.LIBRARY
-#  resource_suffixes    = var.naming.resource_suffixes
+  #  storageaccount_names = var.naming.storageaccount_names.LIBRARY
+  #  resource_suffixes    = var.naming.resource_suffixes
 
   // Infrastructure
   var_infra = try(var.infrastructure, {})
@@ -52,5 +52,8 @@ locals {
   service_principal = try(var.service_principal, {})
 
   deployer_public_ip_address = try(var.deployer_tfstate.deployer_public_ip_address, "")
+
+  enable_firewall_for_keyvaults_and_storage = try(var.deployer_tfstate.enable_firewall_for_keyvaults_and_storage, false)
+
 
 }

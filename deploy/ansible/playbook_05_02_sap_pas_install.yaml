@@ -85,7 +85,7 @@
 
     - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
       ansible.builtin.set_fact:
-        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
     - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
@@ -137,7 +137,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        file_path:                     INSTALL/DISTRIBUTED/ABAP/APP1
+        pas_file_path:                 /INSTALL/DISTRIBUTED/ABAP/APP1
         always_upload_jinja_templates: false
       tags:
         - always
@@ -156,7 +156,7 @@
 
     - name:                            "PAS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
-        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
 # -------------------------------------+---------------------------------------8
 # Role: 5.2-PAS Installation
@@ -218,8 +218,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_PAS"
-                prefix:                "{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}"
-                path:                  "{{ file_path }}"
+                prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                path:                  "{{ pas_file_path }}"
                 tier:                  'pas'
 
             - name:                    "PAS Installation Playbook: - Show errors from PAS installation"

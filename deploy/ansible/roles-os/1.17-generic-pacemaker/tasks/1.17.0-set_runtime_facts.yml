@@ -84,7 +84,7 @@
     - name:                                "1.17 Generic Pacemaker - Set SSH fact"
       ansible.builtin.set_fact:
         cluster_public_ssh_key:            "{{ cluster_public_ssh_key.stdout }}"
-  when: ansible_os_family|upper == "SUSE"
+  when: ansible_os_family | upper == "SUSE"
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |
 # +------------------------------------4--------------------------------------*/

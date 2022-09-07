@@ -118,6 +118,7 @@
   become:                               true
   become_user:                         oracle
   ansible.builtin.shell: |
+                      set -o pipefail
                       set -o errexit
                       ./RUNINSTALLER -shared -ohsapcfg |tee -a /etc/sap_deployment_automation/"{{ item.sid }}"_install.log
   register:                            orainstaller_results
@@ -219,7 +220,7 @@
     state:                             file
     owner:                             oracle
     group:                             oinstall
-    mode:                              6751
+    mode:                              06751
   tags:
     - skip_ansible_lint
 
@@ -237,7 +238,7 @@
     state:                             file
     owner:                             oracle
     group:                             oinstall
-    mode:                               6751
+    mode:                              06751
   tags:
     - skip_ansible_lint
 

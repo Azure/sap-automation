@@ -31,7 +31,7 @@ Usage:
 
 
   local.rg_name
-      Variable                  : local.rg_name derived from default format("%s%s", local.prefix, local.resource_suffixes.deployer_rg) or overridden with var.infrastructure.resource_group.name
+      Variable                  : local.rg_name derived from default format("%s%s", local.prefix, var.naming.resource_suffixes.deployer_rg) or overridden with var.infrastructure.resource_group.name
         Override)
           Variable              : var.infrastructure.resource_group.name is contained in var.infrastructure.resource_group
           Variable              : var.infrastructure.resource_group is contained in var.infrastructure
@@ -56,8 +56,8 @@ Usage:
                 Variable        : var.naming defined empty
                 Module Caller   : Pass module.sap_namegenerator.naming object into module as naming
 
-          2)  Variable          : local.resource_suffixes.deployer_rg is an object contained in local.resource_suffixes
-              Variable          : local.resource_suffixes is a copy of var.naming.resource_suffixes
+          2)  Variable          : var.naming.resource_suffixes.deployer_rg is an object contained in var.naming.resource_suffixes
+              Variable          : var.naming.resource_suffixes is a copy of var.naming.resource_suffixes
               Variable          : var.naming.resource_suffixes is contained in var.naming
               Variable          : var.naming defined empty
               Module Caller     : Pass module.sap_namegenerator.naming object into module as naming
@@ -117,10 +117,16 @@ resource "azurerm_subnet" "subnet_mgmt" {
   virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes     = [local.management_subnet_prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
+  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  private_link_service_network_policies_enabled = false
 
-  service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web", "Microsoft.AzureCosmosDB"]
+  service_endpoints = var.use_service_endpoint ? (
+    var.use_webapp ? (
+      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
+      ["Microsoft.Storage", "Microsoft.KeyVault"]
+    )) : (
+  null)
+
 }
 
 data "azurerm_subnet" "subnet_mgmt" {

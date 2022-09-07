@@ -134,7 +134,7 @@
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-        TMPDIR:                        "{{ tmp_directory }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0
       tags:

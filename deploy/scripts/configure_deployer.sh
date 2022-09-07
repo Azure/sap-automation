@@ -55,7 +55,7 @@ set -o pipefail
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.1.7"
+  TF_VERSION="1.2.6"
 fi
 
 
@@ -69,7 +69,7 @@ tfversion=$TF_VERSION
 #
 # Ansible Version settings
 #
-ansible_version="${ansible_version:-2.9}"
+ansible_version="${ansible_version:-2.11}"
 ansible_major="${ansible_version%%.*}"
 ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
 
@@ -157,7 +157,7 @@ pkg_mgr_refresh()
         sudo ${pkg_mgr} update --quiet
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet refresh 
+        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet refresh
         ;;
     esac
 
@@ -182,7 +182,7 @@ pkg_mgr_upgrade()
         sudo ${pkg_mgr} upgrade --quiet -y
         ;;
     (zypper)
-        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet upgrade 
+        sudo ${pkg_mgr} --gpg-auto-import-keys --quiet upgrade
         ;;
     esac
 
@@ -230,284 +230,323 @@ tf_dir=${tf_base}/terraform_${tfversion}
 tf_bin=${tf_base}/bin
 tf_zip=terraform_${tfversion}_linux_amd64.zip
 
-
 #
-# Main body of script
+#Don't re-run the following if the script is already installed
 #
 
-# Check for supported distro
-case "$(get_distro_name_version)" in
-(sles_12*)
-    error "Unsupported distro: ${distro_name_version} doesn't provide virtualenv in standard repos."
-    exit 1
-    ;;
-(ubuntu*|sles*)
-    echo "${distro_name_version} is supported."
-    ;;
-(*)
-    error "Unsupported distro: ${distro_name_version} not currently supported."
-    exit 1
-    ;;
-esac
+if [ -f /etc/profile.d/deploy_server.sh ] ; then
+    echo Deployer already configured
+    exit 0
+else
+    #
+    # Main body of script
+    #
 
-# List of required packages whose names are common to all supported distros
-required_pkgs=(
-    jq
-    unzip
-    ca-certificates
-    curl
-    apt-transport-https
-    lsb-release
-    gnupg
-    sshpass
-    dos2unix
-)
+    # Check for supported distro
+    case "$(get_distro_name_version)" in
+    (sles_12*)
+        error "Unsupported distro: ${distro_name_version} doesn't provide virtualenv in standard repos."
+        exit 1
+        ;;
+    (ubuntu*|sles*)
+        echo "${distro_name_version} is supported."
+        ;;
+    (*)
+        error "Unsupported distro: ${distro_name_version} not currently supported."
+        exit 1
+        ;;
+    esac
 
-cli_pkgs=(
-    azure-cli
-)
 
-# Include distro version agnostic packages into required packages list
-case "$(get_distro_name)" in
-(ubuntu|sles)
-    required_pkgs+=(
-        python3-pip
-        python3-virtualenv
+    # List of required packages whose names are common to all supported distros
+    required_pkgs=(
+        jq
+        unzip
+        ca-certificates
+        curl
+        apt-transport-https
+        lsb-release
+        gnupg
+        sshpass
+        dos2unix
     )
-    ;;
-esac
 
-# Include distro version specific packages into required packages list
-case "$(get_distro_name_version)" in
-(ubuntu_18.04)
-    required_pkgs+=(
-        virtualenv
+    cli_pkgs=(
+        azure-cli
     )
-    ;;
-esac
-
-# Ensure our package metadata cache is up to date
-pkg_mgr_refresh
-
-# Install required packages as determined above
-pkg_mgr_install "${required_pkgs[@]}"
 
 
+    # Include distro version agnostic packages into required packages list
+    case "$(get_distro_name)" in
+    (ubuntu|sles)
+        required_pkgs+=(
+            python3-pip
+            python3-virtualenv
+        )
+        ;;
+    esac
 
-#
-# Clone Azure SAP Automated Deployment project repository
-#
-if [[ ! -d "${asad_dir}" ]]; then
-    git clone "${asad_repo}" "${asad_dir}"
-fi
+    # Include distro version specific packages into required packages list
+    case "$(get_distro_name_version)" in
+    (ubuntu_18.04)
+        required_pkgs+=(
+            virtualenv
+        )
+        ;;
+    esac
 
-chown -R "${USER}" "${asad_dir}"
-#
-# Install terraform for all users
-#
-sudo mkdir -p \
-    ${tf_dir} \
-    ${tf_bin}
-wget -nv -O /tmp/${tf_zip} https://releases.hashicorp.com/terraform/${tfversion}/${tf_zip}
-sudo unzip -o /tmp/${tf_zip} -d ${tf_dir}
-sudo ln -vfs ../$(basename ${tf_dir})/terraform ${tf_bin}/terraform
+    # Upgrade packages
+    pkg_mgr_upgrade
 
-rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-# Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository. 
-# This package is outdated and not recommended. If this package is installed, remove the package
-if [ "$rel" == "20.04" ]; then
-  if [ ! -f /etc/az_removed ]; then
+
+    # Ensure our package metadata cache is up to date
+    pkg_mgr_refresh
+
+    # Install required packages as determined above
+    pkg_mgr_install "${required_pkgs[@]}"
+
+
+    # Prepare Azure SAP Automated Deployment folder structure
+    mkdir -p \
+        ${asad_ws}/LOCAL/${rg_name} \
+        ${asad_ws}/LIBRARY \
+        ${asad_ws}/SYSTEM \
+        ${asad_ws}/LANDSCAPE \
+        ${asad_ws}/DEPLOYER
+
+    #
+    # Clone Azure SAP Automated Deployment project repository
+    #
+    if [[ ! -d "${asad_dir}" ]]; then
+        git clone "${asad_repo}" "${asad_dir}"
+    fi
+
+    chown -R "${USER}" "${asad_home}"
+    #
+    # Install terraform for all users
+    #
+    sudo mkdir -p \
+        ${tf_dir} \
+        ${tf_bin}
+    wget -nv -O /tmp/${tf_zip} https://releases.hashicorp.com/terraform/${tfversion}/${tf_zip} 
+    sudo unzip -o /tmp/${tf_zip} -d ${tf_dir}
+    sudo ln -vfs ../$(basename ${tf_dir})/terraform ${tf_bin}/terraform
+
+
+    rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+    # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
+    # This package is outdated and not recommended. If this package is installed, remove the package
+    if [ "$rel" == "20.04" ]; then
     echo "Removing Azure CLI"
-    sudo apt remove azure-cli -y 
+    sudo apt remove azure-cli -y
     sudo apt autoremove -y
     sudo apt update -y
-    sudo touch /etc/az_removed
-  fi
-fi
-#
-# Install az cli using provided scripting
-#
+    fi
+    #
+    # Install az cli using provided scripting
+    #
 
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
 
-/usr/bin/az extension add --name storage-blob-preview > /dev/null
 
-# Ensure our package metadata cache is up to date
-pkg_mgr_refresh
+    # Fail if any command exits with a non-zero exit status
+    set -o errexit
 
-pkg_mgr_upgrade
+    # Ensure our package metadata cache is up to date
+    # pkg_mgr_refresh
+    # pkg_mgr_upgrade
+    #
+    # Install latest Ansible revision of specified version for all users.
 
-#
-# Install latest Ansible revision of specified version for all users.
-#
-sudo mkdir -p \
-    ${ansible_bin} \
-    ${ansible_collections}
+    #
+    sudo mkdir -p \
+     ${ansible_bin} \
+     ${ansible_collections}
+
+
+    # Create a Python3 based venv into which we will install Ansible.
+    if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
+        sudo rm -rf ${ansible_venv}
+        sudo virtualenv --python python3 ${ansible_venv}
+    fi
+
+
+    # Fail if pip3 doesn't exist in the venv
+    if [[ ! -x "${ansible_venv_bin}/pip3" ]]; then
+        echo "Using the wrong pip3: '${found_pip3}' != '${ansible_venv_bin}/pip3'"
+        exit 1
+    fi
+
+
+    # Ensure that standard tools are up to date
+    sudo ${ansible_venv_bin}/pip3 install --upgrade \
+        pip \
+        wheel \
+        setuptools
+
+    # Install latest MicroSoft Authentication Library
+    # TODO(rtamalin): Do we need this? In particular do we expect to integrated
+    # Rust based tools with the Python/Ansible envs that we are using?
+    # sudo ${ansible_venv_bin}/pip3 install \
+    #    setuptools-rust
+
+
+    # Install latest revision of target Ansible version, along with additional
+    # useful/supporting Python packages such as ansible-lint, yamllint,
+    # argcomplete, pywinrm.
+    # ansible-lint \
+    #  yamllint \
     
-# Create a Python3 based venv into which we will install Ansible.
-if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
-    sudo rm -rf ${ansible_venv}
-    sudo virtualenv --python python3 ${ansible_venv}
-fi
-
-# Fail if pip3 doesn't exist in the venv
-if [[ ! -x "${ansible_venv_bin}/pip3" ]]; then
-    echo "Using the wrong pip3: '${found_pip3}' != '${ansible_venv_bin}/pip3'"
-    exit 1
-fi
-
-# Ensure that standard tools are up to date
-sudo ${ansible_venv_bin}/pip3 install --upgrade \
-    pip \
-    wheel \
-    setuptools
-
-sudo ${ansible_venv_bin}/pip3 install \
-    setuptools-rust
-
-# Install latest revision of target Ansible version, along with additional
-# useful/supporting Python packages such as ansible-lint, yamllint,
-# argcomplete, pywinrm.
-sudo ${ansible_venv_bin}/pip3 install \
-    "ansible>=${ansible_major}.${ansible_minor},<${ansible_major}.$((ansible_minor + 1))" \
-    ansible-lint \
-    argcomplete \
-    'pywinrm>=0.3.0' \
-    yamllint \
-    netaddr
-
-# Create symlinks for all relevant commands that were installed in the Ansible
-# venv's bin so that they are available in the /opt/ansible/bin directory, which
-# will be added to the system PATH. This ensures that we expose only those tools
-# that we need from the Ansible venv bin directory without superceding standard
-# system versions of the commands that are also found there, e.g. python3.
-ansible_venv_commands=(
-    # Ansible 2.9 command set
-    ansible
-    ansible-config
-    ansible-connection
-    ansible-console
-    ansible-doc
-    ansible-galaxy
-    ansible-inventory
-    ansible-playbook
-    ansible-pull
-    ansible-test
-    ansible-vault
-
-    # ansible-lint
-    ansible-lint
-
-    # argcomplete
-    activate-global-python-argcomplete
-
-    # yamllint
-    yamllint
-)
-
-relative_path="$(realpath --relative-to ${ansible_bin} ${ansible_venv_bin})"
-for vcmd in "${ansible_venv_commands[@]}"
-do
-    sudo ln -vfs ${relative_path}/${vcmd} ${ansible_bin}/${vcmd}
-done
-
-# Ensure that Python argcomplete is enabled for all users interactive shell sessions
-sudo ${ansible_bin}/activate-global-python-argcomplete
+    sudo ${ansible_venv_bin}/pip3 install \
+        "ansible-core>=${ansible_major}.${ansible_minor},<${ansible_major}.$((ansible_minor + 1))" \
+        argcomplete \
+        'pywinrm>=0.3.0' \
+        netaddr  \
+        jmespath
 
 
-# Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
-sudo mkdir -p ${ansible_collections}
+    # Create symlinks for all relevant commands that were installed in the Ansible
+    # venv's bin so that they are available in the /opt/ansible/bin directory, which
+    # will be added to the system PATH. This ensures that we expose only those tools
+    # that we need from the Ansible venv bin directory without superceding standard
+    # system versions of the commands that are also found there, e.g. python3.
+    ansible_venv_commands=(
+        # Ansible 2.9 command set
+        ansible
+        ansible-config
+        ansible-connection
+        ansible-console
+        ansible-doc
+        ansible-galaxy
+        ansible-inventory
+        ansible-playbook
+        ansible-pull
+        ansible-test
+        ansible-vault
 
-# sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
-# sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
+        # ansible-lint
+        # ansible-lint
 
-curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
+        # argcomplete
+        activate-global-python-argcomplete
 
-rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
-subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
-
-rm vm.json
-
-
-# Prepare Azure SAP Automated Deployment folder structure
-mkdir -p \
-    ${asad_ws}/LOCAL/${rg_name} \
-    ${asad_ws}/LIBRARY \
-    ${asad_ws}/SYSTEM \
-    ${asad_ws}/LANDSCAPE \
-    ${asad_ws}/DEPLOYER/${rg_name}
-
-#
-# Update current session
-#
-echo '# Configure environment settings for deployer interactive session' 
-
-# Add new /opt bin directories to start of PATH to ensure the versions we installed
-# are preferred over any installed standard system versions.
-
-export ARM_SUBSCRIPTION_ID=${subscription_id}
-export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation
-
-# Add new /opt bin directories to start of PATH to ensure the versions we installed
-# are preferred over any installed standard system versions.
-
-# Set env for ansible
-export ANSIBLE_HOST_KEY_CHECKING=False 
-export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} 
-
-# Set env for MSI
-export ARM_USE_MSI=true
-
-#
-# Create /etc/profile.d script to setup environment for future interactive sessions
-#
-export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible
+        # yamllint
+        # yamllint
+    )
 
 
-echo "# Configure environment settings for deployer interactive sessions" | tee -a /tmp/deploy_server.sh
-
-echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" | tee -a /tmp/deploy_server.sh
-echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a  /tmp/deploy_server.sh
-
-echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
-
-# Set env for ansible
-echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
-echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/deploy_server.sh
-
-# Set env for MSI
-echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
-
-/usr/bin/az login --identity 2>error.log || :
-# Ensure that the user's account is logged in to Azure with specified creds
-
-if [ ! -f error.log ]; then
-  /usr/bin/az account show > az.json
-  client_id=$(jq --raw-output .id az.json)
-  tenant_id=$(jq --raw-output .tenantId az.json)
-  rm az.json
-else
-  client_id=''
-  tenant_id=''
-fi
-
-if [ -n "${client_id}" ]; then
-  export ARM_CLIENT_ID=${client_id}
-  echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
-fi
-
-if [ -n "${tenant_id}" ]; then
-  export ARM_TENANT_ID=${tenant_id}
-  echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
-fi
-
-# Ensure that the user's account is logged in to Azure with specified creds
-echo "az login --identity --output none" | tee -a /tmp/deploy_server.sh
-echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
-
-sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
-
-/usr/bin/az login --identity --output none
-echo "${USER} account ready for use with Azure SAP Automated Deployment"
+    relative_path="$(realpath --relative-to ${ansible_bin} ${ansible_venv_bin})"
+    for vcmd in "${ansible_venv_commands[@]}"
+    do
+        sudo ln -vfs ${relative_path}/${vcmd} ${ansible_bin}/${vcmd}
+    done
 
 
+    # Ensure that Python argcomplete is enabled for all users interactive shell sessions
+    sudo ${ansible_bin}/activate-global-python-argcomplete
+
+    # Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
+    sudo mkdir -p ${ansible_collections}
+    sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.windows --force --collections-path ${ansible_collections}
+    sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.posix --force --collections-path ${ansible_collections}
+    sudo -H ${ansible_venv_bin}/ansible-galaxy collection install ansible.netcommon --force --collections-path ${ansible_collections}
+    sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.windows --force --collections-path ${ansible_collections}
+    sudo -H ${ansible_venv_bin}/ansible-galaxy collection install community.general --force --collections-path ${ansible_collections}
+    #
+    # Create /etc/profile.d script to setup environment for interactive sessions
+    #
+    echo '# Configure environment settings for deployer interactive sessions' | sudo tee /etc/profile.d/deploy_server.sh
+
+    export PATH="${PATH}":"${ansible_bin}":"${tf_bin}"
+
+    curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
+    
+    rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
+    subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
+    
+    rm vm.json
+    
+    
+    # Prepare Azure SAP Automated Deployment folder structure
+    mkdir -p \
+        ${asad_ws}/LOCAL/${rg_name} \
+        ${asad_ws}/LIBRARY \
+        ${asad_ws}/SYSTEM \
+        ${asad_ws}/LANDSCAPE \
+        ${asad_ws}/DEPLOYER/${rg_name}
+    
+    #
+    # Update current session
+    #
+    echo '# Configure environment settings for deployer interactive session' 
+    
+    # Add new /opt bin directories to start of PATH to ensure the versions we installed
+    # are preferred over any installed standard system versions.
+    
+    export ARM_SUBSCRIPTION_ID=${subscription_id}
+    export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation
+    
+    # Add new /opt bin directories to start of PATH to ensure the versions we installed
+    # are preferred over any installed standard system versions.
+    
+    # Set env for ansible
+    export ANSIBLE_HOST_KEY_CHECKING=False 
+    export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections:${ansible_collections} 
+    
+    # Set env for MSI
+    export ARM_USE_MSI=true
+    
+    #
+    # Create /etc/profile.d script to setup environment for future interactive sessions
+    #
+    export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible
+    
+    
+    echo "# Configure environment settings for deployer interactive sessions" | tee -a /tmp/deploy_server.sh
+    
+    echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" | tee -a /tmp/deploy_server.sh
+    echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a  /tmp/deploy_server.sh
+    
+    echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
+    
+    # Set env for ansible
+    echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
+    echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/deploy_server.sh
+    
+    # Set env for MSI
+    echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
+    
+    /usr/bin/az login --identity 2>error.log || :
+    # Ensure that the user's account is logged in to Azure with specified creds
+    
+    if [ ! -f error.log ]; then
+      /usr/bin/az account show > az.json
+      client_id=$(jq --raw-output .id az.json)
+      tenant_id=$(jq --raw-output .tenantId az.json)
+      rm az.json
+    else
+      client_id=''
+      tenant_id=''
+    fi
+    
+    if [ -n "${client_id}" ]; then
+      export ARM_CLIENT_ID=${client_id}
+      echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
+    fi
+    
+    if [ -n "${tenant_id}" ]; then
+      export ARM_TENANT_ID=${tenant_id}
+      echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
+    fi
+    
+    # Ensure that the user's account is logged in to Azure with specified creds
+    echo "az login --identity --output none" | tee -a /tmp/deploy_server.sh
+    echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
+    
+    sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
+    
+    /usr/bin/az login --identity --output none
+    echo "${USER} account ready for use with Azure SAP Automated Deployment"
+    
+fi    
+    

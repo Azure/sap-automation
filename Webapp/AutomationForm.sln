@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31702.278
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutomationForm", "AutomationForm\AutomationForm.csproj", "{520E02DD-D096-4542-B50C-2B93D4AB0671}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SDAFWebApp", "AutomationForm\SDAFWebApp.csproj", "{520E02DD-D096-4542-B50C-2B93D4AB0671}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutomationForm.UnitTests", "AutomationForm.UnitTests\AutomationForm.UnitTests.csproj", "{10584C61-C4D5-4CA9-B171-0FE75A60CACE}"
 EndProject

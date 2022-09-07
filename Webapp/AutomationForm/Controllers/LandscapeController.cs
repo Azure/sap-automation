@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Text;
@@ -19,17 +20,24 @@ namespace AutomationForm.Controllers
     public class LandscapeController : Controller
     {
 
-        private readonly ILandscapeService<LandscapeModel> _landscapeService;
+        private readonly ITableStorageService<LandscapeEntity> _landscapeService;
+        private readonly ITableStorageService<AppFile> _appFileService;
         private LandscapeViewModel landscapeView;
         private readonly IConfiguration _configuration;
         private RestHelper restHelper;
+        private ImageDropdown[] imagesOffered;
+        private List<SelectListItem> imageOptions;
+        private Dictionary<string, Image> imageMapping;
 
-        public LandscapeController(ILandscapeService<LandscapeModel> landscapeService, IConfiguration configuration)
+        public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _landscapeService = landscapeService;
+            _appFileService = appFileService;
             _configuration = configuration;
             restHelper = new RestHelper(configuration);
             landscapeView = SetViewData();
+            imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
+            InitializeImageOptionsAndMapping();
         }
         private LandscapeViewModel SetViewData()
         {
@@ -37,15 +45,17 @@ namespace AutomationForm.Controllers
             landscapeView.Landscape = new LandscapeModel();
             try
             {
-                ParameterGroupingModel basicParameterArray = Helper.ReadJson("ParameterDetails/BasicLandscapeDetails.json");
-                ParameterGroupingModel advancedParameterArray = Helper.ReadJson("ParameterDetails/AdvancedLandscapeDetails.json");
-                ParameterGroupingModel expertParameterArray = Helper.ReadJson("ParameterDetails/ExpertLandscapeDetails.json");
+                // ParameterGroupingModel basicParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/LandscapeDetails.json");
+                // ParameterGroupingModel advancedParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/AdvancedLandscapeDetails.json");
+                // ParameterGroupingModel expertParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/ExpertLandscapeDetails.json");
+                Grouping[] parameterArray = Helper.ReadJson<Grouping[]>("ParameterDetails/LandscapeDetails.json");
 
-                landscapeView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
+                // landscapeView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
+                landscapeView.ParameterGroupings = parameterArray;
             }
             catch
             {
-                landscapeView.ParameterGroupings = new ParameterGroupingModel[0];
+                landscapeView.ParameterGroupings = new Grouping[0];
             }
 
             return landscapeView;
@@ -54,8 +64,44 @@ namespace AutomationForm.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
-            ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
-            return View(await _landscapeService.GetAllAsync());
+            LandscapeIndexModel landscapeIndex = new LandscapeIndexModel();
+
+            try
+            {
+                List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
+                List<LandscapeModel> landscapes = landscapeEntities.FindAll(l => l.Landscape != null).ConvertAll(l => JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape));
+                landscapeIndex.Landscapes = landscapes;
+
+                List<AppFile> appfiles = await _appFileService.GetAllAsync();
+                landscapeIndex.AppFiles = appfiles.FindAll(file => file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error retrieving existing workload zones: " + e.Message;
+            }
+
+            return View(landscapeIndex);
+        }
+
+        public void InitializeImageOptionsAndMapping()
+        {
+            imageMapping = new Dictionary<string, Image>();
+            imageOptions = new List<SelectListItem>
+            {
+                new SelectListItem()
+            };
+
+            if (imagesOffered.Length > 0)
+            {
+                foreach (ImageDropdown imageDropdown in imagesOffered)
+                {
+                    if (!imageMapping.ContainsKey(imageDropdown.name))
+                    {
+                        imageMapping.Add(imageDropdown.name, imageDropdown.data);
+                        imageOptions.Add(new SelectListItem(imageDropdown.name, imageDropdown.name));
+                    }
+                }
+            }
         }
 
         [HttpGet]
@@ -67,14 +113,14 @@ namespace AutomationForm.Controllers
             };
             try
             {
-                List<LandscapeModel> landscapes = await _landscapeService.GetAllAsync();
+                List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
 
-                foreach (LandscapeModel l in landscapes)
+                foreach (LandscapeEntity e in landscapeEntities)
                 {
                     options.Add(new SelectListItem
                     {
-                        Text = l.Id,
-                        Value = l.Id
+                        Text = e.RowKey,
+                        Value = e.RowKey
                     });
                 }
             }
@@ -86,26 +132,45 @@ namespace AutomationForm.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<LandscapeModel>> GetById(string id)
+        public async Task<LandscapeModel> GetById(string id, string partitionKey)
         {
-            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
-            if (landscape == null) return NotFound();
-
-            return landscape;
+            if (id == null || partitionKey == null) throw new ArgumentNullException();
+            var landscapeEntity = await _landscapeService.GetByIdAsync(id, partitionKey);
+            if (landscapeEntity == null || landscapeEntity.Landscape == null) throw new KeyNotFoundException();
+            return JsonConvert.DeserializeObject<LandscapeModel>(landscapeEntity.Landscape);
         }
 
         // Format correctly for javascript consumption
         [HttpGet]
         public async Task<ActionResult> GetByIdJson(string id)
         {
-            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
-            if (landscape == null) return NotFound();
-            return Json(JsonConvert.SerializeObject(landscape));
+            string environment = id.Substring(0, id.IndexOf('-'));
+            LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, environment);
+            if (landscape == null || landscape.Landscape == null) return NotFound();
+            return Json(landscape.Landscape);
+        }
+
+        [HttpGet]
+        public async Task<LandscapeModel> GetDefault()
+        {
+            LandscapeEntity defaultLandscape = await _landscapeService.GetDefault();
+            if (defaultLandscape == null || defaultLandscape.Landscape == null) return null;
+            return JsonConvert.DeserializeObject<LandscapeModel>(defaultLandscape.Landscape);
+        }
+
+        [HttpGet]
+        public ActionResult GetDefaultJson()
+        {
+            LandscapeEntity landscapeEntity = _landscapeService.GetDefault().Result;
+            if (landscapeEntity == null) return NotFound();
+            return Json(landscapeEntity.Landscape);
         }
 
         [ActionName("Create")]
         public IActionResult Create()
         {
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
             return View(landscapeView);
         }
 
@@ -114,64 +179,72 @@ namespace AutomationForm.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(LandscapeModel landscape)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid || landscape.IsDefault)
             {
                 try
                 {
+                    if (landscape.IsDefault)
+                    {
+                        await UnsetDefault(landscape.Id);
+                    }
                     landscape.Id = Helper.GenerateId(landscape);
-                    await _landscapeService.CreateAsync(landscape);
-                    TempData["success"] = "Successfully created landscape " + landscape.Id;
+                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     return RedirectToAction("Index");
                 }
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("LandscapeId", "Error creating landscape: " + e.Message);
+                    ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
                 }
             }
 
             landscapeView.Landscape = landscape;
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View(landscapeView);
         }
 
         [ActionName("Deploy")]
-        public async Task<IActionResult> DeployAsync(string id)
+        public async Task<IActionResult> DeployAsync(string id, string partitionKey)
         {
-            if (id == null)
+            try
             {
-                return BadRequest();
-            }
+                LandscapeModel landscape = await GetById(id, partitionKey);
 
-            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
-            if (landscape == null)
+                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                ViewBag.Environments = environments;
+
+                return View(landscape);
+            }
+            catch (Exception e)
             {
-                return NotFound();
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
             }
-
-            return View(landscape);
         }
 
         [HttpPost]
         [ActionName("Deploy")]
-        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string environment, string workload_environment)
+        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string environment, string workload_environment, string deployer_region_parameter)
         {
             try
             {
-                LandscapeModel landscape = GetById(id).Result.Value;
+                LandscapeModel landscape = await GetById(id, partitionKey);
 
-                string path = $"samples/WORKSPACES/LANDSCAPE/{id}/{id}.tfvars";
+                string path = $"/LANDSCAPE/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
                 string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
                 bool isSystem = false;
 
                 await restHelper.UpdateRepo(path, content);
-                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment);
+                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment, deployer_region_parameter);
                 
-                TempData["success"] = "Successfully deployed landscape " + id;
+                TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }
-            catch
+            catch (Exception e)
             {
-                TempData["error"] = "Error deploying landscape " + id;
+                TempData["error"] = "Error deploying workload zone " + id + ": " + e.Message;
             }
             return RedirectToAction("Index");
         }
@@ -199,27 +272,27 @@ namespace AutomationForm.Controllers
         // public async Task<IActionResult> DeleteConfirmedAsync(string id)
         // {
         //     await _landscapeService.DeleteAsync(id);
-        //     TempData["success"] = "Successfully deleted landscape " + id;
+        //     TempData["success"] = "Successfully deleted workload zone " + id;
         //     return RedirectToAction("Index");
         // }
 
         [ActionName("Edit")]
-        public async Task<IActionResult> EditAsync(string id)
+        public async Task<IActionResult> EditAsync(string id, string partitionKey)
         {
-            if (id == null)
+            try
             {
-                return BadRequest();
+                ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
+                LandscapeModel landscape = result.Value;
+                landscapeView.Landscape = landscape;
+                ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+                ViewBag.ImageOptions = imageOptions;
+                return View(landscapeView);
             }
-
-            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
-            if (landscape == null)
+            catch (Exception e)
             {
-                return NotFound();
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
             }
-
-            landscapeView.Landscape = landscape;
-
-            return View(landscapeView);
         }
 
         [HttpPost]
@@ -229,21 +302,35 @@ namespace AutomationForm.Controllers
         {
             if (ModelState.IsValid)
             {
-                string newId = Helper.GenerateId(landscape);
-                if (landscape.Id == null) landscape.Id = newId;
-                if (newId != landscape.Id)
+                try
                 {
-                    return SubmitNewAsync(landscape).Result;
+                    string newId = Helper.GenerateId(landscape);
+                    if (landscape.Id == null) landscape.Id = newId;
+                    if (newId != landscape.Id)
+                    {
+                        landscape.Id = newId;
+                        return SubmitNewAsync(landscape).Result;
+                    }
+                    else
+                    {
+                        if (landscape.IsDefault)
+                        {
+                            await UnsetDefault(landscape.Id);
+                        }
+                        await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
+                        TempData["success"] = "Successfully updated workload zone " + landscape.Id;
+                        return RedirectToAction("Index");
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    await _landscapeService.UpdateAsync(landscape);
-                    TempData["success"] = "Successfully updated landscape " + landscape.Id;
-                    return RedirectToAction("Index");
+                    ModelState.AddModelError("LandscapeId", "Error editing workload zone: " + e.Message);
                 }
             }
 
             landscapeView.Landscape = landscape;
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View(landscapeView);
         }
@@ -257,38 +344,51 @@ namespace AutomationForm.Controllers
             {
                 try
                 {
+                    if (landscape.IsDefault)
+                    {
+                        await UnsetDefault(landscape.Id);
+                    }
                     landscape.Id = Helper.GenerateId(landscape);
-                    await _landscapeService.CreateAsync(landscape);
-                    TempData["success"] = "Successfully created landscape " + landscape.Id;
+                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     return RedirectToAction("Index");
                 }
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("LandscapeId", "Error creating landscape: " + e.Message);
+                    ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
                 }
             }
 
             landscapeView.Landscape = landscape;
+            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
+            ViewBag.ImageOptions = imageOptions;
 
             return View("Edit", landscapeView);
         }
 
         [ActionName("Details")]
-        public async Task<IActionResult> DetailsAsync(string id)
-        {
-            LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
-            if (landscape == null) return NotFound();
-            landscapeView.Landscape = landscape;
-            return View(landscapeView);
-        }
-
-        [ActionName("Download")]
-        public ActionResult DownloadFile(string id)
+        public async Task<IActionResult> DetailsAsync(string id, string partitionKey)
         {
             try
             {
-                if (id == null) return BadRequest();
-                LandscapeModel landscape = GetById(id).Result.Value;
+                ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
+                LandscapeModel landscape = result.Value;
+                landscapeView.Landscape = landscape;
+                return View(landscapeView);
+            }
+            catch (Exception e) 
+            { 
+                TempData["error"] = e.Message; 
+                return RedirectToAction("Index"); 
+            }
+        }
+
+        [ActionName("Download")]
+        public ActionResult DownloadFile(string id, string partitionKey)
+        {
+            try
+            {
+                LandscapeModel landscape = GetById(id, partitionKey).Result;
 
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
@@ -299,10 +399,50 @@ namespace AutomationForm.Controllers
                     FileDownloadName = path
                 };
             }
-            catch
+            catch (Exception e)
             {
-                TempData["error"] = "Something went wrong downloading file " + id;
+                TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
                 return RedirectToAction("Index");
+            }
+        }
+
+        [ActionName("MakeDefault")]
+        public async Task<IActionResult> MakeDefault(string id, string partitionKey)
+        {
+            try
+            {
+                await UnsetDefault(id);
+                
+                ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
+                LandscapeModel landscape = result.Value;
+
+                landscape.IsDefault = true;
+                LandscapeEntity landscapeEntity = new LandscapeEntity(landscape);
+                await _landscapeService.UpdateAsync(landscapeEntity);
+                TempData["success"] = id + " is now the default workload zone";
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error setting default for workload zone: " + e.Message;
+            }
+            return RedirectToAction("Index");
+        }
+
+        public async Task UnsetDefault(string id)
+        {
+            try
+            {
+                LandscapeModel existingDefault = await GetDefault();
+                if (existingDefault != null && existingDefault.Id != id)
+                {
+                    existingDefault.IsDefault = false;
+                    await _landscapeService.UpdateAsync(new LandscapeEntity(existingDefault));
+                    Console.WriteLine("Unset existing default " + existingDefault.Id);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error unsetting the current default object: " + e.Message);
             }
         }
         

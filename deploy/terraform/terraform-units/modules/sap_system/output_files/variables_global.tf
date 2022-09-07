@@ -1,4 +1,4 @@
-variable "databases" {}
+variable "database" {}
 variable "infrastructure" {}
 variable "authentication" {}
 
@@ -216,4 +216,9 @@ variable "save_naming_information" {
 
 variable "use_secondary_ips" {
   description = "Use secondary IPs for the SAP System"
+}
+
+variable "web_sid" {
+  description = "The sid of the web dispatchers"
+  default     = ""
 }

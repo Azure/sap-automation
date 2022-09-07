@@ -227,7 +227,7 @@
         path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oracle
         state:                         file
         owner:                         oracle
-        mode:                          6751
+        mode:                          06751
       tags:
         - skip_ansible_lint
 

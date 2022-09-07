@@ -16,6 +16,7 @@ using System.Net;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using AutomationForm.Services;
 
 namespace AutomationForm.Controllers
 {
@@ -129,6 +130,7 @@ namespace AutomationForm.Controllers
             }
             else if (property.PropertyType == typeof(Image))
             {
+                if (value == null) return "#" + property.Name + " = {}";
                 Image img = (Image)value;
                 if (img.IsInitialized)
                 {
@@ -192,14 +194,14 @@ namespace AutomationForm.Controllers
             string requestJson = JsonSerializer.Serialize(requestBody);
             return new StringContent(requestJson, Encoding.ASCII, "application/json");
         }
-        public static ParameterGroupingModel ReadJson(string filename)
+        public static T ReadJson<T>(string filename)
         {
             if (System.IO.File.Exists(filename))
             {
                 string jsonString = System.IO.File.ReadAllText(filename);
-                ParameterGroupingModel parameterArray = JsonSerializer.Deserialize<ParameterGroupingModel>(jsonString);
+                T deserializedObj = JsonSerializer.Deserialize<T>(jsonString);
 
-                return parameterArray;
+                return deserializedObj;
             }
             else
             {
@@ -221,12 +223,13 @@ namespace AutomationForm.Controllers
             }
             else
             {
-                throw new Exception("Object provided is neither a system nor a landscape");
+                throw new Exception("Object provided is neither a system nor a workload zone");
             }
             return id;
         }
         private static string MapRegion(string region)
         {
+            if (region == null) return "";
             if (regionMapping.ContainsKey(region))
             {
                 return regionMapping[region];
@@ -385,6 +388,51 @@ namespace AutomationForm.Controllers
             }
             return jsonString.ToString();
             
+        }
+
+        public static async Task<AppFile> GetImagesFile(ITableStorageService<AppFile> appFileService)
+        {
+            string filename = "VM-Images.json";
+            string partitionKey = "VM";
+            AppFile file = null;
+            try
+            {
+                file = await appFileService.GetByIdAsync(filename, partitionKey);
+                if (file == null) throw new KeyNotFoundException();
+            }
+            catch
+            {
+                byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + filename);
+
+                using (MemoryStream memory = new MemoryStream(byteContent))
+                {
+                    file = new AppFile()
+                    {
+                        Id = WebUtility.HtmlEncode(filename),
+                        Content = byteContent,
+                        UntrustedName = filename,
+                        Size = memory.Length,
+                        UploadDT = DateTime.UtcNow
+                    };
+                }
+            }
+            return file ?? new AppFile();
+        }
+
+        public static async Task<ImageDropdown[]> GetOfferedImages(ITableStorageService<AppFile> appFileService)
+        {
+            try
+            {
+                AppFile file = await GetImagesFile(appFileService);
+                byte[] bytes = file.Content;
+                string jsonString = Encoding.UTF8.GetString(bytes);
+                ImageDropdown[] images = System.Text.Json.JsonSerializer.Deserialize<ImageDropdown[]>(jsonString);
+                return images;
+            }
+            catch
+            {
+                return new ImageDropdown[0];
+            }
         }
 
     }

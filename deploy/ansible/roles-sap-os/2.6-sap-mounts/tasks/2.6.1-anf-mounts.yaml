@@ -21,10 +21,9 @@
         'app_inst_no': '{{ app_instance_number }}'
       }
 
-
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [ this_sid ] }}{% endif %}"
+    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
     db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: Ensure the NFS service is stopped"
@@ -163,6 +162,7 @@
       ansible.builtin.file:
         path:                          "/saptmp"
         state:                         directory
+        mode:                          0755
         group:                         sapsys
       tags:
         - skip_ansible_lint
@@ -170,7 +170,7 @@
     - name:                            "ANF Mount: (sapmnt)"
       block:
         - name:                        "ANF Mount: Filesystems on ANF (sapmnt)"
-          ansible.builtin.mount:
+          mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
@@ -207,7 +207,7 @@
       when:                            MULTI_SIDS is defined
 
     - name:                            "ANF Mount: Unmount file systems (sap_mnt)"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ sap_mnt }}"
         path:                          "/saptmp"
         state:                         unmounted
@@ -231,7 +231,7 @@
       when:                            MULTI_SIDS is defined
 
     - name:                            "ANF Mount: Cleanup fstab and directory (sap_mnt)"
-      ansible.builtin.mount:
+      mount:
         src:                           "{{ sap_mnt }}"
         path:                          "/saptmp"
         fstype:                        "nfs4"
@@ -270,6 +270,7 @@
   ansible.builtin.file:
     path:                              "{{ item.item.path }}"
     state:                             directory
+    mode:                              0755
     attr:                              i+
   loop: "{{ is_created_now.results }}"
   when:
@@ -302,6 +303,7 @@
   ansible.builtin.file:
     path:                              "{{ item.item.path }}"
     state:                             directory
+    mode:                              0755
     attr:                              i+
   loop: "{{ is_created_now3.results }}"
   when:
@@ -312,7 +314,7 @@
     - skip_ansible_lint
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-  ansible.builtin.mount:
+  mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -329,7 +331,7 @@
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
   become:                              true
   become_user:                         root
-  ansible.builtin.mount:
+  mount:
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
@@ -342,7 +344,7 @@
     - MULTI_SIDS is defined
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }}"
-  ansible.builtin.mount:
+  mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -357,7 +359,7 @@
     - sap_mnt is defined
 
 - name:                                "ANF Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-  ansible.builtin.mount:
+  mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"

@@ -17,7 +17,7 @@ resource "azurerm_public_ip" "deployer" {
     local.prefix,
     var.naming.separator,
     var.naming.virtualmachine_names.DEPLOYER[count.index],
-    local.resource_suffixes.pip
+    var.naming.resource_suffixes.pip
   )
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
@@ -38,7 +38,7 @@ resource "azurerm_network_interface" "deployer" {
     local.prefix,
     var.naming.separator,
     var.naming.virtualmachine_names.DEPLOYER[count.index],
-    local.resource_suffixes.nic
+    var.naming.resource_suffixes.nic
   )
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
@@ -76,7 +76,7 @@ resource "azurerm_network_interface" "deployer" {
 resource "azurerm_user_assigned_identity" "deployer" {
   resource_group_name = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location            = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  name                = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, local.resource_suffixes.msi)
+  name                = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, var.naming.resource_suffixes.msi)
 }
 
 # // Add role to be able to deploy resources
@@ -95,7 +95,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
     local.prefix,
     var.naming.separator,
     var.naming.virtualmachine_names.DEPLOYER[count.index],
-    local.resource_suffixes.vm
+    var.naming.resource_suffixes.vm
   )
   computer_name = var.naming.virtualmachine_names.DEPLOYER[count.index]
   resource_group_name = local.resource_group_exists ? (
@@ -118,7 +118,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
       local.prefix,
       var.naming.separator,
       var.naming.virtualmachine_names.DEPLOYER[count.index],
-      local.resource_suffixes.osdisk
+      var.naming.resource_suffixes.osdisk
     )
     caching                = "ReadWrite"
     storage_account_type   = var.deployer.disk_type
@@ -171,7 +171,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 resource "azurerm_virtual_machine_extension" "configure" {
 
-  count = !local.enable_deployer_public_ip && var.configure && var.auto_configure_deployer ? var.deployer_vm_count : 0
+  count = var.configure && var.auto_configure_deployer ? var.deployer_vm_count : 0
 
   name                 = "configure_deployer"
   virtual_machine_id   = azurerm_linux_virtual_machine.deployer[count.index].id
@@ -194,7 +194,7 @@ resource "azurerm_virtual_machine_extension" "configure" {
       pool            = var.agent_pool
       pat             = var.agent_pat
       ado_repo        = var.agent_ado_url
-
+      use_webapp      = var.use_webapp
     }
   )
 )

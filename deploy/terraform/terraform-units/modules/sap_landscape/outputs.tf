@@ -12,15 +12,24 @@ output "created_resource_group_id" {
   )
 }
 
-output "created_resource_group_subscription_id" {
-  description = "Created resource group' subscription ID"
+output "created_resource_group_name" {
+  description = "Created resource group name"
   value = local.resource_group_exists ? (
-    split("/",data.azurerm_resource_group.resource_group[0].id))[2] : (
-    split("/",azurerm_resource_group.resource_group[0].id)[2]
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
   )
 }
 
-  
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+  value = local.resource_group_exists ? (
+    split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
+    split("/", azurerm_resource_group.resource_group[0].id)[2]
+  )
+}
+
+
+
 ###############################################################################
 #                                                                             # 
 #                            Network                                          # 
@@ -29,7 +38,7 @@ output "created_resource_group_subscription_id" {
 
 output "vnet_sap_id" {
   description = "Azure resource identifier for the Virtual Network"
-  value = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
+  value       = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
 }
 
 output "random_id" {
@@ -38,7 +47,7 @@ output "random_id" {
 
 output "route_table_id" {
   description = "Azure resource identifier for the route table"
-  value = local.vnet_sap_exists ? "" : azurerm_route_table.rt[0].id
+  value       = local.vnet_sap_exists ? "" : azurerm_route_table.rt[0].id
 }
 
 output "admin_subnet_id" {
@@ -127,7 +136,7 @@ output "subnet_mgmt_id" {
 
 output "kv_user" {
   description = "Azure resource identifier for the user credential keyvault"
-  value = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  value       = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 # TODO Add this back when we separate the usage
@@ -162,7 +171,7 @@ output "workload_zone_prefix" {
 ###############################################################################
 
 output "storageaccount_name" {
-  description = "Diagnostics storage account name" 
+  description = "Diagnostics storage account name"
   value = length(var.diagnostics_storage_account.arm_id) > 0 ? (
     data.azurerm_storage_account.storage_bootdiag[0].name) : (
     azurerm_storage_account.storage_bootdiag[0].name
@@ -347,11 +356,11 @@ output "install_path" {
 
 output "iscsi_authentication_type" {
   description = "Authentication type for iSCSI device"
-  value = local.iscsi_auth_type
+  value       = local.iscsi_auth_type
 }
 output "iscsi_authentication_username" {
   description = "Username for iSCSI device"
-  value = local.iscsi_auth_username
+  value       = local.iscsi_auth_username
 }
 
 output "nics_iscsi" {

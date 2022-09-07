@@ -59,6 +59,13 @@ variable "authentication" {
   }
 }
 
+#########################################################################################
+#                                                                                       #
+#  Key Vault variables                                                                  #
+#                                                                                       #
+#########################################################################################
+
+
 variable "key_vault" {
   description = "The user brings existing Azure Key Vaults"
   default = {
@@ -92,8 +99,27 @@ variable "key_vault" {
     error_message = "If specified, the kv_prvt_id needs to be a correctly formed Azure resource ID."
   }
 
-
 }
+
+variable "additional_users_to_add_to_keyvault_policies" {
+  description = "Additional users to add to the key vault policies"
+}
+
+variable "enable_purge_control_for_keyvaults" {
+  description = "Disables the purge protection for Azure keyvaults."
+}
+
+
+variable "enable_rbac_authorization_for_keyvault" {
+  description = "Enables RBAC authorization for Azure keyvault"
+}
+
+#########################################################################################
+#                                                                                       #
+#  Storage Account Variables                                                            #
+#                                                                                       #
+#########################################################################################
+
 
 variable "diagnostics_storage_account" {
   description = "Storage account information for diagnostics account"
@@ -108,6 +134,45 @@ variable "witness_storage_account" {
     arm_id = ""
   }
 }
+
+
+variable "transport_volume_size" {
+  description = "The volume size in GB for transport volume"
+}
+
+variable "install_volume_size" {
+  description = "The volume size in GB for install volume"
+}
+
+
+variable "transport_storage_account_id" {
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
+}
+
+variable "transport_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+}
+
+variable "install_storage_account_id" {
+  description = "Azure Resource Identifier for an existing storage account"
+  type        = string
+}
+
+variable "install_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default     = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  Miscallaneous variables                                                              #
+#                                                                                       #
+#########################################################################################
+
+
 
 variable "deployment" {
   description = "The type of deployment"
@@ -143,13 +208,18 @@ variable "ANF_settings" {
     arm_id        = ""
     service_level = "Standard"
     size_in_tb    = 4
+    qos_type      = "Manual"
 
   }
 }
 
-variable "enable_purge_control_for_keyvaults" {
-  description = "Allow the deployment to control the purge protection"
-}
+#########################################################################################
+#                                                                                       #
+#  DNS Settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
 
 variable "dns_label" {
   description = "DNS label"
@@ -162,39 +232,33 @@ variable "dns_resource_group_name" {
 }
 
 variable "use_private_endpoint" {
-  type        = bool
-  description = "Private endpoint"
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
   default     = false
+  type        = bool
 }
 
-variable "transport_volume_size" {
-  description = "The volume size in GB for transport volume"
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
 }
 
-variable "install_volume_size" {
-  description = "The volume size in GB for install volume"
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
 }
 
-
-variable "transport_storage_account_id" {
-  description = "Azure Resource Identifier for an existing storage account"
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
   type        = string
 }
 
-variable "transport_private_endpoint_id" {
-  description = "Azure Resource Identifier for an private endpoint connection"
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
   type        = string
-}
-
-variable "install_storage_account_id" {
-  description = "Azure Resource Identifier for an existing storage account"
-  type        = string
-}
-
-variable "install_private_endpoint_id" {
-  description = "Azure Resource Identifier for an private endpoint connection"
-  type        = string
-  default = ""
 }
 
 variable "NFS_provider" {
@@ -207,6 +271,19 @@ variable "Agent_IP" {
   default = ""
 }
 
-variable "enable_rbac_authorization_for_keyvault" {
-  description = "Enables RBAC authorization for Azure keyvault"
+variable "vm_settings" {
+  description = "Details of the jumpbox to deploy"
+  default = {
+    count = 0
+  }
+}
+
+variable "peer_with_control_plane_vnet" {
+  description = "Defines in the SAP VNet will be peered with the controlplane VNet"
+  type        = bool
+}
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  type        = bool
 }

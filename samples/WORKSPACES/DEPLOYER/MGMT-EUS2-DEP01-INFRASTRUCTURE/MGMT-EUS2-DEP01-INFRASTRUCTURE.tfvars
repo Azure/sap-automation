@@ -1,18 +1,18 @@
 
 # Infrastructure block
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment="MGMT"
+environment = "MGMT"
 
 
 # The location/region value is a mandatory field, it is used to control where the resources are deployed
-location="eastus2"
+location = "eastus2"
 
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
 # The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
 # The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
 #resourcegroup_name=""
-resourcegroup_arm_id="<azure_resource_id>"
+resourcegroup_arm_id = "<azure_resource_id>"
 
 
 #resourcegroup_tags = {
@@ -23,7 +23,7 @@ resourcegroup_arm_id="<azure_resource_id>"
 #
 
 #management_network_name=""
-management_network_arm_id="<azure_resource_id>"
+management_network_arm_id = "<azure_resource_id>"
 #management_network_address_space="10.10.20.0/25"
 
 
@@ -35,7 +35,7 @@ management_network_arm_id="<azure_resource_id>"
 # management_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 #management_subnet_address_prefix="10.10.20.64/28"
 # management_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
-management_subnet_arm_id="<azure_resource_id>"
+management_subnet_arm_id = "<azure_resource_id>"
 
 # management_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 #management_subnet_nsg_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/MGMT-WEEU-MGMT01-INFRASTRUCTURE/providers/Microsoft.Network/networkSecurityGroups/MGMT-WEEU-SAP01_managementSubnet-nsg"
@@ -47,10 +47,10 @@ management_subnet_arm_id="<azure_resource_id>"
 ##################################################
 
 # firewall_deployment is a boolean flag controlling if an Azure firewall is to be deployed in the deployer VNet
-firewall_deployment=false
+firewall_deployment = false
 
 # management_firewall_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing firewall subnet
-management_firewall_subnet_arm_id= ="<azure_resource_id>"
+management_firewall_subnet_arm_id = "<azure_resource_id>"
 
 # management_firewall_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
 #management_firewall_subnet_address_prefix="10.10.20.0/26"
@@ -64,17 +64,17 @@ management_firewall_subnet_arm_id= ="<azure_resource_id>"
 
 ##################################################
 #
-# Cosmos Database Subnet
+# Webapp Subnet
 #
 ##################################################
 
 # one of the following two parameters is required when deploying the web app as a part of the control plane infrastructure
 
-# cmdb_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
-#cmdb_subnet_address_prefix="10.10.20.128/26"
+# webapp_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
+# webapp_subnet_address_prefix = "10.10.20.128/26"
 
-# cmdb_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing cmdb subnet
-# cmdb_subnet_arm_id= ""
+# webapp_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing webapp subnet
+# webapp_subnet_arm_id= ""
 
 ##################################################
 #
@@ -83,7 +83,7 @@ management_firewall_subnet_arm_id= ="<azure_resource_id>"
 ##################################################
 
 # bastion_deployment is a boolean flag controlling if Azure bastion is to be deployed in the deployer VNet
-bastion_deployment=false
+bastion_deployment = false
 
 # management_bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing AzureBastion subnet
 # management_bastion_subnet_arm_id= ""
@@ -98,7 +98,7 @@ bastion_deployment=false
 #
 ########################################################
 
-deployer_enable_public_ip=true
+deployer_enable_public_ip = true
 
 # deployer_size is optional and defines the virtual machine SKU
 #deployer_size="Standard_D4ds_v4"
@@ -173,6 +173,13 @@ This block describes the variables for the authentication section block in the j
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false
 
+# use_service_endpoint is a boolean flag controlling service_endpoints are used
+#use_service_endpoint=false
+
 # auto_configure_deployer is a boolean flag controlling if the automation should try to configure the deployer automatically
 # set to false if outbound internet on the deployer is not available
 auto_configure_deployer = true
+
+
+# List of object IDs to add to key vault policies"
+#additional_users_to_add_to_keyvault_policies=["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]

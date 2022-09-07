@@ -118,9 +118,9 @@ locals {
           arm_id = var.management_bastion_subnet_arm_id
           prefix = var.management_bastion_subnet_address_prefix
         }
-        subnet_cmdb = {
-          arm_id = var.cmdb_subnet_arm_id
-          prefix = var.cmdb_subnet_address_prefix
+        subnet_webapp = {
+          arm_id = var.webapp_subnet_arm_id
+          prefix = var.webapp_subnet_address_prefix
         }
       }
     }
