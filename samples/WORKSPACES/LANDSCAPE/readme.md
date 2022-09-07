@@ -12,7 +12,7 @@ This configuration deploys a Workload zone with the following components:
 
 | Component                            | Name                            | Location        | Notes                                          |
 | ------------------------------------ | ------------------------------- | --------------- | ---------------------------------------------- |
-| Resource Group                       | MGMT-WEEU-DEP00-INFRASTRUCTURE  | westeurope      |                                                |
+| Resource Group                       | DEV-WEEU-SAP01-INFRASTRUCTURE   | westeurope      |                                                |
 |                                      |                                 |                 |                                                |
 | Virtual Network                      | DEV-WEEU-SAP01-vnet             | westeurope      | Address space:     10.110.0.0/16               |
 | Subnet (database)                    | DEV-WEEU-SAP01_db-subnet        | westeurope      | Address space:     10.110.96.0/19              |
@@ -24,6 +24,54 @@ This configuration deploys a Workload zone with the following components:
 | Network security group (application) | DEV-WEEU-SAP01_appSubnet-nsg    | westeurope      |                                                |
 | Network security group (web)         | DEV-WEEU-SAP01_webSubnet-nsg    | westeurope      |                                                |
 | Network security group (admin)       | DEV-WEEU-SAP01_appSubnet-nsg    | westeurope      |                                                |
+|                                      |                                 |                 |                                                |
+| Key Vault                            | DEVWEEUSAP01user###             | westeurope      | '###' Is a random identifier                   |
+|                                      |                                 |                 |                                                |
+| Storage Account                      | devweeusap01diag###             | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
+| Storage Account                      | devweeusap01witness###          | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
+
+## QA-WEEU-SAP02-INFRASTRUCTURE ##
+
+This configuration deploys a Workload zone with the following components:
+
+| Component                            | Name                            | Location        | Notes                                          |
+| ------------------------------------ | ------------------------------- | --------------- | ---------------------------------------------- |
+| Resource Group                       | QA-WEEU-SAP02-INFRASTRUCTURE    | westeurope      |                                                |
+|                                      |                                 |                 |                                                |
+| Virtual Network                      | QA-WEEU-SAP02-vnet              | westeurope      | Address space:     10.111.0.0/16               |
+| Subnet (database)                    | QA-WEEU-SAP02_db-subnet         | westeurope      | Address space:     10.111.96.0/19              |
+| Subnet (application)                 | QA-WEEU-SAP02_app-subnet        | westeurope      | Address space:     10.111.32.0/19              |
+| Subnet (web)                         | QA-WEEU-SAP02_web-subnet        | westeurope      | Address space:     10.111.128.0/19             |
+| Subnet (admin)                       | QA-WEEU-SAP02_admin-subnet      | westeurope      | Address space:     10.111.0.0/19               |
+| Route table                          | QA-WEEU-SAP02_route-table       | westeurope      |                                                |
+| Network security group (database)    | QA-WEEU-SAP02_dbSubnet-nsg      | westeurope      |                                                |
+| Network security group (application) | QA-WEEU-SAP02_appSubnet-nsg     | westeurope      |                                                |
+| Network security group (web)         | QA-WEEU-SAP02_webSubnet-nsg     | westeurope      |                                                |
+| Network security group (admin)       | QA-WEEU-SAP02_appSubnet-nsg     | westeurope      |                                                |
+|                                      |                                 |                 |                                                |
+| Key Vault                            | DEVWEEUSAP01user###             | westeurope      | '###' Is a random identifier                   |
+|                                      |                                 |                 |                                                |
+| Storage Account                      | devweeusap01diag###             | westeurope      | Storage account used for Virtual Machine diagnostic logs. '###' Is a random identifier                   |
+| Storage Account                      | devweeusap01witness###          | westeurope      | Cloud witness storage account used for Windows High Availability. '###' Is a random identifier                   |
+
+## PRD-WEEU-SAP03-INFRASTRUCTURE ##
+
+This configuration deploys a Workload zone with the following components:
+
+| Component                            | Name                            | Location        | Notes                                          |
+| ------------------------------------ | ------------------------------- | --------------- | ---------------------------------------------- |
+| Resource Group                       | PRD-WEEU-SAP03-INFRASTRUCTURE   | westeurope      |                                                |
+|                                      |                                 |                 |                                                |
+| Virtual Network                      | PRD-WEEU-SAP03-vnet             | westeurope      | Address space:     10.112.0.0/16               |
+| Subnet (database)                    | PRD-WEEU-SAP03_db-subnet        | westeurope      | Address space:     10.112.96.0/19              |
+| Subnet (application)                 | PRD-WEEU-SAP03_app-subnet       | westeurope      | Address space:     10.112.32.0/19              |
+| Subnet (web)                         | PRD-WEEU-SAP03_web-subnet       | westeurope      | Address space:     10.112.128.0/19             |
+| Subnet (admin)                       | PRD-WEEU-SAP03_admin-subnet     | westeurope      | Address space:     10.112.0.0/19               |
+| Route table                          | PRD-WEEU-SAP03_route-table      | westeurope      |                                                |
+| Network security group (database)    | PRD-WEEU-SAP03_dbSubnet-nsg     | westeurope      |                                                |
+| Network security group (application) | PRD-WEEU-SAP03_appSubnet-nsg    | westeurope      |                                                |
+| Network security group (web)         | PRD-WEEU-SAP03_webSubnet-nsg    | westeurope      |                                                |
+| Network security group (admin)       | PRD-WEEU-SAP03_appSubnet-nsg    | westeurope      |                                                |
 |                                      |                                 |                 |                                                |
 | Key Vault                            | DEVWEEUSAP01user###             | westeurope      | '###' Is a random identifier                   |
 |                                      |                                 |                 |                                                |
