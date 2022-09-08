@@ -55,10 +55,16 @@ parameters:
     type:                              string
     default:                           MGMT
 
+  - name:                              use_deployer
+    displayName:                       Run removal on self hosted agent
+    type:                              boolean
+    default:                           true
+
+
 trigger:                               none
 
 pool:
-  name:                                $(Agent)
+  name:                                $[coalesce(variables['run_on'], variables['Agent'])] 
 
 variables:
   - group:                             "SDAF-General"
@@ -66,6 +72,9 @@ variables:
   - name:                              parent_variable_group
     value:                             SDAF-${{ parameters.deployer_environment_parameter }}
 
+  - name:                              run_on
+    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
+ 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.workload_environment_parameter }}
 
@@ -98,6 +107,7 @@ variables:
 
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
 
 stages:
   - stage:                             Remove_SAP_systems
@@ -302,28 +312,30 @@ stages:
 
                 changed=0
 
-                if [ -d $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform ]; then
-                  git rm -q -f -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
-                  changed=1
-                fi
-                if [ -f  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
-                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
-                  changed=1
-                fi
+                if [ 0 != $return_code ]; then
+                  if [ -d $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform ]; then
+                    git rm -q -f -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
+                    changed=1
+                  fi
+                  if [ -f  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
+                    git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+                    changed=1
+                  fi
 
-                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
-                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml
-                  changed=1
-                fi
+                  if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
+                    git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml
+                    changed=1
+                  fi
 
-                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md | wc -l ) -gt 0 ] ; then
-                  git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md
-                  changed=1
-                fi
+                  if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md | wc -l ) -gt 0 ] ; then
+                    git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md
+                    changed=1
+                  fi
 
-                if [ 1 == $changed ]; then
-                  git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  if [ 1 == $changed ]; then
+                    git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]" 
+                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  fi
                 fi
 
               exit $return_code
@@ -361,8 +373,8 @@ stages:
                  LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
                   NETWORK=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs) ; echo Network     $NETWORK
 
-              DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                              HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+              
+              HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
               
               cd $HOME; mkdir -p .sap_deployment_automation
               workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
@@ -413,7 +425,7 @@ stages:
                 if [ -z "$devops_extension_installed" ]; then
                   az extension add --name azure-devops --output none
                 fi
-                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                
 
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
@@ -514,7 +526,8 @@ stages:
 
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
                 cd $HOME/LANDSCAPE/$(workload_zone_folder)
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(workload_zone_configuration_file) --type sap_landscape --auto-approve
+                
+                $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(workload_zone_configuration_file) --type sap_landscape --auto-approve --ado
                 return_code=$?
                 echo "Return code from remover.sh $return_code."
                 if [ 0 != $return_code ]; then
@@ -534,55 +547,58 @@ stages:
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 changed=0
+                if [ 0 == $return_code ]; then
+                
 
-                if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform ]; then
-                  git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
-                  changed=1
-                fi
-                if [ -f  ${workload_environment_file_name} ]; then
-                  git rm -q -f ${workload_environment_file_name}
-                  changed=1
-                fi
-                if [ -f  ${workload_environment_file_name}.md ]; then
-                  git rm -q -f ${workload_environment_file_name}.md
-                  changed=1
-                fi
-
-                if [ 1 == $changed ] ; then
-                  git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
-                fi
-
-              echo -e "$green--- Deleting variables ---$reset"
-                az logout
-                if [ -n $VARIABLE_GROUP_ID ]; then
-                  echo "Deleting variables"
-                  if [ -n $(Terraform_Remote_Storage_Account_Name) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                  if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform ]; then
+                    git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
+                    changed=1
+                  fi
+                  if [ -f  ${workload_environment_file_name} ]; then
+                    git rm -q -f ${workload_environment_file_name}
+                    changed=1
+                  fi
+                  if [ -f  ${workload_environment_file_name}.md ]; then
+                    git rm -q -f ${workload_environment_file_name}.md
+                    changed=1
                   fi
 
-                  if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
+                  if [ 1 == $changed ] ; then
+                    git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]" 
+                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                   fi
 
-                  if [ -n $(Deployer_State_FileName) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
-                  fi
+                echo -e "$green--- Deleting variables ---$reset"
+                  az logout
+                  if [ -n $VARIABLE_GROUP_ID ]; then
+                    echo "Deleting variables"
+                    if [ -n $(Terraform_Remote_Storage_Account_Name) ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                    fi
 
-                  if [ -n $(Deployer_Key_Vault) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
-                  fi
+                    if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
+                    fi
 
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Key_Vault"           --yes --only-show-errors
-                  fi
+                    if [ -n $(Deployer_State_FileName) ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
+                    fi
 
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Zone_State_FileName.value")
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Zone_State_FileName" --yes --only-show-errors
-                  fi
+                    if [ -n $(Deployer_Key_Vault) ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
+                    fi
 
+                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
+                    if [ -n "${az_var}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Key_Vault"           --yes --only-show-errors
+                    fi
+
+                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Zone_State_FileName.value")
+                    if [ -n "${az_var}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Zone_State_FileName" --yes --only-show-errors
+                    fi
+
+                  fi
                 fi
 
 
@@ -595,6 +611,8 @@ stages:
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
               DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              
             failOnStderr:              false
 
   - stage:                             Remove_control_plane
@@ -766,94 +784,96 @@ stages:
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
 
-                changed=0
+                if [ 0 != $return_code ]; then
+                  changed=0
 
-                if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
-                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate"
-                  changed=1
-                fi
-                if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate" ]; then
-                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate"
-                  changed=1
-                fi
-
-                if [ -f "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate" ]; then
-                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate"
-                  changed=1
-                fi
-
-                if [ -f "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
-                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate"
-                  changed=1
-                fi
-
-                if [ -f  ${deployer_environment_file_name} ]; then
-                  git rm -q -f  ${deployer_environment_file_name}
-                  changed=1
-                fi
-
-                if [ -f  ${deployer_environment_file_name}.md ]; then
-                  git rm -q -f ${deployer_environment_file_name}.md
-                  changed=1
-                fi
-
-                if [ -f  $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars ]; then
-                  git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars
-                  changed=1
-                fi
-
-                if [ 1 == $changed ] ; then
-                  git commit -m "Control Plane ${deployer_folder} removal[skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
-                fi
-              echo -e "$green--- Delete variables ---$reset"
-                az logout
-
-                if [ -n $VARIABLE_GROUP_ID ]; then
-                  echo "Deleting variables"
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
-
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                  if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate" ]; then
+                    git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate"
+                    changed=1
+                  fi
+                  if [ -f "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate" ]; then
+                    git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/terraform.tfstate"
+                    changed=1
                   fi
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors 
+                  if [ -f "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate" ]; then
+                    git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate"
+                    changed=1
                   fi
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors 
+                  if [ -f "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate" ]; then
+                    git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate"
+                    changed=1
                   fi
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors 
+                  if [ -f  ${deployer_environment_file_name} ]; then
+                    git rm -q -f  ${deployer_environment_file_name}
+                    changed=1
                   fi
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
-
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors 
+                  if [ -f  ${deployer_environment_file_name}.md ]; then
+                    git rm -q -f ${deployer_environment_file_name}.md
+                    changed=1
                   fi
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
-
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                  if [ -f  $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars ]; then
+                    git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars
+                    changed=1
                   fi
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
-                  fi                  
+                  if [ 1 == $changed ] ; then
+                    git commit -m "Control Plane ${deployer_folder} removal[skip ci]" 
+                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  fi
+                echo -e "$green--- Delete variables ---$reset"
+                  az logout
 
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
-                  if [ -n "${variable_value}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
-                  fi                  
+                  if [ -n $VARIABLE_GROUP_ID ]; then
+                    echo "Deleting variables"
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
 
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                    fi
+
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors 
+                    fi
+
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors 
+                    fi
+
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors 
+                    fi
+
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
+
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors 
+                    fi
+
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
+
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
+                    fi
+
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
+                    fi                  
+
+                    variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
+                    if [ -n "${variable_value}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
+                    fi                  
+
+                  fi
                 fi
 
 
