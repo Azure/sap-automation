@@ -141,7 +141,6 @@ stages:
                 fi
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                 echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
@@ -230,28 +229,13 @@ stages:
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
-              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                added=0
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)  &> /dev/null
-
-                if [ -f sap-parameters.yaml ]; then
-                  echo -e "$green--- Add sap-parameters to DevOps Repository ---$reset"
-                  git add sap-parameters.yaml
-                  added=1
-                fi
-
-                if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -q & >/dev/null 
-                fi
                 2> >(while read line; do (>&2 echo "STDERROR: $line"); done)
             name:                      Preparation
             displayName:               Preparation for Ansible
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              AZURE_DEVOPS_EXT_PAT:    $(PAT)
               ANSIBLE_HOST_KEY_CHECKING: false
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts

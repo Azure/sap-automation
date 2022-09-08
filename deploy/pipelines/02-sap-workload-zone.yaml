@@ -300,8 +300,10 @@ stages:
                 if [ -z ${resource_group_name} ]; then
                   echo "##vso[task.logissue type=error]Unable to find resource group for key vault ${key_vault}."
                   exit 2
+                else
+                 az keyvault set-policy --name "${key_vault}" --resource-group $resource_group_name --spn $ARM_CLIENT_ID --secret-permissions get list --output none
                 fi
-                az keyvault set-policy --name "${key_vault}" --resource-group $resource_group_name --spn $ARM_CLIENT_ID --secret-permissions get list --output none
+                
 
 
                 ip_added_workload=0
