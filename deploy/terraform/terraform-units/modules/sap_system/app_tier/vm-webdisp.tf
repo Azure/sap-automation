@@ -409,6 +409,10 @@ resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 

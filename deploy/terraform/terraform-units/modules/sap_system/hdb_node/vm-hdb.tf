@@ -281,11 +281,9 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
   tags = local.tags
+
   lifecycle {
-    ignore_changes = [
-      // Ignore changes to computername
-      computer_name
-    ]
+    ignore_changes = [tags]
   }
 }
 
@@ -320,6 +318,10 @@ resource "azurerm_managed_disk" "data_disk" {
     azurerm_linux_virtual_machine.vm_dbnode[local.data_disk_list[count.index].vm_index].zone) : (
     null
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Manages attaching a Disk to a Virtual Machine
@@ -347,4 +349,8 @@ resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }

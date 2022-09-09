@@ -289,15 +289,22 @@ stages:
 
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $ARM_CLIENT_ID --password $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup | tr -d \")
-                az keyvault set-policy --name "${key_vault}" --resource-group $resource_group_name --spn $ARM_CLIENT_ID --secret-permissions get list --output none
-
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
+                az account set --subscription ${STATE_SUBSCRIPTION}
+                resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup | tr -d \")
+                if [ -z ${resource_group_name} ]; then
+                  echo "##vso[task.logissue type=error]Unable to find resource group for key vault ${key_vault}."
+                  exit 2
+                else
+                 az keyvault set-policy --name "${key_vault}" --resource-group $resource_group_name --spn $ARM_CLIENT_ID --secret-permissions get list --output none
+                fi
+                
+
 
                 ip_added_workload=0
 
