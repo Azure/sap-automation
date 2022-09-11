@@ -67,6 +67,7 @@
       no_log:                          true
   when:
     - sapbits_access_key is not defined
+    - sapbits_sas_token is not defined
 
 - name:                                "0.4 Installation Media: - Retrieve SAS token details secret"
   block:
