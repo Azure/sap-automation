@@ -41,15 +41,6 @@ resourcegroup_arm_id = "<azure_resource_id>"
 #}
 
 
-# The deployer_environment value is a mandatory field, it is used for identifying the deployer
-deployer_environment = "MGMT"
-
-# The deployer_location value is a mandatory field, it is used for identifying the deployer
-deployer_location = "eastus2"
-
-# The deployer_vnet value is a mandatory field, it is used for identifying the deployer
-deployer_vnet = "DEP01"
-
 # The use_deployer value is a boolean value indicating if the deployer is used as the deployment engine
 #use_deployer=true
 
