@@ -38,7 +38,7 @@ output "created_resource_group_subscription_id" {
 
 output "vnet_sap_id" {
   description = "Azure resource identifier for the Virtual Network"
-  value       = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id
+  value       = try(local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].id : azurerm_virtual_network.vnet_sap[0].id, "")
 }
 
 output "random_id" {
@@ -47,13 +47,13 @@ output "random_id" {
 
 output "route_table_id" {
   description = "Azure resource identifier for the route table"
-  value       = local.vnet_sap_exists ? "" : azurerm_route_table.rt[0].id
+  value       = local.vnet_sap_exists ? "" : try(azurerm_route_table.rt[0].id, "")
 }
 
 output "admin_subnet_id" {
   description = "Azure resource identifier for the admin subnet"
   value = local.admin_subnet_defined ? (
-    local.admin_subnet_existing ? local.admin_subnet_arm_id : azurerm_subnet.admin[0].id) : (
+    local.admin_subnet_existing ? local.admin_subnet_arm_id : try(azurerm_subnet.admin[0].id, "")) : (
     ""
   )
 }
@@ -61,7 +61,7 @@ output "admin_subnet_id" {
 output "app_subnet_id" {
   description = "Azure resource identifier for the app subnet"
   value = local.application_subnet_defined ? (
-    local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+    local.application_subnet_existing ? local.application_subnet_arm_id : try(azurerm_subnet.app[0].id, "")) : (
     ""
   )
 }
@@ -69,7 +69,7 @@ output "app_subnet_id" {
 output "db_subnet_id" {
   description = "Azure resource identifier for the db subnet"
   value = local.database_subnet_defined ? (
-    local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+    local.database_subnet_existing ? local.database_subnet_arm_id : try(azurerm_subnet.db[0].id, "")) : (
     ""
   )
 }
@@ -77,7 +77,7 @@ output "db_subnet_id" {
 output "web_subnet_id" {
   description = "Azure resource identifier for the web subnet"
   value = local.web_subnet_defined ? (
-    local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
+    local.web_subnet_existing ? local.web_subnet_arm_id : try(azurerm_subnet.web[0].id, "")) : (
     ""
   )
 }
@@ -86,7 +86,7 @@ output "web_subnet_id" {
 output "anf_subnet_id" {
   description = "Azure resource identifier for the anf subnet"
   value = var.NFS_provider == "ANF" && local.ANF_subnet_defined ? (
-    local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id) : (
+    local.ANF_subnet_existing ? local.ANF_subnet_arm_id : try(azurerm_subnet.anf[0].id, "")) : (
     ""
   )
 }
@@ -94,7 +94,7 @@ output "anf_subnet_id" {
 output "admin_nsg_id" {
   description = "Azure resource identifier for the admin subnet network security group"
   value = local.admin_subnet_defined ? (
-    local.admin_subnet_nsg_exists ? local.admin_subnet_nsg_arm_id : azurerm_network_security_group.admin[0].id) : (
+    local.admin_subnet_nsg_exists ? local.admin_subnet_nsg_arm_id : try(azurerm_network_security_group.admin[0].id, "")) : (
     ""
   )
 }
@@ -102,7 +102,7 @@ output "admin_nsg_id" {
 output "app_nsg_id" {
   description = "Azure resource identifier for the app subnet network security group"
   value = local.application_subnet_defined ? (
-    local.application_subnet_nsg_exists ? local.application_subnet_nsg_arm_id : azurerm_network_security_group.app[0].id) : (
+    local.application_subnet_nsg_exists ? local.application_subnet_nsg_arm_id : try(azurerm_network_security_group.app[0].id, "")) : (
     ""
   )
 }
@@ -110,7 +110,7 @@ output "app_nsg_id" {
 output "db_nsg_id" {
   description = "Azure resource identifier for the database subnet network security group"
   value = local.database_subnet_defined ? (
-    local.database_subnet_nsg_exists ? local.database_subnet_nsg_arm_id : azurerm_network_security_group.db[0].id) : (
+    local.database_subnet_nsg_exists ? local.database_subnet_nsg_arm_id : try(azurerm_network_security_group.db[0].id, "")) : (
     ""
   )
 }
@@ -118,7 +118,7 @@ output "db_nsg_id" {
 output "web_nsg_id" {
   description = "Azure resource identifier for the web subnet network security group"
   value = local.web_subnet_defined ? (
-    local.web_subnet_nsg_exists ? local.web_subnet_nsg_arm_id : azurerm_network_security_group.web[0].id) : (
+    local.web_subnet_nsg_exists ? local.web_subnet_nsg_arm_id : try(azurerm_network_security_group.web[0].id, "")) : (
     ""
   )
 }
@@ -136,7 +136,7 @@ output "subnet_mgmt_id" {
 
 output "kv_user" {
   description = "Azure resource identifier for the user credential keyvault"
-  value       = local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  value       = try(local.user_keyvault_exist ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id, "")
 }
 
 # TODO Add this back when we separate the usage
@@ -174,21 +174,21 @@ output "storageaccount_name" {
   description = "Diagnostics storage account name"
   value = length(var.diagnostics_storage_account.arm_id) > 0 ? (
     data.azurerm_storage_account.storage_bootdiag[0].name) : (
-    azurerm_storage_account.storage_bootdiag[0].name
+    try(azurerm_storage_account.storage_bootdiag[0].name, "")
   )
 }
 
 output "storageaccount_rg_name" {
   value = length(var.diagnostics_storage_account.arm_id) > 0 ? (
     data.azurerm_storage_account.storage_bootdiag[0].resource_group_name) : (
-    azurerm_storage_account.storage_bootdiag[0].resource_group_name
+    try(azurerm_storage_account.storage_bootdiag[0].resource_group_name, "")
   )
 }
 
 output "storage_bootdiag_endpoint" {
   value = length(var.diagnostics_storage_account.arm_id) > 0 ? (
     data.azurerm_storage_account.storage_bootdiag[0].primary_blob_endpoint) : (
-    azurerm_storage_account.storage_bootdiag[0].primary_blob_endpoint
+    try(azurerm_storage_account.storage_bootdiag[0].primary_blob_endpoint, "")
   )
 }
 
@@ -204,7 +204,7 @@ output "witness_storage_account_key" {
   sensitive = true
   value = length(var.witness_storage_account.arm_id) > 0 ? (
     data.azurerm_storage_account.witness_storage[0].primary_access_key) : (
-    azurerm_storage_account.witness_storage[0].primary_access_key
+    try(azurerm_storage_account.witness_storage[0].primary_access_key, "")
   )
 }
 
@@ -212,7 +212,7 @@ output "transport_storage_account_id" {
   value = var.NFS_provider == "AFS" ? (
     length(var.transport_storage_account_id) > 0 ? (
       var.transport_storage_account_id) : (
-      azurerm_storage_account.transport[0].id
+      try(azurerm_storage_account.transport[0].id, "")
     )) : (
     ""
   )
@@ -241,27 +241,27 @@ output "ANF_pool_settings" {
     use_ANF = var.NFS_provider == "ANF"
     account_name = length(var.ANF_settings.arm_id) > 0 ? (
       data.azurerm_netapp_account.workload_netapp_account[0].name) : (
-      azurerm_netapp_account.workload_netapp_account[0].name
+      try(azurerm_netapp_account.workload_netapp_account[0].name, "")
     )
     pool_name = length(var.ANF_settings.pool_name) == 0 ? (
-      azurerm_netapp_pool.workload_netapp_pool[0].name) : (
+      try(azurerm_netapp_pool.workload_netapp_pool[0].name, "")) : (
       var.ANF_settings.pool_name
     )
 
     service_level = var.ANF_settings.use_existing_pool ? (
       data.azurerm_netapp_pool.workload_netapp_pool[0].service_level
       ) : (
-      azurerm_netapp_pool.workload_netapp_pool[0].service_level
+      try(azurerm_netapp_pool.workload_netapp_pool[0].service_level, "")
     )
 
     size_in_tb = var.ANF_settings.use_existing_pool ? (
       data.azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
       ) : (
-      azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb
+      try(azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb, 0)
     )
 
     subnet_id = local.ANF_subnet_defined ? (
-      local.ANF_subnet_existing ? local.ANF_subnet_arm_id : azurerm_subnet.anf[0].id) : (
+      local.ANF_subnet_existing ? local.ANF_subnet_arm_id : try(azurerm_subnet.anf[0].id, "")) : (
       ""
     )
 
@@ -285,11 +285,14 @@ output "ANF_pool_settings" {
 ###############################################################################
 
 output "saptransport_path" {
-  value = var.NFS_provider == "AFS" ? (
+  value = try(var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
       length(var.transport_private_endpoint_id) == 0 ? (
-        azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address) : (
+        try(azurerm_private_endpoint.transport[0].custom_dns_configs[0].fqdn,
+          azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address
+        )) : (
         data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address
+
       ),
       length(var.transport_storage_account_id) == 0 ? (
         azurerm_storage_account.transport[0].name) : (
@@ -314,14 +317,16 @@ output "saptransport_path" {
       ) : (
       ""
     )
-  )
+  ), "")
 }
 
 output "install_path" {
-  value = var.NFS_provider == "AFS" ? (
+  value = try(var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
-      length(var.install_storage_account_id) == 0 ? (
-        azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address) : (
+      length(var.install_private_endpoint_id) == 0 ? (
+        try(azurerm_private_endpoint.install[0].custom_dns_configs[0].fqdn,
+          azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address
+        )) : (
         data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address
       ),
       length(var.install_storage_account_id) == 0 ? (
@@ -345,7 +350,7 @@ output "install_path" {
       ) : (
       ""
     )
-  )
+  ), "")
 }
 
 ###############################################################################
