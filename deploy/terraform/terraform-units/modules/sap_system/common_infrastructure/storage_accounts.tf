@@ -82,7 +82,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
       0) : (
       1
     )) : (
-    0
+    var.use_private_endpoint ? 1 : 0
   )
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sapmnt,
