@@ -19,12 +19,6 @@ data "azurerm_client_config" "current" {
 
 provider "azurerm" {
   features {
-    key_vault {
-      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
-    }
   }
   subscription_id = var.use_deployer ? local.spn.subscription_id : null
   client_id       = var.use_deployer ? local.spn.client_id : null
@@ -34,12 +28,6 @@ provider "azurerm" {
 
 provider "azurerm" {
   features {
-    key_vault {
-      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
-    }
   }
   alias = "deployer"
 }
