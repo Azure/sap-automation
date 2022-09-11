@@ -5,11 +5,6 @@ using System.Threading.Tasks;
 
 namespace AutomationForm.Models
 {
-    public class ParameterGroupingModel
-    {
-        public string Tab { get; set; }
-        public Grouping[] Groupings { get; set; }
-    }
     public class Grouping
     {
         public string Section { get; set; }

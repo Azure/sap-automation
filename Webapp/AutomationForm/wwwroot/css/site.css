@@ -480,3 +480,14 @@ fluent-card:hover {
 .parameters-filter {
     padding-left: 10px;
 }
+
+/* Tags UI */
+.tag {
+    display: flex;
+}
+
+.tag-key, .tag-value {
+    flex: 50%;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}

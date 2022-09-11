@@ -54,6 +54,9 @@ $$custom_prefix$$
 # use_prefix defines if a prefix will be added to the resource names
 $$use_prefix$$
 
+# use_zonal_markers defines if a zonal markers will be added to the virtual machine resource names
+$$use_zonal_markers$$
+
 # use_secondary_ips controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support
 $$use_secondary_ips$$
 

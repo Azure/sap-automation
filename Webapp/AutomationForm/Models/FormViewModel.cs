@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace AutomationForm.Models
 {
-    public class SystemViewModel
+    public class FormViewModel<T>
     {
         public Grouping[] ParameterGroupings { get; set; }
-        public SystemModel System { get; set; }
+        public T SapObject { get; set; }
     }
 }

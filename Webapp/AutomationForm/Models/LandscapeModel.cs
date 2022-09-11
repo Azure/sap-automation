@@ -172,9 +172,9 @@ namespace AutomationForm.Models
 
         public bool? use_service_endpoint { get; set; } = true;
 
-        public bool? peer_with_control_plane_vnet { get; set; }
+        public bool? peer_with_control_plane_vnet { get; set; } = true;
 
-        public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
+        public bool? enable_firewall_for_keyvaults_and_storage { get; set; }
         
         public bool? ANF_use_existing_pool { get; set; }
 

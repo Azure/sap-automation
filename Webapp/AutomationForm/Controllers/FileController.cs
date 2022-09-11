@@ -44,7 +44,7 @@ namespace AutomationForm.Controllers
         public ActionResult Templates(string sourceController)
         {
             string[] landscapeFilePaths = restHelper.GetTemplateFileNames("samples/WORKSPACES/LANDSCAPE").Result;
-            string[] systemFilePaths = restHelper.GetTemplateFileNames("samples/WORKSPACES/SYSTEM/").Result;
+            string[] systemFilePaths = restHelper.GetTemplateFileNames("samples/WORKSPACES/SYSTEM").Result;
 
             Dictionary<string, string[]> filePaths = new Dictionary<string, string[]>
             {

@@ -2,7 +2,7 @@
     {
       "name": "Red Hat 7.9",
       "data": {
-        "os_type": "linux",
+        "os_type": "LINUX",
         "source_image_id": "",
         "publisher": "RedHat",
         "offer": "RHEL-SAP-HA",
@@ -13,7 +13,7 @@
     {
       "name": "Red Hat 8.2",
       "data": {
-        "os_type": "linux",
+        "os_type": "LINUX",
         "source_image_id": "",
         "publisher": "RedHat",
         "offer": "82sapha-gen2",
@@ -24,7 +24,7 @@
     {
       "name": "Red Hat 8.4",
       "data": {
-        "os_type": "linux",
+        "os_type": "LINUX",
         "source_image_id": "",
         "publisher": "RedHat",
         "offer": "RHEL-SAP-HA",
@@ -35,7 +35,7 @@
     {
       "name": "SUSE 12 SP5",
       "data": {
-        "os_type": "linux",
+        "os_type": "LINUX",
         "source_image_id": "",
         "publisher": "SUSE",
         "offer": "sles-sap-12-sp5",
@@ -46,7 +46,7 @@
     {
       "name": "SUSE 15 SP3",
       "data": {
-        "os_type": "linux",
+        "os_type": "LINUX",
         "source_image_id": "",
         "publisher": "SUSE",
         "offer": "sles-sap-15-sp3",
@@ -57,7 +57,7 @@
     {
       "name": "Oracle 8.2",
       "data": {
-        "os_type": "linux",
+        "os_type": "LINUX",
         "source_image_id": "",
         "publisher": "Oracle",
         "offer": "Oracle-Linux",
@@ -68,7 +68,7 @@
     {
       "name": "Windows Server 2016",
       "data": {
-        "os_type": "windows",
+        "os_type": "WINDOWS",
         "source_image_id": "",
         "publisher": "MicrosoftWindowsServer",
         "offer": "windowsserver",
@@ -79,7 +79,7 @@
     {
       "name": "Windows Server 2019",
       "data": {
-        "os_type": "windows",
+        "os_type": "WINDOWS",
         "source_image_id": "",
         "publisher": "MicrosoftWindowsServer",
         "offer": "windowsserver",
@@ -90,7 +90,7 @@
     {
       "name": "Windows Server 2022",
       "data": {
-        "os_type": "windows",
+        "os_type": "WINDOWS",
         "source_image_id": "",
         "publisher": "MicrosoftWindowsServer",
         "offer": "windowsserver",

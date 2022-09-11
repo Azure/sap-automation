@@ -1,7 +1,10 @@
-﻿@model AutomationForm.Models.SystemIndexModel
+﻿@model AutomationForm.Models.SapObjectIndexModel<SystemModel>
 
 @{
     ViewBag.Title = "Systems";
+    ViewBag.SapObjectType = "System";
+    ViewBag.SapObjectDisplayName = "System";
+    ViewBag.MoreInformationUrl = "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main";
 }
 <script>
     window.onload = function() {
@@ -14,153 +17,7 @@
     <fluent-breadcrumb-item href="#">Systems</fluent-breadcrumb-item>
 </fluent-breadcrumb>
 
-<div class="text-center">
-    <h2>Existing systems</h2>
-    <p>
-        <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main" target="_blank" rel="noopener noreferrer">
-            More information on configuring the system
-        </a>
-    </p>
-</div>
-
-<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
-    <div class="notificationInner">
-        <span class="notificationText">
-            @TempData["success"]
-        </span>
-    </div>
-</div>
-<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
-    <div class="notificationInner">
-        <span class="notificationText">
-            @TempData["error"]
-        </span>
-    </div>
-</div>
-
-<div class="table-scroll">
-    <table class="table" aria-label="Existing systems">
-        <thead>
-            <tr>
-                <th>
-                    Default
-                </th>
-                <th>
-                    System ID
-                </th>
-                <th class="wideonly">
-                    Environment
-                </th>
-                <th class="wideonly">
-                    Location
-                </th>
-                <th class="wideonly">
-                    Network name
-                </th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var system in Model.Systems)
-        {
-            var iconType = (system.IsDefault) ? "FavoriteStarFill" : "FavoriteStar";
-            <tr>
-                <td>
-                    <fluent-anchor appearance="stealth" href="@Url.Action("MakeDefault", "System", new { id=system.Id, partitionKey=system.environment })">
-                        <i class="ms-Icon ms-Icon--@iconType" aria-hidden="true"></i>
-                    </fluent-anchor>
-                <td>
-                    @Html.DisplayFor(modelItem => system.Id)
-                </td>
-                <td class="wideonly">
-                    @Html.DisplayFor(modelItem => system.environment)
-                    @if (system.environment==null && !system.IsDefault) 
-                    {
-                        <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
-                    }
-                </td>
-                <td class="wideonly">
-                    @Html.DisplayFor(modelItem => system.location)
-                    @if (system.location==null && !system.IsDefault) 
-                    {
-                        <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
-                    }
-                </td>
-                <td class="wideonly">
-                    @Html.DisplayFor(modelItem => system.network_logical_name)
-                    @if (system.network_logical_name==null && !system.IsDefault) 
-                    {
-                        <i class="ms-Icon ms-Icon--Warning12" aria-hidden="true"></i>
-                    }
-                </td>
-                <td class="td-align-right">
-                    @Html.ActionLink("Edit", "Edit", new { id=system.Id, partitionKey=system.environment }) |
-                    @Html.ActionLink("Details", "Details", new { id=system.Id, partitionKey=system.environment }) |
-                    @Html.ActionLink("Download", "Download", new { id=system.Id, partitionKey=system.environment })
-                    @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment) && system.IsValid())
-                    {
-                        @: | @Html.ActionLink("Deploy", "Deploy", new { id=system.Id, partitionKey=system.environment })
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
-
-<p style="margin-bottom: 20px;">
-    <fluent-anchor appearance="accent" href="@Url.Action("Create", "System")">
-        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create new
-    </fluent-anchor>
-</p>
-
-<div class="text-center">
-    <h2>System files</h2>
-</div>
-
-<div class="table-scroll">
-    <table class="table" aria-label="System files">
-        <thead>
-            <tr>
-                <th>
-                    File ID
-                </th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var file in Model.AppFiles)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => file.Id)
-                </td>
-                <td class="td-align-right">
-                    @Html.ActionLink("Edit", "Edit", "File", new { id=file.Id, sourceController="System" }, null) |
-                    @Html.ActionLink("Details", "Details", "File", new { id=file.Id, sourceController="System" }, null) |
-                    @Html.ActionLink("Convert", "Convert", "File", new { id=file.Id, sourceController="System" }, null) |
-                    @Html.ActionLink("Download", "Download", "File", new { id=file.Id, sourceController="System" }, null) |
-                    @Html.ActionLink("Delete", "Delete", "File", new { id=file.Id, sourceController="System" }, null)
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
-
-<p>
-    <fluent-anchor appearance="accent" href="@Url.Action("Create", "File", new { sourceController="System" })">
-        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create
-    </fluent-anchor>
-
-    <fluent-anchor href="@Url.Action("Upload", "File", new { sourceController="System" })">
-        <i class="ms-Icon ms-Icon--Upload" aria-hidden="true"></i> Upload
-    </fluent-anchor>
-
-    <fluent-anchor appearance="accent" style="float: right" href="@Url.Action("Templates", "File", new { sourceController="System" })">
-        Templates
-    </fluent-anchor>
-</p>
+@await Html.PartialAsync("_IndexPartial", Model)  
 
 <div class="text-center">
     <h2>Virtual Machine Images</h2>

@@ -177,7 +177,7 @@
       {
         "Name": "network_logical_name",
         "Required": true,
-        "Description": "Defines the workload virtual network logical name. Used in the naming convention",
+        "Description": "Defines the workload virtual network logical name. Used in the naming convention.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -236,7 +236,16 @@
       {
         "Name": "peer_with_control_plane_vnet",
         "Required": false,
-        "Description": "Defines if the SAP VNet will be peered with the controlplane VNet",
+        "Description": "Defines if the SAP VNet will be peered with the control plane VNet",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }, 
+      {
+        "Name": "enable_firewall_for_keyvaults_and_storage",
+        "Required": false,
+        "Description": "Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

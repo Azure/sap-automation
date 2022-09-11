@@ -182,6 +182,15 @@
         "Display": 3
       },
       {
+        "Name": "use_zonal_markers",
+        "Required": false,
+        "Description": "Defines if a zonal indicators will be added to the resource names. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "custom_prefix",
         "Required": false,
         "Description": "If provided, defines the name of the custom prefix to be prepended to resources. See <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming' target='_blank' rel='noopener noreferrer'>automation naming</a>",
@@ -189,7 +198,27 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "use_msi_for_clusters",
+        "Required": false,
+        "Description": "If provided, defines the that fencing agent uses a managed identity</a>",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "fencing_role_name",
+        "Required": false,
+        "Description": "If provided, the role to assign to the managed identities</a>",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
+      
+      
     ]
   },
   {
@@ -484,6 +513,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "database_tags",
+        "Required": false,
+        "Description": "Defines a list of tags to be applied to the database server(s)",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
@@ -710,6 +748,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "scs_server_tags",
+        "Required": false,
+        "Description": "Provides the tags to be associated to the SAP Central Services servers",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
@@ -845,6 +892,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "application_server_tags",
+        "Required": false,
+        "Description": "Provides the tags to be associated to the application servers",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
@@ -980,6 +1036,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "webdispatcher_server_tags",
+        "Required": false,
+        "Description": "Provides the tags to be associated to the webdispatcher servers",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
