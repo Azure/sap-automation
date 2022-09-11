@@ -184,7 +184,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.use_avset ? (
+  availability_set_id = local.use_avset && !local.enable_ultradisk ? (
     local.availabilitysets_exist ? (
       data.azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id) : (
       azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
@@ -282,9 +282,32 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
   tags = local.tags
 
+  dynamic "identity" {
+    for_each = range(var.use_msi_for_clusters && var.database.high_availability ? 1 : 0)
+    content {
+      type = "SystemAssigned"
+    }
+  }
+
   lifecycle {
     ignore_changes = [tags]
   }
+}
+
+resource "azurerm_role_assignment" "vm_dbnode" {
+  provider = azurerm.main
+  count = (
+    var.use_msi_for_clusters &&
+    length(var.fencing_role_name) > 0 &&
+    var.database_server_count > 1
+    ) ? (
+    var.database_server_count
+    ) : (
+    0
+  )
+  scope                = var.resource_group[0].id
+  role_definition_name = var.fencing_role_name
+  principal_id         = azurerm_linux_virtual_machine.vm_dbnode[count.index].identity[0].principal_id
 }
 
 # Creates managed data disk

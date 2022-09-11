@@ -228,8 +228,35 @@ resource "azurerm_linux_virtual_machine" "scs" {
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
   tags = try(var.application.scs_tags, {})
+
+  dynamic "identity" {
+    for_each = range(var.use_msi_for_clusters && var.application.scs_high_availability ? 1 : 0)
+    content {
+      type = "SystemAssigned"
+    }
+  }
+
 }
 
+resource "azurerm_role_assignment" "scs" {
+  provider = azurerm.main
+  count = (
+    var.use_msi_for_clusters &&
+    local.enable_deployment &&
+    upper(local.scs_ostype) == "LINUX" &&
+    length(var.fencing_role_name) > 0 &&
+    local.scs_server_count > 1
+    ) ? (
+    local.scs_server_count
+    ) : (
+    0
+  )
+
+  scope                = var.resource_group[0].id
+  role_definition_name = var.fencing_role_name
+  principal_id         = azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
+
+}
 # Create the SCS Windows VM(s)
 resource "azurerm_windows_virtual_machine" "scs" {
   provider = azurerm.main

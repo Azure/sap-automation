@@ -113,7 +113,7 @@ locals {
 
   hdb_vm_sku = length(local.db_size) > 0 ? local.db_size : "Standard_E4s_v3"
 
-  hdb_ha = try(var.database.high_availability, false)
+  hdb_ha = var.database.high_availability
 
   sid_auth_type        = try(var.database.authentication.type, "key")
   enable_auth_password = try(var.database.authentication.type, "key") == "password"

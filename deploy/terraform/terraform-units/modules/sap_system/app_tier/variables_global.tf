@@ -114,3 +114,12 @@ variable "use_secondary_ips" {
 variable "deploy_application_security_groups" {
   description = "Defines if application security groups should be deployed"
 }
+
+variable "use_msi_for_clusters" {
+  description = "If true, the Pacemaker cluser will use a managed identity"
+}
+
+variable "fencing_role_name" {
+  description = "If specified the role name to use for the fencing"
+}
+
