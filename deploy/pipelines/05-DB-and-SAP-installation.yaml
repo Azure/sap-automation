@@ -142,13 +142,6 @@ stages:
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
 
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
-                if [ -z ${VARIABLE_GROUP_ID} ]; then
-                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
-                    exit 2
-                fi
-
               echo -e "$green--- Validations ---$reset"
                 ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                    LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
@@ -189,6 +182,14 @@ stages:
                 fi
                 dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml
 
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                    exit 2
+                fi
+
+
                 echo "##vso[build.updatebuildnumber]Deploying $(sap_system_folder) using BoM ${bom_file}"
 
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
@@ -203,8 +204,15 @@ stages:
                 sap_params_updated=0
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
-                sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
-                sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
+                bom_in_file="$(grep -m1 "^$bom_base_name:" sap-parameters.yaml | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
+                if [ -z $bom_in_file ] ; then
+                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
+                fi
+                
+                fqdn="$(grep -m1 "^$sap_fqdn:" sap-parameters.yaml | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
+                if [ -z $fqdn ] ; then
+                  sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
+                fi
 
               echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
                 mkdir -p artifacts
@@ -234,8 +242,8 @@ stages:
             displayName:               Preparation for Ansible
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              AZURE_DEVOPS_EXT_PAT:    $(PAT)
               ANSIBLE_HOST_KEY_CHECKING: false
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
