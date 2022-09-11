@@ -348,7 +348,7 @@ variable "management_dns_subscription_id" {
 
 variable "management_dns_resourcegroup_name" {
   description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-  default     = null
+  default     = ""
   type        = string
 }
 variable "transport_storage_account_id" {
