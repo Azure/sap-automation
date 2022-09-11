@@ -77,7 +77,7 @@ use_service_endpoint = true
 peer_with_control_plane_vnet = true
 
 # Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets
-enable_firewall_for_keyvaults_and_storage = false
+enable_firewall_for_keyvaults_and_storage = true
 
 #########################################################################################
 #                                                                                       #
