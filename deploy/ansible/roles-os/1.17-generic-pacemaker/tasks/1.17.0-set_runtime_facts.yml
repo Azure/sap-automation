@@ -30,7 +30,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Extract details"
   ansible.builtin.set_fact:
-    sap_hana_fencing_spn_subscription_id: "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+    fencing_spn_subscription_id: "{{ json_azure_data | json_query('compute.subscriptionId') }}"
     resource_group_name:               "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
   no_log:                              true
 
@@ -58,7 +58,7 @@
 - name:                                "1.17 Generic Pacemaker - Show Details"
   ansible.builtin.debug:
     msg:
-      - "SUBSCRIPTION   : {{ sap_hana_fencing_spn_subscription_id }}"
+      - "SUBSCRIPTION   : {{ fencing_spn_subscription_id }}"
       - "RESOURCE GROUP : {{ resource_group_name }}"
       - "SUBNET PREFIX  : {{ subnet_prefix }}"
     verbosity:                         2

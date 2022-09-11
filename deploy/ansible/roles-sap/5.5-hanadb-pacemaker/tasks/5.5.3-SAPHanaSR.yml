@@ -16,14 +16,14 @@
     - name:                            Ensure a list of package version is available for checking the SAPHanaSR package version
       ansible.builtin.package_facts:
 
-    - name:                            Verify that package SAPHanaSR is at least version 0.153
-      ansible.builtin.package:
-        name:                          SAPHanaSR>=0.153
-        state:                         present
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - ansible_facts.packages['SAPHanaSR'] is defined
-        - (ansible_facts.packages['SAPHanaSR'][0].version | float) < 0.153
+    # - name:                            Verify that package SAPHanaSR is at least version 0.153
+    #   ansible.builtin.package:
+    #     name:                          SAPHanaSR>=0.153
+    #     state:                         present
+    #   when:
+    #     - ansible_os_family | upper == "SUSE"
+    #     - ansible_facts.packages['SAPHanaSR'] is defined
+    #     - (ansible_facts.packages['SAPHanaSR'][0].version | float) < 0.153
 
     - name:                            Check if "myHooks" file exists in /hana/shared directory
       ansible.builtin.stat:            path=/hana/shared/myHooks

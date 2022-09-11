@@ -188,7 +188,7 @@
         mode:                          0755
       when:
         - job_result is defined
-        - job_result.rc == 0
+        - job_result.rc > 0
 
   when:
     - not dbload_installed.stat.exists
