@@ -20,7 +20,7 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 #Internal helper functions
 function showhelp {
-    
+
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
@@ -333,18 +333,18 @@ then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    
+
     if [ "$deployment_system" == "sap_deployer" ]; then
         terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
         $deployer_tfstate_key_parameter
-        
+
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
         terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
         $deployer_tfstate_key_parameter
-        
+
         elif [ "$deployment_system" == "sap_library" ]; then
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-        
+
         terraform_bootstrap_directory="${DEPLOYMENT_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
         if [ ! -d "${terraform_bootstrap_directory}" ]; then
             printf -v val %-40.40s "$terraform_bootstrap_directory"
@@ -357,27 +357,24 @@ then
             exit 66 #cannot open input file/folder
         fi
         terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
-        
+
         terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
-        
+
         terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" ${approve} \
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
     else
-        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" \
-        $tfstate_parameter \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
-        
+
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
+        echo $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
         terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
             $tfstate_parameter \
             $landscape_tfstate_key_parameter \
             $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
 
-        return_value=$?    
+        return_value=$?
 
         if [ -f destroy_output.json ]
         then
@@ -410,10 +407,10 @@ then
                             echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
                             echo "##vso[task.logissue type=error]${string_to_report}"
                         fi
-                        
-                    
+
+
                     done
-                
+
                 fi
                 echo "#                                                                                       #"
                 echo "#########################################################################################"
@@ -430,7 +427,7 @@ then
 
     fi
 
-    
+
 else
     return_value=0
 fi
@@ -449,6 +446,43 @@ if [ "${deployment_system}" == sap_library ]; then
     sed -i /REMOTE_STATE_SA/d "${system_config_information}"
     sed -i /tfstate_resource_id/d "${system_config_information}"
 fi
+
+# if [ "${deployment_system}" == sap_system ]; then
+
+#     echo "#########################################################################################"
+#     echo "#                                                                                       #"
+#     echo -e "#                            $cyan Clean up load balancer IP $resetformatting        #"
+#     echo "#                                                                                       #"
+#     echo "#########################################################################################"
+
+#     database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
+#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
+#     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
+
+#     load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
+#     database_loadbalancer_ips=$(echo ${database_loadbalancer_ips} | xargs)
+
+#     if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
+#     then
+#       database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
+#       save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+#     fi
+
+#     scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
+#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
+#     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
+
+#     load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
+#     scs_server_loadbalancer_ips=$(echo ${scs_server_loadbalancer_ips} | xargs)
+
+#     if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
+#     then
+#       scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
+#       save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+#     fi
+# fi
 
 unset TF_DATA_DIR
 

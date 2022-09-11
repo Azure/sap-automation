@@ -880,6 +880,10 @@ then
 
         echo "##vso[task.logissue type=error]Resources imported into Terraform state file. Please re-run the pipeline."
     fi
+    # resources_with_timeout=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("waiting for creation of Private Endpoint"))' apply_output.json)
+    # if [[ -n ${resources_with_timeout} ]]
+    # then
+
     fi
 
 fi
