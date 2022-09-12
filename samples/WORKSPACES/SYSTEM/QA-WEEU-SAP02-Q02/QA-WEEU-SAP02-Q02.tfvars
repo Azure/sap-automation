@@ -741,5 +741,5 @@ NFS_provider = "AFS"
 
 #landscape_tfstate_key = null
 
-database_loadbalancer_ips=["10.111.96.8"]
-scs_server_loadbalancer_ips=["10.111.32.15","10.111.32.16"]
+database_loadbalancer_ips   = ["10.111.96.8"]
+scs_server_loadbalancer_ips = ["10.111.32.15", "10.111.32.16"]

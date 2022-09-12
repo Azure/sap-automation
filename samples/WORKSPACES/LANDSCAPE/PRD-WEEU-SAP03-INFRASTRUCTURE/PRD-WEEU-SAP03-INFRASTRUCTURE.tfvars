@@ -287,7 +287,7 @@ dns_label = "sap.contoso.net"
 
 # If defined provides the name of the resource group hosting the Private DNS zone
 #dns_resource_group_name = ""
- 
+
 #########################################################################################
 #                                                                                       #
 #  NFS support                                                                          #
@@ -449,12 +449,12 @@ utility_vm_useDHCP = true
 
 # Defines if the utility virtual machine image
 utility_vm_image = {
-  os_type="windows",
-  source_image_id="",
-  publisher="MicrosoftWindowsServer",
-  offer="windowsserver",
-  sku="2022-datacenter",
-  version="latest"
+  os_type         = "windows",
+  source_image_id = "",
+  publisher       = "MicrosoftWindowsServer",
+  offer           = "windowsserver",
+  sku             = "2022-datacenter",
+  version         = "latest"
 }
 
 # Defines if the utility virtual machine IP

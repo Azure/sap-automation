@@ -187,12 +187,12 @@ database_vm_use_DHCP = true
 # in this case os_type must also be specified
 
 database_vm_image = {
-  os_type="linux",
-  source_image_id="",
-  publisher="RedHat",
-  offer="RHEL-SAP-HA",
-  sku="8_4",
-  version="latest"
+  os_type         = "linux",
+  source_image_id = "",
+  publisher       = "RedHat",
+  offer           = "RHEL-SAP-HA",
+  sku             = "8_4",
+  version         = "latest"
 }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
@@ -260,12 +260,12 @@ scs_server_zones = ["1"]
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
 scs_server_image = {
-  os_type="linux",
-  source_image_id="",
-  publisher="RedHat",
-  offer="RHEL-SAP-HA",
-  sku="8_4",
-  version="latest"
+  os_type         = "linux",
+  source_image_id = "",
+  publisher       = "RedHat",
+  offer           = "RHEL-SAP-HA",
+  sku             = "8_4",
+  version         = "latest"
 }
 
 # scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
@@ -342,12 +342,12 @@ app_tier_authentication_type = "key"
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
 application_server_image = {
-  os_type="linux",
-  source_image_id="",
-  publisher="RedHat",
-  offer="RHEL-SAP-HA",
-  sku="8_4",
-  version="latest"
+  os_type         = "linux",
+  source_image_id = "",
+  publisher       = "RedHat",
+  offer           = "RHEL-SAP-HA",
+  sku             = "8_4",
+  version         = "latest"
 }
 
 #application_server_vm_avset_arm_ids = []
