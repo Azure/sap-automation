@@ -426,7 +426,7 @@ locals {
     null
   )
 
-  scs_sizing = lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+  scs_sizing = local.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
 
   web_sizing = local.webdispatcher_count > 0 ? (
     lookup(local.sizes.web, local.vm_sizing_dictionary_key)) : (
