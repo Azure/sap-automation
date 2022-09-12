@@ -44,8 +44,9 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
   application                        = local.application
@@ -73,6 +74,9 @@ module "common_infrastructure" {
   )
   Agent_IP                           = var.Agent_IP
   use_private_endpoint               = var.use_private_endpoint
+  use_custom_dns_a_registration      = var.use_custom_dns_a_registration
+  management_dns_subscription_id     = var.management_dns_subscription_id
+  management_dns_resourcegroup_name  = var.management_dns_resourcegroup_name
   database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
   hana_ANF_volumes                   = local.hana_ANF_volumes
