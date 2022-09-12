@@ -294,7 +294,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   }
 }
 
-resource "azurerm_role_assignment" "vm_dbnode" {
+resource "azurerm_role_assignment" "role_assignment_msi" {
   provider = azurerm.main
   count = (
     var.use_msi_for_clusters &&
