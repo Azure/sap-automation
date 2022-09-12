@@ -334,23 +334,7 @@ variable "witness_storage_account_arm_id" {
   default     = ""
 }
 
-variable "use_custom_dns_a_registration" {
-  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-  default     = false
-  type        = bool
-}
 
-variable "management_dns_subscription_id" {
-  description = "String value giving the possibility to register custom dns a records in a separate subscription"
-  default     = null
-  type        = string
-}
-
-variable "management_dns_resourcegroup_name" {
-  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-  default     = ""
-  type        = string
-}
 variable "transport_storage_account_id" {
   description = "Azure Resource Identifier for the Transport media storage account"
   type        = string
@@ -389,6 +373,31 @@ variable "install_private_endpoint_id" {
 variable "Agent_IP" {
   type    = string
   default = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = ""
+  type        = string
 }
 
 

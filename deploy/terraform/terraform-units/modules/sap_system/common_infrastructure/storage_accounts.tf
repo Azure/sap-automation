@@ -31,15 +31,21 @@ resource "azurerm_storage_account" "sapmnt" {
   account_tier                    = "Premium"
   account_replication_type        = "ZRS"
   account_kind                    = "FileStorage"
-  enable_https_traffic_only       = true
+  enable_https_traffic_only       = false
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
   network_rules {
     default_action = "Deny"
     ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
-      []
+    virtual_network_subnet_ids = var.use_private_endpoint ? (compact(
+      [
+        try(var.landscape_tfstate.admin_subnet_id, ""),
+        try(var.landscape_tfstate.app_subnet_id, ""),
+        try(var.landscape_tfstate.db_subnet_id, ""),
+        try(var.landscape_tfstate.subnet_mgmt_id, "")
+      ]
+      )
       ) : (
       compact(
         [
@@ -75,9 +81,6 @@ resource "time_sleep" "wait_for_dns_refresh" {
   create_duration = "120s"
 
   depends_on = [azurerm_private_dns_a_record.sapmnt]
-  lifecycle {
-    ignore_changes = [tags]
-  }
 }
 
 data "azurerm_storage_account" "sapmnt" {

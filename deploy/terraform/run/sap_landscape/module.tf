@@ -36,15 +36,8 @@ module "sap_landscape" {
 
   use_custom_dns_a_registration  = var.use_custom_dns_a_registration
   management_dns_subscription_id = try(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null)
-  management_dns_resourcegroup_name = length(var.management_dns_resourcegroup_name) > 0 ? (
-    var.management_dns_resourcegroup_name) : (
-    length(var.dns_resource_group_name) > 0 ? (
-      var.dns_resource_group_name) : (
-      local.saplib_resource_group_name
-    )
-  )
-
-
+  management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
+  
   Agent_IP = var.Agent_IP
 
   NFS_provider = var.NFS_provider

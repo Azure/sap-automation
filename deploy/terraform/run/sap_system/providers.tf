@@ -35,7 +35,7 @@ provider "azurerm" {
 provider "azurerm" {
   features {}
   alias                      = "dnsmanagement"
-  subscription_id            = try(var.management_dns_subscription_id, null)
+  subscription_id            = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   skip_provider_registration = true
 }
 

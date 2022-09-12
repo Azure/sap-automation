@@ -155,10 +155,32 @@ output "iscsi_private_ip" {
   value = try(module.sap_landscape.nics_iscsi[*].private_ip_address, [])
 }
 
-// Output for DNS
+###############################################################################
+#                                                                             # 
+#                            DNS                                 # 
+#                                                                             # 
+###############################################################################
 output "dns_info_iscsi" {
+  description = "value"
   value = module.sap_landscape.dns_info_vms
 }
+
+output "use_custom_dns_a_registration" {
+  description = "Defines if custom DNS is used"
+  value = var.use_custom_dns_a_registration
+}
+
+output "management_dns_subscription_id" {
+  description = "custom DNS subscription"
+  value = var.management_dns_subscription_id
+}
+
+
+output "management_dns_resourcegroup_name" {
+  description = "custom DNS resource group"
+  value = var.management_dns_resourcegroup_name
+}
+
 
 ###############################################################################
 #                                                                             # 
