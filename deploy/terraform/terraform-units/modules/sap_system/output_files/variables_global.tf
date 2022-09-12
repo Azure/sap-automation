@@ -222,3 +222,8 @@ variable "web_sid" {
   description = "The sid of the web dispatchers"
   default     = ""
 }
+
+variable "use_msi_for_clusters" {
+  description = "If true, the Pacemaker cluser will use a managed identity"
+}
+

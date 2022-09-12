@@ -58,12 +58,20 @@ output "saplibrary_environment" {
   value       = local.infrastructure.environment
 }
 
-output "automation_version" {
-  value = local.version_label
-}
-
 output "sa_connection_string" {
   description = "Connection string to storage account"
   sensitive   = true
   value       = module.sap_library.sa_connection_string
+}
+
+
+###############################################################################
+#                                                                             # 
+#                             Automation version                              # 
+#                                                                             # 
+###############################################################################
+
+output "automation_version" {
+  description = "Defines the version of the terraform templates used in the deloyment"
+  value = local.version_label
 }

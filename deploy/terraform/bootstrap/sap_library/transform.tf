@@ -11,9 +11,6 @@ locals {
     tags = try(coalesce(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
   }
   deployer = {
-    environment = coalesce(var.deployer_environment, try(var.deployer.environment, ""))
-    region      = coalesce(var.deployer_location, try(var.deployer.region, ""))
-    vnet        = coalesce(var.deployer_vnet, try(var.deployer.vnet, ""))
     use         = var.use_deployer
 
   }

@@ -183,6 +183,18 @@ if [ -n "${subscription}" ]; then
     echo ""
     az account set --sub "${subscription}"
     export ARM_SUBSCRIPTION_ID="${subscription}"
+    kv_found=$(az keyvault list --subscription $subscription --query [].name | grep  "${keyvault}")
+
+    if [ -z "${kv_found}" ] ; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+     echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        step=0
+    fi
+
+  
 fi
 
 if [ 3 == $step ]; then
@@ -194,6 +206,7 @@ set_executing_user_environment_variables "${spn_secret}"
 load_config_vars "${deployer_config_information}" "step"
 
 load_config_vars "${deployer_config_information}" "keyvault"
+
 
 if [ $recover == 1 ]; then
     if [ -n "$REMOTE_STATE_SA" ]; then

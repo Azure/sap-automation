@@ -213,6 +213,14 @@ resource "azurerm_linux_virtual_machine" "web" {
       version   = local.web_os.version
     }
   }
+  dynamic "plan" {
+    for_each = range(local.web_custom_image ? 1 : 0)
+    content {
+      name      = local.web_os.offer
+      publisher = local.web_os.publisher
+      product   = local.web_os.sku
+    }
+  }
 
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
@@ -325,6 +333,14 @@ resource "azurerm_windows_virtual_machine" "web" {
       version   = local.web_os.version
     }
   }
+  dynamic "plan" {
+    for_each = range(local.web_custom_image ? 1 : 0)
+    content {
+      name      = local.web_os.offer
+      publisher = local.web_os.publisher
+      product   = local.web_os.sku
+    }
+  }
 
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
@@ -393,6 +409,10 @@ resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 

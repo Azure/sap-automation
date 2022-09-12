@@ -116,6 +116,11 @@ output "webapp_identity" {
   value = var.use_webapp ? module.sap_deployer.webapp_identity : ""
 }
 
+output "webapp_id" {
+  value = var.use_webapp ? module.sap_deployer.webapp_id : ""
+}
+
+
 ###############################################################################
 #                                                                             # 
 #                                VM Extension                                 # 

@@ -76,14 +76,16 @@ stages:
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                  git checkout -q -b $(Build.SourceBranchName)
+                  git branch --set-upstream-to=origin/$(Build.SourceBranchName) $(Build.SourceBranchName)
+              echo -e "$green--- Read parameters ---$reset"
 
-                DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                                HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
-                         ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
-                            LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-                             NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Network     $NETWORK
-                                 SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo SID         $SID
+                     HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
+              ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
+                 LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
+                  NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
+                      SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
 
                 cd $HOME; mkdir -p .sap_deployment_automation
 
@@ -97,7 +99,7 @@ stages:
                   exit 2
                 fi
 
-                environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK} ; "echo Environment file:" $environment_file_name
+                environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
 
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $ENVIRONMENT$LOCATION$NETWORK was not found ---$reset"
@@ -129,20 +131,32 @@ stages:
                   echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
                   exit 2
                 fi
-              echo -e "$green--- Install Terraform ---$reset"
-                wget -q $(tf_url)
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-                  exit 2
-                fi
-                unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-                rm -f terraform_$(tf_version)_linux_amd64.zip
+
+                # Check if running on deployer
+              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                echo -e "$green --- Install dos2unix ---$reset"
+                  sudo apt-get -qq install dos2unix
+
+                echo -e "$green --- Install terraform ---$reset"
+  
+                  wget -q $(tf_url)
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                    exit 2
+                  fi
+                  unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                  rm -f terraform_$(tf_version)_linux_amd64.zip
+              fi
+
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt >/dev/null 2>&1
+                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+                if [ -z "$devops_extension_installed" ]; then
+                  az extension add --name azure-devops --output none
+                fi
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                 echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
               echo -e "$green--- Pull the latest content from DevOps ---$reset"
@@ -152,27 +166,25 @@ stages:
                 git pull
               echo -e "$green--- --- Convert config file to UX format ---$reset"
 
-                sudo apt-get -qq install dos2unix
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- Define variables ---$reset"
                 cd $HOME/SYSTEM/$(sap_system_folder)
-                deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
 
                 if [ -z $(REMOTE_STATE_SA) ]; then
-                  export REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 fi
 
                 if [ -z $(STATE_SUBSCRIPTION) ]; then
-                  export STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                  export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 fi
 
                 if [ -z $(deployer_tfstate_key) ]; then
-                  export deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                  export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
                 fi
 
                 if [ -z $(key_vault) ]; then
-                  export key_vault=$(cat ${deployer_environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                  export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value)  | tr -d \"
@@ -299,8 +311,11 @@ stages:
                 fi
                 
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Added updates from devops system deployment $(Build.DefinitionName) [skip ci]"
+
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                 fi
 
                 if [ -f ${SID}.md ]; then
@@ -317,5 +332,6 @@ stages:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+                
             failOnStderr:              false
 ...

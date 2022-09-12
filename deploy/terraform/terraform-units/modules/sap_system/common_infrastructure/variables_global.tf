@@ -139,10 +139,6 @@ variable "deployer_tfstate" {
   description = "Deployer remote tfstate file"
 }
 
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
-
 variable "service_principal" {
   description = "Current service principal used to authenticate to Azure"
 }
@@ -247,3 +243,16 @@ variable "hana_ANF_volumes" {
 variable "deploy_application_security_groups" {
   description = "Defines if application security groups should be deployed"
 }
+
+
+variable "landscape_tfstate" {
+  description = "Landscape remote tfstate file"
+  validation {
+    condition = (
+      length(trimspace(try(var.landscape_tfstate.vnet_sap_arm_id, ""))) != 0
+    )
+    error_message = "Network is undefined, please redeploy the workload zone."
+  }
+
+}
+

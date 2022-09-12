@@ -210,6 +210,15 @@ resource "azurerm_linux_virtual_machine" "app" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.app_custom_image ? 1 : 0)
+    content {
+      name      = local.app_os.offer
+      publisher = local.app_os.publisher
+      product   = local.app_os.sku
+    }
+  }
+
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
   }
@@ -218,6 +227,9 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   tags = try(var.application.app_tags, {})
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Create the Windows Application VM(s)
@@ -306,6 +318,14 @@ resource "azurerm_windows_virtual_machine" "app" {
       version   = local.app_os.version
     }
   }
+  dynamic "plan" {
+    for_each = range(local.app_custom_image ? 1 : 0)
+    content {
+      name      = local.app_os.offer
+      publisher = local.app_os.publisher
+      product   = local.app_os.sku
+    }
+  }
 
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
@@ -377,6 +397,10 @@ resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 

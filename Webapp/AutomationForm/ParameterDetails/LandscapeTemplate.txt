@@ -76,7 +76,7 @@ $$use_service_endpoint$$
 #Defines if the SAP VNet will be peered with the control plane VNet
 $$peer_with_control_plane_vnet$$
 
-# Boolean value indicating if firewall should be enabled for key vaults and storage accounts
+# Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets
 $$enable_firewall_for_keyvaults_and_storage$$
 
 #########################################################################################

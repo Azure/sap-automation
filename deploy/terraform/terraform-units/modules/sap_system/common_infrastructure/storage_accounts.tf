@@ -75,6 +75,9 @@ resource "time_sleep" "wait_for_dns_refresh" {
   create_duration = "120s"
 
   depends_on = [azurerm_private_dns_a_record.sapmnt]
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 data "azurerm_storage_account" "sapmnt" {
@@ -96,7 +99,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
       0) : (
       1
     )) : (
-    0
+    var.use_private_endpoint ? 1 : 0
   )
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_sapmnt,
@@ -123,6 +126,10 @@ resource "azurerm_private_endpoint" "sapmnt" {
     subresource_names = [
       "File"
     ]
+  }
+
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 

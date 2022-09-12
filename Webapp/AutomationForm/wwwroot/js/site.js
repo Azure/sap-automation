@@ -394,6 +394,19 @@ function updateImage(source, target) {
     }
 }
 
+function addTag(param) {
+    var parentDiv = $("#" + param + "-tags-container");
+    var numTags = $("#" + param + "-tags-container input").length / 2;
+    parentDiv.append('<div class="tag"></div>');
+    var lastTagContainer = parentDiv.children().last();
+    lastTagContainer.append('<div class="tag-key"></div>');
+    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="database_tags_' + numTags + '__Key">Key</label>');
+    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="database_tags_' + numTags + '__Key" name="database_tags[' + numTags + '].Key" type="text" value="">');
+    lastTagContainer.append('<div class="tag-value"></div>');
+    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="database_tags_' + numTags + '__Value">Value</label>');
+    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="database_tags_' + numTags + '__Value" name="database_tags[' + numTags + '].Value" type="text" value="">');
+}
+
 // ===============
 // EVENT LISTENERS
 // ===============
@@ -594,6 +607,7 @@ function toggleDefault(checkbox, id, modelType) {
                 success: function (data) {
                     data = JSON.parse(data);
                     data['IsDefault'] = false;
+                    data['sid'] = null;
                     updateModel(data);
                 },
                 error: function () {

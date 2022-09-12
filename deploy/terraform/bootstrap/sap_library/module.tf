@@ -23,7 +23,6 @@ module "sap_library" {
   use_custom_dns_a_registration      = var.use_custom_dns_a_registration
   management_dns_subscription_id     = var.management_dns_subscription_id
   management_dns_resourcegroup_name  = var.management_dns_resourcegroup_name
-  enable_purge_control_for_keyvaults = var.enable_purge_control_for_keyvaults
   use_webapp                         = var.use_webapp
 }
 
@@ -34,6 +33,6 @@ module "sap_namegenerator" {
   location             = local.infrastructure.region
   deployer_environment = try(local.deployer.environment, local.infrastructure.environment)
   deployer_location    = try(local.deployer.region, local.infrastructure.region)
-  management_vnet_name = local.deployer.vnet
+  management_vnet_name = ""
   random_id            = module.sap_library.random_id
 }

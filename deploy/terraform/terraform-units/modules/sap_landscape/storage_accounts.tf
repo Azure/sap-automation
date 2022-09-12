@@ -114,6 +114,10 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
       "File"
     ]
   }
+  timeouts {
+    create = "10m"
+    delete = "30m"
+  }
 }
 
 ################################################################################
@@ -198,7 +202,10 @@ data "azurerm_storage_account" "witness_storage" {
 
 resource "azurerm_private_endpoint" "witness_storage" {
   provider = azurerm.main
-  count    = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
+  depends_on = [
+    azurerm_subnet.db,
+  ]
+  count = var.use_private_endpoint && local.admin_subnet_defined && (length(var.witness_storage_account.arm_id) == 0) ? 1 : 0
   name = format("%s%s%s",
     var.naming.resource_prefixes.storage_private_link_witness,
     local.prefix,
@@ -209,8 +216,8 @@ resource "azurerm_private_endpoint" "witness_storage" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  subnet_id = local.application_subnet_defined ? (
-    local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+  subnet_id = local.database_subnet_defined ? (
+    local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
     ""
   )
   private_service_connection {
@@ -224,6 +231,10 @@ resource "azurerm_private_endpoint" "witness_storage" {
     subresource_names = [
       "File"
     ]
+  }
+  timeouts {
+    create = "10m"
+    delete = "30m"
   }
 }
 
@@ -381,6 +392,10 @@ resource "azurerm_private_endpoint" "transport" {
       "File"
     ]
   }
+  timeouts {
+    create = "10m"
+    delete = "30m"
+  }
 }
 
 data "azurerm_private_endpoint_connection" "transport" {
@@ -418,10 +433,7 @@ resource "azurerm_storage_account" "install" {
   ]
   name = replace(
     lower(
-      format("%s%s",
-        local.prefix,
-        local.resource_suffixes.install_volume
-      )
+      format("%s", local.landscape_shared_install_storage_account_name)
     ),
     "/[^a-z0-9]/",
     ""
@@ -554,6 +566,10 @@ resource "azurerm_private_endpoint" "install" {
       "File"
     ]
   }
+  timeouts {
+    create = "10m"
+    delete = "30m"
+  }
 }
 
 resource "azurerm_storage_share" "install" {
@@ -588,3 +604,15 @@ resource "azurerm_storage_share" "install_smb" {
   quota = var.install_volume_size
 }
 
+#Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
+resource "time_sleep" "wait_for_private_endpoints" {
+  create_duration = "120s"
+
+  depends_on = [
+    azurerm_private_endpoint.storage_bootdiag,
+    azurerm_private_endpoint.witness_storage,
+    azurerm_private_endpoint.install,
+    azurerm_private_endpoint.transport
+
+  ]
+}

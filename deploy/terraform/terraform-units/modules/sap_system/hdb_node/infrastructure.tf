@@ -21,6 +21,10 @@ resource "azurerm_availability_set" "hdb" {
     )
   )
   managed = true
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 data "azurerm_availability_set" "hdb" {
@@ -73,6 +77,9 @@ resource "azurerm_lb" "hdb" {
     zones = ["1", "2", "3"]
   }
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_lb_backend_address_pool" "hdb" {

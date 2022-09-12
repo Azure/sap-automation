@@ -348,6 +348,10 @@ else
 
     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
 
+    # Install dotnet
+    sudo snap install dotnet-sdk --classic --channel=3.1
+    sudo snap alias dotnet-sdk.dotnet dotnet
+    
 
     # Fail if any command exits with a non-zero exit status
     set -o errexit
@@ -538,6 +542,9 @@ else
       export ARM_TENANT_ID=${tenant_id}
       echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
     fi
+
+    echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+    
     
     # Ensure that the user's account is logged in to Azure with specified creds
     echo "az login --identity --output none" | tee -a /tmp/deploy_server.sh

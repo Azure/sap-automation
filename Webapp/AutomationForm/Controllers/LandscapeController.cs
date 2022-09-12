@@ -22,7 +22,7 @@ namespace AutomationForm.Controllers
 
         private readonly ITableStorageService<LandscapeEntity> _landscapeService;
         private readonly ITableStorageService<AppFile> _appFileService;
-        private LandscapeViewModel landscapeView;
+        private FormViewModel<LandscapeModel> landscapeView;
         private readonly IConfiguration _configuration;
         private RestHelper restHelper;
         private ImageDropdown[] imagesOffered;
@@ -39,18 +39,14 @@ namespace AutomationForm.Controllers
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
         }
-        private LandscapeViewModel SetViewData()
+        private FormViewModel<LandscapeModel> SetViewData()
         {
-            landscapeView = new LandscapeViewModel();
-            landscapeView.Landscape = new LandscapeModel();
+            landscapeView = new FormViewModel<LandscapeModel>();
+            landscapeView.SapObject = new LandscapeModel();
             try
             {
-                // ParameterGroupingModel basicParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/LandscapeDetails.json");
-                // ParameterGroupingModel advancedParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/AdvancedLandscapeDetails.json");
-                // ParameterGroupingModel expertParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/ExpertLandscapeDetails.json");
                 Grouping[] parameterArray = Helper.ReadJson<Grouping[]>("ParameterDetails/LandscapeDetails.json");
 
-                // landscapeView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
                 landscapeView.ParameterGroupings = parameterArray;
             }
             catch
@@ -64,13 +60,13 @@ namespace AutomationForm.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
-            LandscapeIndexModel landscapeIndex = new LandscapeIndexModel();
+            SapObjectIndexModel<LandscapeModel> landscapeIndex = new SapObjectIndexModel<LandscapeModel>();
 
             try
             {
                 List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
                 List<LandscapeModel> landscapes = landscapeEntities.FindAll(l => l.Landscape != null).ConvertAll(l => JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape));
-                landscapeIndex.Landscapes = landscapes;
+                landscapeIndex.SapObjects = landscapes;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
                 landscapeIndex.AppFiles = appfiles.FindAll(file => file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
@@ -198,7 +194,7 @@ namespace AutomationForm.Controllers
                 }
             }
 
-            landscapeView.Landscape = landscape;
+            landscapeView.SapObject = landscape;
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
 
@@ -211,11 +207,12 @@ namespace AutomationForm.Controllers
             try
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
+                landscapeView.SapObject = landscape;
 
                 List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
                 ViewBag.Environments = environments;
 
-                return View(landscape);
+                return View(landscapeView);
             }
             catch (Exception e)
             {
@@ -258,12 +255,13 @@ namespace AutomationForm.Controllers
         //     }
 
         //     LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
+        //     landscapeView.SapObject = landscape;
         //     if (landscape == null)
         //     {
         //         return NotFound();
         //     }
 
-        //     return View(landscape);
+        //     return View(landscapeView);
         // }
 
         // [HttpPost]
@@ -283,7 +281,7 @@ namespace AutomationForm.Controllers
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
-                landscapeView.Landscape = landscape;
+                landscapeView.SapObject = landscape;
                 ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
                 ViewBag.ImageOptions = imageOptions;
                 return View(landscapeView);
@@ -328,7 +326,7 @@ namespace AutomationForm.Controllers
                 }
             }
 
-            landscapeView.Landscape = landscape;
+            landscapeView.SapObject = landscape;
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
 
@@ -359,7 +357,7 @@ namespace AutomationForm.Controllers
                 }
             }
 
-            landscapeView.Landscape = landscape;
+            landscapeView.SapObject = landscape;
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
 
@@ -373,7 +371,7 @@ namespace AutomationForm.Controllers
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
-                landscapeView.Landscape = landscape;
+                landscapeView.SapObject = landscape;
                 return View(landscapeView);
             }
             catch (Exception e) 

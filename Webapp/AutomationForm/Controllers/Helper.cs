@@ -117,7 +117,20 @@ namespace AutomationForm.Controllers
         {
             StringBuilder str = new StringBuilder();
             var value = property.GetValue(model);
-            if (property.PropertyType.IsArray)
+            if (property.PropertyType.GetElementType() == typeof(Tag))
+            {
+                if (value == null) return "#" + property.Name + " = {}";
+                str.AppendLine(property.Name + " = {");
+                foreach (Tag t in (Tag[])value)
+                {
+                    if (t.Key != null && t.Key.Length > 0)
+                    {
+                        str.AppendLine($"  {t.Key} = \"{t.Value}\",");
+                    }
+                }
+                str.Append("}");
+            }
+            else if (property.PropertyType.IsArray)
             {
                 if (value == null) return "#" + property.Name + " = []";
                 str.Append(property.Name + " = [");
