@@ -179,7 +179,7 @@ $$database_vm_storage_nic_ips$$
 #  publisher="RedHat"
 #  offer="RHEL-SAP-HA"
 #  sku="82sapha-gen2"
-#  version="8.2.2021040902"
+#  version="latest"
 #}
 
 # The vm_image defines the Virtual machine image to use, 
