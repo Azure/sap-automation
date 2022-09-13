@@ -144,6 +144,8 @@ database_vm_use_DHCP = true
 # for the network interface cards connected to the admin subnet
 #database_vm_admin_nic_ips = []
 
+# database_loadbalancer_ips defines the load balancer IP addresses for the database tier's load balancer.
+#database_loadbalancer_ips = []
 
 # database_vm_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the storage subnet
@@ -152,17 +154,18 @@ database_vm_use_DHCP = true
 # Sample Images for different database backends
 
 # Oracle
-#database_vm_image={
-#  source_image_id=""
-#  publisher="Oracle"
-#  offer= "Oracle-Linux",
-#  sku= "82-gen2",
-#  version="latest"
+#database_vm_image = {
+#  os_type         = "LINUX"
+#  source_image_id = ""
+#  publisher       = "Oracle"
+#  offer           = "Oracle-Linux",
+#  sku             = "82-gen2",
+#  version         = "latest"
 #}
 
 #SUSE 15 SP3
 #database_vm_image = {
-#  os_type         = ""
+#  os_type         = "LINUX"
 #  source_image_id = ""
 #  publisher       = "SUSE"
 #  offer           = "sles-sap-15-sp3"
@@ -172,12 +175,12 @@ database_vm_use_DHCP = true
 
 #RedHat
 #database_vm_image={
-#  os_type="linux"
-#  source_image_id=""
-#  publisher="RedHat"
-#  offer="RHEL-SAP-HA"
-#  sku="82sapha-gen2"
-#  version="8.2.2021040902"
+#  os_type         = "LINUX"
+#  source_image_id = ""
+#  publisher       = "RedHat"
+#  offer           = "RHEL-SAP-HA"
+#  sku             = "8_4"
+#  version         = "latest"
 #}
 
 # The vm_image defines the Virtual machine image to use, 
@@ -284,7 +287,9 @@ scs_server_image = {
 # for the network interface cards connected to the application subnet
 #scs_server_admin_nic_ips = []
 
+# scs_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
 # for the network interface cards connected to the application subnet
+#scs_server_loadbalancer_ips = []
 
 # scs_server_tags, if defined provides the tags to be associated to the application servers
 #scs_server_tags = {}
@@ -473,7 +478,7 @@ NFS_provider = "AFS"
 
 #########################################################################################
 #                                                                                       #
-#  HANA Log                                                                            #
+#  HANA Shared                                                                          #
 #                                                                                       #
 #########################################################################################
 
@@ -495,7 +500,7 @@ NFS_provider = "AFS"
 
 #########################################################################################
 #                                                                                       #
-#  HANA Log                                                                            #
+#  /usr/sap                                                                             #
 #                                                                                       #
 #########################################################################################
 
@@ -517,7 +522,7 @@ NFS_provider = "AFS"
 
 #########################################################################################
 #                                                                                       #
-#  HANA Log                                                                            #
+#  sapmnt                                                                               #
 #                                                                                       #
 #########################################################################################
 
@@ -532,7 +537,6 @@ NFS_provider = "AFS"
 
 # ANF_sapmnt_volume_name, if defined, provides the name of the /sapmnt volume.
 #ANF_sapmnt_volume_name = ""
-
 
 
 #########################################################################################
@@ -740,6 +744,3 @@ NFS_provider = "AFS"
 #deployer_tfstate_key = null
 
 #landscape_tfstate_key = null
-
-database_loadbalancer_ips   = ["10.111.96.6"]
-scs_server_loadbalancer_ips = ["10.111.32.9", "10.111.32.10"]

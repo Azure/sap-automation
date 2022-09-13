@@ -34,7 +34,7 @@
 #########################################################################################
 
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment = "QA"
+environment = "PRD"
 
 # The location value is a mandatory field, it is used to control where the resources are deployed
 location = "westeurope"
@@ -64,7 +64,7 @@ use_zonal_markers = true
 #subscription = ""
 
 # bom_name is the name of the SAP Bill of Materials file
-bom_name = "S41909SPS03_v0011ms"
+#bom_name = ""
 
 
 #########################################################################################
@@ -88,10 +88,10 @@ bom_name = "S41909SPS03_v0011ms"
 #########################################################################################
 
 # The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
-network_logical_name = "SAP02"
+network_logical_name = "SAP03"
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
-use_loadbalancers_for_standalone_deployments = true
+use_loadbalancers_for_standalone_deployments = false
 
 # use_private_endpoint is a boolean flag controlling if the key vaults and storage accounts have private endpoints
 #use_private_endpoint = false
@@ -117,14 +117,14 @@ database_platform = "HANA"
 database_server_count = 1
 
 # database_high_availability is a boolean flag controlling if the database tier is deployed highly available (more than 1 node)
-#database_high_availability = false
+database_high_availability = true
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
-database_size = "E20ds_v4"
+database_size = "Default"
 
 # database_instance_number if provided defines the instance number of the HANA database
-database_instance_number = "00"
+#database_instance_number = ""
 
 # database_vm_use_DHCP is a boolean flag controlling if Azure subnet provided IP addresses should be used (true)
 database_vm_use_DHCP = true
@@ -145,7 +145,7 @@ database_vm_use_DHCP = true
 #database_vm_admin_nic_ips = []
 
 # database_loadbalancer_ips defines the load balancer IP addresses for the database tier's load balancer.
-#database_loadbalancer_ips = [""]
+#database_loadbalancer_ips = []
 
 # database_vm_admin_nic_ips, if provided provides the static IP addresses 
 # for the network interface cards connected to the storage subnet
@@ -188,16 +188,16 @@ database_vm_use_DHCP = true
 # in this case os_type must also be specified
 
 database_vm_image = {
-  os_type         = "linux",
+  os_type         = "LINUX",
   source_image_id = "",
-  publisher       = "RedHat",
-  offer           = "RHEL-SAP-HA",
-  sku             = "8_4",
+  publisher       = "SUSE",
+  offer           = "sles-sap-15-sp3",
+  sku             = "gen2",
   version         = "latest"
 }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers
-database_vm_zones = ["1"]
+database_vm_zones = ["2"]
 
 # Optional, Defines the default authentication model for the Database VMs (key/password)
 #database_vm_authentication_type = ""
@@ -209,7 +209,7 @@ database_vm_zones = ["1"]
 #database_no_ppg = false
 
 # Optional, Defines the that the database virtual machines will not be placed in an availability set
-#database_no_avset = false
+database_no_avset = false
 
 # Optional, Defines if the tags for the database virtual machines
 #database_tags = {}
@@ -231,7 +231,7 @@ enable_app_tier_deployment = true
 app_tier_use_DHCP = true
 
 # sid is a mandatory field that defines the SAP Application SID
-sid = "Q00"
+sid = "P01"
 
 #########################################################################################
 #                                                                                       #
@@ -243,7 +243,7 @@ sid = "Q00"
 scs_server_count = 1
 
 # scs_high_availability is a boolean flag controlling if SCS should be highly available
-#scs_high_availability = false
+scs_high_availability = true
 
 # scs_instance_number
 #scs_instance_number = ""
@@ -252,7 +252,7 @@ scs_server_count = 1
 #ers_instance_number = ""
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
-scs_server_zones = ["1"]
+scs_server_zones = ["2"]
 
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 #scs_server_sku = ""
@@ -261,11 +261,11 @@ scs_server_zones = ["1"]
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
 scs_server_image = {
-  os_type         = "linux",
+  os_type         = "LINUX",
   source_image_id = "",
-  publisher       = "RedHat",
-  offer           = "RHEL-SAP-HA",
-  sku             = "8_4",
+  publisher       = "SUSE",
+  offer           = "sles-sap-15-sp3",
+  sku             = "gen2",
   version         = "latest"
 }
 
@@ -289,6 +289,7 @@ scs_server_image = {
 
 # scs_server_loadbalancer_ips, if provided provides the static IP addresses for the load balancer
 # for the network interface cards connected to the application subnet
+#scs_server_loadbalancer_ips = []
 
 # scs_server_tags, if defined provides the tags to be associated to the application servers
 #scs_server_tags = {}
@@ -303,7 +304,7 @@ scs_server_image = {
 application_server_count = 2
 
 # application_server_zones is an optional list defining the availability zones to which deploy the application servers
-#application_server_zones = []
+application_server_zones = ["2"]
 
 # application_server_sku, if defined provides the SKU to use for the application servers
 #application_server_sku = ""
@@ -327,7 +328,7 @@ application_server_count = 2
 #app_disk_sizes_filename = null
 
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
-#app_tier_authentication_type = "key"
+app_tier_authentication_type = "key"
 
 # application_server_no_ppg defines the that the application server virtual machines will not be placed in a proximity placement group
 #application_server_no_ppg = false
@@ -342,11 +343,11 @@ application_server_count = 2
 # if source_image_id is specified the deployment will use the custom image provided, 
 # in this case os_type must also be specified
 application_server_image = {
-  os_type         = "linux",
+  os_type         = "LINUX",
   source_image_id = "",
-  publisher       = "RedHat",
-  offer           = "RHEL-SAP-HA",
-  sku             = "8_4",
+  publisher       = "SUSE",
+  offer           = "sles-sap-15-sp3",
+  sku             = "gen2",
   version         = "latest"
 }
 
@@ -405,7 +406,7 @@ webdispatcher_server_count = 0
 
 # resource_offset can be used to provide an offset for resource naming
 # server#, disk# 
-#resource_offset = 0
+resource_offset = 1
 
 # vm_disk_encryption_set_id if defined defines the custom encryption key 
 #vm_disk_encryption_set_id = ""
@@ -423,9 +424,9 @@ webdispatcher_server_count = 0
 # AFS indicates that Azure Files for NFS is used
 # ANF indicates that Azure NetApp Files is used
 # NFS indicates that a custom solution is used for NFS
-NFS_provider = "AFS"
+NFS_provider = "ANF"
 
-#sapmnt_volume_size = 0
+sapmnt_volume_size = 512
 
 #azure_files_sapmnt_id = ""
 

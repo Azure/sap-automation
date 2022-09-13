@@ -69,6 +69,7 @@ This configuration deploys a Workload zone with the following components:
 | Subnet (application)                 | PRD-WEEU-SAP03_app-subnet       | westeurope      | Address space:     10.112.32.0/19              |
 | Subnet (web)                         | PRD-WEEU-SAP03_web-subnet       | westeurope      | Address space:     10.112.128.0/19             |
 | Subnet (admin)                       | PRD-WEEU-SAP03_admin-subnet     | westeurope      | Address space:     10.112.0.0/19               |
+| Subnet (ANF)                         | PRD-WEEU-anf-subnet             | westeurope      | Address space:     10.112.64.0/27              |
 | Route table                          | PRD-WEEU-SAP03_route-table      | westeurope      |                                                |
 | Network security group (database)    | PRD-WEEU-SAP03_dbSubnet-nsg     | westeurope      |                                                |
 | Network security group (application) | PRD-WEEU-SAP03_appSubnet-nsg    | westeurope      |                                                |
