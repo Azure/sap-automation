@@ -94,7 +94,7 @@
         - { parameter: 'fencing_spn_tenant_id', error: 'A highly available SCS deployment requires that an SPN is defined for the fencing agent' }
       loop_control:
         loop_var: item_to_check
-      when:                            
+      when:
         - scs_high_availability
         - not use_msi_for_clusters
 

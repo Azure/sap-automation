@@ -119,9 +119,9 @@
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
                                          pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
 
-      when:                            
-       - ansible_distribution_major_version == "7"
-       - not use_msi_for_clusters
+      when:
+        - ansible_distribution_major_version == "7"
+        - not use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.command: >
@@ -139,9 +139,9 @@
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
                                          pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
 
-      when:                            
-       - ansible_distribution_major_version == "7"
-       - use_msi_for_clusters
+      when:
+        - ansible_distribution_major_version == "7"
+        - use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.command: >
@@ -159,9 +159,9 @@
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
                                          pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-      when:                            
-       - ansible_distribution_major_version == "8"
-       - not use_msi_for_clusters
+      when:
+        - ansible_distribution_major_version == "8"
+        - not use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
       ansible.builtin.command: >
@@ -177,9 +177,9 @@
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
                                          pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-      when:                            
-       - ansible_distribution_major_version == "8"
-       - use_msi_for_clusters
+      when:
+        - ansible_distribution_major_version == "8"
+        - use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
       ansible.builtin.command:         pcs resource update rsc_st_azure op monitor interval=3600
