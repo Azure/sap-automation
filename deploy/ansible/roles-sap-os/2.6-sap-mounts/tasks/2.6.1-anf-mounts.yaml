@@ -654,9 +654,9 @@
     state:                             directory
     recurse:                           true
   loop:
-          - { 'path': '/hana/data' }
-          - { 'path': '/hana/log' }
-          - { 'path': '/hana/shared' }
+    - { 'path': '/hana/data' }
+    - { 'path': '/hana/log' }
+    - { 'path': '/hana/shared' }
   when:
     - tier == 'sapos'
     - node_tier == 'hana'
