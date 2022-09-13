@@ -174,21 +174,21 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "DBLoad Install: Installation results"
-      ansible.builtin.debug:
-        msg:                           "DBLoad Installation succeeded"
-      when:
-        - job_result.rc is defined
-        - job_result.rc == 0
-
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
         state:                         touch
         mode:                          0755
       when:
-        - job_result is defined
-        - job_result.rc > 0
+        - job_result.rc is defined
+        - job_result.rc == 0
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "DBLoad Installation succeeded"
+      when:
+        - job_result.rc is defined
+        - job_result.rc == 0
 
   when:
     - not dbload_installed.stat.exists

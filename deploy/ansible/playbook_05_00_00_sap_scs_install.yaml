@@ -393,7 +393,7 @@
               vars:
                 suffix:                "_SCS"
                 prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/ABAP/ASCS'
+                path:                  '/INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
               when:
                 - scs_bom_id is defined
@@ -405,7 +405,7 @@
               vars:
                 suffix:                "_ERS"
                 prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
-                path:                  'INSTALL/HA/ABAP/ERS'
+                path:                  '/INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
               when:
                 - ers_bom_id is defined
