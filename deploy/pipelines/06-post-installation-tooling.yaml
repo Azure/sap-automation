@@ -366,7 +366,7 @@ stages:
                 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git checkout -q -b $(Build.SourceBranchName)
+                git checkout -q $(Build.SourceBranchName)
               echo -e "$green--- git status ---$reset"
                 git status
                 added=0

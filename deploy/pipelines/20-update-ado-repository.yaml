@@ -21,7 +21,7 @@ parameters:
   - name:                              tag
     displayName:                       Git tag to fetch
     type:                              string
-    default:                           
+    default:                           latest
 
   - name:                              force
     displayName:                       Force the update
@@ -67,7 +67,7 @@ stages:
 
               git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
 
-              git fetch --tags 
+              git fetch --all --tags 
 
               git pull -q --commit remote-repo $(branch)  >> /tmp/$(log) 2>&1
               return_code=$?

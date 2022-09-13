@@ -98,8 +98,7 @@ stages:
 
                     echo "Agent: " $(this_agent)
                 echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                    git checkout -q -b $(Build.SourceBranchName)
-                    git branch --set-upstream-to=origin/$(Build.SourceBranchName)
+                    git checkout -b $(Build.SourceBranchName)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
                     az config set extension.use_dynamic_install=yes_without_promp

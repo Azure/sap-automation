@@ -103,8 +103,7 @@ stages:
               #!/bin/bash
               echo -e "$green--- Preparations ---$reset"
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git checkout -q -b $(Build.SourceBranchName)
-                git branch --set-upstream-to=origin/$(Build.SourceBranchName) $(Build.SourceBranchName)
+                git checkout -q $(Build.SourceBranchName)
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m"
                       SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo Location    $SID
@@ -246,12 +245,6 @@ stages:
                   fi
                 fi
 
-              echo -e "$green--- Pull latest from DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
-
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
                 cd $HOME/SYSTEM/$(sap_system_folder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sap_system_configuration) --type sap_system --auto-approve
@@ -260,6 +253,9 @@ stages:
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
                 fi
+              echo -e "$green--- Pull latest from DevOps Repository ---$reset"
+                git checkout -q $(Build.SourceBranchName)
+                git pull
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
@@ -317,6 +313,8 @@ stages:
                   fi
 
                   if [ 1 == $changed ]; then
+                    git config --global user.email "$(Build.RequestedForEmail)"
+                    git config --global user.name "$(Build.RequestedFor)"
                     git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]" 
                     git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                   fi
@@ -355,8 +353,7 @@ stages:
               echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(workload_zone_folder)"
               green="\e[1;32m" ; reset="\e[0m"
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git checkout -q -b $(Build.SourceBranchName)
-                git branch --set-upstream-to=origin/$(Build.SourceBranchName) $(Build.SourceBranchName)
+                git checkout -q $(Build.SourceBranchName)
 
               ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                  LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
@@ -505,8 +502,6 @@ stages:
 
               echo -e "$green--- --- Convert config file to UX format ---$reset"
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
-              echo -e "$green--- Pull latest ---$reset"
-                git pull origin $(Build.SourceBranchName)
 
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
                 cd $HOME/LANDSCAPE/$(workload_zone_folder)
@@ -517,6 +512,9 @@ stages:
                 if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
                 fi
+
+                echo -e "$green--- Pull latest ---$reset"
+                  git pull 
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
                 if [[ ip_added_control_plane -eq 1 ]]; then
@@ -531,12 +529,8 @@ stages:
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 changed=0
-                git pull origin $(Build.SourceBranchName)
 
                 if [ 0 == $return_code ]; then
-
-                      
-                  cat $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
 
                   if [ -f  $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK ]; then
                     git rm -q -f $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK

@@ -77,8 +77,7 @@ stages:
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                  git checkout -q -b $(Build.SourceBranchName)
-                  git branch --set-upstream-to=origin/$(Build.SourceBranchName) $(Build.SourceBranchName)
+                  git checkout -q $(Build.SourceBranchName)
               echo -e "$green--- Read parameters ---$reset"
 
                      HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
@@ -159,11 +158,6 @@ stages:
                 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                 echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
-              echo -e "$green--- Pull the latest content from DevOps ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git pull
               echo -e "$green--- --- Convert config file to UX format ---$reset"
 
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
@@ -261,6 +255,7 @@ stages:
                   fi
                 fi
 
+        
                 az account set --subscription ${STATE_SUBSCRIPTION}
                 if [[ ip_added_control_plane -eq 1 ]]; then
                   echo -e "$green--- Remove IP ---$reset"
@@ -274,7 +269,8 @@ stages:
                 # Pull changes if there are other deployment jobs
                 
                 cd $HOME/SYSTEM/$(sap_system_folder)
-                git pull
+                echo -e "$green--- Pull the latest content from DevOps ---$reset"
+                  git pull
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 

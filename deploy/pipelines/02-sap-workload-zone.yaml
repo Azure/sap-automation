@@ -130,8 +130,7 @@ stages:
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                  git checkout -q -b $(Build.SourceBranchName)
-                  git branch --set-upstream-to=origin/$(Build.SourceBranchName) $(Build.SourceBranchName)
+                  git checkout -q $(Build.SourceBranchName)
 
               echo -e "$green--- Validations ---$reset"
 
@@ -332,10 +331,6 @@ stages:
                   fi
                 fi
 
-              echo -e "$green--- Pull the latest content from DevOps ---$reset"
-                git checkout -q $(Branch)
-                git pull
-
               echo -e "$green--- Deploy the workload zone ---$reset"
                 cd $HOME/LANDSCAPE/$(workload_zone_folder)
 
@@ -394,7 +389,10 @@ stages:
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
-                git pull
+
+                echo -e "$green--- Pull latest ---$reset"
+                  git pull 
+
                 added=0
                 if [ -f ${workload_environment_file_name} ]; then
                   git add ${workload_environment_file_name}
@@ -412,7 +410,7 @@ stages:
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
                   git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                 fi
 
                 if [ -f ${workload_environment_file_name}.md ]; then

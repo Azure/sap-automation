@@ -85,7 +85,7 @@ stages:
               green="\e[1;32m" ; reset="\e[0m"
 
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git checkout -q -b $(Build.SourceBranchName)
+                git checkout -q $(Build.SourceBranchName)
 
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
@@ -173,7 +173,6 @@ stages:
                 
                 export STATE_SUBSCRIPTION=$(ARM_SUBSCRIPTION_ID) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
-
               echo -e "$green--- az login ---$reset"
 
                 if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
@@ -233,7 +232,7 @@ stages:
               echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                 cd $(Build.Repository.LocalPath)
 
-                git pull origin $(Build.SourceBranchName)
+                git pull
 
                 if [ 0 == $return_code ]; then
                   changed=0
