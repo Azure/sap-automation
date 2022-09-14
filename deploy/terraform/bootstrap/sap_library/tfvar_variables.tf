@@ -1,169 +1,220 @@
-/*
+#########################################################################################
+#                                                                                       #
+#  Environment definitioms                                                              #
+#                                                                                       #
+#########################################################################################
 
-This block describes the variable for the infrastructure block 
-
-*/
 
 variable "environment" {
+  description = "This is the environment name of the deployer"
   type        = string
-  description = "This is the environment name of the library"
-  default     = ""
 }
 
-
 variable "codename" {
-  type    = string
-  default = ""
+  description = "Additional component for naming the resources"
+  default     = ""
+  type        = string
 }
 
 variable "location" {
-  type    = string
-  default = ""
-}
-
-variable "resourcegroup_name" {
-  default = ""
-}
-
-variable "resourcegroup_arm_id" {
-  default = ""
-}
-
-variable "resourcegroup_tags" {
-  default = {}
-}
-
-/*
-
-/*
-
-This block describes the variable for the deployer block 
-
-*/
-
-variable "deployer_environment" {
+  description = "Defines the Azure location where the resources will be deployed"
   type        = string
-  description = "This is the environment name of the deployer"
+}
+
+variable "name_override_file" {
+  description = "If provided, contains a json formatted file defining the name overrides"
   default     = ""
 }
 
-variable "deployer_location" {
-  type    = string
-  default = ""
-}
-
-variable "deployer_vnet" {
-  type    = string
-  default = ""
-}
-
 variable "use_deployer" {
-  default = true
+  description = "Use deployer to deploy the resources"
+  default     = true
 }
+
+
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
+
+
+variable "resourcegroup_name" {
+  description = "If defined, the name of the resource group into which the resources will be deployed"
+  default     = ""
+}
+
+variable "resourcegroup_arm_id" {
+  description = "Azure resource identifier for the resource group into which the resources will be deployed"
+  default     = ""
+}
+
+variable "resourcegroup_tags" {
+  description = "tags to be added to the resource group"
+  default     = {}
+}
+
 
 variable "spn_keyvault_id" {
   default = ""
 }
 
-/*
-This block describes the variables for the "SAPBits" storage account
-*/
+#########################################################################################
+#                                                                                       #
+#  SAPBits storage account                                                              #
+#                                                                                       #
+#########################################################################################
 
 
 variable "library_sapmedia_arm_id" {
+  description = "Optional Azure resource identifier for the storage account where the SAP bits will be stored"
   default = ""
 }
 
 variable "library_sapmedia_name" {
+  description = "If defined, the name of the storage account where the SAP bits will be stored"
   default = ""
 }
 
 variable "library_sapmedia_account_tier" {
+  description = "The storage account tier"
   default = "Standard"
 }
 
 variable "library_sapmedia_account_replication_type" {
+  description = "The replication type for the storage account"
   default = "LRS"
 }
 
 variable "library_sapmedia_account_kind" {
+  description = "The storage account kind"
   default = "StorageV2"
 }
 
 variable "library_sapmedia_file_share_enable_deployment" {
+  description = "If true, the file share will be created"
   default = true
 }
 
 variable "library_sapmedia_file_share_is_existing" {
+  description = "If defined use an existing file share"
   default = false
 }
 
 variable "library_sapmedia_file_share_name" {
+  description = "If defined, the name of the file share"
   default = "sapbits"
 }
 variable "library_sapmedia_blob_container_enable_deployment" {
+  description = "If true, the blob container will be created"
   default = true
 }
 
 variable "library_sapmedia_blob_container_is_existing" {
+  description = "If defined use an existing blob container"
   default = false
 }
 
 variable "library_sapmedia_blob_container_name" {
+  description = "If defined, the name of the blob container"
   default = "sapbits"
 }
 
 
-/*
-This block describes the variables for the "TFState" storage account
-*/
+#########################################################################################
+#                                                                                       #
+#  Terraform state storage account                                                              #
+#                                                                                       #
+#########################################################################################
+
 
 
 variable "library_terraform_state_arm_id" {
+  description = "Optional Azure resource identifier for the storage account where the terraform state will be stored"
   default = ""
 }
 
 variable "library_terraform_state_name" {
+  description = "Optional name for the storage account where the terraform state will be stored"
   default = ""
 }
 
 variable "library_terraform_state_account_tier" {
+  description = "The storage account tier"
   default = "Standard"
 }
 
 variable "library_terraform_state_account_replication_type" {
+  description = "The replication type for the storage account"
   default = "LRS"
 }
 
 variable "library_terraform_state_account_kind" {
+  description = "The storage account kind"
   default = "StorageV2"
 }
 
 variable "library_terraform_state_blob_container_is_existing" {
+  description = "If defined use an existing blob container"
   default = false
 }
 
 variable "library_terraform_state_blob_container_name" {
+  description = "If defined, the blob container name to create"
   default = "tfstate"
 }
 
 variable "library_ansible_blob_container_is_existing" {
+  description = "If defined use an existing blob container"
   default = false
 }
 
 variable "library_ansible_blob_container_name" {
+  description = "If defined, the blob container name to create"
   default = "ansible"
 }
 
-variable "enable_purge_control_for_keyvaults" {
-  default = true
-}
 
 variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+#########################################################################################
+#                                                                                       #
+#  Miscallaneous definitioms                                                            #
+#                                                                                       #
+#########################################################################################
+
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
+}
+
+
+#########################################################################################
+#                                                                                       #
+#  Wev App definitioms                                                                  #
+#                                                                                       #
+#########################################################################################
+
+variable "use_webapp" {
+  description = "Boolean value indicating if a webapp should be created"
   default = false
 }
 
-variable "name_override_file" {
-  description = "If provided, contains a json formatted file defining the name overrides"
-  default = ""
-}

@@ -58,9 +58,9 @@
 
 - name:                                "PAS Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
-    instance_number:                   "{% if node_tier=='pas' %}'00'{% else %}'01'{% endif %}"
+    instance_number:                   "{% if node_tier == 'pas' %}'00'{% else %}'01'{% endif %}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     DB:                                "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ hdb_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{% endif %}"
     db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
@@ -93,7 +93,7 @@
     sap_ciDialogWPNumber:              12
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
-    sap_profile_dir:                   /sapmnt/{{ sid_to_be_deployed.sid |upper }}/profile
+    sap_profile_dir:                   /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
@@ -103,7 +103,7 @@
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
-    virt_do_not_resolve_hostname:      "{{ db_virtual_host }}"
+    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
 
   tags:
     - skip_ansible_lint
@@ -174,7 +174,7 @@
 
     - name:                            "PAS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.','/').replace('/ABAP','').split(':')[1] }}{{ file_path }}"
+        paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}{{ file_path }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
@@ -200,6 +200,7 @@
       when:
         - db_high_availability
         - platform == 'HANA'
+
 
     - name:                            "PAS Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
@@ -231,6 +232,25 @@
         - platform == 'HANA'
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
+
+    - name:                            "PAS Install: Check if Standalone"
+      ansible.builtin.set_fact:
+        servers_temp:                  "{{ servers_temp | default([]) + [item] }}"
+      with_items:
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+        - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
+
+    - name:                            "PAS Install: Restart SAPHostCtrl"
+      become:                          true
+      ansible.builtin.command:         /usr/sap/hostctrl/exe/saphostexec -restart
+      register:                        saphostexec_result
+      when:                            (servers_temp | length) == 1
+
+    - name:                            "PAS Install: SAPHostCtrl output"
+      ansible.builtin.debug:
+        var:                           saphostexec_result
+      when:                            (servers_temp | length) == 1
 
   when:
     - not pas_installed.stat.exists
@@ -273,7 +293,7 @@
 
     - name:                            "PAS Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
       ansible.builtin.shell: |
-                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ hdb_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        hdbuserstore

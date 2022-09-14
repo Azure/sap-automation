@@ -73,7 +73,7 @@
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version != "8"
       tags:
         - skip_ansible_lint
@@ -84,17 +84,18 @@
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version == "8"
       tags:
         - skip_ansible_lint
 
+    - name:                                "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
+      ansible.builtin.command:             pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
+      register:                            quorum
+      changed_when:                        quorum.rc == 0
+
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
-  ansible.builtin.command:             pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
-  register:                            quorum
-  changed_when:                        quorum.rc == 0
 
 - name:                                "1.17 Generic Pacemaker - Configure the cluster STONITH device on the primary node"
   block:
@@ -104,11 +105,11 @@
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
-                                         login="{{ sap_hana_fencing_spn_client_id }}"
-                                         passwd="{{ sap_hana_fencing_spn_client_pwd }}"
+                                         login="{{ fencing_spn_client_id }}"
+                                         passwd="{{ fencing_spn_client_pwd }}"
                                          resourceGroup="{{ resource_group_name }}"
-                                         tenantId="{{ sap_hana_fencing_spn_tenant_id }}"
-                                         subscriptionId="{{ sap_hana_fencing_spn_subscription_id }}"
+                                         tenantId="{{ fencing_spn_tenant_id }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
                                          power_timeout=240
                                          pcmk_reboot_timeout=900
                                          pcmk_monitor_timeout=120
@@ -118,16 +119,17 @@
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
                                          pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
 
-      when:                            ansible_distribution_major_version == "7"
+      when:
+        - ansible_distribution_major_version == "7"
+        - not use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.command: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
-                                         login="{{ sap_hana_fencing_spn_client_id }}"
-                                         passwd="{{ sap_hana_fencing_spn_client_pwd }}"
+                                         msi=true
+                                         passwd="{{ fencing_spn_client_pwd }}"
                                          resourceGroup="{{ resource_group_name }}"
-                                         tenantId="{{ sap_hana_fencing_spn_tenant_id }}"
-                                         subscriptionId="{{ sap_hana_fencing_spn_subscription_id }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
                                          power_timeout=240
                                          pcmk_reboot_timeout=900
                                          pcmk_monitor_timeout=120
@@ -136,7 +138,48 @@
                                          pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
                                          pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-      when:                            ansible_distribution_major_version == "8"
+
+      when:
+        - ansible_distribution_major_version == "7"
+        - use_msi_for_clusters
+
+    - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_azure fence_azure_arm
+                                         login="{{ fencing_spn_client_id }}"
+                                         passwd="{{ fencing_spn_client_pwd }}"
+                                         resourceGroup="{{ resource_group_name }}"
+                                         tenantId="{{ fencing_spn_tenant_id }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         power_timeout=240
+                                         pcmk_reboot_timeout=900
+                                         pcmk_monitor_timeout=120
+                                         pcmk_monitor_retries=4
+                                         pcmk_action_limit=3
+                                         pcmk_delay_max=15
+                                         pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                         pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+      when:
+        - ansible_distribution_major_version == "8"
+        - not use_msi_for_clusters
+
+    - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_azure fence_azure_arm
+                                         msi=true
+                                         resourceGroup="{{ resource_group_name }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         power_timeout=240
+                                         pcmk_reboot_timeout=900
+                                         pcmk_monitor_timeout=120
+                                         pcmk_monitor_retries=4
+                                         pcmk_action_limit=3
+                                         pcmk_delay_max=15
+                                         pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                         pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+      when:
+        - ansible_distribution_major_version == "8"
+        - use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
       ansible.builtin.command:         pcs resource update rsc_st_azure op monitor interval=3600

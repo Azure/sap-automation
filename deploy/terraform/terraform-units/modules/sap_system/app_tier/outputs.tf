@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                            SAP Central Services                             # 
-#                                                                             # 
+#                                                                             #
+#                            SAP Central Services                             #
+#                                                                             #
 ###############################################################################
 
 output "nics_scs" {
@@ -24,6 +24,14 @@ output "scs_admin_ip" {
 output "scs_lb_ip" {
   value = local.enable_scs_lb_deployment ? (
     azurerm_lb.scs[0].frontend_ip_configuration[0].private_ip_address
+    ) : (
+    ""
+  )
+}
+
+output "scs_lb_id" {
+  value = local.enable_scs_lb_deployment ? (
+    azurerm_lb.scs[0].id
     ) : (
     ""
   )
@@ -73,9 +81,9 @@ output "scs_vm_ids" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Application Servers                              # 
-#                                                                             # 
+#                                                                             #
+#                            Application Servers                              #
+#                                                                             #
 ###############################################################################
 
 output "nics_app" {
@@ -108,9 +116,9 @@ output "app_vm_ids" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Web Dispatchers                                  # 
-#                                                                             # 
+#                                                                             #
+#                            Web Dispatchers                                  #
+#                                                                             #
 ###############################################################################
 
 
@@ -151,9 +159,9 @@ output "web_vm_ids" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            DNS Information                                  # 
-#                                                                             # 
+#                                                                             #
+#                            DNS Information                                  #
+#                                                                             #
 ###############################################################################
 
 output "dns_info_vms" {
@@ -252,9 +260,9 @@ output "app_tier_os_types" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Generic (internal)                               # 
-#                                                                             # 
+#                                                                             #
+#                            Generic (internal)                               #
+#                                                                             #
 ###############################################################################
 
 output "apptier_disks" {
@@ -269,5 +277,5 @@ output "apptier_disks" {
 
 output "scs_ha" {
   description = "Defines if high availability is used"
-  value = local.scs_high_availability
+  value       = local.scs_high_availability
 }

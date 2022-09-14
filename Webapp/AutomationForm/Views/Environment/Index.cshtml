@@ -1,0 +1,55 @@
+@model EnvironmentModel[]
+
+@{
+    ViewBag.Title = "Environments";
+}
+
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Environment")">Environments</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Existing environments</h2>
+</div>
+
+<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["success"]
+        </span>
+    </div>
+</div>
+<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
+    <div class="notificationInner">
+        <span class="notificationText">
+            @TempData["error"]
+        </span>
+    </div>
+</div>
+
+<div class="cards">
+    @foreach (var environment in Model)
+    {
+        <fluent-card>
+            <div class="card-inner">
+                <h4>@environment.name</h4>
+                <fluent-anchor style="width: 100%;" href="@Url.Action("Edit", "Environment", new { id = environment.id })">
+                    View
+                </fluent-anchor>
+            </div>
+        </fluent-card>
+    }
+</div>
+
+<p>
+    <fluent-anchor appearance="accent" href="@Url.Action("Create", "Environment")">
+        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i> Create
+    </fluent-anchor>
+</p>

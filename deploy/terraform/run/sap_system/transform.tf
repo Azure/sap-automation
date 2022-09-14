@@ -5,7 +5,7 @@ locals {
 
   temp_infrastructure = {
     environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
-    region      = coalesce(var.location, try(var.infrastructure.region, ""))
+    region      = lower(coalesce(var.location, try(var.infrastructure.region, "")))
     codename    = try(var.codename, try(var.infrastructure.codename, ""))
     tags        = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
   }
@@ -81,7 +81,7 @@ locals {
     high_availability = var.database_high_availability || try(var.databases[0].high_availability, false)
     use_DHCP          = var.database_vm_use_DHCP || try(var.databases[0].use_DHCP, false)
 
-    platform      = coalesce(var.database_platform, try(var.databases[0].platform, ""))
+    platform      = var.database_platform
     db_sizing_key = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
 
     use_ANF   = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
@@ -92,13 +92,17 @@ locals {
   }
 
   db_os = {
-    os_type         = try(coalesce(var.database_vm_image.os_type, try(var.databases[0].os.os_type, "")), "LINUX")
-    source_image_id = try(coalesce(var.database_vm_image.source_image_id, try(var.databases[0].os.source_image_id, "")), "")
-    publisher       = try(coalesce(var.database_vm_image.publisher, try(var.databases[0].os.publisher, "")), "")
-    offer           = try(coalesce(var.database_vm_image.offer, try(var.databases[0].os.offer, "")), "")
-    sku             = try(coalesce(var.database_vm_image.sku, try(var.databases[0].os.sku, "")), "")
-    version         = try(coalesce(var.database_vm_image.version, try(var.databases[0].os.version, "")), "")
+    os_type = length(var.database_vm_image.source_image_id) == 0 ? (
+      upper(var.database_vm_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.database_vm_image.os_type, "LINUX)") : (
+      var.database_vm_image.os_type
+    )
+    source_image_id = var.database_vm_image.source_image_id
+    publisher       = var.database_vm_image.publisher
+    offer           = var.database_vm_image.offer
+    sku             = var.database_vm_image.sku
+    version         = var.database_vm_image.version
   }
+
   db_os_specified = (length(local.db_os.source_image_id) + length(local.db_os.publisher)) > 0
 
   db_sid_specified = (length(var.database_sid) + length(try(var.databases[0].sid, ""))) > 0
@@ -180,13 +184,17 @@ locals {
   web_tags = try(coalesce(var.webdispatcher_server_tags, try(var.application.web_tags, {})), {})
 
   app_os = {
-    os_type         = coalesce(var.application_server_image.os_type, try(var.application.app_os.os_type, ""), "LINUX")
-    source_image_id = try(coalesce(var.application_server_image.source_image_id, try(var.application.app_os.source_image_id, "")), "")
-    publisher       = try(coalesce(var.application_server_image.publisher, try(var.application.app_os.publisher, "")), "")
-    offer           = try(coalesce(var.application_server_image.offer, try(var.application.app_os.offer, "")), "")
-    sku             = try(coalesce(var.application_server_image.sku, try(var.application.app_os.sku, "")), "")
-    version         = try(coalesce(var.application_server_image.version, try(var.application.app_os.version, "")), "")
+    os_type = length(var.application_server_image.source_image_id) == 0 ? (
+      upper(var.application_server_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.application_server_image.os_type, "LINUX") : (
+      try(var.application_server_image.os_type, "LINUX")
+    )
+    source_image_id = try(var.application_server_image.source_image_id, "")
+    publisher       = var.application_server_image.publisher
+    offer           = var.application_server_image.offer
+    sku             = var.application_server_image.sku
+    version         = var.application_server_image.version
   }
+
   app_os_specified = (length(local.app_os.source_image_id) + length(local.app_os.publisher)) > 0
 
   scs_os = {
@@ -511,7 +519,7 @@ locals {
     )
   )
 
-  databases = [merge(local.databases_temp, (
+  database = merge(local.databases_temp, (
     local.db_os_specified ? { os = local.db_os } : null), (
     local.db_authentication_defined ? { authentication = local.db_authentication } : null), (
     local.db_avset_arm_ids_defined ? { avset_arm_ids = local.avset_arm_ids } : null), (
@@ -519,8 +527,8 @@ locals {
     length(local.frontend_ips) > 0 ? { loadbalancer = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }), (
     length(local.db_tags) > 0 ? { tags = local.db_tags } : null), (
     local.db_sid_specified ? { instance = local.instance } : null)
-    )
-  ]
+  )
+
 
   authentication = merge(local.authentication_temp, (
     local.username_specified ? { username = local.username } : null), (

@@ -25,7 +25,7 @@ parameters:
     type:                              string
     values:
       - S4HANA_2021_ISS_v0001ms
-      - S42020SPS03_v0002ms
+      - S42020SPS04_v0001ms
       - S41909SPS03_v0011ms
       - HANA_2_00_063_v0001ms
       - HANA_2_00_061_v0001ms
@@ -91,13 +91,24 @@ trigger:                               none
 variables:
   - group:                             "SDAF-General"
   - group:                             SDAF-${{ parameters.environment }}
+
   - name:                              sap_system_folder
     value:                             ${{ parameters.sap_system_configuration_name }}
+
   - name:                              bom
     value:                             ${{ parameters.bom_base_name }}
 
+  - name:                              agent_name
+    value:                             $[coalesce(variables['POOL'], variables['Agent'])]
+
+  - name:                              this_agent
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.environment }}
+
 pool:
-  name:                                $(Agent)
+  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
 
 stages:
   - stage:                             Preparation_for_Ansible
@@ -114,22 +125,36 @@ stages:
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                echo -e "$green --- Install dos2unix ---$reset"
+                  sudo apt-get -qq install dos2unix
+              fi
               echo -e "$green--- --- Convert config file to UX format ---$reset"
-                sudo apt-get -qq install dos2unix
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 cd $HOME
 
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+                if [ -z "$devops_extension_installed" ]; then
+                  az extension add --name azure-devops --output none
+                fi
+                az devops configure -d organization=$(System.CollectionUri)
+                az devops configure -d project=$(System.TeamProject)
+
               echo -e "$green--- Validations ---$reset"
                 ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                    LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-                VIRTUAL_NET=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $VIRTUAL_NET
+                    NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $NETWORK
                         SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
 
-                        ls $HOME/SYSTEM/$(sap_system_folder)
+                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK ; echo configuration_file $environment_file_name
+                          params_file=$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml              ;  echo sap_parameters_file $params_file
 
-                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION ; echo configuration_file $environment_file_name
-                          params_file=$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ;  echo sap_parameters_file $params_file
+              if [[ "azure pipelines" == $(this_agent) ]]; then
+                  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group using the 'POOL' variable."
+                  exit 2
+                fi
 
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $environment_file_name was not found ---$reset"
@@ -144,9 +169,7 @@ stages:
                 else
                   dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                 fi
-                echo "3"
                 
-
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sap_system_folder)."
                   exit 2
@@ -159,6 +182,14 @@ stages:
                 fi
                 dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml
 
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                    exit 2
+                fi
+
+
                 echo "##vso[build.updatebuildnumber]Deploying $(sap_system_folder) using BoM ${bom_file}"
 
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
@@ -168,72 +199,49 @@ stages:
                 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
                 echo "##vso[task.setvariable variable=CONFIGURATION_NAME;isOutput=true]$(sap_system_folder)"
 
-              echo -e "$green--- az login ---$reset"
-                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-                  exit 2
-                fi
-
-                if [ ! -n $(ARM_CLIENT_ID) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                  exit 2
-                fi
-
-                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                  exit 2
-                fi
-
-                if [ ! -n $(ARM_TENANT_ID) ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                  exit 2
-                fi
-
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
-                fi
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
               echo -e "$green--- Get Files from the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)
                 sap_params_updated=0
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
                 sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
-                sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
+                
+                fqdn="$(grep -m1 "$sap_fqdn:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
+                if [ -z $fqdn ] ; then
+                  sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
+                fi
 
               echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
                 mkdir -p artifacts
 
-                export kv_name=$(cat $environment_file_name  | grep workloadkeyvault | awk -F'=' '{print $2}' | xargs) ; echo SAP_Keyvault $kv_name
-                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${VIRTUAL_NET}-sid-sshkey --vault-name $kv_name --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
+                if [ -z ${az_var} ]; then
+                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workload_key_vault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                else
+                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
+                fi
+
+              echo -e "$green--- az login ---$reset"
+
+                az login --identity --allow-no-subscriptions --output none
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
-              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                added=0
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)  &> /dev/null
-
-                if [ -f sap-parameters.yaml ]; then
-                  echo -e "$green--- Add sap-parameters to DevOps Repository ---$reset"
-                  git add sap-parameters.yaml
-                  added=1
-                fi
-
-                if [ 1 == $added ]; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push -q & >/dev/null 
-                fi
                 2> >(while read line; do (>&2 echo "STDERROR: $line"); done)
             name:                      Preparation
             displayName:               Preparation for Ansible
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_HOST_KEY_CHECKING: false
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact:                  ansible_data
@@ -281,10 +289,10 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             Core_Operating_System_Configuration
@@ -331,9 +339,9 @@ stages:
 
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_CALLBACK_WHITELIST: profile_tasks
-              ANSIBLE_HOST_KEY_CHECKING: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             SAP_Operating_System_Configuration
@@ -378,10 +386,10 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             Software_Acquisition
@@ -428,10 +436,10 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage: Database_Installation
@@ -480,18 +488,16 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
+                git checkout -q $(Build.SourceBranchName)
                 git pull
                 cd $(Build.Repository.LocalPath)
                 added=0
@@ -500,6 +506,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
                   git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
@@ -552,18 +560,16 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
               continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
+                git checkout -q $(Build.SourceBranchName)
                 git pull
                 cd $(Build.Repository.LocalPath)
                 added=0
@@ -572,7 +578,9 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added logs from SCS Installation $(Build.DefinitionName) [skip ci]" 
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
@@ -628,17 +636,16 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
+                git checkout -q $(Build.SourceBranchName)
                 git pull
                 cd $(Build.Repository.LocalPath)
                 added=0
@@ -647,7 +654,9 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added Logs from database load $(Build.DefinitionName) [skip ci]" 
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
@@ -700,9 +709,10 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
             name: HA
 
@@ -756,19 +766,19 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
+                git checkout -q $(Build.SourceBranchName)
                 git pull
+
                 cd $(Build.Repository.LocalPath)
                 added=0
                 if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
@@ -776,7 +786,9 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added Logs from PAS Install $(Build.DefinitionName) [skip ci]" 
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
@@ -833,19 +845,19 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
+                git checkout -q $(Build.SourceBranchName)
                 git pull
+
                 cd $(Build.Repository.LocalPath)
                 added=0
                 if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
@@ -853,7 +865,9 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added logs from App Install $(Build.DefinitionName) [skip ci]" 
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
@@ -900,18 +914,16 @@ stages:
               failOnStderr:            false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-
-              ANSIBLE_CALLBACK_WHITELIST:    profile_tasks
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
+              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           true
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
+                git checkout -q $(Build.SourceBranchName)
                 git pull
                 cd $(Build.Repository.LocalPath)
                 added=0
@@ -920,7 +932,9 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Added updates from Web Dispatcher Install $(Build.DefinitionName) [skip ci]" 
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                 fi
             displayName:               Copy Log files
@@ -953,10 +967,9 @@ stages:
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
+                git checkout -q $(Build.SourceBranchName)
+                git branch --set-upstream-to=origin/$(Build.SourceBranchName)
+                git pull 
                 cd $(Build.Repository.LocalPath)
                 added=0
                 if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then

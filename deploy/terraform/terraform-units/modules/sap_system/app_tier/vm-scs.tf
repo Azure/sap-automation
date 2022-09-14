@@ -44,7 +44,7 @@ resource "azurerm_network_interface" "scs" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "scs" {
-  provider                      = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? local.scs_server_count : 0) : (
     0
@@ -63,7 +63,7 @@ resource "azurerm_network_interface_application_security_group_association" "scs
 
 resource "azurerm_network_interface" "scs_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.application.dual_nics ? (
+  count = local.enable_deployment && var.application.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     local.scs_server_count) : (
     0
   )
@@ -212,6 +212,15 @@ resource "azurerm_linux_virtual_machine" "scs" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.scs_custom_image ? 1 : 0)
+    content {
+      name      = local.scs_os.offer
+      publisher = local.scs_os.publisher
+      product   = local.scs_os.sku
+    }
+  }
+
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
   }
@@ -219,8 +228,35 @@ resource "azurerm_linux_virtual_machine" "scs" {
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
   tags = try(var.application.scs_tags, {})
+
+  dynamic "identity" {
+    for_each = range(var.use_msi_for_clusters && var.application.scs_high_availability ? 1 : 0)
+    content {
+      type = "SystemAssigned"
+    }
+  }
+
 }
 
+resource "azurerm_role_assignment" "scs" {
+  provider = azurerm.main
+  count = (
+    var.use_msi_for_clusters &&
+    local.enable_deployment &&
+    upper(local.scs_ostype) == "LINUX" &&
+    length(var.fencing_role_name) > 0 &&
+    local.scs_server_count > 1
+    ) ? (
+    local.scs_server_count
+    ) : (
+    0
+  )
+
+  scope                = var.resource_group[0].id
+  role_definition_name = var.fencing_role_name
+  principal_id         = azurerm_linux_virtual_machine.scs[count.index].identity[0].principal_id
+
+}
 # Create the SCS Windows VM(s)
 resource "azurerm_windows_virtual_machine" "scs" {
   provider = azurerm.main
@@ -289,7 +325,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
             name      = storage_type.name,
             id        = disk_count,
             disk_type = storage_type.disk_type,
-            size_gb   = storage_type.size_gb,
+            size_gb   = storage_type.size_gb < 128 ? 128 : storage_type.size_gb,
             caching   = storage_type.caching
           }
         ]
@@ -321,6 +357,15 @@ resource "azurerm_windows_virtual_machine" "scs" {
       offer     = local.scs_os.offer
       sku       = local.scs_os.sku
       version   = local.scs_os.version
+    }
+  }
+
+  dynamic "plan" {
+    for_each = range(local.scs_custom_image ? 1 : 0)
+    content {
+      name      = local.scs_os.offer
+      publisher = local.scs_os.publisher
+      product   = local.scs_os.sku
     }
   }
 
@@ -390,6 +435,10 @@ resource "azurerm_virtual_machine_extension" "scs_lnx_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 

@@ -66,35 +66,37 @@
   when:                                ansible_hostname == primary_instance_name
 
 - name:                                "HANA HSR: - Ensure HANA is configured for System Replication"
-  become_user:                         "{{ db_sid_admin_user }}"
   block:
-
-    - name:                            "HANA HSR: - Ensure Primary node is configured for System Replication"
-      ansible.builtin.shell: >
-        {{ hdbnsutil_command }} -sr_enable --name=SITEA
-      register:                        hana_status
-      # rc == 102 means nameserver is already active
-      failed_when:                     hana_status.rc != 0 and hana_status.rc != 102
-      changed_when:                    "'successfully enabled system as system replication source site' in hana_status.stdout"
-      tags:
-        - skip_ansible_lint
 
     - name:                            "HANA HSR: - Check whether replication has already been set up"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
-      ansible.builtin.command:         hdbnsutil -sr_state
+      ansible.builtin.shell: |
+                                       {{ hdbnsutil_command }} -sr_state
       register:                        hana_replication_status
       changed_when:                    false
       failed_when:                     hana_replication_status.rc != 0
+      args:
+        executable: /bin/sh
 
     - name:                            "HANA HSR: - Debug replication status"
       ansible.builtin.debug:
         var:                           hana_replication_status
-        verbosity:                     2
+        verbosity:                     0
+
+    - name:                            "HANA HSR: - Ensure Primary node is configured for System Replication"
+      become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       {{ hdbnsutil_command }} -sr_enable --name=SITEA
+      register:                        hana_status
+      # rc == 102 means nameserver is already active
+      failed_when:                     hana_status.rc != 0 and hana_status.rc != 102
+      changed_when:                    "'successfully enabled system as system replication source site' in hana_status.stdout"
 
     - name:                            "HANA HSR: - Check replication state on primary"
       ansible.builtin.set_fact:
-        primary_replication_enabled:   "{{ ('mode: primary'  in hana_replication_status.stdout_lines) | bool }}"
+        primary_replication_enabled:   "{{ ('mode: primary' in hana_replication_status.stdout_lines) | bool }}"
   vars:
     ansible_python_interpreter:        python3
   environment:
@@ -146,16 +148,15 @@
                                         --replicationMode={{ hana_replication_mode }} --operationMode={{ hana_operation_mode }} --name=SITEB"
     verbosity:                         4
 
-
 - name:                                "HANA HSR: - Ensure System Replication is configured on secondary"
-  become_user:                         "{{ db_sid_admin_user }}"
   block:
 
     - name:                            "HANA HSR: - Stop HANA on {{ ansible_hostname }}"
       import_tasks:                   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
-    # TODO: make replicationMode and operationMode configurable
     - name:                            "HANA HSR: - Ensure Secondary node is registered as secondary in replication"
+      become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
       ansible.builtin.shell: >
         {{ hdbnsutil_command }} -sr_register --remoteHost={{ primary_instance_name }}
         --remoteInstance={{ hdb_instance_number }} --replicationMode={{ hana_replication_mode }}
@@ -164,6 +165,8 @@
       changed_when:                    "'adding site' in hsr_secondary_registration.stdout"
       tags:
         - skip_ansible_lint
+      args:
+        executable: /bin/bash
 
     - name:                            "HANA HSR: - Start HANA on {{ ansible_hostname }}"
       import_tasks:                    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml

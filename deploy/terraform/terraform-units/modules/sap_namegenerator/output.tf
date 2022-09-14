@@ -46,6 +46,7 @@ output "naming" {
         landscape_storageaccount_name                   = local.landscape_storageaccount_name
         witness_storageaccount_name                     = local.witness_storageaccount_name
         landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
+        landscape_shared_install_storage_account_name   = local.landscape_shared_install_storage_account_name
       }
       LIBRARY = {
         library_storageaccount_name        = local.library_storageaccount_name
@@ -75,6 +76,7 @@ output "naming" {
       WEB_COMPUTERNAME         = local.web_computer_names
       WEB_SECONDARY_DNSNAME    = local.web_secondary_dnsnames
       WEB_VMNAME               = local.web_server_vm_names
+      WORKLOAD_VMNAME          = local.utility_vm_names
     }
   }
 }

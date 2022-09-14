@@ -118,6 +118,10 @@ locals {
           arm_id = var.management_bastion_subnet_arm_id
           prefix = var.management_bastion_subnet_address_prefix
         }
+        subnet_webapp = {
+          arm_id = var.webapp_subnet_arm_id
+          prefix = var.webapp_subnet_address_prefix
+        }
       }
     }
   }
@@ -164,6 +168,10 @@ locals {
         try(var.deployers[0].sku, "")
       ), "")
     }
+
+
+    plan = var.plan
+
     private_ip_address = try(coalesce(
       var.deployer_private_ip_address,
       try(var.deployers[0].private_ip_address, "")
@@ -228,5 +236,5 @@ locals {
   firewall_rule_subnets        = try(var.firewall_rule_subnets, [])
   firewall_allowed_ipaddresses = try(var.firewall_allowed_ipaddresses, [])
 
-  assign_subscription_permissions = try(var.assign_subscription_permissions, false)
+  assign_subscription_permissions = try(var.deployer_assign_subscription_permissions, false)
 }

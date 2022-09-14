@@ -19,14 +19,14 @@
 
     - name:                            Ensure the SAP HANA Topology resource is created
       ansible.builtin.shell: >
-                                      pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ hdb_instance_number }} SAPHanaTopology
-                                      SID={{ db_sid | upper }} InstanceNumber={{ hdb_instance_number }}
-                                      op start timeout=600
-                                      op stop timeout=300
-                                      op monitor interval=10 timeout=600
-                                      clone clone-max=2 clone-node-max=1 interleave=true
-      register:                       sap_hana_topology
-      failed_when:                    sap_hana_topology.rc > 1
+                                       pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ hdb_instance_number }} SAPHanaTopology
+                                       SID={{ db_sid | upper }} InstanceNumber={{ hdb_instance_number }}
+                                       op start timeout=600
+                                       op stop timeout=300
+                                       op monitor interval=10 timeout=600
+                                       clone clone-max=2 clone-node-max=1 interleave=true
+      register:                        sap_hana_topology
+      failed_when:                     sap_hana_topology.rc > 1
 
     - name:                            Ensure the SAP HANA resource is created
       ansible.builtin.shell: >
@@ -110,7 +110,7 @@
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version != "8"
       tags:
         - skip_ansible_lint
@@ -121,7 +121,7 @@
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version == "8"
       tags:
         - skip_ansible_lint
@@ -146,7 +146,7 @@
       register:                        hana_cluster_resource_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
 
       when:                            ansible_distribution_major_version != "8"
       tags:
@@ -157,7 +157,7 @@
       register:                        hana_cluster_resource_check
       retries:                         12
       delay:                           10
-      until:                           " (primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
       when:                            ansible_distribution_major_version == "8"
       tags:
         - skip_ansible_lint

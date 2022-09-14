@@ -129,6 +129,11 @@ fi
 
 automation_config_directory=~/.sap_deployment_automation
 environment_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+return_code=0
+
+if [ -f secret.err ]; then
+    rm secret.err
+fi
 
 if [ ! -d "${automation_config_directory}" ]; then
     # No configuration directory exists
@@ -143,7 +148,9 @@ fi
 
 if [ "$workload" != 1 ]; then
     load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
-    subscription=${STATE_SUBSCRIPTION}
+    if [ "$STATE_SUBSCRIPTION" ]; then
+        subscription=${STATE_SUBSCRIPTION}
+    fi
 fi
 
 if [ -z "$keyvault" ]; then
@@ -160,7 +167,9 @@ if [ -z "$keyvault" ]; then
         echo -e "#       The provided keyvault is not valid:$boldred ${val} $resetformatting  #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
-        exit 65
+        echo "The provided keyvault is not valid " "${val}"  > secret.err
+        return_code=65
+        exit $return_code
     fi
 
 fi
@@ -180,7 +189,9 @@ else
         echo -e "#       The provided client_id is not valid:$boldred ${val} $resetformatting  #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
-        exit 65
+        return_code=65
+        echo "The provided client_id is not valid " "${val}"  > secret.err
+        exit $return_code
     fi
 fi
 
@@ -205,7 +216,9 @@ else
         echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
-        exit 65
+        return_code=65
+        echo "The provided tenant_id is not valid " "${val}"  > secret.err
+        exit $return_code
     fi
 fi
 
@@ -221,32 +234,46 @@ else
         echo -e "#     The provided subscription is not valid:$boldred ${val} $resetformatting #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
-        exit 65
+        return_code=65 #/* data format error */
+        echo "The provided subscription is not valid " "${val}"  > secret.err
+        exit $return_code
     fi
 fi
 
 if [ -z "${keyvault}" ]; then
     echo "Missing keyvault"
+    echo "No keyvault specified"  > secret.err
     showhelp
-    exit 65	#/* data format error */
+    return_code=65 #/* data format error */
+    echo $return_code
+    exit $return_code
 fi
 
 if [ -z "${client_id}" ]; then
     echo "Missing client_id"
+    echo "No client_id specified"  > secret.err
     showhelp
-    exit 65	#/* data format error */
+    return_code=65 #/* data format error */
+    echo $return_code
+    exit $return_code
 fi
 
 if [ -z "$client_secret" ]; then
     echo "Missing client_secret"
+    echo "No client_secret specified"  > secret.err
     showhelp
-    exit 65	#/* data format error */
+    return_code=65 #/* data format error */
+    echo $return_code
+    exit $return_code
 fi
 
 if [ -z "${tenant_id}" ]; then
     echo "Missing tenant_id"
+    echo "No tenant_id specified"  > secret.err
     showhelp
-    exit 65	#/* data format error */
+    return_code=65 #/* data format error */
+    echo $return_code
+    exit $return_code
 fi
 
 echo "#########################################################################################"
@@ -278,24 +305,34 @@ if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
+    v=$(az keyvault secret list --vault-name "${keyvault}" --query [].name | tee grep "${secretname}")
+    
+    if [ "${v}" != "${subscription}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${subscription}" ] ; then
+        echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${subscription}" >stdout.az 2>&1
+    fi
 fi
 
 result=$(grep "ERROR: The user, group or application" stdout.az)
 
 if [ -n "${result}" ]; then
+    printf -v val "%-20.20s" "$keyvault"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#          No access to add the secrets in the" "${keyvault}" "keyvault             #"
+    echo -e "#          No access to add the secrets in the$boldred" "${val}" "$resetformatting keyvault           #"
     echo "#            Please add an access policy for the account you use                        #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     rm stdout.az
-    exit 77	#/* permission denied */
+    echo "No access to add the secrets in the " "${val}" "keyvault" > secret.err
+    return_code=77
+    exit $return_code
 fi
 
 result=$(grep "The Vault may not exist" stdout.az)
@@ -303,47 +340,75 @@ if [ -n "${result}" ]; then
     printf -v val "%-20.20s could not be found!" "$keyvault"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                      Keyvault" "${val}" "               #"
+    echo -e "#                     $boldred Keyvault" "${val}" "$resetformatting               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
     rm stdout.az
-    exit 68	#/* name unknown */
+    return_code=65 #/* name unknown */
+    echo "Keyvault" "${val}"  > secret.err
+    exit $return_code
+
 fi
 
 #turn off output, we do not want to show the details being uploaded to keyvault
 secretname="${environment}"-client-id
-if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
+deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")
+if [ -n "${deleted}" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+fi
+v=""
+secret=$(az keyvault secret list --vault-name "${keyvault}" --query [].name | tee grep "${secretname}")
+if [ -n "${secret}" ]
+then
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${client_id}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_id}" --only-show-errors --output none
 fi
-
 
 secretname="${environment}"-tenant-id
-if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
+deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")
+if [ -n "${deleted}" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+fi
+v=""
+secret=$(az keyvault secret list --vault-name "${keyvault}" --query [].name | tee grep "${secretname}")
+if [ -n "${secret}" ]
+then
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${tenant_id}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${tenant_id}" --only-show-errors --output none
 fi
-
 
 secretname="${environment}"-client-secret
-if [ -n "$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")" ]; then
+deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" | grep "${secretname}")
+if [ -n "${deleted}" ]; then
     echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
     sleep 10
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+fi
+
+v=""
+secret=$(az keyvault secret list --vault-name "${keyvault}" --query [].name | tee grep "${secretname}")
+if [ -n "${secret}" ]
+then
+    v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+    if [ "${v}" != "${client_secret}" ] ; then
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+    fi
 else
-    echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
     az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
 fi
+
+exit $return_code 
 

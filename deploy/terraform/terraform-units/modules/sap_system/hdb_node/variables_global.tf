@@ -1,4 +1,4 @@
-variable "databases" {}
+variable "database" {}
 variable "infrastructure" {}
 variable "options" {}
 
@@ -87,7 +87,7 @@ variable "use_loadbalancers_for_standalone_deployments" {
   default     = true
 }
 
-variable "hana_dual_nics" {
+variable "database_dual_nics" {
   description = "Defines if the HANA DB uses dual network interfaces"
   default     = true
 }
@@ -138,4 +138,12 @@ variable "use_secondary_ips" {
 
 variable "deploy_application_security_groups" {
   description = "Defines if application security groups should be deployed"
+}
+
+variable "use_msi_for_clusters" {
+  description = "If true, the Pacemaker cluser will use a managed identity"
+}
+
+variable "fencing_role_name" {
+  description = "If specified the role name to use for the fencing"
 }

@@ -1,11 +1,26 @@
+##########################################################################################
+#                                                                                        #
+# This sample defines an standard control plane deployment with                          #
+#      1 Deployer (deployer_count = 1)                                                   #
+#      Azure Firewall (firewall_deployment = true)                                       #
+#      Azure Bastion (bastion_deployment = true)                                         #
+#                                                                                        #
+##########################################################################################
 
-# Infrastructure block
-# The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment="MGMT"
+# The automation supports both creating resources (greenfield) or using existing resources (brownfield)
+# For the greenfield scenario the automation defines default names for resources, 
+# if there is a XXXXname variable then the name is customizable 
+# for the brownfield scenario the Azure resource identifiers for the resources must be specified
 
+#########################################################################################
+#                                                                                       #
+#  Environment definitioms                                                              #
+#                                                                                       #
+#########################################################################################
+environment = "MGMT"
 
 # The location/region value is a mandatory field, it is used to control where the resources are deployed
-location="northeurope"
+location = "northeurope"
 
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
@@ -16,17 +31,29 @@ location="northeurope"
 
 
 resourcegroup_tags = {
- Control_plane="North Europe"    
-   }
+  Control_plane = "North Europe"
+}
 
+#########################################################################################
+#                                                                                       #
+#  Networking                                                                           #
+#                                                                                       #
+#########################################################################################
+# The deployment automation supports two ways of providing subnet information.
+# 1. Subnets are defined as part of the workload zone  deployment
+#    In this model multiple SAP System share the subnets
+# 2. Subnets are deployed as part of the SAP system
+#    In this model each SAP system has its own sets of subnets
 #
-# Networking information
-#
+# The automation supports both creating the subnets (greenfield) or using existing subnets (brownfield)
+# For the greenfield scenario the subnet address prefix must be specified whereas
+# for the brownfield scenario the Azure resource identifier for the subnet must be specified
+
 
 #management_network_name=""
-management_network_logical_name="DEP02"
+management_network_logical_name = "DEP02"
 #management_network_arm_id=""
-management_network_address_space="10.10.20.0/24"
+management_network_address_space = "10.10.20.0/24"
 
 # management subnet
 # If defined these parameters control the subnet name and the subnet prefix
@@ -34,7 +61,7 @@ management_network_address_space="10.10.20.0/24"
 #management_subnet_name=""
 
 # management_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-management_subnet_address_prefix="10.11.20.64/28"
+management_subnet_address_prefix = "10.11.20.64/28"
 # management_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 #management_subnet_arm_id="/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/MGMT-WEEU-MGMT01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/MGMT-WEEU-MGMT01-vnet/subnets/MGMT-WEEU-MGMT01-subnet_management"
 
@@ -49,13 +76,13 @@ management_subnet_address_prefix="10.11.20.64/28"
 ##################################################
 
 # firewall_deployment is a boolean flag controlling if an Azure firewall is to be deployed in the deployer VNet
-firewall_deployment=true
+firewall_deployment = true
 
 # management_firewall_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing firewall subnet
 # management_firewall_subnet_arm_id= ""
 
 # management_firewall_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
-management_firewall_subnet_address_prefix="10.11.20.0/26"
+management_firewall_subnet_address_prefix = "10.11.20.0/26"
 
 # firewall_rule_subnets is an optional list of subnets to be added to the Azure firewall
 #firewall_rule_subnets=[]
@@ -63,6 +90,19 @@ management_firewall_subnet_address_prefix="10.11.20.0/26"
 # firewall_rule_allowed_ipaddresses is an optional list of IP Addresses to be added to the Azure firewall
 #firewall_rule_allowed_ipaddresses=[]
 
+##################################################
+#
+# Webapp Subnet
+#
+##################################################
+
+# one of the following two parameters is required when deploying the web app as a part of the control plane infrastructure
+
+# webapp_subnet_address_prefix is a mandatory parameter if an existing subnet is not used
+# webapp_subnet_address_prefix = "10.10.20.128/26"
+
+# webapp_subnet_arm_id is an optional parameter that if provided specifies the Azure resource identifier for an existing webapp subnet
+# webapp_subnet_arm_id= ""
 
 ##################################################
 #
@@ -71,13 +111,13 @@ management_firewall_subnet_address_prefix="10.11.20.0/26"
 ##################################################
 
 # bastion_deployment is a boolean flag controlling if Azure bastion is to be deployed in the deployer VNet
-bastion_deployment=false
+bastion_deployment = false
 
 # management_bastion_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing AzureBastion subnet
 # management_bastion_subnet_arm_id= ""
 
 # management_bastion_subnet_address_prefix is a mandatory parameter if bastion is deployed and if the subnets are not defined in the workload or if existing subnets are not used
-management_bastion_subnet_address_prefix="10.11.20.128/26"
+management_bastion_subnet_address_prefix = "10.11.20.128/26"
 
 ########################################################
 #
@@ -85,7 +125,7 @@ management_bastion_subnet_address_prefix="10.11.20.128/26"
 #
 ########################################################
 
-deployer_enable_public_ip=true
+deployer_enable_public_ip = true
 
 
 # deployer_size is optional and defines the virtual machine SKU
@@ -103,14 +143,14 @@ deployer_enable_public_ip=true
 #
 # The deployer_image defines the Virtual machine image to use, if source_image_id is specified the deployment will use the custom image provided, in this case os_type must also be specified
 
-#deployer_image={
-#    "os_type"         = "Linux"    
-#    "source_image_id" =""
-#    "publisher"       ="Canonical"
-#    "offer"           ="UbuntuServer"
-#    "sku"             ="18.04-LTS"
-#    "version"         ="latest"
-#}
+deployer_image = {
+  "os_type"         = "Linux"
+  "source_image_id" = ""
+  "publisher"       = "Canonical"
+  "offer"           = "0001-com-ubuntu-server-focal"
+  "sku"             = "20_04-lts-gen2"
+  "version"         = "latest"
+}
 
 # deployer_diagnostics_account_arm_id defines the diagnosting storage account for the deployer
 #deployer_diagnostics_account_arm_id = ""
@@ -153,12 +193,30 @@ This block describes the variables for the authentication section block in the j
 # deployer_password_secret_name if provided contains the secret name for the password 
 #deployer_password_secret_name=""
 
-# assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
-#assign_subscription_permissions=true
+# deployer_assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
+#deployer_assign_subscription_permissions=true
+
+#########################################################################################
+#                                                                                       #
+#                            Miscallaneous settings                                     #
+#                                                                                       #
+#########################################################################################
+
+# deployer_assign_subscription_permissions is a boolean flag controlling if the deployment credential should be assigned Contribuor permissions on the subscription
+#deployer_assign_subscription_permissions=true
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 # use_private_endpoint=false
 
+# use_service_endpoint is a boolean flag controlling service_endpoints are used
+use_service_endpoint = true
+
 # auto_configure_deployer is a boolean flag controlling if the automation should try to configure the deployer automatically
 # set to false if outbound internet on the deployer is not available
 auto_configure_deployer = true
+
+# Boolean value indicating if firewall should be enabled for key vaults and storage
+enable_firewall_for_keyvaults_and_storage = false
+
+# List of object IDs to add to key vault policies"
+#additional_users_to_add_to_keyvault_policies=["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]

@@ -116,12 +116,12 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "norwaywest",
+    "Location": "NorwayWest",
     "MaximumFaultDomainCount": "2"
   },
   {
     "Location": "qatarcentral",
-    "MaximumFaultDomainCount": "1"
+    "MaximumFaultDomainCount": "2"
   },
   {
     "Location": "southafricanorth",
@@ -137,14 +137,14 @@
   },
   {
     "Location": "southcentralusstg",
-    "MaximumFaultDomainCount": "1"
+    "MaximumFaultDomainCount": "2"
   },
   {
     "Location": "southeastasia",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "southIndia",
+    "Location": "southindia",
     "MaximumFaultDomainCount": "2"
   },
   {

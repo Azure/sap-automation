@@ -20,3 +20,8 @@ sudo ./svc.sh install azureadm
 
 # start the deamon
 sudo ./svc.sh start
+
+# Install dotnet for the web app
+sudo snap install dotnet-sdk --classic --channel=3.1
+sudo snap alias dotnet-sdk.dotnet dotnet
+export DOTNET_ROOT=/snap/dotnet-sdk/current

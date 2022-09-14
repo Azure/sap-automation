@@ -65,7 +65,7 @@ resource "azurerm_network_interface_application_security_group_association" "app
 
 resource "azurerm_network_interface" "app_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.application.dual_nics ? (
+  count = local.enable_deployment && var.application.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     local.application_server_count) : (
     0
   )
@@ -210,6 +210,15 @@ resource "azurerm_linux_virtual_machine" "app" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.app_custom_image ? 1 : 0)
+    content {
+      name      = local.app_os.offer
+      publisher = local.app_os.publisher
+      product   = local.app_os.sku
+    }
+  }
+
   boot_diagnostics {
     storage_account_uri = var.storage_bootdiag_endpoint
   }
@@ -218,6 +227,9 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   tags = try(var.application.app_tags, {})
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Create the Windows Application VM(s)
@@ -278,7 +290,7 @@ resource "azurerm_windows_virtual_machine" "app" {
             name      = storage_type.name,
             id        = disk_count,
             disk_type = storage_type.disk_type,
-            size_gb   = storage_type.size_gb,
+            size_gb   = storage_type.size_gb < 128 ? 128 : storage_type.size_gb,
             caching   = storage_type.caching
           }
         ]
@@ -304,6 +316,14 @@ resource "azurerm_windows_virtual_machine" "app" {
       offer     = local.app_os.offer
       sku       = local.app_os.sku
       version   = local.app_os.version
+    }
+  }
+  dynamic "plan" {
+    for_each = range(local.app_custom_image ? 1 : 0)
+    content {
+      name      = local.app_os.offer
+      publisher = local.app_os.publisher
+      product   = local.app_os.sku
     }
   }
 
@@ -360,7 +380,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "app" {
 }
 
 
-# VM Extension 
+# VM Extension
 resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   provider = azurerm.main
   count = local.enable_deployment && upper(local.app_ostype) == "LINUX" ? (
@@ -377,6 +397,10 @@ resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 

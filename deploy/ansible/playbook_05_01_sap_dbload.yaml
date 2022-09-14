@@ -58,10 +58,10 @@
   name:                                DB Load
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -102,7 +102,7 @@
 
         - name:                        "DBLoad Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
-            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
         - name:                        Run the DBLoad Playbook
           block:
@@ -132,7 +132,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                '_DBLOAD'
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
 
@@ -204,7 +204,7 @@
 
         - name:                        "DBLoad Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
-            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
         - name:                        Run the DBLoad Playbook
           block:
@@ -232,7 +232,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                '_DBLOAD'
-                prefix:                "{{ bom.product_ids.dbl.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
 

@@ -61,14 +61,13 @@
 - hosts:                               "{{ sap_sid | upper }}_WEB"
 
   name:                                SAP Installation - WebDispatcher
-  become:                              true
+  serial:                              1
   remote_user:                         "{{ orchestration_ansible_user }}"
-  serial:                              1                                       # "{{ target_media_location }} is an NFS and we share SID/instance number
-  become_user:                         root
-  gather_facts:                        true
-
+  become:                              true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -83,6 +82,7 @@
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
         always_upload_jinja_templates: false
+        file_path:                     /GENERIC/AS/WI_UC
 
       tags:
         - always
@@ -101,7 +101,7 @@
 
     - name:                            "WEB Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
-        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
 
     - name:                            Run the WEB installation Playbook
@@ -120,6 +120,15 @@
           when:
             - web_installation.stdout_lines is defined
             - '"ERROR" in item'
+
+        - name:                        "WEB Installation Playbook - Install: Run post install activities"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_WEB"
+            prefix:                    ""
+            path:                      "{{ file_path }}"
+            tier:                      'web'
 
         - name:                        "WEB Installation Playbook: - Show from WEB installation"
           ansible.builtin.debug:

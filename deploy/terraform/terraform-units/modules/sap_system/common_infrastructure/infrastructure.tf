@@ -152,6 +152,10 @@ resource "azurerm_proximity_placement_group" "ppg" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 data "azurerm_proximity_placement_group" "ppg" {
@@ -188,6 +192,10 @@ resource "azurerm_application_security_group" "db" {
       azurerm_resource_group.resource_group[0].location
     )
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 // Define a cloud-init config that disables the automatic expansion

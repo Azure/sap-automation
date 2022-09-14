@@ -39,7 +39,7 @@
 - name:                                "HANA HSR: - Ensure the Primary node XSA SSFS_{{ hana_tenant_database_name }}.DAT file exists"
   ansible.builtin.debug:
     var:                               primary_xsa_file_result
-    verbosity: 2
+    verbosity:                         2
 
 - name:                                "HANA HSR: - Copy XSA SSFS files from Primary node to the Secondary node"
   block:

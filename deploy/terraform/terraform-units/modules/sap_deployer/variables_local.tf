@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                            Local Variables                                  # 
-#                                                                             # 
+#                                                                             #
+#                            Local Variables                                  #
+#                                                                             #
 ###############################################################################
 
 
@@ -11,7 +11,6 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.DEPLOYER
   virtualmachine_names = var.naming.virtualmachine_names.DEPLOYER
   keyvault_names       = var.naming.keyvault_names.DEPLOYER
-  resource_suffixes    = var.naming.resource_suffixes
 
   // Default option(s):
   enable_secure_transfer    = try(var.options.enable_secure_transfer, true)
@@ -29,10 +28,11 @@ locals {
       format("%s%s%s",
         var.naming.resource_prefixes.deployer_rg,
         local.prefix,
-        local.resource_suffixes.deployer_rg
+        var.naming.resource_suffixes.deployer_rg
       )
     )
   )
+  rg_appservice_location = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
 
   // Post fix for all deployed resources
   postfix = random_id.deployer.hex
@@ -52,7 +52,7 @@ locals {
           local.prefix) : (
           var.infrastructure.environment
         ),
-        local.resource_suffixes.vnet
+        var.naming.resource_suffixes.vnet
       )
     )
   )
@@ -74,7 +74,7 @@ locals {
           local.prefix) : (
           var.infrastructure.environment
         ),
-        local.resource_suffixes.deployer_subnet
+        var.naming.resource_suffixes.deployer_subnet
       )
   ))
 
@@ -101,7 +101,7 @@ locals {
           local.prefix) : (
           var.infrastructure.environment
         ),
-        local.resource_suffixes.deployer_subnet_nsg
+        var.naming.resource_suffixes.deployer_subnet_nsg
       )
   ))
 
@@ -126,16 +126,37 @@ locals {
     try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
   )
 
-  firewall_service_tags = format("AzureCloud.%s", var.infrastructure.region)
+  # Not all region names are the same as their service tags
+  # https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags
+  regioncode_exceptions = {
+    "francecentral"      = "centralfrance"
+    "francesouth"        = "southfrance"
+    "germanynorth"       = "germanyn"
+    "germanywestcentral" = "germanywc"
+    "norwayeast"         = "norwaye"
+    "norwaywest"         = "norwayw"
+    "southcentralus"     = "usstagee"
+    "southcentralusstg"  = "usstagec"
+    "switzerlandnorth"   = "switzerlandn"
+    "switzerlandwest"    = "switzerlandw"
+  }
+
+  firewall_service_tags = format("AzureCloud.%s", lookup(local.regioncode_exceptions, var.infrastructure.region, var.infrastructure.region))
 
   // Bastion subnet
   management_bastion_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_bastion.arm_id, "")
-  bastion_subnet_exists = length(local.management_bastion_subnet_arm_id) > 0
-  bastion_subnet_name   = "AzureBastionSubnet"
+  bastion_subnet_exists            = length(local.management_bastion_subnet_arm_id) > 0
+  bastion_subnet_name              = "AzureBastionSubnet"
   bastion_subnet_prefix = local.bastion_subnet_exists ? (
     "") : (
     try(var.infrastructure.vnets.management.subnet_bastion.prefix, "")
   )
+
+  // Webapp subnet
+  webapp_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_webapp.arm_id, "")
+  webapp_subnet_exists = length(local.webapp_subnet_arm_id) > 0
+  webapp_subnet_name   = "AzureWebappSubnet"
+  webapp_subnet_prefix = local.webapp_subnet_exists ? "" : try(var.infrastructure.vnets.management.subnet_webapp.prefix, "")
 
   enable_password = try(var.deployer.authentication.type, "key") == "password"
   enable_key      = !local.enable_password
@@ -172,10 +193,10 @@ locals {
   )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
-  user_key_vault_id = try(var.key_vault.kv_user_id, "")
-  prvt_key_vault_id = try(var.key_vault.kv_prvt_id, "")
-  user_keyvault_exist     = length(local.user_key_vault_id) > 0
-  automation_keyvault_exist     = length(local.prvt_key_vault_id) > 0
+  user_key_vault_id         = try(var.key_vault.kv_user_id, "")
+  prvt_key_vault_id         = try(var.key_vault.kv_prvt_id, "")
+  user_keyvault_exist       = length(local.user_key_vault_id) > 0
+  automation_keyvault_exist = length(local.prvt_key_vault_id) > 0
 
   // If the user specifies the secret name of key pair/password in input, the secrets will be imported instead of creating new secrets
   input_public_key_secret_name  = try(var.key_vault.kv_sshkey_pub, "")
