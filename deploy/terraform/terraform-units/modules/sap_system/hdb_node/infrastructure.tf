@@ -69,7 +69,7 @@ resource "azurerm_lb" "hdb" {
         null) : (
         cidrhost(
           var.db_subnet.address_prefixes[0],
-          tonumber(count.index) + local.hdb_ip_offsets.anydb_lb
+          tonumber(count.index) + local.hdb_ip_offsets.hdb_lb
       ))
     )
     private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
