@@ -63,6 +63,7 @@ pool:
 
 variables:
   - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.deployer_environment_parameter }}
   - group:                             SDAF-${{ parameters.workload_environment_parameter }}
 
   - name:                              parent_variable_group
@@ -223,7 +224,13 @@ stages:
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
                 if [ -n $(PAT) ]; then
-                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
+                  testPat=$(PAT)
+                  if [ "${#testPat}" == 0 ]; then
+                      export AZURE_DEVOPS_EXT_PAT="${#testPat}"; echo "PAT defined"
+                  else
+                      export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+                  fi
+                  echo $AZURE_DEVOPS_EXT_PAT
                 else
                   export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
                 fi
@@ -347,12 +354,11 @@ stages:
               echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
                 export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                 export LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
 
-                if [ 0 == return_value ] ; then
-                  git checkout -q $(Branch)
+                if [ 0 == $return_value ] ; then
+                  git checkout -q $(Build.SourceBranchName)
                   git pull
+                  changed=0
                   echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
                     if [ -d "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform" ]; then
                       git rm -q -r $(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform
@@ -378,52 +384,52 @@ stages:
                     fi
 
                     if [ 1 == $changed ] ; then
+                      git config --global user.email "$(Build.RequestedForEmail)"
+                      git config --global user.name "$(Build.RequestedFor)"
                       git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]" 
                       git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
                     fi
                   echo -e "$green--- Deleting variables ---$reset"
-                    if [ -n $VARIABLE_GROUP_ID ]; then
+                    if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
                       echo "Deleting variables"
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
-                      if [ ! -z $variable_value ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
-                      if [ ! -z $variable_value ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors 
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
-                      if [ ! -z $variable_value ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors 
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
-
-                      if [ ! -z $variable_value ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors 
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
-
-                      if [ ! -z $variable_value ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors 
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
-                      if [ ! -z $variable_value ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
                       fi
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
-                      if [ ! -z $variable_value ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
                       fi                  
 
                       variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
-                      if [ -n "${variable_value}" ]; then
+                      if [ ${#variable_value} != 0 ]; then
                         az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
                       fi                  
 
@@ -436,7 +442,7 @@ stages:
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:    $(PAT)
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
