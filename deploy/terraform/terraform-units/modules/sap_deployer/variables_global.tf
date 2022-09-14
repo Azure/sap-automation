@@ -66,6 +66,15 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  default     = false
+  type        = bool
+}
+
+
+
 variable "use_custom_dns_a_registration" {
   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
   default     = false

@@ -40,3 +40,16 @@ resource "azurerm_private_dns_zone" "dns" {
     azurerm_resource_group.library[0].name
   )
 }
+
+resource "azurerm_private_dns_zone" "blob" {
+  depends_on = [
+    azurerm_resource_group.library
+  ]
+  provider = azurerm.main
+  count    = length(var.dns_label) > 0 ? 1 : 0
+  name     = "privatelink.blob.core.windows.net"
+  resource_group_name = local.resource_group_exists ? (
+    split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+    azurerm_resource_group.library[0].name
+  )
+}

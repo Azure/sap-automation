@@ -92,13 +92,17 @@ locals {
   }
 
   db_os = {
-    os_type         = try(coalesce(var.database_vm_image.os_type, try(var.databases[0].os.os_type, "")), "LINUX")
-    source_image_id = try(coalesce(var.database_vm_image.source_image_id, try(var.databases[0].os.source_image_id, "")), "")
-    publisher       = try(coalesce(var.database_vm_image.publisher, try(var.databases[0].os.publisher, "")), "")
-    offer           = try(coalesce(var.database_vm_image.offer, try(var.databases[0].os.offer, "")), "")
-    sku             = try(coalesce(var.database_vm_image.sku, try(var.databases[0].os.sku, "")), "")
-    version         = try(coalesce(var.database_vm_image.version, try(var.databases[0].os.version, "")), "")
+    os_type = length(var.database_vm_image.source_image_id) == 0 ? (
+      upper(var.database_vm_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.database_vm_image.os_type, "LINUX)") : (
+      var.database_vm_image.os_type
+    )
+    source_image_id = var.database_vm_image.source_image_id
+    publisher       = var.database_vm_image.publisher
+    offer           = var.database_vm_image.offer
+    sku             = var.database_vm_image.sku
+    version         = var.database_vm_image.version
   }
+
   db_os_specified = (length(local.db_os.source_image_id) + length(local.db_os.publisher)) > 0
 
   db_sid_specified = (length(var.database_sid) + length(try(var.databases[0].sid, ""))) > 0
@@ -180,13 +184,17 @@ locals {
   web_tags = try(coalesce(var.webdispatcher_server_tags, try(var.application.web_tags, {})), {})
 
   app_os = {
-    os_type         = coalesce(var.application_server_image.os_type, try(var.application.app_os.os_type, ""), "LINUX")
-    source_image_id = try(coalesce(var.application_server_image.source_image_id, try(var.application.app_os.source_image_id, "")), "")
-    publisher       = try(coalesce(var.application_server_image.publisher, try(var.application.app_os.publisher, "")), "")
-    offer           = try(coalesce(var.application_server_image.offer, try(var.application.app_os.offer, "")), "")
-    sku             = try(coalesce(var.application_server_image.sku, try(var.application.app_os.sku, "")), "")
-    version         = try(coalesce(var.application_server_image.version, try(var.application.app_os.version, "")), "")
+    os_type = length(var.application_server_image.source_image_id) == 0 ? (
+      upper(var.application_server_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.application_server_image.os_type, "LINUX") : (
+      try(var.application_server_image.os_type, "LINUX")
+    )
+    source_image_id = try(var.application_server_image.source_image_id, "")
+    publisher       = var.application_server_image.publisher
+    offer           = var.application_server_image.offer
+    sku             = var.application_server_image.sku
+    version         = var.application_server_image.version
   }
+
   app_os_specified = (length(local.app_os.source_image_id) + length(local.app_os.publisher)) > 0
 
   scs_os = {

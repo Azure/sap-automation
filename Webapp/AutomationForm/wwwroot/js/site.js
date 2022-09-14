@@ -265,6 +265,24 @@ function updateAndSetDropdowns(dropdown) {
     });
 }
 
+// populate environment dropdown with values from ADO if pipeline deployment
+function getEnvironmentsFromAdo(isPipelineDeployment) {
+    var id = "environment";
+    if (isPipelineDeployment) {
+        $.ajax({
+            type: "GET",
+            url: "/Environment/GetEnvironments",
+            data: {},
+            success: function (data) {
+                resetDropdowns([id]);
+                populateAzureDropdownData(id, data);
+                setCurrentValue(id);
+            },
+            error: function () { alert("Error retrieving existing environments from ADO"); }
+        });
+    }
+}
+
 // populate a dropdown with data
 function populateAzureDropdownData(id, data) {
     for (i = 0; i < data.length; i++) {
@@ -374,6 +392,19 @@ function updateImage(source, target) {
             $(source).val(null).trigger('change');
         }
     }
+}
+
+function addTag(param) {
+    var parentDiv = $("#" + param + "-tags-container");
+    var numTags = $("#" + param + "-tags-container input").length / 2;
+    parentDiv.append('<div class="tag"></div>');
+    var lastTagContainer = parentDiv.children().last();
+    lastTagContainer.append('<div class="tag-key"></div>');
+    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="database_tags_' + numTags + '__Key">Key</label>');
+    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="database_tags_' + numTags + '__Key" name="database_tags[' + numTags + '].Key" type="text" value="">');
+    lastTagContainer.append('<div class="tag-value"></div>');
+    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="database_tags_' + numTags + '__Value">Value</label>');
+    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="database_tags_' + numTags + '__Value" name="database_tags[' + numTags + '].Value" type="text" value="">');
 }
 
 // ===============
@@ -576,6 +607,7 @@ function toggleDefault(checkbox, id, modelType) {
                 success: function (data) {
                     data = JSON.parse(data);
                     data['IsDefault'] = false;
+                    data['sid'] = null;
                     updateModel(data);
                 },
                 error: function () {
@@ -619,6 +651,20 @@ function toggleDisableViaTwoInputs(input1, input2, id) {
 
 function toggleNullParameters() {
     $(".is-null-value").toggle();
+}
+
+// Make header sticky on create and edit views
+function stickifyHeader(formHeader, sticky) {
+    var currPosition = $(window).scrollTop();
+    if (currPosition > sticky) {
+        formHeader.addClass("sticky");
+        $(".filter-checkboxes").css("text-align", "left");
+        $("#checkbox-and-searchbar").css("padding-left", "10px");
+    } else {
+        formHeader.removeClass("sticky");
+        $(".filter-checkboxes").css("text-align", "center");
+        $("#checkbox-and-searchbar").css("padding-left", "0px");
+    }
 }
 
 // Disables an input when an overriding parameter has a value. Erases the pre-entered value if any

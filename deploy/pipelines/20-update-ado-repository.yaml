@@ -18,6 +18,11 @@ parameters:
     type:                              string
     default:                           main
 
+  - name:                              tag
+    displayName:                       Git tag to fetch
+    type:                              string
+    default:                           latest
+
   - name:                              force
     displayName:                       Force the update
     type:                              boolean
@@ -33,6 +38,8 @@ variables:
     value:                             ${{ parameters.repository }}
   - name:                              branch
     value:                             ${{ parameters.branch }}
+  - name:                              tag
+    value:                             ${{ parameters.tag }}
   - name:                              force
     value:                             ${{ parameters.force }}
   - name:                              log
@@ -56,10 +63,11 @@ stages:
               git config --global pull.ff false
               git config --global pull.rebase false
 
-              git checkout -q $(branch)
               git pull -q
 
               git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
+
+              git fetch --all --tags 
 
               git pull -q --commit remote-repo $(branch)  >> /tmp/$(log) 2>&1
               return_code=$?

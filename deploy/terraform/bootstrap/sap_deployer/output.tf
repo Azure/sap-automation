@@ -92,6 +92,11 @@ output "firewall_id" {
   value = module.sap_deployer.firewall_id
 }
 
+
+output "enable_firewall_for_keyvaults_and_storage" {
+  value = var.enable_firewall_for_keyvaults_and_storage
+}
+
 output "automation_version" {
   value = local.version_label
 }
@@ -111,6 +116,9 @@ output "webapp_identity" {
   value = var.use_webapp ? module.sap_deployer.webapp_identity : ""
 }
 
+output "webapp_id" {
+  value = var.use_webapp ? module.sap_deployer.webapp_id : ""
+}
 
 ###############################################################################
 #                                                                             # 

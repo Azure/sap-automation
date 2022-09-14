@@ -201,6 +201,16 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
       version   = local.anydb_os.version
     }
   }
+
+  dynamic "plan" {
+    for_each = range(local.anydb_custom_image ? 1 : 0)
+    content {
+      name      = local.anydb_os.offer
+      publisher = local.anydb_os.publisher
+      product   = local.anydb_os.sku
+    }
+  }
+
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk
   }
@@ -261,7 +271,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
       )
       caching                = local.os_disk[0].caching
       storage_account_type   = local.os_disk[0].storage_account_type
-      disk_size_gb           = storage_type.size_gb < 128 ? 128 : storage_type.size_gb
+      disk_size_gb           = local.os_disk[0].disk_size_gb < 128 ? 128 : local.os_disk[0].disk_size_gb
       disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
     }
@@ -314,6 +324,14 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.anydb_custom_image ? 1 : 0)
+    content {
+      name      = local.anydb_os.offer
+      publisher = local.anydb_os.publisher
+      product   = local.anydb_os.sku
+    }
+  }
 
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk

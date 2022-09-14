@@ -177,7 +177,7 @@
       {
         "Name": "network_logical_name",
         "Required": true,
-        "Description": "Defines the workload virtual network logical name. Used in the naming convention",
+        "Description": "Defines the workload virtual network logical name. Used in the naming convention.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -232,6 +232,24 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "peer_with_control_plane_vnet",
+        "Required": false,
+        "Description": "Defines if the SAP VNet will be peered with the control plane VNet",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }, 
+      {
+        "Name": "enable_firewall_for_keyvaults_and_storage",
+        "Required": false,
+        "Description": "Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
 
     ]
@@ -256,7 +274,7 @@
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 1
       },
       {
         "Name": "admin_subnet_arm_id",
@@ -312,12 +330,12 @@
       },
       {
         "Name": "db_subnet_address_prefix",
-        "Required": false,
+        "Required": true,
         "Description": "Defines the subnet address range for the database subnet.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 1
       },
       {
         "Name": "db_subnet_arm_id",
@@ -373,12 +391,12 @@
       },
       {
         "Name": "app_subnet_address_prefix",
-        "Required": false,
+        "Required": true,
         "Description": "Defines the subnet address range for the application subnet.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 1
       },
       {
         "Name": "app_subnet_arm_id",
@@ -439,7 +457,7 @@
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 1
       },
       {
         "Name": "web_subnet_arm_id",
@@ -553,12 +571,12 @@
     "Parameters": [
       {
         "Name": "anf_subnet_address_prefix",
-        "Required": true,
+        "Required": false,
         "Description": "Defines the subnet address range for the ANF subnet.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 3
+        "Display": 1
       },
       {
         "Name": "anf_subnet_arm_id",
@@ -607,6 +625,39 @@
         "Name": "anf_subnet_nsg_name",
         "Required": false,
         "Description": "Should only be used if the default naming is not acceptable for the network security group name",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "DNS",
+    "Link": "",
+    "Parameters": [
+      {
+        "Name": "use_custom_dns_a_registration",
+        "Required": false,
+        "Description": "Boolean value indicating if a custom dns a record should be created when using private endpoints",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "management_dns_subscription_id",
+        "Required": false,
+        "Description": "Subscription for the DNS zone, if different from the management subscription",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "management_dns_resourcegroup_name",
+        "Required": false,
+        "Description": "Resource group for the DNS zone, if different from the SAP Library resource group",
         "Type": "field",
         "Options": [],
         "Overrules": "",

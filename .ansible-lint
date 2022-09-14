@@ -15,6 +15,7 @@ skip_list:
   - no-handler
 
   # Following are ignored because of readability:
+  - name[casing]
   - no-changed-when
   - role-name
   - var-naming

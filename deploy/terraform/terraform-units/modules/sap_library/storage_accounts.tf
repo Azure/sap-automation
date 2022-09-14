@@ -30,18 +30,20 @@ resource "azurerm_storage_account" "storage_tfstate" {
     }
   }
 
-  network_rules {
-    default_action = var.use_private_endpoint ? "Deny" : "Allow"
-    ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
-      [local.deployer_public_ip_address]) : (
-      []
-    )
-    virtual_network_subnet_ids = !var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
-      var.use_webapp ? (
+  dynamic "network_rules" {
+    for_each = range(local.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
+      default_action = "Deny"
+      ip_rules = local.deployer_public_ip_address_used ? (
+        [local.deployer_public_ip_address]) : (
+        []
+      )
+      virtual_network_subnet_ids = var.use_webapp ? (
         [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
-      [var.deployer_tfstate.subnet_mgmt_id])) : (
-      []
-    )
+        [var.deployer_tfstate.subnet_mgmt_id]
+      )
+
+    }
   }
 
   min_tls_version                 = "TLS1_2"
@@ -50,12 +52,19 @@ resource "azurerm_storage_account" "storage_tfstate" {
 }
 
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
-  count               = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
-  name                = split(".", azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].fqdn)[0]
-  zone_name           = "privatelink.blob.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
-  records             = azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].ip_addresses
+  count     = length(var.dns_label) > 0 && var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  name      = split(".", azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name = "privatelink.blob.core.windows.net"
+  resource_group_name = coalesce(
+    var.management_dns_resourcegroup_name,
+    local.resource_group_exists ? (
+      data.azurerm_resource_group.library[0].name
+      ) : (
+      azurerm_resource_group.library[0].name
+    )
+  )
+  ttl     = 3600
+  records = azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].ip_addresses
 
   provider = azurerm.dnsmanagement
 
@@ -168,30 +177,41 @@ resource "azurerm_storage_account" "storage_sapbits" {
   account_kind              = var.storage_account_sapbits.account_kind
   enable_https_traffic_only = true
 
-  network_rules {
-    default_action = var.use_private_endpoint ? "Deny" : "Allow"
-    ip_rules = var.use_private_endpoint && local.deployer_public_ip_address_used ? (
-      [local.deployer_public_ip_address]) : (
-      []
-    )
-    virtual_network_subnet_ids = !var.use_private_endpoint && local.deployer_tfstate_subnet_used ? (
-      [var.deployer_tfstate.subnet_mgmt_id]) : (
-      []
-    )
+  dynamic "network_rules" {
+    for_each = range(local.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
+      default_action = "Deny"
+      ip_rules = local.deployer_public_ip_address_used ? (
+        [local.deployer_public_ip_address]) : (
+        []
+      )
+      virtual_network_subnet_ids = var.use_webapp ? (
+        [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
+        [var.deployer_tfstate.subnet_mgmt_id]
+      )
 
+    }
   }
+
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
 }
 
 resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
-  count               = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
-  name                = split(".", azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].fqdn)[0]
-  zone_name           = "privatelink.blob.core.windows.net"
-  resource_group_name = var.management_dns_resourcegroup_name
-  ttl                 = 3600
-  records             = azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].ip_addresses
+  count     = length(var.dns_label) > 0 && var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+  name      = split(".", azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].fqdn)[0]
+  zone_name = "privatelink.blob.core.windows.net"
+  resource_group_name = coalesce(
+    var.management_dns_resourcegroup_name,
+    local.resource_group_exists ? (
+      data.azurerm_resource_group.library[0].name
+      ) : (
+      azurerm_resource_group.library[0].name
+    )
+  )
+  ttl     = 3600
+  records = azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].ip_addresses
 
   provider = azurerm.dnsmanagement
 

@@ -1,8 +1,9 @@
-﻿@model AutomationForm.Models.LandscapeModel
+﻿@model AutomationForm.Models.FormViewModel<LandscapeModel>
 
 @{
     ViewBag.Title = "Deploy workload zone";
     IEnumerable<SelectListItem> environments = ViewBag.Environments;
+    string deployer_region_parameter = "";
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -14,6 +15,8 @@
             allowClear: true,
             tags: true
         });
+
+        toggleNullParameters();
     }
 
 </script>
@@ -28,27 +31,9 @@
     <h2>Deploy a workload zone</h2>
 </div>
 
-<h4>Are you sure you want to deploy this?</h4>
+<h4>Are you sure you want to deploy @Model.SapObject.Id?</h4>
 <div>
-    <hr />
-    <dl class="dl-horizontal">
-
-        @foreach (var prop in ViewData.ModelMetadata.Properties)
-        {
-            string value = Html.DisplayText(prop.PropertyName);
-
-            if (value.Length != 0)
-            {
-                <dt>
-                    @Html.DisplayName(prop.GetDisplayName())
-                </dt>
-
-                <dd>
-                    @value
-                </dd>
-            }
-        }
-    </dl>
+    @await Html.PartialAsync("_DetailsPartial", Model)
 
     @using (Html.BeginForm())
     {
@@ -56,12 +41,23 @@
 
         <div class="ms-TextField">                    
             <div class="left-input">
-                @Html.Label("environment", "Control Plane Environment", new { @class = $"ms-Label required" })
+                @Html.Label("environment", "Control plane environment", new { @class = $"ms-Label required" })
                 <p>Deployer environment name</p>
             </div>
 
             <div class="right-input">
                 @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaTwoInputs('environment', 'workload_environment', 'confirm-deploy-landscape-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">                    
+            <div class="left-input">
+                @Html.Label("deployer_region_parameter", "Control plane location code", new { @class = $"ms-Label required" })
+                <p>Deployer Control plane location code</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("deployer_region_parameter", deployer_region_parameter, new { @class = "ms-TextField-field" })
             </div>
         </div>
 

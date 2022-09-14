@@ -52,7 +52,7 @@
 - name:                                "Post Installation: Debug (sapinst_list_of_files)"
   ansible.builtin.debug:
     msg:                               "{{ sapinst_list_of_files }}"
-    verbosity:                         2
+    verbosity:                         0
   when:                                sapinst_list_of_files is defined
 
 - name:                                "Post Installation: Compress the installation log files"

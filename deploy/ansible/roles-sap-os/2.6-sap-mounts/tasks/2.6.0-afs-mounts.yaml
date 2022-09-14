@@ -19,7 +19,7 @@
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [ this_sid ] }}{% endif %}"
+    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
@@ -56,7 +56,7 @@
         - name:                        "AFS Mount: sap_mnt (preparation)"
           block:
             - name:                    "AFS Mount: sap_mnt (preparation)"
-              mount:
+              ansible.posix.mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
@@ -73,7 +73,7 @@
                 seconds:               15
 
             - name:                    "Rescue - AFS Mount: sap_mnt (preparation)"
-              mount:
+              ansible.posix.mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
@@ -103,7 +103,7 @@
           loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
-          mount:
+          ansible.posix.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             state:                     unmounted
@@ -125,7 +125,7 @@
           loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
-          mount:
+          ansible.posix.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
@@ -152,7 +152,7 @@
         - name:                        "AFS Mount: sap_trans (preparation)"
           block:
             - name:                    "AFS Mount: sap_trans (preparation)"
-              mount:
+              ansible.posix.mount:
                 src:                   "{{ sap_trans }}"
                 path:                  "/saptrans"
                 fstype:                "nfs4"
@@ -169,7 +169,7 @@
                 seconds:               15
 
             - name:                    "Rescue - AFS Mount: sap_trans (preparation)"
-              mount:
+              ansible.posix.mount:
                 src:                   "{{ sap_trans }}"
                 path:                  "/saptrans"
                 fstype:                "nfs4"
@@ -185,7 +185,7 @@
             - { path: '/saptrans/usrsaptrans' }
 
         - name:                        "AFS Mount: Unmount file systems (transport)"
-          mount:
+          ansible.posix.mount:
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             state:                     unmounted
@@ -198,7 +198,7 @@
             - { path: '/saptrans/usrsaptrans' }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (transport)"
-          mount:
+          ansible.posix.mount:
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             fstype:                    "nfs4"
@@ -226,7 +226,7 @@
         - name:                        "AFS Mount: install (preparation)"
           block:
             - name:                    "AFS Mount: install (preparation)"
-              mount:
+              ansible.posix.mount:
                 src:                   "{{ usr_sap_install_mountpoint }}"
                 path:                  "/tmpinstall"
                 fstype:                "nfs4"
@@ -243,7 +243,7 @@
                 seconds:               15
 
             - name:                    "Rescue - AFS Mount: install (preparation)"
-              mount:
+              ansible.posix.mount:
                 src:                   "{{ usr_sap_install_mountpoint }}"
                 path:                  "/tmpinstall"
                 fstype:                "nfs4"
@@ -259,7 +259,7 @@
             - { path: '/tmpinstall/{{ bom_base_name }}' }
 
         - name:                        "AFS Mount: Unmount file systems (install)"
-          mount:
+          ansible.posix.mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             state:                     unmounted
@@ -272,7 +272,7 @@
             - { path: '/tmpinstall' }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (install)"
-          mount:
+          ansible.posix.mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             fstype:                    "nfs4"
@@ -308,6 +308,7 @@
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
         state:                         directory
+        mode:                          0755
         attr:                          i+
       loop: "{{ is_created_now.results }}"
       when:
@@ -347,6 +348,7 @@
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
         state:                         directory
+        mode:                          0755
         attr:                          i+
       loop: "{{ is_created_now3.results }}"
       when:
@@ -364,7 +366,7 @@
   block:
 
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -387,7 +389,7 @@
         msg:                           "Rescue - AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
 
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -404,7 +406,7 @@
 - name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
   become:                              true
   become_user:                         root
-  mount:
+  ansible.posix.mount:
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
@@ -419,7 +421,7 @@
 - name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
   block:
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
@@ -430,7 +432,7 @@
       ansible.builtin.pause:
         seconds:                       15
     - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
@@ -446,7 +448,7 @@
   block:
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -468,7 +470,7 @@
         var:                           sys_mounted
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -486,7 +488,7 @@
   block:
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -508,7 +510,7 @@
         var:                           sys_mounted
 
     - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -536,7 +538,7 @@
   block:
 
     - name:                            "AFS Mount: Mount Install folder when using AFS ({{ usr_sap_install_mountpoint }}/{{ bom_base_name }})"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
@@ -554,7 +556,7 @@
         seconds:                       15
 
     - name:                            Mount Install folder when using AFS
-      mount:
+      ansible.posix.mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
@@ -599,7 +601,7 @@
   block:
 
     - name:                            "AFS Mount: (transport)"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -617,7 +619,7 @@
         seconds:                       15
 
     - name:                            "AFS Mount: (transport)"
-      mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"

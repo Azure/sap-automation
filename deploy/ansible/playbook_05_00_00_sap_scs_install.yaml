@@ -91,7 +91,7 @@
 
     - name:                            "SCS Installation Playbook: Define list of SIDs"
       ansible.builtin.set_fact:
-        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+        all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
     - name:                            Generic Users and Groups for SAP Installation
       ansible.builtin.include_role:
@@ -152,7 +152,7 @@
 
         - name:                        "SCS Installation Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
-            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [ this_sid ] }}{% endif %}"
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
         - name:                        Run the SCS Installation Playbook
           block:
@@ -222,7 +222,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_SCS"
-                prefix:                "{{ bom.product_ids.scs.replace('.','/').replace('/ABAP','').split(':')[1] }}"
+                prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 path:                  '/INSTALL/DISTRIBUTED/ABAP/ASCS'
                 tier:                  'scs'
 
@@ -273,19 +273,19 @@
 
         - name:                        "SCS HA Installation Playbook: - Initialize facts"
           ansible.builtin.set_fact:
-            tier:                      ha
-            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            sap_hana_fencing_spn_client_id:  "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
-            sap_hana_fencing_spn_client_pwd: "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
-            sap_hana_fencing_spn_tenant_id:  "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+            tier:                       ha
+            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
+            main_password:              "{{ hostvars.localhost.sap_password }}"
+            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-            scs_virtual_hostname:      "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
-            ecs_virtual_hostname:      "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
-            always_upload_jinja_templates: false
+            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            scs_virtual_hostname:       "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
+            ecs_virtual_hostname:       "{{ sap_sid | lower }}ers{{ ers_instance_number }}cl2"
+            fencing_spn_client_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+            fencing_spn_client_pwd:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
+            fencing_spn_tenant_id:      "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
+            always_upload_jinja_templates:    false
           tags:
             - always
 
@@ -351,7 +351,7 @@
 
         - name:                        "SCS Installation Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
-            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ [ this_sid ] }}{% endif %}"
+            all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ [this_sid] }}{% endif %}"
 
         - name:                        Run the SCS HA Installation Playbook
           block:
@@ -392,7 +392,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_SCS"
-                prefix:                "{{ scs_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
+                prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
               when:
@@ -404,7 +404,7 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_ERS"
-                prefix:                "{{ ers_bom_id.replace('.','/').replace('/ABAPHA','').split(':')[1] }}"
+                prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
                 path:                  '/INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
               when:

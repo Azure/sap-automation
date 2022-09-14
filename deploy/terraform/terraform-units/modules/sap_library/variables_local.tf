@@ -53,4 +53,7 @@ locals {
 
   deployer_public_ip_address = try(var.deployer_tfstate.deployer_public_ip_address, "")
 
+  enable_firewall_for_keyvaults_and_storage = try(var.deployer_tfstate.enable_firewall_for_keyvaults_and_storage, false)
+
+
 }

@@ -113,7 +113,7 @@ locals {
 
   hdb_vm_sku = length(local.db_size) > 0 ? local.db_size : "Standard_E4s_v3"
 
-  hdb_ha = try(var.database.high_availability, false)
+  hdb_ha = var.database.high_availability
 
   sid_auth_type        = try(var.database.authentication.type, "key")
   enable_auth_password = try(var.database.authentication.type, "key") == "password"
@@ -285,7 +285,7 @@ locals {
   zonal_deployment = local.db_zone_count > 0 || local.enable_ultradisk ? true : false
 
   //If we deploy more than one server in zone put them in an availability set
-  use_avset = var.database_server_count > 0 && !try(var.database.no_avset, false) ? (
+  use_avset = var.database_server_count > 0 && !var.database.no_avset && !local.enable_ultradisk ? (
     !local.zonal_deployment || (var.database_server_count != local.db_zone_count)) : (
     false
   )

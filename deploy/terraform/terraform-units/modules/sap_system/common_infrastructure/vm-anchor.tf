@@ -67,6 +67,16 @@ resource "azurerm_linux_virtual_machine" "anchor" {
       version   = local.anchor_os.version
     }
   }
+
+  dynamic "plan" {
+    for_each = range(local.anchor_custom_image ? 1 : 0)
+    content {
+      name      = local.anchor_os.offer
+      publisher = local.anchor_os.publisher
+      product   = local.anchor_os.sku
+    }
+  }
+
   boot_diagnostics {
     storage_account_uri = data.azurerm_storage_account.storage_bootdiag.primary_blob_endpoint
   }

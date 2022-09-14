@@ -99,9 +99,22 @@ fluent-breadcrumb {
     padding: 5px 20px;
 }
 
-    .wrapper fieldset {
-        margin: 20px 0;
-    }
+.wrapper fieldset {
+    margin: 20px 0;
+}
+
+.sticky {
+    position: fixed;
+    top: 0;
+    z-index: 2;
+    padding: 20px 0px;
+    width: 100%;
+    background-color: white;
+}
+
+.sticky + .wrapper {
+    padding-top: 102px;
+}
 
 #searchbar {
     width: 25%;
@@ -194,10 +207,7 @@ label.required:after {
 @media screen and (max-width: 992px) {
 
     #searchbar {
-        width: 90%;
-        display: block;
-        margin: auto;
-        text-align: center;
+        width: 50%;
     }
 
     .super-wideonly {
@@ -469,4 +479,15 @@ fluent-card:hover {
 
 .parameters-filter {
     padding-left: 10px;
+}
+
+/* Tags UI */
+.tag {
+    display: flex;
+}
+
+.tag-key, .tag-value {
+    flex: 50%;
+    margin-right: 5px;
+    margin-bottom: 5px;
 }

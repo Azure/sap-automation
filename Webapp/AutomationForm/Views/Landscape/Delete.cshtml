@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.LandscapeModel
+﻿@model AutomationForm.Models.FormViewModel<LandscapeModel>
 
 @{
     ViewBag.Title = "Delete workload zone";
@@ -14,27 +14,9 @@
     <h2>Delete a workload zone</h2>
 </div>
 
-<h4>Are you sure you want to delete this?</h4>
+<h4>Are you sure you want to delete @Model.SapObject.Id?</h4>
 <div>
-    <hr />
-    <dl class="dl-horizontal">
-
-        @foreach (var prop in ViewData.ModelMetadata.Properties)
-        {
-            string value = Html.DisplayText(prop.PropertyName);
-
-            if (value.Length != 0)
-            {
-                <dt>
-                    @Html.DisplayName(prop.GetDisplayName())
-                </dt>
-
-                <dd>
-                    @value
-                </dd>
-            }
-        }
-    </dl>
+    @await Html.PartialAsync("_DetailsPartial", Model)
 
     @using (Html.BeginForm())
     {

@@ -5,15 +5,17 @@ using System.Threading.Tasks;
 
 namespace AutomationForm.Models
 {
-    public class LandscapeIndexModel
+    public class SapObjectIndexModel<T>
     {
         public List<AppFile> AppFiles { get; set; }
-        public List<LandscapeModel> Landscapes { get; set; }
+        public List<T> SapObjects { get; set; }
+        public AppFile ImagesFile { get; set; }
 
-        public LandscapeIndexModel()
+        public SapObjectIndexModel()
         {
             AppFiles = new List<AppFile>();
-            Landscapes = new List<LandscapeModel>();
+            SapObjects = new List<T>();
+            ImagesFile = new AppFile();
         }
     }
 }

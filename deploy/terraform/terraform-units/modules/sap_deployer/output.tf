@@ -154,6 +154,9 @@ output "webapp_identity" {
   value = var.use_webapp ? (var.configure ? azurerm_windows_web_app.webapp[0].identity[0].principal_id : "") : ""
 }
 
+output "webapp_id" {
+  value = var.use_webapp ? (var.configure ? azurerm_windows_web_app.webapp[0].id : "") : ""
+}
 
 ###############################################################################
 #                                                                             # 

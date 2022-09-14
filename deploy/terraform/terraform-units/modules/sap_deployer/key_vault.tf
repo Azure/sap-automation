@@ -20,20 +20,27 @@ resource "azurerm_key_vault" "kv_user" {
 
   sku_name = "standard"
 
-  network_acls {
-    bypass         = "AzureServices"
-    default_action = var.use_private_endpoint || local.management_subnet_exists ? "Deny" : "Allow"
-    ip_rules = var.use_private_endpoint && local.enable_deployer_public_ip ? (
-      [azurerm_public_ip.deployer[0].ip_address]) : (
-      []
-    )
-    virtual_network_subnet_ids = var.use_private_endpoint ? (
-      []) : (
-      [local.management_subnet_exists ? (
+  dynamic "network_acls" {
+    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+    content {
+
+      bypass         = "AzureServices"
+      default_action = local.management_subnet_exists ? "Deny" : "Allow"
+
+      ip_rules = compact(
+        [
+          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+        ]
+      )
+
+      virtual_network_subnet_ids = local.management_subnet_exists ? (
         data.azurerm_subnet.subnet_mgmt[0].id) : (
-      azurerm_subnet.subnet_mgmt[0].id)]
-    )
+      azurerm_subnet.subnet_mgmt[0].id)
+    }
   }
+
+
 }
 
 resource "azurerm_private_dns_a_record" "kv_user" {
@@ -233,7 +240,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   name = format("%s%s%s",
     var.naming.resource_prefixes.keyvault_private_link,
     local.prefix,
-    local.resource_suffixes.keyvault_private_link
+    var.naming.resource_suffixes.keyvault_private_link
   )
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
@@ -252,7 +259,7 @@ resource "azurerm_private_endpoint" "kv_user" {
     name = format("%s%s%s",
       var.naming.resource_prefixes.keyvault_private_svc,
       local.prefix,
-      local.resource_suffixes.keyvault_private_svc
+      var.naming.resource_suffixes.keyvault_private_svc
     )
     is_manual_connection = false
     private_connection_resource_id = local.user_keyvault_exist ? (

@@ -20,11 +20,12 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/init{{ db_sid | upper  }}.ora"
-    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper  }}.ora
+    src:                               "{{ target_media_location }}/downloads/init{{ db_sid | upper }}.ora"
+    dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     remote_src:                        true
     owner:                             oracle
     group:                             oinstall
+    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   when: current_host == ora_secondary
   tags:
     - skip_ansible_lint
@@ -38,6 +39,7 @@
     remote_src:                        true
     owner:                             oracle
     group:                             dba
+    mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   when: current_host == ora_secondary
   tags:
     - skip_ansible_lint
@@ -84,7 +86,9 @@
 - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               sqlplus / as sysdba @secondarystartup.sql |tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
+  ansible.builtin.shell: |
+      set -o pipefail
+      sqlplus / as sysdba @secondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
   register:                            secondary_startup_results
   failed_when:                         secondary_startup_results.rc > 0
   args:
@@ -153,7 +157,7 @@
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
 
-    - name:                            "Oracle Data Guard - Setup Secondary: Remove files"
+    - name:                            "Oracle Data Guard - Setup Secondary: Remove files"  # noqa deprecated-command-syntax
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.shell:           rm -rf {{ item.directory_to_empty }}/*

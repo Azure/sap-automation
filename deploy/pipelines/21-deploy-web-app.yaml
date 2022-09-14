@@ -4,7 +4,7 @@ trigger:
 - none
 
 pool:
-  name:                                 $(Agent)
+  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
   vmImage:                             'ubuntu-latest'
 
 parameters:
@@ -130,7 +130,7 @@ stages:
                                                   -IS_PIPELINE_DEPLOYMENT true'
           - bash: |
               #!/bin/bash
-              printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(webappName) $(webappName) $(webappName) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(webappName) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(webappName) $(webappName) $(webappName) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(webappName) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
             displayName:                         'Documentation'              

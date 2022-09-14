@@ -27,7 +27,7 @@ namespace AutomationForm.Models
 
         [DisplayName("Workload zone")]
         public string workload_zone { get; set; }
-        
+
         [RequiredIfNotDefault]
         [DisplayName("Environment")]
         public string environment { get; set; }
@@ -64,6 +64,9 @@ namespace AutomationForm.Models
 
         public string automation_username { get; set; }
 
+        public bool? use_service_endpoint { get; set; }
+
+
         // ======= EXPERT =======
 
         // Common Infrastructure
@@ -78,11 +81,17 @@ namespace AutomationForm.Models
 
         public string custom_prefix { get; set; }
 
-        public bool? use_prefix { get; set; }
-        public bool? use_secondary_ips { get; set; }        
-        
+        public bool? use_prefix { get; set; } = true;
+        public bool? use_secondary_ips { get; set; }
+
+        public bool? use_zonal_markers { get; set; } = true;
+
+        public bool? use_msi_for_clusters { get; set; }
+
+        public string fencing_role_name { get; set; }
+
         public string[] proximityplacementgroup_names { get; set; }
-        
+
         [PpgIdValidator]
         public string[] proximityplacementgroup_arm_ids { get; set; }
 
@@ -136,14 +145,14 @@ namespace AutomationForm.Models
 
         public string web_subnet_nsg_name { get; set; }
 
-        // Database Tier 
+        // Database Tier
 
         [DatabasePlatformValidator]
         public string database_platform { get; set; }
 
         public bool? database_high_availability { get; set; }
 
-        public int? database_server_count { get; set; }
+        public int? database_server_count { get; set; } = 1;
 
         public bool? database_dual_nics { get; set; }
 
@@ -166,12 +175,12 @@ namespace AutomationForm.Models
 
         [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
-        
+
         public bool? database_no_ppg { get; set; }
 
         public bool? database_no_avset { get; set; }
 
-        //public string[] database_tags { get; set; }
+        public Tag[] database_tags { get; set; }
 
         [IpAddressValidator]
         public string[] database_loadbalancer_ips { get; set; }
@@ -192,29 +201,27 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] database_vm_storage_nic_ips { get; set; }
 
-        public bool? hana_dual_nics { get; set; }
-
         // Application Tier
 
-        public bool? enable_app_tier_deployment { get; set; }
+        public bool? enable_app_tier_deployment { get; set; } = true;
 
         public string app_tier_authentication_type { get; set; }
 
-        public bool? app_tier_use_DHCP { get; set; }
+        public bool? app_tier_use_DHCP { get; set; } = true;
 
         public bool? app_tier_dual_nics { get; set; }
 
-        public string app_tier_sizing_dictionary_key { get; set; }
+        public string app_tier_sizing_dictionary_key { get; set; } = "Optimized";
 
         public bool? save_naming_information { get; set; }
 
         public string name_override_file { get; set; }
-        
+
         public bool? use_loadbalancers_for_standalone_deployments { get; set; }
 
         // Application Servers
 
-        public int? application_server_count { get; set; }
+        public int? application_server_count { get; set; } = 1;
 
         public string application_server_sku { get; set; }
 
@@ -225,7 +232,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] application_server_admin_nic_ips { get; set; }
 
-        //public string[] application_server_tags { get; set; }
+        public Tag[] application_server_tags { get; set; }
 
         [IpAddressValidator]
         public string[] application_server_app_nic_ips { get; set; }
@@ -242,7 +249,7 @@ namespace AutomationForm.Models
 
         // SAP Central Services
 
-        public int? scs_server_count { get; set; }
+        public int? scs_server_count { get; set; } = 1;
 
         public string scs_server_sku { get; set; }
 
@@ -265,7 +272,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_loadbalancer_ips { get; set; }
 
-        //public string[] scs_server_tags { get; set; } 
+        public Tag[] scs_server_tags { get; set; }
 
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
@@ -276,7 +283,7 @@ namespace AutomationForm.Models
 
         // Web Dispatchers
 
-        public int? webdispatcher_server_count { get; set; }
+        public int? webdispatcher_server_count { get; set; } = 0;
 
         public string webdispatcher_server_sku { get; set; }
 
@@ -289,7 +296,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] webdispatcher_server_loadbalancer_ips { get; set; }
 
-        //public string[] webdispatcher_server_tags { get; set; } 
+        public Tag[] webdispatcher_server_tags { get; set; }
 
         public string[] webdispatcher_server_zones { get; set; }
 
@@ -332,39 +339,39 @@ namespace AutomationForm.Models
         public bool? ANF_HANA_data { get; set; }
 
         public int? ANF_HANA_data_volume_size { get; set; }
-        
+
         public bool? ANF_HANA_data_use_existing_volume { get; set; }
 
         public string ANF_HANA_data_volume_name { get; set; }
-        
+
         public int? ANF_HANA_data_volume_throughput { get; set; }
 
         public bool? ANF_HANA_log { get; set; }
-        
+
         public int? ANF_HANA_log_volume_size { get; set; }
 
         public bool? ANF_HANA_log_use_existing { get; set; }
-        
+
         public string ANF_HANA_log_volume_name { get; set; }
 
         public int? ANF_HANA_log_volume_throughput { get; set; }
-        
+
         public bool? ANF_HANA_shared { get; set; }
 
         public int? ANF_HANA_shared_volume_size { get; set; }
-        
+
         public bool? ANF_HANA_shared_use_existing { get; set; }
 
         public string ANF_HANA_shared_volume_name { get; set; }
-        
+
         public int? ANF_HANA_shared_volume_throughput { get; set; }
 
         public bool? ANF_usr_sap { get; set; }
-        
+
         public int? ANF_usr_sap_volume_size { get; set; }
 
         public bool? ANF_usr_sap_use_existing { get; set; }
-        
+
         public string ANF_usr_sap_volume_name { get; set; }
 
         public int? ANF_usr_sap_throughput { get; set; }
@@ -372,11 +379,11 @@ namespace AutomationForm.Models
         public bool? use_private_endpoint { get; set; }
 
         public bool? ANF_sapmnt { get; set; }
-        
+
         public string ANF_sapmnt_volume_name { get; set; }
 
         public int? ANF_sapmnt_volume_size { get; set; }
-        
+
         public int? ANF_sapmnt_volume_throughput { get; set; }
 
         // Anchor VM
@@ -412,6 +419,12 @@ namespace AutomationForm.Models
         public bool? deploy_application_security_groups { get; set; }
     }
 
+    public class Tag
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
+    }
+
     public class Image
     {
         public string os_type { get; set; }
@@ -423,19 +436,19 @@ namespace AutomationForm.Models
         public string offer { get; set; }
 
         public string sku { get; set; }
-        
+
         public string version { get; set; }
 
         public bool IsInitialized {
             get
             {
                 return (os_type != null
-                    || source_image_id != null 
-                    || publisher != null 
-                    || offer != null 
-                    || sku != null 
+                    || source_image_id != null
+                    || publisher != null
+                    || offer != null
+                    || sku != null
                     || version != null);
-            } 
+            }
         }
     }
 }

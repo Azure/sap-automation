@@ -85,6 +85,19 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+variable "enable_firewall_for_keyvaults_and_storage" {
+  description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+  default     = false
+  type        = bool
+}
+
+variable "peer_with_control_plane_vnet" {
+  description = "Defines in the SAP VNet will be peered with the controlplane VNet"
+  type        = bool
+  default     = true
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #
@@ -321,23 +334,7 @@ variable "witness_storage_account_arm_id" {
   default     = ""
 }
 
-variable "use_custom_dns_a_registration" {
-  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-  default     = false
-  type        = bool
-}
 
-variable "management_dns_subscription_id" {
-  description = "String value giving the possibility to register custom dns a records in a separate subscription"
-  default     = null
-  type        = string
-}
-
-variable "management_dns_resourcegroup_name" {
-  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-  default     = null
-  type        = string
-}
 variable "transport_storage_account_id" {
   description = "Azure Resource Identifier for the Transport media storage account"
   type        = string
@@ -376,6 +373,31 @@ variable "install_private_endpoint_id" {
 variable "Agent_IP" {
   type    = string
   default = ""
+}
+
+#########################################################################################
+#                                                                                       #
+#  DNS settings                                                                         #
+#                                                                                       #
+#########################################################################################
+
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = ""
+  type        = string
 }
 
 

@@ -10,6 +10,7 @@ locals {
   storageaccount_name                             = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name
   witness_storageaccount_name                     = var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
   landscape_shared_transport_storage_account_name = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_transport_storage_account_name
+  landscape_shared_install_storage_account_name   = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_install_storage_account_name
   landscape_keyvault_names                        = var.naming.keyvault_names.WORKLOAD_ZONE
   sid_keyvault_names                              = var.naming.keyvault_names.SDU
   resource_suffixes                               = var.naming.resource_suffixes
@@ -80,10 +81,8 @@ locals {
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of creating new key vaults
 
-  user_key_vault_id         = try(var.key_vault.kv_user_id, "")
-  prvt_key_vault_id         = try(var.key_vault.kv_prvt_id, "")
-  user_keyvault_exist       = length(local.user_key_vault_id) > 0
-  automation_keyvault_exist = length(local.prvt_key_vault_id) > 0
+  user_key_vault_id   = try(var.key_vault.kv_user_id, "")
+  user_keyvault_exist = length(local.user_key_vault_id) > 0
 
   enable_landscape_kv = !local.user_keyvault_exist
 
@@ -162,16 +161,6 @@ locals {
 
   user_keyvault_rg_name = local.user_keyvault_exist ? (
     split("/", local.user_key_vault_id)[4]) : (
-    ""
-  )
-
-  automation_keyvault_name = local.automation_keyvault_exist ? (
-    split("/", local.prvt_key_vault_id)[8]) : (
-    local.landscape_keyvault_names.private_access
-  )
-
-  automation_keyvault_rg_name = local.automation_keyvault_exist ? (
-    split("/", local.prvt_key_vault_id)[4]) : (
     ""
   )
 

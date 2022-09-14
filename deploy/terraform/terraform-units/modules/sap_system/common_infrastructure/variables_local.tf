@@ -201,8 +201,7 @@ locals {
   enable_admin_subnet = (
     (
       var.application.dual_nics ||
-      var.database.dual_nics ||
-      (local.isHANA && var.database_dual_nics)
+      var.database.dual_nics
     )
     &&
     (
@@ -414,14 +413,8 @@ locals {
   // the key vault will be imported instead of using the landscape key vault
   user_key_vault_id = length(try(var.key_vault.kv_user_id, "")) > 0 ? (
     var.key_vault.kv_user_id) : (
-    var.landscape_tfstate.landscape_key_vault_user_arm_id
+    try(var.landscape_tfstate.landscape_key_vault_user_arm_id, "")
   )
-
-  prvt_key_vault_id = length(try(var.key_vault.kv_prvt_id, "")) > 0 ? (
-    var.key_vault.kv_prvt_id) : (
-    var.landscape_tfstate.landscape_key_vault_private_arm_id
-  )
-
 
   // Extract information from the specified key vault arm ids
   user_keyvault_name = length(local.user_key_vault_id) > 0 ? (
@@ -431,16 +424,6 @@ locals {
 
   user_keyvault_rg_name = length(local.user_key_vault_id) > 0 ? (
     split("/", local.user_key_vault_id)[4]) : (
-    local.rg_name
-  )
-
-  automation_keyvault_name = length(local.prvt_key_vault_id) > 0 ? (
-    split("/", local.prvt_key_vault_id)[8]) : (
-    local.sid_keyvault_names.private_access
-  )
-
-  automation_keyvault_rg_name = length(local.prvt_key_vault_id) > 0 ? (
-    split("/", local.prvt_key_vault_id)[4]) : (
     local.rg_name
   )
 

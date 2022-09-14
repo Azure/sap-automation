@@ -28,7 +28,7 @@ resource "azurerm_public_ip" "firewall" {
     local.prefix,
     var.naming.separator,
     "firewall",
-    local.resource_suffixes.pip
+    var.naming.resource_suffixes.pip
   )
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
@@ -48,7 +48,7 @@ resource "azurerm_firewall" "firewall" {
     var.naming.resource_prefixes.firewall,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.firewall
+    var.naming.resource_suffixes.firewall
   )
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
@@ -78,7 +78,7 @@ resource "azurerm_route_table" "rt" {
     var.naming.resource_prefixes.routetable,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.routetable
+    var.naming.resource_suffixes.routetable
   )
   resource_group_name           = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                      = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -91,7 +91,7 @@ resource "azurerm_route" "admin" {
     var.naming.resource_prefixes.fw_route,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.fw_route
+    var.naming.resource_suffixes.fw_route
   )
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
@@ -124,7 +124,7 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
     var.naming.resource_prefixes.firewall_rule_app,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.firewall_rule_app
+    var.naming.resource_suffixes.firewall_rule_app
   )
   azure_firewall_name = azurerm_firewall.firewall[0].name
   resource_group_name = local.resource_group_exists ? (

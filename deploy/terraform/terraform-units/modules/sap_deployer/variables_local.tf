@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                            Local Variables                                  # 
-#                                                                             # 
+#                                                                             #
+#                            Local Variables                                  #
+#                                                                             #
 ###############################################################################
 
 
@@ -11,7 +11,6 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.DEPLOYER
   virtualmachine_names = var.naming.virtualmachine_names.DEPLOYER
   keyvault_names       = var.naming.keyvault_names.DEPLOYER
-  resource_suffixes    = var.naming.resource_suffixes
 
   // Default option(s):
   enable_secure_transfer    = try(var.options.enable_secure_transfer, true)
@@ -29,7 +28,7 @@ locals {
       format("%s%s%s",
         var.naming.resource_prefixes.deployer_rg,
         local.prefix,
-        local.resource_suffixes.deployer_rg
+        var.naming.resource_suffixes.deployer_rg
       )
     )
   )
@@ -53,7 +52,7 @@ locals {
           local.prefix) : (
           var.infrastructure.environment
         ),
-        local.resource_suffixes.vnet
+        var.naming.resource_suffixes.vnet
       )
     )
   )
@@ -75,7 +74,7 @@ locals {
           local.prefix) : (
           var.infrastructure.environment
         ),
-        local.resource_suffixes.deployer_subnet
+        var.naming.resource_suffixes.deployer_subnet
       )
   ))
 
@@ -102,7 +101,7 @@ locals {
           local.prefix) : (
           var.infrastructure.environment
         ),
-        local.resource_suffixes.deployer_subnet_nsg
+        var.naming.resource_suffixes.deployer_subnet_nsg
       )
   ))
 

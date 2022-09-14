@@ -34,11 +34,10 @@ module "sap_landscape" {
   use_private_endpoint               = var.use_private_endpoint
   use_service_endpoint               = var.use_service_endpoint
 
-  use_custom_dns_a_registration     = var.use_custom_dns_a_registration
-  management_dns_subscription_id    = var.management_dns_subscription_id
+  use_custom_dns_a_registration  = var.use_custom_dns_a_registration
+  management_dns_subscription_id = try(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null)
   management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
-
-
+  
   Agent_IP = var.Agent_IP
 
   NFS_provider = var.NFS_provider
@@ -55,6 +54,10 @@ module "sap_landscape" {
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
 
   vm_settings = local.vm_settings
+
+  peer_with_control_plane_vnet = var.peer_with_control_plane_vnet
+
+  enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
 
 
 }
