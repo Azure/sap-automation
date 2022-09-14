@@ -13,7 +13,7 @@ parameters:
   - name:                              bom_base_name
     displayName:                       Name of Bill of Materials (BoM)
     type: string
-    default:                           
+    default:
     values:
       - S4HANA_2021_ISS_v0001ms
       - S42020SPS04_v0001ms
@@ -56,6 +56,9 @@ variables:
   - name:                              bom
     value:                             $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
 
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.environment }}
+
   - name:                              environment_code
     value:                             ${{ parameters.environment }}
 
@@ -88,11 +91,24 @@ stages:
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-                
+
                 export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 environment_file_name=$HOME/.sap_deployment_automation/$(environment_code)$(location_code)
                 cd $HOME; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_promp --output none
+                export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+
+                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+                if [ -z $devops_extension_installed ]; then
+                  az extension add --name azure-devops --output none
+                fi
+
+                az devops configure -d organization=$(System.CollectionUri)
+                az devops configure -d project=$(System.TeamProject)
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 
               echo -e "$green--- Validations ---$reset"
               if [ ! -f ${environment_file_name} ]; then
@@ -109,25 +125,10 @@ stages:
                 echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
                 exit 2
               fi
-              
-              if [ ! -n $(ARM_CLIENT_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-                exit 2
-              fi
-
-              if [ ! -n $(ARM_CLIENT_SECRET) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-                exit 2
-              fi
-
-              if [ ! -n $(ARM_TENANT_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-                exit 2
-              fi
 
               echo -e "$green--- az login ---$reset"
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -136,18 +137,20 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
+
               echo -e "$green--- Get key_vault name ---$reset"
 
-                if [ -z "$key_vault" ]; then
-                    kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}'); echo "Key Vault="$kv_name
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                if [ -n ${az_var} ]; then
+                    kv_name=${az_var}; echo "Key Vault="$kv_name
                 else
-                  kv_name=$(key_vault); echo "Key Vault="$kv_name
+                    kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}'); echo "Key Vault="$kv_name
                 fi
-                
+
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
-              
+
               echo -e "$green--- BoM $(bom) ---$reset"
-              
+
               echo -e "$green--- Save BOM ---$reset"
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
@@ -155,7 +158,7 @@ stages:
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
-                if [ -z "$SUsername" ]; then
+                if [ -z $SUsername ]; then
                   az keyvault secret set --output none --name S-Username --vault-name $kv_name --value $(S-Username)
                   echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$(S-Username)"
                 else
@@ -164,7 +167,7 @@ stages:
                 fi
 
                 export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
-                if [ -z "$SPassword" ]; then
+                if [ -z $SPassword ]; then
                   az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$(S-Password)"
                 else
@@ -182,6 +185,7 @@ stages:
 
   - stage:                             Software_download
     displayName:                       Download software
+
     jobs:
       - job:                           Software_download
         displayName:                   Download software
