@@ -138,6 +138,14 @@ resource "azurerm_linux_virtual_machine" "deployer" {
     }
   }
 
+  dynamic "plan" {
+    for_each  = range(var.deployer.plan.use ? 1 : 0)
+    content {
+      name      = var.deployer.plan.name
+      product   = var.deployer.plan.product
+      publisher = var.deployer.plan.publisher
+    }
+  }
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.deployer.id]

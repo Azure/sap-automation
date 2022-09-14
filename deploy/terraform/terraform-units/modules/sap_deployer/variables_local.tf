@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                            Local Variables                                  # 
-#                                                                             # 
+#                                                                             #
+#                            Local Variables                                  #
+#                                                                             #
 ###############################################################################
 
 
@@ -11,7 +11,7 @@ locals {
   storageaccount_names = var.naming.storageaccount_names.DEPLOYER
   virtualmachine_names = var.naming.virtualmachine_names.DEPLOYER
   keyvault_names       = var.naming.keyvault_names.DEPLOYER
-  
+
   // Default option(s):
   enable_secure_transfer    = try(var.options.enable_secure_transfer, true)
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
