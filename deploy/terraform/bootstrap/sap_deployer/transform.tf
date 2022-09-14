@@ -168,6 +168,9 @@ locals {
         try(var.deployers[0].sku, "")
       ), "")
     }
+
+    plan = var.plan
+
     private_ip_address = try(coalesce(
       var.deployer_private_ip_address,
       try(var.deployers[0].private_ip_address, "")

@@ -31,14 +31,6 @@ output "workload_zone_prefix" {
 #                                                                             # 
 ###############################################################################
 
-output "dns_label" {
-  value = var.dns_label
-}
-
-output "dns_resource_group_name" {
-  value = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
-}
-
 output "vnet_sap_arm_id" {
   description = "Azure resource identifier for the Virtual Network"
   value       = module.sap_landscape.vnet_sap_id
@@ -155,10 +147,43 @@ output "iscsi_private_ip" {
   value = try(module.sap_landscape.nics_iscsi[*].private_ip_address, [])
 }
 
-// Output for DNS
+###############################################################################
+#                                                                             # 
+#                            DNS                                 # 
+#                                                                             # 
+###############################################################################
 output "dns_info_iscsi" {
+  description = "value"
   value = module.sap_landscape.dns_info_vms
 }
+
+output "use_custom_dns_a_registration" {
+  description = "Defines if custom DNS is used"
+  value = var.use_custom_dns_a_registration
+}
+
+output "management_dns_subscription_id" {
+  description = "custom DNS subscription"
+  value = var.management_dns_subscription_id
+}
+
+
+output "management_dns_resourcegroup_name" {
+  description = "custom DNS resource group"
+  value = var.management_dns_resourcegroup_name
+}
+
+output "dns_label" {
+  description = "DNS label"
+  value = var.dns_label
+}
+
+
+output "dns_resource_group_name" {
+  description = "DNS resource group"
+  value = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
+}
+
 
 ###############################################################################
 #                                                                             # 

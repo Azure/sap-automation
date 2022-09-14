@@ -67,6 +67,27 @@
       no_log:                          true
   when:
     - sapbits_access_key is not defined
+    - sapbits_sas_token is not defined
+
+- name:                                "0.4 Installation Media: - Retrieve SAS token details secret"
+  block:
+    - name:                            "0.4 Installation Media: - Retrieve SAS token details details"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ deployer_kv_name }}
+          --name "sapbits_sas_token"
+      changed_when:                    false
+      register:                        keyvault_secret_show_sas_token
+      no_log:                          true
+
+    - name:                            "0.4 Installation Media: - Extract SAS token details"
+      ansible.builtin.set_fact:
+        sapbits_sas_token: >-
+          {{ (keyvault_secret_show_sas_token.stdout | from_json).value }}
+      no_log:                          true
+  when:
+    - sapbits_access_key is not defined
+    - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS secret"
   block:

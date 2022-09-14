@@ -64,6 +64,9 @@ namespace AutomationForm.Models
 
         public string automation_username { get; set; }
 
+        public bool? use_service_endpoint { get; set; }
+
+
         // ======= EXPERT =======
 
         // Common Infrastructure
@@ -80,6 +83,12 @@ namespace AutomationForm.Models
 
         public bool? use_prefix { get; set; } = true;
         public bool? use_secondary_ips { get; set; }
+
+        public bool? use_zonal_markers { get; set; } = true;
+
+        public bool? use_msi_for_clusters { get; set; }
+
+        public string fencing_role_name { get; set; }
 
         public string[] proximityplacementgroup_names { get; set; }
 
@@ -143,7 +152,7 @@ namespace AutomationForm.Models
 
         public bool? database_high_availability { get; set; }
 
-        public int? database_server_count { get; set; } = 1
+        public int? database_server_count { get; set; } = 1;
 
         public bool? database_dual_nics { get; set; }
 
@@ -171,7 +180,7 @@ namespace AutomationForm.Models
 
         public bool? database_no_avset { get; set; }
 
-        //public string[] database_tags { get; set; }
+        public Tag[] database_tags { get; set; }
 
         [IpAddressValidator]
         public string[] database_loadbalancer_ips { get; set; }
@@ -223,7 +232,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] application_server_admin_nic_ips { get; set; }
 
-        //public string[] application_server_tags { get; set; }
+        public Tag[] application_server_tags { get; set; }
 
         [IpAddressValidator]
         public string[] application_server_app_nic_ips { get; set; }
@@ -263,7 +272,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_loadbalancer_ips { get; set; }
 
-        //public string[] scs_server_tags { get; set; }
+        public Tag[] scs_server_tags { get; set; }
 
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
@@ -287,7 +296,7 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] webdispatcher_server_loadbalancer_ips { get; set; }
 
-        //public string[] webdispatcher_server_tags { get; set; }
+        public Tag[] webdispatcher_server_tags { get; set; }
 
         public string[] webdispatcher_server_zones { get; set; }
 
@@ -408,6 +417,12 @@ namespace AutomationForm.Models
         public bool? enable_purge_control_for_keyvaults { get; set; }
 
         public bool? deploy_application_security_groups { get; set; }
+    }
+
+    public class Tag
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 
     public class Image

@@ -183,6 +183,18 @@ if [ -n "${subscription}" ]; then
     echo ""
     az account set --sub "${subscription}"
     export ARM_SUBSCRIPTION_ID="${subscription}"
+    kv_found=$(az keyvault list --subscription $subscription --query [].name | grep  "${keyvault}")
+
+    if [ -z "${kv_found}" ] ; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+     echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        step=0
+    fi
+
+  
 fi
 
 if [ 3 == $step ]; then
@@ -194,6 +206,7 @@ set_executing_user_environment_variables "${spn_secret}"
 load_config_vars "${deployer_config_information}" "step"
 
 load_config_vars "${deployer_config_information}" "keyvault"
+
 
 if [ $recover == 1 ]; then
     if [ -n "$REMOTE_STATE_SA" ]; then
@@ -228,6 +241,19 @@ if [ 0 == $step ]; then
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_deployer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
+        echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
+        exit 10
+    fi
+
+    load_config_vars "${deployer_config_information}" "keyvault"
+    echo "Key vault:" $keyvault
+
+    if [ -z "$keyvault" ]; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                       $boldred  Bootstrapping of the deployer failed $resetformatting                         #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
         echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
         exit 10
     fi
@@ -362,6 +388,17 @@ if [ 1 == $step ]; then
 
     if [ -z "$keyvault" ]; then
         read -r -p "Deployer keyvault name: " keyvault
+    fi
+    access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "Max retries exceeded attempting to connect to Vault")
+    if [ -n "${access_error}" ]; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo "#                    ${boldred} Unable to access keyvault: MGMTWEEUDEP01user05A {resetformatting}                  #"
+        echo "#                             Please ensure the key vault exists.                       #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        exit 10
     fi
 
     access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "The user, group or application")
@@ -506,7 +543,7 @@ if [ 3 == $step ]; then
     fi
 
     export TF_VAR_sa_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "sa-connection-string" | jq -r .value)
-   
+
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
     echo "calling installer.sh with parameters: $allParams"

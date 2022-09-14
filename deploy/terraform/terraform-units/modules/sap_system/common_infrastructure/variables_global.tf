@@ -139,10 +139,6 @@ variable "deployer_tfstate" {
   description = "Deployer remote tfstate file"
 }
 
-variable "landscape_tfstate" {
-  description = "Landscape remote tfstate file"
-}
-
 variable "service_principal" {
   description = "Current service principal used to authenticate to Azure"
 }
@@ -212,6 +208,24 @@ variable "use_service_endpoint" {
   type        = bool
 }
 
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
+}
+
 variable "sapmnt_private_endpoint_id" {
   description = "Azure Resource Identifier for an private endpoint connection"
   type        = string
@@ -229,3 +243,16 @@ variable "hana_ANF_volumes" {
 variable "deploy_application_security_groups" {
   description = "Defines if application security groups should be deployed"
 }
+
+
+variable "landscape_tfstate" {
+  description = "Landscape remote tfstate file"
+  validation {
+    condition = (
+      length(trimspace(try(var.landscape_tfstate.vnet_sap_arm_id, ""))) != 0
+    )
+    error_message = "Network is undefined, please redeploy the workload zone."
+  }
+
+}
+

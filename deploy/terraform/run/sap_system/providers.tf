@@ -32,6 +32,13 @@ provider "azurerm" {
   subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
 }
 
+provider "azurerm" {
+  features {}
+  alias                      = "dnsmanagement"
+  subscription_id            = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  skip_provider_registration = true
+}
+
 provider "azuread" {
   client_id     = local.spn.client_id
   client_secret = local.spn.client_secret

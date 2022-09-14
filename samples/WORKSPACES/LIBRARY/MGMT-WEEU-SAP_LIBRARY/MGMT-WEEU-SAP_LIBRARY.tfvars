@@ -41,15 +41,6 @@ location = "westeurope"
 #}
 
 
-# The deployer_environment value is a mandatory field, it is used for identifying the deployer
-deployer_environment = "MGMT"
-
-# The deployer_location value is a mandatory field, it is used for identifying the deployer
-deployer_location = "westeurope"
-
-# The deployer_vnet value is a mandatory field, it is used for identifying the deployer
-deployer_vnet = "DEP00"
-
 # The use_deployer value is a boolean value indicating if the deployer is used as the deployment engine
 #use_deployer=true
 

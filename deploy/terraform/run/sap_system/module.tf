@@ -14,9 +14,9 @@ module "sap_namegenerator" {
   sap_vnet_name    = local.vnet_logical_name
   sap_sid          = local.sap_sid
   db_sid           = local.db_sid
-  app_ostype       = upper(try(local.application.os.os_type, "LINUX"))
+  app_ostype       = upper(local.application.app_os.os_type)
   anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
+  db_ostype        = upper(local.database.os.os_type)
   db_server_count  = var.database_server_count
   app_server_count = try(local.application.application_server_count, 0)
   web_server_count = try(local.application.webdispatcher_count, 0)
@@ -44,8 +44,9 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
   application                        = local.application
@@ -73,6 +74,11 @@ module "common_infrastructure" {
   )
   Agent_IP                           = var.Agent_IP
   use_private_endpoint               = var.use_private_endpoint
+
+  use_custom_dns_a_registration      = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id     = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name  = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+
   database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
   hana_ANF_volumes                   = local.hana_ANF_volumes
@@ -141,6 +147,8 @@ module "hdb_node" {
   NFS_provider                       = var.NFS_provider
   use_secondary_ips                  = var.use_secondary_ips
   deploy_application_security_groups = var.deploy_application_security_groups
+  use_msi_for_clusters               = var.use_msi_for_clusters
+  fencing_role_name                  = var.fencing_role_name
 }
 
 
@@ -186,6 +194,8 @@ module "app_tier" {
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
   use_secondary_ips                            = var.use_secondary_ips
   deploy_application_security_groups           = var.deploy_application_security_groups
+  use_msi_for_clusters                         = var.use_msi_for_clusters
+  fencing_role_name                            = var.fencing_role_name
 }
 
 #########################################################################################
@@ -240,6 +250,8 @@ module "anydb_node" {
   landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
   use_secondary_ips                  = var.use_secondary_ips
   deploy_application_security_groups = var.deploy_application_security_groups
+  use_msi_for_clusters               = var.use_msi_for_clusters
+  fencing_role_name                  = var.fencing_role_name
 }
 
 #########################################################################################
@@ -321,4 +333,6 @@ module "output_files" {
   save_naming_information = var.save_naming_information
   use_secondary_ips       = var.use_secondary_ips
   web_sid                 = var.web_sid
+  use_msi_for_clusters    = var.use_msi_for_clusters
+  dns                     = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
 }

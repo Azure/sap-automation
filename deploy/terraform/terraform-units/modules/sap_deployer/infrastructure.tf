@@ -31,7 +31,7 @@ Usage:
 
 
   local.rg_name
-      Variable                  : local.rg_name derived from default format("%s%s", local.prefix, local.resource_suffixes.deployer_rg) or overridden with var.infrastructure.resource_group.name
+      Variable                  : local.rg_name derived from default format("%s%s", local.prefix, var.naming.resource_suffixes.deployer_rg) or overridden with var.infrastructure.resource_group.name
         Override)
           Variable              : var.infrastructure.resource_group.name is contained in var.infrastructure.resource_group
           Variable              : var.infrastructure.resource_group is contained in var.infrastructure
@@ -56,8 +56,8 @@ Usage:
                 Variable        : var.naming defined empty
                 Module Caller   : Pass module.sap_namegenerator.naming object into module as naming
 
-          2)  Variable          : local.resource_suffixes.deployer_rg is an object contained in local.resource_suffixes
-              Variable          : local.resource_suffixes is a copy of var.naming.resource_suffixes
+          2)  Variable          : var.naming.resource_suffixes.deployer_rg is an object contained in var.naming.resource_suffixes
+              Variable          : var.naming.resource_suffixes is a copy of var.naming.resource_suffixes
               Variable          : var.naming.resource_suffixes is contained in var.naming
               Variable          : var.naming defined empty
               Module Caller     : Pass module.sap_namegenerator.naming object into module as naming

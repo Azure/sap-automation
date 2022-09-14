@@ -139,7 +139,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ tmp_directory }}"
+            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           tags:
             - skip_ansible_lint
@@ -179,7 +179,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ tmp_directory }}"
+            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
           tags:

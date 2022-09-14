@@ -239,6 +239,7 @@ variable "resource_prefixes" {
     "app_avset"                      = ""
     "app_subnet"                     = ""
     "app_subnet_nsg"                 = ""
+    "app_service_plan"                = ""
     "bastion_host"                   = ""
     "bastion_pip"                    = ""
     "db_alb"                         = ""

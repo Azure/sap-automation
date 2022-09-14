@@ -207,6 +207,15 @@ variable "deployer_image" {
   }
 }
 
+variable "plan" {
+  default = {
+    use         = false
+    "name"      = ""
+    "publisher" = ""
+    "product"   = ""
+  }
+}
+
 variable "deployer_private_ip_address" {
   default = ""
 }

@@ -40,6 +40,9 @@ sap_fqdn:                     ""                                  # SAP Install
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
+drop_schema:                  false
+
+use_msi_for_clusters:         false
 
 hana_components:              "all"
 

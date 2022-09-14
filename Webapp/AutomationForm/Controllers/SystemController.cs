@@ -21,7 +21,7 @@ namespace AutomationForm.Controllers
 
         private readonly ITableStorageService<SystemEntity> _systemService;
         private readonly ITableStorageService<AppFile> _appFileService;
-        private SystemViewModel systemView;
+        private FormViewModel<SystemModel> systemView;
         private readonly IConfiguration _configuration;
         private RestHelper restHelper;
         
@@ -40,18 +40,14 @@ namespace AutomationForm.Controllers
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
         }
-        private SystemViewModel SetViewData()
+        private FormViewModel<SystemModel> SetViewData()
         {
-            systemView = new SystemViewModel();
-            systemView.System = new SystemModel();
+            systemView = new FormViewModel<SystemModel>();
+            systemView.SapObject = new SystemModel();
             try
             {
-                // ParameterGroupingModel basicParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/BasicSystemDetails.json");
-                // ParameterGroupingModel advancedParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/AdvancedSystemDetails.json");
-                // ParameterGroupingModel expertParameterArray = Helper.ReadJson<ParameterGroupingModel>("ParameterDetails/ExpertSystemDetails.json");
                 Grouping[] parameterArray = Helper.ReadJson<Grouping[]>("ParameterDetails/SystemDetails.json");
 
-                // systemView.ParameterGroupings = new ParameterGroupingModel[] { basicParameterArray, advancedParameterArray, expertParameterArray };
                 systemView.ParameterGroupings = parameterArray;
             }
             catch
@@ -65,13 +61,13 @@ namespace AutomationForm.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
-            SystemIndexModel systemIndex = new SystemIndexModel();
+            SapObjectIndexModel<SystemModel> systemIndex = new SapObjectIndexModel<SystemModel>();
 
             try 
             {
                 List<SystemEntity> systemEntities = await _systemService.GetAllAsync();
                 List<SystemModel> systems = systemEntities.FindAll(s => s.System != null).ConvertAll(s => JsonConvert.DeserializeObject<SystemModel>(s.System));
-                systemIndex.Systems = systems;
+                systemIndex.SapObjects = systems;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
                 systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
@@ -179,7 +175,7 @@ namespace AutomationForm.Controllers
                 }
             }
 
-            systemView.System = system;
+            systemView.SapObject = system;
 
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
@@ -193,11 +189,12 @@ namespace AutomationForm.Controllers
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
+                systemView.SapObject = system;
 
                 List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
                 ViewBag.Environments = environments;
 
-                return View(system);
+                return View(systemView);
             }
             catch (Exception e)
             {
@@ -240,12 +237,13 @@ namespace AutomationForm.Controllers
         //     }
 
         //     SystemModel system = await _systemService.GetByIdAsync(id);
+        //     systemView.SapObject = system;
         //     if (system == null)
         //     {
         //         return NotFound();
         //     }
 
-        //     return View(system);
+        //     return View(systemView);
         // }
 
         // [HttpPost]
@@ -264,7 +262,7 @@ namespace AutomationForm.Controllers
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
-                systemView.System = system;
+                systemView.SapObject = system;
                 
                 ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
                 ViewBag.ImageOptions = imageOptions;
@@ -310,7 +308,7 @@ namespace AutomationForm.Controllers
                 }
             }
             
-            systemView.System = system;
+            systemView.SapObject = system;
 
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
@@ -342,7 +340,7 @@ namespace AutomationForm.Controllers
                 }
             }
 
-            systemView.System = system;
+            systemView.SapObject = system;
 
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
@@ -356,7 +354,7 @@ namespace AutomationForm.Controllers
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
-                systemView.System = system;
+                systemView.SapObject = system;
                 return View(systemView);
             }
             catch (Exception e)

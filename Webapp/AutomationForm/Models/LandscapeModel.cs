@@ -172,9 +172,9 @@ namespace AutomationForm.Models
 
         public bool? use_service_endpoint { get; set; } = true;
 
-        public bool? peer_with_control_plane_vnet { get; set; }
+        public bool? peer_with_control_plane_vnet { get; set; } = true;
 
-        public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
+        public bool? enable_firewall_for_keyvaults_and_storage { get; set; }
         
         public bool? ANF_use_existing_pool { get; set; }
 
@@ -195,6 +195,12 @@ namespace AutomationForm.Models
         public int? ANF_install_volume_throughput { get; set; }
 
         public int? ANF_install_volume_size { get; set; }
+
+        public string management_dns_resourcegroup_name { get; set; }
+
+        public string management_dns_subscription_id { get; set; }
+
+        public bool? use_custom_dns_a_registration { get; set; }
 
 
         [KeyvaultIdValidator]

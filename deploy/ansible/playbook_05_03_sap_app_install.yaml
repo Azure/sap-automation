@@ -133,7 +133,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        app_file_path:                 /INSTALL/AS/APPS/
+        app_file_path:                 INSTALL/AS/APPS/
         always_upload_jinja_templates: false
 
     - name:                            "APP Installation Playbook: Define this SID"
@@ -186,6 +186,12 @@
           when:
             - app_installation.stdout_lines is defined
             - '"ERROR" in item'
+
+        - name:                            "DBLoad: Installation results"
+          ansible.builtin.debug:
+            msg:
+              - "prefix:                    {{ app_bom_id.replace('.', '/').replace('/PD', '').split(':')[1] }}"
+              - "path:                      {{ app_file_path }}"
 
         - name:                        "APP Playbook - Install: Run post install activities"
           ansible.builtin.include_role:

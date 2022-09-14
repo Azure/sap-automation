@@ -310,6 +310,17 @@ variable "database_high_availability" {
   default     = false
 }
 
+variable "use_msi_for_clusters" {
+  description = "If true, the Pacemaker cluser will use a managed identity"
+  default     = true
+}
+
+variable "fencing_role_name" {
+  description = "If specified the role name to use for the fencing"
+  default     = "Reader"
+}
+
+
 variable "database_vm_zones" {
   description = "If provided, the database tier will be deployed in the specified zones"
   default     = []
@@ -333,7 +344,7 @@ variable "db_disk_sizes_filename" {
 variable "database_vm_image" {
   description = "Virtual machine image to use for the database server"
   default = {
-    "os_type"         = ""
+    "os_type"         = "LINUX"
     "source_image_id" = ""
     "publisher"       = ""
     "offer"           = ""
@@ -482,7 +493,7 @@ variable "scs_server_zones" {
 variable "scs_server_image" {
   description = "Virtual machine image to use for the SAP Central Services server(s)"
   default = {
-    "os_type"         = ""
+    "os_type"         = "LINUX"
     "source_image_id" = ""
     "publisher"       = ""
     "offer"           = ""
@@ -600,7 +611,7 @@ variable "application_server_no_ppg" {
 variable "application_server_image" {
   description = "Virtual machine image to use for the application server"
   default = {
-    "os_type"         = ""
+    "os_type"         = "LINUX"
     "source_image_id" = ""
     "publisher"       = ""
     "offer"           = ""
@@ -634,7 +645,7 @@ variable "webdispatcher_server_zones" {
 variable "webdispatcher_server_image" {
   description = "Virtual machine image to use for the web dispatchers"
   default = {
-    "os_type"         = ""
+    "os_type"         = "LINUX"
     "source_image_id" = ""
     "publisher"       = ""
     "offer"           = ""
@@ -737,6 +748,12 @@ variable "save_naming_information" {
 variable "deploy_application_security_groups" {
   description = "Defines if application security groups should be deployed"
   default     = true
+}
+
+variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
 }
 
 #########################################################################################
@@ -874,12 +891,6 @@ variable "ANF_usr_sap_volume_name" {
 variable "ANF_usr_sap_throughput" {
   description = "If defined provides the throughput of the /usr/sap volume"
   default     = 128
-}
-
-variable "use_private_endpoint" {
-  description = "Boolean value indicating if private endpoint should be used for the deployment"
-  default     = false
-  type        = bool
 }
 
 variable "use_service_endpoint" {

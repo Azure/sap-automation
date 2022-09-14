@@ -54,6 +54,9 @@ $$custom_prefix$$
 # use_prefix defines if a prefix will be added to the resource names
 $$use_prefix$$
 
+# use_zonal_markers defines if a zonal markers will be added to the virtual machine resource names
+$$use_zonal_markers$$
+
 # use_secondary_ips controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support
 $$use_secondary_ips$$
 
@@ -151,17 +154,18 @@ $$database_vm_storage_nic_ips$$
 # Sample Images for different database backends
 
 # Oracle
-#database_vm_image={
-#  source_image_id=""
-#  publisher="Oracle"
-#  offer= "Oracle-Linux",
-#  sku= "82-gen2",
-#  version="latest"
+#database_vm_image = {
+#  os_type         = "LINUX"
+#  source_image_id = ""
+#  publisher       = "Oracle"
+#  offer           = "Oracle-Linux",
+#  sku             = "82-gen2",
+#  version         = "latest"
 #}
 
 #SUSE 15 SP3
 #database_vm_image = {
-#  os_type         = ""
+#  os_type         = "LINUX"
 #  source_image_id = ""
 #  publisher       = "SUSE"
 #  offer           = "sles-sap-15-sp3"
@@ -171,12 +175,12 @@ $$database_vm_storage_nic_ips$$
 
 #RedHat
 #database_vm_image={
-#  os_type="linux"
-#  source_image_id=""
-#  publisher="RedHat"
-#  offer="RHEL-SAP-HA"
-#  sku="82sapha-gen2"
-#  version="8.2.2021040902"
+#  os_type         = "LINUX"
+#  source_image_id = ""
+#  publisher       = "RedHat"
+#  offer           = "RHEL-SAP-HA"
+#  sku             = "8_4"
+#  version         = "latest"
 #}
 
 # The vm_image defines the Virtual machine image to use, 
@@ -453,7 +457,7 @@ $$ANF_HANA_log_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  HANA Log                                                                            #
+#  HANA Shared                                                                          #
 #                                                                                       #
 #########################################################################################
 
@@ -475,7 +479,7 @@ $$ANF_HANA_shared_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  HANA Log                                                                            #
+#  /usr/sap                                                                             #
 #                                                                                       #
 #########################################################################################
 
@@ -497,7 +501,7 @@ $$ANF_usr_sap_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  HANA Log                                                                            #
+#  sapmnt                                                                               #
 #                                                                                       #
 #########################################################################################
 
@@ -512,7 +516,6 @@ $$ANF_sapmnt_volume_throughput$$
 
 # ANF_sapmnt_volume_name, if defined, provides the name of the /sapmnt volume.
 $$ANF_sapmnt_volume_name$$
-
 
 
 #########################################################################################

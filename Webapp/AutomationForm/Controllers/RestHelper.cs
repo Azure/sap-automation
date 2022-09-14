@@ -151,7 +151,6 @@ namespace AutomationForm.Controllers
         public async Task<string[]> GetTemplateFileNames(string scopePath)
         {
             string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{scopePath}?ref=main";
-
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
@@ -161,9 +160,23 @@ namespace AutomationForm.Controllers
             JsonElement values = JsonDocument.Parse(responseBody).RootElement;
             foreach (var value in values.EnumerateArray())
             {
-                string path = value.GetProperty("path").GetString() + "/";
-                string filename = value.GetProperty("name").GetString() + ".tfvars";
-                fileNames.Add(path + filename);
+                string type = value.GetProperty("type").GetString();
+                string path = value.GetProperty("path").GetString();
+                if (type == "dir")
+                {
+                    string[] subFiles = await GetTemplateFileNames(path);
+                    foreach (string subFile in subFiles)
+                    {
+                        fileNames.Add(subFile);
+                    }
+                }
+                else if (type == "file")
+                {
+                    if (path.EndsWith(".tfvars"))
+                    {
+                        fileNames.Add(path);
+                    }
+                }
             }
 
             return fileNames.ToArray();

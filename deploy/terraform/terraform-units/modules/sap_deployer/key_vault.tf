@@ -240,7 +240,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   name = format("%s%s%s",
     var.naming.resource_prefixes.keyvault_private_link,
     local.prefix,
-    local.resource_suffixes.keyvault_private_link
+    var.naming.resource_suffixes.keyvault_private_link
   )
   resource_group_name = local.resource_group_exists ? (
     data.azurerm_resource_group.deployer[0].name) : (
@@ -259,7 +259,7 @@ resource "azurerm_private_endpoint" "kv_user" {
     name = format("%s%s%s",
       var.naming.resource_prefixes.keyvault_private_svc,
       local.prefix,
-      local.resource_suffixes.keyvault_private_svc
+      var.naming.resource_suffixes.keyvault_private_svc
     )
     is_manual_connection = false
     private_connection_resource_id = local.user_keyvault_exist ? (

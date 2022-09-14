@@ -68,7 +68,7 @@ output "network_location" {
 }
 
 output "network_resource_group" {
-  value = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
+  value = try(split("/", var.landscape_tfstate.vnet_sap_arm_id)[4], "")
 }
 
 output "admin_subnet" {
@@ -98,7 +98,7 @@ output "storage_subnet" {
 
 output "route_table_id" {
   description = "Azure resource ID of the route table"
-  value       = var.landscape_tfstate.route_table_id
+  value       = try(var.landscape_tfstate.route_table_id, "")
 }
 
 output "firewall_id" {
@@ -154,17 +154,16 @@ output "cloudinit_growpart_config" {
 #                                                                             # 
 ###############################################################################
 
-
 output "sapmnt_path" {
   description = "Defines the sapmnt mount path"
   value = var.NFS_provider == "AFS" ? (
     format("%s:/%s/%s",
 
-      length(var.sapmnt_private_endpoint_id) > 0 ?
-      (
+      length(var.sapmnt_private_endpoint_id) == 0 ? (
+        try(azurerm_private_endpoint.sapmnt[0].custom_dns_configs[0].fqdn,
+          azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address
+        )) : (
         data.azurerm_private_endpoint_connection.sapmnt[0].private_service_connection[0].private_ip_address
-        ) : (
-        azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address
       ),
       length(var.azure_files_sapmnt_id) > 0 ? (
         split("/", var.azure_files_sapmnt_id)[8]

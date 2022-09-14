@@ -127,7 +127,7 @@
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "{{ tmp_directory }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        generic_user_creation
       failed_when:                     generic_user_creation.rc > 0
       tags:

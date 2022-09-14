@@ -201,6 +201,16 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
       version   = local.anydb_os.version
     }
   }
+
+  dynamic "plan" {
+    for_each = range(local.anydb_custom_image ? 1 : 0)
+    content {
+      name      = local.anydb_os.offer
+      publisher = local.anydb_os.publisher
+      product   = local.anydb_os.sku
+    }
+  }
+
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk
   }
@@ -314,6 +324,14 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.anydb_custom_image ? 1 : 0)
+    content {
+      name      = local.anydb_os.offer
+      publisher = local.anydb_os.publisher
+      product   = local.anydb_os.sku
+    }
+  }
 
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk

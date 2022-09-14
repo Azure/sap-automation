@@ -70,7 +70,8 @@ locals {
   )
 
   application_subnet_arm_id = local.application_subnet_defined ? (
-    try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")) : (
+    try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")
+    ) : (
     var.landscape_tfstate.app_subnet_id
   )
   application_subnet_exists = length(local.application_subnet_arm_id) > 0
@@ -135,7 +136,8 @@ locals {
   web_subnet_prefix  = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
 
   web_subnet_arm_id = local.web_subnet_defined ? (
-    try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")) : (
+    try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")
+    ) : (
     var.landscape_tfstate.web_subnet_id
   )
   web_subnet_exists = length(local.web_subnet_arm_id) > 0
@@ -166,8 +168,8 @@ locals {
 
   web_subnet_nsg_defined = length(try(var.infrastructure.vnets.sap.subnet_web.nsg, {})) > 0
   web_subnet_nsg_arm_id = local.web_subnet_nsg_defined ? (
-    try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, "")) : (
-    var.landscape_tfstate.web_nsg_id
+    coalesce(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, var.landscape_tfstate.web_nsg_id, "")) : (
+    ""
   )
 
   web_subnet_nsg_exists = length(local.web_subnet_nsg_arm_id) > 0
@@ -212,7 +214,7 @@ locals {
   )
 
   firewall_exists          = length(var.firewall_id) > 0
-  enable_deployment        = var.application.enable_deployment
+  enable_deployment        = var.application.enable_deployment && length(try(var.landscape_tfstate.vnet_sap_arm_id, "")) > 0
   scs_instance_number      = var.application.scs_instance_number
   ers_instance_number      = var.application.ers_instance_number
   scs_high_availability    = var.application.scs_high_availability
@@ -424,7 +426,7 @@ locals {
     null
   )
 
-  scs_sizing = lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+  scs_sizing = local.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
 
   web_sizing = local.webdispatcher_count > 0 ? (
     lookup(local.sizes.web, local.vm_sizing_dictionary_key)) : (

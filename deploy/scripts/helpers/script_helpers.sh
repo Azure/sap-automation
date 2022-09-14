@@ -78,7 +78,7 @@ function control_plane_missing {
     echo "#      -h or --help                          Help                                       #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    
+
 }
 
 function workload_zone_showhelp {
@@ -237,7 +237,7 @@ function validate_exports {
         echo "#########################################################################################"
         return 65                                                                                           #data format error
     fi
-    
+
     if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
         echo ""
         echo "#########################################################################################"
@@ -251,7 +251,7 @@ function validate_exports {
         echo "#########################################################################################"
         return 65                                                                                           #data format error
     fi
-    
+
     return 0
 }
 
@@ -272,7 +272,7 @@ function validate_webapp_exports {
         echo "#########################################################################################"
         return 65                                                                                           #data format error
     fi
-    
+
     if [ -z "$TF_VAR_webapp_client_secret" ]; then
         echo ""
         echo "#########################################################################################"
@@ -288,7 +288,7 @@ function validate_webapp_exports {
         echo "#########################################################################################"
         return 65                                                                                           #data format error
     fi
-    
+
     return 0
 }
 
@@ -371,7 +371,7 @@ function validate_dependencies {
         mkdir -p "$HOME/.terraform.d/plugin-cache"
     fi
     export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-    
+
     az --version >stdout.az 2>&1
     az=$(grep "azure-cli" stdout.az)
     if [ -z "${az}" ]; then
@@ -411,25 +411,25 @@ function validate_dependencies {
         echo ""
         exit 67                                                                                             #addressee unknown
     fi
-    
+
     return 0
 }
 
 function validate_key_parameters {
     echo "Validating $1"
     ext=$(echo $1 | cut -d. -f2)
-    
+
     # Helper variables
     if [ "${ext}" == json ]; then
         export environment=$(jq --raw-output .infrastructure.environment $1)
         export region=$(jq --raw-output .infrastructure.region $1)
     else
         load_config_vars $1 "environment"
-        environment=$(echo ${environment} | xargs)
+        environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" )
         load_config_vars $1 "location"
         region=$(echo ${location} | xargs)
     fi
-    
+
     if [ -z "${environment}" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -441,7 +441,7 @@ function validate_key_parameters {
         echo ""
         return 64 #script usage wrong
     fi
-    
+
     if [ -z "${region}" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -453,7 +453,7 @@ function validate_key_parameters {
         echo ""
         return 64                                                                                           #script usage wrong
     fi
-    
+
     return 0
 }
 

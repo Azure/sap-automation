@@ -156,6 +156,10 @@ resource "local_file" "sap-parameters_yml" {
 
     web_sid = var.web_sid
 
+    use_msi_for_clusters = var.use_msi_for_clusters
+
+    dns = var.dns
+
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)
