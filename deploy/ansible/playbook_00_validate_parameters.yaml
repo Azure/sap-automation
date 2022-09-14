@@ -116,7 +116,7 @@
         - db_high_availability
         - platform == "HANA"
 
-    - name:                            "sharedHome variables"
+    - name:                            "0.0 Validations - sharedHome variables"
       ansible.builtin.debug:
         var:                           sid_to_be_deployed
       when:                            MULTI_SIDS is defined
