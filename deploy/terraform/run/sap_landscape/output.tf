@@ -31,14 +31,6 @@ output "workload_zone_prefix" {
 #                                                                             # 
 ###############################################################################
 
-output "dns_label" {
-  value = var.dns_label
-}
-
-output "dns_resource_group_name" {
-  value = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
-}
-
 output "vnet_sap_arm_id" {
   description = "Azure resource identifier for the Virtual Network"
   value       = module.sap_landscape.vnet_sap_id
@@ -179,6 +171,17 @@ output "management_dns_subscription_id" {
 output "management_dns_resourcegroup_name" {
   description = "custom DNS resource group"
   value = var.management_dns_resourcegroup_name
+}
+
+output "dns_label" {
+  description = "DNS label"
+  value = var.dns_label
+}
+
+
+output "dns_resource_group_name" {
+  description = "DNS resource group"
+  value = length(var.dns_resource_group_name) > 0 ? var.dns_resource_group_name : local.saplib_resource_group_name
 }
 
 

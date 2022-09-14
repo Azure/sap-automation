@@ -334,4 +334,5 @@ module "output_files" {
   use_secondary_ips       = var.use_secondary_ips
   web_sid                 = var.web_sid
   use_msi_for_clusters    = var.use_msi_for_clusters
+  dns                     = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
 }
