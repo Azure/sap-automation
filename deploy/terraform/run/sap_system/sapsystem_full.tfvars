@@ -17,7 +17,7 @@ location    = "westeurope"
 #  os_type=""
 #  source_image_id=""
 #  publisher="SUSE"
-#  offer="sles-sap-12-sp5"
+#  offer="sles-sap-15-sp3"
 #  sku="gen1"
 #  version="latest"
 #}
@@ -61,7 +61,7 @@ database_vm_image = {
   os_type         = ""
   source_image_id = ""
   publisher       = "SUSE"
-  offer           = "sles-sap-12-sp5"
+  offer           = "sles-sap-15-sp3"
   sku             = "gen1"
   version         = "latest"
 }
@@ -84,7 +84,7 @@ database_vm_image = {
 #database_high_availability=false
 
 #database_platform="HANA"
-#database_size="Default"
+#db_sizing_dictionary_key="Default"
 #database_sid="HDB"
 #database_instance_number="01"
 
@@ -101,7 +101,7 @@ enable_app_tier_deployment = true
 sid = "PRD"
 #app_tier_use_DHCP=false
 #app_tier_dual_nics=false
-app_tier_vm_sizing = "Optimized"
+app_tier_sizing_dictionary_key = "Optimized"
 #app_disk_sizes_filename=""
 
 # Application Server
@@ -112,7 +112,7 @@ application_server_count = 3
 #  os_type=""
 #  source_image_id=""
 #  publisher="SUSE"
-#  offer="sles-sap-12-sp5"
+#  offer="sles-sap-15-sp3"
 #  sku="gen1"
 #}
 #application_server_zones=["1","2","3"]
@@ -143,7 +143,7 @@ ers_instance_number   = "02"
 #  os_type=""
 #  source_image_id=""
 #  publisher="SUSE"
-#  offer="sles-sap-12-sp5"
+#  offer="sles-sap-15-sp3"
 #  sku="gen1"
 #}
 
@@ -161,7 +161,7 @@ webdispatcher_server_count = 1
 #  os_type=""
 #  source_image_id=""
 #  publisher="SUSE"
-#  offer="sles-sap-12-sp5"
+#  offer="sles-sap-15-sp3"
 #  sku="gen1"
 #}
 
@@ -176,5 +176,5 @@ resource_offset = 0
 
 
 #ANF
-NFS_Provider="NONE"
-sapmnt_volume_size    = 512
+NFS_provider       = "NONE"
+sapmnt_volume_size = 512

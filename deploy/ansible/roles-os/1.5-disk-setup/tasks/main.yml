@@ -50,10 +50,10 @@
 
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
-    msg:
-      - "Unique disks:    {{ disktypes }} "
-      - "Volume groups:   {{ volume_groups }} "
-      - "Logical volumes: {{ logical_volumes }} "
+    msg: 
+      - "Unique disks:    {{ disktypes }} "                              
+      - "Volume groups:   {{ volume_groups }} "                              
+      - "Logical volumes: {{ logical_volumes }} "                              
     verbosity:                         2
 
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
@@ -138,10 +138,10 @@
 
 - name:                                "1.5 Disk setup - Debug disk information"
   ansible.builtin.debug:
-    msg:
-      - "Created Volume Groups:    {{ vgcreatedlist }} "
-      - "Created Logical Volumes:  {{ lvcreatedlist }} "
-      - "Created Filesystems:      {{ fscreatedlist_tmp }} "
+    msg: 
+      - "Created Volume Groups:    {{ vgcreatedlist }} "                              
+      - "Created Logical Volumes:  {{ lvcreatedlist }} "                              
+      - "Created Filesystems:      {{ fscreatedlist_tmp }} "                              
     verbosity:                         2
   when:
     - tier == "sapos"

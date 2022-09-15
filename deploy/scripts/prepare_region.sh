@@ -74,7 +74,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
 
 if [ -n "$approve" ]; then
-    approveparam=" -i"
+    approveparam=" --auto-approve"
 fi
 
 if [ ! -f "$deployer_parameter_file" ]; then
@@ -100,6 +100,7 @@ fi
 # Check that parameter files have environment and location defined
 validate_key_parameters "$deployer_parameter_file"
 if [ 0 != $return_code ]; then
+    echo "Errors in parameter file" > "${deployer_config_information}".err
     exit $return_code
 fi
 
@@ -112,12 +113,10 @@ automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
-
 if [ $force == 1 ]; then
     if [ -f "${deployer_config_information}" ]; then
         rm "${deployer_config_information}"
     fi
-    
 fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
@@ -130,7 +129,16 @@ fi
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
+    echo "Missing exports" > "${deployer_config_information}".err
     exit $return_code
+fi
+# Check that webapp exports are defined, if deploying webapp
+if [ $TF_VAR_use_webapp = "true" ]; then
+    validate_webapp_exports
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        exit $return_code
+    fi
 fi
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")
@@ -161,6 +169,9 @@ if [ -n "${subscription}" ]; then
         echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
         echo "#                                                                                       #"
         echo "#########################################################################################"
+
+        echo "The provided subscription is not valid: ${subscription}" > "${deployer_config_information}".err
+
         exit 65
     fi
     echo ""
@@ -217,7 +228,8 @@ if [ 0 == $step ]; then
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_deployer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
-        exit $return_code
+        echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
+        exit 10
     fi
     
     #Persist the parameters
@@ -361,6 +373,7 @@ if [ 1 == $step ]; then
             "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
             return_code=$?
             if [ 0 != $return_code ]; then
+                echo "Could not set the secrets in key vault" > "${deployer_config_information}".err
                 exit $return_code
             fi
         else
@@ -398,6 +411,8 @@ if [ 1 == $step ]; then
         echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
         echo "#                                                                                       #"
         echo "#########################################################################################"
+        echo "User account ${val} does not have access to: $keyvault" > "${deployer_config_information}".err
+
         exit 65
         
     fi
@@ -430,7 +445,19 @@ if [ 2 == $step ]; then
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
-        exit $return_code
+        echo "Bootstrapping of the SAP Library failed" > "${deployer_config_information}".err
+        exit 20
+    fi
+
+    if [ $TF_VAR_use_webapp = "true" ]; then
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                           $cyan Configuring the Web App $resetformatting                                   #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
+        export TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
+        az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}"
     fi
     
     cd "${curdir}" || exit
@@ -450,6 +477,8 @@ fi
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
 
+export AA=$REMOTE_STATE_SA
+
 load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 if [ 3 == $step ]; then
@@ -468,11 +497,18 @@ if [ 3 == $step ]; then
         rm post_deployment.sh
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
+
+    TF_VAR_sa_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "sa-connection-string" | jq -r .value)
+    export TF_VAR_sa_connection_string
+    
+    echo "calling installer.sh with parameters: $allParams"
     
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
-        exit $return_code
+        echo "Migrating the deployer state failed" > "${deployer_config_information}".err
+
+        exit 11
     fi
     
     cd "${curdir}" || exit
@@ -489,7 +525,6 @@ load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 if [ 4 == $step ]; then
     echo ""
-    
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                          $cyan Migrating the library state $resetformatting                                #"
@@ -503,9 +538,11 @@ if [ 4 == $step ]; then
     "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
-        exit $return_code
+        echo "Migrating the SAP Library state failed" > "${deployer_config_information}".err
+
+        exit 21
     fi
-    
+
     cd "$root_dirname" || exit
     
     step=5
@@ -525,6 +562,9 @@ echo "#     - Storage Account: ${storage_account}                       #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
+if [ -f "${deployer_config_information}".err ]; then
+    "${deployer_config_information}".err
+fi
 
 now=$(date)
 cat <<EOF > "${deployer_config_information}".md
@@ -550,58 +590,49 @@ export deployer_ip="${deployer_public_ip_address}"
 export terraform_state_storage_account="${REMOTE_STATE_SA}"
 
 if [ 5 == $step ]; then
-    
-    account_key=$(az keyvault secret show --vault-name "${keyvault}" --name "sapbits-access-key" | jq -r .value)
-    end=$(date -u -d "180 days" '+%Y-%m-%dT%H:%MZ')
-    
-    sas=?$(az storage container generate-sas --permissions rl --account-name $REMOTE_STATE_SA --name sapbits --https-only  --expiry $end -o tsv --account-key "${account_key}")
-    az keyvault secret set --vault-name "${keyvault}" --name "sapbits-sas-token" --value  "${sas}"
-
-    step=6
-    save_config_var "step" "${deployer_config_information}"
-fi
-
-if [ 6 == $step ]; then
-    cd "${curdir}" || exit
-    
-    load_config_vars "${deployer_config_information}" "sshsecret"
-    load_config_vars "${deployer_config_information}" "keyvault"
-    load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-    if [ "$this_ip" != "$deployer_public_ip_address" ] ; then
-        # Only run this when not on deployer
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
+    if [ $ado_flag != "--ado" ] ; then
+        cd "${curdir}" || exit
         
-        if [ -n "${sshsecret}" ]; then
-            step=3
-            save_config_var "step" "${deployer_config_information}"
-            printf "%s\n" "Collecting secrets from KV"
-            temp_file=$(mktemp)
-            ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
-            echo "${ppk}" > "${temp_file}"
-            chmod 600 "${temp_file}"
+        load_config_vars "${deployer_config_information}" "sshsecret"
+        load_config_vars "${deployer_config_information}" "keyvault"
+        load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
+        if [ "$this_ip" != "$deployer_public_ip_address" ] ; then
+            # Only run this when not on deployer
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
             
-            remote_deployer_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
-            remote_library_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-            remote_config_dir="/home/azureadm/.sap_deployment_automation"
-            
-            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2> /dev/null
-            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
-            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate 2> /dev/null
-            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate 2> /dev/null
-            
-            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform 2> /dev/null
-            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
-            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/. 2> /dev/null
-            
-            ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}" 2> /dev/null
-            scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/. 2> /dev/null
-            rm "${temp_file}"
+            if [ -n "${sshsecret}" ]; then
+                step=3
+                save_config_var "step" "${deployer_config_information}"
+                printf "%s\n" "Collecting secrets from KV"
+                temp_file=$(mktemp)
+                ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
+                echo "${ppk}" > "${temp_file}"
+                chmod 600 "${temp_file}"
+                
+                remote_deployer_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
+                remote_library_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
+                remote_config_dir="/home/azureadm/.sap_deployment_automation"
+                
+                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate 2> /dev/null
+                
+                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/. 2> /dev/null
+                
+                ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}" 2> /dev/null
+                scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_config_information}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/. 2> /dev/null
+                rm "${temp_file}"
+            fi
         fi
+
     fi
 fi
 

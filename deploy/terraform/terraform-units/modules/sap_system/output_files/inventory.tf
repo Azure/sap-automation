@@ -2,6 +2,11 @@ resource "local_file" "ansible_inventory_new_yml" {
   content = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
     ips_dbnodes = var.database_admin_ips,
     dbnodes     = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+    virt_dbnodes = var.use_secondary_ips ? (
+      var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME : var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME
+      ) : (
+      var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+    )
     ips_scs = length(local.ips_scs) > 0 ? (
       length(local.ips_scs) > 1 ? (
         slice(local.ips_scs, 0, 1)) : (
@@ -9,11 +14,8 @@ resource "local_file" "ansible_inventory_new_yml" {
       )) : (
       []
     )
-    ips_ers = length(local.ips_scs) > 0 ? (
-      length(local.ips_scs) > 1 ? (
-        slice(local.ips_scs, 1, length(local.ips_scs))) : (
-        []
-      )) : (
+    ips_ers = length(local.ips_scs) > 1 ? (
+      slice(local.ips_scs, 1, length(local.ips_scs))) : (
       []
     )
 
@@ -21,47 +23,74 @@ resource "local_file" "ansible_inventory_new_yml" {
     ips_app = length(local.ips_app) > 1 ? slice(local.ips_app, 1, length(local.ips_app)) : []
     ips_web = length(local.ips_web) > 0 ? local.ips_web : [],
     sid     = var.sap_sid,
-    passervers = length(local.ips_app) > 0 ? (
+
+    pas_servers = length(local.ips_app) > 0 ? (
       slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
       []
     ),
-    appservers = length(local.ips_app) > 1 ? (
+
+    virt_pas_servers = var.use_secondary_ips ? (
+      length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 0, 1) : []) : (
+      length(local.ips_app) > 0 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1) : []
+    ),
+
+    app_servers = length(local.ips_app) > 1 ? (
       slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app))) : (
       []
     ),
-    scsservers = length(local.ips_scs) > 0 ? (
-      length(local.ips_scs) > 1 ? (
-        slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
-        var.naming.virtualmachine_names.SCS_COMPUTERNAME
-      )) : (
+
+    virt_app_servers = var.use_secondary_ips ? (
+      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_SECONDARY_DNSNAME, 1, length(local.ips_app)) : []) : (
+      length(local.ips_app) > 1 ? slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app)) : []
+    ),
+
+    scs_servers = length(local.ips_scs) > 0 ? (
+      slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1)) : (
       []
     ),
-    ersservers = length(local.ips_scs) > 0 ? (
-      length(local.ips_scs) > 1 ? (
-        slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(local.ips_scs))) : (
-        []
-      )) : (
+
+    virt_scs_servers = var.use_secondary_ips ? (
+      length(local.ips_scs) > 0 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 0, 1) : []) : (
+      length(local.ips_scs) > 0 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 0, 1) : []
+    ),
+
+    ers_servers = length(local.ips_scs) > 1 ? (
+      slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(local.ips_scs))) : (
       []
     ),
-    webservers          = length(local.ips_web) > 0 ? var.naming.virtualmachine_names.WEB_COMPUTERNAME : [],
+
+    virt_ers_servers = var.use_secondary_ips ? (
+      length(local.ips_scs) > 1 ? slice(var.naming.virtualmachine_names.SCS_SECONDARY_DNSNAME, 1, length(local.ips_scs)) : []) : (
+      length(local.ips_scs) > 1 ? slice(var.naming.virtualmachine_names.SCS_COMPUTERNAME, 1, length(local.ips_scs)) : []
+    ),
+
+    web_servers = length(local.ips_web) > 0 ? (
+      slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(local.ips_web))) : (
+      []
+    ),
+    virt_web_servers = var.use_secondary_ips ? (
+      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_SECONDARY_DNSNAME, 0, length(local.ips_web)) : []) : (
+      length(local.ips_web) > 0 ? slice(var.naming.virtualmachine_names.WEB_COMPUTERNAME, 0, length(local.ips_web)) : []
+    ),
+
     prefix              = var.naming.prefix.SDU,
     separator           = var.naming.separator,
-    platform            = lower(var.platform)
-    dbconnection        = var.platform == "SQLSERVER" ? "winrm" : "ssh"
-    scsconnection       = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
-    ersconnection       = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
-    appconnection       = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
-    webconnection       = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
-    appconnectiontype   = try(var.authentication_type, "key")
-    webconnectiontype   = try(var.authentication_type, "key")
-    scsconnectiontype   = try(var.authentication_type, "key")
-    ersconnectiontype   = try(var.authentication_type, "key")
-    dbconnectiontype    = try(var.db_auth_type, "key")
+    platform            = var.shared_home ? format("%s-multi-sid", lower(var.platform)) : lower(var.platform),
+    db_connection       = var.platform == "SQLSERVER" ? "winrm" : "ssh"
+    scs_connection      = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    ers_connection      = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    app_connection      = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
+    web_connection      = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
+    app_connectiontype  = try(var.authentication_type, "key")
+    web_connectiontype  = try(var.authentication_type, "key")
+    scs_connectiontype  = try(var.authentication_type, "key")
+    ers_connectiontype  = try(var.authentication_type, "key")
+    db_connectiontype   = try(var.db_auth_type, "key")
     ansible_user        = var.ansible_user
     db_supported_tiers  = local.db_supported_tiers
     scs_supported_tiers = local.scs_supported_tiers
     ips_observers       = var.observer_ips
-    observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : [],
+    observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : []
 
     }
   )
@@ -106,6 +135,31 @@ resource "local_file" "sap-parameters_yml" {
     pas_instance_number = local.pas_instance_number
 
     oracle = local.oracle
+
+    hana_data = length(try(var.hana_data[0], "")) > 1 ? (
+      format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
+      ""
+    )
+    hana_log = length(try(var.hana_log[0], "")) > 1 ? (
+      format("hana_log_mountpoint:           %s", jsonencode(var.hana_log))) : (
+      ""
+    )
+    hana_shared = length(try(var.hana_shared[0], "")) > 1 ? (
+      format("hana_shared_mountpoint:        %s", jsonencode(var.hana_shared))) : (
+      ""
+    )
+
+    usr_sap = length(var.usr_sap) > 1 ? (
+      format("usr_sap_mountpoint:            %s", var.usr_sap)) : (
+      ""
+    )
+
+    web_sid = var.web_sid
+
+    use_msi_for_clusters = var.use_msi_for_clusters
+
+    dns = var.dns
+
     }
   )
   filename             = format("%s/sap-parameters.yaml", path.cwd)

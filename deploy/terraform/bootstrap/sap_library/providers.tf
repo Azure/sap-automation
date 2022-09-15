@@ -18,7 +18,8 @@ data "azurerm_client_config" "current" {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+  }
   subscription_id = var.use_deployer ? local.spn.subscription_id : null
   client_id       = var.use_deployer ? local.spn.client_id : null
   client_secret   = var.use_deployer ? local.spn.client_secret : null
@@ -26,8 +27,16 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+  }
   alias = "deployer"
+}
+
+provider "azurerm" {
+  features {}
+  alias                      = "dnsmanagement"
+  subscription_id            = try(var.management_dns_subscription_id, null)
+  skip_provider_registration = true
 }
 
 provider "azuread" {
@@ -37,7 +46,7 @@ provider "azuread" {
 }
 
 terraform {
-  required_version = ">= 0.14"
+  required_version = ">= 1.0"
   required_providers {
     external = {
       source = "hashicorp/external"
@@ -55,7 +64,8 @@ terraform {
       source = "hashicorp/azuread"
     }
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
     }
   }
 }

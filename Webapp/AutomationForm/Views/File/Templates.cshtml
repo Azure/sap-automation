@@ -1,0 +1,68 @@
+@model Dictionary<string, string[]>
+
+@{
+    ViewBag.Title = "Templates";
+    string sourceController = ViewBag.SourceController;
+}
+
+<script>
+    window.onload = function() {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "File")">Files</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Templates</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Use a template</h2>
+</div>
+
+<table class="table">
+    <tr>
+        <th>
+            Workload zones
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var file in Model["landscapes"])
+    {
+        <tr>
+            <td>
+                @file.Substring(file.LastIndexOf('/') + 1)
+            </td>
+            <td class="td-align-right">
+                @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file, sourceController=$"{sourceController}" })
+            </td>
+        </tr>
+    }
+    <tr>
+        <th>
+            Systems
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var file in Model["systems"])
+    {
+        <tr>
+            <td>
+                @file.Substring(file.LastIndexOf('/') + 1)
+            </td>
+            <td class="td-align-right">
+                @Html.ActionLink("Use Template", "UseTemplate", new { fileName=file, sourceController=$"{sourceController}" })
+            </td>
+        </tr>
+    }
+
+</table>
+
+<p>
+    <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
+        Back to list
+    </fluent-anchor>
+</p>

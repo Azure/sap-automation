@@ -14,12 +14,26 @@ Description:
 */
 
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+    }
+  }
   partner_id = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
 }
 
+provider "azurerm" {
+  features {}
+  alias                      = "dnsmanagement"
+  subscription_id            = try(var.management_dns_subscription_id, null)
+  skip_provider_registration = true
+}
+
 terraform {
-  required_version = ">= 0.14"
+  required_version = ">= 1.0"
   required_providers {
     external = {
       source = "hashicorp/external"
@@ -37,7 +51,8 @@ terraform {
       source = "hashicorp/tls"
     }
     azurerm = {
-      source = "hashicorp/azurerm"
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
     }
   }
 }

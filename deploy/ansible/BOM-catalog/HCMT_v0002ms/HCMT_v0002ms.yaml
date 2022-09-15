@@ -1,0 +1,29 @@
+---
+
+name:    'HCMT_v0002ms'
+target:  'HANA Cloud Measurement Tool'
+version: 1
+
+product_ids:
+  hcmt:
+
+materials:
+
+  media:
+    # SAPCAR 7.22
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      filename:     SAPCAR
+      permissions:  '0755'
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
+
+    # Kernel
+    - name:         "HANA HW CLOUD OPTIM TOOLS 2.0"
+      archive:      HCMT_064_0-80003261.SAR
+      checksum:     f90568ad6137ef552881cbc1fd53500ac9c0998ed6fdb72e40a116cb8b33a1f0
+      extract:      true
+      extractDir:   hcmt
+      url:          https://softwaredownloads.sap.com/file/0020000001064962022
+
+...

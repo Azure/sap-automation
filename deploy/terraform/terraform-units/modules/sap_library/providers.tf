@@ -1,10 +1,9 @@
-provider "azurerm" {
-  features {}
-  alias = "main"
+terraform {
+  required_providers {
+    azurerm = {
+      source                = "hashicorp/azurerm"
+      configuration_aliases = [azurerm.main, azurerm.deployer, azurerm.dnsmanagement]
+      version               = "~> 3.0"
+    }
+  }
 }
-
-provider "azurerm" {
-  features {}
-  alias = "deployer"
-}
-

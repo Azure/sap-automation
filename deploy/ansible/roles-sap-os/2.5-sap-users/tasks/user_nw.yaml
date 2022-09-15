@@ -87,7 +87,7 @@
 
 - name:                                "User Creation: install variables"
   ansible.builtin.debug:
-    msg:
+    msg:                          
       - "INSTALLED:  {{ users_created.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.generic }}"

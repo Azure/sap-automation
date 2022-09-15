@@ -18,6 +18,11 @@ parameters:
     type:                              string
     default:                           main
 
+  - name:                              tag
+    displayName:                       Git tag to fetch
+    type:                              string
+    default:                           latest
+
   - name:                              force
     displayName:                       Force the update
     type:                              boolean
@@ -33,6 +38,8 @@ variables:
     value:                             ${{ parameters.repository }}
   - name:                              branch
     value:                             ${{ parameters.branch }}
+  - name:                              tag
+    value:                             ${{ parameters.tag }}
   - name:                              force
     value:                             ${{ parameters.force }}
   - name:                              log
@@ -47,32 +54,52 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
-          - script: |
+          - bash: |
               #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               git config --global user.email "$(Build.RequestedForEmail)"
               git config --global user.name "$(Build.RequestedFor)"
               git config --global pull.ff false
               git config --global pull.rebase false
 
-              git checkout -q $(branch) 
               git pull -q
-              
+
               git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
-              
-              git pull -q --commit remote-repo $(branch) 
+
+              git fetch --all --tags 
+
+              git pull -q --commit remote-repo $(branch)  >> /tmp/$(log) 2>&1
+              return_code=$?
+
+              grep CONFLICT /tmp/$(log) | while read -r conflict ; do
+                echo $conflict
+                echo "##vso[task.logissue type=error]$conflict"
+              done
 
               if [[ "$(force)" == "True" ]]; then
-                echo "running git push to ADO with force option" 
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch)  >> /tmp/$(log) 2>&1
+                echo "running git push to ADO with force option"
+                if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --force origin HEAD:$(branch)  >> /tmp/$(log) 2>&1
+                then
+                   echo -e "$red--- Failed to push ---$reset"
+                   exit 1
+                fi
               else
-                echo "running git push to ADO" 
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  >> /tmp/$(log) 2>&1
+                echo "running git push to ADO"
+                if ! git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push  >> /tmp/$(log) 2>&1
+                then
+                   echo -e "$red--- Failed to push ---$reset"
+                   exit 1
+                fi
+
               fi
-              return_code=$?
-              cat /tmp/$(log)
+              # If Pull already failed then keep that error code
+              if [ 0 != $return_code ]; then
+                return_code=$?
+              fi
+
               exit $return_code
-              
+
             displayName:               Update ADO repository
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)

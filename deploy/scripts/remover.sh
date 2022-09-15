@@ -12,7 +12,7 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source 
+#call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -78,26 +78,28 @@ function missing {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:hi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:ahi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,ado,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
-  showhelp
+    showhelp
 fi
 
+called_from_ado=0
 eval set -- "$INPUT_ARGUMENTS"
 while :
 do
-  case "$1" in
-    -p | --parameterfile)                      parameterfile="$2"               ; shift 2 ;;
-    -o | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
-    -s | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
-    -t | --type)                               deployment_system="$2"           ; shift 2 ;;
-    -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
-    -h | --help)                               showhelp 
-                                               exit 3                           ; shift ;;
-    --) shift; break ;;
-  esac
+    case "$1" in
+        -p | --parameterfile)                      parameterfile="$2"               ; shift 2 ;;
+        -o | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+        -s | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
+        -t | --type)                               deployment_system="$2"           ; shift 2 ;;
+        -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
+        -a | --ado)                                called_from_ado=1                ; shift ;;
+        -h | --help)                               showhelp
+        exit 3                           ; shift ;;
+        --) shift; break ;;
+    esac
 done
 
 #variables
@@ -112,7 +114,10 @@ landscape_tfstate_key_parameter=""
 #show_help=false
 #deployer_tfstate_key_exists=false
 #landscape_tfstate_key_exists=false
+echo "parameterfile: $parameterfile"
+
 working_directory=$(pwd)
+
 parameterfile_path=$(realpath "${parameterfile}")
 parameterfile_name=$(basename "${parameterfile_path}")
 parameterfile_dirname=$(dirname "${parameterfile_path}")
@@ -186,9 +191,32 @@ else
     exit 2
 fi
 
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+
+echo "Deployer environment: $deployer_environment"
+
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+export TF_VAR_Agent_IP=$this_ip
+echo "Agent IP: $this_ip"
+
 automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
+
 system_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+
+if [ "${deployment_system}" == sap_landscape ]; then
+    load_config_vars "$parameterfile_name" "network_logical_name"
+    network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+
+    system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+fi
+
+if [ "${deployment_system}" == sap_system ]; then
+    load_config_vars "$parameterfile_name" "network_logical_name"
+    network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+
+    system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+fi
 
 echo "Configuration file: $system_config_information"
 echo "Deployment region: $region"
@@ -278,63 +306,132 @@ echo "##########################################################################
 echo ""
 
 terraform -chdir="${terraform_module_directory}" init  -reconfigure \
-  --backend-config "subscription_id=${STATE_SUBSCRIPTION}"          \
-  --backend-config "resource_group_name=${REMOTE_STATE_RG}"         \
-  --backend-config "storage_account_name=${REMOTE_STATE_SA}"        \
-  --backend-config "container_name=tfstate"                         \
-  --backend-config "key=${key}.terraform.tfstate"
+--backend-config "subscription_id=${STATE_SUBSCRIPTION}"          \
+--backend-config "resource_group_name=${REMOTE_STATE_RG}"         \
+--backend-config "storage_account_name=${REMOTE_STATE_SA}"        \
+--backend-config "container_name=tfstate"                         \
+--backend-config "key=${key}.terraform.tfstate"
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#                            $cyan Running Terraform destroy$resetformatting                                 #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
 
-if [ "$deployment_system" == "sap_deployer" ]; then
-    terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-        $deployer_tfstate_key_parameter
+created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_id | tr -d \")
+created_resource_group_id_length=$(expr length "$created_resource_group_id")
+created_resource_group_subscription_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
+created_resource_group_subscription_id_length=$(expr length "$created_resource_group_subscription_id")
 
-    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-    terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
-        $deployer_tfstate_key_parameter
-
-elif [ "$deployment_system" == "sap_library" ]; then
-    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-
-    terraform_bootstrap_directory="${DEPLOYMENT_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
-    if [ ! -d "${terraform_bootstrap_directory}" ]; then
-        printf -v val %-40.40s "$terraform_bootstrap_directory"
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#  $boldred Unable to find bootstrap directory: ${val}$resetformatting#"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        exit 66 #cannot open input file/folder
-    fi
-    terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
-
-    terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
-
-    terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" ${approve} \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
+if [ "${created_resource_group_id_length}" -eq 0 ] && [ "${created_resource_group_subscription_id_length}" -eq 0 ]; then
+    resource_group_exist=$(az group exists --name "${created_resource_group_id}" --subscription "${created_resource_group_subscription_id}")
 else
-    terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" \
-        $tfstate_parameter \
+    resource_group_exist=true
+fi
+
+if [ $resource_group_exist ];
+then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                            $cyan Running Terraform destroy$resetformatting                                 #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    if [ "$deployment_system" == "sap_deployer" ]; then
+        terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
+        $deployer_tfstate_key_parameter
+
+        echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
+        terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
+        $deployer_tfstate_key_parameter
+
+        elif [ "$deployment_system" == "sap_library" ]; then
+        echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
+
+        terraform_bootstrap_directory="${DEPLOYMENT_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
+        if [ ! -d "${terraform_bootstrap_directory}" ]; then
+            printf -v val %-40.40s "$terraform_bootstrap_directory"
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#  $boldred Unable to find bootstrap directory: ${val}$resetformatting#"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+            exit 66 #cannot open input file/folder
+        fi
+        terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
+
+        terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
 
-    echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-    terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-        $tfstate_parameter \
+        terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" ${approve} \
         $landscape_tfstate_key_parameter \
         $deployer_tfstate_key_parameter
+    else
+
+        echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
+        echo $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+        terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
+            $tfstate_parameter \
+            $landscape_tfstate_key_parameter \
+            $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
+
+        return_value=$?
+
+        if [ -f destroy_output.json ]
+        then
+            errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+
+            if [[ -n $errors_occurred ]]
+            then
+                echo ""
+                echo "#########################################################################################"
+                echo "#                                                                                       #"
+                echo -e "#                         $boldreduscore!Errors during the destroy phase!$resetformatting                             #"
+
+                return_value=2
+                all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
+                if [[ -n ${all_errors} ]]
+                then
+                    readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+                    for errors_string in "${errors_strings[@]}"; do
+                        string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+                        if [[ -z ${string_to_report} ]]
+                        then
+                            string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+                        fi
+
+                        report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
+                        if [[ -n ${report} ]] ; then
+                            echo -e "#                          $boldreduscore  $report $resetformatting"
+                            echo "##vso[task.logissue type=error]${report}"
+                        else
+                            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                            echo "##vso[task.logissue type=error]${string_to_report}"
+                        fi
+
+
+                    done
+
+                fi
+                echo "#                                                                                       #"
+                echo "#########################################################################################"
+                echo ""
+
+            fi
+
+        fi
+
+        if [ -f destroy_output.json ]
+        then
+            rm destroy_output.json
+        fi
+
+    fi
+
+
+else
+    return_value=0
 fi
+
 
 if [ "${deployment_system}" == sap_deployer ]; then
     sed -i /deployer_tfstate_key/d "${system_config_information}"
@@ -350,6 +447,43 @@ if [ "${deployment_system}" == sap_library ]; then
     sed -i /tfstate_resource_id/d "${system_config_information}"
 fi
 
+# if [ "${deployment_system}" == sap_system ]; then
+
+#     echo "#########################################################################################"
+#     echo "#                                                                                       #"
+#     echo -e "#                            $cyan Clean up load balancer IP $resetformatting        #"
+#     echo "#                                                                                       #"
+#     echo "#########################################################################################"
+
+#     database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
+#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
+#     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
+
+#     load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
+#     database_loadbalancer_ips=$(echo ${database_loadbalancer_ips} | xargs)
+
+#     if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
+#     then
+#       database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
+#       save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+#     fi
+
+#     scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
+#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
+#     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
+
+#     load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
+#     scs_server_loadbalancer_ips=$(echo ${scs_server_loadbalancer_ips} | xargs)
+
+#     if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
+#     then
+#       scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
+#       save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+#     fi
+# fi
+
 unset TF_DATA_DIR
 
-exit 0
+exit $return_value

@@ -12,6 +12,8 @@ sapbits_bom_files:            "sapfiles"                                        
 target_media_location:        "/usr/sap/install"                                        # Default
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
+bom_processing_become:        true                                                      # BOM processing as root user
+param_directory:              "/usr/sap/install/downloads"
 
 always_upload_jinja_templates: true
 
@@ -34,6 +36,10 @@ sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
 
+tmp_directory:                "/tmp"
+url_internet:                 "http://www.github.com"                                   # URL to use for internet access checks"
+check_outbound:               false
+
 # Oracle specific parameters
 ora_sid:                      "ORA"
 dba_gid:                      3000
@@ -45,7 +51,7 @@ oinstall_gid:                 3005
 orasid_uid:                   3000
 oracle_uid:                   3001
 hdbshm_gid:                   2002
-
+observer_uid:                 4000
 scs_hostname:                 ""
 scs_instance_number:          "00"                                                      # SAP Install
 ers_instance_number:          "02"
@@ -59,6 +65,8 @@ ora_release:                  19
 ora_version:                  19.0.0
 ora_compatible:               19.0.0.0.0
 orchestration_ansible_user:   azureadm
+PLATFORM:                     ""
+platform:                     ""
 
 password_cockpit_admin:       ""
 password_db_systemdb:         ""
@@ -87,5 +95,7 @@ sap_swap:
   - { tier: 'hana', swap_size_mb: '2048' }
   - { tier: 'oracle', swap_size_mb: '20480' }
   - { tier: 'oracle-asm', swap_size_mb: '20480' }
+  - { tier: 'oracle-multi-sid', swap_size_mb: '20480' }
+  - { tier: 'observer', swap_size_mb: '2048' }
 
 ...

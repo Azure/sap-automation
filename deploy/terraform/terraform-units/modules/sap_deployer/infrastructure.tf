@@ -31,7 +31,7 @@ Usage:
 
 
   local.rg_name
-      Variable                  : local.rg_name derived from default format("%s%s", local.prefix, local.resource_suffixes.deployer_rg) or overridden with var.infrastructure.resource_group.name
+      Variable                  : local.rg_name derived from default format("%s%s", local.prefix, var.naming.resource_suffixes.deployer_rg) or overridden with var.infrastructure.resource_group.name
         Override)
           Variable              : var.infrastructure.resource_group.name is contained in var.infrastructure.resource_group
           Variable              : var.infrastructure.resource_group is contained in var.infrastructure
@@ -56,8 +56,8 @@ Usage:
                 Variable        : var.naming defined empty
                 Module Caller   : Pass module.sap_namegenerator.naming object into module as naming
 
-          2)  Variable          : local.resource_suffixes.deployer_rg is an object contained in local.resource_suffixes
-              Variable          : local.resource_suffixes is a copy of var.naming.resource_suffixes
+          2)  Variable          : var.naming.resource_suffixes.deployer_rg is an object contained in var.naming.resource_suffixes
+              Variable          : var.naming.resource_suffixes is a copy of var.naming.resource_suffixes
               Variable          : var.naming.resource_suffixes is contained in var.naming
               Variable          : var.naming defined empty
               Module Caller     : Pass module.sap_namegenerator.naming object into module as naming
@@ -73,7 +73,7 @@ Usage:
 */
 
 resource "azurerm_resource_group" "deployer" {
-  count    = !local.rg_exists ? 1 : 0
+  count    = !local.resource_group_exists ? 1 : 0
   name     = local.rg_name
   location = var.infrastructure.region
   tags     = var.infrastructure.tags
@@ -87,7 +87,7 @@ resource "azurerm_resource_group" "deployer" {
 }
 
 data "azurerm_resource_group" "deployer" {
-  count = local.rg_exists ? 1 : 0
+  count = local.resource_group_exists ? 1 : 0
   name  = local.rg_name
 }
 // TODO: Add management lock when this issue is addressed https://github.com/terraform-providers/terraform-provider-azurerm/issues/5473
@@ -98,8 +98,8 @@ data "azurerm_resource_group" "deployer" {
 resource "azurerm_virtual_network" "vnet_mgmt" {
   count               = (!local.vnet_mgmt_exists) ? 1 : 0
   name                = local.vnet_mgmt_name
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location            = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  resource_group_name = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location            = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   address_space       = [local.vnet_mgmt_addr]
 }
 
@@ -117,10 +117,16 @@ resource "azurerm_subnet" "subnet_mgmt" {
   virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes     = [local.management_subnet_prefix]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = false
+  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  private_link_service_network_policies_enabled = false
 
-  service_endpoints = ["Microsoft.Storage", "Microsoft.KeyVault"]
+  service_endpoints = var.use_service_endpoint ? (
+    var.use_webapp ? (
+      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
+      ["Microsoft.Storage", "Microsoft.KeyVault"]
+    )) : (
+  null)
+
 }
 
 data "azurerm_subnet" "subnet_mgmt" {
@@ -132,17 +138,20 @@ data "azurerm_subnet" "subnet_mgmt" {
 
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
-  count                     = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
-  name                      = local.storageaccount_names
-  resource_group_name       = local.rg_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location                  = local.rg_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  account_replication_type  = "LRS"
-  account_tier              = "Standard"
-  enable_https_traffic_only = local.enable_secure_transfer
+  count                           = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
+  name                            = local.storageaccount_names
+  resource_group_name             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location                        = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  account_replication_type        = "LRS"
+  account_tier                    = "Standard"
+  enable_https_traffic_only       = local.enable_secure_transfer
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
 }
 
 data "azurerm_storage_account" "deployer" {
   count               = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 1 : 0
   name                = split("/", var.deployer.deployer_diagnostics_account_arm_id)[8]
   resource_group_name = split("/", var.deployer.deployer_diagnostics_account_arm_id)[4]
+
 }

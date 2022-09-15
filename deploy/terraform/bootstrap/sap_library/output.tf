@@ -1,56 +1,69 @@
-output "tfstate_storage_account" {
-  sensitive = true
-  value     = module.sap_library.tfstate_storage_account
+
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
+
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value       = module.sap_library.created_resource_group_id
 }
 
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+  value       = module.sap_library.created_resource_group_subscription_id
+}
+
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.sap_library.created_resource_group_name
+}
+
+
+###############################################################################
+#                                                                             # 
+#                             Storage accounts                                # 
+#                                                                             # 
+###############################################################################
+
 output "sapbits_storage_account_name" {
-  value = module.sap_library.sapbits_storage_account_name
+  description = "Storage account name for SAP Binaries"
+  value       = module.sap_library.sapbits_storage_account_name
 }
 
 output "sapbits_sa_resource_group_name" {
-  value = module.sap_library.sapbits_sa_resource_group_name
-}
-
-output "storagecontainer_tfstate" {
-  sensitive = true
-  value     = module.sap_library.storagecontainer_tfstate
-}
-
-output "storagecontainer_sapbits_name" {
-  sensitive = true
-  value     = module.sap_library.storagecontainer_sapbits_name
-}
-
-output "fileshare_sapbits_name" {
-  sensitive = true
-  value     = module.sap_library.fileshare_sapbits_name
-}
-
-output "remote_state_resource_group_name" {
-  value = module.sap_library.remote_state_resource_group_name
-}
-
-output "remote_state_storage_account_name" {
-  value = module.sap_library.remote_state_storage_account_name
-}
-
-output "remote_state_container_name" {
-  value = module.sap_library.remote_state_container_name
-}
-
-output "saplibrary_environment" {
-  value = local.infrastructure.environment
+  description = "Resource group name for SAP Binaries"
+  value       = module.sap_library.sapbits_sa_resource_group_name
 }
 
 output "saplibrary_subscription_id" {
-  sensitive = true
-  value     = local.spn.subscription_id
+  description = "Subscription Id for SAP Binaries"
+  sensitive   = true
+  value       = local.spn.subscription_id
 }
 
 output "tfstate_resource_id" {
-  value = module.sap_library.tfstate_resource_id
+  description = "Azure Resource identifier for Terraform remote state"
+  value       = module.sap_library.tfstate_resource_id
+}
+
+output "remote_state_storage_account_name" {
+  description = "Storage account name for Terraform remote state"
+  value       = module.sap_library.remote_state_storage_account_name
+}
+
+output "saplibrary_environment" {
+  description = "Name of enfironment"
+  value       = local.infrastructure.environment
 }
 
 output "automation_version" {
   value = local.version_label
+}
+
+output "sa_connection_string" {
+  description = "Connection string to storage account"
+  sensitive   = true
+  value       = module.sap_library.sa_connection_string
 }

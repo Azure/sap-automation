@@ -15,7 +15,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     HANA_2_00_055_v0006ms
+    - name:     HANA_2_00_063_v0001ms
 
 #   templates:
     # - name:     X
