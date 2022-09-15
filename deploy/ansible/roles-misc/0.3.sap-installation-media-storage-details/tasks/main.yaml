@@ -60,14 +60,20 @@
       register:                        keyvault_secret_show_accesskey
       no_log:                          true
 
-    - name:                            "0.4 Installation Media: - Extract Access Key details"
+    - name:                            "0.4 Installation Media: - Extract Access Key details step 1"
       ansible.builtin.set_fact:
-        sapbits_access_key: >-
+        sapbits_access_key_temp: >-
           {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
       no_log:                          true
+
+    - name:                            "0.4 Installation Media: - Extract Access Key details step 2"
+      ansible.builtin.set_fact:
+        sapbits_access_key: >-
+          {{ sapbits_access_key_temp }}
+      no_log:                          true
+      when:                            sapbits_access_key_temp | string | length > 0
   when:
     - sapbits_access_key is not defined
-    - sapbits_sas_token is not defined
 
 - name:                                "0.4 Installation Media: - Retrieve SAS token details secret"
   block:
@@ -80,11 +86,18 @@
       register:                        keyvault_secret_show_sas_token
       no_log:                          true
 
-    - name:                            "0.4 Installation Media: - Extract SAS token details"
+    - name:                            "0.4 Installation Media: - Extract SAS token details step 1"
       ansible.builtin.set_fact:
-        sapbits_sas_token: >-
+        sapbits_sas_token_temp: >-
           {{ (keyvault_secret_show_sas_token.stdout | from_json).value }}
       no_log:                          true
+
+    - name:                            "0.4 Installation Media: - Extract SAS token details step 1"
+      ansible.builtin.set_fact:
+        sapbits_sas_token: >-
+          {{ sapbits_sas_token_temp }}
+      no_log:                          true
+      when:                            sapbits_sas_token_temp | string | length > 0
   when:
     - sapbits_access_key is not defined
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
@@ -126,6 +139,7 @@
       - "KEYVAULT:     {{ deployer_kv_name }}"
       - "URL     :     {{ sapbits_location_base_path }}"
       - "SAS     :     {{ sapbits_sas_token }}"
+    verbosity:                         2
 
 
 ...
