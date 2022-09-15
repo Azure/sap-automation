@@ -85,7 +85,6 @@ module "common_infrastructure" {
   sapmnt_private_endpoint_id         = var.sapmnt_private_endpoint_id
   deploy_application_security_groups = var.deploy_application_security_groups
   use_service_endpoint               = var.use_service_endpoint
-
 }
 
 
@@ -194,6 +193,7 @@ module "app_tier" {
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
+  idle_timeout_scs_ers                         = var.idle_timeout_scs_ers
   use_secondary_ips                            = var.use_secondary_ips
   deploy_application_security_groups           = var.deploy_application_security_groups
   use_msi_for_clusters                         = var.use_msi_for_clusters
