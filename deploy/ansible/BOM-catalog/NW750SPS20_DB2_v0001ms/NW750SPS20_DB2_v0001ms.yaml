@@ -25,20 +25,20 @@ product_ids:
 materials:
   dependencies:
     - name:                            DB2_UDB_11_5_v0001ms
-    - name:                            SWPM10SP34_latest
-    - name:                            SUM20SP13_latest
+    - name:                            SWPM10SP35_latest
+    - name:                            SUM20SP14_latest
 
   media:
 
 
     # SAPCAR 7.22
-    - name:                            SAPCAR
-      archive:                         SAPCAR_1010-70006178.EXE
-      checksum:                        dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+    - name:                            "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:                         SAPCAR_1115-70006178.EXE
+      checksum:                        765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
       filename:                        SAPCAR
       permissions:                     '0755'
-      url:                             https://softwaredownloads.sap.com/file/0020000002208852020
-    
+      url:                             https://softwaredownloads.sap.com/file/0020000000098642022
+
     # kernel components
 
     - name:                            "Kernel Part II (753)"
@@ -56,23 +56,23 @@ materials:
       url:                             https://softwaredownloads.sap.com/file/0020000000239812022
       path:                            download_basket
 
-    - name:         "SAP HOST AGENT 7.22 SP54"
-      archive:      SAPHOSTAGENT54_54-80004822.SAR
-      checksum:     5899a0934bd8d37a887d0d67de6ac0520f907a66ff7c3bc79176fff99171a878
-      url:          https://softwaredownloads.sap.com/file/0020000001542872021
-      path:         download_basket
+    - name:                            "SAP HOST AGENT 7.22 SP54"
+      archive:                         SAPHOSTAGENT54_54-80004822.SAR
+      checksum:                        5899a0934bd8d37a887d0d67de6ac0520f907a66ff7c3bc79176fff99171a878
+      url:                             https://softwaredownloads.sap.com/file/0020000001542872021
+      path:                            download_basket
 
-    - name:         "Installation for SAP IGS integrated in SAP Kernel"
-      archive:      igsexe_13-80003187.sar
-      checksum:     b508b1ff97ec0e3b7f4dd8f57e3840eb547b6326434df677927b8cfd6b4faa12
-      url:          https://softwaredownloads.sap.com/file/0020000000534572021
-      path:         download_basket
+    - name:                            "Installation for SAP IGS integrated in SAP Kernel"
+      archive:                         igsexe_13-80003187.sar
+      checksum:                        b508b1ff97ec0e3b7f4dd8f57e3840eb547b6326434df677927b8cfd6b4faa12
+      url:                             https://softwaredownloads.sap.com/file/0020000000534572021
+      path:                            download_basket
 
-    - name:         "SAP IGS Fonts and Textures"
-      archive:      igshelper_17-10010245.sar
-      checksum:     bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
-      url:          https://softwaredownloads.sap.com/file/0020000000703122018
-      path:         download_basket
+    - name:                            "SAP IGS Fonts and Textures"
+      archive:                         igshelper_17-10010245.sar
+      checksum:                        bc405afc4f8221aa1a10a8bc448f8afd9e4e00111100c5544097240c57c99732
+      url:                             https://softwaredownloads.sap.com/file/0020000000703122018
+      path:                            download_basket
 
 
 # DB Export
@@ -94,8 +94,8 @@ materials:
       archive:                         51050829_LNG1_part2.rar
       checksum:                        9fc3fa5a22c120df9d3b6aa04eff39c924dffd8bd633607116f446b46d3b5dd7
       url:                             https://softwaredownloads.sap.com/file/0030000000635142016
-    
-    
+
+
     # other components
 
     - name:         "ST-PI 740: SP 0007"

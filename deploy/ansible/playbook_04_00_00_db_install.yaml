@@ -414,6 +414,8 @@
           ansible.builtin.set_fact:
             tier:                      db2                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             bom_processing:            true
           tags:
             - always
