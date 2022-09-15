@@ -7,22 +7,20 @@ variable "application" {
   }
 
 }
-variable "databases" {
+variable "database" {
   validation {
     condition = (
-      length(trimspace(try(var.databases[0].platform, ""))) != 7
+      length(trimspace(try(var.database.platform, ""))) != 7
     )
-    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2) must be specified in the databases block."
+    error_message = "The platform (HANA, SQLSERVER, ORACLE, DB2) must be specified."
   }
 
   validation {
     condition = (
-      length(trimspace(try(var.databases[0].size, ""))) != 0
+      length(trimspace(try(var.database.db_sizing_key, ""))) != 0
     )
-    error_message = "The size must be specified in the databases block."
+    error_message = "The db_sizing_key must be specified."
   }
-
-
 }
 variable "infrastructure" {
   validation {
@@ -114,19 +112,6 @@ variable "key_vault" {
     )
     error_message = "If specified, the kv_user_id needs to be a correctly formed Azure resource ID."
   }
-
-  validation {
-    condition = (
-      contains(keys(var.key_vault), "kv_prvt_id") ? (
-        length(var.key_vault.kv_prvt_id) > 0 ? (
-          length(split("/", var.key_vault.kv_prvt_id)) == 9) : (
-          true
-        )) : (
-        true
-      )
-    )
-    error_message = "If specified, the kv_prvt_id needs to be a correctly formed Azure resource ID."
-  }
 }
 
 
@@ -137,5 +122,137 @@ variable "ha_validator" {
     )
     error_message = "An NFS provider must be specified using the NFS_provider variable in a HA scenario."
   }
+}
+
+variable "custom_prefix" {
+  description = "Custom prefix"
+  type        = string
+  default     = ""
+}
+
+variable "is_single_node_hana" {
+  description = "Checks if single node hana architecture scenario is being deployed"
+  default     = false
+}
+
+variable "deployer_tfstate" {
+  description = "Deployer remote tfstate file"
+}
+
+variable "service_principal" {
+  description = "Current service principal used to authenticate to Azure"
+}
+
+/* Comment out code with users.object_id for the time being
+variable "deployer_user" {
+  description = "Details of the users"
+  default     = []
+}
+*/
+
+variable "naming" {
+  description = "Defines the names for the resources"
+}
+
+variable "custom_disk_sizes_filename" {
+  type        = string
+  description = "Disk size json file"
+  default     = ""
+}
+
+variable "deployment" {
+  description = "The type of deployment"
+}
+
+variable "terraform_template_version" {
+  description = "The version of Terraform templates that were identified in the state file"
+}
+
+variable "license_type" {
+  description = "Specifies the license type for the OS"
+  default     = ""
+}
+
+variable "enable_purge_control_for_keyvaults" {
+  description = "Allow the deployment to control the purge protection"
+}
+
+variable "sapmnt_volume_size" {
+  description = "The volume size in GB for sapmnt"
+}
+
+variable "NFS_provider" {
+  type    = string
+  default = "NONE"
+}
+
+variable "azure_files_sapmnt_id" {
+  type    = string
+  default = ""
+}
+
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}
+
+variable "use_private_endpoint" {
+  description = "Boolean value indicating if private endpoint should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_service_endpoint" {
+  description = "Boolean value indicating if service endpoints should be used for the deployment"
+  default     = false
+  type        = bool
+}
+
+variable "use_custom_dns_a_registration" {
+  description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
+  default     = false
+  type        = bool
+}
+
+variable "management_dns_subscription_id" {
+  description = "String value giving the possibility to register custom dns a records in a separate subscription"
+  default     = null
+  type        = string
+}
+
+variable "management_dns_resourcegroup_name" {
+  description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
+  default     = null
+  type        = string
+}
+
+variable "sapmnt_private_endpoint_id" {
+  description = "Azure Resource Identifier for an private endpoint connection"
+  type        = string
+  default     = ""
+}
+
+variable "database_dual_nics" {
+  description = "value to indicate if dual nics are used for HANA"
+}
+
+variable "hana_ANF_volumes" {
+  description = "Defines HANA ANF  volumes"
+}
+
+variable "deploy_application_security_groups" {
+  description = "Defines if application security groups should be deployed"
+}
+
+
+variable "landscape_tfstate" {
+  description = "Landscape remote tfstate file"
+  validation {
+    condition = (
+      length(trimspace(try(var.landscape_tfstate.vnet_sap_arm_id, ""))) != 0
+    )
+    error_message = "Network is undefined, please redeploy the workload zone."
+  }
+
 }
 

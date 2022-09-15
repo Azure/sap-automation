@@ -56,7 +56,7 @@ VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
     showhelp
-    
+
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
@@ -107,6 +107,7 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
+region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 # Convert the region to the correct code
 get_region_code $region
 
@@ -162,7 +163,7 @@ else
             echo "#                                                                                       #"
             echo "#########################################################################################"
             if [ $approve == "--auto-approve" ] ; then
-                terraform -chdir="${terraform_module_directory}" init -upgrade=true  -backend-config "path=${param_dirname}/terraform.tfstate"
+                terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy -backend-config "path=${param_dirname}/terraform.tfstate"
                 terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
             else
                 read -p "Do you want to bootstrap the deployer again Y/N?"  ans
@@ -189,6 +190,9 @@ if [ -f terraform.tfvars ]; then
     extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
+terraform -chdir="${terraform_module_directory}"  refresh -var-file="${var_file}" $extra_vars
+
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -197,7 +201,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}"  plan  -detailed-exitcode -var-file="${var_file}" $extra_vars > plan_output.log 2>&1
+terraform -chdir="${terraform_module_directory}"  plan  -detailed-exitcode -var-file="${var_file}" $extra_vars | tee -a plan_output.log
 
 return_value=$?
 if [ 1 == $return_value ]
@@ -205,7 +209,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                             $boldreduscoreErrors during the plan phase$resetformatting                              #"
+    echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -217,23 +221,6 @@ then
     unset TF_DATA_DIR
     exit $return_value
 fi
-
-if [ 0 == $return_value ] ; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f plan_output.log ]
-    then
-        rm plan_output.log
-    fi
-    unset TF_DATA_DIR
-    exit $return_value
-fi
-
 
 if [ -f plan_output.log ]; then
     rm plan_output.log
@@ -254,19 +241,78 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars
+terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a  apply_output.json
 return_value=$?
 
-if [ 0 != $return_value ] ; then
+rerun_apply=0 
+if [ -f apply_output.json ]
+then
+    errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+    if [[ -n $errors_occurred ]]
+    then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore Errors during the apply phase $resetformatting                              #"
+    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+    return_value=2
+    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+    if [[ -n ${all_errors} ]]
+    then
+        readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+        for errors_string in "${errors_strings[@]}"; do
+            string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+            if [[ -z ${string_to_report} ]]
+            then
+                string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+            fi
+            
+            echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+            echo "##vso[task.logissue type=error]${string_to_report}"
+        
+        done
+        
+    fi
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    unset TF_DATA_DIR
-    exit $return_value
+
+    # Check for resource that can be imported
+    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+    if [[ -n ${existing} ]]
+    then
+        
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+        moduleID=$(jq -c -r '.address '  <<< "$item")
+        resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+        echo "Trying to import" $resourceID "into" $moduleID
+        
+        echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  -var-file="${var_file}" $extra_vars $moduleID $resourceID
+        terraform -chdir="${terraform_module_directory}" import -allow-missing-config -var-file="${var_file}" $extra_vars $moduleID $resourceID
+        done
+        rerun_apply=1 
+    fi
+    fi
+
+fi
+
+if [ -f apply_output.json ]
+then
+    rm apply_output.json
+fi
+
+if [ $rerun_apply == 1 ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo "#                          Re-running Terraform apply                                   #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars
+    return_value=$?
 fi
 
 
@@ -281,7 +327,7 @@ then
     then
         touch "${deployer_config_information}"
         printf -v val %-.20s "$keyvault"
-        
+
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -289,7 +335,7 @@ then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        
+
         save_config_var "keyvault" "${deployer_config_information}"
         return_value=0
     else

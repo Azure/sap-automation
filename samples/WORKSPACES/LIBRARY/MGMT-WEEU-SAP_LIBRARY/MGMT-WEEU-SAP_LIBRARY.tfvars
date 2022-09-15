@@ -20,10 +20,10 @@
 #########################################################################################
 
 # The environment value is a mandatory field, it is used for partitioning the environments, for example (PROD and NP)
-environment="MGMT"
+environment = "MGMT"
 
 # The location valus is a mandatory field, it is used to control where the resources are deployed
-location="westeurope"
+location = "westeurope"
 
 # RESOURCEGROUP
 # The two resource group name and arm_id can be used to control the naming and the creation of the resource group
@@ -40,15 +40,6 @@ location="westeurope"
 #    "tag" = "value"
 #}
 
-
-# The deployer_environment value is a mandatory field, it is used for identifying the deployer
-deployer_environment="MGMT"
-
-# The deployer_location value is a mandatory field, it is used for identifying the deployer
-deployer_location="westeurope"
-
-# The deployer_vnet value is a mandatory field, it is used for identifying the deployer
-deployer_vnet="DEP00"
 
 # The use_deployer value is a boolean value indicating if the deployer is used as the deployment engine
 #use_deployer=true
@@ -133,9 +124,12 @@ deployer_vnet="DEP00"
 #library_ansible_blob_container_name="ansible"
 
 # dns_label if specified is the DNS name of the private DNS zone
-dns_label="sap.contoso.net"
+dns_label = "sap.contoso.net"
 
 # use_private_endpoint is a boolean flag controlling if the keyvaults and storage accounts have private endpoints
 #use_private_endpoint=false
 
+
+# use_service_endpoint is a boolean flag controlling service_endpoints are used
+#use_service_endpoint=false
 

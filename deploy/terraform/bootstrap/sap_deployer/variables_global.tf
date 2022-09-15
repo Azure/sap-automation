@@ -86,11 +86,6 @@ variable "assign_subscription_permissions" {
   default     = true
 }
 
-variable "enable_purge_control_for_keyvaults" {
-  default = true
-}
-
-
 variable "arm_client_id" {
-  default = "70000000-0000-0000-0000-000000000000"
+  default = ""
 }

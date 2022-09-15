@@ -153,6 +153,83 @@
             ]
         }
     },
+    "scsha": {
+        "Default": {
+            "compute": {
+                "vm_size"                        : "Standard_D4s_v3",
+                "accelerated_networking"         : false
+            },
+            "storage": [
+                {
+                    "count"                      : 1,
+                    "name"                       : "os",
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 128,
+                    "caching"                    : "ReadWrite",
+                    "write_accelerator"          : false
+                },
+                {
+                    "count"                      : 1,
+                    "name"                       : "data",
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 128,
+                    "caching"                    : "None",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 0
+                }
+            ]
+        },
+        "Production": {
+            "compute": {
+                "vm_size"                        : "Standard_D4s_v3",
+                "accelerated_networking"         : true
+            },
+            "storage": [
+                {
+                    "count"                      : 1,
+                    "name"                       : "os",
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 128,
+                    "caching"                    : "ReadWrite",
+                    "write_accelerator"          : false
+                },
+                {
+                    "count"                      : 1,
+                    "name"                       : "sap",
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 512,
+                    "caching"                    : "None",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 0
+                }
+            ]
+        },
+        "Optimized": {
+            "compute": {
+                "vm_size"                        : "Standard_D4s_v3",
+                "accelerated_networking"         : true
+            },
+            "storage": [
+                {
+                    "count"                      : 1,
+                    "name"                       : "os",
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 128,
+                    "caching"                    : "ReadWrite",
+                    "write_accelerator"          : false
+                },
+                {
+                    "count"                      : 1,
+                    "name"                       : "sap",
+                    "disk_type"                  : "Premium_LRS",
+                    "size_gb"                    : 128,
+                    "caching"                    : "None",
+                    "write_accelerator"          : false,
+                    "lun_start"                  : 0
+                }
+            ]
+        }
+    },
     "web": {
         "Default": {
             "compute": {

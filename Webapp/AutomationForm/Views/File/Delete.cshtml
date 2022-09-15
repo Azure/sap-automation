@@ -1,0 +1,42 @@
+@model AutomationForm.Models.AppFile
+
+@{
+    ViewBag.Title = "Delete file";
+    string sourceController = ViewBag.SourceController;
+}
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "File")">Files</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Delete</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Delete file</h2>
+</div>
+
+<h4>Are you sure you want to delete @Model.Id ?</h4>
+
+<div>
+    <pre><code class="language-hcl" spellcheck="false">@ViewBag.Message</code></pre>
+</div>
+
+<div>
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="bottom-buttons">
+            <fluent-checkbox onchange="toggleDisableViaCheckbox(this, 'delete-file-button')">I confirm that I wish to delete this data</fluent-checkbox><br />
+
+            <fluent-button id="delete-file-button" appearance="accent" value="Delete" type="submit" disabled>
+                <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i> Delete
+            </fluent-button>
+
+            <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
+                Back to list
+            </fluent-anchor>
+        </div>
+
+    }
+</div>

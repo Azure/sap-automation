@@ -144,17 +144,17 @@
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   'nfsserver'
-
+    
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   "nfs-server"
       when:                            "'redhat8' == distribution_id"
-
+    
     - name:                            "2.3 SAP Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   'nfs'
       when:                            "'redhat7' == distribution_id"
-
+    
     - name:                            "2.3 SAP Exports: - NFS Ensure the NFS service is started"
       ansible.builtin.systemd:
         name:                          "{{ nfs_service }}"

@@ -1,0 +1,109 @@
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+#   2506859 - SAP system Installation on Oracle database with SWPM in unattended mode
+
+
+###############################################################################################################################################################################
+#                                                                                                                                                                             #
+# Installation service 'SAP NetWeaver 7.5 > Oracle > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.ORA.ABAP' #
+#                                                                                                                                                                             #
+###############################################################################################################################################################################
+
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.ORACLI                                            = /usr/sap/install/oraclient
+SAPINST.CD.PACKAGE.CD1                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                               = /usr/sap/install/EXPORT/DATA_UNITS/EXP3
+
+
+archives.downloadBasket                                              = /usr/sap/install/download_basket
+NW_readProfileDir.profilesAvailable                                  = false
+nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                    = {{ item.sidadm_uid }}
+
+NW_Delete_Sapinst_Users.removeUsers                                  = true
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
+NW_GetSidNoProfiles.sid                                              = {{ item.sid | upper }}
+NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
+hostAgent.sapAdmPassword                                             = {{ main_password }}
+nwUsers.sidadmPassword                                               = {{ main_password }}
+#NW_readProfileDir.profileDir                                         = /sapmnt/{{ item.sid | upper }}/profile
+
+
+
+#Oracle Database parameters
+
+NW_ABAP_Import_Dialog.migmonJobNum                                   = 10
+NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast
+NW_getDBInfoGeneric.dbhost                                         = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                            = {{ item.sid | upper }}
+NW_getLoadType.loadType                                              = SAP
+ora.SysPassword                                                      = {{ main_password }}
+ora.SystemPassword                                                   = {{ main_password }}
+ora.createStatisticsCodeABAP                                         = CREATE
+ora.dbhome                                                           = /oracle/{{ item.sid | upper }}/19
+#ora.oraclePassword                                                  = {{ main_password }}
+# ora.orasidPassword                                                 = {{ main_password }}
+storageBasedCopy.abapSchemaPassword                                  = {{ main_password }}
+storageBasedCopy.javaSchemaPassword                                  = {{ main_password }}
+# ora.hasTDE                                                         = false
+ora.multitenant.installMT                                            = FALSE
+ora.multitenant.pdbsid                                               = {{ item.sid | upper }}
+storageBasedCopy.ora.ABAPSchema                                     = SAPSR3
+ora.InstallSW                                                       = false
+ora.SharedOracleHome                                                = /oracle/RDBMS
+# possible values are
+#         isSingle:  Database on filesystem exist.
+#         isSHOH:    Database installation with SHared Oracle Home.
+#         isASM:     Database on ASM.
+#         isRAC:     Database on RAC.
+#         isRacAsm:  Database on RAC and ASM.
+ora.whatInstallation                                                 = isSHOH
+
+# possible values are
+#         true:  Database on ASM.
+#         false: Database not on ASM.
+ora.whatIsASM                                                        = false
+
+# possible values are
+#         true:  Database Software installed as oracle user.
+#         false: Database Software installed as orasid user.
+# test this value - Note
+ora.whatIsOracleUser                                                 = true
+
+# User name of the Oracle database software owner. Default is 'oracle'.
+# storageBasedCopy.ora.swowner                                      = oracle
+
+# Oracle client & Server  version: 121, 112, ...
+storageBasedCopy.ora.serverVersion                                   = 19
+storageBasedCopy.ora.clientVersion                                   = 19
+
+# Name of Oracle Listener. Default value is: LISTENER
+# storageBasedCopy.ora.listenerName = 
+
+# Port of Oracle Listener. Default value ist: 1521
+# storageBasedCopy.ora.listenerPort = 
+
+# Set Oracle advanced parameters. Default value is 'false'.
+# ora.advanced.parameter = false
+
+# Set advanced parameter maxDatafileSize in MB. Default value is 2000.
+# ora.maxDatafileSize = 
+
+# Oracle mirrlog drive.
+# ora.mirrlogDrive = 
+
+# Oracle oraarch drive.
+# ora.oraarchDrive = 
+
+
+# Oracle origlog drive.
+# ora.origlogDrive = 
+
+# Radio button for database creation. Possible values are: 'CREATEDB', 'MCOD', 'PDBINST'
+ora.rbDatabase = CREATEDB
+
+# Oracle sapdata drive.
+# ora.sapdataDrive = 

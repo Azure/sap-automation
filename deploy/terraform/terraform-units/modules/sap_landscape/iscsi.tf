@@ -9,12 +9,18 @@
 
 // Creates iSCSI subnet of SAP VNET
 resource "azurerm_subnet" "iscsi" {
-  provider             = azurerm.main
-  count                = local.enable_sub_iscsi ? (local.sub_iscsi_exists ? 0 : 1) : 0
-  name                 = local.sub_iscsi_name
-  resource_group_name  = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  virtual_network_name = local.vnet_sap_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
-  address_prefixes     = [local.sub_iscsi_prefix]
+  provider = azurerm.main
+  count    = local.enable_sub_iscsi ? (local.sub_iscsi_exists ? 0 : 1) : 0
+  name     = local.sub_iscsi_name
+  resource_group_name = local.vnet_sap_exists ? (
+    data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
+    azurerm_virtual_network.vnet_sap[0].resource_group_name
+  )
+  virtual_network_name = local.vnet_sap_exists ? (
+    data.azurerm_virtual_network.vnet_sap[0].name) : (
+    azurerm_virtual_network.vnet_sap[0].name
+  )
+  address_prefixes = [local.sub_iscsi_prefix]
 }
 
 // Imports data of existing SAP iSCSI subnet
@@ -28,11 +34,17 @@ data "azurerm_subnet" "iscsi" {
 
 // Creates SAP iSCSI subnet nsg
 resource "azurerm_network_security_group" "iscsi" {
-  provider            = azurerm.main
-  count               = local.enable_sub_iscsi ? (local.sub_iscsi_nsg_exists ? 0 : 1) : 0
-  name                = local.sub_iscsi_nsg_name
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
+  provider = azurerm.main
+  count    = local.enable_sub_iscsi ? (local.sub_iscsi_nsg_exists ? 0 : 1) : 0
+  name     = local.sub_iscsi_nsg_name
+  location = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].location) : (
+    azurerm_resource_group.resource_group[0].location
+  )
+  resource_group_name = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
 }
 
 // Imports the SAP iSCSI subnet nsg data
@@ -50,36 +62,71 @@ data "azurerm_network_security_group" "iscsi" {
 */
 // Creates the NIC and IP address for iSCSI device
 resource "azurerm_network_interface" "iscsi" {
-  provider            = azurerm.main
-  count               = local.iscsi_count
-  name                = format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.nic)
-  location            = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  resource_group_name = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
+  provider = azurerm.main
+  count    = local.iscsi_count
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.nic,
+    local.prefix,
+    var.naming.separator,
+    local.virtualmachine_names[count.index],
+    local.resource_suffixes.nic
+  )
+  location = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].location) : (
+  azurerm_resource_group.resource_group[0].location)
+  resource_group_name = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
 
   ip_configuration {
-    name                          = "ipconfig1"
-    subnet_id                     = local.sub_iscsi_exists ? data.azurerm_subnet.iscsi[0].id : azurerm_subnet.iscsi[0].id
-    private_ip_address            = local.use_DHCP ? null : local.sub_iscsi_exists ? local.iscsi_nic_ips[count.index] : cidrhost(local.sub_iscsi_prefix, tonumber(count.index) + 4)
-    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "static"
+    name = "ipconfig1"
+    subnet_id = local.sub_iscsi_exists ? (
+      data.azurerm_subnet.iscsi[0].id) : (
+      azurerm_subnet.iscsi[0].id
+    )
+    private_ip_address = local.use_DHCP ? (
+      null) : (
+      local.sub_iscsi_exists ? (
+        local.iscsi_nic_ips[count.index]) : (
+        cidrhost(local.sub_iscsi_prefix, tonumber(count.index) + 4)
+      )
+    )
+    private_ip_address_allocation = local.use_DHCP ? "Dynamic" : "Static"
   }
 }
 
 // Manages the association between NIC and NSG
 resource "azurerm_network_interface_security_group_association" "iscsi" {
-  provider                  = azurerm.main
-  count                     = local.iscsi_count
-  network_interface_id      = azurerm_network_interface.iscsi[count.index].id
-  network_security_group_id = local.sub_iscsi_nsg_exists ? data.azurerm_network_security_group.iscsi[0].id : azurerm_network_security_group.iscsi[0].id
+  provider             = azurerm.main
+  count                = local.iscsi_count
+  network_interface_id = azurerm_network_interface.iscsi[count.index].id
+  network_security_group_id = local.sub_iscsi_nsg_exists ? (
+    data.azurerm_network_security_group.iscsi[0].id) : (
+    azurerm_network_security_group.iscsi[0].id
+  )
 }
 
 // Manages Linux Virtual Machine for iSCSI
 resource "azurerm_linux_virtual_machine" "iscsi" {
-  provider                        = azurerm.main
-  count                           = local.iscsi_count
-  name                            = format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.vm)
-  computer_name                   = local.virtualmachine_names[count.index]
-  location                        = local.rg_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  resource_group_name             = local.rg_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
+  provider = azurerm.main
+  count    = local.iscsi_count
+  name = format("%s%s%s%s%s",
+    var.naming.resource_prefixes.vm,
+    local.prefix,
+    var.naming.separator,
+    local.virtualmachine_names[count.index],
+    local.resource_suffixes.vm
+  )
+  computer_name = local.virtualmachine_names[count.index]
+  location = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].location) : (
+    azurerm_resource_group.resource_group[0].location
+  )
+  resource_group_name = local.resource_group_exists ? (
+    data.azurerm_resource_group.resource_group[0].name) : (
+    azurerm_resource_group.resource_group[0].name
+  )
   network_interface_ids           = [azurerm_network_interface.iscsi[count.index].id]
   size                            = local.iscsi.size
   admin_username                  = local.iscsi.authentication.username
@@ -89,7 +136,13 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   //custom_data = try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
 
   os_disk {
-    name                 = format("%s%s%s%s", local.prefix, var.naming.separator, local.virtualmachine_names[count.index], local.resource_suffixes.osdisk)
+    name = format("%s%s%s%s%s",
+      var.naming.resource_prefixes.osdisk,
+      local.prefix,
+      var.naming.separator,
+      local.virtualmachine_names[count.index],
+      local.resource_suffixes.osdisk
+    )
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
@@ -134,3 +187,109 @@ data "template_cloudinit_config" "config_growpart" {
     content      = "growpart: {'mode': 'auto'}"
   }
 }
+
+resource "azurerm_key_vault_secret" "iscsi_ppk" {
+  depends_on = [
+    azurerm_key_vault_access_policy.kv_user
+  ]
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
+  content_type = ""
+  name         = local.iscsi_ppk_name
+  value        = local.iscsi_private_key
+  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+}
+
+resource "azurerm_key_vault_secret" "iscsi_pk" {
+  depends_on = [
+    azurerm_key_vault_access_policy.kv_user
+  ]
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
+  content_type = ""
+  name         = local.iscsi_pk_name
+  value        = local.iscsi_public_key
+  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+}
+
+resource "azurerm_key_vault_secret" "iscsi_username" {
+  depends_on = [
+    azurerm_key_vault_access_policy.kv_user
+  ]
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
+  content_type = ""
+  name         = local.iscsi_username_name
+  value        = local.iscsi_auth_username
+  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+}
+
+resource "azurerm_key_vault_secret" "iscsi_password" {
+  depends_on = [
+    azurerm_key_vault_access_policy.kv_user
+  ]
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
+  content_type = ""
+  name         = local.iscsi_pwd_name
+  value        = local.iscsi_auth_password
+  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+}
+
+// Generate random password if password is set as authentication type and user doesn't specify a password, and save in KV
+resource "random_password" "iscsi_password" {
+  count = (
+    local.enable_landscape_kv
+    && local.enable_iscsi_auth_password
+    && !local.iscsi_pwd_exist
+  && try(var.authentication.password, null) == null) ? 1 : 0
+
+  length           = 32
+  min_upper        = 2
+  min_lower        = 2
+  min_numeric      = 2
+  special          = true
+  override_special = "_%@"
+}
+
+// Import secrets about iSCSI
+data "azurerm_key_vault_secret" "iscsi_pk" {
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
+  name         = local.iscsi_pk_name
+  key_vault_id = local.user_key_vault_id
+}
+
+data "azurerm_key_vault_secret" "iscsi_ppk" {
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
+  name         = local.iscsi_ppk_name
+  key_vault_id = local.user_key_vault_id
+}
+
+data "azurerm_key_vault_secret" "iscsi_password" {
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi_auth_password && local.iscsi_pwd_exist) ? 1 : 0
+  name         = local.iscsi_pwd_name
+  key_vault_id = local.user_key_vault_id
+}
+
+data "azurerm_key_vault_secret" "iscsi_username" {
+  provider     = azurerm.main
+  count        = (local.enable_landscape_kv && local.enable_iscsi && local.iscsi_username_exist) ? 1 : 0
+  name         = local.iscsi_username_name
+  key_vault_id = local.user_key_vault_id
+}
+
+// Using TF tls to generate SSH key pair for iscsi devices and store in user KV
+resource "tls_private_key" "iscsi" {
+  count = (
+    local.enable_landscape_kv
+    && local.enable_iscsi_auth_key
+    && !local.iscsi_key_exist
+    && try(file(var.authentication.path_to_public_key), null) == null
+  ) ? 1 : 0
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+

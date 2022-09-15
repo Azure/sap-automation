@@ -1,20 +1,33 @@
-/*
-Description:
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
 
-  Output from sap_deployer module.
-*/
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value       = module.sap_deployer.created_resource_group_id
+}
+
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+  value       = module.sap_deployer.created_resource_group_subscription_id
+}
+
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.sap_deployer.created_resource_group_name
+}
+
+###############################################################################
+#                                                                             # 
+#                                 Deployer                                    # 
+#                                                                             # 
+###############################################################################
 
 output "deployer_id" {
   sensitive = true
   value     = module.sap_deployer.deployer_id
-}
-
-output "vnet_mgmt_id" {
-  value = module.sap_deployer.vnet_mgmt_id
-}
-
-output "subnet_mgmt_id" {
-  value = module.sap_deployer.subnet_mgmt_id
 }
 
 output "deployer_uai" {
@@ -26,38 +39,50 @@ output "deployer_uai" {
 }
 
 
+output "deployer_public_ip_address" {
+  value = module.sap_deployer.deployer_public_ip_address
+}
+
+###############################################################################
+#                                                                             # 
+#                                  Network                                    # 
+#                                                                             # 
+###############################################################################
+
+output "vnet_mgmt_id" {
+  value = module.sap_deployer.vnet_mgmt_id
+}
+
+output "subnet_mgmt_id" {
+  value = module.sap_deployer.subnet_mgmt_id
+}
+
+output "subnet_webapp_id" {
+  value = module.sap_deployer.subnet_webapp_id
+}
+
+###############################################################################
+#                                                                             # 
+#                                 Key Vault                                   # 
+#                                                                             # 
+###############################################################################
+
 output "deployer_kv_user_arm_id" {
   sensitive = true
-  value     = module.sap_deployer.deployer_kv_user_arm_id
+  value     = module.sap_deployer.deployer_keyvault_user_arm_id
 }
 
 output "deployer_kv_user_name" {
   value = module.sap_deployer.user_vault_name
 }
 
-output "deployer_public_key_secret_name" {
-  value = module.sap_deployer.pk_secret_name
-}
 
-output "deployer_private_key_secret_name" {
-  value = module.sap_deployer.ppk_secret_name
-}
+###############################################################################
+#                                                                             # 
+#                                 Firewall                                    # 
+#                                                                             # 
+###############################################################################
 
-output "deployer_username_secret_name" {
-  value = module.sap_deployer.username_secret_name
-}
-
-output "deployer_password_secret_name" {
-  value = module.sap_deployer.pwd_secret_name
-}
-
-output "deployer_rg_name" {
-  value = module.sap_deployer.deployer_rg_name
-}
-
-output "deployer_public_ip_address" {
-  value = module.sap_deployer.deployer_public_ip_address
-}
 
 output "firewall_ip" {
   value = module.sap_deployer.firewall_ip
@@ -67,6 +92,41 @@ output "firewall_id" {
   value = module.sap_deployer.firewall_id
 }
 
+
+output "enable_firewall_for_keyvaults_and_storage" {
+  value = var.enable_firewall_for_keyvaults_and_storage
+}
+
 output "automation_version" {
   value = local.version_label
 }
+
+###############################################################################
+#                                                                             # 
+#                                App Service                                  # 
+#                                                                             # 
+###############################################################################
+
+
+output "webapp_url_base" {
+  value = var.use_webapp ? module.sap_deployer.webapp_url_base : ""
+}
+
+output "webapp_identity" {
+  value = var.use_webapp ? module.sap_deployer.webapp_identity : ""
+}
+
+output "webapp_id" {
+  value = var.use_webapp ? module.sap_deployer.webapp_id : ""
+}
+
+###############################################################################
+#                                                                             # 
+#                                VM Extension                                 # 
+#                                                                             # 
+###############################################################################
+
+output "deployer_extension_ids" {
+  value = module.sap_deployer.extension_ids
+}
+

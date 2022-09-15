@@ -77,7 +77,7 @@
 
 - name:                                "DBLoad: install variables"
   ansible.builtin.debug:
-    msg:
+    msg:                          
       - "INSTALLED:  {{ dbload_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.dbl }}"
@@ -115,7 +115,7 @@
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         var:                           dbload
-      when:
+      when:                            
         - dbload is defined
         - dbload.rc > 0
 
@@ -135,14 +135,14 @@
 
 - name:                                "DBLoad: - status"
   block:
-
+    
     - name:                            "DBLoad: - status"
       ansible.builtin.debug:
         msg:                           "DBLoad is already performed"
-
+    
     - name:                            "DBLoad: - return value"
       ansible.builtin.set_fact:
-        dbload_already_performed:      true
+        dbload_already_performed:      true     
   when:
     -  dbload_installed.stat.exists
 

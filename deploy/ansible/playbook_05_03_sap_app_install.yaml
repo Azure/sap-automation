@@ -41,7 +41,7 @@
         tier:                          app
 
     - name:                            "APP Playbook: Run the sap-installation-media-storage-details role"
-      ansible.builtin.include_role:
+      include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       vars:
@@ -56,7 +56,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               "{{ sap_sid|upper }}_APP"
-
+  
   name:                                SAP Generic OS Groups and User Creation
   serial:                              1
   become:                              true
@@ -139,7 +139,7 @@
             path:                      "{{ _workspace_directory }}/.progress/app/app-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
-          when:
+          when:                    
             - app_already_installed is defined or (app_installation.rc is defined and app_installation.rc == 0)
       always:
         - name:                        "APP Playbook - Install: Get the error lines"
@@ -192,7 +192,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "APP Playbook - Post Install: Check for files in progress folder"
+    - name:                            "APP Playbook - Post Install: Check for files in progress folder" 
       ansible.builtin.find:
         path:                          "{{ _workspace_directory }}/.progress/app"
         patterns:                      "*"
@@ -206,7 +206,7 @@
         state:                         touch
         mode:                          0755
       when:                            find_progress_files.matched == (ansible_play_hosts | length)
-
+            
 ...
 # /*---------------------------------------------------------------------------8
 # |                                    END                                     |

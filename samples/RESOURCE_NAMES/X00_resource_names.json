@@ -1,0 +1,360 @@
+{
+    "availabilityset_names": {
+        "app": [
+            "app-avset"
+        ],
+        "db": [
+            "db-avset"
+        ],
+        "scs": [
+            "scs-avset"
+        ],
+        "web": [
+            "web-avset"
+        ]
+    },
+    "keyvault_names": {
+        "DEPLOYER": {
+            "private_access": "DEVWEEUprvtF6F",
+            "user_access": "DEVWEEUuserF6F"
+        },
+        "LIBRARY": {
+            "private_access": "DEVWEEUSAPLIBprvtF6F",
+            "user_access": "DEVWEEUSAPLIBuserF6F"
+        },
+        "SDU": {
+            "private_access": "DEVWEEUSAP01X00pF6F",
+            "user_access": "DEVWEEUSAP01X00uF6F"
+        },
+        "WORKLOAD_ZONE": {
+            "private_access": "DEVWEEUSAP01prvtF6F",
+            "user_access": "DEVWEEUSAP01userF6F"
+        }
+    },
+    "ppg_names": [
+        "DEV-WEEU-SAP01-X00-ppg"
+    ],
+    "prefix": {
+        "DEPLOYER": "DEV-WEEU-",
+        "LIBRARY": "DEV-WEEU",
+        "SDU": "DEV-WEEU-SAP01-X00",
+        "WORKLOAD_ZONE": "DEV-WEEU-SAP01"
+    },
+    "resource_prefixes": {
+        "admin_nic": "",
+        "admin_subnet": "",
+        "admin_subnet_nsg": "",
+        "anf_subnet": "",
+        "anf_subnet_nsg": "",
+        "ansible": "",
+        "app_alb": "",
+        "app_asg": "",
+        "app_avset": "",
+        "app_subnet": "",
+        "app_subnet_nsg": "",
+        "bastion_host": "",
+        "bastion_pip": "",
+        "db_alb": "",
+        "db_alb_bepool": "",
+        "db_alb_feip": "",
+        "db_alb_hp": "",
+        "db_alb_rule": "",
+        "db_asg": "",
+        "db_avset": "",
+        "db_nic": "",
+        "db_subnet": "",
+        "db_subnet_nsg": "",
+        "deployer_rg": "",
+        "deployer_state": "",
+        "deployer_subnet": "",
+        "deployer_subnet_nsg": "",
+        "deployer_web-subnet": "",
+        "disk": "",
+        "dns_link": "",
+        "ers_alb_bepool": "",
+        "fencing_agent_id": "",
+        "fencing_agent_pwd": "",
+        "fencing_agent_spn": "",
+        "fencing_agent_sub": "",
+        "fencing_agent_tenant": "",
+        "firewall": "",
+        "firewall_rule_app": "",
+        "firewall_rule_db": "",
+        "fw_route": "",
+        "hanadata": "",
+        "hanalog": "",
+        "hanashared": "",
+        "install_volume": "",
+        "install_volume_smb": "",
+        "iscsi_subnet": "",
+        "iscsi_subnet_nsg": "",
+        "keyvault_private_link": "",
+        "keyvault_private_svc": "",
+        "kv": "",
+        "library_rg": "",
+        "library_state": "",
+        "msi": "",
+        "netapp_account": "",
+        "netapp_pool": "",
+        "nic": "",
+        "osdisk": "",
+        "pip": "",
+        "ppg": "",
+        "routetable": "",
+        "sapbits": "",
+        "sapmnt": "",
+        "sapmnt_smb": "",
+        "scs_alb": "",
+        "scs_alb_bepool": "",
+        "scs_alb_feip": "",
+        "scs_alb_hp": "",
+        "scs_alb_rule": "",
+        "scs_avset": "",
+        "scs_clst_feip": "",
+        "scs_clst_hp": "",
+        "scs_clst_rule": "",
+        "scs_ers_feip": "",
+        "scs_ers_hp": "",
+        "scs_ers_rule": "",
+        "scs_fs_feip": "",
+        "scs_fs_hp": "",
+        "scs_fs_rule": "",
+        "scs_scs_rule": "",
+        "sdu_rg": "",
+        "storage_nic": "",
+        "storage_private_link_diag": "",
+        "storage_private_link_install": "",
+        "storage_private_link_sap": "",
+        "storage_private_link_sapmnt": "",
+        "storage_private_link_tf": "",
+        "storage_private_link_transport": "",
+        "storage_private_link_witness": "",
+        "storage_private_svc_diag": "",
+        "storage_private_svc_install": "",
+        "storage_private_svc_sap": "",
+        "storage_private_svc_sapmnt": "",
+        "storage_private_svc_tf": "",
+        "storage_private_svc_transport": "",
+        "storage_private_svc_witness": "",
+        "storage_subnet": "",
+        "storage_subnet_nsg": "",
+        "tfstate": "",
+        "transport_volume": "",
+        "usrsap": "",
+        "vm": "",
+        "vnet": "",
+        "vnet_rg": "",
+        "web_alb": "",
+        "web_alb_bepool": "",
+        "web_alb_feip": "",
+        "web_alb_hp": "",
+        "web_alb_inrule": "",
+        "web_asg": "",
+        "web_avset": "",
+        "web_subnet": "",
+        "web_subnet_nsg": "",
+        "witness": "",
+        "witness_accesskey": "",
+        "witness_name": ""
+    },
+    "resource_suffixes": {
+        "admin_nic": "-admin-nic",
+        "admin_subnet": "admin-subnet",
+        "admin_subnet_nsg": "adminSubnet-nsg",
+        "anf_subnet": "anf-subnet",
+        "anf_subnet_nsg": "anfSubnet-nsg",
+        "ansible": "ansible",
+        "app_alb": "app-alb",
+        "app_asg": "app-asg",
+        "app_avset": "app-avset",
+        "app_service_plan": "-app-service-plan",
+        "app_subnet": "app-subnet",
+        "app_subnet_nsg": "appSubnet-nsg",
+        "bastion_host": "bastion-host",
+        "bastion_pip": "bastion-pip",
+        "db_alb": "db-alb",
+        "db_alb_bepool": "dbAlb-bePool",
+        "db_alb_feip": "dbAlb-feip",
+        "db_alb_hp": "dbAlb-hp",
+        "db_alb_rule": "dbAlb-rule_",
+        "db_asg": "db-asg",
+        "db_avset": "db-avset",
+        "db_nic": "-db-nic",
+        "db_subnet": "db-subnet",
+        "db_subnet_nsg": "dbSubnet-nsg",
+        "deployer_rg": "-INFRASTRUCTURE",
+        "deployer_state": "_DEPLOYER.terraform.tfstate",
+        "deployer_subnet": "_deployment-subnet",
+        "deployer_subnet_nsg": "_deployment-nsg",
+        "deployer_web-subnet": "_deployment-web-subnet",
+        "deployment_objects": "-deployment-objects",
+        "disk": "",
+        "dns_link": "dns-link",
+        "ers_alb_bepool": "ersAlb-bePool",
+        "fencing_agent_id": "-fencing-spn-id",
+        "fencing_agent_pwd": "-fencing-spn-pwd",
+        "fencing_agent_spn": "fencing-agent",
+        "fencing_agent_sub": "-fencing-spn-subscription",
+        "fencing_agent_tenant": "-fencing-spn-tenant",
+        "firewall": "firewall",
+        "firewall_rule_app": "firewall-rule-app",
+        "firewall_rule_db": "firewall-rule-db",
+        "fw_route": "firewall-route",
+        "hanadata": "hanadata",
+        "hanalog": "hanalog",
+        "hanashared": "hanashared",
+        "install_volume": "install",
+        "install_volume_smb": "install-smb",
+        "iscsi_subnet": "iscsi-subnet",
+        "iscsi_subnet_nsg": "iscsiSubnet-nsg",
+        "keyvault_private_link": "-keyvault-privatelink",
+        "keyvault_private_svc": "-keyvault-privateservice",
+        "kv": "",
+        "library_rg": "-SAP_LIBRARY",
+        "library_state": "_SAP-LIBRARY.terraform.tfstate",
+        "msi": "-msi",
+        "netapp_account": "netapp_account",
+        "netapp_pool": "netapp_pool",
+        "nic": "-nic",
+        "osdisk": "-OsDisk",
+        "pip": "-pip",
+        "ppg": "-ppg",
+        "routetable": "route-table",
+        "sapbits": "sapbits",
+        "sapmnt": "sapmnt",
+        "sapmnt_smb": "sapmnt-smb",
+        "scs_alb": "scs-alb",
+        "scs_alb_bepool": "scsAlb-bePool",
+        "scs_alb_feip": "scsAlb-feip",
+        "scs_alb_hp": "scsAlb-hp",
+        "scs_alb_rule": "scsAlb-rule",
+        "scs_avset": "scs-avset",
+        "scs_clst_feip": "scsClst-feip",
+        "scs_clst_hp": "scsClst-hp",
+        "scs_clst_rule": "scsClst-rule",
+        "scs_ers_feip": "scsErs-feip",
+        "scs_ers_hp": "scsErs-hp",
+        "scs_ers_rule": "scsErs-rule",
+        "scs_fs_feip": "scsFs-feip",
+        "scs_fs_hp": "scsFs-hp",
+        "scs_fs_rule": "scsFs-rule",
+        "scs_scs_rule": "scsScs-rule",
+        "sdu_rg": "",
+        "storage_nic": "-storage-nic",
+        "storage_private_link_diag": "-diag-storage-privatelink",
+        "storage_private_link_install": "-install-storage-privatelink",
+        "storage_private_link_sap": "-sap-storage-privatelink",
+        "storage_private_link_sapmnt": "-sapmnt-storage-privatelink",
+        "storage_private_link_tf": "-tf-storage-privatelink",
+        "storage_private_link_transport": "-transport-storage-privatelink",
+        "storage_private_link_witness": "-witness-storage-privatelink",
+        "storage_private_svc_diag": "-diag-storage-privateservice",
+        "storage_private_svc_install": "-install-storage-privateservice",
+        "storage_private_svc_sap": "-sap-storage-privateservice",
+        "storage_private_svc_sapmnt": "-sapmnt-storage-privateservice",
+        "storage_private_svc_tf": "-tf-storage-privateservice",
+        "storage_private_svc_transport": "-transport-storage-privateservice",
+        "storage_private_svc_witness": "-witness-storage-privateservice",
+        "storage_subnet": "_storage-subnet",
+        "storage_subnet_nsg": "_storageSubnet-nsg",
+        "tfstate": "tfstate",
+        "transport_volume": "transport",
+        "usrsap": "usrsap",
+        "vm": "",
+        "vnet": "-vnet",
+        "vnet_rg": "-INFRASTRUCTURE",
+        "web_alb": "web-alb",
+        "web_alb_bepool": "webAlb-bePool",
+        "web_alb_feip": "webAlb-feip",
+        "web_alb_hp": "webAlb-hp",
+        "web_alb_inrule": "webAlb-inRule",
+        "web_asg": "web-asg",
+        "web_avset": "web-avset",
+        "web_subnet": "web-subnet",
+        "web_subnet_nsg": "webSubnet-nsg",
+        "webapp_url": "-sapdeployment",
+        "witness": "-witness",
+        "witness_accesskey": "-witness-accesskey",
+        "witness_name": "-witness-name"
+    },
+    "separator": "_",
+    "storageaccount_names": {
+        "DEPLOYER": "devweeudiagf6f",
+        "LIBRARY": {
+            "library_storageaccount_name": "devweeusaplibf6f",
+            "terraformstate_storageaccount_name": "devweeutfstatef6f"
+        },
+        "SDU": "devweeusap01diagf6f",
+        "WORKLOAD_ZONE": {
+            "landscape_shared_transport_storage_account_name": "devweeusap01sharedf6f",
+            "landscape_storageaccount_name": "devweeusap01diagf6f",
+            "witness_storageaccount_name": "devweeusap01witnessf6f"
+        }
+    },
+    "virtualmachine_names": {
+        "ANCHOR_COMPUTERNAME": [],
+        "ANCHOR_SECONDARY_DNSNAME": [],
+        "ANCHOR_VMNAME": [],
+        "ANYDB_COMPUTERNAME": [
+            "x00db00l0f6f"
+        ],
+        "ANYDB_SECONDARY_DNSNAME": [
+            "x00dhdb00l0f6f",
+            "x00dhdb00l1f6f"
+        ],
+        "ANYDB_VMNAME": [
+            "x00db00l0f6f"
+        ],
+        "APP_COMPUTERNAME": [
+            "x00app00lf6f",
+            "x00app01lf6f"
+        ],
+        "APP_SECONDARY_DNSNAME": [
+            "x00app00lf6f",
+            "x00app01lf6f"
+        ],
+        "APP_VMNAME": [
+            "x00app00lf6f",
+            "x00app01lf6f"
+        ],
+        "DEPLOYER": [
+            "devweeudeploy00"
+        ],
+        "HANA_COMPUTERNAME": [
+            "x00dhdb00l0f6"
+        ],
+        "HANA_SECONDARY_DNSNAME": [
+            "x00dhdb00l0f6"
+        ],
+        "HANA_VMNAME": [
+            "x00dhdb00l0f6f"
+        ],
+        "ISCSI_COMPUTERNAME": [
+            "devsap01weeuiscsi00"
+        ],
+        "OBSERVER_COMPUTERNAME": [
+            "x00observer00lf6f"
+        ],
+        "OBSERVER_VMNAME": [
+            "x00observer00lf6f"
+        ],
+        "SCS_COMPUTERNAME": [
+            "x00scs00lf6f"
+        ],
+        "SCS_SECONDARY_DNSNAME": [
+            "x00scs00lf6f"
+        ],
+        "SCS_VMNAME": [
+            "x00scs00lf6f"
+        ],
+        "WEB_COMPUTERNAME": [
+            "x00web00lf6f"
+        ],
+        "WEB_SECONDARY_DNSNAME": [
+            "x00web00lf6f"
+        ],
+        "WEB_VMNAME": [
+            "x00web00lf6f"
+        ]
+    }
+}
