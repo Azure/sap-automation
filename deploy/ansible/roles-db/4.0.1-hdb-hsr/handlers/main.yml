@@ -1,8 +1,7 @@
-- name:                 "1.13 MOTD: - restart sshd service"
-  become:               true
+- name:                 restart sshd service
   ansible.builtin.service:
     name:               sshd
     state:              restarted
-  
+  become:               true
 
 ...

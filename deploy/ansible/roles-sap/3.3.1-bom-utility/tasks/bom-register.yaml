@@ -27,6 +27,7 @@
     - path: "{{ download_directory }}/bom"
     - path: "{{ download_directory }}/files"
 
+
 - name:                                "3.3.1 BoM Processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python2'
@@ -36,10 +37,9 @@
     python_version:                    'python3'
   when:                                distribution_id in ['suse15', 'redhat8']
 
-- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
-                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost
@@ -52,10 +52,9 @@
     - distribution_id in ['suse15', 'redhat8']
     - not always_upload_jinja_templates
 
-- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ bom_name }} from the storage account"
+- name:                                "3.3.1 BoM Processing: {{ bom_name }} Check is file {{ bom_name }} is already downloaded to the storage account"
   ansible.builtin.get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml\
-                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
     dest:                              "{{ download_directory }}/bom/{{ bom_name }}.yaml"
     mode:                              0644
   delegate_to:                         localhost

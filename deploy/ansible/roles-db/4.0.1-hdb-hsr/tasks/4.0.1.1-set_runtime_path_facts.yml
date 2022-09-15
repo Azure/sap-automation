@@ -59,6 +59,9 @@
 
     - name:                            "HANA HSR: - Print HDB version"
       ansible.builtin.debug:
-        msg:                           "HANA Version: {{ hdb_version }}"
+        var:                           hdb_version
 
+    - name:                            "HANA HSR: - Print HDB version prefix"
+      ansible.builtin.debug:
+        var:                           hdb_version[0:2]
   when: ansible_hostname == primary_instance_name

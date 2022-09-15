@@ -19,14 +19,10 @@
     - name:                            "5.6 SCSERS - RHEL - Put Secondary host on standby"
       ansible.builtin.command:         pcs node standby {{ secondary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - Set fact for ASCS Filesystem"
-      ansible.builtin.set_fact:
-        ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid }}ascs{{ scs_instance_number }}"
-
     - name:                            "5.6 SCSERS - RHEL - SCS - Configure File system resources"
       ansible.builtin.command: >
                                        pcs resource create fs_{{ sap_sid }}_ASCS Filesystem \
-                                       device='{{ ascs_filesystem_device }}' \
+                                       device='{{ sap_mnt }}/usrsap{{ sap_sid }}ascs{{ scs_instance_number }}' \
                                        directory='/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
                                        op start interval=0 timeout=60 \
                                        op stop interval=0 timeout=120 \
@@ -65,14 +61,12 @@
     - name:                            "5.6 SCSERS - RHEL - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower }}adm"
+        owner:                         "{{ sap_sid | lower}}adm"
         group:                         sapsys
-        mode:                          "{{ item.mode }}"
-        state:                         directory
       loop:
-        - { path: '/sapmnt/{{ sap_sid | upper }}', mode: '0755' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
-        - { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}', mode: '0755' }
+        -  { path: '/sapmnt/{{ sap_sid|upper }}' }
+        -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
+        -  { path: '/usr/sap/{{ sap_sid }}/ASCS{{ scs_instance_number }}' }
       when: inventory_hostname == primary_instance_name
       tags:
         - skip_ansible_lint
@@ -93,14 +87,10 @@
     - name:                            "5.6 SCSERS - RHEL - Put Primary host on standby"
       ansible.builtin.command:         pcs node standby {{ primary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - Set fact for ERS Filesystem"
-      ansible.builtin.set_fact:
-        ers_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid }}ers{{ ers_instance_number }}"
-
     - name:                            "5.6 SCSERS - RHEL - ERS - Configure File system resources"
       ansible.builtin.command: >
                                        pcs resource create fs_{{ sap_sid }}_ERS Filesystem \
-                                       device='{{ ers_filesystem_device }}' \
+                                       device='{{ sap_mnt }}/usrsap{{ sap_sid }}ers{{ ers_instance_number }}' \
                                        directory='/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
                                        op start interval=0 timeout=60 \
                                        op stop interval=0 timeout=120 \
@@ -141,14 +131,13 @@
     - name:                            "5.6 SCSERS - RHEL - ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
-        owner:                         "{{ sap_sid | lower }}adm"
+        owner:                         "{{ sap_sid | lower}}adm"
         group:                         sapsys
-        mode:                          "{{ item.mode }}"
         state:                         directory
       loop:
-        - { path: '/sapmnt/{{ sap_sid | upper }}', mode: '0755' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS', mode: '0700' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}', mode: '0755' }
+        -  { path: '/sapmnt/{{ sap_sid|upper }}' }
+        -  { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
+        -  { path: '/usr/sap/{{ sap_sid }}/ERS{{ ers_instance_number }}' }
       when: inventory_hostname == secondary_instance_name
       tags:
         - skip_ansible_lint
@@ -189,7 +178,7 @@
     - { port: "5{{ ers_instance_number }}13" }
     - { port: "5{{ ers_instance_number }}14" }
     - { port: "5{{ ers_instance_number }}16" }
-  when: 1 == 2 # ToDo Fix this if we need to enable firewalld
+  when: 1 == 2 #ToDo Fix this if we need to enable firewalld
 
 
 # End of Playbook.

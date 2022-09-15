@@ -9,7 +9,7 @@
   ansible.builtin.set_fact:
     this_sid:
       {
-        'sid': '{{ sap_sid | upper }}',
+        'sid': '{{ sap_sid|upper }}',
         'dbsid_uid': '{{ hdbadm_uid }}',
         'sidadm_uid': '{{ sidadm_uid }}',
         'ascs_inst_no': '{{ scs_instance_number }}',
@@ -19,7 +19,7 @@
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
+    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts|default([]) + [ this_sid ] }}{% endif %}"
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
@@ -52,33 +52,13 @@
 
   # Mount Filesystem on AFS
   # This is needed so that we can create the correct directory
-
-        - name:                        "AFS Mount: sap_mnt (preparation)"
-          block:
-            - name:                    "AFS Mount: sap_mnt (preparation)"
-              ansible.posix.mount:
-                src:                   "{{ sap_mnt }}"
-                path:                  "/saptmp"
-                fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
-                state:                 mounted
-
-          rescue:
-            - name:                    "Rescue - AFS Mount: sap_mnt (preparation) - logging"
-              ansible.builtin.debug:
-                msg:                   "Rescue - AFS Mount: sap_mnt (preparation)"
-
-            - name:                    "Rescue - AFS Mount: sap_mnt - Pause for 5 seconds"
-              ansible.builtin.pause:
-                seconds:               15
-
-            - name:                    "Rescue - AFS Mount: sap_mnt (preparation)"
-              ansible.posix.mount:
-                src:                   "{{ sap_mnt }}"
-                path:                  "/saptmp"
-                fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
-                state:                 mounted
+        - name:                        "AFS Mount: File systems on AFS (sapmnt)"
+          ansible.builtin.mount:
+            src:                       "{{ sap_mnt }}"
+            path:                      "/saptmp"
+            fstype:                    "nfs4"
+            opts:                      "vers=4,minorversion=1,sec=sys"
+            state:                     mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS)"
           ansible.builtin.file:
@@ -103,7 +83,7 @@
           loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             state:                     unmounted
@@ -125,7 +105,7 @@
           loop:                        "{{ all_sap_mounts }}"
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
@@ -148,33 +128,13 @@
 
 # Mount Filesystem on AFS
 # This is needed so that we can create the correct directory
-
-        - name:                        "AFS Mount: sap_trans (preparation)"
-          block:
-            - name:                    "AFS Mount: sap_trans (preparation)"
-              ansible.posix.mount:
-                src:                   "{{ sap_trans }}"
-                path:                  "/saptrans"
-                fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
-                state:                 mounted
-
-          rescue:
-            - name:                    "Rescue - AFS Mount: sap_trans (preparation) - logging"
-              ansible.builtin.debug:
-                msg:                   "Rescue - AFS Mount: sap_trans (preparation)"
-
-            - name:                    "Rescue - AFS Mount: sap_trans - Pause for 5 seconds"
-              ansible.builtin.pause:
-                seconds:               15
-
-            - name:                    "Rescue - AFS Mount: sap_trans (preparation)"
-              ansible.posix.mount:
-                src:                   "{{ sap_trans }}"
-                path:                  "/saptrans"
-                fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
-                state:                 mounted
+        - name:                        "AFS Mount: File systems on AFS (transport)"
+          ansible.builtin.mount:
+            src:                       "{{ sap_trans }}"
+            path:                      "/saptrans"
+            fstype:                    "nfs4"
+            opts:                      "vers=4,minorversion=1,sec=sys"
+            state:                     mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS) (transport)"
           ansible.builtin.file:
@@ -185,7 +145,7 @@
             - { path: '/saptrans/usrsaptrans' }
 
         - name:                        "AFS Mount: Unmount file systems (transport)"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             state:                     unmounted
@@ -198,7 +158,7 @@
             - { path: '/saptrans/usrsaptrans' }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (transport)"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ sap_trans }}"
             path:                      "/saptrans"
             fstype:                    "nfs4"
@@ -222,33 +182,13 @@
 
 # Mount Filesystem on AFS
 # This is needed so that we can create the correct directory
-
-        - name:                        "AFS Mount: install (preparation)"
-          block:
-            - name:                    "AFS Mount: install (preparation)"
-              ansible.posix.mount:
-                src:                   "{{ usr_sap_install_mountpoint }}"
-                path:                  "/tmpinstall"
-                fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
-                state:                 mounted
-
-          rescue:
-            - name:                    "Rescue - AFS Mount: install (preparation) - logging"
-              ansible.builtin.debug:
-                msg:                   "Rescue - AFS Mount: install (preparation)"
-
-            - name:                    "Rescue - AFS Mount: install - Pause for 5 seconds"
-              ansible.builtin.pause:
-                seconds:               15
-
-            - name:                    "Rescue - AFS Mount: install (preparation)"
-              ansible.posix.mount:
-                src:                   "{{ usr_sap_install_mountpoint }}"
-                path:                  "/tmpinstall"
-                fstype:                "nfs4"
-                opts:                  "vers=4,minorversion=1,sec=sys"
-                state:                 mounted
+        - name:                        "AFS Mount: File systems on AFS (install)"
+          ansible.builtin.mount:
+            src:                       "{{ usr_sap_install_mountpoint }}"
+            path:                      "/tmpinstall"
+            fstype:                    "nfs4"
+            opts:                      "vers=4,minorversion=1,sec=sys"
+            state:                     mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS) (install)"
           ansible.builtin.file:
@@ -259,7 +199,7 @@
             - { path: '/tmpinstall/{{ bom_base_name }}' }
 
         - name:                        "AFS Mount: Unmount file systems (install)"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             state:                     unmounted
@@ -272,7 +212,7 @@
             - { path: '/tmpinstall' }
 
         - name:                        "AFS Mount: Cleanup fstab and directory (AFS) (install)"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ usr_sap_install_mountpoint }}"
             path:                      "/tmpinstall"
             fstype:                    "nfs4"
@@ -308,7 +248,6 @@
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
         state:                         directory
-        mode:                          0755
         attr:                          i+
       loop: "{{ is_created_now.results }}"
       when:
@@ -321,6 +260,39 @@
     - node_tier != 'hana'
     - sap_mnt is defined
 
+- name:                                "AFS Mount: sap_trans"
+  block:
+
+    - name:                            "AFS Mount: Create SAP Directories (transport)"
+      ansible.builtin.file:
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
+        mode:                          0755
+        path:                          "{{ item.path }}"
+        state:                         directory
+      loop:
+        - { path: '/usr/sap/trans'                 }
+      when:
+        - node_tier in ['app','scs','ers', 'pas']
+      register: is_created_now2
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "AFS Mount: Change attribute only when we create SAP Directories (transport)"
+      ansible.builtin.file:
+        path:                          "{{ item.item.path }}"
+        state:                         directory
+        attr:                          i+
+      loop: "{{ is_created_now2.results }}"
+      when:
+        - item.item is changed
+      register: set_immutable_attribute
+      tags:
+        - skip_ansible_lint
+  when:
+    - tier == 'sapos'
+    - sap_trans is defined
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                Perform the sap_mnt mounts                                  |
@@ -328,8 +300,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+
 - name:                                "AFS Mount: sap_mnt (scs & ers)"
   block:
+
     - name:                            "AFS Mount: Create SAP Directories (scs & ers)"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
@@ -338,17 +312,16 @@
         group:                         sapsys
         mode:                          0755
       loop:
-        - { path: '/usr/sap/{{ sap_sid | upper }}' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/ASCS{{ scs_instance_number }}' }
-        - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
+        - { path: '/usr/sap/{{ sap_sid|upper }}' }
+        - { path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
+        - { path: '/usr/sap/{{ sap_sid|upper }}/ASCS{{ scs_instance_number }}' }
+        - { path: '/usr/sap/{{ sap_sid|upper }}/ERS{{ ers_instance_number }}' }
       register: is_created_now3
 
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (scs & ers)"
       ansible.builtin.file:
         path:                          "{{ item.item.path }}"
         state:                         directory
-        mode:                          0755
         attr:                          i+
       loop: "{{ is_created_now3.results }}"
       when:
@@ -362,51 +335,26 @@
     - sap_mnt is defined
     - MULTI_SIDS is undefined
 
-- name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-  block:
+- name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} - Standalone"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              'vers=4,minorversion=1,sec=sys'
+    state:                             mounted
+  loop:
+    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
+  when:
+    - not scs_high_availability
+    - node_tier != 'hana'
+    - sap_mnt is defined
+    - MULTI_SIDS is undefined
 
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-      ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
-        opts:                          'vers=4,minorversion=1,sec=sys'
-        state:                         mounted
-      loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
-      when:
-        - not scs_high_availability
-        - node_tier != 'hana'
-        - sap_mnt is defined
-        - MULTI_SIDS is undefined
 
-  rescue:
-    - name:                            "AFS Mount: Pause for 15 seconds"
-      ansible.builtin.pause:
-        seconds:                       15
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-      ansible.builtin.debug:
-        msg:                           "Rescue - AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-      ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
-        opts:                          'vers=4,minorversion=1,sec=sys'
-        state:                         mounted
-      loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
-      when:
-        - not scs_high_availability
-        - node_tier != 'hana'
-        - sap_mnt is defined
-        - MULTI_SIDS is undefined
-
-- name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
+- name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} - Standalone MULTI_SIDS"
   become:                              true
   become_user:                         root
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
@@ -418,37 +366,29 @@
     - sap_mnt is defined
     - MULTI_SIDS is defined
 
-- name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
-  block:
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
-      ansible.posix.mount:
-        src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
-        path:                          "/sapmnt/{{ sap_sid | upper }}"
-        fstype:                        nfs4
-        opts:                          'vers=4,minorversion=1,sec=sys'
-        state:                         mounted
-  rescue:
-    - name:                            "AFS Mount: Pause for 15 seconds"
-      ansible.builtin.pause:
-        seconds:                       15
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
-      ansible.posix.mount:
-        src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
-        path:                          "/sapmnt/{{ sap_sid | upper }}"
-        fstype:                        nfs4
-        opts:                          'vers=4,minorversion=1,sec=sys'
-        state:                         mounted
-
+- name:                                "AFS Mount: sapmnt/{{ sap_sid|upper }} HA"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              'vers=4,minorversion=1,sec=sys'
+    state:                             mounted
+  loop:
+    - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid|upper }}',    path: '/sapmnt/{{ sap_sid|upper }}'      }
   when:
     - scs_high_availability
     - node_tier != 'hana'
     - sap_mnt is defined
 
-- name:                                "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+- name:                                "AFS Mount: Pause for 5 seconds"
+  ansible.builtin.pause:
+    seconds:                           15
+
+- name:                                "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
   block:
 
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.posix.mount:
+    - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -456,21 +396,21 @@
         state:                         mounted
       register:                        sys_mounted
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
   rescue:
-    - name:                            "AFS Mount: Pause for 15 seconds"
+    - name:                            "AFS Mount: Pause for 5 seconds"
       ansible.builtin.pause:
         seconds:                       15
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+    - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
       ansible.builtin.debug:
-        msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+        msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
 
     - name:                            "AFS Mount: Debug"
       ansible.builtin.debug:
         var:                           sys_mounted
 
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.posix.mount:
+    - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -478,17 +418,17 @@
         state:                         mounted
 
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
   when:
     - scs_high_availability
     - node_tier == 'scs'
     - sap_mnt is defined
 
-- name:                                "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+- name:                                "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
   block:
 
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.posix.mount:
+    - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -496,21 +436,21 @@
         state:                         mounted
       register:                        sys_mounted
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
   rescue:
     - name:                            "AFS Mount: Pause for 5 seconds"
       ansible.builtin.pause:
         seconds:                       15
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+    - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
       ansible.builtin.debug:
-        msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+        msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
 
     - name:                            "AFS Mount: Debug"
       ansible.builtin.debug:
         var:                           sys_mounted
 
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-      ansible.posix.mount:
+    - name:                            "AFS Mount: usr/sap/{{ sap_sid|upper }}/SYS"
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -518,27 +458,39 @@
         state:                         mounted
 
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid|upper }}sys', path: '/usr/sap/{{ sap_sid|upper }}/SYS' }
   when:
     - scs_high_availability
     - node_tier == 'ers'
     - sap_mnt is defined
 
-- name:                                "AFS Mount: Create install directories"
-  ansible.builtin.file:
-    path:                              "{{ target_media_location }}"
-    state:                             directory
-    owner:                             "{{ sidadm_uid }}"
-    group:                             sapsys
-    mode:                              0755
-  register: is_created_now_install
-  when: usr_sap_install_mountpoint is defined
-
 - name:                                "AFS Mount: Mount Install"
   block:
+    - name:                            "AFS Mount: Create install directories"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        owner:                         "{{ sidadm_uid }}"
+        group:                         sapsys
+        mode:                          0755
+      register: is_created_now_install
+      loop:
+        - { type: 'nfs4',  src: '{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}', path: '{{ target_media_location }}'}
+
+    - name:                            "AFS Mount: Change attribute only when we create Directories"
+      ansible.builtin.file:
+        path:                          "{{ item.item.path }}"
+        state:                         directory
+        attr:                          i+
+      loop: "{{ is_created_now_install.results }}"
+      when:
+        - item.item is changed
+      register: set_immutable_attribute
+      tags:
+        - skip_ansible_lint
 
     - name:                            "AFS Mount: Mount Install folder when using AFS ({{ usr_sap_install_mountpoint }}/{{ bom_base_name }})"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
@@ -550,13 +502,8 @@
     - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
       ansible.builtin.debug:
         msg:                           "Trying to remount Install Folder"
-
-    - name:                            "AFS Mount: Pause for 5 seconds"
-      ansible.builtin.pause:
-        seconds:                       15
-
     - name:                            Mount Install folder when using AFS
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
         path:                          "{{ target_media_location }}"
         fstype:                        'nfs4'
@@ -566,67 +513,15 @@
         - tier == 'sapos'
   when: usr_sap_install_mountpoint is defined
 
-- name:                                "AFS Mount: sap_trans"
-  block:
-
-    - name:                            "AFS Mount: Create SAP Directories (transport)"
-      ansible.builtin.file:
-        owner:                         '{{ sidadm_uid }}'
-        group:                         sapsys
-        mode:                          0755
-        path:                          /usr/sap/trans
-        state:                         directory
-      when:
-        - node_tier in ['app','scs','ers', 'pas']
-      register: is_created_now2
-      tags:
-        - skip_ansible_lint
-
-    # - name:                            "AFS Mount: Change attribute only when we create SAP Directories (transport)"
-    #   ansible.builtin.file:
-    #     path:                          "{{ item.item.path }}"
-    #     state:                         directory
-    #     attr:                          i+
-    #   loop: "{{ is_created_now2.results }}"
-    #   when:
-    #     - item.item is changed
-    #   register: set_immutable_attribute
-    #   tags:
-    #     - skip_ansible_lint
-  when:
-    - tier == 'sapos'
-    - sap_trans is defined
-
-- name:                                "AFS Mount: usr/sap/trans"
-  block:
-
-    - name:                            "AFS Mount: (transport)"
-      ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
-        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-        state:                         mounted
-      loop:
-        - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
-  rescue:
-    - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
-      ansible.builtin.debug:
-        msg:                           "Trying to remount /usr/sap/trans Folder"
-
-    - name:                            "AFS Mount: Pause for 5 seconds"
-      ansible.builtin.pause:
-        seconds:                       15
-
-    - name:                            "AFS Mount: (transport)"
-      ansible.posix.mount:
-        src:                           "{{ item.src }}"
-        path:                          "{{ item.path }}"
-        fstype:                        "{{ item.type }}"
-        opts:                          'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
-        state:                         mounted
-      loop:
-        - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
+- name:                                "AFS Mount: (transport)"
+  ansible.builtin.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    state:                             mounted
+  loop:
+    - { type: 'nfs4',  src: '{{ sap_trans }}/usrsaptrans', path: '/usr/sap/trans'}
   when:
     - node_tier in ['scs','ers','pas','app']
     - sap_trans is defined

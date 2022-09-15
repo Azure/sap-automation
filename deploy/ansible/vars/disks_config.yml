@@ -10,7 +10,7 @@ disktypes: >-
 
 # Dynamically determine list of volume groups associated with
 # the current node.
-volume_groups: "{{ lookup('template', 'volume_groups.j2') }}"
+volume_groups: "{{ lookup ('template', 'volume_groups.j2') }}"
 
 # Mapping table from disk type to volume group name suffix
 disk_type_to_name_map:
@@ -26,8 +26,7 @@ disk_type_to_name_map:
   origlogb:  '{{ node_tier | lower }}_origlogB'
   mirrloga:  '{{ node_tier | lower }}_mirrlogA'
   mirrlogb:  '{{ node_tier | lower }}_mirrlogB'
-  oraarch: '{{ node_tier | lower }}_oraarch'
- # orabackup: '{{ node_tier | lower }}_orabackup'
+  oraarch:   '{{ node_tier | lower }}_oraarch'
 #
 # Table of possible logical volumes that need to be managed.
 #
@@ -60,7 +59,7 @@ disk_type_to_name_map:
 #
 logical_volumes:
   - tier:       'sapos'
-    node_tier:  'all'
+    node_tier:  "{% if scs_high_availability %}[pas, app]{% else %}all{% endif %}"
     vg:         'vg_sap'
     lv:         'lv_usrsap'
     size:       '32g'
@@ -183,12 +182,6 @@ logical_volumes:
     size:       '64g'
     fstype:     'xfs'
 
-  - tier:       'sapos'
-    node_tier:  'oracle'
-    vg:         'vg_orabackup'
-    lv:         'lv_orabackup'
-    size:       '64g'
-    fstype:     'xfs'
 logical_volumes_sapmnt:
   - tier:       'sapos'
     node_tier:  'scs'

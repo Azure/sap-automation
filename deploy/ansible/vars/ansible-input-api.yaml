@@ -2,9 +2,6 @@
 
 # API Input template with defaults
 
-
-become_user_name:             "root"
-
 # OS Config Settings variables
 chrony_pool:                  ""
 chrony_servers:               []
@@ -16,6 +13,7 @@ target_media_location:        "/usr/sap/install"                                
 download_directory:           "/mnt/downloads"
 check_storage_account:        true
 bom_processing_become:        true                                                      # BOM processing as root user
+param_directory:              "/usr/sap/install/downloads"
 
 always_upload_jinja_templates: true
 
@@ -37,11 +35,6 @@ sap_fqdn:                     ""                                                
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
-drop_schema:                  false
-
-use_msi_for_clusters:         false
-
-hana_components:              "all"
 
 tmp_directory:                "/tmp"
 url_internet:                 "http://www.github.com"                                   # URL to use for internet access checks"

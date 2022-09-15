@@ -50,17 +50,17 @@
 
 - name:                                "1.5 Disk setup - Show disk info"
   ansible.builtin.debug:
-    msg:
-      - "Unique disks:    {{ disktypes }} "
-      - "Volume groups:   {{ volume_groups }} "
-      - "Logical volumes: {{ logical_volumes }} "
+    msg: 
+      - "Unique disks:    {{ disktypes }} "                              
+      - "Volume groups:   {{ volume_groups }} "                              
+      - "Logical volumes: {{ logical_volumes }} "                              
     verbosity:                         2
 
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "1.5 Disk setup - Volume Group creation"
-  community.general.lvg:
+  ansible.builtin.lvg:
     vg:                                "{{ item.vg }}"
     pvs:                               "{{ item.pvs }}"
     pesize:                            4M
@@ -89,7 +89,7 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "1.5 Disk setup - Logical Volume creation"
-  community.general.lvol:
+  ansible.builtin.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
     size:                              "{{ item.size }}"
@@ -102,8 +102,7 @@
   register:                            lvscreated
   when:
     - tier == "sapos"
-    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
-      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.vg in vgcreatedlist
 
 - name:                                "1.5 Disk setup - Filter the logical volumes created results"
@@ -119,7 +118,7 @@
     - tier == "sapos"
 
 - name:                                "1.5 Disk setup - Filesystem creation"
-  community.general.filesystem:
+  ansible.builtin.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
     opts:                              "{{ item.fsopts | default('') }}"
@@ -127,8 +126,7 @@
   register :                           filesystemscreated
   when:
     - item.tier in ["all", tier ]
-    - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
-      item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
+    - item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.fstype is defined
     - item.lv in lvcreatedlist
 
@@ -140,10 +138,10 @@
 
 - name:                                "1.5 Disk setup - Debug disk information"
   ansible.builtin.debug:
-    msg:
-      - "Created Volume Groups:    {{ vgcreatedlist }} "
-      - "Created Logical Volumes:  {{ lvcreatedlist }} "
-      - "Created Filesystems:      {{ fscreatedlist_tmp }} "
+    msg: 
+      - "Created Volume Groups:    {{ vgcreatedlist }} "                              
+      - "Created Logical Volumes:  {{ lvcreatedlist }} "                              
+      - "Created Filesystems:      {{ fscreatedlist_tmp }} "                              
     verbosity:                         2
   when:
     - tier == "sapos"
