@@ -1,8 +1,11 @@
 ---
 
-name: "ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms"
-target: "SAP NETWEAVER 7.5"
-version: 0001
+name:                                  "ERP6 EHP8 LNX DB 2UDB 11.5"
+filename:                              "ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms"
+target:                                "SAP NETWEAVER 7.5"
+version:                                0001
+platform:                              'DB2'
+
 
 defaults:
   target_location: "{{ target_media_location }}/download_basket"
@@ -22,16 +25,19 @@ product_ids:
 materials:
   dependencies:
     - name:             DB2_UDB_11_5_v0001ms
+    - name:             SWPM10SP35_latest
+    - name:             SUM20SP14_latest
 
   media:
     # SAPCAR 7.22
-    - name:         SAPCAR
-      archive:      SAPCAR_1010-70006178.EXE
-      checksum:     dff45f8df953ef3409dc560ea2689e53d46a14788d5d184834bb56544d342d7b
+    # SAPCAR 7.22
+    - name:         "SAPCAR 7.22; OS: Linux on x86_64 64bit"
+      archive:      SAPCAR_1115-70006178.EXE
+      checksum:     765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
       filename:     SAPCAR
       permissions:  '0755'
-      url:          https://softwaredownloads.sap.com/file/0020000002208852020
-    
+      url:          https://softwaredownloads.sap.com/file/0020000000098642022
+
     # kernel components
 
     - name: "Kernel Part II (753)"
@@ -49,18 +55,6 @@ materials:
       url: https://softwaredownloads.sap.com/file/0020000000239812022
       path: download_basket
 
-    - name: "Patch 0 for SOFTWARE UPDATE MANAGER 2.0 SP13"
-      archive: SUM20SP13_0-80002456.SAR
-      url: https://softwaredownloads.sap.com/file/0020000000190682022
-      path: download_basket
-
-    - name: "SWPM 1.0 SP34 for NW higher than 7.0x"
-      archive: SWPM10SP34_1-20009701.SAR
-      override_target_filename: "SWPM.SAR"
-      extract: true
-      extractDir: SWPM
-      url: https://softwaredownloads.sap.com/file/0020000000289652022
-      path: download_basket
 
     - name: "Installation for SAP IGS integrated in SAP Kernel"
       archive: igsexe_13-80003187.sar
@@ -72,7 +66,7 @@ materials:
       url: https://softwaredownloads.sap.com/file/0020000000703122018
       path: download_basket
 
-    
+
     # EHP 8 Exports
     - name: "SAP ERP 6.0 EHP8 Installation Export 1/4"
       archive: 51050708_part1.exe
@@ -97,11 +91,11 @@ materials:
       archive: 51050708_part4.rar
       url: https://softwaredownloads.sap.com/file/0030000000002992016
       path: download_basket
-    
+
     - name: "SAP ERP 6.0 EHP8 Language I 1/3"
       archive: 51050610_LNG1_part1.exe
       #override_target_filename: "51050610_LNG1_part1.rar"
-      #filename:   51050610_LNG1_part1.rar     
+      #filename:   51050610_LNG1_part1.rar
       extract: true
       extractDir: sapdb2_software/lang1export
       url: https://softwaredownloads.sap.com/file/0030000000001812016
@@ -120,7 +114,7 @@ materials:
     - name: "SAP ERP 6.0 EHP8 Language II 1/2"
       archive: 51050610_LNG2_part1.exe
       #override_target_filename: "51050610_LNG2_part1.rar"
-      #filename:             51050610_LNG2_part1.rar     
+      #filename:             51050610_LNG2_part1.rar
       extract: true
       extractDir: sapdb2_software/lang2export
       url: https://softwaredownloads.sap.com/file/0030000000001852016
@@ -137,9 +131,9 @@ materials:
     #   extractDir: sapdb2_software/erpcomponents
     #   url: https://softwaredownloads.sap.com/file/0030000000001942016
     #   path: download_basket
-    
 
-    
+
+
     # other components
 
     - name: "Attribute Change Package 02 for EA-DFPS 618"
