@@ -67,6 +67,7 @@
   loop:                                "{{ get_parameters_to_apply }}"
   when:
     - item.tier in ["all", tier]
+    - item.node_tier in ["all", node_tier]
 
 # ----------------------------------------
 # END

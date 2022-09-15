@@ -12,12 +12,12 @@ Outline:
 Examples:
   hosts file (should look similar to this):
       # X01
-      10.1.2.42          x01app00l2e7.sap.contoso.com                      x01app00l2e7         
-      10.1.2.43          x01app01l2e7.sap.contoso.com                      x01app01l2e7         
-      10.1.2.5           x01dhdb00l02e7.sap.contoso.com                    x01dhdb00l02e7       
-      10.1.2.68          x01dhdb00l02e7eth1_0.sap.contoso.com              x01dhdb00l02e7eth1_0 
-      10.1.2.38          x01scs00l2e7.sap.contoso.com                      x01scs00l2e7         
-      10.1.2.26          x01web00l2e7.sap.contoso.com                      x01web00l2e7         
+      10.1.2.42          x01app00l2e7.sap.contoso.com                      x01app00l2e7
+      10.1.2.43          x01app01l2e7.sap.contoso.com                      x01app01l2e7
+      10.1.2.5           x01dhdb00l02e7.sap.contoso.com                    x01dhdb00l02e7
+      10.1.2.68          x01dhdb00l02e7eth1_0.sap.contoso.com              x01dhdb00l02e7eth1_0
+      10.1.2.38          x01scs00l2e7.sap.contoso.com                      x01scs00l2e7
+      10.1.2.26          x01web00l2e7.sap.contoso.com                      x01web00l2e7
 
   play_hosts (flat list of host names to loop over):
       x01app00l2e7
@@ -57,7 +57,7 @@ Notes:
 0.........1.........2.........3.........4.........5.........6.........7.........8
 
 #}
-# {{ sap_sid|upper }}
+# {{ sap_sid| upper }}
 {#
 
 Loop through all the hosts that are referenced by the Playbook.

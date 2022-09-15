@@ -55,7 +55,7 @@ NW_HDB_getDBInfo.usingSSL                                             = true
 
 NW_Recovery_Install_HDB.extractLocation                               = /usr/sap/{{ db_sid| upper }}/{{ db_sid| upper }}{{ hdb_instance_number }}/backup/data/DB_HDB
 NW_Recovery_Install_HDB.extractParallelJobs                           = 24
-NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid|lower }}adm
+NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid| lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}

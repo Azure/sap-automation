@@ -172,7 +172,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -191,7 +191,7 @@
         - { type: 'nfs4',  src: '{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}',  path: '/sapmnt/{{ sap_sid | upper }}' }
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
@@ -268,6 +268,11 @@
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
+
+# Import this task only if the node_tier is db2.
+- import_tasks:                        "2.6.4-db2-mounts.yaml"
+  when:
+    - node_tier == "db2"
 
 # Import this task only if the sap_mnt is defined, i.e. AFS is used
 - name:                                "2.6 SAP Mounts: - Import AFS tasks"

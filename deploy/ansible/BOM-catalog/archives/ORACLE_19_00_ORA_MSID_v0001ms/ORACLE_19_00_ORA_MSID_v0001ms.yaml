@@ -53,7 +53,6 @@ materials:
       path:         download_basket
       # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000000816512021
-
     #   # SWPM
     # - name:         "SWPM20SP09 OS: Linux on x86_64 64bit"
     #   archive:      SWPM10SP32_5-20009701.SAR
