@@ -22,3 +22,5 @@ backup_exists_cmd_for_db2db:           "db2 list history backup for {{ db_sid }}
 
 # Expected response if no backups have been taken
 backup_cmd_no_rows_found:              "BACKUP_ID\n0 rows selected"
+
+...
