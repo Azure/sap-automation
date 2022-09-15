@@ -29,11 +29,6 @@ override.tf.json
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
 **/.terraform.lock.hcl
-
-
-### VisualStudioCode ###
-**/settings.json
-.vscode/settings.json
 **/obj/*
 .vscode/launch.json
 .vscode/tasks.json
