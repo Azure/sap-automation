@@ -137,7 +137,7 @@ stages:
                   sudo apt-get -qq install dos2unix
 
                 echo -e "$green --- Install terraform ---$reset"
-  
+
                   wget -q $(tf_url)
                   return_code=$?
                   if [ 0 != $return_code ]; then
@@ -155,9 +155,7 @@ stages:
                 fi
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
-                
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
+
               echo -e "$green--- --- Convert config file to UX format ---$reset"
 
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
@@ -165,35 +163,12 @@ stages:
               echo -e "$green--- Define variables ---$reset"
                 cd $HOME/SYSTEM/$(sap_system_folder)
 
-                if [ -z $(REMOTE_STATE_SA) ]; then
-                  export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                fi
-
-                if [ -z $(STATE_SUBSCRIPTION) ]; then
-                  export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                fi
-
-                if [ -z $(deployer_tfstate_key) ]; then
-                  export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-                fi
-
-                if [ -z $(key_vault) ]; then
-                  export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
-                fi
-
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value)  | tr -d \"
-                if [ -z ${az_var} ]; then
-                  landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
-                else
-                  landscape_tfstate_key=${az_var}; echo 'landscape_tfstate_key' $landscape_tfstate_key                  
-                fi
-
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value )  | tr -d \"
-                if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
-                else
-                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
-                fi
+                export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
 
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
@@ -255,7 +230,6 @@ stages:
                   fi
                 fi
 
-        
                 az account set --subscription ${STATE_SUBSCRIPTION}
                 if [[ ip_added_control_plane -eq 1 ]]; then
                   echo -e "$green--- Remove IP ---$reset"
@@ -267,7 +241,7 @@ stages:
                 fi
 
                 # Pull changes if there are other deployment jobs
-                
+
                 cd $HOME/SYSTEM/$(sap_system_folder)
                 echo -e "$green--- Pull the latest content from DevOps ---$reset"
                   git pull
@@ -300,12 +274,12 @@ stages:
                   git add    ${SID}_resource_names.json
                   added=1
                 fi
-                
+
                 if [ -f $(sap_system_configuration) ]; then
                   git add    $(sap_system_configuration)
                   added=1
                 fi
-                
+
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
@@ -315,7 +289,7 @@ stages:
                 fi
 
                 if [ -f ${SID}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md" 
+                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
               exit $return_code
 
@@ -328,6 +302,6 @@ stages:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-                
+
             failOnStderr:              false
 ...
