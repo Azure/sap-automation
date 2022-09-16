@@ -6,7 +6,7 @@
 # Installation service 'SAP BW/4HANA 2021 > SAP BW/4HANA Server > SAP HANA Database > Installation > Application Server ABAP
 #                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:BW4HANA2021.CORE.HDB.ABAP'
 #                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:BW4HANA2021.CORE.HDB.ABAP' #
-#                       
+#
 #                                                                                                                                                                                                      #
 ########################################################################################################################################################################################################
 
@@ -57,7 +57,7 @@ NW_HDB_getDBInfo.usingSSL                                             = true
 
 NW_Recovery_Install_HDB.extractLocation                               = /usr/sap/{{ db_sid| upper }}/{{ db_sid| upper }}{{ hdb_instance_number }}/backup/data/DB_HDB
 NW_Recovery_Install_HDB.extractParallelJobs                           = 24
-NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid|lower }}adm
+NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid| lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}

@@ -1,0 +1,81 @@
+# /*---------------------------------------------------------------------------8
+# |         Restore the Standby/Secondary DB with Primary DB's Backup          |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "DB2 Restore Secondary/Standby with Primary DB backup"
+  block:
+
+    - name:                            "DB2 Switch user to db2<sid>"
+      ansible.builtin.shell:           whoami
+      register:                        whoami_result
+
+    - name:                            "DB2 - Task to capture result of whomai"
+      ansible.builtin.debug:
+        msg:                           "Result: {{ whoami_result.stdout }}"
+
+    # - name:                            "DB2: Create SAPTMP directories"
+
+    - name:                            " DB2 Backup -  Create SAPTMP Directories"
+      ansible.builtin.file:
+        path:                          "{{ item.dest }}"
+        state:                         directory
+        mode:                          0755
+      with_items:
+        - { dest: '/db2/{{ db_sid }}/saptmp1' }
+        - { dest: '/db2/{{ db_sid }}/saptmp2' }
+        - { dest: '/db2/{{ db_sid }}/saptmp3' }
+        - { dest: '/db2/{{ db_sid }}/saptmp4' }
+      run_once: true
+
+    - name:                            "DB2 - Start the Secondary/Standby DB"
+      ansible.builtin.shell:           db2start
+      args:
+        executable:                    /bin/csh
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+
+      # ##################### Start of Restore without Encryption ##################################
+    - name:                            "DB2 - Restore without encryption"
+      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} on /db2/{{ db_sid }} no encrypt
+      args:
+        executable:                    /bin/csh
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+      # ######### ########### End of Restore without Encryption ####################################
+  when:
+    - ansible_hostname == secondary_instance_name
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+
+# #################Start of Restore with Encryption############################
+# Restore with Encryption - commented now till we decide on the DB2 encrpytion Strategy
+# - name: Import Master Key
+#   shell: >-
+#     gsk8capicmd_64 -cert -import -db {{ db2standby_deployment_source_keystorefile }}.p12 -target \
+#     /db2/db2{{ db2deploy_sid | lower }}/keystore/sapdb2{{ db2deploy_sid | lower }}_db_encr.p12gsk8capicmd_64 -cert -import \
+#     -db {{ db2standby_deployment_source_keystorefile }}.p12 -target /db2/db2{{ db2deploy_sid | lower }}/keystore/sapdb2 \
+#     {{ db2deploy_sid | lower }}_db_encr.p12
+#   become: true
+#   become_user: db2id2
+#   when:
+#     -  db2standby_deployment_encryption == 'true'
+
+# - name: Restore with encryption
+#   shell: >-
+#     db2 restore database {{ db2deploy_sid }} from {{ db2standby_deployment_backupdir }} \
+#     encrypt cipher {{ db2standby_deployment_ciphertype }} key length {{ db2standby_deployment_cipherkeylength }} master key label \
+#     sap_db2{{ db2deploy_sid | lower }}_{{ db2standby_deployment_standbyhostname }}_dbencr_000
+#   become: true
+#   become_user: db2id2
+#   when:
+#    -  db2standby_deployment_encryption == 'true'
+
+# ######### END of Restore with Encryption ################################

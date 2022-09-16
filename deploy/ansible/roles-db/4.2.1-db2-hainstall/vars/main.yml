@@ -1,0 +1,26 @@
+# VARS file - TBC
+db_sid_backup_dir:                     "{{ target_media_location }}/db2backup"
+
+# SQL Commands
+
+# SQL to ensure the HANA DB is able to parse and process queries
+# dummy_cmd:                             "SELECT * FROM DUMMY"
+
+# SQL to determine current log mode (we need "normal")
+# get_log_mode_cmd: "SELECT VALUE FROM M_INIFILE_CONTENTS
+#  WHERE FILE_NAME='global.ini'
+#  AND LAYER_NAME='DEFAULT'
+#  AND SECTION='persistence'
+#  AND KEY='log_mode'"
+
+# SQL to take a DB2 DB offline full backup
+# backup_cmd_for_db:              "db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}"
+
+# SQL to take a tenant DB full backup
+# backup_cmd_for_tenant:                 "BACKUP DATA USING FILE ('{{ backup_file_for_tenant_full_path }}')"
+
+# SQL to confirm a system backup has been taken for the database
+
+
+# Expected response if no backups have been taken
+# no_backup_response: "SQL0204N"

@@ -34,7 +34,8 @@ parameters:
       - NW750SPS20_v0004ms
       - NW752SPS09_v0001ms
       - ORACLE_19_00_v0002ms
-      - ORACLE_19_00_ORA_MSID_v0002ms
+      - NW750SPS20_DB2_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0001ms
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
@@ -696,7 +697,7 @@ stages:
             artifact:                  ansible_data
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey      
+            displayName:               Process sshkey
           - task:                      Ansible@0
             displayName:               High Availability Setup
             timeoutInMinutes:          0
