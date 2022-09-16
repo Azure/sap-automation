@@ -167,6 +167,18 @@ resource "azurerm_key_vault_secret" "username" {
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
 }
 
+resource "azurerm_key_vault_secret" "pat" {
+  depends_on = [
+    azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+    azurerm_key_vault_access_policy.kv_user_msi[0],
+    time_sleep.wait_for_dns_refresh
+  ]
+  count        = length(var.agent_pat) > 0 ? 1 : 0
+  name         = "PAT"
+  value        = var.agent_pat
+  key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+}
+
 // Generate random password if password is set as authentication type, and save in KV
 resource "random_password" "deployer" {
   count = (
@@ -274,9 +286,9 @@ resource "azurerm_private_endpoint" "kv_user" {
 
 
 ###############################################################################
-#                                                                             # 
-#                                Additional Users                             # 
-#                                                                             # 
+#                                                                             #
+#                                Additional Users                             #
+#                                                                             #
 ###############################################################################
 
 resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
@@ -288,6 +300,24 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 
   tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
   object_id = var.additional_users_to_add_to_keyvault_policies[count.index]
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Recover"
+  ]
+
+}
+
+resource "azurerm_key_vault_access_policy" "webapp" {
+  count = var.use_webapp ? 1 : 0
+  key_vault_id = local.user_keyvault_exist ? (
+    local.user_key_vault_id) : (
+    azurerm_key_vault.kv_user[0].id
+  )
+
+  tenant_id = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
+  object_id = azurerm_windows_web_app.webapp[0].identity[0].principal_id
   secret_permissions = [
     "Get",
     "List",

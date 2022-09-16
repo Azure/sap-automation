@@ -260,7 +260,6 @@ locals {
     )
   )
 
-
   // OS image for all Application Tier VMs
   // If custom image is used, we do not overwrite os reference with default value
 
@@ -421,14 +420,18 @@ locals {
 
 
   // Default VM config should be merged with any the user passes in
-  app_sizing = local.application_server_count > 0 ? (
+  app_sizing = local.enable_deployment && local.application_server_count > 0 ? (
     lookup(local.sizes.app, local.vm_sizing_dictionary_key)) : (
     null
   )
 
-  scs_sizing = local.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+  scs_sizing = local.enable_deployment ? (
+    local.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+    ) : (
+    null
+  )
 
-  web_sizing = local.webdispatcher_count > 0 ? (
+  web_sizing = local.enable_deployment && local.webdispatcher_count > 0 ? (
     lookup(local.sizes.web, local.vm_sizing_dictionary_key)) : (
     null
   )
