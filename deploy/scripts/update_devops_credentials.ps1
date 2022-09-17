@@ -1,10 +1,10 @@
 $Organization=$Env:ADO_ORGANIZATION
 
 $Project=$Env:ADO_PROJECT
-YourPrefix=$Env:YourPrefix
+$YourPrefix=$Env:YourPrefix
 
 $MgmtPrefix=$YourPrefix + "-SDAF-MGMT"
-$DEVPrefix==$YourPrefix + -SDAF-DEV"
+$DEVPrefix=$YourPrefix + "-SDAF-DEV"
 $Name=$MgmtPrefix+"-configuration-app"
 $ControlPlaneSubscriptionID=$Env:ControlPlaneSubscriptionID
 $DevSubscriptionID=$Env:DevSubscriptionID
