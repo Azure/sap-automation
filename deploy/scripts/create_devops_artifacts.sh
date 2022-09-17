@@ -48,9 +48,9 @@ if [ -z $devops_extension_installed ]; then
 fi
 
 
-DEVOPS_ORGANIZATION='https://dev.azure.com/yourorganization'
-DEVOPS_PROJECT_NAME='Levelup'
-DEVOPS_PROJECT_DESCRIPTION='Levelup demo project'
+DEVOPS_ORGANIZATION='https://dev.azure.com/$ADO_ORGANIZATION'
+DEVOPS_PROJECT_NAME='$ADO_PROJECT'
+DEVOPS_PROJECT_DESCRIPTION='$ADO_PROJECT SAP Automation project'
 id=$(az devops project create --name ${DEVOPS_PROJECT_NAME} --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
 
 repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id -[-query "[].id | [0] | tr -d \"")
