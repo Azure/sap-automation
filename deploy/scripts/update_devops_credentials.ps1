@@ -1,12 +1,13 @@
-$Organization="https://dev.azure.com/yourorganization"
+$Organization="https://dev.azure.com/"+ $Env.ADO_ORGANIZATION
 
-$Project="Levelup"
+$Project=$Env.ADO_PROJECT
+YourPrefix=$Env.YourPrefix
 
-$MgmtPrefix="KFO-SDAF-MGMT"
-$DEVPrefix="KFO-SDAF-DEV"
+$MgmtPrefix=$YourPrefix + "-SDAF-MGMT"
+$DEVPrefix==$YourPrefix + -SDAF-DEV"
 $Name=$MgmtPrefix+"-configuration-app"
-$ControlPlaneSubscriptionID="dcb2713e-5dc8-4139-a9af-9768287bbb8d"
-$DevSubscriptionID="8d8422a3-a9c1-4fe9-b880-adcf61557c71"
+$ControlPlaneSubscriptionID=$Env.ControlPlaneSubscriptionID
+$DevSubscriptionID=$Env.DevSubscriptionID
 
 $url=( az devops project list --organization $Organization --query "value | [0].url")
 $idx=$url.IndexOf("_api")
