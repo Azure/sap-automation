@@ -1,13 +1,13 @@
-$Organization="https://dev.azure.com/"+ $Env.ADO_ORGANIZATION
+$Organization=$Env:ADO_ORGANIZATION
 
-$Project=$Env.ADO_PROJECT
-YourPrefix=$Env.YourPrefix
+$Project=$Env:ADO_PROJECT
+YourPrefix=$Env:YourPrefix
 
 $MgmtPrefix=$YourPrefix + "-SDAF-MGMT"
 $DEVPrefix==$YourPrefix + -SDAF-DEV"
 $Name=$MgmtPrefix+"-configuration-app"
-$ControlPlaneSubscriptionID=$Env.ControlPlaneSubscriptionID
-$DevSubscriptionID=$Env.DevSubscriptionID
+$ControlPlaneSubscriptionID=$Env:ControlPlaneSubscriptionID
+$DevSubscriptionID=$Env:DevSubscriptionID
 
 $url=( az devops project list --organization $Organization --query "value | [0].url")
 $idx=$url.IndexOf("_api")
