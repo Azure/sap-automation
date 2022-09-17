@@ -39,9 +39,11 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-type=$(az account show --query "user.type")
-if [ "user" != $type ] ; then
+type=$(az account show --query "user.cloudShellID")
+if [ -n $type ] ; then
+  az logout
   az login --use-device-code 
+  
 fi
 az config set extension.use_dynamic_install=yes_without_prompt
 
@@ -85,4 +87,3 @@ az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_
 az pipelines variable-group create --name SDAF-MGMT --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID='Enter your app registration ID here' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' WEB_APP_CLIENT_SECRET='Enter your App registration secret here' PAT='Enter your personal access token here' POOL=MGMT-POOL --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id
 
 az pipelines variable-group create --name SDAF-DEV --variables Agent='Azure Pipelines' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' PAT='Enter your personal access token here' POOL=MGMT-POOL --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id
-
