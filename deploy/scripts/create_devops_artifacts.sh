@@ -39,7 +39,10 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-az login --use-device-code 
+type=$(az account show --query "user.type")
+if [ "user" != $type ] ; then
+  az login --use-device-code 
+fi
 az config set extension.use_dynamic_install=yes_without_prompt
 
 devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
@@ -50,7 +53,7 @@ fi
 
 DEVOPS_ORGANIZATION=$ADO_ORGANIZATION
 DEVOPS_PROJECT_NAME=$ADO_PROJECT
-DEVOPS_PROJECT_DESCRIPTION=$ADO_PROJECT SAP Automation project
+DEVOPS_PROJECT_DESCRIPTION=$DEVOPS_PROJECT_NAME
 id=$(az devops project create --name ${DEVOPS_PROJECT_NAME} --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
 
 repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id -[-query "[].id | [0] | tr -d \"")
