@@ -56,7 +56,7 @@ DEVOPS_PROJECT_NAME=$ADO_PROJECT
 DEVOPS_PROJECT_DESCRIPTION=$DEVOPS_PROJECT_NAME
 id=$(az devops project create --name ${DEVOPS_PROJECT_NAME} --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
 
-repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id -[-query "[].id | [0] | tr -d \"")
+repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id --query "[].id | [0]" | tr -d \")
 
 az repos import create --git-url https://github.com/Azure/sap-automation.git --org  ${DEVOPS_ORGANIZATION} --project $id --repository $repo_id
 
