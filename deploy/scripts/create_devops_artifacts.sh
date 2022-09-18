@@ -42,8 +42,8 @@ script_directory="$(dirname "${full_script_path}")"
 type=$(az account show --query "user.cloudShellID")
 if [ -n $type ] ; then
   az logout
-  az login --use-device-code 
-  
+  az login --use-device-code
+
 fi
 az config set extension.use_dynamic_install=yes_without_prompt
 
@@ -56,6 +56,19 @@ fi
 DEVOPS_ORGANIZATION=$ADO_ORGANIZATION
 DEVOPS_PROJECT_NAME=$ADO_PROJECT
 DEVOPS_PROJECT_DESCRIPTION=$DEVOPS_PROJECT_NAME
+
+echo "Installing the extensions"
+extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName | tr -d \")
+if [ -z $extension_name ]; then
+  az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
+fi
+
+extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --query extensionName | tr -d \")
+if [ -z $extension_name ]; then
+  az devops extension install --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --output none
+fi
+
+
 id=$(az devops project create --name ${DEVOPS_PROJECT_NAME} --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
 
 repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id --query "[].id | [0]" | tr -d \")
@@ -82,8 +95,8 @@ az pipelines create --name 'Update repository' --branch main --description 'Upda
 
 az pipelines create --name 'Deploy Configuration Web App' --branch main --description 'Deploys the configuration Web App' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/21-deploy-web-app.yaml --repository $repo_id --repository-type tfsgit
 
-az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_varsion=1.2.8 --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id
+az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_varsion=1.2.8 --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --authorize true
 
-az pipelines variable-group create --name SDAF-MGMT --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID='Enter your app registration ID here' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' WEB_APP_CLIENT_SECRET='Enter your App registration secret here' PAT='Enter your personal access token here' POOL=MGMT-POOL --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id
+az pipelines variable-group create --name SDAF-MGMT --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID='Enter your app registration ID here' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' WEB_APP_CLIENT_SECRET='Enter your App registration secret here' PAT='Enter your personal access token here' POOL=MGMT-POOL --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --project $id --authorize true
 
-az pipelines variable-group create --name SDAF-DEV --variables Agent='Azure Pipelines' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' PAT='Enter your personal access token here' POOL=MGMT-POOL --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id
+az pipelines variable-group create --name SDAF-DEV --variables Agent='Azure Pipelines' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' PAT='Enter your personal access token here' POOL=MGMT-POOL --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --project $id --authorize true
