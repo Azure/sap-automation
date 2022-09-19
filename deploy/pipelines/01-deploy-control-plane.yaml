@@ -36,7 +36,7 @@ parameters:
 trigger:                               none
 
 pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])] 
+  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
 
 variables:
   - group:                             "SDAF-General"
@@ -83,6 +83,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - bash: |
                 #!/bin/bash
 
@@ -101,7 +102,7 @@ stages:
                     git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                    az config set extension.use_dynamic_install=yes_without_promp
+                    az config set extension.use_dynamic_install=yes_without_prompt
 
                     devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
                     if [ -z $devops_extension_installed ]; then
@@ -122,10 +123,10 @@ stages:
                         key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
                     else
                         if [ -f ${deployer_environment_file_name} ] ; then
-                            key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}                    
+                            key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                         fi
                     fi
-                
+
                     az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
                     if [ -n "${az_var}"  ]; then
                         STATE_SUBSCRIPTION="${az_var}"  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
