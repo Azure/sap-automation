@@ -343,10 +343,10 @@ else
     # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
     # This package is outdated and not recommended. If this package is installed, remove the package
     if [ "$rel" == "20.04" ]; then
-    echo "Removing Azure CLI"
-    sudo apt remove azure-cli -y
-    sudo apt autoremove -y
-    sudo apt update -y
+      echo "Removing Azure CLI"
+      sudo apt remove azure-cli -y
+      sudo apt autoremove -y
+      sudo apt update -y
     fi
     #
     # Install az cli using provided scripting
@@ -354,10 +354,12 @@ else
 
     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
 
-    # Install dotnet
-    sudo snap install dotnet-sdk --classic --channel=3.1
-    sudo snap alias dotnet-sdk.dotnet dotnet
+    az config set extension.use_dynamic_install=yes_without_prompt
 
+    devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+    if [ -z $devops_extension_installed ]; then
+      az extension add --name azure-devops --output none
+    fi
 
     # Fail if any command exits with a non-zero exit status
     set -o errexit
@@ -552,5 +554,10 @@ else
 
     /usr/bin/az login --identity --output none
     echo "${USER} account ready for use with Azure SAP Automated Deployment"
+
+    # Install dotnet
+    sudo snap install dotnet-sdk --classic --channel=3.1
+    sudo snap alias dotnet-sdk.dotnet dotnet
+
 
 fi
