@@ -74,7 +74,7 @@ namespace AutomationForm.Services
         public async Task UpdateAsync(AppFile file)
         {
             BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
-            await blobClient. UploadAsync(new BinaryData(file.Content));
+            await blobClient.UploadAsync(new BinaryData(file.Content), overwrite: blobClient.Exists());
             AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
             await client.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
         }

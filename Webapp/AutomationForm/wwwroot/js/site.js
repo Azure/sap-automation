@@ -400,11 +400,11 @@ function addTag(param) {
     parentDiv.append('<div class="tag"></div>');
     var lastTagContainer = parentDiv.children().last();
     lastTagContainer.append('<div class="tag-key"></div>');
-    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="database_tags_' + numTags + '__Key">Key</label>');
-    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="database_tags_' + numTags + '__Key" name="database_tags[' + numTags + '].Key" type="text" value="">');
+    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="' + param + '_' + numTags + '__Key">Key</label>');
+    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="' + param + '_' + numTags + '__Key" name="' + param + '[' + numTags + '].Key" type="text" value="">');
     lastTagContainer.append('<div class="tag-value"></div>');
-    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="database_tags_' + numTags + '__Value">Value</label>');
-    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="database_tags_' + numTags + '__Value" name="database_tags[' + numTags + '].Value" type="text" value="">');
+    lastTagContainer.children().last().append('<label class="ms-Label tags-label" for="' + param + '_' + numTags + '__Value">Value</label>');
+    lastTagContainer.children().last().append('<input class="ms-TextField-field" id="' + param + '_' + numTags + '__Value" name="' + param + '[' + numTags + '].Value" type="text" value="">');
 }
 
 // ===============

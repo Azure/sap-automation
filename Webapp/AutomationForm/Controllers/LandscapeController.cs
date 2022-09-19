@@ -247,14 +247,14 @@ namespace AutomationForm.Controllers
         }
 
         // [ActionName("Delete")]
-        // public async Task<IActionResult> DeleteAsync(string id)
+        // public async Task<IActionResult> DeleteAsync(string id, string partitionKey)
         // {
         //     if (id == null)
         //     {
         //         return BadRequest();
         //     }
 
-        //     LandscapeModel landscape = await _landscapeService.GetByIdAsync(id);
+        //     LandscapeModel landscape = await GetById(id, partitionKey);
         //     landscapeView.SapObject = landscape;
         //     if (landscape == null)
         //     {
@@ -267,9 +267,9 @@ namespace AutomationForm.Controllers
         // [HttpPost]
         // [ActionName("Delete")]
         // [ValidateAntiForgeryToken]
-        // public async Task<IActionResult> DeleteConfirmedAsync(string id)
+        // public async Task<IActionResult> DeleteConfirmedAsync(string id, string partitionKey)
         // {
-        //     await _landscapeService.DeleteAsync(id);
+        //     await _landscapeService.DeleteAsync(id, partitionKey);
         //     TempData["success"] = "Successfully deleted workload zone " + id;
         //     return RedirectToAction("Index");
         // }
