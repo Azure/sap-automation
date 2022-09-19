@@ -229,14 +229,14 @@ namespace AutomationForm.Controllers
         }
 
         // [ActionName("Delete")]
-        // public async Task<IActionResult> DeleteAsync(string id)
+        // public async Task<IActionResult> DeleteAsync(string id, string partitionKey)
         // {
         //     if (id == null)
         //     {
         //         return BadRequest();
         //     }
 
-        //     SystemModel system = await _systemService.GetByIdAsync(id);
+        //     SystemModel system = await GetById(id, partitionKey);
         //     systemView.SapObject = system;
         //     if (system == null)
         //     {
@@ -249,13 +249,13 @@ namespace AutomationForm.Controllers
         // [HttpPost]
         // [ActionName("Delete")]
         // [ValidateAntiForgeryToken]
-        // public async Task<IActionResult> DeleteConfirmedAsync(string id)
+        // public async Task<IActionResult> DeleteConfirmedAsync(string id, string partitionKey)
         // {
-        //     await _systemService.DeleteAsync(id);
+        //     await _systemService.DeleteAsync(id, partitionKey);
         //     TempData["success"] = "Successfully deleted system " + id;
         //     return RedirectToAction("Index");
         // }
-
+        
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id, string partitionKey)
         {

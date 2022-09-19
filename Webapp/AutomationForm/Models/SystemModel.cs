@@ -64,9 +64,6 @@ namespace AutomationForm.Models
 
         public string automation_username { get; set; }
 
-        public bool? use_service_endpoint { get; set; }
-
-
         // ======= EXPERT =======
 
         // Common Infrastructure

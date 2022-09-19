@@ -189,7 +189,7 @@ stages:
                             exit 2
                         fi
 
-                        if [ -z ${TF_VAR_webapp_client_secret} ]; then
+                        if [ -z ${WEB_APP_CLIENT_SECRET} ]; then
                             echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
                             exit 2
                         fi
