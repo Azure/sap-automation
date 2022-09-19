@@ -15,12 +15,6 @@
 # Setup some useful shell options
 #
 
-# Print expanded commands as they are about to be executed
-set -o xtrace
-
-# Print shell input lines as they are read in
-set -o verbose
-
 # Fail if any command exits with a non-zero exit status
 set -o errexit
 
@@ -94,6 +88,9 @@ az pipelines create --name 'Remove control plane' --branch main --description 'R
 az pipelines create --name 'Update repository' --branch main --description 'Updates the codebase' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/20-update-ado-repository.yaml --repository $repo_id --repository-type tfsgit
 
 az pipelines create --name 'Deploy Configuration Web App' --branch main --description 'Deploys the configuration Web App' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/21-deploy-web-app.yaml --repository $repo_id --repository-type tfsgit
+
+az pipelines create --name 'Create Sample Deployer Configuration' --branch main --description 'Creates a sample configuration for the control plane deployment' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/22-sample-deployer-config.yaml --repository $repo_id --repository-type tfsgit
+
 
 az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_varsion=1.2.8 --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --authorize true
 
