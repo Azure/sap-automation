@@ -120,7 +120,7 @@ Write-Host $MGMTData
 
 Write-Host "The browser will now open, please create the Service Connection for the 'Azure Resource Manager' type"
 
-service_url=$Env:ADO_ORGANIZATION+"/"+$Env:ADO_PROJECT + "/_settings/adminservices"
+$service_url=$Env:ADO_ORGANIZATION+"/"+$Env:ADO_PROJECT + "/_settings/adminservices"
 Start-Process $service_url.Replace("""", "")
 
 $ServiceConnection = Read-Host -Prompt "Enter the Service Connection Name you just created" -AsSecureString
