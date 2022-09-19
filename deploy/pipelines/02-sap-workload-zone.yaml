@@ -132,6 +132,7 @@ stages:
           - task: PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
