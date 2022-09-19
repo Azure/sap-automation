@@ -83,7 +83,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
-            submodules:                'recursive'
+            submodules:                recursive
           - bash: |
                 #!/bin/bash
 
