@@ -56,10 +56,7 @@ if [ -z $ADO_PROJECT ]; then
   exit 1
 fi
 
-if [ -z $DEVOPS_PROJECT_NAME ]; then
-  echo "Please enter the name of your Azure DevOps project using the export DEVOPS_PROJECT_NAME= command"
-  exit 1
-fi
+
 
 DEVOPS_ORGANIZATION=$ADO_ORGANIZATION
 DEVOPS_PROJECT_NAME=$ADO_PROJECT
