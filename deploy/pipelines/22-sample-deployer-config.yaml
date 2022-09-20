@@ -4,6 +4,7 @@
 # https://aka.ms/yaml
 
 name: Create Deployer Configuration
+trigger:                               none
 
 parameters:
   - name: deployer_environment_parameter
@@ -94,7 +95,7 @@ stages:
             inputs:
               targetType: "inline"
               script: |
-                $FolderName = "Foo2"
+                $FolderName = "WORKSPACES"
                 $Full = Join-Path -Path $($FolderName) -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $(deployer_folder))
                 $region = switch ("$(deployer_region)") {
                     "AUCE" { "australiacentral" }
