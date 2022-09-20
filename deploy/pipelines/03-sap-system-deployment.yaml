@@ -127,10 +127,7 @@ stages:
                   exit 2
                 fi
 
-                #handle both '_' and '-' in the SID name
-                SID=$(echo $(sap_system_folder) | cut -d'-' -f4 | cut -d'_' -f4 | xargs)
-
-                if [ ! -z ${SID} ]; then
+                if [ -z ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
                   exit 2
                 fi

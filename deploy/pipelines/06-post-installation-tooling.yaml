@@ -78,6 +78,7 @@ stages:
           - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Running Post Installation on Systems defined in $(sap_system_folder)"
@@ -155,7 +156,7 @@ stages:
                 else
                   dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                 fi
-                
+
                 if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml ]; then
                   echo -e "$boldred--- $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found."

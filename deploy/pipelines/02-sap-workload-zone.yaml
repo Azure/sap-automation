@@ -133,7 +133,6 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
-
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
@@ -407,7 +406,7 @@ stages:
                 cd $(Build.Repository.LocalPath)
 
                 echo -e "$green--- Pull latest ---$reset"
-                  git pull
+                  git pull 
 
                 added=0
                 if [ -f ${workload_environment_file_name} ]; then

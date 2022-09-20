@@ -83,7 +83,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
-            submodules:                recursive
+            submodules:                true
           - bash: |
                 #!/bin/bash
 
@@ -102,7 +102,7 @@ stages:
                     git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                    az config set extension.use_dynamic_install=yes_without_prompt
+                    az config set extension.use_dynamic_install=yes_without_promp
 
                     devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
                     if [ -z $devops_extension_installed ]; then
@@ -189,7 +189,7 @@ stages:
                             exit 2
                         fi
 
-                        if [ -z ${WEB_APP_CLIENT_SECRET} ]; then
+                        if [ -z ${TF_VAR_webapp_client_secret} ]; then
                             echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
                             exit 2
                         fi

@@ -1,0 +1,197 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+name: Create Deployer Configuration
+
+parameters:
+  - name: deployer_environment_parameter
+    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: MGMT
+
+  - name: deployer_region_parameter
+    displayName: Deployer region name code (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: WEEU
+    values:
+      - AUCE
+      - AUC2
+      - AUEA
+      - AUSE
+      - BRSO
+      - BRSE
+      - BRUS
+      - CACE
+      - CAEA
+      - CEIN
+      - CEUS
+      - CEUA
+      - EAAS
+      - EAUS
+      - EUS2
+      - FRCE
+      - FRSO
+      - GENO
+      - GEWC
+      - JAEA
+      - JAWE
+      - JINC
+      - JINW
+      - KOCE
+      - KOSO
+      - NCUS
+      - NOEU
+      - NOEA
+      - NOWE
+      - SANO
+      - SAWE
+      - SCUS
+      - SCUG
+      - SOEA
+      - SOIN
+      - SECE
+      - SWNO
+      - SWWE
+      - UACE
+      - UANO
+      - UKSO
+      - UKWE
+      - WCUS
+      - WEEU
+      - WEIN
+      - WEUS
+      - WUS2
+
+variables:
+  - name: deployer_environment
+    value: ${{ parameters.deployer_environment_parameter }}
+
+  - name: deployer_region
+    value: ${{ parameters.deployer_region_parameter }}
+
+  - name: deployer_folder
+    value: ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+
+  - name: deployer_file
+    value: ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+
+
+stages:
+  - stage: Create_Configuration
+    displayName: Create Deployer Configuration
+    jobs:
+      - job: Create_Deployer_Configuration
+        displayName: Create Deployer Configuration
+        workspace:
+          clean: all
+        steps:
+          - task: PostBuildCleanup@3
+          - checkout: self
+            persistCredentials: true
+          - task: PowerShell@2
+            inputs:
+              targetType: "inline"
+              script: |
+                $FolderName = "Foo2"
+                $Full = Join-Path -Path $($FolderName) -ChildPath (Join-Path -Path "DEPLOYER" -ChildPath $(deployer_folder))
+                $region = switch ("$(deployer_region)") {
+                    "AUCE" { "australiacentral" }
+                    "AUC2" { "australiacentral2" }
+                    "AUEA" { "australiaeast" }
+                    "AUSE" { "australiasoutheast" }
+                    "BRSO" { "brazilsouth" }
+                    "BRSE" { "brazilsoutheast" }
+                    "BRUS" { "brazilus" }
+                    "CACE" { "canadacentral" }
+                    "CAEA" { "canadaeast" }
+                    "CEIN" { "centralindia" }
+                    "CEUS" { "centralus" }
+                    "CEUA" { "centraluseuap" }
+                    "EAAS" { "eastasia" }
+                    "EAUS" { "eastus" }
+                    "EUS2" { "eastus2" }
+                    "FRCE" { "francecentral" }
+                    "FRSO" { "francesouth" }
+                    "GENO" { "germanynorth" }
+                    "GEWC" { "germanywestcentral" }
+                    "JAEA" { "japaneast" }
+                    "JAWE" { "japanwest" }
+                    "JINC" { "jioindiacentral" }
+                    "JINW" { "jioindiawest" }
+                    "KOCE" { "koreacentral" }
+                    "KOSO" { "koreasouth" }
+                    "NCUS" { "northcentralus" }
+                    "NOEU" { "northeurope" }
+                    "NOEA" { "norwayeast" }
+                    "NOWE" { "norwaywest" }
+                    "SANO" { "southafricanorth" }
+                    "SAWE" { "southafricawest" }
+                    "SCUS" { "southcentralus" }
+                    "SCUG" { "southcentralusstg" }
+                    "SOEA" { "southeastasia" }
+                    "SOIN" { "southindia" }
+                    "SECE" { "swedencentral" }
+                    "SWNO" { "switzerlandnorth" }
+                    "SWWE" { "switzerlandwest" }
+                    "UACE" { "uaecentral" }
+                    "UANO" { "uaenorth" }
+                    "UKSO" { "uksouth" }
+                    "UKWE" { "ukwest" }
+                    "WCUS" { "westcentralus" }
+                    "WEEU" { "westeurope" }
+                    "WEIN" { "westindia" }
+                    "WEUS" { "westus" }
+                    "WUS2" { "westus2" }
+                }
+                Write-Host $Full
+                $Full_FileName = (Join-Path -path $Full -ChildPath "$(deployer_file)")
+                Write-Host $Full_FileName
+                                
+                git fetch -q --all
+                git checkout -q $(Build.SourceBranchName)
+                git pull
+                                
+                if (Test-Path $Full) {
+                    cd $Full
+
+                    if (Test-Path $(deployer_file)) {
+                    }
+                    else {
+                        $DeployerFile = New-Item -Path $Full -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
+                    }
+                                
+                    Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
+                    Add-Content $(deployer_file) "region = ""$$region"""
+                    
+                    Write-Host $(deployer_file)
+                                
+                    git config --global user.email "$(Build.RequestedForEmail)"
+                    git config --global user.name "$(Build.RequestedFor)"
+                    git add -f $(deployer_file)
+                    git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
+                                
+                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                }
+                else {
+                    #PowerShell Create directory if not exists
+                    $Folder = New-Item $Full -ItemType Directory
+                    cd $Folder.FullName
+                                
+                    $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
+                                
+                    Add-Content $DeployerFile "environment = ""$(deployer_environment)"""
+                                
+                    Add-Content $DeployerFile "region = ""$$region"""
+                                
+                    git config --global user.email "$(Build.RequestedForEmail)"
+                    git config --global user.name "$(Build.RequestedFor)"
+                    git add -f $DeployerFile.Name
+                    git commit -m "Creat Deployer Sample [skip ci]"
+                                
+                    git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                }
+              failOnStderr: false
+              showWarnings: true
+              pwsh: true
