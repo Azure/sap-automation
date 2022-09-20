@@ -34,7 +34,7 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 type=$(az account show --query "user.cloudShellID")
-if [ -n $type ] ; then
+if [ -n "${type}" ] ; then
   az logout
   az login --use-device-code
 
@@ -42,10 +42,24 @@ fi
 az config set extension.use_dynamic_install=yes_without_prompt
 
 devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-if [ -z $devops_extension_installed ]; then
+if [ -z "${devops_extension_installed}" ]; then
   az extension add --name azure-devops --output none
 fi
 
+if [ -z $ADO_ORGANIZATION ]; then
+  echo "Please enter the name of your Azure DevOps organization using the export ADO_ORGANIZATION= command"
+  exit 1
+fi
+
+if [ -z $ADO_PROJECT ]; then
+  echo "Please enter the name of your Azure DevOps project using the export ADO_PROJECT= command"
+  exit 1
+fi
+
+if [ -z $DEVOPS_PROJECT_NAME ]; then
+  echo "Please enter the name of your Azure DevOps project using the export DEVOPS_PROJECT_NAME= command"
+  exit 1
+fi
 
 DEVOPS_ORGANIZATION=$ADO_ORGANIZATION
 DEVOPS_PROJECT_NAME=$ADO_PROJECT
@@ -62,15 +76,17 @@ if [ -z $extension_name ]; then
   az devops extension install --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --output none
 fi
 
-
+echo "Creating the project: ${DEVOPS_PROJECT_NAME}"
 id=$(az devops project create --name ${DEVOPS_PROJECT_NAME} --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
 
 repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id --query "[].id | [0]" | tr -d \")
 
+echo "Importing the repo"
 az repos import create --git-url https://github.com/Azure/sap-automation.git --org  ${DEVOPS_ORGANIZATION} --project $id --repository $repo_id
 
 az repos update --repository $repo_id --org ${DEVOPS_ORGANIZATION} --project $id --default-branch main
 
+echo "Creating the pipelines"
 az pipelines create --name 'Deploy Controlplane' --branch main --description 'Deploys the control plane' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/01-deploy-control-plane.yaml --repository $repo_id --repository-type tfsgit
 
 az pipelines create --name 'SAP workload zone deployment' --branch main --description 'Deploys the workload zone' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/02-sap-workload-zone.yaml --repository $repo_id --repository-type tfsgit
