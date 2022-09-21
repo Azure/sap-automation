@@ -102,6 +102,9 @@ az pipelines create --name 'Deploy Configuration Web App' --branch main --descri
 
 az pipelines create --name 'Create Sample Deployer Configuration' --branch main --description 'Creates a sample configuration for the control plane deployment' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/22-sample-deployer-config.yaml --repository $repo_id --repository-type tfsgit --output none
 
+az pipelines create --name 'Uådate Key Vault' --branch main --description 'Updates Key vault for traing' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/23-levelup-configuration.yaml --repository $repo_id --repository-type tfsgit --output none
+
+
 az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --authorize true --output none --output none
  
 az pipelines variable-group create --name SDAF-MGMT --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID='Enter your app registration ID here' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' WEB_APP_CLIENT_SECRET='Enter your App registration secret here' PAT='Enter your personal access token here' POOL=MGMT-POOL AZURE_CONNECTION_NAME=Control_Plane_Service_Connection --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --authorize true --output none
