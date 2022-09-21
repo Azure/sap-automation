@@ -44,9 +44,10 @@ data "azurerm_subnet" "bastion" {
 # Create a public IP address for the Azure Bastion
 resource "azurerm_public_ip" "bastion" {
   count = var.bastion_deployment ? 1 : 0
-  name = format("%s%s%s",
+  name = format("%s%s%s%s",
     var.naming.resource_prefixes.bastion_pip,
     local.prefix,
+    var.naming.separator,
     var.naming.resource_suffixes.bastion_pip
   )
   location = local.vnet_mgmt_exists ? (
@@ -64,9 +65,10 @@ resource "azurerm_public_ip" "bastion" {
 # Create the Bastion Host
 resource "azurerm_bastion_host" "bastion" {
   count = var.bastion_deployment ? 1 : 0
-  name = format("%s%s%s",
+  name = format("%s%s%s%s",
     var.naming.resource_prefixes.bastion_host,
     local.prefix,
+    var.naming.separator,
     var.naming.resource_suffixes.bastion_host
   )
   location = local.vnet_mgmt_exists ? (

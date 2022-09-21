@@ -102,7 +102,7 @@ stages:
                     git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                    az config set extension.use_dynamic_install=yes_without_promp
+                    az config set extension.use_dynamic_install=yes_without_prompt
 
                     devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
                     if [ -z $devops_extension_installed ]; then
@@ -365,7 +365,8 @@ stages:
                     echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                     added=0
                     cd $HOME
-                    git pull
+                    git fetch -q --all
+                    git pull -q
 
                     if [ -f ${deployer_environment_file_name} ]; then
 

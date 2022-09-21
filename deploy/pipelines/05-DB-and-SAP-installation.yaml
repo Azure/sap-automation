@@ -123,6 +123,8 @@ stages:
           - task:                      PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
+
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -170,7 +172,7 @@ stages:
                 else
                   dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                 fi
-                
+
                 if [ ! -n ${SID} ]; then
                   echo "##vso[task.logissue type=error]SID was not found in $(sap_system_folder)."
                   exit 2
@@ -206,7 +208,7 @@ stages:
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
                 sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
-                
+
                 fqdn="$(grep -m1 "$sap_fqdn:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
                 if [ -z $fqdn ] ; then
                   sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
@@ -266,6 +268,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -322,6 +325,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -371,6 +375,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -420,6 +425,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -472,6 +478,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -509,8 +516,8 @@ stages:
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
-                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
             displayName:               Copy Log files
 
@@ -544,6 +551,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -581,8 +589,8 @@ stages:
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
-                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
             displayName:               Copy Log files
 
@@ -620,6 +628,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -657,8 +666,8 @@ stages:
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
-                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
             displayName:               Copy Log files
   - stage:                             HighAvailability_Setup
@@ -693,6 +702,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -750,6 +760,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -789,8 +800,8 @@ stages:
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
-                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
             displayName:               Copy Log files
 
@@ -829,6 +840,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
             timeoutInMinutes:          0
@@ -868,8 +880,8 @@ stages:
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
-                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
             displayName:               Copy Log files
 
@@ -899,6 +911,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -935,8 +948,8 @@ stages:
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
-                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
             displayName:               Copy Log files
 
@@ -970,7 +983,7 @@ stages:
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 git checkout -q $(Build.SourceBranchName)
                 git branch --set-upstream-to=origin/$(Build.SourceBranchName)
-                git pull 
+                git pull
                 cd $(Build.Repository.LocalPath)
                 added=0
                 if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
@@ -978,8 +991,8 @@ stages:
                   added=1
                 fi
                 if [ 1 == $added ]; then
-                  git commit -m "Copy all Logs $(Build.DefinitionName) [skip ci]" 
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push 
+                  git commit -m "Copy all Logs $(Build.DefinitionName) [skip ci]"
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
                 if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
