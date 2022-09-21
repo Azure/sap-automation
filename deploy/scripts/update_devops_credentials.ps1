@@ -120,7 +120,6 @@ $scopes = "/subscriptions/" + $ControlPlaneSubscriptionID
 Write-Host "Creating the deployment credentials for the control plane. Service Principal Name"  $app_name
 
 $found_appName = (az ad sp list --show-mine --query "[?displayName=='$app_name'].displayName | [0]"  --only-show-errors)
-$MGMTData = null
 if ($found_appName -eq $app_name) {
   Write-Host "Found an existing Service Principal " $app_name
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$app_name']| [0]"  --only-show-errors) | ConvertFrom-Json
