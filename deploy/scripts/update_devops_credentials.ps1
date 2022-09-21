@@ -30,7 +30,7 @@ az config set extension.use_dynamic_install=yes_without_prompt
 
 az login
 
-$url = ( az devops project list --organization $Organization --query "[?name=='$Project'].value | [0].url")
+$url = ( az devops project list --organization $Organization --query "value | [0].url")
 $idx = $url.IndexOf("_api")
 $pat_url = $url.Substring(0, $idx) + "_usersSettings/tokens"
 
@@ -40,7 +40,7 @@ if ($GroupID.Length -eq 0) {
     exit
 }
 
-Write-Host "Found group ID: $GroupID"
+Write-Host "Found group ID $GroupID"
 
 Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
 
