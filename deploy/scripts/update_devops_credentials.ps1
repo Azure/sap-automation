@@ -102,6 +102,7 @@ if ($found_appName -eq $app_name) {
   Write-Host "Found an existing Service Principal " $app_name
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$app_name']| [0]") | ConvertFrom-Json
   Write-Host "Updating the variable group"
+  Write-Host "az pipelines variable-group variable update --group-id" $GroupID "--project" $Project  --organization "$Organization" "--name" "ARM_CLIENT_ID" "--value" $ExistingData.appId "--output none"
   az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none
   az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none
   Write-Host "Please update the Control Plane Service Principal Password manually if needed"
@@ -110,6 +111,7 @@ else {
   Write-Host "Creating the Service Principal" + $app_name
   $MGMTData = (az ad sp create-for-rbac --role="Contributor" --scopes=$scopes --name=$app_name) | ConvertFrom-Json
   Write-Host "Updating the variable group"
+  Write-Host "az pipelines variable-group variable update --group-id" $GroupID "--project" $Project  --organization "$Organization" "--name" "ARM_CLIENT_ID" "--value" $MGMTData.appId "--output none"
 
   az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $MGMTData.appId --output none
   az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $MGMTData.tenant --output none
