@@ -34,6 +34,13 @@ $url = ( az devops project list --organization $Organization --query "value | [0
 $idx = $url.IndexOf("_api")
 $pat_url = $url.Substring(0, $idx) + "_usersSettings/tokens"
 
+$GroupID = (az pipelines variable-group list  --project $Project --query "[?name=='SDAF-MGMT'].id | [0]")
+if ($GroupID.Length -eq 0) {
+    Write-Host "Could not find variable group SDAF-MGMT"
+    exit
+}
+
+
 Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
 
 Start-Process $pat_url.Replace("""", "")
@@ -48,7 +55,6 @@ Start-Process $pool_url.Replace("""", "")
 
 Read-Host -Prompt "Once you have created the Agent pool, Press any key to continue"
 
-$GroupID = (az pipelines variable-group list  --project $Project --query "[?name=='SDAF-MGMT'].id | [0]")
 
 Write-Host "Creating the App registration in Azure Active Directory"
 
