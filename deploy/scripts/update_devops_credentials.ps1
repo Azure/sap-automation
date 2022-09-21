@@ -1,10 +1,3 @@
-$Env:ADO_ORGANIZATION="https://dev.azure.com/azurecat-sapdeploy"
-
-$Env:ADO_PROJECT="Demo72"
-$Env:YourPrefix="KFO3"
-$Env:ControlPlaneSubscriptionID="dcb2713e-5dc8-4139-a9af-9768287bbb8d"
-$Env:DevSubscriptionID="8d8422a3-a9c1-4fe9-b880-adcf61557c71"
-
 
 $Organization = $Env:ADO_ORGANIZATION
 
