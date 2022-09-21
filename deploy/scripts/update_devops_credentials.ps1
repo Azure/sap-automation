@@ -34,7 +34,7 @@ $url = ( az devops project list --organization $Organization --query "value | [0
 $idx = $url.IndexOf("_api")
 $pat_url = $url.Substring(0, $idx) + "_usersSettings/tokens"
 
-$GroupID = (az pipelines variable-group list  --project $Project --query "[?name=='SDAF-MGMT'].id | [0]")
+$GroupID = (az pipelines variable-group list  --project $Project --organization $Organization --query "[?name=='SDAF-MGMT'].id | [0]")
 if ($GroupID.Length -eq 0) {
     Write-Host "Could not find variable group SDAF-MGMT"
     exit
