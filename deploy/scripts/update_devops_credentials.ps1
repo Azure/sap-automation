@@ -144,7 +144,11 @@ else {
   az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $MGMTData.tenant --output none --only-show-errors
   az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none --only-show-errors
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $MGMTData.password
-  az devops service-endpoint azurerm create --project $Project --organization $Organization --azure-rm-service-principal-id $MGMTData.appId --azure-rm-subscription-id $ControlPlaneSubscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $MGMTData.tenant --name "Control_Plane_Service_Connection" --output none --only-show-errors
+  $epExists = (az devops service-endpoint list  --project $Project --organization $Organization --query "[?name=='Control_Plane_Service_Connection'].name | [0]")
+  if ($epExists -ne 'Control_Plane_Service_Connection') {
+    az devops service-endpoint azurerm create --project $Project --organization $Organization --azure-rm-service-principal-id $MGMTData.appId --azure-rm-subscription-id $ControlPlaneSubscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $MGMTData.tenant --name "Control_Plane_Service_Connection" --output none --only-show-errors
+  }
+  
   az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "AZURE_CONNECTION_NAME" --value "Control_Plane_Service_Connection" --only-show-errors
 }
 
@@ -174,8 +178,12 @@ else {
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $Data.tenant --output none --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_CLIENT_SECRET" --value $Data.password --secret true --output none --only-show-errors
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $Data.password
-  az devops service-endpoint azurerm create --project $Project --organization $Organization --azure-rm-service-principal-id $Data.appId --azure-rm-subscription-id $DevSubscriptionID --azure-rm-subscription-name $DevSubscriptionName --azure-rm-tenant-id $Data.tenant --name "DEV_Service_Connection" --output none --only-show-errors
+  $epExists = (az devops service-endpoint list  --project $Project --organization $Organization --query "[?name=='DEV_Service_Connection'].name | [0]")
+  if ($epExists -ne 'DEV_Service_Connection') {
+    az devops service-endpoint azurerm create --project $Project --organization $Organization --azure-rm-service-principal-id $Data.appId --azure-rm-subscription-id $DevSubscriptionID --azure-rm-subscription-name $DevSubscriptionName --azure-rm-tenant-id $Data.tenant --name "DEV_Service_Connection" --output none --only-show-errors
+  }
 }
 
+az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "PAT" --value $PAT --secret true --only-show-errors
 
 
