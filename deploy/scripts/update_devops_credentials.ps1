@@ -149,7 +149,8 @@ else {
 }
 
 
-$DevGroupID = (az pipelines variable-group list --project $Project --query "[?name=='SDAF-DEV'].id | [0]")
+$DevGroupID = (az pipelines variable-group list --project $Project  --organization $Organization --query "[?name=='SDAF-DEV'].id | [0]")
+Write-Host "SDAF-DEV variable group ID" $DevGroupID
 $dev_scopes = "/subscriptions/" + $DevSubscriptionID
 $dev_app_name = $DevPrefix + " Deployment credential"
 
@@ -159,8 +160,8 @@ if ($found_appName -eq $dev_app_name) {
   Write-Host "Found an existing Service Principal " $dev_app_name
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$dev_app_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
   Write-Host "Please update the Workoad zone Service Principal Password manually if needed"
 }
 else {
