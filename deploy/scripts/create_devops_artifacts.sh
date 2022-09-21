@@ -88,6 +88,8 @@ az pipelines create --name 'SAP workload zone deployment' --branch main --descri
 
 az pipelines create --name 'SAP Software acquisition' --branch main --description 'Downloads the software from SAP' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/04-sap-software-download.yaml --repository $repo_id --repository-type tfsgit --output none
 
+az pipelines create --name 'SAP system deployment (infrastructure)' --branch main --description 'Downloads the software from SAP' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/03-sap-system-deployment.yaml --repository $repo_id --repository-type tfsgit --output none
+
 az pipelines create --name 'Configuration and SAP installation' --branch main --description 'Configures the Operating System and installs the SAP application' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/05-DB-and-SAP-installation.yaml --repository $repo_id --repository-type tfsgit --output none
 
 az pipelines create --name 'Remove deployments' --branch main --description 'Removes either the SAP system or the workload zone' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/10-remover-terraform.yaml --repository $repo_id --repository-type tfsgit --output none
