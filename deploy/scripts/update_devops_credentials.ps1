@@ -4,11 +4,31 @@ $Organization = $Env:ADO_ORGANIZATION
 $Project = $Env:ADO_PROJECT
 $YourPrefix = $Env:YourPrefix
 
+if ($Organization.Length -eq 0) {
+    Write-Host "Organization is not set"
+    $Organization = Read-Host "Enter your ADO organization URL"
+}
+
+if ($Project.Length -eq 0) {
+  Write-Host "Project is not set"
+  $Organization = Read-Host "Enter your ADO project name"
+}
+
+if ($YourPrefix.Length -eq 0) {
+  Write-Host "YourPrefix is not set"
+  $YourPrefix = Read-Host "Enter your prefix to be prepended to the Azure AD resources"
+}
+
+
 $MgmtPrefix = $YourPrefix + "-SDAF-MGMT"
 $DEVPrefix = $YourPrefix + "-SDAF-DEV"
 $Name = $MgmtPrefix + "-configuration-app"
 $ControlPlaneSubscriptionID = $Env:ControlPlaneSubscriptionID
 $DevSubscriptionID = $Env:DevSubscriptionID
+
+az config set extension.use_dynamic_install=yes_without_prompt
+
+az login
 
 $url = ( az devops project list --organization $Organization --query "value | [0].url")
 $idx = $url.IndexOf("_api")
