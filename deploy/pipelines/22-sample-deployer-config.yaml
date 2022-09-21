@@ -102,7 +102,7 @@ stages:
                     git pull
 
                     $FolderName = "WORKSPACES"
-                    $location = switch ("$(deployer_region)") {
+                    $region = switch ("$(deployer_region)") {
                         "AUCE" { "australiacentral" }
                         "AUC2" { "australiacentral2" }
                         "AUEA" { "australiaeast" }
