@@ -107,7 +107,7 @@ stages:
                     git pull
 
                     $FolderName = "WORKSPACES"
-                    $region = switch ("$(deployer_region)") {
+                    $location = switch ("$(deployer_region)") {
                         "AUCE" { "australiacentral" }
                         "AUC2" { "australiacentral2" }
                         "AUEA" { "australiaeast" }
@@ -168,7 +168,7 @@ stages:
                         else {
                             $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
                             Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
-                            Add-Content $(deployer_file) "region = ""$region"""
+                            Add-Content $(deployer_file) "location = ""$region"""
                             Add-Content $(deployer_file) ""
                             Add-Content $(deployer_file) "management_network_logical_name = ""DEP00"""
                             Add-Content $(deployer_file) "management_network_address_space = ""10.170.20.0/24"""
@@ -198,7 +198,7 @@ stages:
                         cd $Folder.FullName
                         $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
                         Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
-                        Add-Content $(deployer_file) "region = ""$region"""
+                        Add-Content $(deployer_file) "location = ""$region"""
                         Add-Content $(deployer_file) ""
                         Add-Content $(deployer_file) "management_network_logical_name = ""DEP00"""
                         Add-Content $(deployer_file) "management_network_address_space = ""10.170.20.0/24"""
@@ -232,7 +232,7 @@ stages:
                         else {
                             $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
                             Add-Content $(library_file) "environment = ""$(deployer_environment)"""
-                            Add-Content $(library_file) "region = ""$region"""
+                            Add-Content $(library_file) "location = ""$region"""
                             Add-Content $(library_file) ""
                             Add-Content $(library_file) "dns_label = ""sap.contoso.net"""
                             git config --global user.email "$(Build.RequestedForEmail)"
@@ -253,7 +253,7 @@ stages:
                         Write-Host "Creating Library file"
                         $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
                         Add-Content $(library_file) "environment = ""$(deployer_environment)"""
-                        Add-Content $(library_file) "region = ""$region"""
+                        Add-Content $(library_file) "location = ""$region"""
                         Add-Content $(library_file) ""
                         Add-Content $(library_file) "dns_label = ""sap.contoso.net"""
                         git config --global user.email "$(Build.RequestedForEmail)"
