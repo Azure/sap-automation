@@ -25,6 +25,29 @@ $DEVPrefix = $YourPrefix + "-SDAF-DEV"
 $Name = $MgmtPrefix + "-configuration-app"
 $ControlPlaneSubscriptionID = $Env:ControlPlaneSubscriptionID
 $DevSubscriptionID = $Env:DevSubscriptionID
+$ControlPlaneSubscriptionName = $Env:ControlPlaneSubscriptionName
+$DevSubscriptionName = $Env:DevSubscriptionName
+
+if ($ControlPlaneSubscriptionID.Length -eq 0) {
+  Write-Host "ControlPlaneSubscriptionID is not set"
+  exit
+}
+
+if ($ControlPlaneSubscriptionName.Length -eq 0) {
+  Write-Host "ControlPlaneSubscriptionName is not set"
+  exit
+}
+
+if ($DevSubscriptionID.Length -eq 0) {
+  Write-Host "DevSubscriptionID is not set"
+  exit
+}
+
+if ($DevSubscriptionName.Length -eq 0) {
+  Write-Host "DevSubscriptionName is not set"
+  exit
+}
+
 
 az config set extension.use_dynamic_install=yes_without_prompt  --only-show-errors
 
@@ -145,6 +168,8 @@ else {
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $Data.appId --output none  --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $Data.tenant --output none  --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "ARM_CLIENT_SECRET" --value $Data.password --secret true --output none  --only-show-errors
+  $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY=$Data.password
+  az devops service-endpoint azurerm create --project $Project  --organization $Organization --azure-rm-service-principal-id $Data.appId --azure-rm-subscription-id $DevSubscriptionID --azure-rm-subscription-name $DevSubscriptionName --azure-rm-tenant-id $Data.tenant --name "DEV_Service_Connection" --output none  --only-show-errors
 }
 
 
