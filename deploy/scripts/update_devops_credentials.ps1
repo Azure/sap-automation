@@ -8,10 +8,16 @@ if ($Organization.Length -eq 0) {
   Write-Host "Organization is not set"
   $Organization = Read-Host "Enter your ADO organization URL"
 }
+else {
+  Write-Host "Using Organization: $Organization"
+}
 
 if ($Project.Length -eq 0) {
   Write-Host "Project is not set"
   $Organization = Read-Host "Enter your ADO project name"
+}
+else {
+  Write-Host "Using Project: $Project"
 }
 
 if ($YourPrefix.Length -eq 0) {
