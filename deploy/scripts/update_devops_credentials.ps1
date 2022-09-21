@@ -65,7 +65,7 @@ if ($found_appRegistration -eq $Name) {
   $ExistingData = (az ad app list --show-mine --query "[?Name=='$app_name']| [0]") | ConvertFrom-Json
   Write-Host "Updating the variable group (APP_REGISTRATION_APP_ID)"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "APP_REGISTRATION_APP_ID" --value $ExistingData.appId
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "APP_REGISTRATION_APP_ID" --value $ExistingData.appId
   Write-Host "Please update the WEB_APP_CLIENT_SECRET manually if needed in variable group SDAF-MGMT"
 
 }
@@ -78,16 +78,16 @@ else {
 
   Write-Host "Updating the variable group (APP_REGISTRATION_APP_ID)"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "APP_REGISTRATION_APP_ID" --value $APP_REGISTRATION_ID
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "APP_REGISTRATION_APP_ID" --value $APP_REGISTRATION_ID
 
   $passw = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password")
   Write-Host "Updating the variable group (WEB_APP_CLIENT_SECRET)"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "WEB_APP_CLIENT_SECRET" --value $passw --secret true
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "WEB_APP_CLIENT_SECRET" --value $passw --secret true
   }
 
 
-az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_SUBSCRIPTION_ID" --value $ControlPlaneSubscriptionID
+az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_SUBSCRIPTION_ID" --value $ControlPlaneSubscriptionID
 
 
 $app_name = $MgmtPrefix + " Deployment credential"
@@ -101,8 +101,8 @@ if ($found_appName -eq $app_name) {
   Write-Host "Found an existing Service Principal " $app_name
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$app_name']| [0]") | ConvertFrom-Json
   Write-Host "Updating the variable group"
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none
   Write-Host "Please update the Control Plane Service Principal Password manually if needed"
 }
 else {
@@ -110,11 +110,11 @@ else {
   $MGMTData = (az ad sp create-for-rbac --role="Contributor" --scopes=$scopes --name=$app_name) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_CLIENT_ID" --value $MGMTData.appId --output none
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_TENANT_ID" --value $MGMTData.tenant --output none
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $MGMTData.appId --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $MGMTData.tenant --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none
 }
-az pipelines variable-group variable update --group-id $GroupID --project $Project --name "PAT" --value $PAT --secret true
+az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "PAT" --value $PAT --secret true
 
 $DevGroupID = (az pipelines variable-group list  --project $Project --query "[?name=='SDAF-DEV'].id | [0]")
 $dev_scopes = "/subscriptions/" + $DevSubscriptionID
@@ -126,8 +126,8 @@ if ($found_appName -eq $dev_app_name) {
   Write-Host "Found an existing Service Principal " $dev_app_name
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$dev_app_name'] | [0]") | ConvertFrom-Json
   Write-Host "Updating the variable group"
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none
   Write-Host "Please update the Workoad zone Service Principal Password manually if needed"
 }
 else {
@@ -135,13 +135,13 @@ else {
   $Data = (az ad sp create-for-rbac --role="Contributor" --scopes=$dev_scopes --name=$dev_app_name) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
-  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --name "ARM_SUBSCRIPTION_ID" --value $DevSubscriptionID --output none
-  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --name "ARM_CLIENT_ID" --value $Data.appId --output none
-  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --name "ARM_TENANT_ID" --value $Data.tenant --output none
-  az pipelines variable-group variable update --group-id $DevGroupID --project $Project --name "ARM_CLIENT_SECRET" --value $Data.password --secret true --output none
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "ARM_SUBSCRIPTION_ID" --value $DevSubscriptionID --output none
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $Data.appId --output none
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $Data.tenant --output none
+  az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "ARM_CLIENT_SECRET" --value $Data.password --secret true --output none
 }
 
-az pipelines variable-group variable update --group-id $DevGroupID --project $Project --name "PAT" --value $PAT --secret true
+az pipelines variable-group variable update --group-id $DevGroupID --project $Project  --organization $Organization --name "PAT" --value $PAT --secret true
 
 Write-Host "Next create a Service Connection, please use the details shown below"
 Write-Host $MGMTData
@@ -153,5 +153,5 @@ Start-Process $service_url.Replace("""", "")
 
 $ServiceConnection = Read-Host -Prompt "Enter the Service Connection Name you just created" -AsSecureString
 
-az pipelines variable-group variable create --group-id $GroupID --project $Project --name "AZURE_CONNECTION_NAME" --value $ServiceConnection
+az pipelines variable-group variable create --group-id $GroupID --project $Project  --organization $Organization --name "AZURE_CONNECTION_NAME" --value $ServiceConnection
 
