@@ -116,8 +116,9 @@ else {
   az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $MGMTData.appId --output none  --only-show-errors
   az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $MGMTData.tenant --output none  --only-show-errors
   az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none  --only-show-errors
+  $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY=$MGMTData.password
   az devops service-endpoint azurerm create --project $Project  --organization $Organization --azure-rm-service-principal-id $MGMTData.appId --azure-rm-subscription-id $ControlPlaneSubscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $MGMTData.tenant --name "Control_Plane_Service_Connection" --output none  --only-show-errors
-  az pipelines variable-group variable create --group-id $GroupID --project $Project  --organization $Organization --name "AZURE_CONNECTION_NAME" --value "Control_Plane_Service_Connection"  --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "AZURE_CONNECTION_NAME" --value "Control_Plane_Service_Connection"  --only-show-errors
 }
 
 
