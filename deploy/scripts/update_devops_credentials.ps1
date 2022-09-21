@@ -30,7 +30,7 @@ az config set extension.use_dynamic_install=yes_without_prompt
 
 az login
 
-$url = ( az devops project list --organization $Organization --query "value | [0].url")
+$url = ( az devops project list --organization $Organization --query "[?name=='$Project'].value | [0].url")
 $idx = $url.IndexOf("_api")
 $pat_url = $url.Substring(0, $idx) + "_usersSettings/tokens"
 
@@ -40,6 +40,7 @@ if ($GroupID.Length -eq 0) {
     exit
 }
 
+Write-Host "Found group ID: $GroupID"
 
 Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
 
@@ -126,8 +127,8 @@ if ($found_appName -eq $dev_app_name) {
   Write-Host "Found an existing Service Principal " $dev_app_name
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$dev_app_name'] | [0]") | ConvertFrom-Json
   Write-Host "Updating the variable group"
-  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none
-  az pipelines variable-group variable update --group-id $GroupID --project $Project  --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none
   Write-Host "Please update the Workoad zone Service Principal Password manually if needed"
 }
 else {
