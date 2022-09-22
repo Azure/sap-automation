@@ -280,7 +280,7 @@ stages:
               secrets_set=1
 
                 # Check if running on deployer
-              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+              if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                 echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
 
@@ -324,7 +324,7 @@ stages:
 
                 ip_added_workload=0
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" == $(this_agent) ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
                   if [ -n "${workload_key_vault}" ]; then
@@ -337,7 +337,7 @@ stages:
                 ip_added_control_plane=0
                 az account set --subscription ${STATE_SUBSCRIPTION}
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" == $(this_agent) ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ${this_ip} ---$reset"
                   if [ -n "${key_vault}" ]; then
@@ -383,9 +383,9 @@ stages:
                   fi
                 fi
 
-                if [[ ip_added_workload -eq 1 ]]; then
+                if [ ip_added_workload -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
-                  if [[ "azure pipelines" == $(this_agent) ]]; then
+                  if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#workload_key_vault}" != 0 ]; then
                       az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
                     fi
@@ -393,9 +393,9 @@ stages:
                 fi
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
-                if [[ ip_added_control_plane -eq 1 ]]; then
+                if [ ip_added_control_plane -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
-                  if [[ "azure pipelines" == $(this_agent) ]]; then
+                  if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#key_vault}" != 0 ]; then
                       az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
                     fi
