@@ -134,7 +134,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   )
 
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_web_avset ? null : local.web_zones[count.index % max(local.web_zone_count, 1)]
+  zone = local.use_web_avset ? null : try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
 
   network_interface_ids = var.application.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -267,7 +267,7 @@ resource "azurerm_windows_virtual_machine" "web" {
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? (
     null) : (
-    local.web_zones[count.index % max(local.web_zone_count, 1)]
+    try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
   )
 
   network_interface_ids = var.application.dual_nics ? (

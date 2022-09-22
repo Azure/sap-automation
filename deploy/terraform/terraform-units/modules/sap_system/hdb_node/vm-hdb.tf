@@ -190,7 +190,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
       azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
     )
   ) : null
-  zone = local.use_avset ? null : local.zones[count.index % max(local.db_zone_count, 1)]
+  zone = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
   network_interface_ids = local.enable_storage_subnet ? (
     var.options.legacy_nic_order ? (
