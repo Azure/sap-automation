@@ -57,10 +57,14 @@ if ($DevSubscriptionName.Length -eq 0) {
 
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 
-
 az login --scope https://graph.microsoft.com//.default
 
 $url = ( az devops project list --organization $Organization --query "value | [0].url")
+if ($url.Length -eq 0) {
+  Write-Host "Could not get the DevOps organization URL"
+  exit
+}
+
 $idx = $url.IndexOf("_api")
 $pat_url = $url.Substring(0, $idx) + "_usersSettings/tokens"
 
