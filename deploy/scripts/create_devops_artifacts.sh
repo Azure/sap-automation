@@ -61,10 +61,20 @@ DEVOPS_PROJECT_NAME=$ADO_PROJECT
 DEVOPS_PROJECT_DESCRIPTION=$DEVOPS_PROJECT_NAME
 
 echo "Installing the extensions"
-extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
-if [ -z ${extension_name} ]; then
-  az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
-fi
+
+az config set extension.use_dynamic_install=yes_without_prompt
+az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
+# extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
+# if [ -z ${extension_name} ]; then
+#   az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
+# fi
+
+
+az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
+# extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
+# if [ -z ${extension_name} ]; then
+#   az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
+# fi
 
 extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --query extensionName) | tr -d \"
 if [ -z ${extension_name} ]; then
@@ -85,6 +95,8 @@ echo "Creating the pipelines"
 az pipelines create --name 'Deploy Controlplane' --branch main --description 'Deploys the control plane' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/01-deploy-control-plane.yaml --repository $repo_id --repository-type tfsgit --output none
 
 az pipelines create --name 'SAP workload zone deployment' --branch main --description 'Deploys the workload zone' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/02-sap-workload-zone.yaml --repository $repo_id --repository-type tfsgit --output none
+
+az pipelines create --name 'SAP system deployment (infrastructure)' --branch main --description 'SAP system deployment (infrastructure)' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/03-sap-system-deployment.yaml --repository $repo_id --repository-type tfsgit --output none
 
 az pipelines create --name 'SAP Software acquisition' --branch main --description 'Downloads the software from SAP' --org  ${DEVOPS_ORGANIZATION} --project $id --skip-run --yaml-path /deploy/pipelines/04-sap-software-download.yaml --repository $repo_id --repository-type tfsgit --output none
 
