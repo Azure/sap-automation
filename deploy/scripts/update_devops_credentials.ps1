@@ -57,8 +57,8 @@ if ($DevSubscriptionName.Length -eq 0) {
 
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 
-Start-Process https://aka.ms/devicelogin
-az login --use-device-code 
+
+az login --scope https://graph.microsoft.com//.default
 
 $url = ( az devops project list --organization $Organization --query "value | [0].url")
 $idx = $url.IndexOf("_api")
