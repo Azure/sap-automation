@@ -154,8 +154,7 @@ stages:
                        export POOL_NAME=$(az pipelines pool list --query "[?name=='$TF_VAR_agent_pool'].name | [0]")
                        echo POOL ${POOL_NAME}
                        if [ -z ${POOL_NAME} ]; then
-                           echo "##vso[task.logissue type=error]Agent Pool $TF_VAR_agent_pool does not exist."
-                           exit 2
+                           echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
                        fi
 
                     fi
