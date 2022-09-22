@@ -102,7 +102,7 @@ stages:
                     git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                    az config set extension.use_dynamic_install=yes_without_promp
+                    az config set extension.use_dynamic_install=yes_without_prompt
 
                     devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
                     if [ -z $devops_extension_installed ]; then
@@ -150,12 +150,11 @@ stages:
                        storage_account_parameter="--storageaccountname ${REMOTE_STATE_SA}"
                     fi
 
-                    if [ -n $TF_VAR_agent_pool ]; then
-                       export POOL_NAME=$(az pipelines pool list --query "[?name=='$TF_VAR_agent_pool'].name | [0]")
+                    if [ -n $(TF_VAR_agent_pool) ]; then
+                       export POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --project  $(System.TeamProject) --query "[?name=='$(TF_VAR_agent_pool)'].name | [0]")
                        echo POOL ${POOL_NAME}
                        if [ -z ${POOL_NAME} ]; then
-                           echo "##vso[task.logissue type=error]Agent Pool $TF_VAR_agent_pool does not exist."
-                           exit 2
+                           echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
                        fi
 
                     fi
@@ -365,7 +364,8 @@ stages:
                     echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                     added=0
                     cd $HOME
-                    git pull
+                    git fetch -q --all
+                    git pull -q
 
                     if [ -f ${deployer_environment_file_name} ]; then
 
