@@ -80,7 +80,7 @@ Write-Host "The browser will now open, please create a Personal Access Token. En
 
 Start-Process $pat_url.Replace("""", "")
 
-$PAT = Read-Host -Prompt "Enter the PAT you just created" -AsSecureString
+$PAT = Read-Host -Prompt "Enter the PAT you just created"
 az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "PAT" --value $PAT --secret true --only-show-errors
 
 $pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
