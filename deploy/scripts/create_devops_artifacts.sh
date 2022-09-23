@@ -55,7 +55,7 @@ if [ -z $ADO_ORGANIZATION ]; then
   exit 1
 fi
 
-if [ -z $ADO_PROJECT ]; then
+if [ -z "${ADO_PROJECT}" ]; then
   echo "Please enter the name of your Azure DevOps project using the export ADO_PROJECT= command"
   exit 1
 fi
@@ -78,7 +78,7 @@ if [ -z ${extension_name} ]; then
 fi
 
 echo "Creating the project: ${DEVOPS_PROJECT_NAME}"
-id=$(az devops project create --name "${DEVOPS_PROJECT_NAME}" --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
+id=$(az devops project create --name '"${DEVOPS_PROJECT_NAME}"' --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
 
 repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id --query "[].id | [0]" | tr -d \")
 
