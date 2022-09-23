@@ -73,7 +73,7 @@ materials:
       extractDir:                      CD_EXPORT
       creates:                         CDLABEL.ASC
       url:                             https://softwaredownloads.sap.com/file/0030000019659142017
-    
+
     - name:                            "NetWeaver AS ABAP 7.52 Innovation Pkg - Installation Exp 2/2"
       archive:                         51051806_part2.rar
       checksum:                        d968835cadfea8514a552ec977421043649bbb59140629a9dd897a7f0c47480b

@@ -3,7 +3,9 @@
 # |                          SAP Notes and Recomendations                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
 ---
+
 # -------------------------------------+---------------------------------------8
 #
 # Task: 2.10      - SAP Notes and Recomendations
@@ -14,7 +16,6 @@
 #
 # -------------------------------------+---------------------------------------8
 
-
 # -------------------------------------+---------------------------------------8
 #
 # Task: 2.10.0    - SAP Note 2205917 - SAP HANA DB Recommended OS settings for
@@ -24,13 +25,34 @@
 # RHEL-3.10 Disable Transparent Hugepages (THP)
 # RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
 
-- name:             2.10.0 - SAP Note 2205917
-  include_tasks:    2.10.0.yaml
-  when:             tier == 'HANA'
+- name:                                2.10.0 - SAP Note 2205917
+  ansible.builtin.include_tasks:       2.10.0.yaml
+  when:
+    - node_tier == 'hana'
+    - distribution_id == 'suse12'
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# Task: 2.10.1   - SAP Note 2777782 - SAP HANA DB Recommended OS settings for
+#                   RHEL 8
+#
+# Set 'sap-hana' as tuned profile
+# Add GRUB arguments to the config
+# Set 'never' for transparent_hugepage
+# Disable SELinux
+# Disable core file creation
+
+- name:                                2.10.1 - SAP Note 2777782
+  ansible.builtin.include_tasks:       2.10.1.yaml
+  when:
+    - node_tier == 'hana'
+    - distribution_id == 'redhat8'
+
+# ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
 
 
-...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
 # +------------------------------------4--------------------------------------*/

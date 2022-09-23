@@ -64,7 +64,6 @@ export           ANSIBLE_PYTHON_INTERPRETER=auto_silent
 
 # Ref: https://docs.ansible.com/ansible/2.9/plugins/callback/profile_tasks.html
 # Commented out defaults below
-export           ANSIBLE_CALLBACK_WHITELIST=profile_tasks
 #export          PROFILE_TASKS_TASK_OUTPUT_LIMIT=20
 #export          PROFILE_TASKS_SORT_ORDER=descending
 

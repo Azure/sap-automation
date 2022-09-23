@@ -11,9 +11,9 @@
 # -------------------------------------+---------------------------------------8
 # TODO: 20210127 Review
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN - OLD CODE
-#----------------------------------------
+# ----------------------------------------
 
 # - name: Check configurations on HANA VMs
 #   any_errors_fatal: true
@@ -21,19 +21,19 @@
 #     - import_tasks: hostname_validation.yml
 #     - import_tasks: repo_validation.yml
 
-#----------------------------------------
+# ----------------------------------------
 # END - OLD CODE
-#----------------------------------------
+# ----------------------------------------
 
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
 #
 # TODO: 20210127 - This only takes into account pay-as-you-go deployments.
 #                  Need to support BYOL with SUSE Manager Registrations.
 #                  Is there a better way to do this other than using
 #                  'command' or 'shell'?
-#----------------------------------------
+# ----------------------------------------
 
 # -------------------------------------+---------------------------------------8
 
@@ -70,26 +70,26 @@
       args:
         warn:                          false  # quieten warning about using zypper directly
 
-  when:     ansible_os_family|upper == 'SUSE'
+  when:     ansible_os_family | upper == 'SUSE'
 
-#----------------------------------------
+# ----------------------------------------
 # END
 #
 # TODO: 20210127 - This only takes into account pay-as-you-go deployments.
 #                  Need to support BYOL with SUSE Manager Registrations.
 #                  Is there a better way to do this other than using
 #                  'command' or 'shell'?
-#----------------------------------------
+# ----------------------------------------
 
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
 #
 # TODO: 20210127 - This only takes into account pay-as-you-go deployments.
 #                  Need to support BYOL with RHEL satellite Registrations.
 #                  Is there a better way to do this other than using
 #                  'command' or 'shell'?
-#----------------------------------------
+# ----------------------------------------
 
 - name:                                "1.3 Repository - Ensure yum repos are configured on Redhat VMs"
   block:
@@ -98,64 +98,64 @@
       args:
         warn:                          false  # quieten warning about using yum directly
 
-  when:     ansible_os_family|upper == 'REDHAT'
+  when:     ansible_os_family | upper == 'REDHAT'
 
-#----------------------------------------
+# ----------------------------------------
 # END
 #
 # TODO: 20210127 - This only takes into account pay-as-you-go deployments.
 #                  Need to support BYOL with RHEL satellite Registrations.
 #                  Is there a better way to do this other than using
 #                  'command' or 'shell'?
-#----------------------------------------
+# ----------------------------------------
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
 #
 # TODO: 20210824 - This only takes into account pay-as-you-go deployments.
 #                  Need to support BYOL with OEL satellite Registrations.
 #                  Is there a better way to do this other than using
 #                  'command' or 'shell'?
-#----------------------------------------
+# ----------------------------------------
 
 - name:                                "1.3 Repository - Ensure yum repos are configured on OEL VMs"
   block:
     - name:                            "1.3 Repository - Check that yum repos are registered"
-      command:                         yum repolist
+      ansible.builtin.command:         yum repolist
       args:
         warn:                          false  # quieten warning about using yum directly
 
-  when:     ansible_os_family|upper == 'Oracle'
+  when:     ansible_os_family | upper == 'Oracle'
 
-#----------------------------------------
+# ----------------------------------------
 # END
 #
 # TODO: 20210824 - This only takes into account pay-as-you-go deployments.
 #                  Need to support BYOL with OEL satellite Registrations.
 #                  Is there a better way to do this other than using
 #                  'command' or 'shell'?
-#----------------------------------------
+# ----------------------------------------
 
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
 #
 # TODO: 20210825 - This only takes into account pay-as-you-go deployments.
 #                  Need to support BYOL with OEL satellite Registrations.
 #                  Is there a better way to do this other than using
 #                  'command' or 'shell'?
-#----------------------------------------
+# ----------------------------------------
 
 - name:                                "1.3 Repository - Ensure yum repos are configured on Oracle Linux VMs"
   block:
     - name:                            "1.3 Repository - Check that yum repos are registered"
-      command:                         yum repolist
+      ansible.builtin.command:         yum repolist
       args:
         warn:                          false  # quieten warning about using yum directly
 
-  when:                                ansible_os_family|upper == 'ORACLELINUX'
+  when:                                ansible_os_family | upper == 'ORACLELINUX'
 
-#----------------------------------------
+# ----------------------------------------
 # END
 
 - name:                                "1.3 Repository - Ensure additional zypper repo is configured on SLE VMs"
@@ -170,13 +170,13 @@
       args:
         warn:                          false  # quieten warning about using zypper directly
 
-  when:     ansible_os_family|upper == 'SUSE'
+  when:     ansible_os_family | upper == 'SUSE'
 
-#----------------------------------------
+# ----------------------------------------
 #
 # 20210722 -  Adding support for additional repos
 #
-#----------------------------------------
+# ----------------------------------------
 
 
 - name:                                "1.3 Repos:  - Import repo list"
@@ -201,7 +201,7 @@
 
 # Add repositories
 - name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
-  ansible.builtin.zypper_repository:
+  zypper_repository:
     repo:                              "{{ item.repo }}"
     state:                             "{{ item.state }}"
     overwrite_multiple:                true
@@ -213,7 +213,7 @@
   failed_when:
     - zypresult.rc != 0
     - zypresult.rc != 4
-  when:     ansible_os_family|upper == 'SUSE'
+  when:     ansible_os_family | upper == 'SUSE'
 
 - name:                                "1.3 Repos: Add the repositories {{ ansible_os_family }}"
   ansible.builtin.yum_repository:
@@ -224,7 +224,9 @@
   loop:                                "{{ repos_for_tier }}"
   register:                            zypresult
   ignore_errors:                       true
-  when:     ansible_os_family|upper != 'SUSE'
+  when:
+    - ansible_os_family | upper != 'SUSE'
+    - item.node_tier == node.tier
 
 - name:                                "1.3 Repos: Add the repositories result"
   ansible.builtin.debug:

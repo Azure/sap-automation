@@ -9,15 +9,16 @@
 - name:                                "1.17 Generic Pacemaker - Check the fencing agent configuration variables are set"
   ansible.builtin.assert:
     that:
-      - "sap_hana_fencing_spn_subscription_id is defined"
-      - "sap_hana_fencing_spn_subscription_id | trim | length > 0"
-      - "sap_hana_fencing_spn_tenant_id is defined"
-      - "sap_hana_fencing_spn_tenant_id | trim | length > 0"
-      - "sap_hana_fencing_spn_client_id is defined"
-      - "sap_hana_fencing_spn_client_id | trim | length > 0"
-      - "sap_hana_fencing_spn_client_pwd is defined"
-      - "sap_hana_fencing_spn_client_pwd | trim | length > 0"
+      - "fencing_spn_subscription_id is defined"
+      - "fencing_spn_subscription_id | trim | length > 0"
+      - "fencing_spn_tenant_id is defined"
+      - "fencing_spn_tenant_id | trim | length > 0"
+      - "fencing_spn_client_id is defined"
+      - "fencing_spn_client_id | trim | length > 0"
+      - "fencing_spn_client_pwd is defined"
+      - "fencing_spn_client_pwd | trim | length > 0"
     fail_msg:                          "A highly available SCS deployment requires that an SPN is defined for the fencing agent"
+  when:                                not use_msi_for_clusters
 
 - name:                                "1.17 Generic Pacemaker - Check the required cluster password is set"
   ansible.builtin.assert:
@@ -48,9 +49,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Show if a cluster has already been prepared"
   ansible.builtin.debug:
-    msg:                               
-     - "CLUSTER VALIDATION : {{ cluster_existence_check }}"
-    verbosity:                         2
+    msg:
+      - "CLUSTER VALIDATION : {{ cluster_existence_check }}"
 
 ...
-

@@ -9,38 +9,59 @@
 ---
 - name:                                "APP Install: Set BOM facts"
   ansible.builtin.set_fact:
-    sap_inifile:                       "{{ bom_base_name }}-app-{{ ansible_hostname }}.params"
+    sap_inifile:                       "{{ bom_base_name }}-app-{{ sid_to_be_deployed.sid }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-app-inifile-param.j2"
+    dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
+
+#   0x) Create hidden directory for parameter files
+- name:                                "APP Install: Create hidden directory"
+  ansible.builtin.file:
+    path:                              "{{ dir_params }}"
+    state:                             directory
+    mode:                              0755
+
+- name:                                "APP Install: Create temp directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
 
 - name:                                "APP Install: Create run flag directory"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
     state:                             directory
     mode:                              0755
 
 - name:                                "APP Install: reset"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/sap_deployment_app.txt
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "APP Install: check if installed"
+- name:                                "APP Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.builtin.stat:
-    path:                              /etc/sap_deployment_automation/sap_deployment_app.txt
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
   register:                            app_installed
 
-- name:                                "APP Install: Get the SCS Server name list"
+- name:                                "APP Install: Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "PAS Install: -  Set the DB Server name list"
+  ansible.builtin.set_fact:
+    db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "APP Install: Set the SCS Server name"
   ansible.builtin.set_fact:
-    scs_server:                         "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
-    db_virtual_host:                   "{% if db_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ query('inventory_hostnames', '{{ sap_sid|upper }}_DB')  | first }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
+    db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
 
 - name:                                "APP Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -56,6 +77,7 @@
     tasks_from:                        bom-template
   vars:
     task_prefix:                       "APP Install: "
+    always_upload_jinja_templates:     false
     bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_hdbclient:          "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
     sap_cd_package_cd1:                "{{ target_media_location }}/CD_EXPORT"
@@ -68,11 +90,15 @@
     sap_ciDialogWPNumber:              12
     sap_ciBtcWPNumber:                 8
     sap_installSAPHostAgent:           "false"
-    sap_profile_dir:                   /sapmnt/{{ sap_sid|upper }}/profile
+    sap_profile_dir:                   /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_db_hostname:                   "{{ db_virtual_host }}"
-    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_APP') | first }}"
-    sap_appVirtualHostname:            "{{ inventory_hostname }}"
+    sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
+    sap_appVirtualHostname:            "{{ virtual_host }}"
+    param_directory:                   "{{ dir_params }}"
+    sap_sid:                           "{{ sid_to_be_deployed.sid }}"
+    sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+    virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
   tags:
     - skip_ansible_lint
 
@@ -82,11 +108,13 @@
 
 - name:                                "App Install: install variables"
   ansible.builtin.debug:
-    msg:                          
+    msg:
       - "INSTALLED:  {{ app_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.app }}"
       - "DBHOST:     {{ db_virtual_host }}"
+      - "HOST:       {{ virtual_host }}"
+      - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
 - name:                                "APP Install"
   block:
@@ -95,19 +123,25 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
+    - name:                            "APP Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting App Install ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}  \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                                \
-                                                 SAPINST_SKIP_DIALOGS=true                                                  \
+                                       export SAPSYSTEMNAME={{ sid_to_be_deployed.sid | upper }};
+                                       umask {{ custom_umask | default('022') }};
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                     \
+                                                 SAPINST_SKIP_DIALOGS=true                                       \
+                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                         \
                                                  SAPINST_START_GUISERVER=false
       args:
-        chdir:                         /usr/sap/install/SWPM
-        creates:                       /etc/sap_deployment_automation/sap_deployment_app.txt
+        chdir:                         "{{ target_media_location }}/SWPM"
+        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-        TMPDIR:                        /usr/sap/install
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        app_installation
       failed_when:                     app_installation.rc > 0
       tags:
@@ -123,9 +157,14 @@
         msg:                           "APP Installation succeeded"
       when:                            app_installation.rc == 0
 
-    - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
+    - name:                            "APP Install: Cleanup ini file {{ ansible_hostname }}"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}/{{ sap_inifile }}"
+        state:                         absent
+
+    - name:                            "APP Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/sapinst_instdir/{{ bom.product_ids.app.replace('.','/').replace('/ABAP','').split(':')[1] }}/{{ file_path }}" 
+        paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.app.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/{{ file_path }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
@@ -133,7 +172,7 @@
 
     - name:                            "APP Install: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_app.txt
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
         state:                         touch
         mode:                          0755
       when:
@@ -141,21 +180,100 @@
         - app_installed_according_to_sapinst is defined
         - app_installed_according_to_sapinst | length > 0
 
+    - name:                            "APP Install: Get hdbuserstore path"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        file_type:                     file
+        patterns:                      'hdbuserstore'
+        recurse:                       true
+      register:                        hdbuserstore_file
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+    - name:                            "APP Install: Set hdbuserstore path"
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_file | length > 0
+    - name:                            "APP Install: show hdbuserstore path"
+      ansible.builtin.debug:
+        var:                           hdbuserstore_path
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "APP Install: Set DB Virtual Host name"
+      become:                          true
+      ansible.builtin.shell: |
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:3{{ hdb_instance_number }}13@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      register:                        hdbuserstore
+      tags:
+        - skip_ansible_lint
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - pas_installed_according_to_sapinst is defined
+        - pas_installed_according_to_sapinst | length > 0
+
   when:
     - not app_installed.stat.exists
 
 - name:                                "APP Install: - status"
   block:
-    
+
     - name:                            "APP Install: - status"
       ansible.builtin.debug:
-        msg:                           "APP Installation is already performed"
-    
+        msg:                           "APP Installation is already performed ({{ sid_to_be_deployed.sid | upper }})"
+
     - name:                            "APP Install: - return value"
       ansible.builtin.set_fact:
-        app_already_installed:         true     
+        app_already_installed:         true
+
+    - name:                            "APP Install: Get hdbuserstore path"
+      ansible.builtin.find:
+        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        file_type:                     file
+        patterns:                      'hdbuserstore'
+        recurse:                       true
+      register:                        hdbuserstore_file
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "APP Install: Set hdbuserstore path"
+      ansible.builtin.set_fact:
+        hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+        - hdbuserstore_file | length > 0
+
+    - name:                            "APP Install: show hdbuserstore path"
+      ansible.builtin.debug:
+        var:                           hdbuserstore_path
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+
+    - name:                            "APP Install: Set DB Virtual Host name ({{ db_lb_virtual_host }})"
+      ansible.builtin.shell: |
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ db_lb_virtual_host }}:30313@{{ db_sid | upper }} {{ hana_schema }} {{ main_password }}
+      environment:
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      register:                        hdbuserstore
+      become:                          true
+      when:
+        - db_high_availability
+        - platform == 'HANA'
+      tags:
+        - skip_ansible_lint
+
   when:
-    -  app_installed.stat.exists
+    - app_installed.stat.exists
 
 # *====================================4=======================================8
 

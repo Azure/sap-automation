@@ -16,7 +16,7 @@
 # sap_filesystems:
 #   - { tier: 'all', fstype: 'xfs', dev: '/dev/vg_sap/lv_usrsap',        mount_path: '/usr/sap' }
 #   - { tier: 'scs', fstype: 'xfs', dev: '/dev/vg_sap/lv_sapmnt',        mount_path: '/sapmnt' }
-#   - { tier: 'scs', fstype: 'xfs', dev: '/dev/vg_sap/lv_usrsapinstall', mount_path: '/usr/sap/install' }
+#   - { tier: 'scs', fstype: 'xfs', dev: '/dev/vg_sap/lv_usrsapinstall', mount_path: '{{ target_media_location }}' }
 #   - { tier: 'web', fstype: 'xfs', dev: '/dev/vg_sap/lv_sapmnt',        mount_path: '/sapmnt' }
 
 # sap_swap:

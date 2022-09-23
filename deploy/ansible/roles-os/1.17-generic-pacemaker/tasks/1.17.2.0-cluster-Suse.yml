@@ -4,7 +4,7 @@
 # Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
 
 - name:                                "1.17 Generic Pacemaker - Ensure a list of package version is available for checking the cloud-netconfig-azure version"
-  package_facts:
+  ansible.builtin.package_facts:
 
 # Pacemaker can create a large number of processes
 - name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
@@ -54,7 +54,7 @@
       ansible.builtin.command:         "ha-cluster-join  -y -c {{ primary_instance_name }} --interface eth0"
       # ansible.builtin.command:         "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
 
-  when:                                
+  when:
     - ansible_hostname == secondary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
@@ -100,17 +100,36 @@
     - name:                            "1.17 Generic Pacemaker - Create Azure Fencing Agent"
       ansible.builtin.command: >
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params
-                                       subscriptionId="{{ sap_hana_fencing_spn_subscription_id }}"
+                                       subscriptionId="{{ fencing_spn_subscription_id }}"
                                        resourceGroup="{{ resource_group_name }}"
-                                       tenantId="{{ sap_hana_fencing_spn_tenant_id }}"
-                                       login="{{ sap_hana_fencing_spn_client_id }}"
-                                       passwd="{{ sap_hana_fencing_spn_client_pwd }}"
+                                       tenantId="{{ fencing_spn_tenant_id }}"
+                                       login="{{ fencing_spn_client_id }}"
+                                       passwd="{{ fencing_spn_client_pwd }}"
                                        pcmk_monitor_retries=4
                                        pcmk_action_limit=3
                                        power_timeout=240
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
                                        pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+      when:
+        - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4","sles_sap12.5"]
+
+    - name:                            "1.17 Generic Pacemaker - Create Azure Fencing Agent (MSI)"
+      ansible.builtin.command: >
+                                       crm configure primitive rsc_st_azure stonith:fence_azure_arm params
+                                       subscriptionId="{{ fencing_spn_subscription_id }}"
+                                       resourceGroup="{{ resource_group_name }}"
+                                       msi=true
+                                       pcmk_monitor_retries=4
+                                       pcmk_action_limit=3
+                                       power_timeout=240
+                                       pcmk_reboot_timeout=900
+                                       pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                       pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+
+      when:
+        - use_msi_for_clusters
+        - distribution_full_id in ["sles_sap15.1","sles_sap15.2", "sles_sap15.3"]
 
 
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"

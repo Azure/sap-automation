@@ -1,56 +1,52 @@
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                         PREPARATION FOR BOM PROCESSING                         |
+# |                         PREPARATION FOR BOM PROCESSING                     |
 # |                                                                            |
 # |                         RESET LOGGING                                      |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
 
-- hosts:                               localhost
-  name:                                Get Storage account details from KeyVault
-  gather_facts:                        true
+- hosts:                                              localhost
+  name:                                               Get Storage account details from KeyVault
+  gather_facts:                                       true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                     # API Input template with defaults
   tasks:
 
-    - name:                            Create Progress folder
+    - name:                                           Create Progress folder
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress"
-        state:                          directory
-        mode:                          0755
+        path:                                         "{{ _workspace_directory }}/.progress"
+        state:                                        directory
+        mode:                                         0755
 
-    - name:                            Remove bom-processing-done flag
+    - name:                                           Remove bom-processing-done flag
       ansible.builtin.file:
-        path:                          "{{ _workspace_directory }}/.progress/bom-processing-done"
-        state:                          absent
+        path:                                         "{{ _workspace_directory }}/.progress/bom-processing-done"
+        state:                                        absent
 
-    - name:                            Set 'bom' tier
-      ansible.builtin.set_fact:
-        tier:                          bom_download
-
-    - name:                            Include 0.3.sap-installation-media-storage-details role
+    - name:                                           Include 0.3.sap-installation-media-storage-details role
       ansible.builtin.include_role:
-        name:                          roles-misc/0.3.sap-installation-media-storage-details
-        public:                        true
+        name:                                         roles-misc/0.3.sap-installation-media-storage-details
+        public:                                       true
       vars:
-        tier:                          bom_download
+        tier:                                         bom_download
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
-# |                         PLAYBOOK FOR BOM PROCESSING                         |
+# |                         PLAYBOOK FOR BOM PROCESSING                        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid|upper }}_SCS : {{ sap_sid|upper }}_DB"
+- hosts:                                              "{{ sap_sid | upper }}_SCS : {{ sap_sid | upper }}_DB"
 
-  name:                                BOM Processing
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  become_user:                         root
-  gather_facts:                        true
+  name:                                               BOM Processing
+  remote_user:                                        "{{ orchestration_ansible_user }}"
+  become:                                             true
+  become_user:                                        "{{ become_user_name }}"
+  gather_facts:                                       true
   vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                     # API Input template with defaults
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -58,32 +54,44 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Perform BoM processing"
+    - name:                                           "Perform BoM processing"
       block:
 
-        - name:                        Set facts
+        - name:                                       Set facts
           ansible.builtin.set_fact:
-            tier:                      preparation
-            sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            tier:                                     preparation
+            sapbits_location_base_path:               "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:                        "{{ hostvars.localhost.sapbits_sas_token }}"
 
-        - name:                        3.3-bom-processing role
+        - name:                                       3.3-bom-processing role
           block:
-            - name:                    Include the 3.3-bom-processing role
+            - name:                                   "Set the Path for Linux distros"
+              ansible.builtin.set_fact:
+                path:                                 "roles-sap"
+              when:                                   ansible_os_family != "Windows"
+
+            - name:                                   "Check if the OS is Windows"
+              ansible.builtin.set_fact:
+                path:                                 "roles-sap/windows"
+              when:                                   ansible_os_family == "Windows"
+
+            - name:                                   Include the 3.3-bom-processing role
               ansible.builtin.include_role:
-                name:                  roles-sap/3.3-bom-processing
+                name:                                 "{{ path }}/3.3-bom-processing"
               vars:
                 tier:                  bom_download
                 always_upload_jinja_templates: false
+                primary_instance_name: ansible_play_hosts[0]
               tags:
                 - 3.3-bom-processing
 
             - name:                    Create bom-processing flag
               delegate_to:             localhost
+              become:                  false
               ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/bom-processing"
-                state:                 touch
-                mode:                  0755
+                path:                                 "{{ _workspace_directory }}/.progress/bom-processing"
+                state:                                touch
+                mode:                                 0755
 
       when:
         - "'scs' in supported_tiers"

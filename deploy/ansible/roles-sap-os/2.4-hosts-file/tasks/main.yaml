@@ -32,7 +32,7 @@
     create:                            true
     state:                             present
     block:                             "{{ lookup('template', 'hosts.j2') }}"
-    marker:                            "# {mark} ANSIBLE MANAGED BLOCK - {{ sap_sid|upper }}"
+    marker:                            "# {mark} ANSIBLE MANAGED BLOCK - {{ sap_sid | upper }}"
 
 - name:                                "2.4 Hosts: - Set the SCS and ERS Virtual Instance hostname"
   ansible.builtin.set_fact:
@@ -42,6 +42,13 @@
   when:
     - scs_high_availability or db_high_availability
 
+- name:                                "2.4 Hosts: - Get the Server name list"
+  ansible.builtin.set_fact:
+    scs_server_list:                   "{{ scs_server_list | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+
+
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - SCS & ERS"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
@@ -49,11 +56,12 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s'|format(scs_lb_ip) }} {{ '%-50s' | format(scs_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(scs_virtual_hostname) }}
-      {{ '%-19s'|format(ers_lb_ip) }} {{ '%-50s' | format(ers_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(ers_virtual_hostname) }}
+      {{ '%-19s' | format(scs_lb_ip) }} {{ '%-50s' | format(scs_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(scs_virtual_hostname) }}
+      {{ '%-19s' | format(ers_lb_ip) }} {{ '%-50s' | format(ers_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(ers_virtual_hostname) }}
     marker:                            "# {mark} ASCS/ERS Entries {{ scs_virtual_hostname }}"
   when:
     - scs_high_availability
+    - scs_server_list | length > 0
 
 - name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
   ansible.builtin.blockinfile:
@@ -62,9 +70,10 @@
     create:                            true
     state:                             present
     block: |
-      {{ '%-19s'|format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
+      {{ '%-19s' | format(db_lb_ip) }} {{ '%-50s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
     marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
   when:
     - db_high_availability
+    - platform == 'HANA'
 
 ...

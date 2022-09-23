@@ -72,7 +72,7 @@ Sort the order so eth0 is first.
 Skip over the 'lo' interface.
 
 #}
-{%    for interface in hostvars[host]['ansible_interfaces']|sort if interface != 'lo' %}
+{%    for interface in hostvars[host]['ansible_interfaces']|sort if interface not in ['lo', 'br'] %}
 {#
 
 if ipv4 not found, then that NIC is not configured and is skipped
@@ -81,7 +81,7 @@ if ipv4 not found, then that NIC is not configured and is skipped
 {%      if 'ipv4' in hostvars[host]['ansible_' + interface] %}
 {#
 
-Determin if we are handling the Primary NIC (eth0)
+Determine if we are handling the Primary NIC (eth0)
 
 #}
 {%        if interface == 'eth0' %}
@@ -104,11 +104,8 @@ Process all assigned secondaries
 {%        for ipv4Secondary in hostvars[host]['ansible_' + interface]['ipv4_secondaries'] %}
 {#
 
-We have no processing rules at this time.
-We will leave a tell-tale
-
 #}
-# Unhandled condition; Found a secondary IP: {{ interface }}:{{ loop.index }} - {{ ipv4Secondary['address'] }}
+{{ '%-19s' | format(ipv4Secondary['address']) }}{{ '%-50s' | format(hostvars[host]['virtual_host'] + '.' + sap_fqdn) }}{{ '%-21s' | format(hostvars[host]['virtual_host']) }}
 {%        endfor %}
 {%      endif %}
 {%    endfor %}

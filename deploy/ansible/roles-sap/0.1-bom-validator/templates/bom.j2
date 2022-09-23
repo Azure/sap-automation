@@ -1,8 +1,12 @@
-name :    {{ root_bom.name }}
-target:   {{ root_bom.target }}
-version:  {{ root_bom.version }}
+name:      {{ root_bom.name }}
+filename:  {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
+
+target:    {{ root_bom.target }}
+version:   {{ root_bom.version }}
+platform:  {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
 
 product_ids:
+
 {% if root_bom.product_ids is defined %}
 {% for pKey,pValue in root_bom.product_ids.items() %}
 {{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}

@@ -18,24 +18,24 @@
 #
 # -------------------------------------+---------------------------------------8
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
-#----------------------------------------
+# ----------------------------------------
 
-#----------------------------------------
+# ----------------------------------------
 # END
-#----------------------------------------
+# ----------------------------------------
 
 # TODO: Review and rewrite for efficiency and working for all servers
 
 # Enable prometheus on HANA servers
 
 - name: Set OS version
-  set_fact:
+  ansible.builtin.set_fact:
     distro: "SLE_{{ ansible_facts['distribution_major_version'] }}_SP{{ ansible_facts['distribution_release'] }}"
 
 - name: Check if server_monitoring.repo is present
-  stat:
+  ansible.builtin.stat:
     path: /etc/zypp/repos.d/server_monitoring.repo
   register: monitor_repo
 
@@ -48,10 +48,10 @@
   ignore_errors: true
 
 - name: Ensure Prometheus is installed and configured
-  when: not (add_repo_status.failed is defined and add_repo_status.failed == true)
+  when: not (add_repo_status.failed is defined and add_repo_status.failed)
   block:
     - name: Install Prometheus with Node and HA Cluster exporters
-      zypper:
+      ansible.builtin.zypper:
         name: "{{ item }}"
         disable_gpg_check: true
       loop:
@@ -65,7 +65,7 @@
         line: 'ARGS="--collector.systemd"'
 
     - name: Start the Node exporter
-      service:
+      ansible.builtin.service:
         name: prometheus-node_exporter
         state: started
 

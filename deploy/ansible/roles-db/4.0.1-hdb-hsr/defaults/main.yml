@@ -10,10 +10,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-hana_replication_mode:                 "sync"
-hana_operation_mode:                   "logreplay"
-hana_1_hsr_user:                       "hdbhasync"
-hana_1_hsr_password:                   "HSRpassw0rd"
+hana_replication_mode:                 sync
+hana_operation_mode:                   logreplay
+hana_1_hsr_user:                       hdbhasync
+hana_1_hsr_password:                   HSRpassw0rd
 
 # For low spec Dev instances the timeout needs to be high
 # A delay of 2 seconds is also recommended
@@ -21,3 +21,9 @@ hana_1_hsr_password:                   "HSRpassw0rd"
 # May be overridden, if required
 hana_stop_start_timeout_in_seconds:    2700
 hana_stop_start_delay_in_seconds:      2
+
+# TODO: Maybe move these to a group_vars/all/distro file so that they
+# can be shared by all playbooks/tasks automatically, and extend with
+# standardised versions of all similar patterns used in the playbooks.
+distro_name:    "{{ ansible_os_family | upper }}-{{ ansible_distribution_major_version }}"
+distro_id:      "{{ ansible_os_family | lower ~ ansible_distribution_major_version }}"
