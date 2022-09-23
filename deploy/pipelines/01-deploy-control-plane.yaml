@@ -151,7 +151,7 @@ stages:
                     fi
 
                     if [ -n $(TF_VAR_agent_pool) ]; then
-                       export POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --project  $(System.TeamProject) --query "[?name=='$(TF_VAR_agent_pool)'].name | [0]")
+                       export POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri)  --query "[?name=='$(TF_VAR_agent_pool)'].name | [0]")
                        echo POOL ${POOL_NAME}
                        if [ -z ${POOL_NAME} ]; then
                            echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."

@@ -36,12 +36,19 @@ script_directory="$(dirname "${full_script_path}")"
 type=$(az account show --query "user.cloudShellID")
 if [ -n "${type}" ] ; then
   az logout
-  az login --use-device-code
-
+  if [ -n $ARM_TENANT_ID ] ; then
+    az login --use-device-code --tenant $ARM_TENANT_ID
+  else
+    az login --use-device-code
+  fi
+  
 fi
 az config set extension.use_dynamic_install=yes_without_prompt
 
-az extension add --name azure-devops --output none
+devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+if [ -z $devops_extension_installed ]; then
+  az extension add --name azure-devops --output none
+fi
 
 if [ -z $ADO_ORGANIZATION ]; then
   echo "Please enter the name of your Azure DevOps organization using the export ADO_ORGANIZATION= command"
@@ -59,27 +66,19 @@ DEVOPS_PROJECT_DESCRIPTION=$DEVOPS_PROJECT_NAME
 
 echo "Installing the extensions"
 
-
-az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
-# extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
-# if [ -z ${extension_name} ]; then
-#   az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
-# fi
+extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
+if [ -z ${extension_name} ]; then
+   az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
+fi
 
 
-az devops extension install --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --output none
-# extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
-# if [ -z ${extension_name} ]; then
-#   az devops extension install --org ${DEVOPS_ORGANIZATION} --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
-# fi
-
-# extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --query extensionName) | tr -d \"
-# if [ -z ${extension_name} ]; then
-#   az devops extension install --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --output none
-# fi
+extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --query extensionName) | tr -d \"
+if [ -z ${extension_name} ]; then
+  az devops extension install --org ${DEVOPS_ORGANIZATION} --extension PostBuildCleanup  --publisher-id mspremier --output none
+fi
 
 echo "Creating the project: ${DEVOPS_PROJECT_NAME}"
-id=$(az devops project create --name ${DEVOPS_PROJECT_NAME} --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
+id=$(az devops project create --name "${DEVOPS_PROJECT_NAME}" --description ${DEVOPS_PROJECT_DESCRIPTION} --organization ${DEVOPS_ORGANIZATION} --visibility private --source-control git | jq -r '.id' | tr -d \")
 
 repo_id=$(az repos list --org ${DEVOPS_ORGANIZATION} --project $id --query "[].id | [0]" | tr -d \")
 

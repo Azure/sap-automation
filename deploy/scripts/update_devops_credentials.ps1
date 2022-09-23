@@ -29,6 +29,12 @@ if ($YourPrefix.Length -eq 0) {
 $MgmtPrefix = $YourPrefix + "-SDAF-MGMT"
 $DEVPrefix = $YourPrefix + "-SDAF-DEV"
 $Name = $MgmtPrefix + "-configuration-app"
+
+if ($Env:SDAF_APP_NAME.Length -ne 0) {
+  $Name = $Env:SDAF_APP_NAME
+}
+
+
 $ControlPlaneSubscriptionID = $Env:ControlPlaneSubscriptionID
 $DevSubscriptionID = $Env:DevSubscriptionID
 $ControlPlaneSubscriptionName = $Env:ControlPlaneSubscriptionName
@@ -85,11 +91,16 @@ az pipelines variable-group variable update --group-id $GroupID --project $Proje
 
 $pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
 
-Write-Host "The browser will now open, please an Agent Pool with the name 'MGMT-POOL'. Ensure that the Agent Pool is define using the Self-hosted pool type."
+$POOL_NAME = $(az pipelines pool list --organization --organization $Organization  --query "[?name=='MGMT-POOL'].name | [0]")
+if ($POOL_NAME -eq "MGMT-POOL") {
+  Write-Host "Agent pool MGMT-POOL already exists"
+}
+else {
+  Write-Host "The browser will now open, please create an Agent Pool with the name 'MGMT-POOL'. Ensure that the Agent Pool is define using the Self-hosted pool type."
 
-Start-Process $pool_url.Replace("""", "")
-
-Read-Host -Prompt "Once you have created the Agent pool, Press any key to continue"
+  Start-Process $pool_url.Replace("""", "")
+  Read-Host -Prompt "Once you have created the Agent pool, Press any key to continue"
+}
 
 Write-Host "Creating the App registration in Azure Active Directory"
 
@@ -124,8 +135,11 @@ else {
 
 az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_SUBSCRIPTION_ID" --value $ControlPlaneSubscriptionID --only-show-errors
 
-
 $app_name = $MgmtPrefix + " Deployment credential"
+if ($Env:SDAF_MGMT_SPN_NAME.Length -ne 0) {
+  $app_name = $Env:SDAF_MGMT_SPN_NAME
+}
+
 $scopes = "/subscriptions/" + $ControlPlaneSubscriptionID
 
 Write-Host "Creating the deployment credentials for the control plane. Service Principal Name" $app_name
@@ -162,6 +176,9 @@ $DevGroupID = (az pipelines variable-group list --project $Project  --organizati
 Write-Host "SDAF-DEV variable group ID" $DevGroupID
 $dev_scopes = "/subscriptions/" + $DevSubscriptionID
 $dev_app_name = $DevPrefix + " Deployment credential"
+if ($Env:SDAF_DEV_SPN_NAME.Length -ne 0) {
+  $dev_app_name = $Env:SDAF_DEV_SPN_NAME
+}
 
 $found_appName = (az ad sp list --show-mine --query "[?displayName=='$dev_app_name'].displayName | [0]" --only-show-errors)
 
