@@ -18,9 +18,9 @@
 #     if not provided, and retrieve from there when needed.
 #
 # -------------------------------------+---------------------------------------8
- 
+
 - name:                                "1.11 Accounts - Include top-level admin accounts definitions"
-  include_vars:                        "admin-accounts.yml"
+  ansible.builtin.include_vars:        "admin-accounts.yml"
 
 # Need to create groups first, if they are going to be referenced
 # by the following user actions
@@ -70,7 +70,7 @@
 # the way to handle this.
 - name:                                "1.11 Accounts - Manage associated per-user /etc/sudoers.d/ files for
                                        given sudoers role"
-  include_tasks:                       setup_user_sudoers.yml
+  ansible.builtin.include_tasks:       setup_user_sudoers.yml
   vars:
     sudoers_user:                      "{{ item.name }}"
     sudoers_role:                      "{{ item.sudoers_role }}"

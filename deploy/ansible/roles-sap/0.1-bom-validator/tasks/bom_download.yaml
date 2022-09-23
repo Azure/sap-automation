@@ -9,7 +9,7 @@
 
     - name:                            "BOM: {{ bom_name }} Check is file {{ item.archive }} is already downloaded"
       ansible.builtin.uri:
-        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}{{ sapbits_sas_token }}{% endif %}"
+        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
         status_code:                   [200, 403, 404, 409]
         method:                        HEAD
       register:                        blob_exists
@@ -49,6 +49,7 @@
             force_basic_auth:          true
             http_agent:                'SAP Software Download'
             timeout:                   60
+            mode:                      0644
           become:                      true
           become_user:                 root
           register:                    result
@@ -59,7 +60,7 @@
       rescue:
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.set_fact:
-            file_url:                  "{{ item.url | lower | urlsplit('scheme') }}://{{ item.url | lower | urlsplit('hostname') }}/{{ item.url | lower | urlsplit('path') | replace('\"','') }}"
+            file_url:                  "{{ item.url | lower | urlsplit('scheme') }}://{{ item.url | lower | urlsplit('hostname') }}/{{ item.url | lower | urlsplit('path') | replace('\"', '') }}"
 
         - name:                        "BOM: Ensure URL is correct"
           ansible.builtin.debug:
@@ -75,12 +76,11 @@
             force_basic_auth:          true
             http_agent:                'SAP Software Download'
             timeout:                   60
+            mode:                      0644
           become:                      true
           become_user:                 root
           register:                    result
           until:                       result is succeeded or not result.changed
-          retries:                     2
-          delay:                       1
           no_log:                      false
 
     - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
@@ -135,7 +135,7 @@
       ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name {{ account }}
-                                         --account-key {{ sapbits_access_key }}
+                                         --sas-token {{ sapbits_sas_token }}
                                          --container-name {{ container }}
                                          --name {{ item.archive }}
                                          --file {{ result.dest }}

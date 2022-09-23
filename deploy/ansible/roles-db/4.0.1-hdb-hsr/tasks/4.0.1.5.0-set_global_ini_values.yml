@@ -8,7 +8,7 @@
 - name:                                "HANA HSR: - path to global.ini."
   ansible.builtin.debug:
     msg:                               "{{ path_global_ini }}"
-
+    verbosity:                         2
 # - name:                                Adjust global.ini on each cluster node
 #   ansible.builtin.blockinfile:
 #     path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
@@ -24,7 +24,8 @@
 
 - name:                                "HANA HSR: - Ensure options set in section [inifile_checker] of global.ini."
   become_user:                         "{{ db_sid_admin_user }}"
-  ansible.builtin.ini_file:
+  become:                              true
+  community.general.ini_file:
     path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
     section:                           inifile_checker
     state:                             present

@@ -30,7 +30,7 @@
 
 - name:                                Extract Subscription ID
   ansible.builtin.set_fact:
-    sap_hana_fencing_spn_subscription_id: "{{ jsondata | json_query('compute.subscriptionId') }}"
+    fencing_spn_subscription_id: "{{ jsondata | json_query('compute.subscriptionId') }}"
   no_log:                              true
 
 - name:                                "Extract ResourceGroup Name "
@@ -48,7 +48,7 @@
 
 - name:                                Show Subscription ID
   ansible.builtin.debug:
-    var:                               sap_hana_fencing_spn_subscription_id
+    var:                               fencing_spn_subscription_id
     verbosity:                         2
 
 - name:                                Show Resource Group Name
@@ -60,7 +60,7 @@
   block:
     - name:                            Check HANA DB Version and register
       become_user:                     "{{ db_sid | lower }}adm"
-      ansible.builtin.command:         /hana/shared/{{ db_sid| upper }}/HDB00/HDB version
+      ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB00/HDB version
       register:                        hdbversion
       changed_when:                    false
 

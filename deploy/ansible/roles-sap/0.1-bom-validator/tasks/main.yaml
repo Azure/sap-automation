@@ -67,7 +67,7 @@
   ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
-                                         --account-key {{ sapbits_access_key }}
+                                         --sas-token {{ sapbits_sas_token }}
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives
                                          --name readme.md
                                          --file {{ readme_file.dest }}
@@ -91,7 +91,7 @@
 #       Enhance so a single task loops over bas bom and dependencies
 #
 - name:                                "0.1 BoM Validator: - Process main BoM"
-  include_tasks:                       bom_validator.yaml
+  ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
@@ -101,14 +101,14 @@
 - name:                                "0.1 BoM Validator: - Save BoM {{ bom_base_name }} as Dictionary"
   ansible.builtin.set_fact:
     root_bom:                          "{{ bom }}"
-    root_media_list:                   "{{ bom.materials.media|flatten(levels=1) }}"
+    root_media_list:                   "{{ bom.materials.media | flatten(levels=1) }}"
 
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Call BOM processor, passing dependent BOM names.
 #
 - name:                                "0.1 BoM Validator: - Process dependent BoMs in a loop"
-  include_tasks:                       bom_validator.yaml
+  ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
@@ -120,12 +120,24 @@
     loop_var:                          bom_dependency
   when:
     - bom.materials.dependencies is defined
-    - bom.materials.dependencies|length>0
+    - bom.materials.dependencies | length>0
 # -------------------------------------+---------------------------------------8
+
+- name:                                "0.1 BOM Validator: - Filter combined BoM"
+  ansible.builtin.set_fact:
+    root_media_list:                   "{{ root_media_list | unique(attribute='archive') | list }}"
 
 - name:                                "0.1 BOM Validator: - Assemble combined BoM"
   ansible.builtin.set_fact:
-    new_bom:                           "{{ lookup ('template', 'bom.j2') }}"
+    new_bom:                           "{{ lookup('template', 'bom.j2') }}"
+
+- name:                                "0.1 BOM Validator: - remove BoM"
+  become:                              true
+  become_user:                         root
+  delegate_to:                         localhost
+  ansible.builtin.file:
+    path:                              "{{ download_directory }}/bom/{{ bom_base_name }}.yaml"
+    state:                             absent
 
 - name:                                "0.1 BOM Validator: - write combined BoM"
   become:                              true
@@ -133,14 +145,36 @@
   delegate_to:                         localhost
   ansible.builtin.copy:
     content:                           "{{ new_bom }}"
-#    dest:                              "{{ download_directory }}/bom/{{ bom_base_name.replace('ms','') }}.yaml"
     dest:                              "{{ download_directory }}/bom/{{ bom_base_name }}.yaml"
+    mode:                              0755
+    force:                             true
+
+- name:                                "0.1 BoM Validator: - BoM "
+  ansible.builtin.debug:
+    var:                               new_bom
+    verbosity:                         4
+
+- name:                                "0.1 BoM Validator: - delete combined BoM"
+  ansible.builtin.command: >-
+                                       az storage blob delete
+                                         --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
+                                         --sas-token {{ sapbits_sas_token }}
+                                         --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}
+                                         --name {{ bom_base_name }}.yaml
+  delegate_to:                         localhost
+  register:                            azresult
+  changed_when:                        false
+  failed_when:
+    - azresult.rc != 0
+    - azresult.stderr is defined
+    - azresult.stderr.find("BlobNotFound") == -1
+
 
 - name:                                "0.1 BoM Validator: - Upload combined BoM"
   ansible.builtin.command: >-
                                        az storage blob upload
                                          --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
-                                         --account-key {{ sapbits_access_key }}
+                                         --sas-token {{ sapbits_sas_token }}
                                          --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}
                                          --name {{ bom_base_name }}.yaml
                                          --file {{ download_directory }}/bom/{{ bom_base_name }}.yaml
@@ -149,21 +183,19 @@
                                          --no-progress
   delegate_to:                         localhost
   register:                            azresult
-  ignore_errors:                       true
   changed_when:                        false
   failed_when:
     - azresult.rc != 0
     - azresult.stderr is defined
     - azresult.stderr.find("BlobAlreadyExists") == -1
 
-
-# /*---------------------------------------------------------------------------8
-# |                                   END                                      |
-# +------------------------------------4--------------------------------------*/
-
 - name:                                "0.1 BoM Validator: - BoM folder path"
   ansible.builtin.debug:
     msg:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/{{ bom_base_name }}.yaml"
 
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
 
 ...

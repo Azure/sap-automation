@@ -3,5 +3,5 @@
 # can be shared by all playbooks/tasks automatically, and extend with
 # standardised versions of all similar patterns used in the playbooks.
 # Changed from ansible_os_family to ansible_distribution to adopt Oracle Linux. os_family returns returns value Redhat by default.
-distro_name:    "{{ ansible_distribution|upper }}-{{ ansible_distribution_major_version }}"
-distribution_id:      "{{ ansible_distribution|lower ~ ansible_distribution_major_version }}"
+distro_name:                           "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+distribution_id:                       "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"

@@ -18,9 +18,9 @@
 #
 # -------------------------------------+---------------------------------------8
 
-#----------------------------------------
+# ----------------------------------------
 # BEGIN
-#----------------------------------------
+# ----------------------------------------
 
 # TODO: This should probably be moved into the 1.4-packages role
 - name:                                "1.7 chrony: - Collect facts about installed packages"
@@ -36,7 +36,7 @@
           this role runs.
   when:
     # parentheses wrapped to keep ansible parser happy
-    -      ('ntp' in ansible_facts.packages)
+    - ('ntp' in ansible_facts.packages)
 
 - name:                                "1.7 chrony: - Ensure that required packages are installed"
   ansible.builtin.package:
@@ -54,8 +54,8 @@
 # using the distribution provided defaults.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Initialise facts used to manage chrony settings"
-  set_fact:
+- name:                                "1.7 chrony: - Initialise facts used to manage chrony settings"  # noqa jinja[spacing]
+  ansible.builtin.set_fact:
     chronyd_restart_required:          "{{ chrony_package_installed is changed }}"
     # Generate list of chrony config entries that may need to be added
     chrony_conf_entries: >-
@@ -70,7 +70,7 @@
       {{- _conf_entries -}}
 
 - name:                                "1.7 chrony: - Show generated list of chrony conf entries"
-  debug:
+  ansible.builtin.debug:
     var:                               chrony_conf_entries
     verbosity:                         2
   when:
@@ -105,7 +105,7 @@
         state:                         present
       register:                        chrony_conf_updated
       when:
-        - ansible_os_family|upper == 'SUSE'
+        - ansible_os_family | upper == 'SUSE'
 
     - name:                            "1.7 chrony: - Set chrony facts"
       ansible.builtin.set_fact:
@@ -211,6 +211,6 @@
   when:
     - chronyd_restarted is skipped
 
-#----------------------------------------
+# ----------------------------------------
 # END
-#----------------------------------------
+# ----------------------------------------

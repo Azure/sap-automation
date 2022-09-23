@@ -46,14 +46,13 @@
     state:                             directory
     mode:                              0755
   delegate_to:                         localhost
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   loop:
     - path: "{{ download_directory }}"
     - path: "{{ download_directory }}/tmp"
     - path: "{{ download_directory }}/bom"
     - path: "{{ download_directory }}/files"
-
 
 - name:                                "3.3 BoM Processing: - Run the bom-register"
   ansible.builtin.include_role:
@@ -79,9 +78,10 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                                "3.3 BoM Processing: - Process main BOM"
-  include_tasks:                       "bom_processor.yaml"
+  ansible.builtin.include_tasks:       "bom_processor.yaml"
   vars:
     bom_name:                          "{{ bom_base_name }}"
+# when:                                ansible_hostname == primary_instance_name
 
 ...
 # /*---------------------------------------------------------------------------8

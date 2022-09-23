@@ -26,8 +26,8 @@ parameters:
     - { tier: 'os', name: 'kernel.core_uses_pid',                          value: '1',                        state: 'present' }
     - { tier: 'os', name: 'kernel.ctrl-alt-del',                           value: '0',                        state: 'present' }
     - { tier: 'os', name: 'kernel.dmesg_restrict',                         value: '1',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.kptr_restrict',                          value: '2',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.perf_event_paranoid',                    value: '3',                        state: 'present' }
+    - { tier: 'os', name: 'kernel.kptr_restrict',                          value: '1',                        state: 'present' }
+    - { tier: 'os', name: 'kernel.perf_event_paranoid',                    value: '2',                        state: 'present' }
     - { tier: 'os', name: 'kernel.randomize_va_space',                     value: '2',                        state: 'present' }
     - { tier: 'os', name: 'kernel.sysrq',                                  value: '0',                        state: 'present' }
     - { tier: 'os', name: 'net.ipv4.conf.all.accept_redirects',            value: '0',                        state: 'present' }

@@ -45,13 +45,8 @@
 - name:                                "1.9 Kernel parameters - Gather list of parameters which need to be applied"
   ansible.builtin.set_fact:
     get_parameters_to_apply:           '{{
-                                          (
-                                            parameters["common"]
-                                            +
-                                            (
-                                              parameters[distribution_id]|default([])
-                                            )
-                                          ) | unique
+                                          (parameters["common"] +
+                                          (parameters[distribution_id] | default([]))) | unique
                                         }}'
 
 # print only when -vv, otherwise you will have terminal nausea
@@ -62,7 +57,7 @@
 
 - name:                                "1.9 Kernel parameters - Set relevant kernel parameters"
   become:                              true
-  ansible.builtin.sysctl:
+  ansible.posix.sysctl:
     name:                              "{{ item.name }}"
     value:                             "{{ item.value }}"
     state:                             "{{ item.state }}"

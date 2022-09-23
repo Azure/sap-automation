@@ -1,7 +1,7 @@
 ---
 
 - name:                                "1.17 Generic Pacemaker - Pause to give cluster time to stabilize"
-  pause:
+  ansible.builtin.pause:
     seconds:                           "{{ cluster_status_report_wait_in_s }}"
 
 - name:                                "1.17 Generic Pacemaker - Check the post-provisioning cluster status"

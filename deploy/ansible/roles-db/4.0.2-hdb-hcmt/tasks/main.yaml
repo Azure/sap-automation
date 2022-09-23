@@ -16,7 +16,9 @@
 # +------------------------------------4--------------------------------------*/
 
     - name: Setup HCMT
-      ansible.builtin.command:         ./hcmtsetup
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./hcmtsetup
       args:
         chdir:                         "{{ target_media_location }}/hcmt/setup"
         creates:                       "{{ target_media_location }}/hcmt/setup/config"
@@ -34,25 +36,29 @@
         replace:                       '"Value": "1"'
 
     - name:                            Execute HCMT
-      ansible.builtin.command:         ./hcmt -v -p config/executionplan.json
-      changed_when:                    false      
+      ansible.builtin.shell: |
+                                       umask {{ custom_umask | default('022') }};
+                                       ./hcmt -v -p config/executionplan.json
+      changed_when:                    false
       args:
         chdir:                         "{{ target_media_location }}/hcmt/setup"
 
-    - name:                            Find HCMT test result file
+    - name:                            "Find the log files (HCMT)"
       ansible.builtin.find:
         paths:                         "{{ target_media_location }}/hcmt/setup"
+        file_type:                     file
         patterns:                      "hcmtresult-*.zip"
         recurse:                       false
-      register:                        file_2_fetch
+      register:                        hcmt_logs
 
-    - name:                            Fetch the HCMT result
+    - name:                            "Copy HCMT logs"
       ansible.builtin.fetch:
         src:                           "{{ item.path }}"
-        dest:                          "{{ _workspace_directory }}/logs"
+        dest:                          "{{ _workspace_directory }}/logs/{{ item.path | basename }}"
         flat:                          true
-        fail_on_missing:               false
-      with_items: "{{ file_2_fetch.files }}"
+      with_items: "{{ hcmt_logs.files }}"
+      when:
+        - hcmt_logs is defined
 
 ...
 # /*---------------------------------------------------------------------------8

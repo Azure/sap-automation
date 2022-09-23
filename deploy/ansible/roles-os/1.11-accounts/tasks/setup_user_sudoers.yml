@@ -28,20 +28,19 @@
   ansible.builtin.getent:
     database:                          passwd
 
-- name:         Ensure that sudoers_user was specified
+- name:                                Ensure that sudoers_user was specified
   ansible.builtin.fail:
     msg: >
       Please ensure that a 'sudoers_user` is specified, is not an
       empty value, and matches a known user if creating a sudoers
       entry.
   when:
-    -           ((sudoers_user is not defined) or
-                 ((sudoers_user == "") or
-                  ((sudoers_user not in getent_passwd) and
-                   (sudoers_state == "present"))))
+    - ((sudoers_user is not defined) or
+      ((sudoers_user == "") or
+      ((sudoers_user not in getent_passwd) and (sudoers_state == "present"))))
 
 - name:                                Optionally include any vars settings for specified role
-  include_vars:                        "{{ found_var_file }}"
+  ansible.builtin.include_vars:        "{{ found_var_file }}"
   loop_control:
     # Can't safely use item here as it is being used by the looping
     # include_tasks action in main.yml

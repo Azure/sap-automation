@@ -18,8 +18,10 @@ hana_tenant_database_name:             "{{ db_sid | upper }}"
 # HANA utility commands
 hdbsql_systemdb_command:               "hdbsql -n localhost -i {{ hdb_instance_number }} -d SYSTEMDB -u SYSTEM -p {{ main_password }}"
 hdbsql_tenant_command:                 "hdbsql -n localhost -i {{ hdb_instance_number }} -d {{ hana_tenant_database_name }} -u SYSTEM -p {{ main_password }}"
-hdbnsutil_command:                     "hdbnsutil"
+hdbnsutil_command:                     "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/hdbnsutil"
+
 sapcontrol_command:                    "sapcontrol -nr {{ hdb_instance_number }}"
+
 
 # SQL Commands
 
@@ -40,14 +42,14 @@ backup_cmd_for_systemdb:               "BACKUP DATA USING FILE ('{{ backup_file_
 backup_cmd_for_tenant:                 "BACKUP DATA USING FILE ('{{ backup_file_for_tenant_full_path }}')"
 
 # SQL to confirm a system backup has been taken for SYSTEMDB
-backup_exists_cmd_for_systemdb: "SELECT SYS.M_BACKUP_CATALOG.BACKUP_ID FROM SYS.M_BACKUP_CATALOG
+backup_exists_cmd_for_systemdb:        "SELECT SYS.M_BACKUP_CATALOG.BACKUP_ID FROM SYS.M_BACKUP_CATALOG
   INNER JOIN SYS.M_BACKUP_CATALOG_FILES ON SYS.M_BACKUP_CATALOG.ENTRY_ID = SYS.M_BACKUP_CATALOG_FILES.ENTRY_ID
   WHERE SYS.M_BACKUP_CATALOG.STATE_NAME='successful'
   AND SYS.M_BACKUP_CATALOG.ENTRY_TYPE_NAME='complete data backup'
   AND SYS.M_BACKUP_CATALOG_FILES.DESTINATION_PATH LIKE '{{ backup_file_for_systemdb_full_path }}%'"
 
 # SQL to confirm a system backup has been taken for the tenant DB
-backup_exists_cmd_for_tenant: "SELECT SYS.M_BACKUP_CATALOG.BACKUP_ID FROM SYS.M_BACKUP_CATALOG
+backup_exists_cmd_for_tenant:          "SELECT SYS.M_BACKUP_CATALOG.BACKUP_ID FROM SYS.M_BACKUP_CATALOG
   INNER JOIN SYS.M_BACKUP_CATALOG_FILES ON SYS.M_BACKUP_CATALOG.ENTRY_ID = SYS.M_BACKUP_CATALOG_FILES.ENTRY_ID
   WHERE SYS.M_BACKUP_CATALOG.STATE_NAME='successful'
   AND SYS.M_BACKUP_CATALOG.ENTRY_TYPE_NAME='complete data backup'

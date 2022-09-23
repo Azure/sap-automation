@@ -30,23 +30,23 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:              "{{ sap_sid|upper }}_DB  :
-                       {{ sap_sid|upper }}_SCS :
-                       {{ sap_sid|upper }}_ERS :
-                       {{ sap_sid|upper }}_PAS :
-                       {{ sap_sid|upper }}_ERS :
-                       {{ sap_sid|upper }}_APP :
-                       {{ sap_sid|upper }}_WEB :
-                       {{ sap_sid|upper }}_OBSERVER_DB"
+- hosts:              "{{ sap_sid | upper }}_DB  :
+                       {{ sap_sid | upper }}_SCS :
+                       {{ sap_sid | upper }}_ERS :
+                       {{ sap_sid | upper }}_PAS :
+                       {{ sap_sid | upper }}_ERS :
+                       {{ sap_sid | upper }}_APP :
+                       {{ sap_sid | upper }}_WEB :
+                       {{ sap_sid | upper }}_OBSERVER_DB"
 
-  name:               OS - Base Configuration
-  remote_user:        "{{ orchestration_ansible_user }}"
-  become:             true
-  become_user:        root
-  gather_facts:       true                                                      # Important to collect hostvars information
-  any_errors_fatal:   true
+  name:                                OS - Base Configuration
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "{{ become_user_name }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  any_errors_fatal:                    true
   vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
 
   tasks:
@@ -63,113 +63,108 @@
       ansible.builtin.set_fact:
         tier:                          os
 
-    - block:
-        - name:                        "OS configuration playbook: - Set sudoers"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.0-sudoers
+    - name:                            "OS configuration playbook: - Set sudoers"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.0-sudoers
       tags:
         - 1.0-sudoers
 
-    - block:
-        - name:                        "OS configuration playbook: - Set swap"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.1-swap
+    - name:                            "OS configuration playbook: - Set swap"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.1-swap
       tags:
         - 1.1-swap
 
-    - block:
-        - name:                        "OS configuration playbook: - Set hostname"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.2-hostname
+    - name:                            "OS configuration playbook: - Set hostname"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.2-hostname
       tags:
         - 1.2-hostname
 
-    - block:
-        - name:                        "OS configuration playbook: - Ensure the repositories are registered"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.3-repository
+    - name:                            "OS configuration playbook: - Ensure the repositories are registered"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.3-repository
       tags:
         - 1.3-repository
 
-    - block:
-        - name:                        "OS configuration playbook: - Ensure the packages are registered"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.4-packages
+    - name:                            "OS configuration playbook: - Ensure the packages are registered"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.4-packages
       tags:
         - 1.4-packages
 
-    - block:
-        - name:                        "OS configuration playbook: - Configure volume groups and logical volumes"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.5-disk-setup
+    - name:                            "OS configuration playbook: - Configure volume groups and logical volumes"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.5-disk-setup
       tags:
         - 1.5-disk-setup
 
-    - block:
-        - name:                        "OS configuration playbook: - Configure chrony"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.7-chrony
+    - name:                            "OS configuration playbook: - Configure volume groups and logical volumes (sharedHome)"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.5.2-disk-setup-ora-multi-sid
+      when:                            node_tier == "oracle-multi-sid"
+      tags:
+        - 1.5.2-disk-setup-ora-multi-sid
+
+    - name:                            "OS configuration playbook: - Chrony role"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.7-chrony
       tags:
         - 1.7-chrony
 
-    - block:
-        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.9-kernelparameters
+    - name:                            "OS configuration playbook: - Ensure the kernel parameters are set"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.9-kernelparameters
       tags:
         - 1.9-kernelparameters
-        
-    - block:
-        - name:                        "OS configuration playbook: - Configure networking"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.10-networking
-          when: ansible_os_family | upper == "REDHAT"
+
+    - name:                            "OS configuration playbook: - Configure networking"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.10-networking
+      when:                            ansible_os_family | upper == "REDHAT"
       tags:
         - 1.10-networking
-      
-    - block:
-        - name:                        "OS configuration playbook: - Configure accounts"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
+
+    - name:                            "OS configuration playbook: - Configure accounts"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.11-accounts
       tags:
         - 1.11-accounts
 
-    - block:
-        - name:                        "OS configuration playbook: - Configure accounts"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
-          vars:
-            tier:                      ora
-      when:                           node_tier == "oracle"
+    - name:                            "OS configuration playbook: - Configure accounts (Oracle)"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.11-accounts
+      vars:
+        tier:                          ora
+      when:                            node_tier == "oracle"
 
-    - block:
-        - name:                        "OS configuration playbook: - Configure MOTD"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.13-MOTD
+    - name:                            "OS configuration playbook: - Configure MOTD"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.13-MOTD
       tags:
         - 1.13-MOTD
 
-    - block:
-        - name:                        "OS configuration playbook: - Ensure the needed services are started"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.16-services
+    - name:                            "OS configuration playbook: - Ensure the needed services are started"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.16-services
       tags:
         - 1.16-services
 
-    - block:
-        - name:                        "OS configuration playbook: - Configure Prometheus"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.20-prometheus
-      when:   prometheus
-              and             ansible_os_family|upper == "SUSE"
-              and (     (     ansible_distribution_major_version == '12'
-                          and ansible_distribution_release is search('[3-5]' ) )
-                    or  (     ansible_distribution_major_version == '15' ) )
+    - name:                            "OS configuration playbook: - Configure Prometheus"
+      ansible.builtin.include_role:
+        name:                          roles-os/1.20-prometheus
+      when:
+        - prometheus
+        - ansible_os_family | upper == "SUSE"
+        - ((ansible_distribution_major_version == '12'
+            and ansible_distribution_release is search('[3-5]'))
+          or (ansible_distribution_major_version == '15'))
       tags:
         - 1.20-prometheus
 
     - name:                            "OS configuration playbook: - Create os-configuration-done flag"
       delegate_to:                     localhost
+      become:                          false
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
         state:                         touch
