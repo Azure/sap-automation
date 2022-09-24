@@ -109,8 +109,7 @@ stages:
                       az extension add --name azure-devops --output none
                     fi
 
-                    az devops configure -d organization=$(System.CollectionUri)
-                    az devops configure -d project=$(System.TeamProject)
+                    az devops configure --defaults organization=$(System.CollectionUri)
                     export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                     echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
                     if [ -z ${VARIABLE_GROUP_ID} ]; then
@@ -150,14 +149,6 @@ stages:
                        storage_account_parameter="--storageaccountname ${REMOTE_STATE_SA}"
                     fi
 
-                    if [ -n $(TF_VAR_agent_pool) ]; then
-                       export POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri)  --query "[?name=='$(TF_VAR_agent_pool)'].name | [0]")
-                       echo POOL ${POOL_NAME}
-                       if [ -z ${POOL_NAME} ]; then
-                           echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
-                       fi
-
-                    fi
                 echo -e "$green--- Validations ---$reset"
 
                     if [ -z ${ARM_SUBSCRIPTION_ID} ]; then
@@ -304,7 +295,6 @@ stages:
 
                     az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
-
                     echo -e "$green--- Deploy the Control Plane ---$reset"
 
                     if [ -n $(PAT) ]; then
@@ -312,9 +302,13 @@ stages:
                     fi
 
                     if [ -n $(POOL) ]; then
-                        echo 'Deployer Agent Pool' $(POOL)
-                    fi
+                       echo 'Deployer Agent Pool' $(POOL)
+                       POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
+                       if [ ${#POOL_NAME} -eq 0 ]; then
+                           echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
+                       fi
 
+                    fi
 
                     if [ -f LIBRARY/$(libraryfolder)/state.zip ]; then
                         if [ -f LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
@@ -560,14 +554,14 @@ stages:
                                         -ProjectName "$(System.TeamProject)"
                                         -RepositoryId $(Build.Repository.ID)
                                         -SourceBranch $(Build.SourceBranchName)
-                                        -WORKLOADZONE_PIPELINE_ID $(WORKLOAD_ZONE_PIPELINE_ID)
+                                        -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
                                         -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
                                         -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
                                         -IS_PIPELINE_DEPLOYMENT true'
             env:
               ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
-              WORKLOAD_ZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
+              WORKLOADZONE_PIPELINE_ID:  $(WORKLOADZONE_PIPELINE_ID)
               SDAF_GENERAL_GROUP_ID:     $(SDAF_GENERAL_GROUP_ID)
               WEBAPP_URL_BASE:           $(WEBAPP_URL_BASE)
               WEBAPP_ID:                 $(WEBAPP_ID)

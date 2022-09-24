@@ -94,7 +94,7 @@ if ($AlreadySet) {
 else {
   Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
   Start-Process $pat_url
-  
+
   $PAT = Read-Host -Prompt "Enter the PAT you just created"
   az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "PAT" --value $PAT --secret true --only-show-errors
   <# Action when all if and elseif conditions are false #>
@@ -117,7 +117,6 @@ Write-Host "The browser will now open, please ensure that the '" $Env:ADO_PROJEC
 
 Start-Process $permissions_url.Replace("""", "")
 Read-Host -Prompt "Once you have verified the permission, Press any key to continue"
-
 
 Write-Host "Creating the App registration in Azure Active Directory"
 
@@ -184,7 +183,7 @@ else {
   if ($epExists.Length -eq 0) {
     az devops service-endpoint azurerm create --project $Project --organization $Organization --azure-rm-service-principal-id $MGMTData.appId --azure-rm-subscription-id $ControlPlaneSubscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $MGMTData.tenant --name "Control_Plane_Service_Connection" --output none --only-show-errors
   }
-  
+
   az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "AZURE_CONNECTION_NAME" --value "Control_Plane_Service_Connection" --only-show-errors
 }
 
