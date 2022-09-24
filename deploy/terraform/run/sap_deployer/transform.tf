@@ -227,7 +227,6 @@ locals {
 
   options = {
     enable_deployer_public_ip =       var.deployer_enable_public_ip
-    )
   }
 
   firewall_deployment          = try(var.firewall_deployment, false)
