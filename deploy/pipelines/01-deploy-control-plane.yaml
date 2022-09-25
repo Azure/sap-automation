@@ -179,10 +179,13 @@ stages:
                             exit 2
                         fi
 
-                        if [ -z ${TF_VAR_webapp_client_secret} ]; then
+                        if [ -z ${WEB_APP_CLIENT_SECRET} ]; then
                             echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
                             exit 2
                         fi
+                        export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
+                        export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
+                        export TF_VAR_use_webapp=true
 
                     fi
 
@@ -302,11 +305,14 @@ stages:
                     fi
 
                     if [ -n $(POOL) ]; then
-                       echo 'Deployer Agent Pool' $(POOL)
-                       POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
-                       if [ ${#POOL_NAME} -eq 0 ]; then
-                           echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
-                       fi
+                        echo 'Deployer Agent Pool' $(POOL)
+                        POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
+                        if [ ${#POOL_NAME} -eq 0 ]; then
+                            echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
+                        fi
+
+                        export TF_VAR_agent_pool=$(POOL)
+                        export TF_VAR_agent_pat=$(PAT)
 
                     fi
 
@@ -495,14 +501,11 @@ stages:
               ARM_TENANT_ID:                  $(ARM_TENANT_ID)
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
               AZURE_DEVOPS_EXT_PAT:           $(PAT)
-              TF_VAR_agent_pool:              $(POOL)
-              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              TF_VAR_agent_pat:               $(PAT)
-              TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
               IS_PIPELINE_DEPLOYMENT:         true
-              TF_VAR_use_webapp:              $(use_webapp)
               DEPLOYMENT_REPO_PATH:           $(Build.Repository.LocalPath)
-              subscription:                   $(ARM_SUBSCRIPTION_ID)
+              WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
+              APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
+              POOL:                           $(POOL)
 
             failOnStderr:              false
 
@@ -569,7 +572,7 @@ stages:
               #!/bin/bash
               printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
-              echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"              
+              echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
             displayName:                 'Documentation'
             env:
               ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
