@@ -8,7 +8,7 @@ materials:
   media:
    # SUM
     - name:         "Patch 7 for SOFTWARE UPDATE MANAGER 2.0 SP14"
-      archive:      SUM20SP14_6-80002456.SAR
+      archive:      SUM20SP14_7-80002456.SAR
       checksum:     b207e0c1b832e50603a46b6e678d1f2eea63750acee49d7cdc9403f29257278c
       download:     false
       url:          https://softwaredownloads.sap.com/file/0020000001246852022

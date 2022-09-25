@@ -2,7 +2,6 @@
 $Organization = $Env:ADO_ORGANIZATION
 
 $Project = $Env:ADO_PROJECT
-$YourPrefix = $Env:YourPrefix
 
 if ($Organization.Length -eq 0) {
   Write-Host "Organization is not set"
@@ -20,14 +19,9 @@ else {
   Write-Host "Using Project: $Project"
 }
 
-if ($YourPrefix.Length -eq 0) {
-  Write-Host "YourPrefix is not set"
-  $YourPrefix = Read-Host "Enter your prefix to be prepended to the Azure AD resources"
-}
 
-
-$MgmtPrefix = $YourPrefix + "-SDAF-MGMT"
-$DEVPrefix = $YourPrefix + "-SDAF-DEV"
+$MgmtPrefix = "SDAF-MGMT"
+$DEVPrefix = "SDAF-DEV"
 $Name = $MgmtPrefix + "-configuration-app"
 
 if ($Env:SDAF_APP_NAME.Length -ne 0) {
@@ -85,8 +79,6 @@ if ($GroupID.Length -eq 0) {
 Write-Host "Found group ID $GroupID"
 
 $AlreadySet = [Boolean](az pipelines variable-group variable list --group-id $GroupID --query PAT.isSecret --only-show-errors)
-
-Write-Host $AlreadySet
 
 if ($AlreadySet) {
   Write-Host "The PAT is already set"
