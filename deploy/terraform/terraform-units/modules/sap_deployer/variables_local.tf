@@ -15,7 +15,6 @@ locals {
   // Default option(s):
   enable_secure_transfer    = try(var.options.enable_secure_transfer, true)
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
-  deployer_public_ip_address = try(var.options.enable_deployer_public_ip, "")
   Agent_IP = try(var.Agent_IP, "")
 
 
