@@ -1,15 +1,17 @@
-name: Create Deployer Configuration
+name:                                  Create Deployer Configuration
+
+trigger:                               none
 
 parameters:
-  - name: deployer_environment_parameter
-    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type: string
-    default: MGMT
+  - name:                              deployer_environment_parameter
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
 
-  - name: deployer_region_parameter
-    displayName: Deployer region name code (MGMT, DEV, QA, PRD, ...)
-    type: string
-    default: WEEU
+  - name:                              deployer_region_parameter
+    displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           WEEU
     values:
       - AUCE
       - AUC2
@@ -60,41 +62,44 @@ parameters:
       - WUS2
 
 variables:
-  - name: deployer_environment
-    value: ${{ parameters.deployer_environment_parameter }}
+  - name:                              deployer_environment
+    value:                             ${{ parameters.deployer_environment_parameter }}
 
-  - name: deployer_region
-    value: ${{ parameters.deployer_region_parameter }}
+  - name:                              deployer_region
+    value:                             ${{ parameters.deployer_region_parameter }}
 
-  - name: deployer_folder
-    value: ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+  - name:                              deployer_folder
+    value:                             ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
-  - name: deployer_file
-    value: ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+  - name:                              deployer_file
+    value:                             ${{ format('{0}-{1}-DEP00-INFRASTRUCTURE.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
-  - name: library_folder
-    value: ${{ format('{0}-{1}-SAP_LIBRARY', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+  - name:                              library_folder
+    value:                             ${{ format('{0}-{1}-SAP_LIBRARY', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
-  - name: library_file
-    value: ${{ format('{0}-{1}-SAP_LIBRARY.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
-
+  - name:                              library_file
+    value:                             ${{ format('{0}-{1}-SAP_LIBRARY.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
 stages:
-  - stage: Create_Configuration
-    displayName: Create Deployer Configuration
+  - stage:                             Create_Configuration
+    displayName:                       Create Deployer Configuration
     jobs:
-      - job: Create_Deployer_Configuration
-        displayName: Create Deployer Configuration
+      - job:                           Create_Deployer_Configuration
+        displayName:                   Create Deployer Configuration
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
-          - task: PowerShell@2
-            displayName: "Create Sample"
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
+          - task:                      PowerShell@2
+            displayName:               "Create Sample"
             inputs:
+<<<<<<< HEAD
               targetType: "inline"
+=======
+              targetType:              "inline"
+>>>>>>> 3bc1fc6236c7249b44179d816b7fe66bc646ed73
 
               script: |
                     git fetch -q --all
@@ -260,7 +265,13 @@ stages:
 
                     }
 
+<<<<<<< HEAD
               failOnStderr: false
 
               showWarnings: true
               pwsh: true
+=======
+              failOnStderr:            false
+              showWarnings:            true
+              pwsh:                    true
+>>>>>>> 3bc1fc6236c7249b44179d816b7fe66bc646ed73
