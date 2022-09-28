@@ -20,6 +20,10 @@
 
 
   tasks:
+    - name: ensure jmespath is installed in the playbook python
+      pip:
+        name: jmespath
+        state: present
 
     - name:                            "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
