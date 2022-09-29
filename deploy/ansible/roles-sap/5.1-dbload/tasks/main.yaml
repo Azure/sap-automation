@@ -144,30 +144,18 @@
       register:                        dbload_results
       tags:
         - skip_ansible_lint
-      async:                           7200
-      poll:                            0
-
-    - name:                            "DBLoad Install -Wait for asynchronous job to end"
-      ansible.builtin.async_status:
-        jid:                           "{{ dbload_results.ansible_job_id }}"
-      register:                        job_result
-      until:                           job_result.finished
-      retries:                         120
-      delay:                           60
-      when:                            dbload_results.ansible_job_id is defined
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         msg:
           - "DBLoad : {{ dbload_results }}"
-          - "Job result: {{ job_result }}"
 
     - name:                            "DBLoad: Installation results"
       ansible.builtin.debug:
         var:                           dbload_results
       when:
-        - job_result is defined
-        - job_result.rc > 0
+        - dbload_results is defined
+        - dbload_results.rc > 0
 
     - name:                            "DBLoad Install: Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
@@ -180,8 +168,8 @@
         state:                         touch
         mode:                          0755
       when:
-        - job_result.rc is defined
-        - job_result.rc == 0
+        - dbload_results is defined
+        - dbload_results.rc > 0
 
     - name:                            "DBLoad Install: Installation results"
       ansible.builtin.debug:
