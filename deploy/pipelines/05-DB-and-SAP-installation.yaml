@@ -240,7 +240,7 @@ stages:
                   exit $return_code
                 fi
                 az account set --subscription $ARM_SUBSCRIPTION_ID
-                
+
                 az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
@@ -291,24 +291,28 @@ stages:
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               "Variables & Process sshkey"
 
-          - task:                      Ansible@0
-            displayName:               Validate the input parameters
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_00_validate_parameters.yaml"
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
 
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_00_validate_parameters.yaml 
+            displayName: Validate the input parameters
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
             continueOnError:           false
 
   - stage:                             Core_Operating_System_Configuration
@@ -343,22 +347,28 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Core Operating System Configuration
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_01_os_base_config.yaml"
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
 
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_01_os_base_config.yaml 
+            displayName: Core Operating System Configuration
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
             continueOnError:           false
 
   - stage:                             SAP_Operating_System_Configuration
@@ -393,23 +403,30 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               SAP Operating System Configuration
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           false
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
 
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml 
+            displayName: SAP Operating System Configuration
+            env:
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
+            continueOnError:           false
+            
   - stage:                             Software_Acquisition
     displayName:                       Software Acquisition
     dependsOn:
@@ -443,22 +460,28 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Software Acquisition
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml 
+            displayName: Software Acquisition
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
             continueOnError:           false
 
   - stage: Database_Installation
@@ -496,23 +519,30 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Database Installation
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml 
+            displayName: Database Installation
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
             continueOnError:           false
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -569,23 +599,30 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               SCS Installation
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml 
+            displayName: SCS Installation
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-              continueOnError:           true
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
+            continueOnError:           false
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -646,23 +683,30 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Database Load
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml 
+            displayName: Database Load
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
+            continueOnError:           false
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -720,24 +764,29 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               High Availability Setup
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml 
+            displayName: High Availability Setup
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
             continueOnError:           false
-            name: HA
 
   - stage: PAS_Installation
     displayName:                       PAS Installation
@@ -778,24 +827,30 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               PAS Installation
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
 
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml 
+            displayName: PAS Installation
+            env:
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
+            continueOnError:           false
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -859,23 +914,30 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Application Server Install
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
 
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml 
+            displayName: Application Server Install
+            env:
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
+            continueOnError:           false
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -929,22 +991,30 @@ stages:
           - script: |
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               WebDispatcher Installation
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
+          - script: |
+              #Stage could be executed on a different machine by default, need to login again for ansible
+              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                az login --identity --allow-no-subscriptions --output none
+              else
+                az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+              fi
+              az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+              ansible-playbook -i $(Pipeline.Workspace)/ansible_data/$(SID_hosts) --private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams) $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml 
+            displayName: WebDispatcher Installation
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+              AZURE_CLIENT_ID:                $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              DEPLOYMENT_REPO_PATH:           $(DEPLOYMENT_REPO_PATH)
+              USE_DEPLOYER_VM:                $(Use_Deployer_VM)
+            continueOnError:           false
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
