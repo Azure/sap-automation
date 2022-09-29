@@ -364,7 +364,7 @@
                     "name"              : "sapdata1",
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 512
+                    "size_gb"           : 512,
                     "caching"           : "None",
                     "write_accelerator" : false,
                     "lun_start"         : 5

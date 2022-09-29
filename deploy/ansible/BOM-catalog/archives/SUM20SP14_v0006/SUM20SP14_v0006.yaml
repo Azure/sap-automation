@@ -1,0 +1,21 @@
+---
+name:    'SUM20SP14'
+target:  'SUM20SP14'
+version: 006
+
+materials:
+
+  media:
+   # SUM
+    - name:         "Patch 6 for SOFTWARE UPDATE MANAGER 2.0 SP14"
+      archive:      SUM20SP14_6-80002456.SAR
+      checksum:     6d8f9acdf391089cb41ebc5416dbed02c03d5aea7f2d6d451f8ef350e030058d
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000001218412022
+
+      
+    - name:         "Patch 6 for SOFTWARE UPDATE MANAGER 2.0 SP14 (Windows)"
+      archive:      SUM20SP14_6-80002458.SAR
+      checksum:     a1278255c6819f1864d53ff3fb86728ef41e6d20374ad69eb9800aded83ebacf
+      download:     false
+      url:          https://softwaredownloads.sap.com/file/0020000001218532022

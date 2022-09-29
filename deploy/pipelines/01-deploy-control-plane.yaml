@@ -36,7 +36,7 @@ parameters:
 trigger:                               none
 
 pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])] 
+  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
 
 variables:
   - group:                             "SDAF-General"
@@ -83,6 +83,7 @@ stages:
         steps:
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - bash: |
                 #!/bin/bash
 
@@ -101,15 +102,14 @@ stages:
                     git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                    az config set extension.use_dynamic_install=yes_without_promp
+                    az config set extension.use_dynamic_install=yes_without_prompt
 
                     devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
                     if [ -z $devops_extension_installed ]; then
                       az extension add --name azure-devops --output none
                     fi
 
-                    az devops configure -d organization=$(System.CollectionUri)
-                    az devops configure -d project=$(System.TeamProject)
+                    az devops configure --defaults organization=$(System.CollectionUri)
                     export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                     echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
                     if [ -z ${VARIABLE_GROUP_ID} ]; then
@@ -122,10 +122,10 @@ stages:
                         key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
                     else
                         if [ -f ${deployer_environment_file_name} ] ; then
-                            key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}                    
+                            key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                         fi
                     fi
-                
+
                     az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
                     if [ -n "${az_var}"  ]; then
                         STATE_SUBSCRIPTION="${az_var}"  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
@@ -149,15 +149,6 @@ stages:
                        storage_account_parameter="--storageaccountname ${REMOTE_STATE_SA}"
                     fi
 
-                    if [ -n $TF_VAR_agent_pool ]; then
-                       export POOL_NAME=$(az pipelines pool list --query "[?name=='$TF_VAR_agent_pool'].name | [0]")
-                       echo POOL ${POOL_NAME}
-                       if [ -z ${POOL_NAME} ]; then
-                           echo "##vso[task.logissue type=error]Agent Pool $TF_VAR_agent_pool does not exist."
-                           exit 2
-                       fi
-
-                    fi
                 echo -e "$green--- Validations ---$reset"
 
                     if [ -z ${ARM_SUBSCRIPTION_ID} ]; then
@@ -188,10 +179,13 @@ stages:
                             exit 2
                         fi
 
-                        if [ -z ${TF_VAR_webapp_client_secret} ]; then
+                        if [ -z ${WEB_APP_CLIENT_SECRET} ]; then
                             echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
                             exit 2
                         fi
+                        export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
+                        export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
+                        export TF_VAR_use_webapp=true
 
                     fi
 
@@ -199,26 +193,27 @@ stages:
 
                     if [ ! -f $deployer_environment_file_name ]; then
                         az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
-                        if [ -n ${az_var} ]; then
+                        if [[ ${#az_var} -ne 0 ]]; then
                             echo "REMOTE_STATE_SA="${az_var}
                             echo "REMOTE_STATE_SA="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
+                            echo "STATE_SUBSCRIPTION="$(ARM_SUBSCRIPTION_ID) | tee -a  $deployer_environment_file_name > /dev/null
                             echo "step=3" | tee -a  $deployer_environment_file_name > /dev/null
                         fi
 
                         az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value")
-                        if [ -n ${az_var} ]; then
+                        if [[ ${#az_var} -ne 0 ]]; then
                             echo "REMOTE_STATE_RG="${az_var}
                             echo "REMOTE_STATE_RG="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
                         fi
 
 
                         az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
-                        if [ -n ${az_var} ]; then
+                        if [[ ${#az_var} -ne 0 ]]; then
                             echo "deployer_tfstate_key="${az_var}  | tee -a  $deployer_environment_file_name > /dev/null
                         fi
 
                         az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value")
-                        if [ -n ${az_var} ]; then
+                        if [[ ${#az_var} -ne 0 ]]; then
                             echo "keyvault="${az_var}  | tee -a  $deployer_environment_file_name > /dev/null
                             bootstrapped=1
                         fi
@@ -303,7 +298,6 @@ stages:
 
                     az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
-
                     echo -e "$green--- Deploy the Control Plane ---$reset"
 
                     if [ -n $(PAT) ]; then
@@ -312,8 +306,15 @@ stages:
 
                     if [ -n $(POOL) ]; then
                         echo 'Deployer Agent Pool' $(POOL)
-                    fi
+                        POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
+                        if [ ${#POOL_NAME} -eq 0 ]; then
+                            echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
+                        fi
 
+                        export TF_VAR_agent_pool=$(POOL)
+                        export TF_VAR_agent_pat=$(PAT)
+
+                    fi
 
                     if [ -f LIBRARY/$(libraryfolder)/state.zip ]; then
                         if [ -f LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
@@ -364,7 +365,8 @@ stages:
                     echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                     added=0
                     cd $HOME
-                    git pull
+                    git fetch -q --all
+                    git pull -q
 
                     if [ -f ${deployer_environment_file_name} ]; then
 
@@ -447,6 +449,7 @@ stages:
                     fi
 
                     if [ -f $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                        cp $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md $HOME/.sap_deployment_automation/
                         echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                     fi
 
@@ -498,15 +501,85 @@ stages:
               ARM_TENANT_ID:                  $(ARM_TENANT_ID)
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
               AZURE_DEVOPS_EXT_PAT:           $(PAT)
-              TF_VAR_agent_pool:              $(POOL)
-              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              TF_VAR_agent_pat:               $(PAT)
-              TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
               IS_PIPELINE_DEPLOYMENT:         true
-              TF_VAR_use_webapp:              $(use_webapp)
               DEPLOYMENT_REPO_PATH:           $(Build.Repository.LocalPath)
-              subscription:                   $(ARM_SUBSCRIPTION_ID)
+              WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
+              APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
+              POOL:                           $(POOL)
 
             failOnStderr:              false
+
+  - stage:                             Web_App_Deployment
+    displayName:                       Deploy SAP configuration Web App
+    dependsOn:
+      - Deploy_controlplane
+    condition: |
+      and
+      (
+        eq(${{ parameters.use_webapp_param }}, true),
+        eq(dependencies.Deploy_controlplane.result, 'Succeeded')
+      )
+    jobs:
+      - job:                           Deploy_web_app
+        displayName:                   Deploy SAP configuration Web App
+        workspace:
+          clean:                       all
+        steps:
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
+
+          - task:                      DotNetCoreCLI@2
+            displayName:               'Build the Web App'
+            inputs:
+              command:                 'build'
+              projects:                '$(System.DefaultWorkingDirectory)/Webapp/**/*.csproj'
+
+          - task:                      DotNetCoreCLI@2
+            displayName:               'Publish the Web App'
+            inputs:
+              command:                 publish
+              projects:                '**/Webapp/**/*.csproj'
+              publishWebProjects:      false
+              arguments:               '--output $(Build.ArtifactStagingDirectory)/WebApp'
+              zipAfterPublish:         true
+              modifyOutputPath:        true
+
+          - task:                      AzureWebApp@1
+            displayName:               'Deploy the Web App'
+            inputs:
+              azureSubscription:       $(AZURE_CONNECTION_NAME)
+              appType:                 'webApp'
+              appName:                 $(WEBAPP_URL_BASE)
+              package:                 '$(Build.ArtifactStagingDirectory)/WebApp/*.zip'
+              deploymentMethod:        'auto'
+              appSettings:             '-CollectionUri $(System.CollectionUri)
+                                        -ProjectName "$(System.TeamProject)"
+                                        -RepositoryId $(Build.Repository.ID)
+                                        -SourceBranch $(Build.SourceBranchName)
+                                        -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
+                                        -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
+                                        -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
+                                        -IS_PIPELINE_DEPLOYMENT true'
+            env:
+              ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
+              WORKLOADZONE_PIPELINE_ID:  $(WORKLOADZONE_PIPELINE_ID)
+              SDAF_GENERAL_GROUP_ID:     $(SDAF_GENERAL_GROUP_ID)
+              WEBAPP_URL_BASE:           $(WEBAPP_URL_BASE)
+              WEBAPP_ID:                 $(WEBAPP_ID)
+          - bash: |
+              #!/bin/bash
+              printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+              echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
+            displayName:                 'Documentation'
+            env:
+              ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
+              APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
+              WEBAPP_URL_BASE:           $(WEBAPP_URL_BASE)
+              WEBAPP_ID:                 $(WEBAPP_ID)
+              WEBAPP_IDENTITY:           $(WEBAPP_IDENTITY)
 
 ...

@@ -305,6 +305,12 @@ else
     # Install required packages as determined above
     pkg_mgr_install "${required_pkgs[@]}"
 
+    curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
+
+    rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
+    subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
+
+    rm vm.json
 
     # Prepare Azure SAP Automated Deployment folder structure
     mkdir -p \
@@ -328,7 +334,7 @@ else
     sudo mkdir -p \
         ${tf_dir} \
         ${tf_bin}
-    wget -nv -O /tmp/${tf_zip} https://releases.hashicorp.com/terraform/${tfversion}/${tf_zip} 
+    wget -nv -O /tmp/${tf_zip} https://releases.hashicorp.com/terraform/${tfversion}/${tf_zip}
     sudo unzip -o /tmp/${tf_zip} -d ${tf_dir}
     sudo ln -vfs ../$(basename ${tf_dir})/terraform ${tf_bin}/terraform
 
@@ -337,10 +343,10 @@ else
     # Ubuntu 20.04 (Focal Fossa) and 20.10 (Groovy Gorilla) include an azure-cli package with version 2.0.81 provided by the universe repository.
     # This package is outdated and not recommended. If this package is installed, remove the package
     if [ "$rel" == "20.04" ]; then
-    echo "Removing Azure CLI"
-    sudo apt remove azure-cli -y
-    sudo apt autoremove -y
-    sudo apt update -y
+      echo "Removing Azure CLI"
+      sudo apt remove azure-cli -y
+      sudo apt autoremove -y
+      sudo apt update -y
     fi
     #
     # Install az cli using provided scripting
@@ -348,10 +354,12 @@ else
 
     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash > /dev/null
 
-    # Install dotnet
-    sudo snap install dotnet-sdk --classic --channel=3.1
-    sudo snap alias dotnet-sdk.dotnet dotnet
-    
+    az config set extension.use_dynamic_install=yes_without_prompt
+
+    devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
+    if [ -z $devops_extension_installed ]; then
+      az extension add --name azure-devops --output none
+    fi
 
     # Fail if any command exits with a non-zero exit status
     set -o errexit
@@ -400,7 +408,7 @@ else
     # argcomplete, pywinrm.
     # ansible-lint \
     #  yamllint \
-    
+
     sudo ${ansible_venv_bin}/pip3 install \
         "ansible-core>=${ansible_major}.${ansible_minor},<${ansible_major}.$((ansible_minor + 1))" \
         argcomplete \
@@ -463,14 +471,6 @@ else
 
     export PATH="${PATH}":"${ansible_bin}":"${tf_bin}"
 
-    curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq . > vm.json
-    
-    rg_name=$(jq --raw-output .compute.resourceGroupName vm.json )
-    subscription_id=$(jq --raw-output .compute.subscriptionId vm.json)
-    
-    rm vm.json
-    
-    
     # Prepare Azure SAP Automated Deployment folder structure
     mkdir -p \
         ${asad_ws}/LOCAL/${rg_name} \
@@ -478,51 +478,51 @@ else
         ${asad_ws}/SYSTEM \
         ${asad_ws}/LANDSCAPE \
         ${asad_ws}/DEPLOYER/${rg_name}
-    
+
     #
     # Update current session
     #
-    echo '# Configure environment settings for deployer interactive session' 
-    
+    echo '# Configure environment settings for deployer interactive session'
+
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.
-    
+
     export ARM_SUBSCRIPTION_ID=${subscription_id}
     export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation
-    
+
     # Add new /opt bin directories to start of PATH to ensure the versions we installed
     # are preferred over any installed standard system versions.
-    
+
     # Set env for ansible
-    export ANSIBLE_HOST_KEY_CHECKING=False 
-    export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections:${ansible_collections} 
-    
+    export ANSIBLE_HOST_KEY_CHECKING=False
+    export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections:${ansible_collections}
+
     # Set env for MSI
     export ARM_USE_MSI=true
-    
+
     #
     # Create /etc/profile.d script to setup environment for future interactive sessions
     #
     export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:"${HOME}"/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible
-    
-    
+
+
     echo "# Configure environment settings for deployer interactive sessions" | tee -a /tmp/deploy_server.sh
-    
+
     echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" | tee -a /tmp/deploy_server.sh
     echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a  /tmp/deploy_server.sh
-    
+
     echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
-    
+
     # Set env for ansible
     echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
     echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/deploy_server.sh
-    
+
     # Set env for MSI
     echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
-    
+
     /usr/bin/az login --identity 2>error.log || :
     # Ensure that the user's account is logged in to Azure with specified creds
-    
+
     if [ ! -f error.log ]; then
       /usr/bin/az account show > az.json
       client_id=$(jq --raw-output .id az.json)
@@ -532,28 +532,32 @@ else
       client_id=''
       tenant_id=''
     fi
-    
+
     if [ -n "${client_id}" ]; then
       export ARM_CLIENT_ID=${client_id}
       echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
     fi
-    
+
     if [ -n "${tenant_id}" ]; then
       export ARM_TENANT_ID=${tenant_id}
       echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
     fi
 
     echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
-    
-    
+
+
     # Ensure that the user's account is logged in to Azure with specified creds
     echo "az login --identity --output none" | tee -a /tmp/deploy_server.sh
     echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
-    
+
     sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
-    
+
     /usr/bin/az login --identity --output none
     echo "${USER} account ready for use with Azure SAP Automated Deployment"
-    
-fi    
-    
+
+    # Install dotnet
+    sudo snap install dotnet-sdk --classic --channel=3.1
+    sudo snap alias dotnet-sdk.dotnet dotnet
+
+
+fi

@@ -725,6 +725,11 @@ variable "use_loadbalancers_for_standalone_deployments" {
   default     = true
 }
 
+variable "idle_timeout_scs_ers" {
+  description = "Sets the idle timeout setting for the SCS and ERS loadbalancer"
+  default     = 4
+}
+
 variable "bom_name" {
   description = "NAme of the SAP Application Bill of Material file"
   default     = ""

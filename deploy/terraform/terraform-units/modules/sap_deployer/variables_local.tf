@@ -15,6 +15,8 @@ locals {
   // Default option(s):
   enable_secure_transfer    = try(var.options.enable_secure_transfer, true)
   enable_deployer_public_ip = try(var.options.enable_deployer_public_ip, false)
+  Agent_IP = try(var.Agent_IP, "")
+
 
   // Resource group
   prefix = var.naming.prefix.DEPLOYER

@@ -24,7 +24,7 @@ namespace AutomationForm.Controllers
         private FormViewModel<SystemModel> systemView;
         private readonly IConfiguration _configuration;
         private RestHelper restHelper;
-        
+
         private ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
@@ -63,7 +63,7 @@ namespace AutomationForm.Controllers
         {
             SapObjectIndexModel<SystemModel> systemIndex = new SapObjectIndexModel<SystemModel>();
 
-            try 
+            try
             {
                 List<SystemEntity> systemEntities = await _systemService.GetAllAsync();
                 List<SystemModel> systems = systemEntities.FindAll(s => s.System != null).ConvertAll(s => JsonConvert.DeserializeObject<SystemModel>(s.System));
@@ -218,7 +218,7 @@ namespace AutomationForm.Controllers
 
                 await restHelper.UpdateRepo(path, content);
                 await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "", "");
-                
+
                 TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
             }
             catch (Exception e)
@@ -229,14 +229,14 @@ namespace AutomationForm.Controllers
         }
 
         // [ActionName("Delete")]
-        // public async Task<IActionResult> DeleteAsync(string id)
+        // public async Task<IActionResult> DeleteAsync(string id, string partitionKey)
         // {
         //     if (id == null)
         //     {
         //         return BadRequest();
         //     }
 
-        //     SystemModel system = await _systemService.GetByIdAsync(id);
+        //     SystemModel system = await GetById(id, partitionKey);
         //     systemView.SapObject = system;
         //     if (system == null)
         //     {
@@ -249,9 +249,9 @@ namespace AutomationForm.Controllers
         // [HttpPost]
         // [ActionName("Delete")]
         // [ValidateAntiForgeryToken]
-        // public async Task<IActionResult> DeleteConfirmedAsync(string id)
+        // public async Task<IActionResult> DeleteConfirmedAsync(string id, string partitionKey)
         // {
-        //     await _systemService.DeleteAsync(id);
+        //     await _systemService.DeleteAsync(id, partitionKey);
         //     TempData["success"] = "Successfully deleted system " + id;
         //     return RedirectToAction("Index");
         // }
@@ -263,10 +263,10 @@ namespace AutomationForm.Controllers
             {
                 SystemModel system = await GetById(id, partitionKey);
                 systemView.SapObject = system;
-                
+
                 ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
                 ViewBag.ImageOptions = imageOptions;
-                
+
                 return View(systemView);
             }
             catch (Exception e)
@@ -307,7 +307,7 @@ namespace AutomationForm.Controllers
                     ModelState.AddModelError("SystemId", "Error editing system: " + e.Message);
                 }
             }
-            
+
             systemView.SapObject = system;
 
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);

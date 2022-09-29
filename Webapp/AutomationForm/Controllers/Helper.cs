@@ -109,7 +109,7 @@ namespace AutomationForm.Controllers
                 }
                 stringBuilder.AppendLine(lineToAdd);
             }
-            
+
             return stringBuilder.ToString();
         }
         // Create the text that sets a model property to its value for a tfvars file
@@ -178,7 +178,7 @@ namespace AutomationForm.Controllers
                 if (value == null) return "#" + property.Name + " = \"\"";
                 str.Append(property.Name + " = " + $"\"{value}\"");
             }
-            
+
             return str.ToString();
         }
         public static StringContent CreateHttpContent(string changeType, string path, string content, GitRequestBody requestBody)
@@ -278,7 +278,7 @@ namespace AutomationForm.Controllers
             // the file name, HTML-encode the value.
             var trustedFileNameForDisplay = WebUtility.HtmlEncode(formFile.FileName);
 
-            // Check the file length. This check doesn't catch files that only have 
+            // Check the file length. This check doesn't catch files that only have
             // a BOM as their content.
             if (formFile.Length == 0)
             {
@@ -302,7 +302,7 @@ namespace AutomationForm.Controllers
             {
                 modelState.AddModelError(formFile.Name,
                     $"{fieldDisplayName}({trustedFileNameForDisplay}) is named incorrectly");
-                
+
                 return Array.Empty<byte>();
             }
 
@@ -358,6 +358,7 @@ namespace AutomationForm.Controllers
 
             return true;
         }
+
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new StringReader(hclString);
@@ -391,16 +392,42 @@ namespace AutomationForm.Controllers
                         {
                             key = "\"" + key + "\"";
                         }
-                        string value = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();
-                        if (!value.EndsWith(",") && !value.EndsWith("{")) {
-                            value += ",";
+                        string value = null;
+                        Console.WriteLine(key);
+                        if (key.EndsWith("tags\""))
+                        {
+                            value += "[";
+                            currLine = stringReader.ReadLine();
+                            while (!currLine.StartsWith("}"))
+                            {
+                                equalIndex = currLine.IndexOf("=");
+                                var tagKey = currLine.Substring(0, equalIndex).Trim();
+                                if (!tagKey.StartsWith("\""))
+                                {
+                                    tagKey = "\"" + tagKey + "\"";
+                                }
+                                var tagValue = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();
+                                value += "{";
+                                value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
+                                value += "},";
+                                currLine = stringReader.ReadLine();
+                            }
+                            value = value.Trim(',');
+                            value += "],";
                         }
-                        jsonString.AppendLine(key + ":" + value);
+                        else
+                        {
+                            value = currLine.Substring(equalIndex + 1, currLine.Length - (equalIndex + 1)).Trim();
+                            if (!value.EndsWith(",") && !value.EndsWith("{"))
+                            {
+                                value += ",";
+                            }
+                        }
+                        if (value != null) jsonString.AppendLine(key + ":" + value);
                     }
                 }
             }
             return jsonString.ToString();
-            
         }
 
         public static async Task<AppFile> GetImagesFile(ITableStorageService<AppFile> appFileService)

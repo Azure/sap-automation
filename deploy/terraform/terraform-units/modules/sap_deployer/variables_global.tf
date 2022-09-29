@@ -150,3 +150,9 @@ variable "agent_pat" {
 variable "agent_ado_url" {
   description = "If provided, contains the Url to the ADO repository"
 }
+
+
+variable "Agent_IP" {
+  type    = string
+  default = ""
+}

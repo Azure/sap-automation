@@ -14,9 +14,9 @@ module "sap_namegenerator" {
   sap_vnet_name    = local.vnet_logical_name
   sap_sid          = local.sap_sid
   db_sid           = local.db_sid
-  app_ostype       = upper(local.application.app_os.os_type)
+  app_ostype       = upper(try(local.application.app_os.os_type, "LINUX"))
   anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = upper(local.database.os.os_type)
+  db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
   db_server_count  = var.database_server_count
   app_server_count = try(local.application.application_server_count, 0)
   web_server_count = try(local.application.webdispatcher_count, 0)
@@ -85,7 +85,6 @@ module "common_infrastructure" {
   sapmnt_private_endpoint_id         = var.sapmnt_private_endpoint_id
   deploy_application_security_groups = var.deploy_application_security_groups
   use_service_endpoint               = var.use_service_endpoint
-
 }
 
 
@@ -194,6 +193,7 @@ module "app_tier" {
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
+  idle_timeout_scs_ers                         = var.idle_timeout_scs_ers
   use_secondary_ips                            = var.use_secondary_ips
   deploy_application_security_groups           = var.deploy_application_security_groups
   use_msi_for_clusters                         = var.use_msi_for_clusters
