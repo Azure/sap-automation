@@ -227,7 +227,7 @@ stages:
 
               echo -e "$green--- az login ---$reset"
 
-                if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+                if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                   az login --identity --allow-no-subscriptions --output none
                 else
                   az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -250,6 +250,7 @@ stages:
             displayName:               Preparation for Ansible
             env:
               SYSTEM_ACCESSTOKEN:        $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:      $(System.AccessToken)
               ANSIBLE_HOST_KEY_CHECKING: false
               USE_DEPLOYER_VM:           $(Use_Deployer_VM)
               AZURE_CLIENT_ID:           $(ARM_CLIENT_ID)
@@ -292,7 +293,7 @@ stages:
 
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -348,7 +349,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -404,7 +405,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -461,7 +462,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -520,7 +521,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -600,7 +601,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -684,7 +685,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -765,7 +766,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -828,7 +829,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -915,7 +916,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
@@ -992,7 +993,7 @@ stages:
             displayName:               Process sshkey
           - script: |
               #Stage could be executed on a different machine by default, need to login again for ansible
-              if [${USE_DEPLOYER_VM^^} == "TRUE" ]; then
+              if [ ${USE_DEPLOYER_VM^^} = "TRUE" ]; then
                 az login --identity --allow-no-subscriptions --output none
               else
                 az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
