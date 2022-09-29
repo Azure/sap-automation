@@ -239,7 +239,7 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                az account set --subscription $ARM_SUBSCRIPTION_ID
+                az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
                 cp sap-parameters.yaml artifacts/.
@@ -249,14 +249,13 @@ stages:
             name:                      Preparation
             displayName:               Preparation for Ansible
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              SYSTEM_ACCESSTOKEN:        $(System.AccessToken)
               ANSIBLE_HOST_KEY_CHECKING: false
-              USE_DEPLOYER_VM:         $(Use_Deployer_VM)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              USE_DEPLOYER_VM:           $(Use_Deployer_VM)
+              AZURE_CLIENT_ID:           $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:           $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact:                  ansible_data
