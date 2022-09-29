@@ -310,7 +310,11 @@ terraform -chdir="${terraform_module_directory}" init  -reconfigure \
 --backend-config "resource_group_name=${REMOTE_STATE_RG}"         \
 --backend-config "storage_account_name=${REMOTE_STATE_SA}"        \
 --backend-config "container_name=tfstate"                         \
---backend-config "key=${key}.terraform.tfstate"
+--backend-config "key=${key}.terraform.tfstate" || {
+    echo "Terraform init failed"
+    exit 1
+}
+
 
 
 created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_id | tr -d \")
