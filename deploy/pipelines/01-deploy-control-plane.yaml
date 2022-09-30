@@ -376,14 +376,6 @@ stages:
                        file_key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
                        echo 'Deployer Key Vault' ${file_key_vault}
 
-                       deployer_ip=$(cat ${deployer_environment_file_name} | grep deployer_public_ip_address | awk -F'=' '{print $2}' | xargs )
-                       if [[ ! -z "$deployer_ip" ]]; then
-                           use_deployer_vm=true
-                        else
-                           use_deployer_vm=false
-                       fi
-                       echo 'Use Deployer VM' ${use_deployer_vm}
-
                        file_REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
                        echo 'Terraform state file storage account' $file_REMOTE_STATE_SA
 
@@ -496,13 +488,6 @@ stages:
                             az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
                         else
                             az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
-                        fi
-
-                        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Use_Deployer_VM.value")
-                        if [ -z ${az_var} ]; then
-                            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Use_Deployer_VM --value ${use_deployer_vm} --output none --only-show-errors
-                        else
-                            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Use_Deployer_VM --value ${use_deployer_vm} --output none --only-show-errors
                         fi
                     fi
                 exit $return_code
