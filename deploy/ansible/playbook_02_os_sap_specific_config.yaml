@@ -13,7 +13,7 @@
 
   tasks:
     - name: ensure jmespath is installed in the playbook python
-      pip:
+      ansible.builtin.pip:
         name: jmespath
         state: present
         
