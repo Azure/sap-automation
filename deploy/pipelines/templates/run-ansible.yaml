@@ -1,0 +1,48 @@
+parameters:
+    azureClientId: ''
+    azureClientSecret: ''
+    azureTenantId: ''
+    azureSubscriptionId: ''
+    displayName: ''
+    ansibleFilePath: ''
+    sidHosts:  ''
+    privateKey:  ''
+    parametersFolder: ''
+    extraParams: ''
+    sapParams: ''
+steps:
+- script: |
+    #Stage could be executed on a different machine by default, need to login again for ansible
+    #If the deployer_file exists we run on a deployer cofigured by the framework instead of a azdo hosted one
+    deployer_file=/etc/profile.d/deploy_server.sh
+    if [ -f "$deployer_file" ]; then
+      az login --identity --allow-no-subscriptions --output none
+    else
+      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+    fi
+    az account set --subscription $AZURE_SUBSCRIPTION_ID
+
+    ansible-playbook -i $INVENTORY \
+                     --private-key $PRIVATE_KEY \
+                     -e $SAP_PARAMS \
+                     -e "_workspace_directory=$PARAMETERS_FOLDER" \
+                     $EXTRA_PARAMS \
+                     $ANSIBLE_FILE_PATH
+
+  displayName: ${{ parameters.displayName }}
+  env:
+    AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
+    AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
+    AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
+    AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
+    ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+    ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+    ANSIBLE_HOST_KEY_CHECKING:      false
+    ANSIBLE_FILE_PATH:              ${{ parameters.ansibleFilePath }}
+    PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
+    EXTRA_PARAMS:                   ${{ parameters.extraParams }}
+    SAP_PARAMS:                     ${{ parameters.sapParams }}
+    PRIVATE_KEY:                    ${{ parameters.privateKey }}
+    INVENTORY:                      $(Pipeline.Workspace)/ansible_data/${{ parameters.sidHosts }}
+  continueOnError:           false
