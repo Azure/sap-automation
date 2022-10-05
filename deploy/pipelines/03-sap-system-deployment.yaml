@@ -16,6 +16,10 @@ parameters:
     type:                              string
     default:                           DEV
 
+  - name:                              deployment_repo_path
+    displayName:                       The local path on the agent where your source code files are downloaded
+    type:                              string
+
 stages:
   - stage:                             Deploy_SAP_infrastructure
     variables:
@@ -269,7 +273,7 @@ stages:
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
+              DEPLOYMENT_REPO_PATH:    ${{ parameters.deployment_repo_path }}
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
 
             failOnStderr:              false
