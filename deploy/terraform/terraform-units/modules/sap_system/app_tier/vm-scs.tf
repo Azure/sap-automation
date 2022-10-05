@@ -41,6 +41,10 @@ resource "azurerm_network_interface" "scs" {
       primary = pub.value.primary
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "scs" {
@@ -236,6 +240,9 @@ resource "azurerm_linux_virtual_machine" "scs" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_role_assignment" "scs" {
@@ -404,6 +411,10 @@ resource "azurerm_managed_disk" "scs" {
     )) : (
     null
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "scs" {

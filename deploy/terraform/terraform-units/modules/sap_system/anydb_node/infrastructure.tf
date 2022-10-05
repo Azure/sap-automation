@@ -137,10 +137,10 @@ data "azurerm_availability_set" "anydb" {
 }
 
 resource "azurerm_private_dns_a_record" "db" {
-  provider            = azurerm.deployer
+  provider            = azurerm.dnsmanagement
   count               = local.enable_db_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
   name                = lower(format("%s%sdb%scl", var.sap_sid, local.anydb_sid, "00"))
-  resource_group_name = local.dns_resource_group_name
+  resource_group_name = try(var.management_dns_resourcegroup_name, local.dns_resource_group_name)
   zone_name           = local.dns_label
   ttl                 = 300
   records             = [azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address]
