@@ -490,6 +490,7 @@ if [ 2 == $step ]; then
     fi
 
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
+    echo "${allParams}"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
     return_code=$?
