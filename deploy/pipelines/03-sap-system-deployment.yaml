@@ -180,7 +180,7 @@ stages:
 
                 echo "done"
 
-                ls pwd
+                pwd
 
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
