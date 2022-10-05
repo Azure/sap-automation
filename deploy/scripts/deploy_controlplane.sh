@@ -12,7 +12,7 @@
 #                                                                                              #
 #   The script experts the following exports:                                                  #
 #   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                             #
-#   DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation           #
+#   SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation           #
 #                                                                                              #
 ################################################################################################
 
@@ -125,7 +125,7 @@ if [ -n "${subscription}" ]; then
     ARM_SUBSCRIPTION_ID="${subscription}"
     export ARM_SUBSCRIPTION_ID=$subscription
 fi
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -238,7 +238,7 @@ if [ 0 == $step ]; then
         rm -Rf .terraform terraform.tfstate*
     fi
 
-    "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_deployer.sh $allParams
+    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_deployer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
@@ -364,7 +364,7 @@ if [ 1 = "${only_deployer:-}" ]; then
     echo "#                                                                                       #"
     echo "#  Once done please logon to the deployer and resume by running:                        #"
     echo "#                                                                                       #"
-    echo "#    \$DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh \                           #"
+    echo "#    \$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh \                           #"
     echo "#    $deployerpara     #"
     echo "#    $librarypara                        #"
     echo "#                                                                                       #"
@@ -409,7 +409,7 @@ if [ 1 == $step ]; then
         if [ -n "$spn_secret" ]; then
             allParams=$(printf " -e %s -r %s -v %s --spn_secret %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}")
 
-            "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
             if [ -f secret.err ]; then
                 error_message=$(cat secret.err)
                 echo "##vso[task.logissue type=error]${error_message}"
@@ -431,7 +431,7 @@ if [ 1 == $step ]; then
                 #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
                 #"${allParams[@]}" - quotes all elements of the array
 
-                "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
                 return_code=$?
                 if [ 0 != $return_code ]; then
                     exit $return_code
@@ -491,13 +491,13 @@ if [ 2 == $step ]; then
 
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
 
-    "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
+    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Bootstrapping of the SAP Library failed" > "${deployer_config_information}".err
         exit 20
     fi
-    terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
+    terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
     REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name  | tr -d \")
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
     STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id  | tr -d \")
@@ -548,7 +548,7 @@ if [ 3 == $step ]; then
 
     echo "calling installer.sh with parameters: $allParams"
 
-    "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
+    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Migrating the deployer state failed" > "${deployer_config_information}".err
@@ -581,7 +581,7 @@ if [ 4 == $step ]; then
     cd "${library_dirname}" || exit
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}"  "${ado_flag}")
 
-    "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/installer.sh $allParams
+    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Migrating the SAP Library state failed" > "${deployer_config_information}".err

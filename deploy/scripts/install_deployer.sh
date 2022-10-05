@@ -28,7 +28,7 @@ function showhelp {
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
     echo "#   ~/.sap_deployment_automation folder                                                 #"
@@ -127,14 +127,14 @@ param_dirname=$(pwd)
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 var_file="${param_dirname}"/"${parameterfile}"
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}"/.terraform
 
 ok_to_proceed=false

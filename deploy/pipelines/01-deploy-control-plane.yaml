@@ -5,8 +5,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Deploying the control plane defined in $(deployerfolder) $(libraryfolder)
-
 parameters:
   - name:                              deployer
     displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -31,49 +29,25 @@ parameters:
   - name:                              use_deployer
     displayName:                       Run on self hosted agent
     type:                              boolean
-    default:                           false
+   
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-trigger:                               none
-
-pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
-
-variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.environment }}
-
-  - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
-
-  - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
-
-  - name:                              use_webapp
-    value:                             ${{ lower(parameters.use_webapp_param) }}
-
-  - name:                              deployerfolder
-    value:                             ${{ parameters.deployer }}
-
-  - name:                              deployerconfig
-    value:                             ${{ parameters.deployer }}.tfvars
-
-  - name:                              libraryfolder
-    value:                             ${{ parameters.library }}
-
-  - name:                              libraryconfig
-    value:                             ${{ parameters.library }}.tfvars
-
-  - name:                              log
-    value:                             logfile_$(Build.BuildId)
-
-  - name:                              tf_url
-    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-  - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
   - stage:                             Deploy_controlplane
+    variables:
+    - template:                        variables/01-deploy-control-plane-variables.yaml
+      parameters:
+        deployer:                      ${{ parameters.deployer }}
+        library:                       ${{ parameters.library }}
+        environment:                   ${{ parameters.environment }}
+        use_webapp_param:              ${{ parameters.use_webapp_param }}
+        use_deployer:                  ${{ parameters.use_deployer }}
     displayName:                       Deploy the control plane
     jobs:
       - job:                           Deploy_controlplane
@@ -81,6 +55,7 @@ stages:
         workspace:
           clean:                       all
         steps:
+          - checkout:                  sap-automation
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
@@ -92,14 +67,14 @@ stages:
                     reset="\e[0m"
                     boldred="\e[1;31m"
 
-                    HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                    HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                     ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                     LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
-                    deployer_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                    deployer_environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
 
                     echo "Agent: " $(this_agent)
-                echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                    git checkout -q $(Build.SourceBranchName)
+                # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                #     git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
                     az config set extension.use_dynamic_install=yes_without_prompt
@@ -110,6 +85,7 @@ stages:
                     fi
 
                     az devops configure --defaults organization=$(System.CollectionUri)
+                    az devops configure --defaults project=$(System.TeamProject)
                     export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                     echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
                     if [ -z ${VARIABLE_GROUP_ID} ]; then
@@ -183,8 +159,8 @@ stages:
                             echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
                             exit 2
                         fi
-                        export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
-                        export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
+                        export TF_VAR_app_registration_app_id=${APP_REGISTRATION_APP_ID}; echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
+                        export TF_VAR_webapp_client_secret=${WEB_APP_CLIENT_SECRET}
                         export TF_VAR_use_webapp=true
 
                     fi
@@ -220,21 +196,21 @@ stages:
 
                     fi
 
-                echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-                    cd $HOME
+                echo -e "$green--- Update .sap_deployment_automation/config as CONFIG_REPO_PATH can change on devops agent ---$reset"
+                    cd $HOME_CONFIG
                     mkdir -p .sap_deployment_automation
-                    echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH >.sap_deployment_automation/config
+                    echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH >.sap_deployment_automation/config
 
                 echo -e "$green--- File Validations ---$reset"
-                    if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
-                        echo -e "$boldred--- File DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
-                        echo "##vso[task.logissue type=error]File DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
+                    if [ ! -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
+                        echo -e "$boldred--- File ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
+                        echo "##vso[task.logissue type=error]File ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
                         exit 2
                     fi
 
-                    if [ ! -f LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
-                        echo -e "$boldred--- File LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
-                        echo "##vso[task.logissue type=error]File LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
+                    if [ ! -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
+                        echo -e "$boldred--- File ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
+                        echo "##vso[task.logissue type=error]File ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
                         exit 2
                     fi
 
@@ -262,12 +238,12 @@ stages:
                 echo -e "$green--- Configure parameters ---$reset"
 
                     echo -e "$green--- Convert config files to UX format ---$reset"
-                    dos2unix -q DEPLOYER/$(deployerfolder)/$(deployerconfig)
-                    dos2unix -q LIBRARY/$(libraryfolder)/$(libraryconfig)
+                    dos2unix -q ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig)
+                    dos2unix -q ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig)
 
                     echo -e "$green--- Configuring variables ---$reset"
 
-                    deployer_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
+                    deployer_environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
                     export key_vault=""
 
@@ -316,24 +292,24 @@ stages:
 
                     fi
 
-                    if [ -f LIBRARY/$(libraryfolder)/state.zip ]; then
-                        if [ -f LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                            rm -f LIBRARY/$(libraryfolder)/terraform.tfstate
+                    if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip ]; then
+                        if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                            rm -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate
                         fi
-                        unzip  -qq -o -P $ARM_CLIENT_SECRET LIBRARY/$(libraryfolder)/state.zip
+                        unzip  -qq -o -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip
                     fi
 
-                    if [ -f DEPLOYER/$(deployerfolder)/state.zip ]; then
-                        if [ -f DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                            rm -f DEPLOYER/$(deployerfolder)/terraform.tfstate
+                    if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                        if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                            rm -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                         fi
 
-                        unzip -qq -o -P $ARM_CLIENT_SECRET DEPLOYER/$(deployerfolder)/state.zip
+                        unzip -qq -o -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip
                     fi
 
-                    $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
-                       --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                       --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                    $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
+                       --deployer_parameter_file ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                       --library_parameter_file ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                        --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID)        \
                        --spn_secret $ARM_CLIENT_SECRET --tenant_id $(ARM_TENANT_ID)           \
                        --auto-approve --ado                                                   \
@@ -342,8 +318,8 @@ stages:
 
                     if [ 0 != $return_code ]; then
                        echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
-                       if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err ]; then
-                           error_message=$(cat .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
+                       if [ -f ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err ]; then
+                           error_message=$(cat ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
                            echo "##vso[task.logissue type=error]Error message: $error_message."
                        fi
                     fi
@@ -364,7 +340,7 @@ stages:
 
                     echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                     added=0
-                    cd $HOME
+                    cd $HOME_CONFIG
                     git fetch -q --all
                     git pull -q
 
@@ -384,58 +360,58 @@ stages:
                     fi
 
                 echo -e "$green--- Update repo ---$reset"
-                    if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                        git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                    if [ -f ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                        git add ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                         added=1
                     fi
 
-                    if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                        git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                    if [ -f ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                        git add ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                         added=1
                     fi
 
-                    if [ -f DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
-                        git add -f DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
-                        added=1
-                    fi
-
-                    if [ 0 != $return_code ]; then
-                        if [ -f DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                            sudo apt install zip
-                            zip -P $ARM_CLIENT_SECRET DEPLOYER/$(deployerfolder)/state DEPLOYER/$(deployerfolder)/terraform.tfstate
-                            git add -f DEPLOYER/$(deployerfolder)/state.zip
-                            added=1
-                        fi
-                    else
-                        if [ -f DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                            git rm -q -f DEPLOYER/$(deployerfolder)/terraform.tfstate
-                            added=1
-                        fi
-                        if [ -f DEPLOYER/$(deployerfolder)/state.zip ]; then
-                            git rm -q -f DEPLOYER/$(deployerfolder)/state.zip
-                            added=1
-                        fi
-                    fi
-
-                    if [ -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
-                        git add -f LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                    if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
+                        git add -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                         added=1
                     fi
 
                     if [ 0 != $return_code ]; then
-                        if [ -f LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                        if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                             sudo apt install zip
-                            zip -P $ARM_CLIENT_SECRET LIBRARY/$(libraryfolder)/state LIBRARY/$(libraryfolder)/terraform.tfstate
-                            git add -f LIBRARY/$(libraryfolder)/state.zip
+                            zip -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                            git add -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip
                             added=1
                         fi
                     else
-                        if [ -f LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                            git rm -q -f LIBRARY/$(libraryfolder)/terraform.tfstate
+                        if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                            git rm -q -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             added=1
                         fi
-                        if [ -f LIBRARY/$(libraryfolder)/state.zip ]; then
-                            git rm -q -f LIBRARY/$(libraryfolder)/state.zip
+                        if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                            git rm -q -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip
+                            added=1
+                        fi
+                    fi
+
+                    if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
+                        git add -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                        added=1
+                    fi
+
+                    if [ 0 != $return_code ]; then
+                        if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                            sudo apt install zip
+                            zip -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                            git add -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip
+                            added=1
+                        fi
+                    else
+                        if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                            git rm -q -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                            added=1
+                        fi
+                        if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip ]; then
+                            git rm -q -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip
                             added=1
                         fi
                     fi
@@ -448,9 +424,9 @@ stages:
                         git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                     fi
 
-                    if [ -f $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                        cp $HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md $HOME/.sap_deployment_automation/
-                        echo "##vso[task.uploadsummary]$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+                    if [ -f $HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                        cp $HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md $HOME_CONFIG/.sap_deployment_automation/
+                        echo "##vso[task.uploadsummary]$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                     fi
 
                 echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
@@ -502,14 +478,23 @@ stages:
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
               AZURE_DEVOPS_EXT_PAT:           $(PAT)
               IS_PIPELINE_DEPLOYMENT:         true
-              DEPLOYMENT_REPO_PATH:           $(Build.Repository.LocalPath)
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
               APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
               POOL:                           $(POOL)
+              SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}
 
             failOnStderr:              false
 
   - stage:                             Web_App_Deployment
+    variables:
+    - template:                        variables/01-deploy-control-plane-variables.yaml
+      parameters:
+        deployer:                      ${{ parameters.deployer }}
+        library:                       ${{ parameters.library }}
+        environment:                   ${{ parameters.environment }}
+        use_webapp_param:              ${{ parameters.use_webapp_param }}
+        use_deployer:                  ${{ parameters.use_deployer }}
     displayName:                       Deploy SAP configuration Web App
     dependsOn:
       - Deploy_controlplane
@@ -526,6 +511,7 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@3
+          - checkout:                  sap-automation
           - checkout:                  self
             persistCredentials:        true
 
@@ -548,7 +534,7 @@ stages:
           - task:                      AzureWebApp@1
             displayName:               'Deploy the Web App'
             inputs:
-              azureSubscription:       $(AZURE_CONNECTION_NAME)
+              azureSubscription:       ${{ variables.AZURE_CONNECTION_NAME }}
               appType:                 'webApp'
               appName:                 $(WEBAPP_URL_BASE)
               package:                 '$(Build.ArtifactStagingDirectory)/WebApp/*.zip'
