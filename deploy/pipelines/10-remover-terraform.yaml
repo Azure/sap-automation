@@ -249,10 +249,7 @@ stages:
                 cd $HOME/SYSTEM/$(sap_system_folder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sap_system_configuration) --type sap_system --auto-approve
                 return_code=$?
-                echo "Return code from remover.sh $return_code."
-                if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
-                fi
+
               echo -e "$green--- Pull latest from DevOps Repository ---$reset"
                 git checkout -q $(Build.SourceBranchName)
                 git pull
@@ -277,6 +274,13 @@ stages:
                     fi
                   fi
                 fi
+
+              #stop the pipeline after you have reset the whitelisting on your resources
+              echo "Return code from remover.sh $return_code."
+              if [ 0 != $return_code ]; then
+                echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                exit $return_code
+              fi
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
@@ -508,13 +512,6 @@ stages:
                 
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(workload_zone_configuration_file) --type sap_landscape --auto-approve --ado
                 return_code=$?
-                echo "Return code from remover.sh $return_code."
-                if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
-                fi
-
-                echo -e "$green--- Pull latest ---$reset"
-                  git pull 
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
                 if [[ ip_added_control_plane -eq 1 ]]; then
@@ -526,9 +523,17 @@ stages:
                   fi
                 fi
 
+                #stop the pipeline after you have reset the whitelisting on your resources
+                echo "Return code from remover.sh $return_code."
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                  exit $return_code
+                fi
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 changed=0
+                git pull
 
                 if [ 0 == $return_code ]; then
 
