@@ -175,17 +175,6 @@ stages:
                 fi
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
-                
-                ls
-
-                echo "next"
-
-                ls $SAP_AUTOMATION_REPO_PATH
-
-                echo "done"
-
-                pwd
-
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
                  --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                  \
