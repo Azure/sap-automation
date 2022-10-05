@@ -176,7 +176,7 @@ stages:
 
                 echo "next"
 
-                ls $(DEPLOYMENT_REPO_PATH)
+                ls $DEPLOYMENT_REPO_PATH
 
                 echo "done"
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
