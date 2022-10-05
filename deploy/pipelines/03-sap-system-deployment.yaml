@@ -16,9 +16,14 @@ parameters:
     type:                              string
     default:                           DEV
 
-  - name:                              deployment_repo_path
-    displayName:                       The local path on the agent where your source code files are downloaded
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
     type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
 
 stages:
   - stage:                             Deploy_SAP_infrastructure
@@ -41,29 +46,29 @@ stages:
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                  git checkout -q $(Build.SourceBranchName)
+              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+              #     git checkout -q $(Build.SourceBranchName)
               echo -e "$green--- Read parameters ---$reset"
 
-                     HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
+                     HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
               ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
                  LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
                   NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
                       SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
 
-                cd $HOME; mkdir -p .sap_deployment_automation
+                cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
 
-              echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+              echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
+                echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
               echo -e "$green--- Validations ---$reset"
 
-                if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
+                if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
                   echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
                   exit 2
                 fi
 
-                environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
+                environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
 
                 if [ ! -f $environment_file_name ]; then
                   echo -e "$boldred--- $ENVIRONMENT$LOCATION$NETWORK was not found ---$reset"
@@ -126,7 +131,7 @@ stages:
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- Define variables ---$reset"
-                cd $HOME/SYSTEM/$(sap_system_folder)
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
 
                 export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
@@ -175,13 +180,13 @@ stages:
 
                 echo "next"
 
-                ls $DEPLOYMENT_REPO_PATH
+                ls $SAP_AUTOMATION_REPO_PATH
 
                 echo "done"
 
                 pwd
 
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
                  --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                  \
                  --ado --auto-approve
@@ -217,7 +222,7 @@ stages:
 
                 # Pull changes if there are other deployment jobs
 
-                cd $HOME/SYSTEM/$(sap_system_folder)
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
                 echo -e "$green--- Pull the latest content from DevOps ---$reset"
                   git pull
 
@@ -264,7 +269,7 @@ stages:
                 fi
 
                 if [ -f ${SID}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
+                  echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
               exit $return_code
 
@@ -275,7 +280,8 @@ stages:
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              DEPLOYMENT_REPO_PATH:    ${{ parameters.deployment_repo_path }}
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
 
             failOnStderr:              false
