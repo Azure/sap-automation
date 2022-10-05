@@ -83,7 +83,7 @@
     state:                             directory
     mode:                              0755
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  when:                                not ( (item.extractDir is undefined) or (item.extractDir == '') )
+  when:                                not ((item.extractDir is undefined) or (item.extractDir == ''))
 
 
 # Download Files
@@ -125,7 +125,7 @@
     state:                            directory
     mode:                             0775
 
-- name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
+- name:                                "3.3 BoM Processing: - Download Files on {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
@@ -146,7 +146,7 @@
     - item.download is undefined or item.download
     - distribution_id in ['suse15', 'redhat8', 'sles_sap15' ]
 
-- name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
+- name:                                "3.3 BoM Processing: - Download Files on {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"

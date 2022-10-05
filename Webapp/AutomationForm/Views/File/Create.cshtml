@@ -1,0 +1,94 @@
+@model AutomationForm.Models.AppFile
+
+@{
+    ViewBag.Title = "Create file";
+    string sourceController = ViewBag.SourceController;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    var submitting = false;
+    window.onbeforeunload = function () {
+        if (!submitting) {
+            return "";
+        }
+    };
+
+    $(function () {
+        $("#file-form").submit(function () {
+            submitting = true;
+            var fileContent = document.getElementById('file-content').textContent;
+            var templateName = '@ViewBag.TemplateName';
+            $('<input />').attr('type', 'hidden').attr('name', 'fileContent').attr('value', fileContent).appendTo('#file-form');
+            $('<input />').attr('type', 'hidden').attr('name', 'templateName').attr('value', templateName).appendTo('#file-form');
+            $('<input />').attr('type', 'hidden').attr('name', 'sourceController').attr('value', "@sourceController").appendTo('#file-form');
+            return true;
+        });
+    });
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "File")">Files</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Create</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>New file</h2>
+    @if (!String.IsNullOrEmpty(ViewBag.TemplateName))
+    {
+        <p>Template: @ViewBag.TemplateName</p>
+    }
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+        <div class="notificationInner">
+            <span class="notificationText">
+                @Html.ValidationSummary(false)
+            </span>
+        </div>
+    </div>
+}
+
+<div>
+    <pre class="line-numbers editable"><code id="file-content" class="language-hcl" contenteditable="true" spellcheck="false">@ViewBag.Message</code></pre>
+
+    <form class="wrapper" id="file-form" asp-controller="file" asp-action="create">
+        @Html.AntiForgeryToken()
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("id", "File name", new { @class = $"ms-Label required" })
+                <p>Enter a name for the file, ending in .tfvars</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("id", (string) ViewBag.TemplateName, new { @class = "ms-TextField-field", required = "required", pattern = @"^[\w-]+\.tfvars$" })
+            </div>
+        </div>
+
+        <div class="bottom-buttons">
+            <fluent-button appearance="accent" value="Save" type="submit">
+                <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
+            </fluent-button>
+
+            @if (!String.IsNullOrEmpty(ViewBag.TemplateName))
+            {
+                <fluent-anchor href="@Url.Action("Templates", "File", new { sourceController=$"{sourceController}" })">
+                    Back to templates
+                </fluent-anchor>
+            }
+            else
+            {
+                <fluent-anchor href="@Url.Action("Index", $"{sourceController}")">
+                    Back to list
+                </fluent-anchor>
+            }
+        </div>
+    </form>
+
+</div>

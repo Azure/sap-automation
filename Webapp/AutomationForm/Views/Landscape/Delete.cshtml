@@ -1,0 +1,36 @@
+﻿@model AutomationForm.Models.FormViewModel<LandscapeModel>
+
+@{
+    ViewBag.Title = "Delete workload zone";
+}
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Workload zones</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Delete</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Delete a workload zone</h2>
+</div>
+
+<h4>Are you sure you want to delete @Model.SapObject.Id?</h4>
+<div>
+    @await Html.PartialAsync("_DetailsPartial", Model)
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <fluent-checkbox onchange="toggleDisableViaCheckbox(this, 'delete-landscape-button')">I confirm that I wish to delete this data</fluent-checkbox><br />
+
+        <fluent-button id="delete-landscape-button" appearance="accent" value="Delete" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i> Delete
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "Landscape")">
+            Back to list
+        </fluent-anchor>
+
+    }
+</div>

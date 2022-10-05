@@ -70,7 +70,8 @@ locals {
   )
 
   application_subnet_arm_id = local.application_subnet_defined ? (
-    try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")) : (
+    try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")
+    ) : (
     var.landscape_tfstate.app_subnet_id
   )
   application_subnet_exists = length(local.application_subnet_arm_id) > 0
@@ -135,7 +136,8 @@ locals {
   web_subnet_prefix  = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
 
   web_subnet_arm_id = local.web_subnet_defined ? (
-    try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")) : (
+    try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")
+    ) : (
     var.landscape_tfstate.web_subnet_id
   )
   web_subnet_exists = length(local.web_subnet_arm_id) > 0
@@ -166,8 +168,8 @@ locals {
 
   web_subnet_nsg_defined = length(try(var.infrastructure.vnets.sap.subnet_web.nsg, {})) > 0
   web_subnet_nsg_arm_id = local.web_subnet_nsg_defined ? (
-    try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, "")) : (
-    var.landscape_tfstate.web_nsg_id
+    coalesce(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, var.landscape_tfstate.web_nsg_id, "")) : (
+    ""
   )
 
   web_subnet_nsg_exists = length(local.web_subnet_nsg_arm_id) > 0
@@ -212,7 +214,7 @@ locals {
   )
 
   firewall_exists          = length(var.firewall_id) > 0
-  enable_deployment        = var.application.enable_deployment
+  enable_deployment        = var.application.enable_deployment && length(try(var.landscape_tfstate.vnet_sap_arm_id, "")) > 0
   scs_instance_number      = var.application.scs_instance_number
   ers_instance_number      = var.application.ers_instance_number
   scs_high_availability    = var.application.scs_high_availability
@@ -257,7 +259,6 @@ locals {
       "Default"
     )
   )
-
 
   // OS image for all Application Tier VMs
   // If custom image is used, we do not overwrite os reference with default value
@@ -419,14 +420,18 @@ locals {
 
 
   // Default VM config should be merged with any the user passes in
-  app_sizing = local.application_server_count > 0 ? (
+  app_sizing = local.enable_deployment && local.application_server_count > 0 ? (
     lookup(local.sizes.app, local.vm_sizing_dictionary_key)) : (
     null
   )
 
-  scs_sizing = lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+  scs_sizing = local.enable_deployment ? (
+    local.scs_high_availability ? lookup(local.sizes.scsha, local.vm_sizing_dictionary_key) : lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
+    ) : (
+    null
+  )
 
-  web_sizing = local.webdispatcher_count > 0 ? (
+  web_sizing = local.enable_deployment && local.webdispatcher_count > 0 ? (
     lookup(local.sizes.web, local.vm_sizing_dictionary_key)) : (
     null
   )
@@ -526,7 +531,7 @@ locals {
     false
   )
 
-  winha_ips = [
+  winha_ips = upper(local.scs_ostype) == "WINDOWS" ? [
     {
       name = format("%s%s%s%s",
         var.naming.resource_prefixes.scs_clst_feip,
@@ -544,7 +549,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[2], "")) > 0 ? (
         local.scs_lb_ips[2]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 2 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 2 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[2], "")) > 0 ? "Static" : "Dynamic"
 
@@ -566,11 +571,11 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[3], "")) > 0 ? (
         local.scs_lb_ips[3]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 3 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 3 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[3], "")) > 0 ? "Static" : "Dynamic"
     }
-  ]
+  ] : []
 
   std_ips = [
     {
@@ -590,7 +595,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[0], "")) > 0 ? (
         local.scs_lb_ips[0]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 0 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 0 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[0], "")) > 0 ? "Static" : "Dynamic"
     },
@@ -611,7 +616,7 @@ locals {
       private_ip_address = length(try(local.scs_lb_ips[1], "")) > 0 ? (
         local.scs_lb_ips[1]) : (
         var.application.use_DHCP ? (
-        null) : (cidrhost(local.application_subnet_prefix, 1 + local.ip_offsets.scs_lb))
+        null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 1 + local.ip_offsets.scs_lb))
       )
       private_ip_address_allocation = length(try(local.scs_lb_ips[1], "")) > 0 ? "Static" : "Dynamic"
     },
@@ -713,12 +718,9 @@ locals {
 
   web_dispatcher_primary_ips = [
     {
-      name = "IPConfig1"
-      subnet_id = local.enable_deployment ? (
-        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
-        ) : (
-        ""
-      )
+      name      = "IPConfig1"
+      subnet_id = local.enable_deployment ? local.web_subnet_deployed.id : ""
+
       nic_ips                       = local.web_nic_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
@@ -728,12 +730,8 @@ locals {
 
   web_dispatcher_secondary_ips = [
     {
-      name = "IPConfig2"
-      subnet_id = local.enable_deployment ? (
-        local.web_subnet_exists ? local.web_subnet_arm_id : azurerm_subnet.subnet_sap_web[0].id
-        ) : (
-        ""
-      )
+      name                          = "IPConfig2"
+      subnet_id                     = local.enable_deployment ? local.web_subnet_deployed.id : ""
       nic_ips                       = local.web_nic_secondary_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = local.webdispatcher_count

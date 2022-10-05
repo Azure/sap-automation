@@ -54,7 +54,7 @@
 # using the distribution provided defaults.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Initialise facts used to manage chrony settings"
+- name:                                "1.7 chrony: - Initialise facts used to manage chrony settings"  # noqa jinja[spacing]
   ansible.builtin.set_fact:
     chronyd_restart_required:          "{{ chrony_package_installed is changed }}"
     # Generate list of chrony config entries that may need to be added

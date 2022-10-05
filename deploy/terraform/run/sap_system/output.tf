@@ -1,21 +1,36 @@
 
+###############################################################################
+#                                                                             # 
+#                             Environment settings                            # 
+#                                                                             # 
+###############################################################################
+
 output "region" {
+  description = "Azure region"
   value = local.infrastructure.region
 }
 
 output "environment" {
+  description = "Name of environment"
   value = local.infrastructure.environment
-}
-
-output "automation_version" {
-  value = local.version_label
 }
 
 
 ###############################################################################
 #                                                                             # 
-#                             Resource Group                                  # 
+#                             Automation version                              # 
 #                                                                             # 
+###############################################################################
+
+output "automation_version" {
+  description = "Defines the version of the terraform templates used in the deloyment"
+  value = local.version_label
+}
+
+###############################################################################
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -23,15 +38,21 @@ output "created_resource_group_id" {
   value       = module.common_infrastructure.created_resource_group_id
 }
 
+output "created_resource_group_name" {
+  description = "Created resource group name"
+  value       = module.common_infrastructure.created_resource_group_name
+}
+
+
 output "created_resource_group_subscription_id" {
   description = "Created resource group' subscription ID"
   value       = module.common_infrastructure.created_resource_group_subscription_id
 }
 
 ###############################################################################
-#                                                                             # 
-#                                     DNS                                     # 
-#                                                                             # 
+#                                                                             #
+#                                     DNS                                     #
+#                                                                             #
 ###############################################################################
 
 
@@ -65,7 +86,7 @@ output "dns_information_loadbalancers_app" {
 }
 
 output "database_loadbalancer_ip" {
-  value = upper(try(local.databases[0].platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_ip : module.anydb_node.db_lb_ip
+  value = upper(try(local.database.platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_ip : module.anydb_node.db_lb_ip
 }
 
 output "scs_loadbalancer_ips" {
@@ -73,11 +94,20 @@ output "scs_loadbalancer_ips" {
   value       = tolist(module.app_tier.scs_loadbalancer_ips)
 }
 
+output "database_loadbalancer_id" {
+  value = upper(try(local.database.platform, "HANA")) == "HANA" ? module.hdb_node.db_lb_id : module.anydb_node.db_lb_id
+}
+
+output "scs_loadbalancer_id" {
+  description = "SCS Loadbalancer ID"
+  value       = module.app_tier.scs_lb_id
+}
+
 
 ###############################################################################
-#                                                                             # 
-#                           Virtual Machine IDs                               # 
-#                                                                             # 
+#                                                                             #
+#                           Virtual Machine IDs                               #
+#                                                                             #
 ###############################################################################
 
 
@@ -109,11 +139,21 @@ output "sid" {
 }
 
 
+###############################################################################
+#                                                                             #
+#                           Virtual Machine IDs                               #
+#                                                                             #
+###############################################################################
+
+
 output "disks" {
+  description = "Disks attached to the virtual machines"
   value = compact(concat(module.hdb_node.dbtier_disks, module.anydb_node.dbtier_disks, module.app_tier.apptier_disks))
 
 }
 
 output "sapmnt_path" {
+  description = "Path to the sapmnt folder"
   value = module.common_infrastructure.sapmnt_path
 }
+

@@ -6,6 +6,7 @@
   # However, the python script returns a status of 15 (!), which breaks the pipeline. Consequently,
   # no pipefail option and elect to skip Ansible linting of this task.
   ansible.builtin.shell: |
+    set -o pipefail
     cdpy
     (python systemReplicationStatus.py; echo) | grep -q 'overall system replication status: ACTIVE'
   register:                            grep_result

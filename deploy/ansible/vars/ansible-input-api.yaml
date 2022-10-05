@@ -2,6 +2,9 @@
 
 # API Input template with defaults
 
+
+become_user_name:             "root"
+
 # OS Config Settings variables
 chrony_pool:                  ""
 chrony_servers:               []
@@ -34,6 +37,11 @@ sap_fqdn:                     ""                                                
 sapadm_uid:                   2100
 sapinst_gid:                  2001
 sapsys_gid:                   2000
+drop_schema:                  false
+
+use_msi_for_clusters:         false
+
+hana_components:              "all"
 
 tmp_directory:                "/tmp"
 url_internet:                 "http://www.github.com"                                   # URL to use for internet access checks"

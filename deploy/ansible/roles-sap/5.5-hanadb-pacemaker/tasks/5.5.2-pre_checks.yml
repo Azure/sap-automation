@@ -11,16 +11,16 @@
 - name:                                Check the fencing agent configuration variables are set
   ansible.builtin.assert:
     that:
-      - "sap_hana_fencing_spn_subscription_id is defined"
-      - "sap_hana_fencing_spn_subscription_id | trim | length > 0"
-      - "sap_hana_fencing_spn_tenant_id is defined"
-      - "sap_hana_fencing_spn_tenant_id | trim | length > 0"
-      - "sap_hana_fencing_spn_client_id is defined"
-      - "sap_hana_fencing_spn_client_id | trim | length > 0"
-      - "sap_hana_fencing_spn_client_pwd is defined"
-      - "sap_hana_fencing_spn_client_pwd | trim | length > 0"
+      - "fencing_spn_subscription_id is defined"
+      - "fencing_spn_subscription_id | trim | length > 0"
+      - "fencing_spn_tenant_id is defined"
+      - "fencing_spn_tenant_id | trim | length > 0"
+      - "fencing_spn_client_id is defined"
+      - "fencing_spn_client_id | trim | length > 0"
+      - "fencing_spn_client_pwd is defined"
+      - "fencing_spn_client_pwd | trim | length > 0"
     fail_msg:                          Fencing SPN details are missing
-
+  when:                                not use_msi_for_clusters
 - name:                                Check the required cluster password is set
   ansible.builtin.assert:
     that:

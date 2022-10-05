@@ -19,7 +19,7 @@ HANA DB Linux Server private IP range: .10 -
 
 resource "azurerm_network_interface" "nics_dbnodes_admin" {
   provider = azurerm.main
-  count = local.enable_deployment && var.hana_dual_nics ? (
+  count = local.enable_deployment && var.database_dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
     var.database_server_count) : (
     0
   )
@@ -38,7 +38,7 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
   ip_configuration {
     name      = "ipconfig1"
     subnet_id = var.admin_subnet.id
-    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.databases[0].use_DHCP ? (
+    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.database.use_DHCP ? (
       null) : (
       cidrhost(
         var.admin_subnet.address_prefixes[0],
@@ -79,7 +79,7 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
       name      = pub.value.name
       subnet_id = pub.value.subnet_id
       private_ip_address = try(pub.value.nic_ips[count.index],
-        var.databases[0].use_DHCP ? (
+        var.database.use_DHCP ? (
           null) : (
           cidrhost(
             var.db_subnet.address_prefixes[0],
@@ -98,7 +98,7 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "db" {
-  provider                      = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? var.database_server_count : 0) : (
     0
@@ -129,7 +129,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
     name      = "ipconfig1"
     subnet_id = var.storage_subnet.id
 
-    private_ip_address = var.databases[0].use_DHCP ? (
+    private_ip_address = var.database.use_DHCP ? (
       null) : (
       length(try(var.database_vm_storage_nic_ips[count.index], "")) > 0 ? (
         var.database_vm_storage_nic_ips[count.index]) : (
@@ -140,7 +140,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
       )
 
     )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.database.use_DHCP ? "Dynamic" : "Static"
   }
 }
 
@@ -184,13 +184,13 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id = local.use_avset ? (
+  availability_set_id = local.use_avset && !local.enable_ultradisk ? (
     local.availabilitysets_exist ? (
       data.azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id) : (
       azurerm_availability_set.hdb[count.index % max(local.db_zone_count, 1)].id
     )
   ) : null
-  zone = local.use_avset ? null : local.zones[count.index % max(local.db_zone_count, 1)]
+  zone = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
   network_interface_ids = local.enable_storage_subnet ? (
     var.options.legacy_nic_order ? (
@@ -207,7 +207,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
       ]
     )
     ) : (
-    var.hana_dual_nics ? (
+    var.database_dual_nics ? (
       var.options.legacy_nic_order ? (
         [
           azurerm_network_interface.nics_dbnodes_admin[count.index].id,
@@ -261,6 +261,14 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
       version   = local.hdb_os.version
     }
   }
+  dynamic "plan" {
+    for_each = range(local.hdb_custom_image ? 1 : 0)
+    content {
+      name      = local.hdb_os.offer
+      publisher = local.hdb_os.publisher
+      product   = local.hdb_os.sku
+    }
+  }
 
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk
@@ -273,12 +281,33 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
   tags = local.tags
-  lifecycle {
-    ignore_changes = [
-      // Ignore changes to computername
-      computer_name
-    ]
+
+  dynamic "identity" {
+    for_each = range(var.use_msi_for_clusters && var.database.high_availability ? 1 : 0)
+    content {
+      type = "SystemAssigned"
+    }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+resource "azurerm_role_assignment" "role_assignment_msi" {
+  provider = azurerm.main
+  count = (
+    var.use_msi_for_clusters &&
+    length(var.fencing_role_name) > 0 &&
+    var.database_server_count > 1
+    ) ? (
+    var.database_server_count
+    ) : (
+    0
+  )
+  scope                = var.resource_group[0].id
+  role_definition_name = var.fencing_role_name
+  principal_id         = azurerm_linux_virtual_machine.vm_dbnode[count.index].identity[0].principal_id
 }
 
 # Creates managed data disk
@@ -312,6 +341,10 @@ resource "azurerm_managed_disk" "data_disk" {
     azurerm_linux_virtual_machine.vm_dbnode[local.data_disk_list[count.index].vm_index].zone) : (
     null
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Manages attaching a Disk to a Virtual Machine
@@ -339,4 +372,8 @@ resource "azurerm_virtual_machine_extension" "hdb_linux_extension" {
     "system": "SAP"
   }
 SETTINGS
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }

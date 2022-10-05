@@ -1,0 +1,1050 @@
+[
+  {
+    "Section": "Set as default",
+    "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+    "Parameters": [
+      {
+        "Name": "IsDefault",
+        "Required": false,
+        "Description": "Controls if this workload zone will be set as the default. If true, missing required parameters will be allowed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": ""
+      }
+    ]
+  },
+  {
+    "Section": "Subscription *",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+    "Parameters": [
+      {
+        "Name": "subscription",
+        "Required": false,
+        "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various arm id parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Environment",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#resource-group-parameters",
+    "Parameters": [
+      {
+        "Name": "environment",
+        "Required": true,
+        "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Select an environment...",
+            "Value": ""
+          },
+          {
+            "Text": "Development",
+            "Value": "DEV"
+          },
+          {
+            "Text": "Sandbox",
+            "Value": "SND"
+          },
+          {
+            "Text": "Prototype",
+            "Value": "PROTO"
+          },
+          {
+            "Text": "Non Production",
+            "Value": "NP"
+          },
+          {
+            "Text": "Production",
+            "Value": "PROD"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "location",
+        "Required": true,
+        "Description": "The Azure region in which to deploy.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "save_naming_information",
+        "Required": false,
+        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "name_override_file",
+        "Required": false,
+        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "resourcegroup_name",
+        "Required": false,
+        "Description": "Overrides the name of the resource group that will be provisioned.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "resourcegroup_arm_id",
+        "Required": false,
+        "Description": "Azure resource identifier for existing resource group.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "resourcegroup_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Credentials",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-plan-deployment#sap-and-virtual-machine-credentials-management",
+    "Parameters": [
+      {
+        "Name": "automation_username",
+        "Required": false,
+        "Description": "Defines the user account used by the automation. This account will be the account used for logging on to the virtual machines. ",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "automation_password",
+        "Required": false,
+        "Description": "Defines the password for the automation user. If empty, Terraform will create a password and persist it in key vault",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "automation_path_to_public_key",
+        "Required": false,
+        "Description": "Used to provide a path to an existing ssh public key file. If empty, Terraform will create the ssh key and persist it in key vault",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "automation_path_to_private_key",
+        "Required": false,
+        "Description": "Used to provide a path to an existing ssh private key file. If empty, Terraform will create the ssh key and persist it in key vault",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Network",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "network_logical_name",
+        "Required": true,
+        "Description": "Defines the workload virtual network logical name. Used in the naming convention.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "network_name",
+        "Required": false,
+        "Description": "If provided, the name of the Virtual network. Only use this if the default naming is not sufficient.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "network_address_space",
+        "Required": true,
+        "Description": "Virtual network address space. Ensure sufficient size for all the workload Virtual machines and other network resources.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "network_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing virtual network.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "network_address_space",
+        "Display": 3
+      },
+      {
+        "Name": "use_private_endpoint",
+        "Required": false,
+        "Description": "Defines if the key vaults and storage accounts have private endpoints.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_service_endpoint",
+        "Required": false,
+        "Description": "Defines if the key vaults and storage accounts use service endpoints.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "peer_with_control_plane_vnet",
+        "Required": false,
+        "Description": "Defines if the SAP VNet will be peered with the control plane VNet",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }, 
+      {
+        "Name": "enable_firewall_for_keyvaults_and_storage",
+        "Required": false,
+        "Description": "Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+
+    ]
+  },
+  {
+    "Section": "Admin subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "admin_subnet_name",
+        "Required": false,
+        "Description": "Defines the admin subnet name, should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "admin_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the admin subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "admin_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet to use as the admin subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "admin_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "admin_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default admin network security group name is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "admin_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "admin_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Database subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "db_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "db_subnet_address_prefix",
+        "Required": true,
+        "Description": "Defines the subnet address range for the database subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "db_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet to use for the database subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "db_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "db_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default database network security group name is not acceptable",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "db_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "db_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Application subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "app_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_subnet_address_prefix",
+        "Required": true,
+        "Description": "Defines the subnet address range for the application subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "app_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet to use for the application subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "app_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "app_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default application network security group name is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "app_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "app_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Web subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "web_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "web_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the web subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "web_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet to use for the web subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "web_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "web_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default web network security group name is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "web_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "web_subnet_nsg_name",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ISCSI subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
+    "Parameters": [
+      {
+        "Name": "iscsi_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet for the iSCSI subnet",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "iscsi_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the iSCSI subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ISCSI subnet network security group",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
+    "Parameters": [
+      {
+        "Name": "iscsi_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "iscsi_subnet_nsg_name",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ANF subnet",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "anf_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the ANF subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "anf_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet to use for ANF subnet.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "anf_subnet_address_prefix",
+        "Display": 3
+      },
+      {
+        "Name": "anf_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "ANF subnet network security group",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+    "Parameters": [
+      {
+        "Name": "anf_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "anf_subnet_nsg_name",
+        "Display": 3
+      },
+      {
+        "Name": "anf_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "DNS",
+    "Link": "",
+    "Parameters": [
+      {
+        "Name": "use_custom_dns_a_registration",
+        "Required": false,
+        "Description": "Boolean value indicating if a custom dns a record should be created when using private endpoints",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "management_dns_subscription_id",
+        "Required": false,
+        "Description": "Subscription for the DNS zone, if different from the management subscription",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "management_dns_resourcegroup_name",
+        "Required": false,
+        "Description": "Resource group for the DNS zone, if different from the SAP Library resource group",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "NFS support",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#nfs-support",
+    "Parameters": [
+      {
+        "Name": "NFS_provider",
+        "Required": false,
+        "Description": "Defines how NFS services are provided to the SAP systems: AFS (Azure Files for NFS), ANF (Azure NetApp Files), NFS (custom solution)",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "AFS",
+            "Value": "AFS"
+          },
+          {
+            "Text": "ANF",
+            "Value": "ANF"
+          },
+          {
+            "Text": "NFS",
+            "Value": "NFS"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "transport_volume_size",
+        "Required": false,
+        "Description": "Defines the size of the transport volume.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "ANF Support",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-netapp-files-support",
+    "Parameters": [
+      {
+        "Name": "ANF_account_name",
+        "Required": false,
+        "Description": "The name for the Netapp Account to create.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_account_arm_id",
+        "Required": false,
+        "Description": "Azure resource identifier for an existing Netapp Account",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_service_level",
+        "Required": false,
+        "Description": "The service level for the NetApp pool",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Ultra",
+            "Value": "Ultra"
+          },
+          {
+            "Text": "Premium",
+            "Value": "Premium"
+          },
+          {
+            "Text": "Standard",
+            "Value": "Standard"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_pool_size",
+        "Required": false,
+        "Description": "The pool size in TB for the NetApp pool.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_qos_type",
+        "Required": false,
+        "Description": "The Quality of Service type of the pool (Auto or Manual).",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Manual",
+            "Value": "Manual"
+          },
+          {
+            "Text": "Auto",
+            "Value": "Auto"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ANF_use_existing_pool",
+        "Required": false,
+        "Description": "Use existing storage pool.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_pool_name",
+        "Required": false,
+        "Description": "the NetApp capacity pool name (if any)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Azure keyvault support",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#key-vault-parameters",
+    "Parameters": [
+      {
+        "Name": "user_keyvault_id",
+        "Required": false,
+        "Description": "Specifies the Azure resource identifier for an existing key vault designed to host secrets for the administrative users.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "spn_keyvault_id",
+        "Required": false,
+        "Description": "Specifies the Azure resource identifier for an existing key vault. Designed to host the deployment credentials used by the automation.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "enable_purge_control_for_keyvaults",
+        "Required": false,
+        "Description": "Disables the purge protection for Azure key vaults",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "additional_users_to_add_to_keyvault_policies",
+        "Required": false,
+        "Description": "Additional users (object IDs) to add to the key vault policies.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Private DNS support",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#private-dns",
+    "Parameters": [
+      {
+        "Name": "dns_label",
+        "Required": false,
+        "Description": "Provides the DNS label to use for the Virtual Network.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "dns_resource_group_name",
+        "Required": false,
+        "Description": "Provides the name of the resource group hosting the Private DNS zone",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Utility VM",
+    "Link": "",
+    "Parameters": [
+      {
+        "Name": "utility_vm_count",
+        "Required": false,
+        "Description": "Defines number of utility virtual machines to deploy. The utility virtual machines can be used to host SAPGui and other tools.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "utility_vm_size",
+        "Required": false,
+        "Description": "Defines the size for the utility virtual machine. Default size is Standard_D4ds_v4.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "utility_vm_useDHCP",
+        "Required": false,
+        "Description": "Defines if Azure subnet provided IP addresses should be used for the utility virtual machines.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "utility_vm_image_offering",
+        "Required": false,
+        "Description": "Defines the virtual machine image to use for the utility virtual machines.",
+        "Type": "image_dropdown",
+        "Options": [],
+        "Overrules": "utility_vm_image",
+        "Display": 2
+      },
+      {
+        "Name": "utility_vm_image",
+        "Required": false,
+        "Description": "Defines the virtual machine image to use for the utility virtual machines.",
+        "Type": "image",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "utility_vm_nic_ips",
+        "Required": false,
+        "Description": "Provides the static IP addresses for the utility virtual machines.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+ {
+    "Section": "Storage Accounts",
+    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-files-nfs-support",
+    "Parameters": [
+      {
+        "Name": "install_volume_size",
+        "Required": false,
+        "Description": "The volume size in GB for the transport share",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "install_storage_account_id",
+        "Required": false,
+        "Description": "Azure Resource Identifier for the Installation media storage account.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "install_private_endpoint_id",
+        "Required": false,
+        "Description": "Azure Resource Identifier for a private endpoint for the installation storage account.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "diagnostics_storage_account_arm_id",
+        "Required": false,
+        "Description": "Azure resource id for the diagnostics storage account",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "witness_storage_account_arm_id",
+        "Required": false,
+        "Description": "Azure resource id for the witness storage account",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "transport_storage_account_id",
+        "Required": false,
+        "Description": "Azure Resource Identifier for the Transport media storage account.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "transport_private_endpoint_id",
+        "Required": false,
+        "Description": "Azure Resource Identifier for a private endpoint connection for the transport storage account.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  }
+]

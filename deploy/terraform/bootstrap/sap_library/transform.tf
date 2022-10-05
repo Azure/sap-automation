@@ -11,14 +11,11 @@ locals {
     tags = try(coalesce(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
   }
   deployer = {
-    environment = coalesce(var.deployer_environment, try(var.deployer.environment, ""))
-    region      = coalesce(var.deployer_location, try(var.deployer.region, ""))
-    vnet        = coalesce(var.deployer_vnet, try(var.deployer.vnet, ""))
     use         = var.use_deployer
 
   }
   key_vault = {
-    kv_spn_id = coalesce(local.spn_key_vault_arm_id, var.spn_keyvault_id, try(var.key_vault.kv_spn_id, ""))
+    kv_spn_id = try(coalesce(local.spn_key_vault_arm_id, var.spn_keyvault_id, try(var.key_vault.kv_spn_id, "")), "")
   }
   storage_account_sapbits = {
     arm_id = try(coalesce(var.library_sapmedia_arm_id, try(var.storage_account_sapbits.arm_id, "")), "")

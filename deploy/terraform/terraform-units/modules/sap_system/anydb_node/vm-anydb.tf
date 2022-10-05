@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "anydb_db" {
       name      = pub.value.name
       subnet_id = pub.value.subnet_id
       private_ip_address = try(pub.value.nic_ips[count.index],
-        var.databases[0].use_DHCP ? (
+        var.database.use_DHCP ? (
           null) : (
           cidrhost(
             var.db_subnet.address_prefixes[0],
@@ -49,7 +49,7 @@ resource "azurerm_network_interface" "anydb_db" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "db" {
-  provider                      = azurerm.main
+  provider = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? var.database_server_count : 0) : (
     0
@@ -86,7 +86,7 @@ resource "azurerm_network_interface" "anydb_admin" {
     name      = "ipconfig1"
     subnet_id = var.admin_subnet.id
 
-    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.databases[0].use_DHCP ? (
+    private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.database.use_DHCP ? (
       null) : (
       cidrhost(
         var.admin_subnet.address_prefixes[0],
@@ -172,7 +172,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
+  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -201,6 +201,16 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
       version   = local.anydb_os.version
     }
   }
+
+  dynamic "plan" {
+    for_each = range(local.anydb_custom_image ? 1 : 0)
+    content {
+      name      = local.anydb_os.offer
+      publisher = local.anydb_os.publisher
+      product   = local.anydb_os.sku
+    }
+  }
+
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk
   }
@@ -261,7 +271,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
       )
       caching                = local.os_disk[0].caching
       storage_account_type   = local.os_disk[0].storage_account_type
-      disk_size_gb           = local.os_disk[0].disk_size_gb
+      disk_size_gb           = local.os_disk[0].disk_size_gb < 128 ? 128 : local.os_disk[0].disk_size_gb
       disk_encryption_set_id = try(var.options.disk_encryption_set_id, null)
 
     }
@@ -284,7 +294,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     )
   ) : null
 
-  zone = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
+  zone = local.zonal_deployment ? try(local.zones[count.index % max(local.db_zone_count, 1)], null) : null
 
   network_interface_ids = local.anydb_dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -314,6 +324,14 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
     }
   }
 
+  dynamic "plan" {
+    for_each = range(local.anydb_custom_image ? 1 : 0)
+    content {
+      name      = local.anydb_os.offer
+      publisher = local.anydb_os.publisher
+      product   = local.anydb_os.sku
+    }
+  }
 
   additional_capabilities {
     ultra_ssd_enabled = local.enable_ultradisk

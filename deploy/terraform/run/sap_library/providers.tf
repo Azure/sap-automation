@@ -18,7 +18,8 @@ data "azurerm_client_config" "current" {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+  }
   subscription_id = local.spn.subscription_id
   client_id       = var.use_deployer ? local.spn.client_id : null
   client_secret   = var.use_deployer ? local.spn.client_secret : null
@@ -28,8 +29,16 @@ provider "azurerm" {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+  }
   alias = "deployer"
+}
+
+provider "azurerm" {
+  features {}
+  alias                      = "dnsmanagement"
+  subscription_id            = try(var.management_dns_subscription_id, null)
+  skip_provider_registration = true
 }
 
 provider "azuread" {

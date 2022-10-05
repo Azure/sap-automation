@@ -15,9 +15,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "HANA HSR: Start HANA on {{ ansible_hostname }}"
-  import_tasks:                        ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
-
 - name:                                "HANA HSR: - Check HANA system replication variables are set and seem valid"
   ansible.builtin.assert:
     that:

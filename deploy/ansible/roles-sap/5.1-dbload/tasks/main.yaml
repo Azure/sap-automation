@@ -43,7 +43,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
-    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[ scs_server_temp | first]['virtual_host'] }}{% endif %}"
+    scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     dir_params:                        "{{ tmp_directory }}/.params"
 
@@ -174,21 +174,21 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "DBLoad Install: Installation results"
-      ansible.builtin.debug:
-        msg:                           "DBLoad Installation succeeded"
-      when:
-        - job_result.rc is defined
-        - job_result.rc == 0
-
     - name:                            "DBLoad: - set completion flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
         state:                         touch
         mode:                          0755
       when:
-        - job_result is defined
-        - job_result.rc > 0
+        - job_result.rc is defined
+        - job_result.rc == 0
+
+    - name:                            "DBLoad Install: Installation results"
+      ansible.builtin.debug:
+        msg:                           "DBLoad Installation succeeded"
+      when:
+        - job_result.rc is defined
+        - job_result.rc == 0
 
   when:
     - not dbload_installed.stat.exists

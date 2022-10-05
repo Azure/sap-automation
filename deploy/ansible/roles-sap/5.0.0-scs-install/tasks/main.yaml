@@ -160,7 +160,7 @@
 
     - name:                            Find the installationSuccesfullyFinished.dat (SAPINST)
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.','/').replace('/ABAP','').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
+        paths:                         "{{ tmp_directory }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true

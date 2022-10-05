@@ -133,11 +133,20 @@ fi
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
+network_logical_name=""
+
+if [ "${deployment_system}" == sap_system ]
+then
+    load_config_vars "$parameterfile_name" "network_logical_name"
+    network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+
+fi
+
 #Persisting the parameters across executions
 
 automation_config_directory=~/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}""${environment}""${region_code}"
+system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 
 echo "Configuration file: $system_config_information"
 echo "Deployment region: $region"
@@ -380,9 +389,9 @@ fi
 
 ok_to_proceed=false
 
-echo "subscription_id=${STATE_SUBSCRIPTION}"
-echo "resource_group_name=${REMOTE_STATE_RG}"
-echo "storage_account_name=${REMOTE_STATE_SA}"
+echo "Terraform state subscription_id      = ${STATE_SUBSCRIPTION}"
+echo "Terraform state resource group name  = ${REMOTE_STATE_RG}"
+echo "Terraform state storage account name = ${REMOTE_STATE_SA}"
 
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
@@ -466,12 +475,12 @@ then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
-        terraform -chdir="${terraform_module_directory}" refresh $allParams
+        # allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
+        # terraform -chdir="${terraform_module_directory}" refresh $allParams
 
         deployment_parameter=" "
 
-        deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output automation_version | tr -d \")
+        deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
 
         if [ -z "${deployed_using_version}" ]; then
             echo ""
@@ -528,14 +537,14 @@ fi
 
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
 
-terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams > plan_output.log
+terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
 return_value=$?
 if [ 1 == $return_value ]
 then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                            $boldreduscore Errors during the plan phase$resetformatting                              #"
+    echo -e "#                             $boldreduscore Errors during the plan phase $resetformatting                              #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -546,22 +555,32 @@ then
 fi
 
 if [ 0 == $return_value ] ; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -f plan_output.log ]
-    then
-        rm plan_output.log
-    fi
 
     if [ "${deployment_system}" == sap_deployer ]
     then
         deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-        keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+        keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
+
+        if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
+            webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+            if [ -z ${az_var} ]; then
+                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+            else
+                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+            fi
+
+            webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+            az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+            if [ -z ${az_var} ]; then
+                az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+            else
+                az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+            fi
+
+        fi
+
         save_config_var "keyvault" "${system_config_information}"
         save_config_var "deployer_public_ip_address" "${system_config_information}"
 
@@ -584,210 +603,220 @@ if [ 0 == $return_value ] ; then
 
         az account set --sub "${STATE_SUBSCRIPTION}"
 
-        REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
+        REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
 
         get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
 
     fi
 
-    unset TF_DATA_DIR
-    exit $return_value
+    ok_to_proceed=true
+
 fi
-if [ 2 == $return_value ] ; then
-    fatal_errors=0
-    # HANA VM
-    test=$(grep vm_dbnode plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                          Database server(s) will be replaced                          #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-    # HANA VM disks
-    test=$(grep azurerm_managed_disk.data_disk plan_output.log | grep  -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                        Database server disks will be replaced                         #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
+
+fatal_errors=0
+# HANA VM
+test=$(grep vm_dbnode plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                          Database server(s) will be replaced                          #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+# HANA VM disks
+test=$(grep azurerm_managed_disk.data_disk plan_output.log | grep  -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                        Database server disks will be replaced                         #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    fatal_errors=1
+fi
+
+# AnyDB server
+test=$(grep dbserver plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                          Database server(s) will be replaced                          #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+# AnyDB disks
+test=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                        Database server disks will be replaced                         #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+
+# App server
+test=$(grep virtual_machine.app plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                          Application server will be replaced                          #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+# App server disks
+test=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                      Application server disks will be replaced                        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+
+# SCS server
+test=$(grep virtual_machine.scs plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                        SCS server(s) disks will be replaced                           #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+
+# SCS server disks
+test=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                          SCS server disks will be replaced                            #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+
+# Web server
+test=$(grep virtual_machine.web plan_output.log | grep -m1 replaced)
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                         Web Dispatcher server(s) will be replaced                     #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+# Web dispatcher server disks
+test=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 "must be replaced")
+if [ -n "${test}" ] ; then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#                       Web Dispatcher server disks will be replaced                    #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+
+    echo ""
+    echo "##vso[task.logissue type=error]${test}"
+    fatal_errors=1
+fi
+
+ok_to_proceed=1
+
+if [ $fatal_errors == 1 ] ; then
+    ok_to_proceed=0
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    if [ 1 == "$called_from_ado" ]; then
+        unset TF_DATA_DIR
+        echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" > "${system_config_information}".err
+        echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
+        exit 1
     fi
 
-    # AnyDB server
-    test=$(grep dbserver plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                          Database server(s) will be replaced                          #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-    # AnyDB disks
-    test=$(grep azurerm_managed_disk.disks plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                        Database server disks will be replaced                         #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-
-    # App server
-    test=$(grep virtual_machine.app plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                          Application server will be replaced                          #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-    # App server disks
-    test=$(grep azurerm_managed_disk.app plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                      Application server disks will be replaced                        #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-
-    # SCS server
-    test=$(grep virtual_machine.scs plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                        SCS server(s) disks will be replaced                           #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-
-    # SCS server disks
-    test=$(grep azurerm_managed_disk.scs plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                          SCS server disks will be replaced                            #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-
-    # Web server
-    test=$(grep virtual_machine.web plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                         Web Dispatcher server(s) will be replaced                     #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-    # Web dispatcher server disks
-    test=$(grep azurerm_managed_disk.web plan_output.log | grep -m1 replaced)
-    if [ -n "${test}" ] ; then
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#                       Web Dispatcher server disks will be replaced                    #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        echo ""
-        fatal_errors=1
-    fi
-
-    if [ $fatal_errors == 1 ] ; then
-
-        echo ""
-        echo "#########################################################################################"
-        echo "#                                                                                       #"
-        echo -e "#                               $boldreduscore!!! Risk for Data loss !!!$resetformatting                              #"
-        echo "#                                                                                       #"
-        echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-        echo "#                                                                                       #"
-        echo "#########################################################################################"
-        echo ""
-        if [ 1 == "$called_from_ado" ]; then
-            unset TF_DATA_DIR
-            echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" > "${system_config_information}".err
-
-            exit 1
-        fi
-
-        if [ 1 == $force ]; then
+    if [ 1 == $force ]; then
+        ok_to_proceed=1
+    else
+        read -p "Do you want to continue with the deployment Y/N?"  ans
+        answer=${ans^^}
+        if [ $answer == 'Y' ]; then
             ok_to_proceed=true
         else
-            read -p "Do you want to continue with the deployment Y/N?"  ans
-            answer=${ans^^}
-            if [ $answer == 'Y' ]; then
-                ok_to_proceed=true
-            else
-                unset TF_DATA_DIR
-                exit 1
-            fi
+            unset TF_DATA_DIR
+            exit 1
         fi
-
     fi
-else
-    ok_to_proceed=true
+
 fi
 
-if [ $ok_to_proceed ]; then
+rerun_apply=0
+if [ 1 == $ok_to_proceed ]; then
 
     if [ -f error.log ]
     then
@@ -806,14 +835,99 @@ if [ $ok_to_proceed ]; then
     echo "#########################################################################################"
     echo ""
 
-    allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}  "${approve}"" )
+    allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}"  "${approve}" )
 
     if [ 1 == $called_from_ado ] ; then
-        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings $allParams  2>error.log
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
     else
-        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
     fi
     return_value=$?
+
+    if [ -f apply_output.json ]
+    then
+        errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
+
+        if [[ -n $errors_occurred ]]
+        then
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
+
+            return_value=2
+            all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
+            if [[ -n ${all_errors} ]]
+                then
+                readarray -t errors_strings < <(echo ${all_errors} | jq -c '.' )
+                for errors_string in "${errors_strings[@]}"; do
+                    string_to_report=$(jq -c -r '.detail '  <<< "$errors_string" )
+                    if [[ -z ${string_to_report} ]]
+                    then
+                        string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
+                    fi
+                    report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')
+                    if [[ -n ${report} ]] ; then
+                        echo -e "#                          $boldreduscore  $report $resetformatting"
+                        if [ 1 == $called_from_ado ] ; then
+                            echo "##vso[task.logissue type=error]${report}"
+                        fi
+                    else
+                        echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+                        if [ 1 == $called_from_ado ] ; then
+                            echo "##vso[task.logissue type=error]${string_to_report}"
+                        fi
+                    fi
+                    echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
+
+                done
+            fi
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+
+            # Check for resource that can be imported
+            existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+            if [[ -n ${existing} ]]
+            then
+
+                readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+                for item in "${existing_resources[@]}"; do
+                    moduleID=$(jq -c -r '.address '  <<< "$item")
+                    resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+                    echo "Trying to import" $resourceID "into" $moduleID
+                    allParamsforImport=$(printf " -var-file=%s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter} " )
+                    echo terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+                    terraform -chdir="${terraform_module_directory}" import -allow-missing-config  $allParamsforImport $moduleID $resourceID
+                done
+                rerun_apply=1
+            fi
+        fi
+
+    fi
+
+    if [ -f apply_output.json ]
+    then
+        rm apply_output.json
+    fi
+
+    if [ $rerun_apply == 1 ] ; then
+        echo ""
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+        echo ""
+        if [ 1 == $called_from_ado ] ; then
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -compact-warnings $allParams
+        else
+            terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams
+        fi
+        return_value=$?
+    fi
 
     if [ 0 != $return_value ] ; then
         echo ""
@@ -823,27 +937,53 @@ if [ $ok_to_proceed ]; then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-        if [ -f error.log ]; then
-            cat error.log
-            export LASTERROR=$(grep -m1 Error: error.log | tr -cd "[:print:]" )
-            echo "$LASTERROR" > "${system_config_information}".err
-
-            if [ 1 == $called_from_ado ] ; then
-                echo "##vso[task.logissue type=error]$LASTERROR"
-            fi
-            rm error.log
-        fi
         unset TF_DATA_DIR
         exit $return_value
     fi
 
 fi
 
-
 if [ "${deployment_system}" == sap_deployer ]
 then
-    deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-    keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+    deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+    keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
+
+    created_resource_group_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+
+    az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
+
+    if [[ $TF_VAR_use_webapp = "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
+        webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value")
+        if [ -z ${az_var} ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+        else
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE --value $webapp_url_base --output none --only-show-errors
+        fi
+
+        webapp_identity=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_identity | tr -d \")
+        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value")
+        if [ -z ${az_var} ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
+        else
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY --value $webapp_identity --output none --only-show-errors
+        fi
+
+        webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+        az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value")
+        if [ -z ${az_var} ]; then
+            az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+        else
+            az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
+        fi
+
+    fi
+    deployer_extension_ids=$(terraform -chdir="${terraform_module_directory}"  output -no-color -json deployer_extension_ids | jq -r '.[]')
+
+    if [[ -n ${deployer_extension_ids} ]]
+    then
+        az resource delete --ids ${deployer_extension_ids}
+    fi
 
     save_config_var "keyvault" "${system_config_information}"
     save_config_var "deployer_public_ip_address" "${system_config_information}"
@@ -852,7 +992,7 @@ fi
 if [ "${deployment_system}" == sap_system ]
 then
     re_run=0
-    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
@@ -863,11 +1003,13 @@ then
     if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
     then
       database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
-      save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
-      re_run=1
+      if [ -n "${database_loadbalancer_ips}" ]; then
+          save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
+          re_run=1
+      fi
     fi
 
-    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
+    scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
@@ -878,8 +1020,10 @@ then
     if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
     then
       scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
-      save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
-      re_run=1
+      if [ -n "${scs_server_loadbalancer_ips}" ]; then
+          save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
+          re_run=1
+      fi
     fi
 
     if [ 1 == $re_run ] ; then
@@ -889,6 +1033,11 @@ then
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParams  2>error.log
         fi
     fi
+
+    rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+
+    az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --subscription  $ARM_SUBSCRIPTION_ID --template-file "${script_directory}/templates/empty-deployment.json"  --output none
+
 fi
 
 
@@ -896,6 +1045,9 @@ if [ "${deployment_system}" == sap_landscape ]
 then
     save_config_vars "${system_config_information}" \
     landscape_tfstate_key
+
+    rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+    az deployment group create --resource-group ${rg_name} --name "SAP-WORKLOAD-ZONE_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 fi
 
 if [ "${deployment_system}" == sap_library ]
@@ -903,11 +1055,14 @@ then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output remote_state_storage_account_name| tr -d \")
 
     get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+    rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
+
+    az deployment group create --resource-group ${rg_name} --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 fi
 
 if [ -f "${system_config_information}".err ]; then
-    "${system_config_information}".err
+   cat "${system_config_information}".err
 fi
 
 

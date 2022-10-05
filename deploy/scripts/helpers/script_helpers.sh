@@ -24,7 +24,7 @@ function control_plane_showhelp {
     echo "#   ~/.sap_deployment_automation folder                                                                         #"
     echo "#                                                                                                               #"
     echo "#                                                                                                               #"
-    echo "#   Usage: prepare_region.sh                                                                                    #"
+    echo "#   Usage: deploy_controlplane.sh                                                                               #"
     echo "#      -d or --deployer_parameter_file       deployer parameter file                                            #"
     echo "#      -l or --library_parameter_file        library parameter file                                             #"
     echo "#                                                                                                               #"
@@ -39,13 +39,13 @@ function control_plane_showhelp {
     echo "#                                                                                                               #"
     echo "#   Example:                                                                                                    #"
     echo "#                                                                                                               #"
-    echo "#   DEPLOYMENT_REPO_PATH/scripts/prepare_region.sh \                                                            #"
+    echo "#   DEPLOYMENT_REPO_PATH/scripts/deploy_controlplane.sh \                                                       #"
     echo "#      --deployer_parameter_file DEPLOYER/MGMT-WEEU-DEP00-INFRASTRUCTURE/MGMT-WEEU-DEP00-INFRASTRUCTURE.json \  #"
     echo "#      --library_parameter_file LIBRARY/MGMT-WEEU-SAP_LIBRARY/MGMT-WEEU-SAP_LIBRARY.json \                      #"
     echo "#                                                                                                               #"
     echo "#   Example:                                                                                                    #"
     echo "#                                                                                                               #"
-    echo "#   DEPLOYMENT_REPO_PATH/scripts/prepare_region.sh \                                                            #"
+    echo "#   DEPLOYMENT_REPO_PATH/scripts/deploy_controlplane.sh \                                                       #"
     echo "#      --deployer_parameter_file DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json  \ #"
     echo "#      --library_parameter_file LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json \                      #"
     echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                                                    #"
@@ -64,7 +64,7 @@ function control_plane_missing {
     echo "#                                                                                       #"
     echo "#   Missing : ${val}                                  #"
     echo "#                                                                                       #"
-    echo "#   Usage: prepare_region.sh                                                            #"
+    echo "#   Usage: deploy_controlplane.sh                                                       #"
     echo "#      -d or --deployer_parameter_file       deployer parameter file                    #"
     echo "#      -l or --library_parameter_file        library parameter file                     #"
     echo "#                                                                                       #"
@@ -78,57 +78,57 @@ function control_plane_missing {
     echo "#      -h or --help                          Help                                       #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
-    
+
 }
 
 function workload_zone_showhelp {
     echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                                                                                       #"
-    echo "#   This file contains the logic to deploy the workload infrastructure to Azure         #"
-    echo "#                                                                                       #"
-    echo "#   The script experts the following exports:                                           #"
-    echo "#                                                                                       #"
+    echo "###############################################################################################"
+    echo "#                                                                                             #"
+    echo "#                                                                                             #"
+    echo "#   This file contains the logic to deploy the workload infrastructure to Azure               #"
+    echo "#                                                                                             #"
+    echo "#   The script experts the following exports:                                                 #"
+    echo "#                                                                                             #"
     echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation repo   #"
-    echo "#                                                                                       #"
-    echo "#   The script is to be run from the folder containing the json parameter file          #"
-    echo "#                                                                                       #"
-    echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder                                                 #"
-    echo "#                                                                                       #"
-    echo "#   Usage: install_workloadzone.sh                                                      #"
-    echo "#      -p or --parameterfile                deployer parameter file                    #"
-    echo "#                                                                                       #"
-    echo "#   Optional parameters                                                                 #"
-    echo "#      -d or --deployer_tfstate_key          Deployer terraform state file name         #"
-    echo "#      -e or --deployer_environment          Deployer environment, i.e. MGMT            #"
-    echo "#      -s or --subscription                  subscription                               #"
-    echo "#      -k or --state_subscription            subscription for statefile                 #"
-    echo "#      -c or --spn_id                        SPN application id                         #"
-    echo "#      -p or --spn_secret                    SPN password                               #"
-    echo "#      -t or --tenant_id                     SPN Tenant id                              #"
-    echo "#      -f or --force                         Clean up the local Terraform files.        #"
-    echo "#      -i or --auto-approve                  Silent install                             #"
-    echo "#      -h or --help                          Help                                       #"
-    echo "#                                                                                       #"
-    echo "#   Example:                                                                            #"
-    echo "#                                                                                       #"
-    echo "#   [REPO-ROOT]deploy/scripts/install_workloadzone.sh \                                 #"
-    echo "#      --parameterfile PROD-WEEU-SAP01-INFRASTRUCTURE                                  #"
-    echo "#                                                                                       #"
-    echo "#   Example:                                                                            #"
-    echo "#                                                                                       #"
-    echo "#   [REPO-ROOT]deploy/scripts/install_workloadzone.sh \                                 #"
-    echo "#      --parameterfile PROD-WEEU-SAP01-INFRASTRUCTURE \                                #"
-    echo "#      --deployer_environment MGMT \                                                    #"
-    echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                            #"
-    echo "#      --spn_id yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                  #"
-    echo "#      --spn_secret ************************ \                                          #"
-    echo "#      --spn_secret yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                              #"
-    echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz \                               #"
-    echo "#      --auto-approve                                                                   #"
-    echo "#########################################################################################"
+    echo "#                                                                                             #"
+    echo "#   The script is to be run from the folder containing the json parameter file                #"
+    echo "#                                                                                             #"
+    echo "#   The script will persist the parameters needed between the executions in the               #"
+    echo "#   ~/.sap_deployment_automation folder                                                       #"
+    echo "#                                                                                             #"
+    echo "#   Usage: install_workloadzone.sh                                                            #"
+    echo "#      -p or --parameterfile                deployer parameter file                           #"
+    echo "#                                                                                             #"
+    echo "#   Optional parameters                                                                       #"
+    echo "#      -d or --deployer_tfstate_key          Deployer terraform state file name               #"
+    echo "#      -e or --deployer_environment          Deployer environment, i.e. MGMT                  #"
+    echo "#      -s or --subscription                  subscription                                     #"
+    echo "#      -k or --state_subscription            subscription for statefile                       #"
+    echo "#      -c or --spn_id                        SPN application id                               #"
+    echo "#      -p or --spn_secret                    SPN password                                     #"
+    echo "#      -t or --tenant_id                     SPN Tenant id                                    #"
+    echo "#      -f or --force                         Clean up the local Terraform files.              #"
+    echo "#      -i or --auto-approve                  Silent install                                   #"
+    echo "#      -h or --help                          Help                                             #"
+    echo "#                                                                                             #"
+    echo "#   Example:                                                                                  #"
+    echo "#                                                                                             #"
+    echo "#   [REPO-ROOT]deploy/scripts/install_workloadzone.sh \                                       #"
+    echo "#      --parameterfile PROD-WEEU-SAP01-INFRASTRUCTURE                                         #"
+    echo "#                                                                                             #"
+    echo "#   Example:                                                                                  #"
+    echo "#                                                                                             #"
+    echo "#   [REPO-ROOT]deploy/scripts/install_workloadzone.sh \                                       #"
+    echo "#      --parameterfile PROD-WEEU-SAP01-INFRASTRUCTURE \                                       #"
+    echo "#      --deployer_environment MGMT \                                                          #"
+    echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                                  #"
+    echo "#      --spn_id yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                        #"
+    echo "#      --spn_secret ************************ \                                                #"
+    echo "#      --spn_secret yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                    #"
+    echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz \                                     #"
+    echo "#      --auto-approve                                                                         #"
+    echo "##############################################################################################"
 }
 
 function workload_zone_missing {
@@ -140,10 +140,10 @@ function workload_zone_missing {
     echo "#   Missing environment variables: ${option}!!!              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#                                                                                       #"
     echo "#   Usage: install_workloadzone.sh                                                      #"
-    echo "#      -p or --parameterfile                deployer parameter file                    #"
+    echo "#      -p or --parameterfile                deployer parameter file                     #"
     echo "#                                                                                       #"
     echo "#   Optional parameters                                                                 #"
     echo "#      -d or deployer_tfstate_key            Deployer terraform state file name         #"
@@ -170,7 +170,7 @@ function showhelp {
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
     echo "#   ~/.sap_deployment_automation folder                                                 #"
@@ -212,7 +212,7 @@ function missing {
     echo "#   Missing environment variables: ${option}!!!              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
@@ -230,28 +230,65 @@ function validate_exports {
         echo "#                                                                                       #"
         echo -e "#  $boldred Missing environment variables (DEPLOYMENT_REPO_PATH)!!! $resetformatting                            #"
         echo "#                                                                                       #"
-        echo "#   Please export the folloing variables:                                               #"
+        echo "#   Please export the following variables:                                              #"
         echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
         echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         return 65                                                                                           #data format error
     fi
-    
+
     if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#  $boldred Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $resetformatting                             #"
         echo "#                                                                                       #"
-        echo "#   Please export the folloing variables:                                               #"
+        echo "#   Please export the following variables:                                              #"
         echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
         echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         return 65                                                                                           #data format error
     fi
-    
+
+    return 0
+}
+
+function validate_webapp_exports {
+    if [ -z "$TF_VAR_app_registration_app_id" ]; then
+        echo ""
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#        $boldred Missing environment variables (TF_VAR_app_registration_app_id)!!! $resetformatting             #"
+        echo "#                                                                                       #"
+        echo "#   Please export the following variables to successfully deploy the Webapp:            #"
+        echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
+        echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
+        echo "#                                                                                       #"
+        echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        return 65                                                                                           #data format error
+    fi
+
+    if [ -z "$TF_VAR_webapp_client_secret" ]; then
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#            $boldred Missing environment variables (TF_VAR_webapp_client_secret)!!! $resetformatting           #"
+        echo "#                                                                                       #"
+        echo "#   Please export the following variables to successfully deploy the Webapp:            #"
+        echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
+        echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
+        echo "#                                                                                       #"
+        echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        return 65                                                                                           #data format error
+    fi
+
     return 0
 }
 
@@ -264,7 +301,7 @@ function showhelp {
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
     echo "#   ~/.sap_deployment_automation folder                                                 #"
@@ -305,7 +342,7 @@ function missing {
     echo "#   Missing environment variables: ${option}!!!              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                  #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
@@ -334,7 +371,7 @@ function validate_dependencies {
         mkdir -p "$HOME/.terraform.d/plugin-cache"
     fi
     export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
-    
+
     az --version >stdout.az 2>&1
     az=$(grep "azure-cli" stdout.az)
     if [ -z "${az}" ]; then
@@ -374,25 +411,25 @@ function validate_dependencies {
         echo ""
         exit 67                                                                                             #addressee unknown
     fi
-    
+
     return 0
 }
 
 function validate_key_parameters {
     echo "Validating $1"
     ext=$(echo $1 | cut -d. -f2)
-    
+
     # Helper variables
     if [ "${ext}" == json ]; then
         export environment=$(jq --raw-output .infrastructure.environment $1)
         export region=$(jq --raw-output .infrastructure.region $1)
     else
         load_config_vars $1 "environment"
-        environment=$(echo ${environment} | xargs)
+        environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" )
         load_config_vars $1 "location"
         region=$(echo ${location} | xargs)
     fi
-    
+
     if [ -z "${environment}" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -404,7 +441,7 @@ function validate_key_parameters {
         echo ""
         return 64 #script usage wrong
     fi
-    
+
     if [ -z "${region}" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -416,7 +453,7 @@ function validate_key_parameters {
         echo ""
         return 64                                                                                           #script usage wrong
     fi
-    
+
     return 0
 }
 

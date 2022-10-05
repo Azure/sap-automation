@@ -44,7 +44,6 @@ packages:
     - { tier: 'os',    package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'numad',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'unrar',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'tuned-profiles-sap*',                          node_tier: 'all',     state: 'present' }
@@ -136,13 +135,9 @@ packages:
   redhat8.1:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.2:
-    - { tier: 'ha',    package: 'python3-libselinux',                           node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'libselinux-python3',                           node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.4:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-libselinux',                           node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'libselinux-python3',                           node_tier: 'hana',    state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }

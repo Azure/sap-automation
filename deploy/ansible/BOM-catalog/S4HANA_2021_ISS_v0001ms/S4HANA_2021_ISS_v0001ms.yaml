@@ -1,6 +1,7 @@
 ---
 # 3015539 - SAP S/4HANA 2021: Release Information Note
-name:                                  "S4HANA_2021_ISS_v0001ms"
+name:                                  "SAP S/4HANA 2021 ISS 00"
+filename:                              "S4HANA_2021_ISS_v0001ms"
 target:                                "S/4 HANA 2021 ISS 00"
 version:                               1
 platform:                              'HANA'
@@ -23,9 +24,9 @@ product_ids:
 
 materials:
   dependencies:
-    - name:                            "HANA_2_00_061_latest"
+    - name:                            "HANA_2_00_064_v0001ms"
     - name:                            "SWPM20SP12_latest"
-    - name:                            "SUM20SP13_latest"
+    - name:                            "SUM20SP14_latest"
   media:
 
     # SAPCAR 7.22
@@ -282,7 +283,7 @@ materials:
 
     - name:                            "Attribute Change Package 22 for GBX01HR5 605"
       archive:                         GBX01HR5605.SAR
-      checksum:                        12d61484a6dc8a20fa4dc428b9c2b4948e60928e7abbd775cb7b21ce4898b366
+      checksum:                        739bc35d266c9d53d08efba15956dcada2d276254ff7d68d8a88c7378100dba2
       url:                             https://softwaredownloads.sap.com/file/0010000000033172015
       download:                        false
 
@@ -552,13 +553,13 @@ materials:
 
     - name:                            "Attribute Change Package 30 for UIHR002 100"
       archive:                         UIHR002100.SAR
-      checksum:                        4533a38bcc0ed51bb8655368e1f95fb90999004100f98cb6749c6c983451e4c7
+      checksum:                        af4dc627a4e9896a29506cff4b0804085299f97ce8a414ebf930d5bff0aad2b6
       url:                             https://softwaredownloads.sap.com/file/0010000020208092017
       download:                        false
 
     - name:                            "Attribute Change Package 13 for UIMDG001 200"
       archive:                         UIMDG001200.SAR
-      checksum:                        fcff8a8a5b7ebd8d7e13ede31a630018207ae75146cb1d58da1de235d86892b9
+      checksum:                        7764b042e148ce8162d59872f9ba31e3ee30a9dddb3dbf459038c417adf8a28d
       url:                             https://softwaredownloads.sap.com/file/0010000014247222017
       download:                        false
 
@@ -570,7 +571,7 @@ materials:
 
     - name:                            "Attribute Change Package 13 for UITRV001 300"
       archive:                         UITRV001300.SAR
-      checksum:                        a065e9426ed5f154b510546f43018703e416a9cfbdc5ea11f2f537b347b66603
+      checksum:                        2e25b1abd4a98ed6a36776d79c92fbce733c38b214e0f697c11db9efd11177cb
       url:                             https://softwaredownloads.sap.com/file/0010000000561182019
       download:                        false
 
