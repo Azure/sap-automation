@@ -179,7 +179,10 @@ stages:
                 ls $DEPLOYMENT_REPO_PATH
 
                 echo "done"
-                ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
+
+                ls pwd
+
+                $DEPLOYMENT_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
                  --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                  \
                  --ado --auto-approve
