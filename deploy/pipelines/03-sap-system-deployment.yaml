@@ -21,8 +21,8 @@ stages:
     variables:
     - template:                       variables/03-sap-system-deployment-variables.yaml
       parameters:
-        sap_system: ${{ parameters.sap_system }}
-        environment: ${{ parameters.environment }}
+        sap_system:                   ${{ parameters.sap_system }}
+        environment:                  ${{ parameters.environment }}
     displayName:                       Deploy SAP infrastructure
     jobs:
       - job:                           Deploy_SAP_infrastructure
