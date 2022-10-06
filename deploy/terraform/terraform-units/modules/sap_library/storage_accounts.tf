@@ -79,8 +79,8 @@ resource "time_sleep" "wait_for_dns_refresh" {
   create_duration = "120s"
 
   depends_on = [
-    azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry,
-    azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
+    azurerm_private_endpoint.storage_tfstate,
+    azurerm_private_endpoint.storage_sapbits
   ]
 }
 
