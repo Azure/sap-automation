@@ -233,15 +233,11 @@ module "anydb_node" {
   sid_password                                 = module.common_infrastructure.sid_password
   sid_username                                 = module.common_infrastructure.sid_username
   sdu_public_key                               = module.common_infrastructure.sdu_public_key
-  route_table_id                               = module.common_infrastructure.route_table_id
-  firewall_id                                  = module.common_infrastructure.firewall_id
   sap_sid                                      = local.sap_sid
   db_asg_id                                    = module.common_infrastructure.db_asg_id
   landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
   terraform_template_version                   = var.terraform_template_version
   deployment                                   = var.deployment
-  network_location                             = module.common_infrastructure.network_location
-  network_resource_group                       = module.common_infrastructure.network_resource_group
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
