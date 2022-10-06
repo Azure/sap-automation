@@ -56,12 +56,8 @@ if [ -z "${ADO_PROJECT}" ]; then
 fi
 
 echo "Installing the extensions"
-<<<<<<< HEAD
-extension_name=$(az devops extension show --org ${DEVOPS_ORGANIZATION} --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName)
-=======
 
 extension_name=$(az devops extension show --org $ADO_ORGANIZATION --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
->>>>>>> 3bc1fc6236c7249b44179d816b7fe66bc646ed73
 if [ -z ${extension_name} ]; then
    az devops extension install --org $ADO_ORGANIZATION --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
 fi
@@ -158,13 +154,7 @@ if [ -z $pipeline_id ] ; then
   az pipelines create --name 'Update Key Vault' --branch main --description 'Updates Key vault for traing' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/23-levelup-configuration.yaml --repository $repo_id --repository-type tfsgit --output none
 fi
 
-<<<<<<< HEAD
-az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --authorize true --output none --output none
-
-az pipelines variable-group create --name SDAF-MGMT --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID='Enter your app registration ID here' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' WEB_APP_CLIENT_SECRET='Enter your App registration secret here' PAT='Enter your personal access token here' POOL=MGMT-POOL AZURE_CONNECTION_NAME=Control_Plane_Service_Connection --output yaml --org  ${DEVOPS_ORGANIZATION} --project $id --authorize true --output none
-=======
 echo "Creating the variable groups"
->>>>>>> 3bc1fc6236c7249b44179d816b7fe66bc646ed73
 
 general_group_id=$(az pipelines variable-group list --project "${ADO_PROJECT}" --organization "${ADO_ORGANIZATION}" --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if [ -z $general_group_id ] ; then
