@@ -73,6 +73,7 @@ stages:
 
                   echo "Agent: " $(this_agent)
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                  cd $HOME_CONFIG
                   git checkout -q $(Build.SourceBranchName)
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
