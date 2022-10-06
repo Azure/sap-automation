@@ -78,6 +78,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
 resource "time_sleep" "wait_for_dns_refresh" {
   create_duration = "120s"
 
+  #set the depends_on to the pep cause when running on dns records the order is wrong
   depends_on = [
     azurerm_private_endpoint.storage_tfstate,
     azurerm_private_endpoint.storage_sapbits
