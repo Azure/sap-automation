@@ -5,8 +5,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name: Deploying the SAP Workload zone defined in $(workload_zone_folder)
-
 parameters:
   - name:                              workload_zone
     displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
@@ -81,48 +79,25 @@ parameters:
     type:                              boolean
     default:                           true
 
-trigger:                               none
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-pool:
-  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
-
-variables:
-  - group:                             "SDAF-General"
-
-  - group:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - group:                             SDAF-${{ parameters.workload_environment_parameter }}
-
-  - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment_parameter }}
-
-  - name:                              workload_zone_folder
-    value:                             ${{ parameters.workload_zone }}
-
-  - name:                              workload_zone_configuration_file
-    value:                             ${{ parameters.workload_zone }}.tfvars
-
-  - name:                              deployer_environment
-    value:                             ${{ parameters.deployer_environment_parameter }}
-
-  - name:                              deployer_region
-    value:                             ${{ parameters.deployer_region_parameter }}
-
-  - name:                              inherit
-    value:                             $[lower(${{ parameters.inherit_settings }})]
-
-  - name:                              tf_url
-    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-  - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
   - stage:                             Deploy_SAP_workload_zone
     displayName:                       Deploy SAP workload zone
+    variables:
+    - template:                       variables/02-sap-workload-zone-variables.yaml
+      parameters:
+        workload_zone:                    ${{ parameters.workload_zone }}
+        workload_environment_parameter:   ${{ parameters.workload_environment_parameter }}   
+        deployer_environment_parameter:   ${{ parameters.deployer_environment_parameter }}
+        deployer_region_parameter:        ${{ parameters.deployer_region_parameter }}
+        inherit_settings:                 ${{ parameters.inherit_settings }}
     jobs:
       - job:                           Deploy_SAP_workload_zone
         displayName:                   Deploy SAP workload zone
@@ -195,8 +170,8 @@ stages:
 
                 echo "Agent Pool: " $(this_agent)
 
-              echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+              echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
+                echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
 
                 deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
                 workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
@@ -275,7 +250,7 @@ stages:
                   STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 fi
 
-              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+              echo -e "$green--- Update .sap_deployment_automation/config as CONFIG_REPO_PATH can change on devops agent ---$reset"
 
               secrets_set=1
 
@@ -298,7 +273,7 @@ stages:
                 echo -e "$green --- Set secrets ---$reset"
 
                   az login --identity --allow-no-subscriptions --output none
-                  $DEPLOYMENT_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}"      \
+                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}"      \
                    --environment "${ENVIRONMENT}" --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID \
                   --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID
                   secrets_set=$? ; echo "Set Secrets returned $secrets_set"
@@ -350,13 +325,13 @@ stages:
                 cd $HOME/LANDSCAPE/$(workload_zone_folder)
 
                 if [ 0 != $secrets_set ] ; then
-                  $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
+                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
                     --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
                     --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                   \
                     --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
                     --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 else
-                  $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
+                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
                     --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
                     --deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "${REMOTE_STATE_SA}"                           \
                     --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
@@ -489,14 +464,15 @@ stages:
 
               exit $return_code
 
-            displayName:               Deploy SAP Workload Zone
+            displayName:                Deploy SAP Workload Zone
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:    $(PAT)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
-            failOnStderr:              false
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:     $(PAT)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+            failOnStderr:               false
 ...
