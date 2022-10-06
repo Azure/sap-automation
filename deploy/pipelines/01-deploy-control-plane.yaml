@@ -58,6 +58,7 @@ stages:
           - checkout: sap-automation
           - checkout: self
             persistCredentials: true
+            fetchDepth: 0
           - bash: |
               #!/bin/bash
 
