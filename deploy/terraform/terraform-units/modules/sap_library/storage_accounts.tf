@@ -75,7 +75,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
 
 #Errors can occure when the dns record has not properly been activated, add a wait timer to give
 #it just a little bit more time
-resource "time_sleep" "wait_for_dns_refresh" {
+resource "time_sleep" "wait_for_dns_refresh_1" {
   create_duration = "120s"
 
   depends_on = [
@@ -83,7 +83,7 @@ resource "time_sleep" "wait_for_dns_refresh" {
   ]
 }
 
-resource "time_sleep" "wait_for_dns_refresh" {
+resource "time_sleep" "wait_for_dns_refresh_2" {
   create_duration = "120s"
 
   depends_on = [
