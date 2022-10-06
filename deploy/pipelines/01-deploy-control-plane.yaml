@@ -341,8 +341,9 @@ stages:
                     echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                     added=0
                     cd $HOME_CONFIG
-                    git fetch -q --all
-                    git pull -q
+                    # Not possible for Azure Pipelines
+                    # git fetch -q --all
+                    # git pull -q
 
                     if [ -f ${deployer_environment_file_name} ]; then
 
