@@ -112,7 +112,8 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
   container_access_type = "private"
 
   depends_on = [
-    time_sleep.wait_for_dns_refresh,
+    time_sleep.wait_for_dns_refresh_1,
+    time_sleep.wait_for_dns_refresh_2,
     azurerm_private_endpoint.storage_tfstate
   ]
 }
@@ -127,7 +128,8 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
   )
 
   depends_on = [
-    time_sleep.wait_for_dns_refresh,
+    time_sleep.wait_for_dns_refresh_1,
+    time_sleep.wait_for_dns_refresh_2,
     azurerm_private_endpoint.storage_tfstate
   ]
 }
@@ -297,7 +299,8 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
   container_access_type = "private"
   depends_on = [
     azurerm_private_endpoint.storage_sapbits,
-    time_sleep.wait_for_dns_refresh
+    time_sleep.wait_for_dns_refresh_1,
+    time_sleep.wait_for_dns_refresh_2,
   ]
 }
 
