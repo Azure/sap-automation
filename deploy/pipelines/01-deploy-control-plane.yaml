@@ -341,9 +341,11 @@ stages:
                   echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                   added=0
                   cd $HOME_CONFIG
-                  # Not possible for Azure Pipelines
-                  # git fetch -q --all
-                  # git pull -q
+                  if ! git status | grep -q "HEAD detached at"; then 
+                    # Only possible when not in detached head state
+                    git fetch -q --all
+                    git pull -q
+                  fi
 
                   if [ -f ${deployer_environment_file_name} ]; then
 
@@ -422,7 +424,17 @@ stages:
                       git config --global user.name "$(Build.RequestedFor)"
                       git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
-                      git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin HEAD:$(Build.SourceBranchName)
+                      if git status | grep -q "HEAD detached at"; then 
+                        # detached head
+<<<<<<< HEAD
+                        git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push origin HEAD:$(Build.SourceBranchName)
+=======
+                        git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin HEAD:$(Build.SourceBranchName)
+>>>>>>> 0f6a2c6d1ccc15534f6fb9d346a10a26f310e089
+                      else
+                        # branch
+                        git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                      fi
                   fi
 
                   if [ -f $HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
