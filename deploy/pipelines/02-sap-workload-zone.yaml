@@ -76,6 +76,11 @@ parameters:
       - WEUS
       - WUS2
 
+  - name:                              inherit_settings
+    displayName:                       Inherit Terraform state file information from control plane
+    type:                              boolean
+    default:                           true
+
 trigger:                               none
 
 pool:
@@ -106,6 +111,9 @@ variables:
   - name:                              deployer_region
     value:                             ${{ parameters.deployer_region_parameter }}
 
+  - name:                              inherit
+    value:                             $[lower(${{ parameters.inherit_settings }})]
+
   - name:                              tf_url
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
@@ -124,6 +132,7 @@ stages:
           - task: PostBuildCleanup@3
           - checkout:                  self
             persistCredentials:        true
+            submodules:                true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
@@ -214,50 +223,56 @@ stages:
 
               echo -e "$green--- Read parameter values ---$reset"
 
-                az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" | tr -d \")
-                if [ -z ${az_var} ]; then
-                  deployer_tfstate_key=$(cat ${deployer_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-                else
-                  deployer_tfstate_key=${az_var} ; echo 'Deployer State File' $deployer_tfstate_key
-                fi
+                if [ "true" == $(inherit) ]; then
+                  az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" | tr -d \")
+                  if [ -z ${az_var} ]; then
+                    deployer_tfstate_key=$(cat ${deployer_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                  else
+                    deployer_tfstate_key=${az_var} ; echo 'Deployer State File' $deployer_tfstate_key
+                  fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
-                if [ -z ${az_var} ]; then
-                  key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
-                else
-                  key_vault=${az_var}; echo 'Deployer Key Vault' ${key_vault}
-                fi
+                  az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                  if [ -z ${az_var} ]; then
+                    key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                  else
+                    key_vault=${az_var}; echo 'Deployer Key Vault' ${key_vault}
+                  fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
-                if [ -z ${az_var} ]; then
-                  REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                else
-                  REMOTE_STATE_SA=${az_var}; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                fi
+                  az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                  if [ -z ${az_var} ]; then
+                    REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  else
+                    REMOTE_STATE_SA=${az_var}; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
-                if [ -z ${az_var} ]; then
-                  STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                else
-                  STATE_SUBSCRIPTION=${az_var}; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-                fi
+                  az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
+                  if [ -z ${az_var} ]; then
+                    STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                  else
+                    STATE_SUBSCRIPTION=${az_var}; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                  fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ARM_SUBSCRIPTION_ID.value" | tr -d \")
-                if [ -z ${az_var} ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-                  exit 2
-                else
-                  echo 'Target subscription' $ARM_SUBSCRIPTION_ID
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ARM_SUBSCRIPTION_ID.value" | tr -d \")
+                  if [ -z ${az_var} ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                    exit 2
+                  else
+                    echo 'Target subscription' $ARM_SUBSCRIPTION_ID
+                  fi
 
-                fi
-
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Workload_Key_Vault.value" | tr -d \")
-                if [ -z ${az_var} ]; then
-                  if [ -f ${workload_environment_file_name} ]; then
-                    export workload_key_vault=$(cat ${workload_environment_file_name}  | grep workload_key_vault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Workload_Key_Vault.value" | tr -d \")
+                  if [ -z ${az_var} ]; then
+                    if [ -f ${workload_environment_file_name} ]; then
+                      export workload_key_vault=$(cat ${workload_environment_file_name}  | grep workload_key_vault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                    fi
+                  else
+                    export workload_key_vault=$(Workload_Key_Vault)  ; echo 'Workload Key Vault' ${workload_key_vault}
                   fi
                 else
-                  export workload_key_vault=$(Workload_Key_Vault)  ; echo 'Workload Key Vault' ${workload_key_vault}
+                  deployer_tfstate_key=$(cat ${workload_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                  key_vault=$(cat ${workload_environment_file_name}  | grep workload_key_vault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                  REMOTE_STATE_SA=$(cat ${workload_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 fi
 
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
@@ -265,7 +280,7 @@ stages:
               secrets_set=1
 
                 # Check if running on deployer
-              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+              if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                 echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
 
@@ -309,7 +324,7 @@ stages:
 
                 ip_added_workload=0
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" == $(this_agent) ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
                   if [ -n "${workload_key_vault}" ]; then
@@ -322,7 +337,7 @@ stages:
                 ip_added_control_plane=0
                 az account set --subscription ${STATE_SUBSCRIPTION}
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" == $(this_agent) ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ${this_ip} ---$reset"
                   if [ -n "${key_vault}" ]; then
@@ -368,9 +383,9 @@ stages:
                   fi
                 fi
 
-                if [[ ip_added_workload -eq 1 ]]; then
+                if [ ip_added_workload -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
-                  if [[ "azure pipelines" == $(this_agent) ]]; then
+                  if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#workload_key_vault}" != 0 ]; then
                       az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
                     fi
@@ -378,9 +393,9 @@ stages:
                 fi
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
-                if [[ ip_added_control_plane -eq 1 ]]; then
+                if [ ip_added_control_plane -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
-                  if [[ "azure pipelines" == $(this_agent) ]]; then
+                  if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#key_vault}" != 0 ]; then
                       az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
                     fi

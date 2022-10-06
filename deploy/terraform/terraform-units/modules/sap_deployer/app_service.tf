@@ -61,7 +61,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
-  count               = var.use_webapp ? (var.configure ? 1 : 0) : 0
+  count               = var.use_webapp ? 1 : 0
   name                = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
   resource_group_name = local.rg_name
   location            = local.rg_appservice_location
@@ -78,6 +78,11 @@ resource "azurerm_windows_web_app" "webapp" {
     unauthenticated_client_action = "RedirectToLoginPage"
   }
 
+  app_settings = {
+    "PAT"                    = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+    "CollectionUri"          = var.agent_ado_url
+    "IS_PIPELINE_DEPLOYMENT" = false
+  }
   site_config {
     # ip_restriction = [{
     #   action                    = "Allow"
@@ -112,7 +117,7 @@ resource "azurerm_windows_web_app" "webapp" {
 
 # Set up Vnet integration for webapp and storage account interaction
 resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
-  count          = var.use_webapp ? (var.configure ? 1 : 0) : 0
+  count          = var.use_webapp ? 1 : 0
   app_service_id = azurerm_windows_web_app.webapp[0].id
   subnet_id      = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
 }

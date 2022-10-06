@@ -41,6 +41,10 @@ resource "azurerm_network_interface" "scs" {
       primary = pub.value.primary
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "scs" {
@@ -136,7 +140,7 @@ resource "azurerm_linux_virtual_machine" "scs" {
   )
 
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_scs_avset ? null : local.scs_zones[count.index % max(local.scs_zone_count, 1)]
+  zone = local.use_scs_avset ? null : try(local.scs_zones[count.index % max(local.scs_zone_count, 1)], null)
   network_interface_ids = var.application.dual_nics ? (
     var.options.legacy_nic_order ? (
       [
@@ -236,6 +240,9 @@ resource "azurerm_linux_virtual_machine" "scs" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_role_assignment" "scs" {
@@ -290,7 +297,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_scs_avset ? (
     null) : (
-    local.scs_zones[count.index % max(local.scs_zone_count, 1)]
+    try(local.scs_zones[count.index % max(local.scs_zone_count, 1)], null)
   )
 
   network_interface_ids = var.application.dual_nics ? (
@@ -404,6 +411,10 @@ resource "azurerm_managed_disk" "scs" {
     )) : (
     null
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "scs" {

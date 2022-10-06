@@ -94,7 +94,7 @@ locals {
   db_os = {
     os_type = length(var.database_vm_image.source_image_id) == 0 ? (
       upper(var.database_vm_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.database_vm_image.os_type, "LINUX)") : (
-      var.database_vm_image.os_type
+      length(var.database_vm_image.os_type) == 0 ? "LINUX" : var.database_vm_image.os_type
     )
     source_image_id = var.database_vm_image.source_image_id
     publisher       = var.database_vm_image.publisher
@@ -186,7 +186,7 @@ locals {
   app_os = {
     os_type = length(var.application_server_image.source_image_id) == 0 ? (
       upper(var.application_server_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.application_server_image.os_type, "LINUX") : (
-      try(var.application_server_image.os_type, "LINUX")
+      length(var.application_server_image.os_type) == 0 ? "LINUX" : var.application_server_image.os_type
     )
     source_image_id = try(var.application_server_image.source_image_id, "")
     publisher       = var.application_server_image.publisher
@@ -198,7 +198,7 @@ locals {
   app_os_specified = (length(local.app_os.source_image_id) + length(local.app_os.publisher)) > 0
 
   scs_os = {
-    os_type         = try(coalesce(var.scs_server_image.os_type, try(var.application.scs_os.os_type, "")), "LINUX")
+    os_type         = try(coalesce(var.scs_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
     source_image_id = try(coalesce(var.scs_server_image.source_image_id, try(var.application.scs_os.source_image_id, "")), "")
     publisher       = try(coalesce(var.scs_server_image.publisher, try(var.application.scs_os.publisher, "")), "")
     offer           = try(coalesce(var.scs_server_image.offer, try(var.application.scs_os.offer, "")), "")
@@ -208,7 +208,7 @@ locals {
   scs_os_specified = (length(local.scs_os.source_image_id) + length(local.scs_os.publisher)) > 0
 
   web_os = {
-    os_type         = try(coalesce(var.webdispatcher_server_image.os_type, try(var.application.web_os.os_type, "")), "LINUX")
+    os_type         = try(coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
     source_image_id = try(coalesce(var.webdispatcher_server_image.source_image_id, try(var.application.web_os.source_image_id, "")), "")
     publisher       = try(coalesce(var.webdispatcher_server_image.publisher, try(var.application.web_os.publisher, "")), "")
     offer           = try(coalesce(var.webdispatcher_server_image.offer, try(var.application.web_os.offer, "")), "")

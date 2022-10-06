@@ -14,9 +14,9 @@ module "sap_namegenerator" {
   sap_vnet_name    = local.vnet_logical_name
   sap_sid          = local.sap_sid
   db_sid           = local.db_sid
-  app_ostype       = upper(local.application.app_os.os_type)
+  app_ostype       = upper(try(local.application.app_os.os_type, "LINUX"))
   anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
-  db_ostype        = upper(local.database.os.os_type)
+  db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
   db_server_count  = var.database_server_count
   app_server_count = try(local.application.application_server_count, 0)
   web_server_count = try(local.application.webdispatcher_count, 0)
@@ -72,12 +72,12 @@ module "common_infrastructure" {
     local.database.high_availability ? 1 : 0,
     var.NFS_provider
   )
-  Agent_IP                           = var.Agent_IP
-  use_private_endpoint               = var.use_private_endpoint
+  Agent_IP             = var.Agent_IP
+  use_private_endpoint = var.use_private_endpoint
 
-  use_custom_dns_a_registration      = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
-  management_dns_subscription_id     = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name  = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
 
   database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
@@ -247,7 +247,6 @@ module "anydb_node" {
     local.database.high_availability ? 2 * var.database_server_count : var.database_server_count
   )
   use_observer                       = var.use_observer
-  landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
   use_secondary_ips                  = var.use_secondary_ips
   deploy_application_security_groups = var.deploy_application_security_groups
   use_msi_for_clusters               = var.use_msi_for_clusters

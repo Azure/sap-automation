@@ -46,6 +46,10 @@ resource "azurerm_network_interface" "web" {
       primary = pub.value.primary
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "web" {
@@ -134,7 +138,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   )
 
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_web_avset ? null : local.web_zones[count.index % max(local.web_zone_count, 1)]
+  zone = local.use_web_avset ? null : try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
 
   network_interface_ids = var.application.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -229,6 +233,10 @@ resource "azurerm_linux_virtual_machine" "web" {
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
   tags = try(var.application.web_tags, {})
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Create the Windows Web dispatcher VM(s)
@@ -267,7 +275,7 @@ resource "azurerm_windows_virtual_machine" "web" {
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? (
     null) : (
-    local.web_zones[count.index % max(local.web_zone_count, 1)]
+    try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
   )
 
   network_interface_ids = var.application.dual_nics ? (
@@ -378,6 +386,10 @@ resource "azurerm_managed_disk" "web" {
     )) : (
     null
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "web" {

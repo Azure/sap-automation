@@ -43,6 +43,9 @@ resource "azurerm_network_interface" "app" {
 
     }
   }
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "app" {
@@ -265,7 +268,7 @@ resource "azurerm_windows_virtual_machine" "app" {
     null
   )
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_app_avset ? null : local.app_zones[count.index % max(local.app_zone_count, 1)]
+  zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
   network_interface_ids = var.application.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -336,6 +339,9 @@ resource "azurerm_windows_virtual_machine" "app" {
 
   tags = try(var.application.app_tags, {})
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Creates managed data disk
@@ -362,8 +368,9 @@ resource "azurerm_managed_disk" "app" {
       azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone
     )
   )
-
-
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "app" {
