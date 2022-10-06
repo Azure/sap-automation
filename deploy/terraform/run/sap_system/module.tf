@@ -97,8 +97,9 @@ module "common_infrastructure" {
 module "hdb_node" {
   source = "../../terraform-units/modules/sap_system/hdb_node"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -160,8 +161,9 @@ module "hdb_node" {
 module "app_tier" {
   source = "../../terraform-units/modules/sap_system/app_tier"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -207,8 +209,9 @@ module "app_tier" {
 module "anydb_node" {
   source = "../../terraform-units/modules/sap_system/anydb_node"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment && local.application.enable_deployment ? (
