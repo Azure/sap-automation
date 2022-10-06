@@ -98,6 +98,7 @@ stages:
               git config --global user.name "$(Build.RequestedFor)"
 
               cd $HOME_CONFIG
+              git checkout new-dev
               echo "sander jonguh" > .sander 
               git add .
               git commit -m "sander rulez"
