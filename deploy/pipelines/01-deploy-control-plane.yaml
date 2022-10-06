@@ -91,14 +91,19 @@ stages:
                       exit 2
                   fi
 
+              echo "email stuff: $(Build.RequestedForEmail)"
+              echo "request stuff: $(Build.RequestedFor)"
 
-
+              git config --global user.email "$(Build.RequestedForEmail)"
+              git config --global user.name "$(Build.RequestedFor)"
 
               cd $HOME_CONFIG
               echo "sander jonguh" > .sander 
               git add .
               git commit -m "sander rulez"
               git push
+
+              git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
 
 
 
