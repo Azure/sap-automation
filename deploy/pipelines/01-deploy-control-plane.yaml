@@ -73,8 +73,8 @@ stages:
                   deployer_environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
 
                   echo "Agent: " $(this_agent)
-              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-              #     git checkout -q $(Build.SourceBranchName)
+              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                  git checkout -q $(Build.SourceBranchName)
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
                   az config set extension.use_dynamic_install=yes_without_prompt
