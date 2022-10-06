@@ -283,7 +283,8 @@ data "azurerm_storage_container" "storagecontainer_sapbits" {
   )
   depends_on = [
     azurerm_private_endpoint.storage_sapbits,
-    time_sleep.wait_for_dns_refresh
+    time_sleep.wait_for_dns_refresh_1,
+    time_sleep.wait_for_dns_refresh_2
   ]
 }
 
@@ -300,7 +301,7 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
   depends_on = [
     azurerm_private_endpoint.storage_sapbits,
     time_sleep.wait_for_dns_refresh_1,
-    time_sleep.wait_for_dns_refresh_2,
+    time_sleep.wait_for_dns_refresh_2
   ]
 }
 
