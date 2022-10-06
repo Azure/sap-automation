@@ -181,7 +181,6 @@ module "app_tier" {
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
-  anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   sid_password                                 = module.common_infrastructure.sid_password
   sid_username                                 = module.common_infrastructure.sid_username
   sdu_public_key                               = module.common_infrastructure.sdu_public_key
