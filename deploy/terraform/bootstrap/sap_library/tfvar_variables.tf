@@ -33,9 +33,9 @@ variable "use_deployer" {
 
 
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 
@@ -209,7 +209,7 @@ variable "management_dns_resourcegroup_name" {
 
 #########################################################################################
 #                                                                                       #
-#  Wev App definitioms                                                                  #
+#  Web App definitioms                                                                  #
 #                                                                                       #
 #########################################################################################
 
@@ -218,3 +218,9 @@ variable "use_webapp" {
   default = false
 }
 
+
+variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
+  type    = string
+  default = ""
+}

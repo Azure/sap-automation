@@ -50,11 +50,11 @@ locals {
 
   //ANF support
   use_ANF = try(var.database.use_ANF, false)
-  //Scalout subnet is needed if ANF is used and there are more than one hana node 
+  //Scalout subnet is needed if ANF is used and there are more than one hana node
   dbnode_per_site       = length(try(var.database.dbnodes, [{}]))
   enable_storage_subnet = local.use_ANF && local.dbnode_per_site > 1
 
-  // Availability Set 
+  // Availability Set
   availabilityset_arm_ids = try(var.database.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
 
@@ -294,7 +294,6 @@ locals {
   no_ppg = var.database.no_ppg
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
-  dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
 
   ANF_pool_settings = var.NFS_provider == "ANF" ? (
     try(var.landscape_tfstate.ANF_pool_settings, null)

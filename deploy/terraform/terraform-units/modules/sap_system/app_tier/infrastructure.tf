@@ -104,6 +104,9 @@ resource "azurerm_lb" "scs" {
       zones                         = ["1", "2", "3"]
     }
   }
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_lb_backend_address_pool" "scs" {
@@ -291,6 +294,9 @@ resource "azurerm_availability_set" "scs" {
     var.ppg[0].id
   )
   managed = true
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 ##############################################################################################
@@ -318,6 +324,9 @@ resource "azurerm_availability_set" "app" {
     var.ppg[0].id
   )
   managed = true
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 /*
@@ -360,7 +369,9 @@ resource "azurerm_lb" "web" {
     private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
     zones                         = ["1", "2", "3"]
   }
-
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_lb_backend_address_pool" "web" {
@@ -438,6 +449,10 @@ resource "azurerm_availability_set" "web" {
   platform_fault_domain_count  = local.faultdomain_count
   proximity_placement_group_id = local.web_zonal_deployment ? var.ppg[count.index % length(local.web_zones)].id : var.ppg[0].id
   managed                      = true
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 
@@ -467,6 +482,9 @@ resource "azurerm_application_security_group" "app" {
     var.network_location) : (
     var.resource_group[0].location
   )
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_application_security_group" "web" {
@@ -490,6 +508,9 @@ resource "azurerm_application_security_group" "web" {
     var.network_location) : (
     var.resource_group[0].location
   )
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
@@ -513,26 +534,26 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
 }
 
 resource "azurerm_private_dns_a_record" "scs" {
-  provider = azurerm.deployer
+  provider = azurerm.dnsmanagement
   count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
   name = lower(format("%sscs%scl1",
     local.sid,
     var.application.scs_instance_number
   ))
-  resource_group_name = local.dns_resource_group_name
-  zone_name           = local.dns_label
+  resource_group_name = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  zone_name           = var.landscape_tfstate.dns_label
   ttl                 = 300
   records             = [azurerm_lb.scs[0].frontend_ip_configuration[0].private_ip_address]
 }
 
 resource "azurerm_private_dns_a_record" "ers" {
-  provider = azurerm.deployer
+  provider = azurerm.dnsmanagement
   count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
   name = lower(format("%sers%scl2",
     local.sid,
     local.ers_instance_number
   ))
-  resource_group_name = local.dns_resource_group_name
+  resource_group_name = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name           = local.dns_label
   ttl                 = 300
   records             = [azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address]

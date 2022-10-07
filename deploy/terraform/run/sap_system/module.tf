@@ -72,12 +72,12 @@ module "common_infrastructure" {
     local.database.high_availability ? 1 : 0,
     var.NFS_provider
   )
-  Agent_IP                           = var.Agent_IP
-  use_private_endpoint               = var.use_private_endpoint
+  Agent_IP             = var.Agent_IP
+  use_private_endpoint = var.use_private_endpoint
 
-  use_custom_dns_a_registration      = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
-  management_dns_subscription_id     = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name  = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
 
   database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
@@ -99,6 +99,7 @@ module "hdb_node" {
   providers = {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -162,6 +163,7 @@ module "app_tier" {
   providers = {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment ? (
@@ -211,6 +213,7 @@ module "anydb_node" {
   providers = {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -224,6 +227,7 @@ module "anydb_node" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
+  landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
@@ -248,12 +252,12 @@ module "anydb_node" {
     local.database.high_availability ? 2 * var.database_server_count : var.database_server_count
   )
   use_observer                       = var.use_observer
-  landscape_tfstate                  = data.terraform_remote_state.landscape.outputs
   use_secondary_ips                  = var.use_secondary_ips
   deploy_application_security_groups = var.deploy_application_security_groups
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
 }
+
 #########################################################################################
 #                                                                                       #
 #  Output files                                                                         #
