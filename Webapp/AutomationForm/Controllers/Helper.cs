@@ -358,6 +358,7 @@ namespace AutomationForm.Controllers
 
             return true;
         }
+
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new StringReader(hclString);
@@ -426,7 +427,7 @@ namespace AutomationForm.Controllers
                     }
                 }
             }
-            return jsonString.ToString();   
+            return jsonString.ToString();
         }
 
         public static async Task<AppFile> GetImagesFile(ITableStorageService<AppFile> appFileService)
