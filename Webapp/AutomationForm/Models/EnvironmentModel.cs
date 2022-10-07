@@ -25,6 +25,7 @@ namespace AutomationForm.Models
         public Variable ARM_SUBSCRIPTION_ID { get; set; }
         public Variable ARM_TENANT_ID { get; set; }
         public Variable sap_fqdn { get; set; }
+        public Variable POOL { get; set; }
     }
 
     public class Variable

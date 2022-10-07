@@ -633,6 +633,39 @@
     ]
   },
   {
+    "Section": "DNS",
+    "Link": "",
+    "Parameters": [
+      {
+        "Name": "use_custom_dns_a_registration",
+        "Required": false,
+        "Description": "Boolean value indicating if a custom dns a record should be created when using private endpoints",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "management_dns_subscription_id",
+        "Required": false,
+        "Description": "Subscription for the DNS zone, if different from the management subscription",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "management_dns_resourcegroup_name",
+        "Required": false,
+        "Description": "Resource group for the DNS zone, if different from the SAP Library resource group",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
     "Section": "NFS support",
     "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#nfs-support",
     "Parameters": [

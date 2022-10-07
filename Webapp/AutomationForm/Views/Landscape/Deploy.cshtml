@@ -2,8 +2,10 @@
 
 @{
     ViewBag.Title = "Deploy workload zone";
+    ViewData["workload_environment_parameter"] = Model.SapObject.environment;
+    ViewData["deployer_environment_parameter"] = Model.SapObject.environment;
     IEnumerable<SelectListItem> environments = ViewBag.Environments;
-    string deployer_region_parameter = "";
+    IEnumerable<SelectListItem> locations = new List<SelectListItem>();
 }
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -17,6 +19,8 @@
         });
 
         toggleNullParameters();
+
+        populateLocations("deployer_region_parameter", "@Model.SapObject.Id.Split('-')[1]");
     }
 
 </script>
@@ -41,12 +45,12 @@
 
         <div class="ms-TextField">                    
             <div class="left-input">
-                @Html.Label("environment", "Control plane environment", new { @class = $"ms-Label required" })
+                @Html.Label("deployer_environment_parameter", "Control plane environment", new { @class = $"ms-Label required" })
                 <p>Deployer environment name</p>
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaTwoInputs('environment', 'workload_environment', 'confirm-deploy-landscape-checkbox')" })
+                @Html.DropDownList("deployer_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['deployer_environment_parameter', 'workload_environment_parameter', 'deployer_region_parameter'], 'confirm-deploy-landscape-checkbox')" })
             </div>
         </div>
 
@@ -57,18 +61,18 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("deployer_region_parameter", deployer_region_parameter, new { @class = "ms-TextField-field" })
+                @Html.DropDownList("deployer_region_parameter", locations, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['deployer_environment_parameter', 'workload_environment_parameter', 'deployer_region_parameter'], 'confirm-deploy-landscape-checkbox')" })
             </div>
         </div>
 
         <div class="ms-TextField">                    
             <div class="left-input">
-                @Html.Label("workload_environment", "Workload Zone Environment", new { @class = $"ms-Label required" })
+                @Html.Label("workload_environment_parameter", "Workload Zone Environment", new { @class = $"ms-Label required" })
                 <p>Please specify the workload environment to deploy to</p>
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("workload_environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaTwoInputs('workload_environment', 'environment', 'confirm-deploy-landscape-checkbox')" })
+                @Html.DropDownList("workload_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['deployer_environment_parameter', 'workload_environment_parameter', 'deployer_region_parameter'], 'confirm-deploy-landscape-checkbox')" })
             </div>
         </div>
 

@@ -90,6 +90,10 @@
                         @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment) && sapObj.IsValid())
                         {
                             @: | @Html.ActionLink("Deploy", "Deploy", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                            @if (controllerName == "System")
+                            {
+                                @: | @Html.ActionLink("Install", "Install", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                            }
                         }
                     </td>
                 </tr>

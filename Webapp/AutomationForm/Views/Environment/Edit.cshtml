@@ -68,6 +68,16 @@
         </div>
         <div class="ms-TextField">
             <div class="left-input">
+                @Html.LabelFor(m => m.variables.POOL, new { @class = $"ms-Label" })
+                <p>The Agent pool to use for this environment</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.POOL.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.POOL)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
                 @Html.LabelFor(m => m.variables.ARM_CLIENT_ID, new { @class = $"ms-Label" })
                 <p>Enter the Service principal application ID</p>
             </div>

@@ -66,7 +66,7 @@ namespace AutomationForm.Controllers
         }
 
         [HttpGet] // #location
-        public ActionResult GetLocationOptions()
+        public ActionResult GetLocationOptions(bool useRegionMapping = false)
         {
             List<SelectListItem> options = new List<SelectListItem>
             {
@@ -80,7 +80,7 @@ namespace AutomationForm.Controllers
                     options.Add(new SelectListItem
                     {
                         Text = region,
-                        Value = region
+                        Value = useRegionMapping ? Helper.MapRegion(region).ToUpper() : region
                     });
                 }
             }

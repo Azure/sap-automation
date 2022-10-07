@@ -35,7 +35,18 @@ namespace AutomationForm.Models
         public string deployer_region_parameter { get; set; }
         public string sap_system { get; set; }
         public string environment { get; set; }
-
+        public string sap_system_configuration_name { get; set; }
+        public string bom_base_name { get; set; }
+        public bool? base_os_configuration { get; set; }
+        public bool? sap_os_configuration { get; set; }
+        public bool? bom_processing { get; set; }
+        public bool? database_install { get; set; }
+        public bool? scs_installation { get; set; }
+        public bool? db_load { get; set; }
+        public bool? high_availability_configuration { get; set; }
+        public bool? pas_installation { get; set; }
+        public bool? application_server_installation { get; set; }
+        public bool? webdispatcher_installation { get; set; }
     }
 
 }
