@@ -165,13 +165,13 @@ module "app_tier" {
     azurerm.deployer = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
+  depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment ? (
-      "") : (
-      coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
-    )
+      module.app_tier.scs_vm_ids[0]
+    ) : (null)
   ) : (null)
-  application                                  = local.application
+  databases                                    = local.databases
   infrastructure                               = local.infrastructure
   options                                      = local.options
   resource_group                               = module.common_infrastructure.resource_group
@@ -179,19 +179,17 @@ module "app_tier" {
   ppg                                          = module.common_infrastructure.ppg
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  custom_disk_sizes_filename                   = var.db_disk_sizes_filename
   admin_subnet                                 = module.common_infrastructure.admin_subnet
-  custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.app_disk_sizes_filename), "")
+  db_subnet                                    = module.common_infrastructure.db_subnet
+  anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   sid_password                                 = module.common_infrastructure.sid_password
   sid_username                                 = module.common_infrastructure.sid_username
   sdu_public_key                               = module.common_infrastructure.sdu_public_key
-  route_table_id                               = module.common_infrastructure.route_table_id
-  firewall_id                                  = module.common_infrastructure.firewall_id
   sap_sid                                      = local.sap_sid
-  landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
+  db_asg_id                                    = module.common_infrastructure.db_asg_id
   terraform_template_version                   = var.terraform_template_version
   deployment                                   = var.deployment
-  network_location                             = module.common_infrastructure.network_location
-  network_resource_group                       = module.common_infrastructure.network_resource_group
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments
@@ -215,7 +213,6 @@ module "anydb_node" {
     azurerm.deployer = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
-  depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment && local.application.enable_deployment ? (
       module.app_tier.scs_vm_ids[0]
@@ -232,15 +229,17 @@ module "anydb_node" {
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   admin_subnet                                 = module.common_infrastructure.admin_subnet
-  db_subnet                                    = module.common_infrastructure.db_subnet
-  anchor_vm                                    = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   sid_password                                 = module.common_infrastructure.sid_password
   sid_username                                 = module.common_infrastructure.sid_username
   sdu_public_key                               = module.common_infrastructure.sdu_public_key
+  route_table_id                               = module.common_infrastructure.route_table_id
+  firewall_id                                  = module.common_infrastructure.firewall_id
   sap_sid                                      = local.sap_sid
-  db_asg_id                                    = module.common_infrastructure.db_asg_id
+  landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
   terraform_template_version                   = var.terraform_template_version
   deployment                                   = var.deployment
+  network_location                             = module.common_infrastructure.network_location
+  network_resource_group                       = module.common_infrastructure.network_resource_group
   cloudinit_growpart_config                    = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   license_type                                 = var.license_type
   use_loadbalancers_for_standalone_deployments = var.use_loadbalancers_for_standalone_deployments

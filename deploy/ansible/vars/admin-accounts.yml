@@ -25,18 +25,49 @@ admin_groups:
     tier:         example
     enabled:      true
     node_tier:    none
+
   - name:         sapsys
     gid:          "{{ sapsys_gid }}"
     state:        present
     tier:         os
     enabled:      true
     node_tier:    all
+
   - name:         sapinst
     gid:          "{{ sapinst_gid }}"
     state:        present
     tier:         os
     enabled:      true
     node_tier:    all
+
+  # Admin groups for DB2
+  - name:         db{{ db_sid | lower }}adm
+    gid:          "{{ db2sysadm_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         db{{ db_sid | lower }}ctl
+    gid:          "{{ db2sysctrl_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         db{{ db_sid | lower }}mnt
+    gid:          "{{ db2sysmaint_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
+
+  - name:         db{{ db_sid | lower }}mon
+    gid:          "{{ db2sysmon_gid }}"
+    state:        present
+    tier:         db2
+    enabled:      true
+    node_tier:    db2
 
   # Admin groups for Oracle Non-ASM
   - name:         dba
@@ -257,6 +288,20 @@ admin_users:
 #    node_tier:    all
 #    enabled:      true
 
+# DB2 users and groups will be created as part of the generic install process
+#  - name:         "db2{{ sap_sid| lower }}adm"
+#    comment:      "SAP System Administrator"
+#    uid:          "{{ sidadm_uid }}"
+#    group:        "{{ db{{ db_sid | lower }}adm }}"
+#    groups:       ["db{{ db_sid | lower }}ctl", "db{{ db_sid | lower }}mnt", "db{{ db_sid | lower }}mon"]
+#    password:     "{{ main_password }}"
+#    sudoers_role: "admin_no_password"
+#    shell:        /bin/csh
+#    state:        present
+#    tier:         sapos
+#    node_tier:    db2
+#    enabled:      true
+
 # Admin users for Oracle Non-ASM
 
   - name:         "ora{{ sap_sid | lower }}"
@@ -311,7 +356,7 @@ admin_users:
     node_tier:    observer
     enabled:      true
 
-#####
+# ####
 # Admin users for Oracle Non-ASM Multi-SID
 
   # - name:         "ora{{ sap_sid | lower }}"

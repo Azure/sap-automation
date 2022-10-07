@@ -77,7 +77,7 @@
           - "{{ item_to_check.parameter | trim | length > 1 }}"
         fail_msg:                      "{{ item_to_check.error }}"
       loop:
-        - { parameter: 'NFS_Provider', error: 'A highly available SCS deployment requires that NFS_Provider provided' }
+        - { parameter: 'NFS_provider', error: 'A highly available SCS deployment requires that NFS_Provider provided' }
         - { parameter: 'sap_mnt', error: 'A highly available SCS deployment requires a shared sap_mnt is provided' }
         - { parameter: 'scs_lb_ip', error: 'A highly available SCS deployment requires that scs_lb_ip is provided' }
         - { parameter: 'ecs_lb_ip', error: 'A highly available SCS deployment requires  that ers_lb_ip is provided' }
@@ -375,7 +375,21 @@
         state:                         touch
         mode:                          0755
 
-- hosts:               "{{ sap_sid | upper }}_DB"
+    - name:                            "0.0 Validations - Netmask"
+      ansible.builtin.debug:
+        msg:
+          - "Netmask: {{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
+          - "CIDR:    {{ ((hostvars[ansible_hostname]['ansible_default_ipv4']['address'] | string) + '/' +
+                          (hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] | string)) | ipaddr('prefix') }}"
+          - "IPV4:    {{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}"
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                  Validate the server side parameters - Oracle              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
   gather_facts:                        true
@@ -391,7 +405,12 @@
         fail_msg:                      "Please specify MULTI_SIDS if you are deploying a shared home installation"
       when:                            node_tier == 'oracle-multi-sid'
 
-- hosts:               "{{ sap_sid | upper }}_WEB"
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                  Validate the server side parameters - WD                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- hosts:               "{{ sap_sid| upper }}_WEB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
   gather_facts:                        true

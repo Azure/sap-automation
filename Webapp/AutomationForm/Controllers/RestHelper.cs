@@ -212,7 +212,6 @@ namespace AutomationForm.Controllers
         public async Task<EnvironmentModel[]> GetVariableGroups()
         {
             JsonElement values = await GetVariableGroupsJson();
-
             List<EnvironmentModel> variableGroups = new List<EnvironmentModel>();
 
             foreach (var value in values.EnumerateArray())
@@ -233,7 +232,6 @@ namespace AutomationForm.Controllers
         public async Task<List<SelectListItem>> GetEnvironmentsList()
         {
             JsonElement values = await GetVariableGroupsJson();
-
             List<SelectListItem> variableGroups = new List<SelectListItem>
             {
                 new SelectListItem { Text = "", Value = "" }

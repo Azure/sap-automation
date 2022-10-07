@@ -221,7 +221,48 @@
 
       when:
         - db_high_availability
-        - node_tier == 'hana'
+        - (node_tier == 'hana') or (node_tier == 'db2')
+
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Oracle DB Install
+# |                      CREATE USERS for SAP Installation                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid| upper }}_DB"
+  name:                                DB Installation - Oracle
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         "root"
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                            "Database Installation Playbook: - Install Oracle"
+      block:
+
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        "Configure accounts for ora-msid"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+      when:
+        - node_tier == 'oracle-multi-sid'
+        - platform == 'ORACLE'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -357,6 +398,62 @@
       when:
         - node_tier == 'oracle-multi-sid'
         - platform == 'ORACLE'
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for DB2 DB Install                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid| upper }}_DB[0]"
+  name:                                "DB Installation - SAP DB2"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "Install SAP DB2"
+      block:
+
+        - name:                        Setting the DB facts
+          ansible.builtin.set_fact:
+            tier:                      db2                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            bom_processing:            true
+          tags:
+            - always
+
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        platform == 'DB2'
+
+        - name:                        Installing DB2
+          ansible.builtin.include_role:
+            name:                      roles-db/4.2.0-db2-install
+          when:                        platform == 'DB2'
+
+      when:
+        - platform == 'DB2'
+
+
+# add platform in sap-parameters.yaml to execute tasks for DB2, ORACLE, MSSQL, SYBASE
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                         PLAYBOOK FOR DB LOGGING                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
 
 # /*---------------------------------------------------------------------------8

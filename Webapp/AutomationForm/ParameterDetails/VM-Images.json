@@ -16,9 +16,9 @@
         "os_type": "LINUX",
         "source_image_id": "",
         "publisher": "RedHat",
-        "offer": "RHEL-SAP-HA",
+        "offer": "82sapha-gen2",
         "sku": "gen2",
-        "version": "8.2.2022031402"
+        "version": "latest"
       }
     },
     {

@@ -95,7 +95,11 @@ stages:
           - task:                      PowerShell@2
             displayName:               "Create Sample"
             inputs:
+<<<<<<< HEAD
+              targetType: "inline"
+=======
               targetType:              "inline"
+>>>>>>> 3bc1fc6236c7249b44179d816b7fe66bc646ed73
 
               script: |
                     git fetch -q --all
@@ -261,6 +265,13 @@ stages:
 
                     }
 
+<<<<<<< HEAD
+              failOnStderr: false
+
+              showWarnings: true
+              pwsh: true
+=======
               failOnStderr:            false
               showWarnings:            true
               pwsh:                    true
+>>>>>>> 3bc1fc6236c7249b44179d816b7fe66bc646ed73

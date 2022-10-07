@@ -358,7 +358,6 @@ namespace AutomationForm.Controllers
 
             return true;
         }
-
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new StringReader(hclString);
