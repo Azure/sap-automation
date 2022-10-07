@@ -237,6 +237,7 @@ stages:
 
                         unzip -qq -o -P $ARM_CLIENT_SECRET DEPLOYER/$(deployerfolder)/state.zip
                     fi
+                    export TF_LOG_PATH=$HOME/.sap_deployment_automation/terraform.log
 
                     $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
                        --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) \
@@ -336,6 +337,7 @@ stages:
               DEPLOYMENT_REPO_PATH:           $(Build.Repository.LocalPath)
               POOL:                           $(POOL)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
+              TF_LOG:                         $(TF_LOG)
 
             failOnStderr:              false
 
@@ -600,6 +602,8 @@ stages:
                         cat DEPLOYER/$(deployerfolder)/terraform.tfstate
                     fi
 
+                    export TF_LOG_PATH=$HOME/.sap_deployment_automation/terraform.log
+
                     $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
                        --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                        --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)     \
@@ -777,6 +781,7 @@ stages:
               APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
               POOL:                           $(POOL)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
+              TF_LOG:                         $(TF_LOG)
 
             failOnStderr:              false
 
@@ -832,11 +837,13 @@ stages:
                                         -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
                                         -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
                                         -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
+                                        -SAP_INSTALL_PIPELINE_ID $(SAP_INSTALL_PIPELINE_ID)
                                         -IS_PIPELINE_DEPLOYMENT true'
             env:
               ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
               WORKLOADZONE_PIPELINE_ID:  $(WORKLOADZONE_PIPELINE_ID)
+              SAP_INSTALL_PIPELINE_ID:   $(SAP_INSTALL_PIPELINE_ID)
               SDAF_GENERAL_GROUP_ID:     $(SDAF_GENERAL_GROUP_ID)
               WEBAPP_URL_BASE:           $(WEBAPP_URL_BASE)
               WEBAPP_ID:                 $(WEBAPP_ID)

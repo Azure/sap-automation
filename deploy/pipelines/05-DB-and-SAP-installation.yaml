@@ -35,7 +35,7 @@ parameters:
       - NW752SPS09_v0001ms
       - ORACLE_19_00_v0002ms
       - NW750SPS20_DB2_v0001ms
-      - ORACLE_19_00_ORA_MSID_v0001ms
+      - ORACLE_19_00_ORA_MSID_v0002ms
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
@@ -398,7 +398,7 @@ stages:
               azureClientSecret:            $(ARM_CLIENT_SECRET)
               azureTenantId:                $(ARM_TENANT_ID)
               azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
-            
+
   - stage:                             Software_Acquisition
     displayName:                       Software Acquisition
     dependsOn:
