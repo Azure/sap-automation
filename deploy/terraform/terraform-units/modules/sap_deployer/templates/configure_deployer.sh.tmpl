@@ -17,7 +17,7 @@
 #
 #   * Create a Python virtualenv, which can be used by all
 #     users, with the specified Ansible version and related
-#     tools, and associated 
+#     tools, and associated
 #   * Create a /etc/profile.d file that will setup a users
 #     interactive session appropriately to use these tools.
 #
@@ -61,6 +61,7 @@ subscription_id="${subscription_id}"
 tenant_id="${tenant_id}"
 local_user="${local_user}"
 use_webapp="${use_webapp}"
+ansible_core_version="${ansible_core_version}"
 
 TOKEN="${pat}"
 DEVURL="${ado_repo}"
@@ -237,7 +238,7 @@ tf_zip=terraform_$${tfversion}_linux_amd64.zip
 #
 
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
-    echo 
+    echo
     echo ##vso[task.logissue type=warning]Deployer already configured
     exit 0
 else
@@ -333,7 +334,7 @@ else
     sudo mkdir -p \
         $${tf_dir} \
         $${tf_bin}
-    wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip} 
+    wget -nv -O /tmp/$${tf_zip} https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}
     sudo unzip -o /tmp/$${tf_zip} -d $${tf_dir}
     sudo ln -vfs ../$(basename $${tf_dir})/terraform $${tf_bin}/terraform
 
@@ -408,7 +409,7 @@ else
     # argcomplete, pywinrm.
     # ansible-lint \
     #  yamllint \
-    
+
     sudo $${ansible_venv_bin}/pip3 install \
         "ansible-core>=$${ansible_major}.$${ansible_minor},<$${ansible_major}.$((ansible_minor + 1))" \
         argcomplete \
@@ -508,7 +509,7 @@ else
             if [ -f $${agent_home}/config_fixed_params.sh ]; then
                 sudo rm $${agent_home}/config_fixed_params.sh
             fi
-            
+
             echo $${agent_home}/config.sh  --unattended --url $${DEVURL} --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a $${agent_home}/config_fixed_params.sh
             sudo chmod +x $${agent_home}/config_fixed_params.sh
 
@@ -524,7 +525,7 @@ else
             sudo rm $${agent_home}/config_fixed_params.sh
 
             sudo touch $${agent_home}/agent_configured
-            
+
         fi
     fi
 

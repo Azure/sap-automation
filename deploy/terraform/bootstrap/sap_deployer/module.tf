@@ -42,6 +42,7 @@ module "sap_deployer" {
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   use_service_endpoint                         = var.use_service_endpoint
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
+  ansible_core_version                         = var.ansible_core_version
 }
 
 module "sap_namegenerator" {

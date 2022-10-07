@@ -12,66 +12,7 @@ Description:
 *                                RESOURCE GROUPS                                *
 *                                                                               *
 *---------------------------------------4---------------------------------------8
-Function:
-  Creates a Resorce Group.
-
-Description:
-  Resorce Group in which to group all the Resources that are deployed for the
-  Deployer in this unit of execution.
-
-Usage:
-
-  local.enable_deployers
-      Variable                  : local.enable_deployers [true|false] derived from local.deployer_input based on legnth greater than zero
-      Variable                  : local.deployer_input is a copy of var.defaults
-      Variable                  : var.defaults defined empty
-      Module Caller             : Pass var.deployers object into module
-      Input                     : Any overrides are inserted (JSON or TFVARS)
-      Main                      : Defines empty var.deployers object [{}]
-
-
-  local.rg_name
-      Variable                  : local.rg_name derived from default format("%s%s", local.prefix, var.naming.resource_suffixes.deployer_rg) or overridden with var.infrastructure.resource_group.name
-        Override)
-          Variable              : var.infrastructure.resource_group.name is contained in var.infrastructure.resource_group
-          Variable              : var.infrastructure.resource_group is contained in var.infrastructure
-          Variable              : var.infrastructure defined empty
-          Module Caller         : Pass var.infrastructure object into module as infrastructure
-          Input                 : Any overrides are inserted (JSON or TFVARS)
-          Main                  : Defines empty var.infrastructure object {}
-
-        Default)
-          1)  Variable          : local.prefix derived from var.infrastructure.resource_group.name if present in JSON, otherwise default to var.naming.prefix.DEPLOYER
-              Override)
-                Variable        : var.infrastructure.resource_group.name is contained in var.infrastructure.resource_group
-                Variable        : var.infrastructure.resource_group is contained in var.infrastructure
-                Variable        : var.infrastructure defined empty
-                Module Caller   : Pass var.infrastructure object into module
-                Input           : Any overrides are inserted (JSON or TFVARS)
-                Main            : Defines empty var.infrastructure object {}
-            
-              Default)
-                Variable        : var.naming.prefix.DEPLOYER is contained in var.naming.prefix
-                Variable        : var.naming.prefix is contained in var.naming
-                Variable        : var.naming defined empty
-                Module Caller   : Pass module.sap_namegenerator.naming object into module as naming
-
-          2)  Variable          : var.naming.resource_suffixes.deployer_rg is an object contained in var.naming.resource_suffixes
-              Variable          : var.naming.resource_suffixes is a copy of var.naming.resource_suffixes
-              Variable          : var.naming.resource_suffixes is contained in var.naming
-              Variable          : var.naming defined empty
-              Module Caller     : Pass module.sap_namegenerator.naming object into module as naming
-
-
-  var.infrastructure.region
-      Variable                  : var.infrastructure.region derived from var.infrastructure.region
-      Variable                  : var.infrastructure.region is contained in var.infrastructure
-      Variable                  : var.infrastructure defined empty
-      Module Caller             : Pass var.infrastructure object into module as infrastructure
-      Input                     : Required INPUT parameter (JSON or TFVARS)
-      Main                      : Defines empty var.infrastructure object {}
 */
-
 resource "azurerm_resource_group" "deployer" {
   count    = !local.resource_group_exists ? 1 : 0
   name     = local.rg_name
@@ -117,7 +58,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
   virtual_network_name = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes     = [local.management_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  private_endpoint_network_policies_enabled     = !var.use_private_endpoint
   private_link_service_network_policies_enabled = false
 
   service_endpoints = var.use_service_endpoint ? (

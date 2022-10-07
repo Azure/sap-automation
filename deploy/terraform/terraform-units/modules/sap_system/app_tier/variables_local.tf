@@ -634,7 +634,6 @@ locals {
   web_no_ppg = var.application.web_no_ppg
 
   dns_label               = try(var.landscape_tfstate.dns_label, "")
-  dns_resource_group_name = try(var.landscape_tfstate.dns_resource_group_name, "")
 
   deploy_route_table = local.enable_deployment && length(var.route_table_id) > 0
 

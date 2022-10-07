@@ -13,6 +13,11 @@ parameters:
     type:                              string
     default:                           $(WEBAPP_URL_BASE)
 
+  - name:                              keyvault
+    displayName:                       Keyvault Name
+    type:                              string
+    default:                           $(Deployer_Key_Vault)
+
   - name:                              environment
     displayName:                       "Environment name (MGMT, DEV, QA, etc)"
     type:                              string
@@ -45,11 +50,17 @@ variables:
   - name:                              webappName
     value:                             ${{ parameters.webappName }}
 
+  - name:                              keyvault
+    value:                             ${{ parameters.keyvault }}
+
   - name:                              workload_zone_deployment_pipeline_name
     value:                             ${{ parameters.workload_zone_deployment_pipeline }}
 
   - name:                              system_deployment_pipeline_name
     value:                             ${{ parameters.system_deployment_pipeline }}
+
+  - name:                              secret
+    value:                             $[format('@Microsoft.KeyVault(SecretUri=https://{0}.vault.azure.net/secrets/PAT/)', variables.keyvault)]
 
 stages:
   - stage:                             Web_App_Deployment
@@ -90,6 +101,7 @@ stages:
 
               echo "##vso[task.setvariable variable=WORKLOADZONE_PIPELINE_ID]${WORKLOADZONE_PIPELINE_ID}"
               echo "##vso[task.setvariable variable=SYSTEM_PIPELINE_ID]${SYSTEM_PIPELINE_ID}"
+              echo "##vso[task.setvariable variable=SDAF_GENERAL_GROUP_ID]${SDAF_GENERAL_GROUP_ID}"
 
               echo "##vso[build.updatebuildnumber]Deploying the Web Application $(webappName)"
 
@@ -120,13 +132,14 @@ stages:
               package:                           '$(Build.ArtifactStagingDirectory)/WebApp/*.zip'
               deploymentMethod:                  'auto'
               appSettings:                       '-CollectionUri $(System.CollectionUri)
-                                                  -ProjectName $(System.TeamProject)
+                                                  -ProjectName "$(System.TeamProject)"
                                                   -RepositoryId $(Build.Repository.ID)
-                                                  -SourceBranch $(Build.SourceBranchName)
+                                                  -SourceBranch "$(Build.SourceBranchName)"
                                                   -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
                                                   -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
                                                   -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
-                                                  -IS_PIPELINE_DEPLOYMENT true'
+                                                  -IS_PIPELINE_DEPLOYMENT true
+                                                  -PAT $(secret)'
           - bash: |
               #!/bin/bash
               printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(webappName) $(webappName) $(webappName) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(webappName) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"

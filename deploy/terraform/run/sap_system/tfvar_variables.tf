@@ -736,6 +736,7 @@ variable "bom_name" {
 }
 
 variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
   type    = string
   default = ""
 }

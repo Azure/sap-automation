@@ -36,7 +36,7 @@ if [ -n "${type}" ] ; then
   else
     az login --use-device-code --tenant $ARM_TENANT_ID
   fi
-  
+
 fi
 az config set extension.use_dynamic_install=yes_without_prompt
 
@@ -56,8 +56,7 @@ if [ -z "${ADO_PROJECT}" ]; then
 fi
 
 echo "Installing the extensions"
-
-extension_name=$(az devops extension show --org $ADO_ORGANIZATION --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName) 
+extension_name=$(az devops extension show --org $ADO_ORGANIZATION --extension vss-services-ansible  --publisher-id  ms-vscs-rm --query extensionName)
 if [ -z ${extension_name} ]; then
    az devops extension install --org $ADO_ORGANIZATION --extension-id vss-services-ansible --publisher-id ms-vscs-rm --output none
 fi
@@ -158,7 +157,7 @@ echo "Creating the variable groups"
 
 general_group_id=$(az pipelines variable-group list --project "${ADO_PROJECT}" --organization "${ADO_ORGANIZATION}" --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if [ -z $general_group_id ] ; then
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 --output yaml --org  $ADO_ORGANIZATION --project $id --authorize true --output none 
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 --output yaml --org  $ADO_ORGANIZATION --project $id --authorize true --output none
   general_group_id=$(az pipelines variable-group list --project "${ADO_PROJECT}" --organization "${ADO_ORGANIZATION}" --query "[?name=='SDAF-General'].id | [0]" --only-show-errors | tr -d \")
 fi
 

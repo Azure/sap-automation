@@ -9,7 +9,7 @@ Description:
     <    less than version number
     <=   less than or equal to version number
     ~>   pessimistic constraint operator, constraining both the oldest and newest version allowed.
-           For example, ~> 0.9   is equivalent to >= 0.9,   < 1.0 
+           For example, ~> 0.9   is equivalent to >= 0.9,   < 1.0
                         ~> 0.8.4 is equivalent to >= 0.8.4, < 0.9
 */
 
@@ -62,10 +62,11 @@ terraform {
     }
     azuread = {
       source = "hashicorp/azuread"
+      version = "~> 2.2"
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 3.2"
     }
   }
 }

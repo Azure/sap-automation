@@ -23,43 +23,43 @@
                 },
                 {
                     "name"              : "sapdata1",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 64,
+                    "size_gb"           : 128,
                     "caching"           : "None",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
                 {
                     "name"              : "sapdata2",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 64,
+                    "size_gb"           : 128,
                     "caching"           : "None",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
                 {
                     "name"              : "sapdata3",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 64,
+                    "size_gb"           : 128,
                     "caching"           : "None",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
                 {
                     "name"              : "sapdata4",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
-                    "size_gb"           : 64,
+                    "size_gb"           : 128,
                     "caching"           : "None",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
                 {
                     "name"              : "origloga",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
                     "caching"           : "None",
@@ -68,7 +68,7 @@
                 },
                 {
                     "name"              : "origlogb",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
                     "caching"           : "None",
@@ -77,7 +77,7 @@
                 },
                 {
                     "name"              : "mirrloga",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
                     "caching"           : "None",
@@ -86,7 +86,7 @@
                 },
                 {
                     "name"              : "mirrlogb",
-                    "count"             : 2,
+                    "count"             : 1,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
                     "caching"           : "None",
