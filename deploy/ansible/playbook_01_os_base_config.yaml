@@ -12,10 +12,10 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            "OS configuration playbook - ensure jmespath is installed in the playbook python"
+    - name: ensure jmespath is installed in the playbook python
       ansible.builtin.pip:
-        name:                          jmespath
-        state:                         present
+        name: jmespath
+        state: present
         
     - name:                            "OS configuration playbook: - Create Progress folder"
       ansible.builtin.file:

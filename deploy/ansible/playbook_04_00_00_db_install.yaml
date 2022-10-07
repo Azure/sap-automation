@@ -12,7 +12,7 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                                "Database Installation Playbook: Ensure BOM download directories exist"
+    - name:                                "refresh BoM Processing: - Create BOM download directories"
       ansible.builtin.file:
         path:                              "{{ item.path }}"
         state:                             directory
