@@ -249,6 +249,8 @@
           - "scs_instance_number != hdb_instance_number"
         fail_msg:                      "Please ensure that the scs_instance_number is different from the hdb_instance_number when performing a standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
+      tags:
+        - 0.0-scs-db-instance-single
 
     - name:                            "0.0 Validations - Validate SCS and HDB SIDs"
       ansible.builtin.assert:
@@ -256,6 +258,8 @@
           - "sap_sid != db_sid"
         fail_msg:                      "Please ensure that the sap_sid is different from the db_sid when performing a standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
+      tags:
+        - 0.0-scs-db-single
 
     - name:                            Validate SCS and PAS instance numbers
       ansible.builtin.assert:
@@ -263,6 +267,8 @@
           - "scs_instance_number != pas_instance_number"
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number when installing PAS on ASCS"
       when:                            (ansible_play_hosts_all | length) == 2
+      tags:
+        - 0.0-scs-pas
 
     - name:                            "0.0 Validations - Validate SCS and PAS instance numbers"
       ansible.builtin.assert:
@@ -270,6 +276,8 @@
           - "scs_instance_number != pas_instance_number"
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number on standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
+      tags:
+        - 0.0-scs-pas-single
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
@@ -389,7 +397,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid | upper }}_DB"
+
+- hosts:               "{{ sap_sid | upper }}_DB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
   gather_facts:                        true
@@ -405,12 +414,7 @@
         fail_msg:                      "Please specify MULTI_SIDS if you are deploying a shared home installation"
       when:                            node_tier == 'oracle-multi-sid'
 
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |                  Validate the server side parameters - WD                  |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-- hosts:               "{{ sap_sid| upper }}_WEB"
+- hosts:               "{{ sap_sid | upper }}_WEB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
   gather_facts:                        true

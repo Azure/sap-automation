@@ -45,6 +45,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   count          = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
   storage_account_id = azurerm_storage_account.storage_tfstate[0].id
   default_action = "Deny"
+
   ip_rules = local.deployer_public_ip_address_used ? (
     [
       local.deployer_public_ip_address
