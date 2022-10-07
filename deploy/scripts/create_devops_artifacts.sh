@@ -112,9 +112,10 @@ if [ -z $pipeline_id ] ; then
 fi
 
 pipeline_name='Configuration and SAP installation'
-pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
-if [ -z $pipeline_id ] ; then
+sap_inst_pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
+if [ -z $sap_inst_pipeline_id ] ; then
   az pipelines create --name 'Configuration and SAP installation' --branch main --description 'Configures the Operating System and installs the SAP application' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /deploy/pipelines/05-DB-and-SAP-installation.yaml --repository $repo_id --repository-type tfsgit --output none
+  sap_inst_pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 fi
 
 pipeline_name='Remove deployments'
@@ -163,7 +164,7 @@ fi
 
 GroupID=$(az pipelines variable-group list --project "${ADO_PROJECT}" --organization "${ADO_ORGANIZATION}" --query "[?name=='SDAF-MGMT'].id | [0]" --only-show-errors)
 if [ -z $GroupID ] ; then
-  az pipelines variable-group create --name SDAF-MGMT --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID='Enter your app registration ID here' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' WEB_APP_CLIENT_SECRET='Enter your App registration secret here' PAT='Enter your personal access token here' POOL=MGMT-POOL AZURE_CONNECTION_NAME=Control_Plane_Service_Connection WORKLOADZONE_PIPELINE_ID=${wz_pipeline_id} SYSTEM_PIPELINE_ID=${system_pipeline_id} SDAF_GENERAL_GROUP_ID=${general_group_id} --output yaml --org  $ADO_ORGANIZATION --project $id --authorize true --output none
+  az pipelines variable-group create --name SDAF-MGMT --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID='Enter your app registration ID here' ARM_CLIENT_ID='Enter your SPN ID here' ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID='Enter your control plane subscription here' ARM_TENANT_ID='Enter SPNs Tenant ID here' WEB_APP_CLIENT_SECRET='Enter your App registration secret here' PAT='Enter your personal access token here' POOL=MGMT-POOL AZURE_CONNECTION_NAME=Control_Plane_Service_Connection WORKLOADZONE_PIPELINE_ID=${wz_pipeline_id} SYSTEM_PIPELINE_ID=${system_pipeline_id} SAP_INSTALL_PIPELINE_ID=${sap_inst_pipeline_id} SDAF_GENERAL_GROUP_ID=${general_group_id} --output yaml --org  $ADO_ORGANIZATION --project $id --authorize true --output none
 fi
 
 GroupID=$(az pipelines variable-group list --project "${ADO_PROJECT}" --organization "${ADO_ORGANIZATION}" --query "[?name=='SDAF-DEV'].id | [0]" --only-show-errors )
