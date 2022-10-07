@@ -24,7 +24,12 @@ parameters:
     default:                           MGMT
 
   - name:                              use_webapp_param
-    displayName:                       "Deploy the configuration web application"
+    displayName:                       "Deploy the configuration web application infrastructure"
+    type:                              boolean
+    default:                           true
+
+  - name:                              deploy_webapp_software
+    displayName:                       "Deploy the configuration web application software"
     type:                              boolean
     default:                           true
 
@@ -793,6 +798,7 @@ stages:
       and
       (
         eq(${{ parameters.use_webapp_param }}, true),
+        eq(${{ parameters.deploy_webapp_software }}, true),
         eq(dependencies.Deploy_controlplane.result, 'Succeeded')
       )
     jobs:
