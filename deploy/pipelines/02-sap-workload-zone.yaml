@@ -303,15 +303,34 @@ stages:
                   --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID
                   secrets_set=$? ; echo "Set Secrets returned $secrets_set"
 
-                  az account set --subscription ${STATE_SUBSCRIPTION}
+                  whoAmI=$(az account show --query id -o tsv)
 
-                  az keyvault set-policy -n "${key_vault}" --secret-permissions get list recover restore set --object-id $ARM_CLIENT_ID --output none
+                  echo Executing using $whoAmI
 
-                  if [ -n "${REMOTE_STATE_SA}" ] ; then
-                    tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]")
-                    az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
+                  noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+
+                  if [ -z "$noAccess" ]; then
+
+                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $whoAmI --query "[].principalName | [0]")
+
+                    if [ -n "$perms" ]; then
+                      echo -e "$green --- Assign permissions ---$reset"
+                        az account set --subscription ${STATE_SUBSCRIPTION}
+                        az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
+
+                        az keyvault set-policy -n "${key_vault}" --secret-permissions get list recover restore set --object-id $ARM_CLIENT_ID --output none
+
+                        if [ -n "${REMOTE_STATE_SA}" ] ; then
+                          tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]")
+                          az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
+                        fi
+                        REMOTE_STATE_RG=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts  --subscription ${STATE_SUBSCRIPTION} --query "[].resourceGroup | [0]" )
+                    else
+                      echo -e "$boldred --- No permissions to set permissions ---$reset"
+                    fi
                   fi
-                  REMOTE_STATE_RG=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts  --subscription ${STATE_SUBSCRIPTION} --query "[].resourceGroup | [0]" )
+
+
 
               fi
 
