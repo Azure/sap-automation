@@ -104,6 +104,11 @@ namespace AutomationForm.Controllers
         // Trigger a pipeline in azure devops
         public async Task TriggerPipeline(string pipelineId, PipelineRequestBody requestBody)
         {
+            string getUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}";
+            using HttpResponseMessage getResponse = client.GetAsync(getUri).Result;
+            string getResponseBody = await getResponse.Content.ReadAsStringAsync();
+            HandleResponse(getResponse, getResponseBody);
+
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
 
             string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
