@@ -49,7 +49,7 @@ parameters:
 trigger:                               none
 
 pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])] 
+  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
 
 variables:
   - group:                             "SDAF-General"
@@ -61,7 +61,7 @@ variables:
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
- 
+
   - name:                              variable_group
     value:                             SDAF-${{ parameters.workload_environment_parameter }}
 
@@ -113,7 +113,7 @@ stages:
 
               DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
                               HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-              
+
               cd $HOME; mkdir -p .sap_deployment_automation
               workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
 
@@ -176,7 +176,7 @@ stages:
                   sudo apt-get -qq install dos2unix
 
                 echo -e "$green --- Install terraform ---$reset"
-  
+
                   wget -q $(tf_url)
                   return_code=$?
                   if [ 0 != $return_code ]; then
@@ -201,7 +201,7 @@ stages:
                 else
                   export key_vault=$(cat ${workload_environment_file_name}  | grep keyvault=   -m1      | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                 fi
-                
+
                 if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
                   export STATE_SUBSCRIPTION=$(Terraform_Remote_Storage_Subscription)  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 else
@@ -225,7 +225,7 @@ stages:
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
                 ip_added_control_plane=0
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" = "$(this_agent)" ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
                   if [ -n "${workload_key_vault}" ]; then
@@ -236,7 +236,7 @@ stages:
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" = "$(this_agent)" ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ${this_ip} ---$reset"
                   if [ -n "${key_vault}" ]; then
@@ -249,10 +249,7 @@ stages:
                 cd $HOME/SYSTEM/$(sap_system_folder)
                 ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sap_system_configuration) --type sap_system --auto-approve
                 return_code=$?
-                echo "Return code from remover.sh $return_code."
-                if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
-                fi
+
               echo -e "$green--- Pull latest from DevOps Repository ---$reset"
                 git checkout -q $(Build.SourceBranchName)
                 git pull
@@ -267,7 +264,7 @@ stages:
                     fi
                   fi
                 fi
-          
+
                 az account set --subscription ${STATE_SUBSCRIPTION}
                 if [[ ip_added_control_plane -eq 1 ]]; then
                   echo -e "$green--- Remove IP ---$reset"
@@ -277,6 +274,13 @@ stages:
                     fi
                   fi
                 fi
+
+              #stop the pipeline after you have reset the whitelisting on your resources
+              echo "Return code from remover.sh $return_code."
+              if [ 0 != $return_code ]; then
+                echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                exit $return_code
+              fi
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
@@ -288,7 +292,7 @@ stages:
                 if [ 0 == $return_code ]; then
 
                   if [ -d $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform ]; then
-                    git rm -q -f -r $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
+                    git rm -q -r  --ignore-unmatch -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/.terraform
                     changed=1
                   fi
 
@@ -298,24 +302,24 @@ stages:
                   fi
 
                   if [ -f  $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
-                    git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
+                    git rm  --ignore-unmatch  -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                     changed=1
                   fi
 
                   if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
-                    git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml
+                    git rm  --ignore-unmatch -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*_hosts.yaml
                     changed=1
                   fi
 
                   if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md | wc -l ) -gt 0 ] ; then
-                    git rm -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md
+                    git rm  --ignore-unmatch -q    $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/*.md
                     changed=1
                   fi
 
                   if [ 1 == $changed ]; then
                     git config --global user.email "$(Build.RequestedForEmail)"
                     git config --global user.name "$(Build.RequestedFor)"
-                    git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]" 
+                    git commit -m "Infrastructure for ${sap_system_folder} removed. [skip ci]"
                     git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                   fi
                 fi
@@ -358,9 +362,9 @@ stages:
               ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                  LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
                   NETWORK=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs) ; echo Network     $NETWORK
-              
+
               HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-              
+
               cd $HOME; mkdir -p .sap_deployment_automation
               workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -368,7 +372,7 @@ stages:
                   sudo apt-get -qq install dos2unix
 
                 echo -e "$green --- Install terraform ---$reset"
-  
+
                   wget -q $(tf_url)
                   return_code=$?
                   if [ 0 != $return_code ]; then
@@ -410,7 +414,7 @@ stages:
                 if [ -z "$devops_extension_installed" ]; then
                   az extension add --name azure-devops --output none
                 fi
-                
+
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
 
@@ -454,7 +458,7 @@ stages:
                 else
                   key_vault=$(cat ${workload_environment_file_name}  | grep keyvault=   -m1      | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                 fi
-               
+
                 az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
                 if [ -n "${az_var}" ]; then
                   STATE_SUBSCRIPTION="${az_var}"  ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
@@ -479,7 +483,7 @@ stages:
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" = "$(this_agent)" ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ---$reset"
                   if [ -n "${workload_key_vault}" ]; then
@@ -491,7 +495,7 @@ stages:
                 ip_added_control_plane=0
                 az account set --subscription ${STATE_SUBSCRIPTION}
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" = "$(this_agent)" ]; then
                   this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
                   echo -e "$green--- Set IP ${this_ip} ---$reset"
                   if [ -n "${key_vault}" ]; then
@@ -505,53 +509,54 @@ stages:
 
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
                 cd $HOME/LANDSCAPE/$(workload_zone_folder)
-                
+
                 $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(workload_zone_configuration_file) --type sap_landscape --auto-approve --ado
                 return_code=$?
-                echo "Return code from remover.sh $return_code."
-                if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
-                fi
-
-                echo -e "$green--- Pull latest ---$reset"
-                  git pull 
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
                 if [[ ip_added_control_plane -eq 1 ]]; then
                   echo -e "$green--- Remove IP ---$reset"
-                  if [[ "azure pipelines" == $(this_agent) ]]; then
+                  if [ "azure pipelines" = "$(this_agent)" ]; then
                     if [ -n "${key_vault}" ]; then
                       az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
                     fi
                   fi
                 fi
 
+                #stop the pipeline after you have reset the whitelisting on your resources
+                echo "Return code from remover.sh $return_code."
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                  exit $return_code
+                fi
+
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 changed=0
+                git pull
 
                 if [ 0 == $return_code ]; then
 
                   if [ -f  $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK ]; then
-                    git rm -q -f $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
+                    git rm -q  --ignore-unmatch -f $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
                     echo "Removed $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK"
                     changed=1
                   fi
-                  
+
                   if [ -f  ${workload_environment_file_name}.md ]; then
-                    git rm -q -f ${workload_environment_file_name}.md
+                    git rm -q  --ignore-unmatch -f ${workload_environment_file_name}.md
                     changed=1
 
                   fi
                   if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform ]; then
-                    git rm -r -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
+                    git rm -r  --ignore-unmatch -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
                     changed=1
                   fi
 
                   if [ 1 == $changed ] ; then
                     git config --global user.email "$(Build.RequestedForEmail)"
                     git config --global user.name "$(Build.RequestedFor)"
-                    git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]" 
+                    git commit -m "Workload zone ${workload_zone_folder} removal.[skip ci]"
                     git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                   fi
 
@@ -559,7 +564,7 @@ stages:
                   if [ -n $VARIABLE_GROUP_ID ]; then
                     echo "Deleting variables"
                     if [ -n $(Terraform_Remote_Storage_Account_Name) ]; then
-                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors 
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
                     fi
 
                     if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
@@ -598,7 +603,7 @@ stages:
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
               DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
-              
+
             failOnStderr:              false
 
 ...

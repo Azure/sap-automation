@@ -303,6 +303,16 @@ stages:
                   --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID
                   secrets_set=$? ; echo "Set Secrets returned $secrets_set"
 
+                  az account set --subscription ${STATE_SUBSCRIPTION}
+
+                  az keyvault set-policy -n "${key_vault}" --secret-permissions get list recover restore set --object-id $ARM_CLIENT_ID --output none
+
+                  if [ -n "${REMOTE_STATE_SA}" ] ; then
+                    tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]")
+                    az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
+                  fi
+                  REMOTE_STATE_RG=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts  --subscription ${STATE_SUBSCRIPTION} --query "[].resourceGroup | [0]" )
+
               fi
 
               echo -e "$green--- az login ---$reset"
@@ -350,6 +360,7 @@ stages:
                 cd $HOME/LANDSCAPE/$(workload_zone_folder)
 
                 if [ 0 != $secrets_set ] ; then
+                  echo "Install and call Set Secrets failed"
                   $DEPLOYMENT_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
                     --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
                     --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                   \
@@ -383,7 +394,7 @@ stages:
                   fi
                 fi
 
-                if [ ip_added_workload -eq 1 ]; then
+                if [ $ip_added_workload -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
                   if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#workload_key_vault}" != 0 ]; then
@@ -393,7 +404,7 @@ stages:
                 fi
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
-                if [ ip_added_control_plane -eq 1 ]; then
+                if [ $ip_added_control_plane -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
                   if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#key_vault}" != 0 ]; then
@@ -406,7 +417,7 @@ stages:
                 cd $(Build.Repository.LocalPath)
 
                 echo -e "$green--- Pull latest ---$reset"
-                  git pull 
+                  git pull
 
                 added=0
                 if [ -f ${workload_environment_file_name} ]; then

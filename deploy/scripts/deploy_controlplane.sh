@@ -73,6 +73,10 @@ echo "ADO flag ${ado_flag}"
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
 
+if [ ! -f /etc/profile.d/deploy_server.sh ] ; then
+    export TF_VAR_Agent_IP=$this_ip
+fi
+
 if [ -n "$approve" ]; then
     approveparam=" --auto-approve"
 fi
@@ -194,7 +198,7 @@ if [ -n "${subscription}" ]; then
         step=0
     fi
 
-  
+
 fi
 
 if [ 3 == $step ]; then
@@ -340,41 +344,6 @@ fi
 
 cd "$root_dirname" || exit
 
-if [ 1 = "${only_deployer:-}" ]; then
-    load_config_vars "${deployer_config_information}" deployer_public_ip_address
-    echo ""
-    echo -e "Please ${cyan}login${resetformatting} to the deployer node (${boldred}${deployer_public_ip_address}${resetformatting}) and re-run ${boldred}$(basename ${0})${resetformatting} to continue."
-    unset TF_DATA_DIR
-    printf -v secretname '%-40s' "${environment}"-client-id
-    printf -v secretname2 '%-40s' "${environment}"-client-secret
-    printf -v secretname3 '%-40s' "${environment}"-subscription-id
-    printf -v secretname4 '%-40s' "${environment}"-tenant-id
-    printf -v deployerpara '%-40s' "-d ${deployer_parameter_file}"
-    printf -v librarypara '%-40s' "-l ${library_parameter_file}"
-
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "# $cyan Please populate the keyvault: ${keyvault} $resetformatting                                   #"
-    echo "#     with the following secrets:                                                       #"
-    echo "#     - $secretname                                        #"
-    echo "#     - $secretname2                                        #"
-    echo "#     - $secretname3                                        #"
-    echo "#     - $secretname4                                        #"
-    echo "#                                                                                       #"
-    echo "#  Once done please logon to the deployer and resume by running:                        #"
-    echo "#                                                                                       #"
-    echo "#    \$DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh \                           #"
-    echo "#    $deployerpara     #"
-    echo "#    $librarypara                        #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-
-    step=6
-    save_config_var "step" "${deployer_config_information}"
-    exit 0
-fi
 
 if [ 1 == $step ]; then
     secretname="${environment}"-client-id
@@ -469,6 +438,13 @@ fi
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
 
+if [ 1 = "${only_deployer:-}" ]; then
+
+    step=2
+    save_config_var "step" "${deployer_config_information}"
+    exit 0
+fi
+
 if [ 2 == $step ]; then
 
     echo ""
@@ -502,8 +478,29 @@ if [ 2 == $step ]; then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
     STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id  | tr -d \")
 
+    az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address ${this_ip}
+
     export TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
-    az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}" --output none
+
+    secretname=sa-connection-string
+    deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+    if [ "${deleted}" == "${secretname}"  ]; then
+        echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+        az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+        sleep 10
+    fi
+
+    v=""
+    secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+    if [ "${secret}" == "${secretname}"  ];
+    then
+        v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+        if [ "${v}" != "${TF_VAR_sa_connection_string}" ] ; then
+            az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --only-show-errors --output none
+        fi
+    else
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --only-show-errors --output none
+    fi
 
     cd "${curdir}" || exit
     export step=3
@@ -542,8 +539,21 @@ if [ 3 == $step ]; then
         rm post_deployment.sh
     fi
 
-    export TF_VAR_sa_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "sa-connection-string" | jq -r .value)
 
+    secretname=sa-connection-string
+    deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+    if [ "${deleted}" == "${secretname}"  ]; then
+        echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
+        az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
+        sleep 10
+    fi
+
+    v=""
+    secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
+    if [ "${secret}" == "${secretname}"  ]; then
+      export TF_VAR_sa_connection_string=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+
+    fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
     echo "calling installer.sh with parameters: $allParams"
@@ -585,7 +595,6 @@ if [ 4 == $step ]; then
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Migrating the SAP Library state failed" > "${deployer_config_information}".err
-
         exit 21
     fi
 
