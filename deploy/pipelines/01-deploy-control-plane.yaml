@@ -609,6 +609,8 @@ stages:
 
                     export TF_LOG_PATH=$HOME/.sap_deployment_automation/terraform.log
 
+                    sudo chmod +x $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh
+
                     $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
                        --deployer_parameter_file DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                        --library_parameter_file LIBRARY/$(libraryfolder)/$(libraryconfig)     \
