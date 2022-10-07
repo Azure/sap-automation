@@ -235,7 +235,6 @@ module "anydb_node" {
   route_table_id                               = module.common_infrastructure.route_table_id
   firewall_id                                  = module.common_infrastructure.firewall_id
   sap_sid                                      = local.sap_sid
-  landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
   terraform_template_version                   = var.terraform_template_version
   deployment                                   = var.deployment
   network_location                             = module.common_infrastructure.network_location
