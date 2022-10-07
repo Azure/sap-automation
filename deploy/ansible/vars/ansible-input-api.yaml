@@ -39,6 +39,8 @@ sapinst_gid:                  2001
 sapsys_gid:                   2000
 drop_schema:                  false
 
+sap_trans_permissions:        775
+
 use_msi_for_clusters:         false
 
 hana_components:              "all"

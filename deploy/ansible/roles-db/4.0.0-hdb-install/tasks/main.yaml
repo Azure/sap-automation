@@ -81,6 +81,7 @@
     - name:                            "SAP HANA: Execute hdblcm on {{ (hana_host) }}"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }};
+                                       chmod 755 /usr/sap;
                                        ./hdblcm --batch --action=install --hostname {{ hana_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
       args:
         chdir:                         "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"

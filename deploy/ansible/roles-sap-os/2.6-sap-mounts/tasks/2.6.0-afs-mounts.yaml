@@ -144,7 +144,7 @@
             path:                      "/saptrans"
             state:                     directory
             group:                     sapsys
-            mode:                      0755
+            mode:                      "{{ sap_trans_permissions }}"
 
 # Mount Filesystem on AFS
 # This is needed so that we can create the correct directory
