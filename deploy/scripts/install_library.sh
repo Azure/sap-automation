@@ -12,7 +12,7 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source 
+#call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
 #Internal helper functions
@@ -52,7 +52,7 @@ VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
   showhelp
-  
+
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
@@ -62,7 +62,7 @@ do
     -p | --parameterfile)                      parameterfile="$2"                   ; shift 2 ;;
     -d | --deployer_statefile_foldername)      deployer_statefile_foldername="$2"   ; shift 2 ;;
     -i | --auto-approve)                       approve="--auto-approve"             ; shift ;;
-    -h | --help)                               showhelp 
+    -h | --help)                               showhelp
                                                exit 3                               ; shift ;;
     --) shift; break ;;
   esac
@@ -103,7 +103,7 @@ if [ "${ext}" == json ]; then
     region=$(jq --raw-output .infrastructure.region "${parameterfile}")
     use_deployer=$(jq --raw-output .deployer.use "${parameterfile}")
 else
-    
+
     load_config_vars "${param_dirname}"/"${parameterfile}" "environment"
     load_config_vars "${param_dirname}"/"${parameterfile}" "location"
     region=$(echo ${location} | xargs)
@@ -181,7 +181,7 @@ param_dirname=$(pwd)
 init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
 
 export TF_DATA_DIR="${param_dirname}"/.terraform
-var_file="${param_dirname}"/"${parameterfile}" 
+var_file="${param_dirname}"/"${parameterfile}"
 
 if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
     echo ""
@@ -262,7 +262,7 @@ if [ ! -d ./.terraform/ ]; then
     sed -i /REMOTE_STATE_RG/d  "${library_config_information}"
     sed -i /REMOTE_STATE_SA/d  "${library_config_information}"
     sed -i /tfstate_resource_id/d  "${library_config_information}"
-    
+
 else
     if [ -f ./.terraform/terraform.tfstate ]; then
         if grep "azurerm" ./.terraform/terraform.tfstate ; then
@@ -286,7 +286,7 @@ else
                         echo ""
                         echo "#########################################################################################"
                         echo "#                                                                                       #"
-                        echo -e "#                          $boldreduscore Errors during the init phase $resetformatting                               #"    
+                        echo -e "#                          $boldreduscore Errors during the init phase $resetformatting                               #"
                         echo "#                                                                                       #"
                         echo "#########################################################################################"
                         echo ""
@@ -335,14 +335,14 @@ if [ 0 == $return_value ] ; then
     then
         rm plan_output.log
     fi
-    
+
     tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id| tr -d \")
     STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
 
     az account set --sub $STATE_SUBSCRIPTION
 
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
-    
+
     get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
 
     unset TF_DATA_DIR
@@ -354,7 +354,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore Errors during the plan phase $resetformatting                               #"    
+    echo -e "#                          $boldreduscore Errors during the plan phase $resetformatting                               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -381,16 +381,16 @@ echo "##########################################################################
 echo ""
 
 deployer_parameter=""
-if [ -n "${deployer_statefile_foldername}" ]; 
+if [ -n "${deployer_statefile_foldername}" ];
 then
     echo "Deployer folder specified:" "${deployer_statefile_foldername}"
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -json | tee -a  apply_output.json
+    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json
 else
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -var-file="${var_file}" -json | tee -a  apply_output.json
+    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a  apply_output.json
 fi
 return_value=$?
 
-rerun_apply=0 
+rerun_apply=0
 if [ -f apply_output.json ]
 then
     errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
@@ -413,12 +413,12 @@ then
             then
                 string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
             fi
-            
+
             echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
             echo "##vso[task.logissue type=error]${string_to_report}"
-        
+
         done
-        
+
     fi
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -428,18 +428,27 @@ then
     existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
     if [[ -n ${existing} ]]
     then
-        
+
         readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
-        moduleID=$(jq -c -r '.address '  <<< "$item")
-        resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
-        echo "Trying to import" $resourceID "into" $moduleID
-        
-        terraform -chdir="${terraform_module_directory}" import -allow-missing-config  -var-file="${var_file}" "${deployer_parameter}" $moduleID $resourceID
+          moduleID=$(jq -c -r '.address '  <<< "$item")
+          resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+          echo "Trying to import" $resourceID "into" $moduleID
+
+          if [ -n "${deployer_statefile_foldername}" ];
+          then
+              echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+              terraform -chdir="${terraform_module_directory}" import -allow-missing-config -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
+          else
+              terraform -chdir="${terraform_module_directory}" import -allow-missing-config -var-file="${var_file}" $moduleID $resourceID
+          fi
+
+
         done
-        rerun_apply=1 
+        rerun_apply=1
     fi
     fi
+
 
 fi
 
@@ -456,7 +465,13 @@ if [ $rerun_apply == 1 ] ; then
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
-    terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" "${deployer_parameter}" $moduleID $resourceID
+    if [ -n "${deployer_statefile_foldername}" ];
+    then
+        echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+        terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json
+    else
+        terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a  apply_output.json
+    fi
     return_value=$?
 fi
 

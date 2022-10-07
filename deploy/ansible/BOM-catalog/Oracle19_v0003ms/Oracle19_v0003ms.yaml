@@ -32,41 +32,41 @@ materials:
 # SBP Patches are downloaded based on SAP Note 2799920 - Patches 19c: Database
 
     - name:         "Oracle SBP - Bundle patches for 19c: GIRU"
-      archive:      GIRU19P_2202-70004508.ZIP
-      checksum:     578799a0d7d727b131b410674696afec5762b32afef03a22521a012df2f8cdd9
+      archive:      GIRU19P_2205-70004508.ZIP
+      checksum:     8ec67f7905c03bca99cc1098c3af81d49753af1e8934a4e2d551cfdc3473cb1c
       extract:      false
       download:     true
       extractDir:   SBP/GIRU19P
       path:         SBP
       # creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000223642022
+      url:          https://softwaredownloads.sap.com/file/0020000000674042022
 
     - name:         "Oracle SBP - Bundle patches for 19c: SAP19P"
-      archive:      SAP19P_2202-70004508.ZIP
-      checksum:     4a231da93010f1d700d89cde8c05f5be8c50fc85ce3843156123765271274815
+      archive:      SAP19P_2205-70004508.ZIP
+      checksum:     494999a9407ab2d7bcbe3280eda1f9c2ecbb5123341833401f2477fee6674a70
       extract:      true
       extractDir:   SBP/SAPSBP
       path:         SBP
       # creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000219572022
+      url:          https://softwaredownloads.sap.com/file/0020000000679362022
 
     - name:         "Oracle SBP - Bundle patches for 19c: SBPJDK19P"
-      archive:      SBPJDK19P_2202-70004508.ZIP
-      checksum:     e411cddd92e21ed21348ea0da146fa08bbfe9a39b1c955fff532df785bd666b6
+      archive:      SBPJDK19P_2205-70004508.ZIP
+      checksum:     64cbffbc281dd22c111a47e9a3a42132088b387915f4faab14a326564d031e5a
       extract:      false
       extractDir:   SBP/SBPJDK
       path:         SBP
       # creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000219812022
+      url:          https://softwaredownloads.sap.com/file/0020000000673682022
 
     - name:         "Oracle SBP - Bundle patches for 19c: OPatch"
-      archive:      OPATCH19P_2202-70004508.ZIP
-      checksum:     b1860114866acf5bcd9497804ec84957f74abadca730ebc54d7f324c5b656b53
+      archive:      OPATCH19P_2205-70004508.ZIP
+      checksum:     f90ea13f80da7b9bafb7380bde2f7feda8f6aaa5fdca167371499527e3513a83
       extract:      true
       extractDir:   SBP/OPATCH
       path:         SBP
       # creates:     SIGNATURE.SMF
-      url:          https://softwaredownloads.sap.com/file/0020000000226172022
+      url:          https://softwaredownloads.sap.com/file/0020000000679462022
 
 
     - name:         "Oracle compact-lib"

@@ -109,9 +109,9 @@ variable "bastion_deployment" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Deployer Information                             # 
-#                                                                             # 
+#                                                                             #
+#                            Deployer Information                             #
+#                                                                             #
 ###############################################################################
 
 variable "deployer" {}
@@ -151,8 +151,13 @@ variable "agent_ado_url" {
   description = "If provided, contains the Url to the ADO repository"
 }
 
+variable "ansible_core_version" {
+  description = "If provided, the version of ansible core to be installed"
+  default     = "2.13"
+}
 
 variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
   type    = string
   default = ""
 }

@@ -470,3 +470,23 @@ resource "azurerm_virtual_machine_extension" "scs_win_aem_extension" {
   }
 SETTINGS
 }
+
+resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
+
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.scs_ostype) == "WINDOWS" ? (
+    local.scs_server_count) : (
+    0
+  )
+  virtual_machine_id   = azurerm_windows_virtual_machine.scs[count.index].id
+  name                 = "configure_ansible"
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.9"
+  settings             = <<SETTINGS
+        {
+          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+        }
+    SETTINGS
+}

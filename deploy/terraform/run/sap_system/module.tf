@@ -99,6 +99,7 @@ module "hdb_node" {
   providers = {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -162,6 +163,7 @@ module "app_tier" {
   providers = {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
@@ -209,6 +211,7 @@ module "anydb_node" {
   providers = {
     azurerm.main     = azurerm
     azurerm.deployer = azurerm.deployer
+    azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   order_deployment = local.enable_db_deployment ? (
     local.db_zonal_deployment && local.application.enable_deployment ? (
@@ -221,6 +224,7 @@ module "anydb_node" {
   resource_group                               = module.common_infrastructure.resource_group
   storage_bootdiag_endpoint                    = module.common_infrastructure.storage_bootdiag_endpoint
   ppg                                          = module.common_infrastructure.ppg
+  landscape_tfstate                            = data.terraform_remote_state.landscape.outputs
   sid_keyvault_user_id                         = module.common_infrastructure.sid_keyvault_user_id
   naming                                       = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   custom_disk_sizes_filename                   = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")

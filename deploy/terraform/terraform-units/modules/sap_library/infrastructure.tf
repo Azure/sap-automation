@@ -1,6 +1,6 @@
 /*
   Description:
-  Set up infrastructure for sap library 
+  Set up infrastructure for sap library
 */
 
 resource "azurerm_resource_group" "library" {
@@ -52,4 +52,22 @@ resource "azurerm_private_dns_zone" "blob" {
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
     azurerm_resource_group.library[0].name
   )
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
+  count    = length(var.dns_label) > 0 ? 1 : 0
+  name = format("%s%s%s%s",
+    var.naming.resource_prefixes.dns_link,
+    local.prefix,
+    var.naming.separator,
+    var.naming.resource_suffixes.dns_link
+  )
+
+  resource_group_name = local.resource_group_exists ? (
+    split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+    azurerm_resource_group.library[0].name
+  )
+  private_dns_zone_name = var.dns_label
+  virtual_network_id = var.deployer_tfstate.vnet_mgmt_id
+  registration_enabled = true
 }

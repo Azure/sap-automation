@@ -61,6 +61,9 @@ resource "azurerm_storage_account" "sapmnt" {
 }
 
 resource "azurerm_private_dns_a_record" "sapmnt" {
+  depends_on = [
+    azurerm_private_endpoint.sapmnt
+  ]
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name                = split(".", azurerm_private_endpoint.sapmnt[count.index].custom_dns_configs[count.index].fqdn)[0]
   zone_name           = "privatelink.file.core.windows.net"
@@ -96,6 +99,10 @@ data "azurerm_storage_account" "sapmnt" {
 }
 
 resource "azurerm_private_endpoint" "sapmnt" {
+  depends_on = [
+    azurerm_storage_account.sapmnt
+  ]
+
   provider = azurerm.main
   count = var.NFS_provider == "AFS" ? (
     length(var.azure_files_sapmnt_id) > 0 ? (

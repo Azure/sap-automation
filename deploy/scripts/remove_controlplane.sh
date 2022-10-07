@@ -19,6 +19,7 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+keep_agent=0
 
 ################################################################################################
 #                                                                                              #
@@ -45,7 +46,7 @@ function showhelp {
     echo "#                                                                                                               #"
     echo "#   The script experts the following exports:                                                                   #"
     echo "#                                                                                                               #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                                #"
+    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                          #"
     echo "#                                                                                                               #"
     echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for         #"
     echo "#    the deployer and the library and the environment.                                                          #"
@@ -85,7 +86,7 @@ function missing {
 
 force=0
 ado=0
-INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:iha --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -102,6 +103,7 @@ do
         -b | --storage_account)                    storage_account="$2"                ; shift 2 ;;
         -r | --resource_group)                     resource_group="$2"                 ; shift 2 ;;
         -a | --ado)                                approveparam="--auto-approve;ado=1" ; shift ;;
+        -g | --keep_agent)                         keep_agent=1                      ; shift ;;
         -i | --auto-approve)                       approveparam="--auto-approve"       ; shift ;;
         -h | --help)                               showhelp
         exit 3                           ; shift ;;
@@ -155,6 +157,15 @@ automation_config_directory=~/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
+load_config_vars "${deployer_config_information}" "step"
+if [ 1 == $step ]; then
+    exit 0
+fi
+
+if [ 0 == $step ]; then
+    exit 0
+fi
+
 if [ -z "$deployer_config_information" ]; then
     rm $deployer_config_information
 fi
@@ -165,6 +176,7 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
+export TF_IN_AUTOMATION="true"
 echo "Deployer environment: $deployer_environment"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
@@ -243,13 +255,17 @@ echo "#  storage_account_name=${storage_account}"
 echo "#  container_name=tfstate"
 echo "#  key=${key}.terraform.tfstate"
 
+if [ -f init_error.log ] ; then
+    rm init_error.log
+fi
+
 if [ -f ./.terraform/terraform.tfstate ]; then
     if grep "azurerm" ./.terraform/terraform.tfstate ; then
         echo "State is stored in Azure"
 
         #Initialize the statefile and copy to local
-        terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 
+        terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -257,16 +273,30 @@ if [ -f ./.terraform/terraform.tfstate ]; then
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
-
-        terraform -chdir="${terraform_module_directory}" init -migrate-state -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"
+        sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -reconfigure  --backend-config "path=${param_dirname}/terraform.tfstate"
     else
-        terraform -chdir="${terraform_module_directory}" init --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
    fi
 else
-    terraform -chdir="${terraform_module_directory}" init --backend-config "path=${param_dirname}/terraform.tfstate"
+    terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
 fi
+return_value=$?
 
-
+if [ -f init_error.log ] ; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#               $boldred Error when initializing Terraform (deployer - local) $resetformatting                  #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  cat init_error.log
+  rm init_error.log
+  unset TF_DATA_DIR
+  exit 1
+fi
 cd "${curdir}" || exit
 
 key=$(echo "${library_file_parametername}" | cut -d. -f1)
@@ -308,14 +338,30 @@ if [ -f ./.terraform/terraform.tfstate ]; then
         echo ""
 
         #Initialize the statefile and copy to local
-        terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"
+        sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -reconfigure  --backend-config "path=${param_dirname}/terraform.tfstate"
     else
-        terraform -chdir="${terraform_module_directory}" init --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
     fi
 else
-    terraform -chdir="${terraform_module_directory}" init --backend-config "path=${param_dirname}/terraform.tfstate"
+    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
 fi
 
+if [ -f init_error.log ] ; then
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo -e "#               $boldred Error when initializing Terraform (library - local) $resetformatting                   #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+  cat init_error.log
+  rm init_error.log
+  unset TF_DATA_DIR
+  exit 1
+
+fi
 
 
 extra_vars=""
@@ -339,76 +385,81 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-terraform -chdir="${terraform_module_directory}" destroy  $allParams
+terraform -chdir="${terraform_module_directory}" destroy $allParams
 return_value=$?
 
 if [ 0 != $return_value ]
 then
     exit $return_value
+else
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo "#                                       Reset settings                                  #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+
+  STATE_SUBSCRIPTION=''
+  REMOTE_STATE_SA=''
+  REMOTE_STATE_RG=''
+  save_config_vars "${deployer_config_information}" \
+          tfstate_resource_id \
+          REMOTE_STATE_SA \
+          REMOTE_STATE_RG \
+          STATE_SUBSCRIPTION
+
 fi
 
 cd "${curdir}" || exit
 
-cd "${deployer_dirname}" || exit
+if [ 1 -eq $keep_agent ]; then
+  echo "Keeping the Azure DevOps agent"
+  step=1
+  save_config_var "step" "${deployer_config_information}"
 
-param_dirname=$(pwd)
+else
+  cd "${deployer_dirname}" || exit
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
-export TF_DATA_DIR="${param_dirname}/.terraform"
+  param_dirname=$(pwd)
 
-extra_vars=""
+  terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+  export TF_DATA_DIR="${param_dirname}/.terraform"
 
-if [ -f terraform.tfvars ]; then
-    extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+  extra_vars=""
+
+  if [ -f terraform.tfvars ]; then
+      extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+  fi
+
+  var_file="${param_dirname}"/"${deployer_file_parametername}"
+  allParams=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${approveparam}"  )
+
+  echo ""
+  echo "#########################################################################################"
+  echo "#                                                                                       #"
+  echo "#                     Running Terraform destroy (deployer)                              #"
+  echo "#                                                                                       #"
+  echo "#########################################################################################"
+  echo ""
+
+  terraform -chdir="${terraform_module_directory}" destroy $allParams
+  return_value=$?
+  step=0
+  save_config_var "step" "${deployer_config_information}"
+  if [ 0 != $return_value ]; then
+      keyvault=''
+      deployer_tfstate_key=''
+      save_config_var $keyvault "${deployer_config_information}"
+      save_config_var $deployer_tfstate_key "${deployer_config_information}"
+  fi
 fi
-
-var_file="${param_dirname}"/"${deployer_file_parametername}"
-allParams=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${approveparam}"  )
-
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                     Running Terraform destroy (deployer)                              #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-
-terraform -chdir="${terraform_module_directory}" destroy $allParams
-return_value=$?
 
 cd "${curdir}" || exit
 
 unset TF_DATA_DIR
 
-step=0
-save_config_var "step" "${deployer_config_information}"
 
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                                       Reset settings                                  #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-
-STATE_SUBSCRIPTION=''
-REMOTE_STATE_SA=''
-REMOTE_STATE_RG=''
-tfstate_resource_id=''
-save_config_vars "${deployer_config_information}" \
-        tfstate_resource_id \
-        REMOTE_STATE_SA \
-        REMOTE_STATE_RG \
-        STATE_SUBSCRIPTION
-
-
-if [ 0 != $return_value ]; then
-    keyvault=''
-    deployer_tfstate_key=''
-    save_config_var $keyvault "${deployer_config_information}" 
-    save_config_var $deployer_tfstate_key "${deployer_config_information}"  
-
-fi
 
 exit $return_value

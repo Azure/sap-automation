@@ -154,7 +154,7 @@ stages:
                 environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK ; echo configuration_file $environment_file_name
                           params_file=$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml              ;  echo sap_parameters_file $params_file
 
-              if [[ "azure pipelines" == $(this_agent) ]]; then
+              if [ "azure pipelines" = "$(this_agent)" ]; then
                   echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group using the 'POOL' variable."
                   exit 2
                 fi
