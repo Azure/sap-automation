@@ -196,6 +196,12 @@ namespace AutomationForm.Models
 
         public int? ANF_install_volume_size { get; set; }
 
+        public string management_dns_resourcegroup_name { get; set; }
+
+        public string management_dns_subscription_id { get; set; }
+
+        public bool? use_custom_dns_a_registration { get; set; }
+
 
         [KeyvaultIdValidator]
         public string user_keyvault_id { get; set; }

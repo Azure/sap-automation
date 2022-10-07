@@ -1475,7 +1475,7 @@
       {
         "Name": "ANF_HANA_data_volume_size",
         "Required": false,
-        "Description": "If defined, provides the size of the HANA data volume(s).",
+        "Description": "If defined, provides the size of the HANA data volume(s) in GB.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1484,7 +1484,7 @@
       {
         "Name": "ANF_HANA_data_volume_throughput",
         "Required": false,
-        "Description": "If defined, provides the throughput of the HANA data volume(s).",
+        "Description": "If defined, provides the throughput of the HANA data volume(s) in MB/s.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1526,7 +1526,7 @@
       {
         "Name": "ANF_HANA_log_volume_size",
         "Required": false,
-        "Description": "If defined, provides the size of the HANA log volume(s).",
+        "Description": "If defined, provides the size of the HANA log volume(s) in GB.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1535,7 +1535,7 @@
       {
         "Name": "ANF_HANA_log_volume_throughput",
         "Required": false,
-        "Description": "If defined, provides the throughput of the HANA log volume(s).",
+        "Description": "If defined, provides the throughput of the HANA log volume(s) in MB/s.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1577,7 +1577,7 @@
       {
         "Name": "ANF_HANA_shared_volume_size",
         "Required": false,
-        "Description": "If defined, provides the size of the HANA shared volume(s).",
+        "Description": "If defined, provides the size of the HANA shared volume(s) in GB.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1586,7 +1586,7 @@
       {
         "Name": "ANF_HANA_shared_volume_throughput",
         "Required": false,
-        "Description": "If defined, provides the throughput of the HANA shared volume(s).",
+        "Description": "If defined, provides the throughput of the HANA shared volume(s) in MB/s.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1628,7 +1628,7 @@
       {
         "Name": "ANF_usr_sap_volume_size",
         "Required": false,
-        "Description": "If defined, provides the size for the /usr/sap volume",
+        "Description": "If defined, provides the size for the /usr/sap volume in GB",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1637,7 +1637,7 @@
       {
         "Name": "ANF_usr_sap_throughput",
         "Required": false,
-        "Description": "If defined provides the throughput of the /usr/sap volume",
+        "Description": "If defined provides the throughput of the /usr/sap volume in MB/s.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1670,7 +1670,7 @@
       {
         "Name": "ANF_sapmnt_volume_size",
         "Required": false,
-        "Description": "If defined, provides the size for the sapmnt volume",
+        "Description": "If defined, provides the size for the sapmnt volume in GB.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1679,7 +1679,7 @@
       {
         "Name": "ANF_sapmnt_volume_throughput",
         "Required": false,
-        "Description": "If defined, provides the throughput for the sapmnt volume",
+        "Description": "If defined, provides the throughput for the sapmnt volume in MB/s.",
         "Type": "field",
         "Options": [],
         "Overrules": "",

@@ -102,42 +102,9 @@ namespace AutomationForm.Controllers
         }
 
         // Trigger a pipeline in azure devops
-        public async Task TriggerPipeline(string pipelineId, string id, bool system, string workload_environment, string environment,  string deployer_region_parameter)
+        public async Task TriggerPipeline(string pipelineId, PipelineRequestBody requestBody)
         {
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
-
-            PipelineRequestBody requestBody = new PipelineRequestBody
-            {
-                resources = new Resources
-                {
-                    repositories = new Repositories
-                    {
-                        self = new Self
-                        {
-                            refName = $"refs/heads/{branch}"
-                        }
-                    }
-                }
-            };
-            if (system)
-            {
-                requestBody.templateParameters = new Templateparameters
-                {
-                    sap_system = id,
-                    environment = workload_environment
-                };
-            }
-            else
-            {
-                requestBody.templateParameters = new Templateparameters
-                {
-                    workload_zone = id,
-                    workload_environment_parameter = workload_environment,
-                    deployer_environment_parameter = environment,
-                    deployer_region_parameter = deployer_region_parameter,
-                    
-                };
-            }
 
             string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
             StringContent content = new StringContent(requestJson, Encoding.ASCII, "application/json");
@@ -212,6 +179,7 @@ namespace AutomationForm.Controllers
         public async Task<EnvironmentModel[]> GetVariableGroups()
         {
             JsonElement values = await GetVariableGroupsJson();
+
             List<EnvironmentModel> variableGroups = new List<EnvironmentModel>();
 
             foreach (var value in values.EnumerateArray())
@@ -232,6 +200,7 @@ namespace AutomationForm.Controllers
         public async Task<List<SelectListItem>> GetEnvironmentsList()
         {
             JsonElement values = await GetVariableGroupsJson();
+
             List<SelectListItem> variableGroups = new List<SelectListItem>
             {
                 new SelectListItem { Text = "", Value = "" }
@@ -386,6 +355,7 @@ namespace AutomationForm.Controllers
             dynamicVariables.ARM_TENANT_ID = JToken.FromObject(environment.variables.ARM_TENANT_ID);
             dynamicVariables.ARM_SUBSCRIPTION_ID = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
             dynamicVariables.sap_fqdn = JToken.FromObject(environment.variables.sap_fqdn);
+            dynamicVariables.POOL = JToken.FromObject(environment.variables.POOL);
 
             dynamicEnvironment.variables = dynamicVariables;
 

@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Deploy system";
+    ViewData["environment"] = Model.SapObject.environment;
     IEnumerable<SelectListItem> environments = ViewBag.Environments;
 }
 
@@ -16,6 +17,8 @@
         });
 
         toggleNullParameters();
+
+        toggleDisableViaNInputs(['environment'], 'confirm-deploy-system-checkbox') // in the case that it is already set
     }
 
 </script>
@@ -40,12 +43,12 @@
 
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.Label("workload_environment", "Workload Environment", new { @class = $"ms-Label required" })
+                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label required" })
                 <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("workload_environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaOneInput('workload_environment', 'confirm-deploy-system-checkbox')" })
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['environment'], 'confirm-deploy-system-checkbox')" })
             </div>
         </div>
 

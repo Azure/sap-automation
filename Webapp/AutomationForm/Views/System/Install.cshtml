@@ -1,0 +1,208 @@
+@model AutomationForm.Models.FormViewModel<SystemModel>
+
+@{
+    ViewBag.Title = "Install SAP";
+    ViewData["environment"] = Model.SapObject.environment;
+    IEnumerable<SelectListItem> environments = ViewBag.Environments;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+
+        toggleNullParameters();
+    }
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Install</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Install SAP</h2>
+</div>
+
+<h4>Are you sure you want to install SAP using System @Model.SapObject.Id?</h4>
+<div>
+    @await Html.PartialAsync("_DetailsPartial", Model)
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        string parameterName = "";
+        string displayName = "";
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("sap_system_configuration_name", "SAP System", new { @class = $"ms-Label required" })
+                <p>SAP System configuration name</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("sap_system_configuration_name", Model.SapObject.Id, new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label required" })
+                <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("bom_base_name", "Bill of Materials name", new { @class = $"ms-Label required" })
+                <p>Bill of materials name</p>
+            </div>
+
+            <div class="right-input">
+                @Html.TextBox("bom_base_name", "", new { @class = "ms-TextField-field", @onkeyup = $"toggleDisableViaNInputs(['sap_system_configuration_name', 'environment', 'bom_base_name'], 'confirm-install-system-checkbox')" })
+            </div>
+        </div>
+
+        parameterName = "base_os_configuration";
+        displayName = "Core Operating System Configuration";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "sap_os_configuration";
+        displayName = "SAP Operating System Configuration";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "bom_processing";
+        displayName = "Software Acquisition";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "database_install";
+        displayName = "Database Installation";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "scs_installation";
+        displayName = "SCS Installation";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "db_load";
+        displayName = "Database Load";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "high_availability_configuration";
+        displayName = "SAP & DB High Availability Setup";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "pas_installation";
+        displayName = "PAS Installation";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "application_server_installation";
+        displayName = "APP Installation";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        parameterName = "webdispatcher_installation";
+        displayName = "WebDispatcher Installation";
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+            </div>
+
+            <div class="right-input">
+                <fluent-checkbox id=@parameterName name=@parameterName value="False" onchange="this.value=this.checked"></fluent-checkbox>
+            </div>
+        </div>
+
+        <fluent-checkbox id="confirm-install-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'install-system-button')" disabled>I confirm that I wish to install SAP on this system</fluent-checkbox><br />
+
+        <fluent-button id="install-system-button" appearance="accent" value="Install" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Installation" aria-hidden="true"></i> Install
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "System")">
+            Cancel
+        </fluent-anchor>
+
+    }
+</div>

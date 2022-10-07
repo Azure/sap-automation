@@ -70,7 +70,7 @@ namespace AutomationForm.Controllers
                 systemIndex.SapObjects = systems;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
-                systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars"));
+                systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars") && file.Id != "VM-Images.json");
 
                 systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService);
             }
@@ -205,7 +205,7 @@ namespace AutomationForm.Controllers
 
         [HttpPost]
         [ActionName("Deploy")]
-        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string workload_environment)
+        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
             try
             {
@@ -213,17 +213,89 @@ namespace AutomationForm.Controllers
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
-                string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
-                bool isSystem = true;
 
                 await restHelper.UpdateRepo(path, content);
-                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, "", "");
+
+                string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
+                string branch = _configuration["SourceBranch"];
+                parameters.sap_system = id;
+                PipelineRequestBody requestBody = new PipelineRequestBody
+                {
+                    resources = new Resources
+                    {
+                        repositories = new Repositories
+                        {
+                            self = new Self
+                            {
+                                refName = $"refs/heads/{branch}"
+                            }
+                        }
+                    },
+                    templateParameters = parameters
+                };
+
+                await restHelper.TriggerPipeline(pipelineId, requestBody);
 
                 TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
             }
             catch (Exception e)
             {
                 TempData["error"] = "Error deploying system " + id + ": " + e.Message;
+            }
+            return RedirectToAction("Index");
+        }
+
+        [ActionName("Install")]
+        public async Task<IActionResult> InstallAsync(string id, string partitionKey)
+        {
+            try
+            {
+                SystemModel system = await GetById(id, partitionKey);
+                systemView.SapObject = system;
+
+                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                ViewBag.Environments = environments;
+
+                return View(systemView);
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ActionName("Install")]
+        public async Task<IActionResult> InstallConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
+        {
+            try
+            {
+                SystemModel system = await GetById(id, partitionKey);
+
+                string pipelineId = _configuration["SAP_INSTALL_PIPELINE_ID"];
+                string branch = _configuration["SourceBranch"];
+                PipelineRequestBody requestBody = new PipelineRequestBody
+                {
+                    resources = new Resources
+                    {
+                        repositories = new Repositories
+                        {
+                            self = new Self
+                            {
+                                refName = $"refs/heads/{branch}"
+                            }
+                        }
+                    },
+                    templateParameters = parameters
+                };
+
+                await restHelper.TriggerPipeline(pipelineId, requestBody);
+                TempData["success"] = "Successfully triggered SAP installation pipeline for " + id;
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error triggering SAP installation pipeline for system " + id + ": " + e.Message;
             }
             return RedirectToAction("Index");
         }
@@ -255,7 +327,7 @@ namespace AutomationForm.Controllers
         //     TempData["success"] = "Successfully deleted system " + id;
         //     return RedirectToAction("Index");
         // }
-        
+
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id, string partitionKey)
         {

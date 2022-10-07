@@ -240,7 +240,7 @@ namespace AutomationForm.Controllers
             }
             return id;
         }
-        private static string MapRegion(string region)
+        public static string MapRegion(string region)
         {
             if (region == null) return "";
             if (regionMapping.ContainsKey(region))
@@ -358,7 +358,6 @@ namespace AutomationForm.Controllers
 
             return true;
         }
-        
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new StringReader(hclString);
