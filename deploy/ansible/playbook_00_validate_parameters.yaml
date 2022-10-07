@@ -279,41 +279,41 @@
       tags:
         - 0.0-scs-pas-single
 
-    # - name:                            "0.0 Validations - Check internet connectivity"
-    #   ansible.builtin.uri:
-    #     url:                           "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
-    #     headers:
-    #       Authorization: "Bearer {{ access_token }}"
-    #       Content-Type: application/json
-    #       Accept: application/json
-    #     status_code:
-    #       - 200
-    #       - 403
-    #   register:                        internet_check
-    #   vars:
-    #     ansible_python_interpreter:    "{{ python_version }}"
-    #   when:
-    #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15' ]
-    #   tags:
-    #     - 0.0-internet
+    - name:                            "0.0 Validations - Check internet connectivity"
+      ansible.builtin.uri:
+        url:                           "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+          Content-Type: application/json
+          Accept: application/json
+        status_code:
+          - 200
+          - 403
+      register:                        internet_check
+      vars:
+        ansible_python_interpreter:    "{{ python_version }}"
+      when:
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15' ]
+      tags:
+        - 0.0-internet
 
-    # - name:                            "0.0 Validations - Check internet connectivity"
-    #   ansible.builtin.uri:
-    #     url:                           "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
-    #     headers:
-    #       Authorization: "Bearer {{ access_token }}"
-    #       Content-Type: application/json
-    #       Accept: application/json
-    #     status_code:
-    #       - 200
-    #       - 403
-    #   register:                        internet_check
-    #   when:
-    #     - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'suse15'
-    #     - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'sles_sap15'
-    #     - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat8'
-    #   tags:
-    #     - 0.0-internet
+    - name:                            "0.0 Validations - Check internet connectivity"
+      ansible.builtin.uri:
+        url:                           "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+          Content-Type: application/json
+          Accept: application/json
+        status_code:
+          - 200
+          - 403
+      register:                        internet_check
+      when:
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'suse15'
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'sles_sap15'
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) != 'redhat8'
+      tags:
+        - 0.0-internet
 
     # - name:                            "0.0 Validations - Get repository listing (SUSE)"
     #   ansible.builtin.command:         zypper lr
