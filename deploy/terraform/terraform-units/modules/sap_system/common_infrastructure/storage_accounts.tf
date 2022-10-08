@@ -35,29 +35,29 @@ resource "azurerm_storage_account" "sapmnt" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  network_rules {
-    default_action = "Deny"
-    ip_rules       = var.use_private_endpoint ? ([]) : length(var.Agent_IP) > 0 ? [var.Agent_IP] : []
-    virtual_network_subnet_ids = var.use_private_endpoint ? (compact(
-      [
+}
+resource "azurerm_storage_account_network_rules" "sapmnt" {
+  count = var.NFS_provider == "AFS" ? (
+    length(var.azure_files_sapmnt_id) > 0 ? (
+      0) : (
+      1
+    )) : (
+    0
+  )
+  storage_account_id = azurerm_storage_account.sapmnt[0].id
+  default_action     = "Deny"
+
+  bypass = ["AzureServices", "Logging", "Metrics"]
+  virtual_network_subnet_ids = compact(
+    [
         try(var.landscape_tfstate.admin_subnet_id, ""),
         try(var.landscape_tfstate.app_subnet_id, ""),
         try(var.landscape_tfstate.db_subnet_id, ""),
+        try(var.landscape_tfstate.web_subnet_id, ""),
         try(var.landscape_tfstate.subnet_mgmt_id, "")
-      ]
-      )
-      ) : (
-      compact(
-        [
-          try(var.landscape_tfstate.admin_subnet_id, ""),
-          try(var.landscape_tfstate.app_subnet_id, ""),
-          try(var.landscape_tfstate.db_subnet_id, ""),
-          try(var.landscape_tfstate.subnet_mgmt_id, "")
-        ]
-      )
-    )
-    bypass = ["AzureServices", "Logging", "Metrics"]
-  }
+    ]
+  )
+
 }
 
 resource "azurerm_private_dns_a_record" "sapmnt" {

@@ -1,7 +1,7 @@
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                     Diagnostics storage account                              #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "storage_bootdiag" {
@@ -28,36 +28,6 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  dynamic "network_rules" {
-    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-    content {
-      default_action = "Deny"
-      ip_rules = compact(
-        [
-          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-        ]
-      )
-
-      bypass = ["AzureServices", "Logging", "Metrics"]
-      virtual_network_subnet_ids = compact(
-        [
-          local.database_subnet_defined ? (
-            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
-            ""
-            ), local.application_subnet_defined ? (
-            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
-            ""
-            ), local.web_subnet_defined ? (
-            local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
-            ""
-          ),
-          local.deployer_subnet_management_id
-        ]
-      )
-
-    }
-  }
 }
 
 resource "azurerm_private_dns_a_record" "storage_bootdiag" {
@@ -121,9 +91,9 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                        Witness storage account                               #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "witness_storage" {
@@ -149,35 +119,30 @@ resource "azurerm_storage_account" "witness_storage" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  dynamic "network_rules" {
-    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-    content {
-      default_action = "Deny"
-      ip_rules = compact(
-        [
-          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-        ]
-      )
-
-      bypass = ["AzureServices", "Logging", "Metrics"]
-      virtual_network_subnet_ids = compact(
-        [
-          local.database_subnet_defined ? (
-            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
-            ""
-            ), local.application_subnet_defined ? (
-            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
-            ""
-          ),
-          local.deployer_subnet_management_id
-        ]
-      )
-
-    }
-  }
 }
 
+resource "azurerm_storage_account_network_rules" "witness" {
+  provider           = azurerm.main
+  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.witness_storage_account.arm_id) == 0 ? 1 : 0
+  storage_account_id = azurerm_storage_account.witness_storage[0].id
+  default_action     = "Deny"
+  bypass             = ["AzureServices", "Logging", "Metrics"]
+
+  ip_rules = compact([
+      length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+    ])
+  virtual_network_subnet_ids = [
+    local.database_subnet_defined ? (
+      local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+      ""
+      ), local.application_subnet_defined ? (
+      local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+      ""
+    ),
+    local.deployer_subnet_management_id
+  ]
+
+}
 resource "azurerm_private_dns_a_record" "witness_storage" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name                = split(".", azurerm_private_endpoint.witness_storage[count.index].custom_dns_configs[count.index].fqdn)[0]
@@ -239,9 +204,9 @@ resource "azurerm_private_endpoint" "witness_storage" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                        Transport storage account                             #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "transport" {
@@ -275,29 +240,33 @@ resource "azurerm_storage_account" "transport" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  dynamic "network_rules" {
-    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-    content {
-      default_action = "Deny"
-      ip_rules = compact(
-        [
-          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-        ]
-      )
+}
 
-      bypass = ["AzureServices", "Logging", "Metrics"]
-      virtual_network_subnet_ids = compact(
-        [
-          local.application_subnet_defined ? (
-            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
-            ""
-          ), local.deployer_subnet_management_id
-        ]
-      )
+resource "azurerm_storage_account_network_rules" "transport" {
+  provider           = azurerm.main
+  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  storage_account_id = azurerm_storage_account.transport[0].id
+  default_action     = "Deny"
 
-    }
-  }
+  ip_rules = compact([
+      length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+    ])
+  bypass = ["AzureServices", "Logging", "Metrics"]
+  virtual_network_subnet_ids = compact(
+    [
+      local.database_subnet_defined ? (
+        local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+        ""
+        ), local.application_subnet_defined ? (
+        local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+        ""
+        ), local.web_subnet_defined ? (
+        local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
+        ""
+      ),
+      local.deployer_subnet_management_id
+    ]
+  )
 
 }
 
@@ -413,9 +382,9 @@ data "azurerm_private_endpoint_connection" "transport" {
 }
 
 ################################################################################
-#                                                                              # 
+#                                                                              #
 #                     Install media storage account                            #
-#                                                                              # 
+#                                                                              #
 ################################################################################
 
 resource "azurerm_storage_account" "install" {
@@ -451,36 +420,34 @@ resource "azurerm_storage_account" "install" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  dynamic "network_rules" {
-    for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-    content {
-      default_action = "Deny"
-      ip_rules = compact(
-        [
-          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-        ]
-      )
+}
 
-      bypass = ["AzureServices", "Logging", "Metrics"]
-      virtual_network_subnet_ids = compact(
-        [
-          local.database_subnet_defined ? (
-            local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
-            ""
-            ), local.application_subnet_defined ? (
-            local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
-            ""
-            ), local.web_subnet_defined ? (
-            local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
-            ""
-          ),
-          local.deployer_subnet_management_id
-        ]
-      )
+resource "azurerm_storage_account_network_rules" "install" {
+  provider           = azurerm.main
+  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.install_storage_account_id) == 0 ? 1 : 0
+  storage_account_id = azurerm_storage_account.install[0].id
+  default_action     = "Deny"
 
-    }
-  }
+  ip_rules = compact([
+      length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : ""
+    ])
+  bypass = ["AzureServices", "Logging", "Metrics"]
+  virtual_network_subnet_ids = compact(
+    [
+      local.database_subnet_defined ? (
+        local.database_subnet_existing ? local.database_subnet_arm_id : azurerm_subnet.db[0].id) : (
+        ""
+        ), local.application_subnet_defined ? (
+        local.application_subnet_existing ? local.application_subnet_arm_id : azurerm_subnet.app[0].id) : (
+        ""
+        ), local.web_subnet_defined ? (
+        local.web_subnet_existing ? local.web_subnet_arm_id : azurerm_subnet.web[0].id) : (
+        ""
+      ),
+      local.deployer_subnet_management_id
+    ]
+  )
+
 }
 
 resource "azurerm_private_dns_a_record" "install" {
