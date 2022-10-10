@@ -1,5 +1,6 @@
 parameters:
   environment: ""
+  re_download: false
 
 variables:
   - group: "SDAF-General"
