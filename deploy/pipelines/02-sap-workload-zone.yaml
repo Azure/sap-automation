@@ -137,14 +137,13 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-              echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+              echo -e "$green--- Set WORKSPACES folder ---$reset"
 
-                HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
                 ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs ) ; echo Environment $ENVIRONMENT
                 LOCATION=$(echo $(workload_zone_folder)    | awk -F'-' '{print $2}' | xargs ) ; echo Location    $LOCATION
                 NETWORK=$(echo $(workload_zone_folder)     | awk -F'-' '{print $3}' | xargs ) ; echo Network     $NETWORK
 
-                cd $HOME; mkdir -p .sap_deployment_automation
+                cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
@@ -173,13 +172,13 @@ stages:
               echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
                 echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
 
-                deployer_environment_file_name=$HOME/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
-                workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
+                deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
+                workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
 
                 dos2unix -q ${deployer_environment_file_name}
                 dos2unix -q ${workload_environment_file_name}
 
-                if [ ! -f $HOME/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
+                if [ ! -f $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
                   echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
                   exit 2
@@ -322,7 +321,7 @@ stages:
                 fi
 
               echo -e "$green--- Deploy the workload zone ---$reset"
-                cd $HOME/LANDSCAPE/$(workload_zone_folder)
+                cd $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)
 
                 if [ 0 != $secrets_set ] ; then
                   $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
@@ -473,6 +472,6 @@ stages:
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:     $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
             failOnStderr:               false
 ...
