@@ -197,10 +197,10 @@ stages:
 
                   fi
 
-              echo -e "$green--- Update .sap_deployment_automation/${ENVIRONMENT}$LOCATION as CONFIG_REPO_PATH can change on devops agent ---$reset"
+              echo -e "$green--- Update .sap_deployment_automation/config as CONFIG_REPO_PATH can change on devops agent ---$reset"
                   cd $HOME_CONFIG
                   mkdir -p .sap_deployment_automation
-                  echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH >.sap_deployment_automation/${ENVIRONMENT}$LOCATION
+                  echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH >.sap_deployment_automation/config
 
               echo -e "$green--- File Validations ---$reset"
                   if [ ! -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
