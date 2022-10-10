@@ -6,9 +6,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-name: Removal
-
 parameters:
   - name:                              cleanup_sap
     displayName:                       Remove the SAP system
@@ -45,49 +42,25 @@ parameters:
     type:                              boolean
     default:                           true
 
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-trigger:                               none
-
-pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])] 
-
-variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment_parameter }}
-  - group:                             SDAF-${{ parameters.workload_environment_parameter }}
-
-  - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
- 
-  - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment_parameter }}
-
-  - name:                              workload_zone_folder
-    value:                             ${{ parameters.workload_zone }}
-
-  - name:                              workload_zone_configuration_file
-    value:                             ${{ parameters.workload_zone }}.tfvars
-
-  - name:                              sap_system_folder
-    value:                             ${{ parameters.sap_system }}
-
-  - name:                              sap_system_configuration
-    value:                             ${{ parameters.sap_system }}.tfvars
-
-  - name:                              tf_url
-    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-  - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
-
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
   - stage:                             Remove_SAP_systems
     displayName:                       "Removing the SAP System"
     condition:                         eq(${{ parameters.cleanup_sap }}, true)
+    variables:
+    - template:                       variables/10-remover-terraform-variables.yaml
+      parameters:
+        deployer_environment:         ${{ parameters.deployer_environment_parameter }}
+        workload_environment:         ${{ parameters.workload_environment_parameter}}
+        workload_zone:                ${{ parameters.workload_zone }}
+        sap_system:                   ${{ parameters.sap_system }}
     jobs:
       - job:                           Remove_SAP_systems
         displayName:                   "Removing the SAP System"
@@ -97,13 +70,17 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@3
+          - checkout:                  sap-automation
           - checkout:                  self
             persistCredentials:        true
+            fetchDepth:                0
           - bash: |
               #!/bin/bash
               echo -e "$green--- Preparations ---$reset"
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git checkout -q $(Build.SourceBranchName)
+              cd $CONFIG_REPO_PATH
+              git checkout -q $(Build.SourceBranchName)
+              
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m"
                       SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo Location    $SID
@@ -111,11 +88,8 @@ stages:
                  LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
                   NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo Network     $NETWORK
 
-              DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                              HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-              
-              cd $HOME; mkdir -p .sap_deployment_automation
-              workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
+              mkdir -p .sap_deployment_automation
+              workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
 
               echo -e "$green--- Validations ---$reset"
 
@@ -144,7 +118,7 @@ stages:
                   fi
                 fi
 
-                if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
+                if [ ! -f $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
                   echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
                   exit 2
@@ -187,7 +161,7 @@ stages:
                   rm -f terraform_$(tf_version)_linux_amd64.zip
               fi
               echo -e "$green--- Set variables ---$reset"
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH > .sap_deployment_automation/config
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value" | tr -d \")
                 if [ -z ${az_var} ]; then
@@ -246,8 +220,8 @@ stages:
                 fi
 
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
-                cd $HOME/SYSTEM/$(sap_system_folder)
-                ${DEPLOYMENT_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sap_system_configuration) --type sap_system --auto-approve
+                cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)
+                ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh --parameterfile $(sap_system_configuration) --type sap_system --auto-approve
                 return_code=$?
 
               echo -e "$green--- Pull latest from DevOps Repository ---$reset"
@@ -333,14 +307,23 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
+              SAP_AUTOMATION_REPO_PATH:    $(Build.Repository.LocalPath)
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
 
             failOnStderr:              false
 
   - stage:                             Remove_SAP_workload_zone
     displayName:                       "Removing the SAP workload zone"
     condition:                         eq(${{ parameters.cleanup_zone }}, true)
+    variables:
+    - template:                        variables/10-remover-terraform-variables.yaml
+      parameters:
+        deployer_environment:          ${{ parameters.deployer_environment_parameter }}
+        workload_environment:          ${{ parameters.workload_environment_parameter}}
+        workload_zone:                 ${{ parameters.workload_zone }}
+        sap_system:                    ${{ parameters.sap_system }}
     jobs:
       - job:                           Remove_SAP_workload_zone
         displayName:                   Remove the SAP Workload Zone
@@ -350,23 +333,25 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@3
+          - checkout:                  sap-automation
           - checkout:                  self
             persistCredentials:        true
+            fetchDepth:                0
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $(workload_zone_folder)"
               green="\e[1;32m" ; reset="\e[0m"
+
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git checkout -q $(Build.SourceBranchName)
+              cd $CONFIG_REPO_PATH
+              git checkout -q $(Build.SourceBranchName)
 
               ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                  LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
                   NETWORK=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs) ; echo Network     $NETWORK
               
-              HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-              
-              cd $HOME; mkdir -p .sap_deployment_automation
-              workload_environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
+              mkdir -p .sap_deployment_automation
+              workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                 echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
@@ -432,7 +417,7 @@ stages:
                     exit 2
                 fi
 
-              echo -e "$green--- Set WORKSPACES folder as new home ---$reset"
+              echo -e "$green--- Set WORKSPACES folder as new CONFIG_REPO_PATH ---$reset"
 
                 if [ ! -f LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
                   echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
@@ -440,10 +425,10 @@ stages:
                   exit 2
                 fi
 
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH > .sap_deployment_automation/config
 
               echo -e "$green--- Set variables ---$reset"
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
+                echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH > .sap_deployment_automation/config
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
                 if [ -z ${az_var} ]; then
@@ -508,9 +493,9 @@ stages:
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
 
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
-                cd $HOME/LANDSCAPE/$(workload_zone_folder)
+                cd $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)
                 
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(workload_zone_configuration_file) --type sap_landscape --auto-approve --ado
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover.sh --parameterfile $(workload_zone_configuration_file) --type sap_landscape --auto-approve --ado
                 return_code=$?
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
@@ -537,9 +522,9 @@ stages:
 
                 if [ 0 == $return_code ]; then
 
-                  if [ -f  $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK ]; then
-                    git rm -q -f $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
-                    echo "Removed $HOME/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK"
+                  if [ -f  $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK ]; then
+                    git rm -q -f $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
+                    echo "Removed $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK"
                     changed=1
                   fi
                   
@@ -592,17 +577,18 @@ stages:
                   fi
                 fi
 
-
               exit $return_code
             displayName:               Remove SAP workload_zone
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
-              AZURE_DEVOPS_EXT_PAT:    $(PAT)
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                $(ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH:     $(Build.Repository.LocalPath)
+              AZURE_DEVOPS_EXT_PAT:         $(PAT)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               
             failOnStderr:              false
 
