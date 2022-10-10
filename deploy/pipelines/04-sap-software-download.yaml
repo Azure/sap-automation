@@ -64,7 +64,7 @@ stages:
           - task: PostBuildCleanup@3
           - checkout: self
             persistCredentials: true
-            submodules: true
+          - checkout: sap-automation
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -160,7 +160,7 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
             failOnStderr: false
 
   - stage: Software_download
@@ -186,6 +186,7 @@ stages:
           - task: PostBuildCleanup@3
           - checkout: self
             persistCredentials: true
+          - checkout: sap-automation
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -250,4 +251,4 @@ stages:
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
