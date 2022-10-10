@@ -67,14 +67,13 @@ stages:
                   reset="\e[0m"
                   boldred="\e[1;31m"
 
-                  HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                   ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                   LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
-                  deployer_environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                  deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
 
                   echo "Agent: " $(this_agent)
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                  cd $HOME_CONFIG
+                  cd $CONFIG_REPO_PATH
                   git checkout -q $(Build.SourceBranchName)
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -198,20 +197,20 @@ stages:
                   fi
 
               echo -e "$green--- Update .sap_deployment_automation/config as CONFIG_REPO_PATH can change on devops agent ---$reset"
-                  cd $HOME_CONFIG
+                  cd $CONFIG_REPO_PATH
                   mkdir -p .sap_deployment_automation
                   echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH >.sap_deployment_automation/config
 
               echo -e "$green--- File Validations ---$reset"
-                  if [ ! -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
-                      echo -e "$boldred--- File ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
-                      echo "##vso[task.logissue type=error]File ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
+                  if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
+                      echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
+                      echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
                       exit 2
                   fi
 
-                  if [ ! -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
-                      echo -e "$boldred--- File ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
-                      echo "##vso[task.logissue type=error]File ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
+                  if [ ! -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
+                      echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
+                      echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
                       exit 2
                   fi
 
@@ -239,12 +238,12 @@ stages:
               echo -e "$green--- Configure parameters ---$reset"
 
                   echo -e "$green--- Convert config files to UX format ---$reset"
-                  dos2unix -q ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig)
-                  dos2unix -q ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig)
+                  dos2unix -q ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)
+                  dos2unix -q ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)
 
                   echo -e "$green--- Configuring variables ---$reset"
 
-                  deployer_environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
+                  deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
                   export key_vault=""
 
@@ -293,24 +292,24 @@ stages:
 
                   fi
 
-                  if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                      if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                          rm -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                  if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
+                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                          rm -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                       fi
-                      unzip  -qq -o -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip
+                      unzip  -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                   fi
 
-                  if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                      if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                          rm -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                  if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                      if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                          rm -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                       fi
 
-                      unzip -qq -o -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip
+                      unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                   fi
 
                   $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
-                     --deployer_parameter_file ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                     --library_parameter_file ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
+                     --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
+                     --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                      --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID)        \
                      --spn_secret $ARM_CLIENT_SECRET --tenant_id $(ARM_TENANT_ID)           \
                      --auto-approve --ado                                                   \
@@ -319,8 +318,8 @@ stages:
 
                   if [ 0 != $return_code ]; then
                      echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
-                     if [ -f ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err ]; then
-                         error_message=$(cat ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
+                     if [ -f ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err ]; then
+                         error_message=$(cat ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
                          echo "##vso[task.logissue type=error]Error message: $error_message."
                      fi
                   fi
@@ -356,58 +355,58 @@ stages:
                   fi
 
               echo -e "$green--- Update repo ---$reset"
-                  if [ -f ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                      git add ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
+                  if [ -f ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                      git add ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                       added=1
                   fi
 
-                  if [ -f ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                      git add ${HOME_CONFIG}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
+                  if [ -f ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                      git add ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                       added=1
                   fi
 
-                  if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
-                      git add -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
-                      added=1
-                  fi
-
-                  if [ 0 != $return_code ]; then
-                      if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                          sudo apt install zip
-                          zip -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate
-                          git add -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip
-                          added=1
-                      fi
-                  else
-                      if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                          git rm -q -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/terraform.tfstate
-                          added=1
-                      fi
-                      if [ -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                          git rm -q -f ${HOME_CONFIG}/DEPLOYER/$(deployerfolder)/state.zip
-                          added=1
-                      fi
-                  fi
-
-                  if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
-                      git add -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                  if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
+                      git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                       added=1
                   fi
 
                   if [ 0 != $return_code ]; then
-                      if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                      if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                           sudo apt install zip
-                          zip -P $ARM_CLIENT_SECRET ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate
-                          git add -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip
+                          zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                          git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                           added=1
                       fi
                   else
-                      if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                          git rm -q -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                      if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                          git rm -q -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                           added=1
                       fi
-                      if [ -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                          git rm -q -f ${HOME_CONFIG}/LIBRARY/$(libraryfolder)/state.zip
+                      if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                          git rm -q -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
+                          added=1
+                      fi
+                  fi
+
+                  if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
+                      git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                      added=1
+                  fi
+
+                  if [ 0 != $return_code ]; then
+                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                          sudo apt install zip
+                          zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                          git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
+                          added=1
+                      fi
+                  else
+                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                          git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                          added=1
+                      fi
+                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
+                          git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                           added=1
                       fi
                   fi
@@ -420,9 +419,9 @@ stages:
                       git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                   fi
 
-                  if [ -f $HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                      cp $HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md $HOME_CONFIG/.sap_deployment_automation/
-                      echo "##vso[task.uploadsummary]$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+                  if [ -f $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                      cp $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md $CONFIG_REPO_PATH/.sap_deployment_automation/
+                      echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                   fi
 
               echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
@@ -478,7 +477,7 @@ stages:
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
               POOL: $(POOL)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
 
             failOnStderr: false
 
