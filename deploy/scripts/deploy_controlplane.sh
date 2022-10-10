@@ -8,11 +8,12 @@
 #   the json parameter files for the deployer, the library and the environment.                #
 #                                                                                              #
 #   The script will persist the parameters needed between the executions in the                #
-#   ~/.sap_deployment_automation folder                                                        #
+#   $CONFIG_REPO_PATH/.sap_deployment_automation folder                                        #
 #                                                                                              #
 #   The script experts the following exports:                                                  #
 #   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                             #
-#   SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation           #
+#   SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation       #
+#   CONFIG_REPO_PATH the path to the folder containing the configuration for sap               #
 #                                                                                              #
 ################################################################################################
 
@@ -109,7 +110,7 @@ get_region_code "$region"
 
 echo "Region code for deployment:  $region_code"
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
@@ -308,7 +309,7 @@ if [ 0 == $step ]; then
 
                 remote_deployer_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
                 remote_library_dir="$HOME/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-                remote_config_dir="$HOME/.sap_deployment_automation"
+                remote_config_dir="$CONFIG_REPO_PATH/.sap_deployment_automation"
 
                 ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2> /dev/null
                 scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
@@ -662,7 +663,7 @@ if [ 5 == $step ]; then
 
                 remote_deployer_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
                 remote_library_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-                remote_config_dir="/home/azureadm/.sap_deployment_automation"
+                remote_config_dir="$CONFIG_REPO_PATH/.sap_deployment_automation"
 
                 ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2> /dev/null
                 scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2> /dev/null
