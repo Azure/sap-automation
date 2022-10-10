@@ -1,0 +1,24 @@
+parameters:
+  bom_base_name: ""
+  environment: ""
+  sap_system: ""
+  sap_system_configuration_name: ""
+
+variables:
+  - group: "SDAF-General"
+  - group: SDAF-${{ parameters.environment }}
+
+  - name: sap_system_folder
+    value: ${{ parameters.sap_system_configuration_name }}
+
+  - name: bom
+    value: ${{ parameters.bom_base_name }}
+
+  - name: agent_name
+    value: $[coalesce(variables['POOL'], variables['Agent'])]
+
+  - name: this_agent
+    value: $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name: variable_group
+    value: SDAF-${{ parameters.environment }}
