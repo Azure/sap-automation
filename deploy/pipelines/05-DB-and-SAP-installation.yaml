@@ -192,7 +192,6 @@ stages:
                     exit 2
                 fi
 
-
                 echo "##vso[build.updatebuildnumber]Deploying $(sap_system_folder) using BoM ${bom_file}"
 
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
@@ -214,7 +213,7 @@ stages:
                   sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
                 fi
 
-              echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
+              echo -e "$green--- Get connection details ---$reset"
                 mkdir -p artifacts
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
@@ -224,13 +223,17 @@ stages:
                   export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
                 fi
 
+                echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey"
+                echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
+
               echo -e "$green--- az login ---$reset"
-                #If the deployer_file exists we run on a deployer cofigured by the framework instead of a azdo hosted one
+                #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
                 if [ -f "$deployer_file" ]; then
                   az login --identity --allow-no-subscriptions --output none
                 else
                   az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+                  az account set --subscription $AZURE_SUBSCRIPTION_ID
                 fi
 
                 return_code=$?
@@ -239,9 +242,6 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                az account set --subscription $AZURE_SUBSCRIPTION_ID
-
-                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
@@ -275,6 +275,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -287,14 +289,16 @@ stages:
               echo $(SAP_parameters)
               echo $(parameters_folder)
               echo $(DEPLOYMENT_REPO_PATH)
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               "Variables & Process sshkey"
+              echo $(SSH_KEY_NAME)
+              echo $(VAULT_NAME)
+            displayName:               "Display Variables"
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "Validate the input parameters"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_00_validate_parameters.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -327,6 +331,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -334,15 +340,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "Core Operating System Configuration"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_01_os_base_config.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -374,6 +378,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -381,15 +387,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "SAP Operating System Configuration"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -422,6 +426,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -429,15 +435,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "Software Acquisition"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -472,6 +476,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -479,15 +485,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "Database Installation"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -543,6 +547,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -550,15 +556,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "SCS Installation"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -618,6 +622,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -625,15 +631,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "Database Load"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -690,6 +694,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -697,15 +703,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "High Availability Setup"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -744,6 +748,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -751,15 +757,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "PAS Installation"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -821,6 +825,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -829,15 +835,13 @@ stages:
           - download:                  current
             artifact:                  ansible_data
             timeoutInMinutes:          0
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "Application Server Install"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)
@@ -890,6 +894,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -897,15 +903,13 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName:                  "WebDispatcher Installation"
               ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml
-              privateKey:                   $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
               parametersFolder:             "_workspace_directory=$(parameters_folder)"
               sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
               sidHosts:                     $(SID_hosts)

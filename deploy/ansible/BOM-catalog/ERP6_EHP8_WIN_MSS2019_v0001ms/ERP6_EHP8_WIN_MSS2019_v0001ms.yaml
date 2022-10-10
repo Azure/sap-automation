@@ -12,13 +12,13 @@ defaults:
 product_ids:
   scs:                           NW_ABAP_ASCS:NW750.MSS.ABAP
   scs_ha:                        NW_FirstClusterNode_ABAP:NW750.MSS.ABAPHA
-  dbl:
+  dbl:                       
   pas:                           NW_ABAP_CI:NW750.MSS.ABAP
-  pas_ha:
-  app:
-  app_ha:
-  web:
-  ers:
+  pas_ha:                       
+  app:                           
+  app_ha:                       
+  web:                       
+  ers:                       
   ers_ha:                        NW_SecondClusterNode:NW750.MSS.ABAPHA
 
 materials:
