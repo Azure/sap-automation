@@ -96,11 +96,11 @@ locals {
       upper(var.database_vm_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.database_vm_image.os_type, "LINUX)") : (
       length(var.database_vm_image.os_type) == 0 ? "LINUX" : var.database_vm_image.os_type
     )
-    source_image_id = var.database_vm_image.source_image_id
-    publisher       = var.database_vm_image.publisher
-    offer           = var.database_vm_image.offer
-    sku             = var.database_vm_image.sku
-    version         = var.database_vm_image.version
+    source_image_id = try(var.database_vm_image.source_image_id, "")
+    publisher       = try(var.database_vm_image.publisher, "")
+    offer           = try(var.database_vm_image.offer, "")
+    sku             = try(var.database_vm_image.sku, "")
+    version         = try(var.database_vm_image.version, "")
   }
 
   db_os_specified = (length(local.db_os.source_image_id) + length(local.db_os.publisher)) > 0
@@ -189,10 +189,10 @@ locals {
       length(var.application_server_image.os_type) == 0 ? "LINUX" : var.application_server_image.os_type
     )
     source_image_id = try(var.application_server_image.source_image_id, "")
-    publisher       = var.application_server_image.publisher
-    offer           = var.application_server_image.offer
-    sku             = var.application_server_image.sku
-    version         = var.application_server_image.version
+    publisher       = try(var.application_server_image.publisher, "")
+    offer           = try(var.application_server_image.offer, "")
+    sku             = try(var.application_server_image.sku, "")
+    version         = try(var.application_server_image.version, "")
   }
 
   app_os_specified = (length(local.app_os.source_image_id) + length(local.app_os.publisher)) > 0
