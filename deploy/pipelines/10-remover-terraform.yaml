@@ -302,13 +302,12 @@ stages:
 
             displayName:               "Remove SAP systems"
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              SAP_AUTOMATION_REPO_PATH:    $(Build.Repository.LocalPath)
-              AZURE_DEVOPS_EXT_PAT:    $(PAT)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:     $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
 
@@ -585,7 +584,6 @@ stages:
               ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:                $(ARM_TENANT_ID)
-              SAP_AUTOMATION_REPO_PATH:     $(Build.Repository.LocalPath)
               AZURE_DEVOPS_EXT_PAT:         $(PAT)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
