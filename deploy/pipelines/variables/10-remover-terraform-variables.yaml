@@ -3,6 +3,7 @@ parameters:
   workload_environment: ''
   workload_zone: ''
   sap_system: ''
+  use_deployer: ''
 
 variables:
   - group:                             "SDAF-General"
