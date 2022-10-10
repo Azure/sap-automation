@@ -162,7 +162,6 @@ stages:
     variables:
       - template: variables/04-sap-software-download-variables.yaml
         parameters:
-          sap_system: ${{ parameters.sap_system }}
           environment: ${{ parameters.environment }}
     displayName: Download software
 

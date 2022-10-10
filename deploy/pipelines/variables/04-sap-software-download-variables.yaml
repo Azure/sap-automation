@@ -19,7 +19,7 @@ variables:
     value: ${{ parameters.region }}
 
   - name: check_storage_account
-    value: $[not(${{ parameters.re_download }})]
+    value: $[not( ${{ parameters.re_download }} )]
 
   - name: this_agent
     value: $[lower(coalesce(variables['POOL'], variables['Agent']))]
