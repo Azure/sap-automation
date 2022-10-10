@@ -340,11 +340,6 @@ stages:
                   az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
                   echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                  added=0
-                  cd $HOME_CONFIG
-                  git fetch -q --all
-                  git pull -q
-                  echo "after pull"
                   if [ -f ${deployer_environment_file_name} ]; then
 
                      file_deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs)
