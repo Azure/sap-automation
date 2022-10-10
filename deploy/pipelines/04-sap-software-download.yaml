@@ -248,14 +248,12 @@ stages:
             timeoutInMinutes: 0
             inputs:
               ansibleInterface: "agentMachine"
-              playbookPathOnAgentMachine: $SAP_AUTOMATION_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml
+              playbookPathOnAgentMachine: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml
               args: ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
               failOnStderr: false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
               ANSIBLE_PYTHON_INTERPRETER: auto_silent
-              DEPLOYMENT_REPO_PATH: $(Build.Repository.LocalPath)
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
