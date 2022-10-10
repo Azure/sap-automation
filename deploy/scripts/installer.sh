@@ -144,7 +144,7 @@ fi
 
 #Persisting the parameters across executions
 
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 

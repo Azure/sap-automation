@@ -35,7 +35,7 @@ function showhelp {
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder.                                                #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                                                #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: remover.sh                                                                   #"
@@ -199,7 +199,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
 echo "Agent IP: $this_ip"
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
 system_config_information="${automation_config_directory}"/"${environment}""${region_code}"

@@ -8,7 +8,7 @@
 #   the json parameter files for the deployer, the library and the environment.                #
 #                                                                                              #
 #   The script will persist the parameters needed between the executions in the                #
-#   ~/.sap_deployment_automation folder                                                        #
+#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                        #
 #                                                                                              #
 #   The script experts the following exports:                                                  #
 #   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                             #
@@ -109,7 +109,7 @@ get_region_code "$region"
 
 echo "Region code for deployment:  $region_code"
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 

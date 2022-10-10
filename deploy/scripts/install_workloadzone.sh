@@ -145,7 +145,7 @@ echo "Keyvault: $keyvault"
 
 #Persisting the parameters across executions
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
 if [ $deployer_environment != $environment ]; then
@@ -464,7 +464,7 @@ then
     load_config_vars "${workload_config_information}" "deployer_tfstate_key"
     if [ -n "${deployer_tfstate_key}" ]
     then
-        # Deployer state was specified in ~/.sap_deployment_automation library config
+        # Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
     fi
 else

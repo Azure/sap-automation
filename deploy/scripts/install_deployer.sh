@@ -31,7 +31,7 @@ function showhelp {
     echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: install_deployer.sh                                                          #"
@@ -115,7 +115,7 @@ get_region_code $region
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
 #Persisting the parameters across executions
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
 
