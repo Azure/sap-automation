@@ -27,12 +27,12 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              workload_environment_parameter
+  - name:                              workload_environment
     displayName:                       Workload environment (DEV, QUA, PRD)
     type:                              string
     default:                           DEV
 
-  - name:                              deployer_environment_parameter
+  - name:                              deployer_environment
     displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
     type:                              string
     default:                           MGMT
@@ -57,15 +57,15 @@ stages:
     variables:
     - template:                       variables/10-remover-terraform-variables.yaml
       parameters:
-        deployer_environment:         ${{ parameters.deployer_environment_parameter }}
-        workload_environment:         ${{ parameters.workload_environment_parameter}}
+        deployer_environment:         ${{ parameters.deployer_environment }}
+        workload_environment:         ${{ parameters.workload_environment }}
         workload_zone:                ${{ parameters.workload_zone }}
         sap_system:                   ${{ parameters.sap_system }}
     jobs:
       - job:                           Remove_SAP_systems
         displayName:                   "Removing the SAP System"
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
+          - group:                     SDAF-${{ parameters.workload_environment }}
         workspace:
           clean:                       all
         steps:
@@ -319,15 +319,15 @@ stages:
     variables:
     - template:                        variables/10-remover-terraform-variables.yaml
       parameters:
-        deployer_environment:          ${{ parameters.deployer_environment_parameter }}
-        workload_environment:          ${{ parameters.workload_environment_parameter}}
+        deployer_environment:          ${{ parameters.deployer_environment }}
+        workload_environment:          ${{ parameters.workload_environment }}
         workload_zone:                 ${{ parameters.workload_zone }}
         sap_system:                    ${{ parameters.sap_system }}
     jobs:
       - job:                           Remove_SAP_workload_zone
         displayName:                   Remove the SAP Workload Zone
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
+          - group:                     SDAF-${{ parameters.workload_environment }}
         workspace:
           clean:                       all
         steps:
