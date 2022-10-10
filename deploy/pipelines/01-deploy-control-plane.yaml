@@ -419,11 +419,6 @@ stages:
                       git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
                   fi
 
-                  if [ -f $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                      cp $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md $CONFIG_REPO_PATH/.sap_deployment_automation/
-                      echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-                  fi
-
               echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
                   if [ 0 == $return_code ]; then
                       az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
