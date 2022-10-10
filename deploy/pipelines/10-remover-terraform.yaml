@@ -324,6 +324,8 @@ stages:
         workload_environment:          ${{ parameters.workload_environment }}
         workload_zone:                 ${{ parameters.workload_zone }}
         sap_system:                    ${{ parameters.sap_system }}
+        use_deployer:                  ${{ parameters.use_deployer }}
+
     jobs:
       - job:                           Remove_SAP_workload_zone
         displayName:                   Remove the SAP Workload Zone
