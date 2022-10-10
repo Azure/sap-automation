@@ -179,7 +179,7 @@ stages:
                 dos2unix -q ${workload_environment_file_name}
 
                 if [ ! -f $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
-                  echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
+                  echo -e "$boldred--- $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
                   exit 2
                 fi
