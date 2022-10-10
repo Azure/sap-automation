@@ -148,7 +148,7 @@ deployer_file_parametername=$(basename "${deployer_parameter_file}")
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
-relative_path="${root_dirname}"/"${deployer_dirname}"
+relative_path="${deployer_dirname}"
 export TF_DATA_DIR="${relative_path}"/.terraform
 
 step=0
@@ -480,9 +480,9 @@ if [ 2 == $step ]; then
     echo "#########################################################################################"
     echo ""
 
-    relative_path="${root_dirname}"/"${library_dirname}"
+    relative_path="${library_dirname}"
     export TF_DATA_DIR="${relative_path}/.terraform"
-    relative_path="${root_dirname}"/"${deployer_dirname}"
+    relative_path="${deployer_dirname}"
 
     cd "${library_dirname}" || exit
 
@@ -491,6 +491,7 @@ if [ 2 == $step ]; then
     fi
 
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
+    echo "${allParams}"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
     return_code=$?
