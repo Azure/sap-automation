@@ -1,6 +1,8 @@
 parameters:
+  bom_base_name: ""
   environment: ""
   re_download: false
+  region: ""
 
 variables:
   - group: "SDAF-General"
