@@ -47,6 +47,10 @@ parameters:
 
 stages:
   - stage: Prepare_download
+    variables:
+      - template: variables/04-sap-software-download-variables.yaml
+        parameters:
+          environment: ${{ parameters.environment }}
     displayName: Preparation
     jobs:
       - job: Prepare_download_job
@@ -155,6 +159,11 @@ stages:
             failOnStderr: false
 
   - stage: Software_download
+    variables:
+      - template: variables/04-sap-software-download-variables.yaml
+        parameters:
+          sap_system: ${{ parameters.sap_system }}
+          environment: ${{ parameters.environment }}
     displayName: Download software
 
     jobs:
