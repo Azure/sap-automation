@@ -50,7 +50,10 @@ stages:
     variables:
       - template: variables/04-sap-software-download-variables.yaml
         parameters:
+          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
+          re_download: ${{ parameters.re_download }}
+          region: ${{ parameters.region }}
     displayName: Preparation
     jobs:
       - job: Prepare_download_job
@@ -156,13 +159,18 @@ stages:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
             failOnStderr: false
 
   - stage: Software_download
     variables:
       - template: variables/04-sap-software-download-variables.yaml
         parameters:
+          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
+          re_download: ${{ parameters.re_download }}
+          region: ${{ parameters.region }}
     displayName: Download software
 
     jobs:
@@ -241,3 +249,5 @@ stages:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
