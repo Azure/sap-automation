@@ -115,7 +115,8 @@ stages:
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                  git checkout -q $(Build.SourceBranchName)
+                cd $CONFIG_REPO_PATH
+                git checkout -q $(Build.SourceBranchName)
 
               echo -e "$green--- Validations ---$reset"
 
@@ -176,6 +177,10 @@ stages:
                 deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
                 workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
 
+                echo $deployer_environment_file_name
+                echo $workload_environment_file_name
+                echo "after"
+                
                 dos2unix -q ${deployer_environment_file_name}
                 dos2unix -q ${workload_environment_file_name}
 
