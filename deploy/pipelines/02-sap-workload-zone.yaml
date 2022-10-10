@@ -384,7 +384,8 @@ stages:
                 cd $(Build.Repository.LocalPath)
 
                 echo -e "$green--- Pull latest ---$reset"
-                  git pull 
+                cd $CONFIG_REPO_PATH
+                git pull 
 
                 added=0
                 if [ -f ${workload_environment_file_name} ]; then
