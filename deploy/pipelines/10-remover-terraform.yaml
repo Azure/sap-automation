@@ -226,6 +226,7 @@ stages:
                   --parameterfile $(sap_system_configuration) \
                   --type sap_system \
                   --state_subscription ${STATE_SUBSCRIPTION} \
+                  --storageaccountname "${REMOTE_STATE_SA}" \
                   --auto-approve
                 return_code=$?
 
@@ -505,6 +506,7 @@ stages:
                   --parameterfile $(workload_zone_configuration_file) \
                   --type sap_landscape \
                   --state_subscription ${STATE_SUBSCRIPTION} \
+                   --storageaccountname "${REMOTE_STATE_SA}" \
                   --auto-approve \
                   --ado
                 return_code=$?
