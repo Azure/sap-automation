@@ -91,6 +91,28 @@ parameters:
     type:                              boolean
     default:                           false
 
+# 20220929 MKD - ACSS Registration <BEGIN>
+  - name:                              acss_registration
+    displayName:                       Register System in ACSS
+    type:                              boolean
+    default:                           true
+
+  - name:                              acss_environment
+    displayName:                       ACSS Prod/NonProd
+    type:                              string
+    values:
+      - NonProd
+      - Prod
+
+  - name:                              acss_sap_product
+    displayName:                       System Type
+    type:                              string
+    values:
+      - S4HANA
+      - ECC
+      - Other
+# 20220929 MKD - ACSS Registration <END>
+
 trigger:                               none
 
 variables:
@@ -996,5 +1018,168 @@ stages:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
             failOnStderr:              false
+
+
+
+# 20220929 MKD - ACSS Registration <BEGIN>
+  - stage:                              ACSS_Registration
+    displayName:                        Register System in ACSS
+    condition:                          eq(${{ parameters.acss_registration }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - SCS_Installation
+      - Database_Load
+      - PAS_Installation
+      - APP_Install
+      - WebDispatcher_Installation
+      - Post_Installation_Steps
+    jobs:
+      - job:                           ACSS_Registration
+        displayName:                   Register System in ACSS
+        steps:
+          - checkout:                  self
+            persistCredentials:        true
+            submodules:                true
+          - download:                  current
+            artifact:                  ansible_data
+
+          # Parameters Required:
+          #   parameters.acss_environment                     = Prod|NonProd
+          #   parameters.acss_sap_product                     = S4HANA|ECC|Other
+          #   parameters.sap_system_configuration_name        = ENV-REGION-VNET-SID
+          #   ARM_CLIENT_ID                                   = 00000000-0000-0000-0000-000000000000
+          #   ARM_CLIENT_SECRET                               = ****
+          #   ARM_SUBSCRIPTION_ID                             = 00000000-0000-0000-0000-000000000000
+          #   ARM_TENANT_ID                                   = 00000000-0000-0000-0000-000000000000
+          #   SAP_SYSTEM_FOLDER                               = ENV-REGION-VNET-SID
+          #   TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME    = ENV-REGION-SAP_LIBRARY
+          #   TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME           = xxxxxxxxxxxxxxxxxxx
+          - script: |
+              #!/bin/bash
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Setup variables                                                              |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              __basedir=`pwd`
+              acss_environment=${{ parameters.acss_environment }}
+              acss_sap_product=${{ parameters.acss_sap_product }}
+              acss_workloads_extension_url="https://github.com/Azure/Azure-Center-for-SAP-solutions-preview/raw/main/CLI_Documents/ACSS_CLI_Extension/workloads-0.1.0-py3-none-any.whl"
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Install ACSS Workloads extension for Azure CLI                               |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              set -x
+              if [ -z "$(az extension list | grep \"name\": | grep \"workloads\")" ]
+              then
+                echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset"
+                wget $acss_workloads_extension_url || exit 1
+                az extension add --source=./workloads-0.1.0-py3-none-any.whl --yes || exit 1
+              else
+                echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset"
+              fi
+              set +x
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Authenticate to Azure                                                        |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Initialize Terraform and access State File                                   |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              # Get Terraform State Outputs
+              # TODO: Should test if Terraform is available or needs to be installed
+              #
+              echo -e "$green--- Initializing Terraform for: ${{ parameters.sap_system_configuration_name }} ---$reset"
+              __configDir=${__basedir}/WORKSPACES/SYSTEM/${SAP_SYSTEM_FOLDER}
+              __moduleDir=${__basedir}/deploy/terraform/run/sap_system/
+              TF_DATA_DIR=${__configDir}
+
+              cd ${__configDir}
+
+              # Init Terraform
+              __output=$( \
+              terraform -chdir="${__moduleDir}"                                                       \
+              init -upgrade=true                                                                      \
+              --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}"                               \
+              --backend-config "resource_group_name=${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"  \
+              --backend-config "storage_account_name=${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"        \
+              --backend-config "container_name=tfstate"                                               \
+              --backend-config "key=${SAP_SYSTEM_FOLDER}.terraform.tfstate"                           \
+              )
+              [ $? -ne 0 ] && echo "$__output" && exit 1
+              echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"
+
+              # Fetch values from Terraform State file
+              acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" '{print $2}' | tr -d '\n\r\t[:space:]')
+              acss_sid=$(           terraform -chdir="${__moduleDir}" output sid                         | tr -d '"')
+              acss_resource_group=$(terraform -chdir="${__moduleDir}" output created_resource_group_name | tr -d '"')
+              acss_location=$(      terraform -chdir="${__moduleDir}" output region                      | tr -d '"')
+
+              unset TF_DATA_DIR __configDir __moduleDir __output
+              cd $__basedir
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Register in ACSS                                                             |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              echo -e "$green--- Registering SID: $acss_sid in ACSS ---$reset"
+
+              # Create JSON Payload as variable
+              acss_configuration=$(cat << EOF
+                {
+                  "configurationType": "Discovery",
+                  "centralServerVmId": "${acss_scs_vm_id}"
+                }
+              EOF
+              )
+              
+              # ACSS Registration Command
+              set -x
+
+              az workloads sap-virtual-instance create              \
+              --sap-virtual-instance-name  "${acss_sid}"            \
+              --resource-group             "${acss_resource_group}" \
+              --location                   "${acss_location}"       \
+              --environment                "${acss_environment}"    \
+              --sap-product                "${acss_sap_product}"    \
+              --configuration              "${acss_configuration}"  \
+               || exit 1
+
+              set +x
+              #--------------------------------------+---------------------------------------8
+
+            displayName:               ACSS Registration
+            env:
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+# 20220929 MKD - ACSS Registration <BEND>
 
 ...
