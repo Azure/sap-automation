@@ -364,17 +364,10 @@ resource "azurerm_private_endpoint" "kv_user" {
     data.azurerm_resource_group.resource_group[0].location) : (
     azurerm_resource_group.resource_group[0].location
   )
-  subnet_id = local.admin_subnet_defined ? (
-    local.admin_subnet_existing ? (
-      local.admin_subnet_arm_id) : (
-      azurerm_subnet.admin[0].id
-    )) : (
-    local.application_subnet_existing ? (
-      local.application_subnet_arm_id) : (
-      azurerm_subnet.app[0].id
-    )
+  subnet_id = local.application_subnet_existing ? (
+    local.application_subnet_arm_id) : (
+    azurerm_subnet.app[0].id
   )
-
 
   private_service_connection {
     name = format("%s%s%s",
@@ -399,9 +392,9 @@ resource "azurerm_private_endpoint" "kv_user" {
 
 
 ###############################################################################
-#                                                                             # 
-#                                Additional Users                             # 
-#                                                                             # 
+#                                                                             #
+#                                Additional Users                             #
+#                                                                             #
 ###############################################################################
 
 resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {

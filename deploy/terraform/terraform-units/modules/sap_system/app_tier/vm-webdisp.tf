@@ -46,6 +46,10 @@ resource "azurerm_network_interface" "web" {
       primary = pub.value.primary
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "web" {
@@ -229,6 +233,10 @@ resource "azurerm_linux_virtual_machine" "web" {
   license_type = length(var.license_type) > 0 ? var.license_type : null
 
   tags = try(var.application.web_tags, {})
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Create the Windows Web dispatcher VM(s)
@@ -378,6 +386,10 @@ resource "azurerm_managed_disk" "web" {
     )) : (
     null
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "web" {
@@ -433,3 +445,24 @@ resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
   }
 SETTINGS
 }
+
+resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
+
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.web_ostype) == "WINDOWS" ? (
+    local.webdispatcher_count) : (
+    0
+  )
+  virtual_machine_id   = azurerm_windows_virtual_machine.web[count.index].id
+  name                 = "configure_ansible"
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.9"
+  settings             = <<SETTINGS
+        {
+          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+        }
+    SETTINGS
+}
+

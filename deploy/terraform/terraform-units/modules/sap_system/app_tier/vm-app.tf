@@ -43,6 +43,9 @@ resource "azurerm_network_interface" "app" {
 
     }
   }
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "app" {
@@ -336,6 +339,9 @@ resource "azurerm_windows_virtual_machine" "app" {
 
   tags = try(var.application.app_tags, {})
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 # Creates managed data disk
@@ -362,8 +368,9 @@ resource "azurerm_managed_disk" "app" {
       azurerm_windows_virtual_machine.app[local.app_data_disks[count.index].vm_index].zone
     )
   )
-
-
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "app" {
@@ -420,4 +427,25 @@ resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+}
+
+resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
+
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.app_ostype) == "WINDOWS" ? (
+    local.application_server_count) : (
+    0
+  )
+
+  name                 = "configure_ansible"
+  virtual_machine_id   = azurerm_windows_virtual_machine.app[count.index].id
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.9"
+  settings             = <<SETTINGS
+        {
+          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+        }
+    SETTINGS
 }

@@ -5,9 +5,9 @@ Description:
 */
 
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -30,9 +30,9 @@ output "created_resource_group_name" {
 
 
 ###############################################################################
-#                                                                             # 
-#                                 Deployer                                    # 
-#                                                                             # 
+#                                                                             #
+#                                 Deployer                                    #
+#                                                                             #
 ###############################################################################
 
 // Unique ID for deployer
@@ -54,9 +54,9 @@ output "deployer_private_ip_address" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                                  Network                                    # 
-#                                                                             # 
+#                                                                             #
+#                                  Network                                    #
+#                                                                             #
 ###############################################################################
 
 // Details of management vnet that is deployed/imported
@@ -89,9 +89,9 @@ output "user_vault_name" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                                 Key Vault                                   # 
-#                                                                             # 
+#                                                                             #
+#                                 Key Vault                                   #
+#                                                                             #
 ###############################################################################
 
 // output the secret name of private key
@@ -125,9 +125,9 @@ output "deployer_keyvault_user_arm_id" {
 
 
 ###############################################################################
-#                                                                             # 
-#                                   Firewall                                  # 
-#                                                                             # 
+#                                                                             #
+#                                   Firewall                                  #
+#                                                                             #
 ###############################################################################
 
 output "firewall_ip" {
@@ -140,28 +140,28 @@ output "firewall_id" {
 
 
 ###############################################################################
-#                                                                             # 
-#                                App Service                                  # 
-#                                                                             # 
+#                                                                             #
+#                                App Service                                  #
+#                                                                             #
 ###############################################################################
 
 
 output "webapp_url_base" {
-  value = var.use_webapp ? (var.configure ? azurerm_windows_web_app.webapp[0].name : "") : ""
+  value = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].name,"") : "") : ""
 }
 
 output "webapp_identity" {
-  value = var.use_webapp ? (var.configure ? azurerm_windows_web_app.webapp[0].identity[0].principal_id : "") : ""
+  value = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") : "") : ""
 }
 
 output "webapp_id" {
-  value = var.use_webapp ? (var.configure ? azurerm_windows_web_app.webapp[0].id : "") : ""
+  value = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].id, "") : "") : ""
 }
 
 ###############################################################################
-#                                                                             # 
-#                                VM Extension                                 # 
-#                                                                             # 
+#                                                                             #
+#                                VM Extension                                 #
+#                                                                             #
 ###############################################################################
 
 output "extension_ids" {

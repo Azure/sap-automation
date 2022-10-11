@@ -10,7 +10,7 @@ locals {
   vnet_sap_exists   = length(local.vnet_sap_arm_id) > 0 ? true : false
 
 
-  db_sid  = upper(try(local.database.sid, "HDB"))
+  db_sid  = upper(try(local.database.instance.sid, "HDB"))
   sap_sid = upper(try(local.application.sid, local.db_sid))
 
   enable_db_deployment = length(local.database.platform) > 0
@@ -23,11 +23,11 @@ locals {
   tfstate_storage_account_name = split("/", var.tfstate_resource_id)[8]
   tfstate_container_name       = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
-  // Retrieve the arm_id of deployer's Key Vault 
+  // Retrieve the arm_id of deployer's Key Vault
   spn_key_vault_arm_id = trimspace(coalesce(
     try(local.key_vault.kv_spn_id, ""),
     try(data.terraform_remote_state.landscape.outputs.landscape_key_vault_spn_arm_id, ""),
-    try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""), 
+    try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, ""),
     " "
   ))
 

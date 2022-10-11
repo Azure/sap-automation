@@ -369,11 +369,12 @@ variable "install_private_endpoint_id" {
   default     = ""
 }
 
-
 variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
   type    = string
   default = ""
 }
+
 
 #########################################################################################
 #                                                                                       #

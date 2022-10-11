@@ -267,9 +267,11 @@ variable "NFS_provider" {
 }
 
 variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
   type    = string
   default = ""
 }
+
 
 variable "vm_settings" {
   description = "Details of the jumpbox to deploy"
