@@ -37,6 +37,7 @@ namespace AutomationForm.Models
         public string environment { get; set; }
         public string sap_system_configuration_name { get; set; }
         public string bom_base_name { get; set; }
+        public string extra_params { get; set; }
         public bool? base_os_configuration { get; set; }
         public bool? sap_os_configuration { get; set; }
         public bool? bom_processing { get; set; }

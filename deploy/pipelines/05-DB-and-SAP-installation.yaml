@@ -37,6 +37,10 @@ parameters:
       - NW750SPS20_DB2_v0001ms
       - ORACLE_19_00_ORA_MSID_v0002ms
 
+  - name:                              extra_params
+    displayName:                       Extra Parameters
+    type:                              string
+
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
     type:                              boolean
@@ -107,6 +111,9 @@ variables:
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              ExtraParams
+    value:                             ${{ parameters.extra_params }}
 
 pool:
   name:                                $[coalesce(variables['POOL'], variables['Agent'])]
