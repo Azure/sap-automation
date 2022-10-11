@@ -153,7 +153,7 @@ resource "azurerm_route" "admin" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider = azurerm.deployer
-  count    = length(var.dns_label) > 0 ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration ? 1 : 0
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.dns_link,
     local.prefix,

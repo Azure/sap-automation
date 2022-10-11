@@ -139,7 +139,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   }
 
   dynamic "plan" {
-    for_each  = range(var.deployer.plan.use ? 1 : 0)
+    for_each = range(var.deployer.plan.use ? 1 : 0)
     content {
       name      = var.deployer.plan.name
       product   = var.deployer.plan.product
@@ -179,7 +179,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 resource "azurerm_virtual_machine_extension" "configure" {
 
-  count = var.configure && var.auto_configure_deployer ? var.deployer_vm_count : 0
+  count = var.auto_configure_deployer ? var.deployer_vm_count : 0
 
   name                 = "configure_deployer"
   virtual_machine_id   = azurerm_linux_virtual_machine.deployer[count.index].id
@@ -193,16 +193,17 @@ resource "azurerm_virtual_machine_extension" "configure" {
     format(
     "%s/templates/configure_deployer.sh.tmpl", path.module),
     {
-      tfversion       = var.tf_version,
-      rg_name         = local.rg_name,
-      client_id       = azurerm_user_assigned_identity.deployer.client_id,
-      subscription_id = data.azurerm_subscription.primary.subscription_id,
-      tenant_id       = data.azurerm_subscription.primary.tenant_id,
-      local_user      = local.username
-      pool            = var.agent_pool
-      pat             = var.agent_pat
-      ado_repo        = var.agent_ado_url
-      use_webapp      = var.use_webapp
+      tfversion            = var.tf_version,
+      rg_name              = local.rg_name,
+      client_id            = azurerm_user_assigned_identity.deployer.client_id,
+      subscription_id      = data.azurerm_subscription.primary.subscription_id,
+      tenant_id            = data.azurerm_subscription.primary.tenant_id,
+      local_user           = local.username
+      pool                 = var.agent_pool
+      pat                  = var.agent_pat
+      ado_repo             = var.agent_ado_url
+      use_webapp           = var.use_webapp
+      ansible_core_version = var.ansible_core_version
     }
   )
 )

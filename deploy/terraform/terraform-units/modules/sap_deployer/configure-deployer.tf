@@ -21,16 +21,17 @@ resource "null_resource" "prepare-deployer" {
 
   provisioner "file" {
     content = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
-      tfversion       = var.tf_version
-      rg_name         = local.rg_name,
-      client_id       = azurerm_user_assigned_identity.deployer.client_id,
-      subscription_id = data.azurerm_subscription.primary.subscription_id,
-      tenant_id       = data.azurerm_subscription.primary.tenant_id,
-      local_user      = local.username,
-      pool            = var.agent_pool,
-      pat             = var.agent_pat,
-      ado_repo        = var.agent_ado_url,
-      use_webapp      = var.use_webapp
+      tfversion            = var.tf_version
+      rg_name              = local.rg_name,
+      client_id            = azurerm_user_assigned_identity.deployer.client_id,
+      subscription_id      = data.azurerm_subscription.primary.subscription_id,
+      tenant_id            = data.azurerm_subscription.primary.tenant_id,
+      local_user           = local.username,
+      pool                 = var.agent_pool,
+      pat                  = var.agent_pat,
+      ado_repo             = var.agent_ado_url,
+      use_webapp           = var.use_webapp
+      ansible_core_version = var.ansible_core_version
       }
     )
 
@@ -59,16 +60,17 @@ resource "null_resource" "prepare-deployer" {
 resource "local_file" "configure_deployer" {
   count = local.enable_deployer_public_ip ? 0 : 1
   content = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
-    tfversion       = var.tf_version,
-    rg_name         = local.rg_name,
-    client_id       = azurerm_user_assigned_identity.deployer.client_id,
-    subscription_id = data.azurerm_subscription.primary.subscription_id,
-    tenant_id       = data.azurerm_subscription.primary.tenant_id,
-    local_user      = local.username,
-    pool            = var.agent_pool,
-    pat             = var.agent_pat,
-    ado_repo        = var.agent_ado_url,
-    use_webapp      = var.use_webapp
+    tfversion            = var.tf_version,
+    rg_name              = local.rg_name,
+    client_id            = azurerm_user_assigned_identity.deployer.client_id,
+    subscription_id      = data.azurerm_subscription.primary.subscription_id,
+    tenant_id            = data.azurerm_subscription.primary.tenant_id,
+    local_user           = local.username,
+    pool                 = var.agent_pool,
+    pat                  = var.agent_pat,
+    ado_repo             = var.agent_ado_url,
+    use_webapp           = var.use_webapp
+    ansible_core_version = var.ansible_core_version
     }
   )
   filename             = format("%s/configure_deployer.sh", path.cwd)
