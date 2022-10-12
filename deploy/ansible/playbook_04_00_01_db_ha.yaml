@@ -91,9 +91,9 @@
                 primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['ansible_eth0']['ipv4']['address'] }}"
                 secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
                 secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['ansible_eth0']['ipv4']['address'] }}"
-                fencing_spn_client_id:     "{% if use_msi_for_clusters is not defined %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
-                fencing_spn_client_pwd:    "{% if use_msi_for_clusters is not defined %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
-                fencing_spn_tenant_id:     "{% if use_msi_for_clusters is not defined %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
+                fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+                fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
+                fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
               tags:
                 - always
 
@@ -279,6 +279,18 @@
       vars:
         suffix:                        "_OBSERVER"
         tier:                          'oracle'
+
+- hosts:                               localhost
+  name:                                Log results
+  vars_files:
+    - vars/ansible-input-api.yaml      # API Input template with defaults
+  tasks:
+    - name:                            Ensure db-ha-done file exists
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/db-ha-done"
+        state:                         touch
+        mode:                          0755
+      when:                            db_high_availability
 ...
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
