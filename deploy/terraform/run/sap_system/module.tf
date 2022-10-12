@@ -166,12 +166,7 @@ module "app_tier" {
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
-  order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment ? (
-      "") : (
-      coalesce(try(module.hdb_node.hdb_vms[0], ""), try(module.anydb_node.anydb_vms[0], ""))
-    )
-  ) : (null)
+  order_deployment = null
   application                                  = local.application
   infrastructure                               = local.infrastructure
   options                                      = local.options
