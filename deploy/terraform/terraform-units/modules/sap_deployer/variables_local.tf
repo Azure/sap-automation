@@ -114,10 +114,6 @@ locals {
       ["0.0.0.0/0"]
     )
   )
-  management_subnet_nsg_deployed = local.management_subnet_nsg_exists ? (
-    data.azurerm_network_security_group.nsg_mgmt[0]) : (
-    try(azurerm_network_security_group.nsg_mgmt[0], {})
-  )
 
   // Firewall subnet
   firewall_subnet_arm_id = try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")
