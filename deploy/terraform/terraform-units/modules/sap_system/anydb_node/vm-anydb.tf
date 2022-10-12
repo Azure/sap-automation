@@ -446,3 +446,28 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
   }
 SETTINGS
 }
+
+resource "azurerm_virtual_machine_extension" "configure_ansible" {
+
+  provider = azurerm.main
+  count = local.enable_deployment ? (
+    upper(local.anydb_ostype) == "WINDOWS" ? (
+      var.database_server_count) : (
+      0
+    )) : (
+    0
+  )
+
+
+  name                 = "configure_ansible"
+  virtual_machine_id   = azurerm_windows_virtual_machine.dbserver[count.index].id
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.9"
+  settings             = <<SETTINGS
+        {
+          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+        }
+    SETTINGS
+}
