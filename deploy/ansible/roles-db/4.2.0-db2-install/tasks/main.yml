@@ -45,6 +45,16 @@
   register:                            db2_installed
   when:                                node_tier == 'db2'
 
+- name:                                "SAP DB2: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0009:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
+
 - name:                                "DB2 Install"
   block:
     - name:                            "DB2 Install - Include 3.3.1-bom-utility role"

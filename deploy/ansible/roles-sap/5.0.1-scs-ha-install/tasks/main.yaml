@@ -41,6 +41,17 @@
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
+- name:                                "SCS Install: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
+
+
 # Returns bom object
 - name:                                "SCS HA Install: Register BoM"
   ansible.builtin.include_role:
@@ -138,7 +149,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            TMPDIR:                    "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
           tags:
@@ -211,7 +222,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            TMPDIR:                    "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
           register:                    scs_installation
           failed_when:                 scs_installation.rc > 0
           tags:

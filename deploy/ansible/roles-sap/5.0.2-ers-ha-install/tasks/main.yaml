@@ -40,6 +40,16 @@
   register:                            ers_installed
   when: node_tier == 'ers'
 
+- name:                                "SCS Install: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0004:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
+
 # Returns bom object
 - name:                                "ERS Install: Register BoM"
   ansible.builtin.include_role:
@@ -139,7 +149,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            TMPDIR:                    "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           tags:
             - skip_ansible_lint
@@ -179,7 +189,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+            TMPDIR:                    "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
           tags:

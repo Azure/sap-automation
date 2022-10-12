@@ -60,6 +60,7 @@
     mode:                              0644
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
+  become_user:                         root
   register:                            result
   ignore_errors:                       true
   when:

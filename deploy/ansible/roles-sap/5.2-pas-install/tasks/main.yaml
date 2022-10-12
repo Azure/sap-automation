@@ -28,7 +28,7 @@
 
 - name:                                "PAS Install: Create temp directory for sid"
   ansible.builtin.file:
-    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
     state:                             directory
     mode:                              0755
 
@@ -64,6 +64,16 @@
     file_path:                         "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
     DB:                                "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ hdb_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ hdb_instance_number }}{% endif %}"
     db_lb_virtual_host:                "{% if db_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ hdb_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+
+- name:                                "SCS Install: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SWPM/sapinst"
+  register:                            sapinst_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0006:Unable to find sapinst, please check that the installation media is mounted"
+  when: not sapinst_found.stat.exists
 
 - name:                                "PAS Install: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
@@ -150,7 +160,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
       environment:
-        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
       register:                        pas_installation
       failed_when:                     pas_installation.rc > 0
