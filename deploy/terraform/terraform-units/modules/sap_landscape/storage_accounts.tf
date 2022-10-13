@@ -244,7 +244,7 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_storage_account_network_rules" "transport" {
   provider           = azurerm.main
-  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
+  count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
   storage_account_id = azurerm_storage_account.transport[0].id
   default_action     = "Deny"
 
@@ -424,7 +424,7 @@ resource "azurerm_storage_account" "install" {
 
 resource "azurerm_storage_account_network_rules" "install" {
   provider           = azurerm.main
-  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.install_storage_account_id) == 0 ? 1 : 0
+  count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.install_storage_account_id) == 0 ? 1 : 0
   storage_account_id = azurerm_storage_account.install[0].id
   default_action     = "Deny"
 
