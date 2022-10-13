@@ -65,8 +65,8 @@ stages:
 
               echo -e "$green--- Validations ---$reset"
                 if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
-                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+                  echo -e "$boldred--- $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found."
                   exit 2
                 fi
 
