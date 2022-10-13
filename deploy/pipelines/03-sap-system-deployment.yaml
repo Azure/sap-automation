@@ -39,8 +39,8 @@ stages:
           clean: all
         steps:
           - task: PostBuildCleanup@3
-          - checkout: self
           - checkout: sap-automation
+          - checkout: self
             persistCredentials: true
             fetchDepth: 0
           - script: |
