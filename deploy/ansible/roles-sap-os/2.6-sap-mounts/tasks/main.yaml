@@ -48,7 +48,7 @@
 
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sap file systems"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -63,7 +63,7 @@
     - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -76,7 +76,7 @@
     - hana_shared_mountpoint is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (backup)"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -87,7 +87,7 @@
   when:         (item.node_tier == "all" or item.node_tier == node_tier)
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               '/dev/vg_hana_data/lv_hana_data'
     path:                              '/hana/data'
     fstype:                            'xfs'
@@ -98,7 +98,7 @@
     - hana_data_mountpoint is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana log)"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               '/dev/vg_hana_log/lv_hana_log'
     path:                              '/hana/log'
     fstype:                            'xfs'
@@ -121,7 +121,7 @@
     - sap_trans is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount local install file system on SCS (when not using AFS)"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -135,7 +135,7 @@
 
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt on (scs) {{ ansible_hostname }}"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -162,7 +162,7 @@
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
     - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -181,7 +181,7 @@
       ansible.builtin.debug:
         msg:                           "Trying to remount sap_mnt"
     - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -197,7 +197,7 @@
         - nfs_server !=  ansible_hostname
 
 - name:                                "2.6 SAP Mounts: - Mount Install folder when not using AFS"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -214,7 +214,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
   block:
     - name:                            "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -242,7 +242,7 @@
 - name:                                "2.6 SAP Mounts: - Mount SAP File systems sapmnt for oracle shared home installation"
   become:                              true
   become_user:                         root
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
     path:                              '/sapmnt/{{ item.sid | upper }}'
     fstype:                            'nfs4'

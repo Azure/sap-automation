@@ -16,7 +16,7 @@
 - name:                                "Oracle Data Guard - Observer: Mount Filesystems block"
   block:
     - name:                            "Oracle Data Guard - Observer: Mount Filesystems when not using external NFS (on observer)"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"

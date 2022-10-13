@@ -28,13 +28,13 @@
         - cloudnetmanage
 
     - name:                                "1.17 Generic Pacemaker - Ensure the Primary Node public key is authorized on all nodes, required for crm_clustering"
-      ansible.posix.authorized_key:
+      ansible.builtin.authorized_key:
         user:                              root
         key:                               "{{ hostvars[primary_instance_name].cluster_public_ssh_key }}"
       when:                                ansible_hostname != primary_instance_name
 
     - name:                                "1.17 Generic Pacemaker - Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering"
-      ansible.posix.authorized_key:
+      ansible.builtin.authorized_key:
         user:                              root
         key:                               "{{ hostvars[secondary_instance_name].cluster_public_ssh_key }}"
       when:                                ansible_hostname != secondary_instance_name

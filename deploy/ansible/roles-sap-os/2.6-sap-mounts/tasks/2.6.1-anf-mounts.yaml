@@ -170,7 +170,7 @@
     - name:                            "ANF Mount: (sapmnt)"
       block:
         - name:                        "ANF Mount: Filesystems on ANF (sapmnt)"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
@@ -207,7 +207,7 @@
       when:                            MULTI_SIDS is defined
 
     - name:                            "ANF Mount: Unmount file systems (sap_mnt)"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ sap_mnt }}"
         path:                          "/saptmp"
         state:                         unmounted
@@ -231,7 +231,7 @@
       when:                            MULTI_SIDS is defined
 
     - name:                            "ANF Mount: Cleanup fstab and directory (sap_mnt)"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ sap_mnt }}"
         path:                          "/saptmp"
         fstype:                        "nfs4"
@@ -314,7 +314,7 @@
     - skip_ansible_lint
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -331,7 +331,7 @@
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
   become:                              true
   become_user:                         root
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
@@ -344,7 +344,7 @@
     - MULTI_SIDS is defined
 
 - name:                                "ANF Mount: sapmnt/{{ sap_sid | upper }}"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -359,7 +359,7 @@
     - sap_mnt is defined
 
 - name:                                "ANF Mount: usr/sap/{{ sap_sid | upper }}/SYS"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"

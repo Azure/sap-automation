@@ -60,7 +60,7 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "1.5 Disk setup - Volume Group creation"
-  community.general.lvg:
+  ansible.builtin.lvg:
     vg:                                "{{ item.vg }}"
     pvs:                               "{{ item.pvs }}"
     pesize:                            4M
@@ -89,7 +89,7 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "1.5 Disk setup - Logical Volume creation"
-  community.general.lvol:
+  ansible.builtin.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
     size:                              "{{ item.size }}"
@@ -119,7 +119,7 @@
     - tier == "sapos"
 
 - name:                                "1.5 Disk setup - Filesystem creation"
-  community.general.filesystem:
+  ansible.builtin.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
     opts:                              "{{ item.fsopts | default('') }}"

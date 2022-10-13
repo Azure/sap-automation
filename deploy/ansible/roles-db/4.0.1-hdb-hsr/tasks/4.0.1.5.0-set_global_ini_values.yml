@@ -25,7 +25,7 @@
 - name:                                "HANA HSR: - Ensure options set in section [inifile_checker] of global.ini."
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
-  community.general.ini_file:
+  ansible.builtin.ini_file:
     path:                              "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
     section:                           inifile_checker
     state:                             present

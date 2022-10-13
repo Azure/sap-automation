@@ -24,7 +24,7 @@
     - name:                            "ANF Mount: ({{ item.type }})"
       block:
         - name:                        "ANF Mount: Filesystems on ANF ({{ item.temppath }})"
-          ansible.posix.mount:
+          ansible.builtin.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
             fstype:                    "nfs4"
@@ -47,7 +47,7 @@
         mode:                          0755
 
     - name:                            "ANF Mount: Unmount file systems ({{ item.temppath }})"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ item.mount }}"
         path:                          "/{{ item.temppath }}"
         state:                         unmounted
@@ -58,7 +58,7 @@
         state:                         absent
 
     - name:                            "ANF Mount: Cleanup fstab and directory ({{ item.temppath }})"
-      ansible.posix.mount:
+      ansible.builtin.mount:
         src:                           "{{ item.mount }}"
         path:                          "/{{ item.temppath }}"
         fstype:                        "nfs4"
@@ -113,7 +113,7 @@
     - skip_ansible_lint
 
 - name:                                "ANF Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
     path:                              "{{ item.path }}"
     fstype:                            "nfs4"

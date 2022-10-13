@@ -42,7 +42,7 @@
 - name:                                "2.6 SAP Mounts (Oracle shared home): Mount oracle Filesystem"
   become:                              true
   become_user:                         root
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -58,7 +58,7 @@
 - name:                                "2.6 SAP Mounts (Oracle shared home): Mount File systems for Oracle"
   become:                              true
   become_user:                         root
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ dev_path_from_lv_item }}"
     # path:   "{{ ['/'~item.lv | split('_')[-2], anydb_sid | upper, item.lv | split('_')[-1]] | join('/') }}"
     path: >-
@@ -84,7 +84,7 @@
 # - name:                                "2.6 SAP Mounts (Oracle shared home): Mount SAP Filesystems on Database for installation"
 #   become:                              true
 #   become_user:                         root
-#   ansible.posix.mount:
+#   ansible.builtin.mount:
 #     src:                               "{{ item.src }}"
 #     path:                              "{{ item.path }}"
 #     fstype:                            "{{ item.type }}"
@@ -103,7 +103,7 @@
 # - name:                                "2.6 SAP Mounts (Oracle shared home): Mount SAP Filesystems on Database for installation"
 #   become:                              true
 #   become_user:                         root
-#   ansible.posix.mount:
+#   ansible.builtin.mount:
 #     src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
 #     path:                              '/sapmnt/{{ item.sid | upper }}'
 #     fstype:                            'nfs4'
@@ -157,7 +157,7 @@
 - name:                                "2.6 SAP Mounts: - Mount SAP File systems for installation"
   become:                              true
   become_user:                         root
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               '{{ nfs_server }}:/sapmnt/{{ item.sid | upper }}'
     path:                              '/sapmnt/{{ item.sid | upper }}'
     fstype:                            'nfs4'

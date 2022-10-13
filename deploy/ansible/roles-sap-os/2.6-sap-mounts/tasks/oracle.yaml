@@ -45,7 +45,7 @@
 
 # Mount Filesystems
 - name:                                "ORACLE: Mount Filesystems for Oracle"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
                                        {%- set lv_parts = item.lv.split('_') -%}
@@ -103,7 +103,7 @@
 
 # Mount Filesystems
 - name:                                "ORACLE: Mount SAP File systems on Database for installation"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
@@ -119,7 +119,7 @@
 
 # Mount install file system on Observer node.
 - name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
-  ansible.posix.mount:
+  ansible.builtin.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
