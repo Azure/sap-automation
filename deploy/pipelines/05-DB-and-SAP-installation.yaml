@@ -85,6 +85,14 @@ parameters:
     type: boolean
     default: false
 
+  - name: sap_automation_repo_path
+    displayName: The local path on the agent where the sap_automation repo can be found
+    type: string
+
+  - name: config_repo_path
+    displayName: The local path on the agent where the config repo can be found
+    type: string
+
 stages:
   - stage: Preparation_for_Ansible
     variables:
@@ -115,7 +123,7 @@ stages:
               fi
               echo -e "$green--- --- Convert config file to UX format ---$reset"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
+                export HOME=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -178,13 +186,13 @@ stages:
 
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
                 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
-                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sap_system_folder)"
-                echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
+                # echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sap_system_folder)"
+                # echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
                 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
                 echo "##vso[task.setvariable variable=CONFIGURATION_NAME;isOutput=true]$(sap_system_folder)"
 
               echo -e "$green--- Get Files from the DevOps Repository ---$reset"
-                cd $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)
+                cd ${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)
                 sap_params_updated=0
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
@@ -237,8 +245,9 @@ stages:
               AZURE_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               AZURE_TENANT_ID: $(ARM_TENANT_ID)
               AZURE_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
             failOnStderr: true
-          - publish: $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
+          - publish: ${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact: ansible_data
 
   - stage: Validate_Parameters
@@ -261,7 +270,6 @@ stages:
           SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
           SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
@@ -274,14 +282,13 @@ stages:
               echo $(SID_hosts)
               echo $(SAP_parameters)
               echo $(parameters_folder)
-              echo $(DEPLOYMENT_REPO_PATH)
               sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
             displayName: "Variables & Process sshkey"
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName: "Validate the input parameters"
-              ansibleFilePath: $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_00_validate_parameters.yaml
+              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
               privateKey: $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
               parametersFolder: "_workspace_directory=$(parameters_folder)"
               sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
@@ -518,7 +525,7 @@ stages:
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 git checkout -q $(Build.SourceBranchName)
                 git pull
-                cd $(Build.Repository.LocalPath)
+                cd ${CONFIG_REPO_PATH}
                 added=0
                 if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
                   git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
