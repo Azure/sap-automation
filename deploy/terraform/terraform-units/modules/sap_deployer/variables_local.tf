@@ -86,7 +86,7 @@ locals {
   )
   management_subnet_deployed_prefixes = local.management_subnet_exists ? (
     data.azurerm_subnet.subnet_mgmt[0].address_prefixes) : (
-    try(azurerm_subnet.subnet_mgmt[0].address_prefixes, "")
+    try(azurerm_subnet.subnet_mgmt[0].address_prefixes, [])
   )
 
   // Management NSG
