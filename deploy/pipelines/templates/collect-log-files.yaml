@@ -1,13 +1,6 @@
 parameters:
     logPath: ''
 steps:
-- task: PostBuildCleanup@3
-- checkout: sap-automation
-- checkout: self
-  persistCredentials: true
-  submodules: true
-- download: current
-  artifact: ansible_data
 - script: |
     #!/bin/bash
     if [ -f ${LOG_PATH} && $(ls ${LOG_PATH}/.zip | wc -l ) -gt 0 ]; then

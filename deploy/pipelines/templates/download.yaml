@@ -8,10 +8,11 @@ steps:
   submodules: true
 - download: current
   artifact: ansible_data
+  displayName: 'Download ansible_data'
 - script: |
     #!/bin/bash
     sudo chmod 600 ${HOME_DOWNLOAD_PATH}/ansible_data/${CONFIGURATION_NAME}_sshkey
-  displayName: "Process sshkey"
+  displayName: "Modify file permissions sshkey"
   env:
     HOME_DOWNLOAD_PATH:             $(Pipeline.Workspace)
     CONFIGURATION_NAME:             ${{ parameters.configurationName }}
