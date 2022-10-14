@@ -98,10 +98,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Preparation steps
     jobs:
       - job: Preparation_step
@@ -182,13 +179,12 @@ stages:
                 fi
 
 
-                echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${bom_file}"
+                echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
                 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
                 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
                 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
-                echo "##vso[task.setvariable variable=CONFIGURATION_NAME;isOutput=true]${SAP_SYSTEM_CONFIGURATION_NAME}"
 
               echo -e "$green--- Get Files from the DevOps Repository ---$reset"
                 cd ${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}
@@ -255,10 +251,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Validate the input parameters
     condition: always()
     dependsOn:
@@ -295,10 +288,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Core Operating System Configuration
     dependsOn:
       - Preparation_for_Ansible
@@ -342,10 +332,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: SAP Operating System Configuration
     dependsOn:
       - Preparation_for_Ansible
@@ -390,10 +377,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Software Acquisition
     dependsOn:
       - Preparation_for_Ansible
@@ -439,10 +423,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Database Installation
     dependsOn:
       - Preparation_for_Ansible
@@ -493,10 +474,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: SCS Installation
     dependsOn:
       - Preparation_for_Ansible
@@ -548,10 +526,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Database Load
     dependsOn:
       - Preparation_for_Ansible
@@ -606,10 +581,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: High Availability Setup
     dependsOn:
       - Preparation_for_Ansible
@@ -659,10 +631,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: PAS Installation
     dependsOn:
       - Preparation_for_Ansible
@@ -717,10 +686,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Application Server Install
     dependsOn:
       - Preparation_for_Ansible
@@ -778,10 +744,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: WebDispatcher Installation
     condition: eq(${{ parameters.webdispatcher_installation }}, true)
     dependsOn:
@@ -830,10 +793,7 @@ stages:
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
           environment: ${{ parameters.environment }}
-          sap_system: ${{ parameters.sap_system_configuration_name }}
-          sap_system_configuration_name: ${{ parameters.sap_system_configuration_name }}
     displayName: Post Installation Steps
     condition: always()
     dependsOn:

@@ -1,6 +1,5 @@
 parameters:
   environment: ""
-  sap_system_configuration_name: ""
 
 variables:
   - group: "SDAF-General"
