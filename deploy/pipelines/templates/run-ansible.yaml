@@ -22,6 +22,7 @@ steps:
     fi
     az account set --subscription $AZURE_SUBSCRIPTION_ID
 
+    sudo yum install netaddr -y --quiet
     ansible-playbook -i $INVENTORY \
                      --private-key $PRIVATE_KEY \
                      -e $SAP_PARAMS \
