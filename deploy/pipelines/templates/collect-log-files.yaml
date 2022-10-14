@@ -1,0 +1,28 @@
+parameters:
+    logPath: ''
+steps:
+- script: |
+    #!/bin/bash
+    if [ -f ${LOG_PATH} && $(ls ${LOG_PATH}/.zip | wc -l ) -gt 0 ]; then
+
+      cd ${LOG_PATH}
+      git config --global user.email "${USER_EMAIL}"
+      git config --global user.name "${USER_NAME}"
+
+      git checkout -q ${SOURCE_BRANCH}
+      git pull
+
+      git add --ignore-errors .
+      git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
+      git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
+    else
+      echo "No logs found"
+    fi
+  displayName: Store log files in repository
+  env:
+    USER_EMAIL: $(Build.RequestedForEmail)
+    USER_NAME: $(Build.RequestedFor)
+    BUILD_DEFINITION_NAME: $(Build.DefinitionName)
+    SOURCE_BRANCH: $(Build.SourceBranch)
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    LOG_PATH: ${{ parameters.logPath }}
