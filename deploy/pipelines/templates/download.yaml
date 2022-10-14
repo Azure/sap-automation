@@ -1,7 +1,6 @@
 parameters:
     configurationName: ''
 steps:
-- task: PostBuildCleanup@3
 - checkout: sap-automation
 - checkout: self
   persistCredentials: true
