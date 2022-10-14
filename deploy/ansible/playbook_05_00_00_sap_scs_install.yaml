@@ -112,7 +112,26 @@
       tags:
         - 2.5-sap-users
 
-
+    - name:                            Generic Users and Groups for SAP Installation for Oracle SCS High availability
+      ansible.builtin.include_role:
+        name:                          roles-sap-os/2.5-sap-users
+        tasks_from:                    user_nw.yaml
+      vars:
+        sap_sid:                      "{{ sid_to_be_deployed.sid }}"
+        scs_instance_number:          "{{ sid_to_be_deployed.ascs_inst_no }}"
+        sidadm_uid:                   "{{ sid_to_be_deployed.sidadm_uid }}"
+        tier:                          generic
+        main_password:                 "{{ hostvars.localhost.sap_password }}"
+        sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+      loop:                            "{{ all_sids }}"
+      loop_control:
+        loop_var:                      sid_to_be_deployed
+      when:                            
+        - platform == "ORACLE"
+        - scs_high_availability
+      tags:
+        - 2.5-sap-users
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                       Playbook for SAP SCS Install                         |
