@@ -22,7 +22,6 @@ steps:
     fi
     az account set --subscription $AZURE_SUBSCRIPTION_ID
 
-    ansible --version
     ansible-playbook -i $INVENTORY \
                      --private-key $PRIVATE_KEY \
                      -e $SAP_PARAMS \
