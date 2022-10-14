@@ -186,7 +186,7 @@ stages:
 
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
                 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
-                # echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sap_system_folder)"
+                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/$(sap_system_folder)"
                 # echo "##vso[task.setvariable variable=DEPLOYMENT_REPO_PATH;isOutput=true]$(Build.Repository.LocalPath)"
                 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
                 echo "##vso[task.setvariable variable=CONFIGURATION_NAME;isOutput=true]$(sap_system_folder)"
