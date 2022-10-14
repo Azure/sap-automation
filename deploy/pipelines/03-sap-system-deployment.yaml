@@ -6,73 +6,75 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              sap_system
-    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-X00
+  - name: sap_system
+    displayName: "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type: string
+    default: DEV-WEEU-SAP01-X00
 
-  - name:                              environment
-    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
-    type:                              string
-    default:                           DEV
+  - name: environment
+    displayName: Workload Environment (DEV, QUA, PRD, ...)
+    type: string
+    default: DEV
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name: sap_automation_repo_path
+    displayName: The local path on the agent where the sap_automation repo can be found
+    type: string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
-
+  - name: config_repo_path
+    displayName: The local path on the agent where the config repo can be found
+    type: string
 
 stages:
-  - stage:                             Deploy_SAP_infrastructure
+  - stage: Deploy_SAP_infrastructure
     variables:
-    - template:                       variables/03-sap-system-deployment-variables.yaml
-      parameters:
-        sap_system:                   ${{ parameters.sap_system }}
-        environment:                  ${{ parameters.environment }}
-    displayName:                       Deploy SAP infrastructure
+      - template: variables/03-sap-system-deployment-variables.yaml
+        parameters:
+          sap_system: ${{ parameters.sap_system }}
+          environment: ${{ parameters.environment }}
+    displayName: Deploy SAP infrastructure
     jobs:
-      - job:                           Deploy_SAP_infrastructure
-        displayName:                   Deploy SAP infrastructure
+      - job: Deploy_SAP_infrastructure
+        displayName: Deploy SAP infrastructure
         workspace:
-          clean:                       all
+          clean: all
         steps:
           - task: PostBuildCleanup@3
-          - checkout:                  self
-          - checkout:                  sap-automation
+          - checkout: sap-automation
+          - checkout: self
+            persistCredentials: true
+            fetchDepth: 0
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-              #     git checkout -q $(Build.SourceBranchName)
-              echo -e "$green--- Read parameters ---$reset"
 
-                     HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
-              ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
-                 LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
-                  NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
-                      SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
+              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                cd $CONFIG_REPO_PATH
+                git checkout -q $(Build.SourceBranchName)
+
+              echo -e "$green--- Read parameters ---$reset"
+                      HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
+                ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
+                  LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
+                    NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
+                        SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
 
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
 
               echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
                 echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
-              echo -e "$green--- Validations ---$reset"
 
+              echo -e "$green--- Validations ---$reset"
                 if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
-                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+                  echo -e "$boldred--- $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found."
                   exit 2
                 fi
 
                 environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
-
                 if [ ! -f $environment_file_name ]; then
-                  echo -e "$boldred--- $ENVIRONMENT$LOCATION$NETWORK was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $ENVIRONMENT$LOCATION$NETWORK was not found."
+                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
                   exit 2
                 fi
 
@@ -101,7 +103,7 @@ stages:
                   exit 2
                 fi
 
-                # Check if running on deployer
+              # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                 echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
@@ -262,16 +264,15 @@ stages:
                 fi
               exit $return_code
 
-            displayName:               Deploy_SAP_infrastructure
+            displayName: Deploy_SAP_infrastructure
             env:
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
 
-            failOnStderr:              false
-...
+            failOnStderr: false
