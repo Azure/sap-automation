@@ -151,7 +151,6 @@ stages:
                 else
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
                 fi
-
             displayName: Prepare download
             name: Preparation
             env:
@@ -235,20 +234,26 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-          - task: Ansible@0
-            displayName: Download software
-            timeoutInMinutes: 0
-            inputs:
-              ansibleInterface: "agentMachine"
-              playbookPathOnAgentMachine: deploy/ansible/playbook_bom_downloader.yaml
-              args: ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
-              failOnStderr: false
+            displayName: Download
+            name: download
             env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_PYTHON_INTERPRETER: auto_silent
-              DEPLOYMENT_REPO_PATH: $(Build.Repository.LocalPath)
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+            failOnStderr: false
+          - task: Ansible@0
+            displayName: Download software
+            timeoutInMinutes: 0
+            inputs:
+              ansibleInterface: "agentMachine"
+              playbookPathOnAgentMachine: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml
+              args: ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
+              failOnStderr: false
+            env:
+              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
+              ANSIBLE_PYTHON_INTERPRETER: auto_silent
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
