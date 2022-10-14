@@ -275,6 +275,7 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
+          - checkout: sap-automation
           - checkout: self
             persistCredentials: true
             submodules: true
