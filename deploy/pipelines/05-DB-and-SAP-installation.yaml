@@ -700,6 +700,7 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
             displayName: Copy Log files
+
   - stage: HighAvailability_Setup
     variables:
       - template: variables/03-sap-system-deployment-variables.yaml
@@ -1038,28 +1039,11 @@ stages:
             fetchDepth: 0
           - script: |
               #!/bin/bash
-              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                cd $CONFIG_REPO_PATH
-                git checkout -q $(Build.SourceBranchName)
-                git branch --set-upstream-to=origin/$(Build.SourceBranchName)
-                git pull
-                cd $(Build.Repository.LocalPath)
-                added=0
-                if [ $(ls $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
-                  git add --ignore-errors $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
-                  added=1
-                fi
-                if [ 1 == $added ]; then
-                  git commit -m "Copy all Logs $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
-                fi
-                if [ -f $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
-                fi
+              if [ -f $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
+                echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md"
+              fi
 
-            displayName: Copy Log files
+            displayName: Copy system specifications
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
               CONFIG_REPO-PATH: $(CONFIG_REPO_PATH)
             failOnStderr: false
