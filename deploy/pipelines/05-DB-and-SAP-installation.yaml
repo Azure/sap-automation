@@ -1029,7 +1029,7 @@ stages:
           SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          CONFIG_REPO_PATH: ${{ parameters.configuration_repo_path }}
+          CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
         steps:
           - task: PostBuildCleanup@3
           - checkout: sap-automation
