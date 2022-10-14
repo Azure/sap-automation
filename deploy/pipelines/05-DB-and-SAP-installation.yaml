@@ -368,7 +368,7 @@ stages:
           SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
           SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SAP_AUTOMATION_ROOT_PATH: ${{ parameters.sap_automation_repo_path }}
+          SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
@@ -379,7 +379,7 @@ stages:
           - template: templates\run-ansible.yaml
             parameters:
               displayName: "SAP Operating System Configuration"
-              ansibleFilePath: $(SAP_AUTOMATION_ROOT_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml
+              ansibleFilePath: $(SAP_AUTOMATION_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml
               privateKey: $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
               parametersFolder: "_workspace_directory=$(parameters_folder)"
               sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
