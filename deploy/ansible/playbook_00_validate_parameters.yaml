@@ -23,6 +23,11 @@
         name: jmespath
         state: present
 
+    - name: ensure netaddr is installed in the playbook python
+      ansible.builtin.pip:
+        name: netaddr
+        state: present
+
     - name: "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
         path: "{{ _workspace_directory }}/.progress"
