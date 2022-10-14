@@ -1029,7 +1029,7 @@ stages:
           SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          CONFIG_REPO_PATH: ${{ parameters.configuration_repo_path }}
         steps:
           - task: PostBuildCleanup@3
           - checkout: sap-automation
@@ -1038,11 +1038,9 @@ stages:
             fetchDepth: 0
           - script: |
               #!/bin/bash
-              cd $CONFIG_REPO_PATH
-              git checkout -q $(Build.SourceBranchName)
-
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+                cd $CONFIG_REPO_PATH
                 git checkout -q $(Build.SourceBranchName)
                 git branch --set-upstream-to=origin/$(Build.SourceBranchName)
                 git pull
@@ -1063,5 +1061,5 @@ stages:
             displayName: Copy Log files
             env:
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              DEPLOYMENT_REPO_PATH: $(DEPLOYMENT_REPO_PATH)
+              CONFIG_REPO-PATH: $(CONFIG_REPO_PATH)
             failOnStderr: false
