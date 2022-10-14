@@ -1,5 +1,4 @@
 parameters:
-    homeDownloadPath: ''
     configurationName: ''
 steps:
 - checkout: sap-automation
@@ -9,7 +8,8 @@ steps:
 - download: current
   artifact: ansible_data
 - script: |
-    sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$($CONFIGURATION_NAME)_sshkey
+    sudo chmod 600 ${HOME_DOWNLOAD_PATH}/ansible_data/${CONFIGURATION_NAME}_sshkey
   displayName: "Process sshkey"
   env:
+    HOME_DOWNLOAD_PATH:             $(Pipeline.Workspace)
     CONFIGURATION_NAME:             ${{ parameters.configurationName }}
