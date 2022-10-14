@@ -275,7 +275,7 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - template: tempaltes\download.yaml
+          - template: templates\download.yaml
             parameters:
               homeDownloadPath: $(Pipeline.Workspace)
               configurationName: $(CONFIGURATION_NAME)
