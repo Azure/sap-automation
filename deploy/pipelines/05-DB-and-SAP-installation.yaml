@@ -196,7 +196,8 @@ stages:
                 sap_params_updated=0
 
               echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
-                sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
+                echo 'bom:$(bom)'
+                sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|'  sap-parameters.yaml
 
                 fqdn="$(grep -m1 "$sap_fqdn:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
                 if [ -z $fqdn ] ; then
@@ -246,6 +247,7 @@ stages:
               AZURE_TENANT_ID: $(ARM_TENANT_ID)
               AZURE_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
               CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
+              BOM_BASE_NAME: ${{ parameters.bom_base_name }}
             failOnStderr: true
           - publish: ${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact: ansible_data
