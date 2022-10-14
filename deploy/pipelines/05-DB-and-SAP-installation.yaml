@@ -368,23 +368,18 @@ stages:
           SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
           SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          SAP_AUTOMATION_ROOT_PATH: ${{ parameters.sap_automation_repo_path }}
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName: "SAP Operating System Configuration"
-              ansibleFilePath: $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml
+              ansibleFilePath: $(SAP_AUTOMATION_ROOT_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml
               privateKey: $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
               parametersFolder: "_workspace_directory=$(parameters_folder)"
               sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
@@ -423,23 +418,18 @@ stages:
           SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
           SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          SAP_AUTOMATION_ROOT_PATH: ${{ parameters.sap_automation_repo_path }}
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName: "Software Acquisition"
-              ansibleFilePath: $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml
+              ansibleFilePath: $(SAP_AUTOMATION_ROOT_PATH)/deploy/ansible/playbook_03_bom_processing.yaml
               privateKey: $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
               parametersFolder: "_workspace_directory=$(parameters_folder)"
               sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
@@ -480,23 +470,19 @@ stages:
           SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
           SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
+          SAP_AUTOMATION_ROOT_PATH: ${{ parameters.sap_automation_repo_path }}
+          CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
               displayName: "Database Installation"
-              ansibleFilePath: $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml
+              ansibleFilePath: $(SAP_AUTOMATION_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml
               privateKey: $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
               parametersFolder: "_workspace_directory=$(parameters_folder)"
               sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
@@ -507,25 +493,9 @@ stages:
               azureTenantId: $(ARM_TENANT_ID)
               azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
 
-          - script: |
-              #!/bin/bash
-              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-                git checkout -q $(Build.SourceBranchName)
-                git pull
-                cd ${CONFIG_REPO_PATH}
-                added=0
-                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
-                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
-                  added=1
-                fi
-                if [ 1 == $added ]; then
-                  git config --global user.email "$(Build.RequestedForEmail)"
-                  git config --global user.name "$(Build.RequestedFor)"
-                  git commit -m "Added Logs Database Installation $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
-                fi
-            displayName: Copy Log files
+          - template: templates\collect-log-files.yaml
+            parameters:
+              logPath: $(CONFIG_REPO_PATH)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
 
   - stage: SCS_Installation
     variables:
@@ -562,14 +532,9 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
@@ -643,14 +608,9 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
@@ -723,14 +683,9 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
@@ -784,14 +739,9 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
@@ -868,15 +818,9 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-            timeoutInMinutes: 0
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
@@ -944,14 +888,9 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: Process sshkey
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
@@ -1017,17 +956,15 @@ stages:
           parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: sap-automation
-          - checkout: self
-            persistCredentials: true
-            fetchDepth: 0
+          - template: templates\download.yaml
+            parameters:
+              configurationName: $(CONFIGURATION_NAME)
+
           - script: |
               #!/bin/bash
               if [ -f $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
                 echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md"
               fi
-
             displayName: Copy system specifications
             env:
               CONFIG_REPO-PATH: $(CONFIG_REPO_PATH)
