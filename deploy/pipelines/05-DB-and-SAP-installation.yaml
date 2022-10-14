@@ -1046,15 +1046,15 @@ stages:
                 git pull
                 cd $(Build.Repository.LocalPath)
                 added=0
-                if [ $(ls $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
-                  git add --ignore-errors $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
+                if [ $(ls $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
+                  git add --ignore-errors $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/logs
                   added=1
                 fi
                 if [ 1 == $added ]; then
                   git commit -m "Copy all Logs $(Build.DefinitionName) [skip ci]"
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
-                if [ -f $(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
+                if [ -f $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
 
