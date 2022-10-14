@@ -1,0 +1,17 @@
+parameters:
+    homeDownloadPath: ''
+    configurationName: ''
+
+steps:
+- checkout: sap-automation
+- checkout: self
+  persistCredentials: true
+  submodules: true
+- download: current
+  artifact: ansible_data
+- script: |
+    sudo chmod 600 $(HOME-DOWNLOAD-PATH)/ansible_data/$(CONFIGURATION_NAME)_sshkey
+  displayName: "Process sshkey"
+  env:
+    HOME-DOWNLOAD-PATH:             ${{ parameters.homeDownloadPath }}
+    CONFIGURATION_NAME:             ${{ parameters.configurationName }}

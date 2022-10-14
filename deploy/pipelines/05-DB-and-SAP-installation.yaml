@@ -275,18 +275,10 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
-          - checkout: sap-automation
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
-          - script: |
-              echo $(SID_hosts)
-              echo $(SAP_parameters)
-              echo $(parameters_folder)
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName: "Variables & Process sshkey"
+          - template: tempaltes\download.yaml
+            parameters:
+              homeDownloadPath: $(Pipeline.Workspace)
+              configurationName: $(CONFIGURATION_NAME)
 
           - template: templates\run-ansible.yaml
             parameters:
@@ -332,6 +324,7 @@ stages:
           CONFIGURATION_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
 
         steps:
+          - checkout: sap-automation
           - checkout: self
             persistCredentials: true
             submodules: true
