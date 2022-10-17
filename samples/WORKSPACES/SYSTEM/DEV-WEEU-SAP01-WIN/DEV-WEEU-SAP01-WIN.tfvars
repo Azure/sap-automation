@@ -157,6 +157,8 @@ database_vm_use_DHCP = true
 #  offer= "Oracle-Linux",
 #  sku= "82-gen2",
 #  version="latest"
+#  type = "source_image" # [custom, marketplace, source_image]
+
 #}
 
 #SUSE 15 SP3
@@ -167,6 +169,7 @@ database_vm_use_DHCP = true
 #  offer           = "sles-sap-15-sp3"
 #  sku             = "gen2"
 #  version         = "latest"
+#  type = "source_image" # [custom, marketplace, source_image]
 #}
 
 #RedHat
@@ -177,6 +180,7 @@ database_vm_use_DHCP = true
 #  offer="RHEL-SAP-HA"
 #  sku="82sapha-gen2"
 #  version="8.2.2021040902"
+#  type = "source_image" # [custom, marketplace, source_image]
 #}
 
 # The vm_image defines the Virtual machine image to use, 
@@ -263,6 +267,7 @@ scs_server_image = {
   offer           = "windowsserver",
   sku             = "2022-datacenter",
   version         = "latest"
+  type            = "source_image" # [custom, marketplace, source_image]
 }
 
 # scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
@@ -345,6 +350,7 @@ application_server_image = {
   offer           = "windowsserver",
   sku             = "2022-datacenter",
   version         = "latest"
+  type            = "source_image" # [custom, marketplace, source_image]
 }
 
 #application_server_vm_avset_arm_ids = []
