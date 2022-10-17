@@ -353,7 +353,6 @@ application_server_image = {
   sku             = "gen2",
   version         = "latest"
   type            = "source_image" # [custom, marketplace, source_image]
-
 }
 
 #application_server_vm_avset_arm_ids = []
