@@ -277,9 +277,11 @@ if [ -f ./.terraform/terraform.tfstate ]; then
         terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
         terraform -chdir="${terraform_module_directory}" init -reconfigure  --backend-config "path=${param_dirname}/terraform.tfstate"
     else
+        terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
         terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
    fi
 else
+    terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
     terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
 fi
 return_value=$?

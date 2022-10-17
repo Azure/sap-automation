@@ -438,9 +438,9 @@ then
           if [ -n "${deployer_statefile_foldername}" ];
           then
               echo "Deployer folder specified:" "${deployer_statefile_foldername}"
-              terraform -chdir="${terraform_module_directory}" import -allow-missing-config -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
+              terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
           else
-              terraform -chdir="${terraform_module_directory}" import -allow-missing-config -var-file="${var_file}" $moduleID $resourceID
+              terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
           fi
 
 
