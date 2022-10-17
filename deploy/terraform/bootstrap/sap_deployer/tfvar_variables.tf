@@ -418,3 +418,8 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   default     = false
   type        = bool
 }
+
+variable "Agent_IP" {
+  description = "IP address of the agent"
+  default     = ""
+}

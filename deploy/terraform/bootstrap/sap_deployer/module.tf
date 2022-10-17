@@ -43,6 +43,7 @@ module "sap_deployer" {
   use_service_endpoint                         = var.use_service_endpoint
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   ansible_core_version                         = var.ansible_core_version
+  Agent_IP                                     = var.Agent_IP
 }
 
 module "sap_namegenerator" {

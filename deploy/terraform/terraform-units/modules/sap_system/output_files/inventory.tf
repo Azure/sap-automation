@@ -77,10 +77,14 @@ resource "local_file" "ansible_inventory_new_yml" {
     separator           = var.naming.separator,
     platform            = var.shared_home ? format("%s-multi-sid", lower(var.platform)) : lower(var.platform),
     db_connection       = var.platform == "SQLSERVER" ? "winrm" : "ssh"
+    db_become_user      = var.platform == "SQLSERVER" ? var.ansible_user : "root"
     scs_connection      = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
+    scs_become_user     = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "root" : var.ansible_user
     ers_connection      = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
     app_connection      = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
+    app_become_user     = upper(var.app_tier_os_types["app"]) == "LINUX" ? "root" : var.ansible_user
     web_connection      = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
+    web_become_user     = upper(var.app_tier_os_types["web"]) == "LINUX" ? "root" : var.ansible_user
     app_connectiontype  = try(var.authentication_type, "key")
     web_connectiontype  = try(var.authentication_type, "key")
     scs_connectiontype  = try(var.authentication_type, "key")
@@ -91,6 +95,11 @@ resource "local_file" "ansible_inventory_new_yml" {
     scs_supported_tiers = local.scs_supported_tiers
     ips_observers       = var.observer_ips
     observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : []
+    ansible_winrm_server_cert_validation = var.platform == "SQLSERVER" ? (
+      "ansible_winrm_server_cert_validation: ignore") : (
+      upper(var.app_tier_os_types["scs"]) == "LINUX" ? "" : "ansible_winrm_server_cert_validation: ignore"
+
+    )
 
     }
   )
@@ -135,6 +144,8 @@ resource "local_file" "sap-parameters_yml" {
     pas_instance_number = local.pas_instance_number
 
     oracle = local.oracle
+
+    domain=local.domain_info
 
     hana_data = length(try(var.hana_data[0], "")) > 1 ? (
       format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
@@ -235,9 +246,17 @@ locals {
   ora_release      = lookup(local.itemvalues, "ora_release", "")
   ora_version      = lookup(local.itemvalues, "ora_version", "")
   oracle_sbp_patch = lookup(local.itemvalues, "oracle_sbp_patch", "")
+  domain           = lookup(local.itemvalues, "domain", "")
+  domain_user      = lookup(local.itemvalues, "domain_user", "")
+  domain_name      = lookup(local.itemvalues, "domain_name", "")
 
   oracle = upper(var.platform) == "ORACLE" ? (
     format("ora_release: %s\nora_version: %s\noracle_sbp_patch: %s\n", local.ora_release, local.ora_version, local.oracle_sbp_patch)) : (
+    ""
+  )
+
+  domain_info=upper(var.platform) == "SQLSERVER" ? (
+    format("domain: %s\ndomain_user: %s\ndomain_name: %s\n", local.domain, local.domain_user, local.domain_name)) : (
     ""
   )
 }

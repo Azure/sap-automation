@@ -31,15 +31,14 @@ resource "azurerm_key_vault" "kv_user" {
         [
           local.enable_deployer_public_ip ? (
             azurerm_public_ip.deployer[0].ip_address) : (
-          ""),
+            ""),
           length(var.Agent_IP) > 0 ? var.Agent_IP : ""
         ]
       )
 
-      virtual_network_subnet_ids = local.management_subnet_exists ? (
+      virtual_network_subnet_ids = var.use_service_endpoint ? local.management_subnet_exists ? (
         [data.azurerm_subnet.subnet_mgmt[0].id]) : (
-        [azurerm_subnet.subnet_mgmt[0].id]
-      )
+      [azurerm_subnet.subnet_mgmt[0].id]) : null
     }
   }
 
