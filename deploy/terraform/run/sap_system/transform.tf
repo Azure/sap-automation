@@ -101,6 +101,7 @@ locals {
     offer           = try(var.database_vm_image.offer, "")
     sku             = try(var.database_vm_image.sku, "")
     version         = try(var.database_vm_image.version, "")
+    type            = try(var.database_vm_image.type, "custom")
   }
 
   db_os_specified = (length(local.db_os.source_image_id) + length(local.db_os.publisher)) > 0
