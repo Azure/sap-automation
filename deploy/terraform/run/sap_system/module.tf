@@ -75,9 +75,9 @@ module "common_infrastructure" {
   Agent_IP             = var.Agent_IP
   use_private_endpoint = var.use_private_endpoint
 
-  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
-  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+  use_custom_dns_a_registration     = var.use_custom_dns_a_registration
+  management_dns_subscription_id    = var.management_dns_subscription_id
+  management_dns_resourcegroup_name = var.management_dns_resourcegroup_name
 
   database_dual_nics                 = var.database_dual_nics
   azure_files_sapmnt_id              = var.azure_files_sapmnt_id
