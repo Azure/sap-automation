@@ -993,7 +993,7 @@
     
         - name: "Attribute Change Package 45 for ST-PI 740"
           archive: ST-PI740.SAR
-          checksum: 2b87eb02fa26dd8279a37eaa4c1ee64adab8bccbaca668f1e32ff421bdfbf9c8
+          checksum: 8406c3d057afd459406b3d2fa500a1050eb8ac3c81be165d19af6e5834725328
           url: https://softwaredownloads.sap.com/file/0010000000297212015
           download: false
     

@@ -24,6 +24,7 @@
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
         sap_inifile_template:          "{{ bom_base_name }}-dbload-inifile-param.j2"
+        dir_params:                    "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
 
     - name:                            "SAP DB2: Create run flag directory"
       ansible.builtin.file:
@@ -36,6 +37,12 @@
         path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
         state:                         absent
       when:                            reinstall
+
+    - name:                            "SAP DB2: Create hidden directory"
+      ansible.builtin.file:
+        path:                          "{{ dir_params }}"
+        state:                         directory
+        mode:                          0755
 
     - name:                            "SAP DB2: check if installed"
       ansible.builtin.stat:
@@ -54,23 +61,29 @@
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
+        tier:                          "{{ tier }}"
+        task_prefix:                   "DB2 Install: "
 
     - name:                            "DB2 Install: Include roles-sap/3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-template
       vars:
-        db2_archive_path:              /usr/sap/install/sapdb2_software
-        db2_cd_package_exportcd:       "/usr/sap/install/CD_EXPORT/DATA_UNITS"
+        bom_name:                      "{{ bom_base_name }}"
+        task_prefix:                   "DB2 Install: "
+        db2_archive_path:              "{{ target_media_location }}/sapdb2_software"
+        db2_cd_package_exportcd:       "{{ target_media_location }}/CD_EXPORT/DATA_UNITS"
         db2_cd_package_db2client:      "{{ db2_archive_path }}/db2client"
         db2_cd_package_software:       "{{ db2_archive_path }}/db2server/LINUXX86_64"
-        db2_cd_package_kernel:         /usr/sap/install/download_basket/
+        db2_cd_package_kernel:         "{{ target_media_location }}/download_basket/"
         sap_db_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') | first }}"
         db2_encryption_algo_type:      "AES"
         db2_ase_encryption_length:     "256"
         db2_encryption_keystore_dir:   /db2/db2{{ db_sid }}/keystore
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+        tier:                          "{{ tier }}"
+        param_directory:               "{{ dir_params }}"
       tags:
         - skip_ansible_lint
 
@@ -83,18 +96,18 @@
 
     - name:                            "SAP DB2 Install"
       ansible.builtin.shell: |
-                                       export TMPDIR=/usr/sap/install
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL=/usr/sap/install/downloads/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                          \
-                                                 SAPINST_SKIP_DIALOGS=true                                                     \
-                                                 SAPINST_START_GUISERVER=false
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dblha }}              \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_START_GUISERVER=false                                       \
+                                                 SAPINST_CONTROL_URL={{ target_media_location }}/SWPM/product.catalog
       args:
-        chdir:                         /usr/sap/install/SWPM
+        chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       /etc/sap_deployment_automation/sap_deployment_db2.txt
       environment:
-        TMPDIR:                        /usr/sap/install
+        TMPDIR:                        "{{ tmp_directory }}"
       register:                        db2_installation
-      failed_when:                 db2_installation.rc > 0
+      failed_when:                     db2_installation.rc > 0
       tags:
         - skip_ansible_lint
 

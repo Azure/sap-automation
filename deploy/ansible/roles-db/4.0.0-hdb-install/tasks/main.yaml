@@ -27,6 +27,16 @@
     path:                              /etc/sap_deployment_automation/sap_deployment_hdb.txt
   register:                            hana_installed
 
+- name:                                "SAP HANA: check media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/hdblcm"
+  register:                            hdblcm_found
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "INSTALL:0001:Unable to find hdblcm, please check that the installation media is mounted"
+  when: not hdblcm_found.stat.exists
+
 - name:                                "HANA Install"
   block:
 
@@ -97,6 +107,14 @@
       when:
         - hana_installation.rc is defined
         - hana_installation.rc > 0
+
+    - name:                            "Errorhandling: SAP HANA"
+      ansible.builtin.debug:
+        msg:                           "INSTALL:{{ hana_installation }}"
+      when:
+        - hana_installation.rc is defined
+        - hana_installation.rc > 0
+
 
     - name:                            "SAP HANA: Installation results"
       ansible.builtin.debug:

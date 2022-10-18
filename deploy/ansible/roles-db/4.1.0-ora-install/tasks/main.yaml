@@ -61,16 +61,6 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "ORACLE: check media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP/RUNINSTALLER"
-  register:                            orainst_found
-
-- name:                                "ErrorHandling"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0010:Unable to find RUNINSTALLER, please check that the installation media is mounted"
-  when: not orainst_found.stat.exists
-
 - name:                                "ORACLE: check if installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"

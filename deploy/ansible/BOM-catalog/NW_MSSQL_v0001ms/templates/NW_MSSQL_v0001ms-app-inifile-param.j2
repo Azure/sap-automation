@@ -1,8 +1,8 @@
-####################################################################################################################################################################################
-#                                                                                                                                                                                  #
-# Installation service 'SAP NetWeaver 7.5 > MS SQL Server > Installation > Application Server ABAP > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:NW750.MSS.ABAP' #
-#                                                                                                                                                                                  #
-####################################################################################################################################################################################
+#######################################################################################################################################################################################
+#                                                                                                                                                                                     #
+# Installation service 'SAP NetWeaver 7.5 > MS SQL Server > Installation > Additional SAP System Instances > Additional Application Server Instance', product id 'NW_DI:NW750.MSS.PD' #
+#                                                                                                                                                                                     #
+#######################################################################################################################################################################################
 
 # Location of download_basket\CD_EXPORT CD
 SAPINST.CD.PACKAGE.CD1                                                = {{ download_directory_windows }}\CD_EXPORT\DATA_UNITS\EXP1
@@ -68,7 +68,7 @@ NW_getFQDN.FQDN                                                       = {{ sap_f
 archives.downloadBasket                                               = {{ download_directory_windows }}\download_basket
 
 # Password of the sidadm user.
-db2.sidAdmPassword                                                    = {{ ansible_password }}
+db2.sidAdmPassword                                                    = {{ domain_user_password }}
 
 # Windows only: The domain of the SAP Host Agent user
 # hostAgent.domain =
@@ -96,7 +96,18 @@ MSS.Database.Action = USE
 
 # Database host
 NW_MSS_DBINFO.dbhost                                                  = {{ sap_db_hostname }}
+
+# Database system ID (DBSID)
 NW_MSS_DBINFO.dbsid                                                   = {{ db_sid | upper }}
 
+
+# The  instance number of the application server. Leave empty for default.
+NW_AS.instanceNumber                                                  = {{ sap_ciInstanceNumber }}
+
+# Skip unpacking any archive, for example SAPEXE.SAR. Do not set it to 'true' if the database client archives or the SAP kernel must be unpacked, for example if you want to add an application server on a another operating system.
+# NW_AS.skipUnpacking = false
+
+# Start the application server at the end of the installation. Default is 'true'.
+# NW_AS.start = true
 ...
 
