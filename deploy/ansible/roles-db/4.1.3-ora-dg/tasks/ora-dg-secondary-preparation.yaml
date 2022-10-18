@@ -17,6 +17,16 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "Oracle Data Guard - Create Folder for Comms: "
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}"
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 - name:                                "Oracle Data Guard - Preparation (Secondary): create createpfile.sql"
   become:                              true
   become_user:                         "root"
@@ -27,7 +37,7 @@
     marker_end:                        "-- END"
     block: |
          CREATE PFILE FROM SPFILE;
-         exit
+         exit;
     mode:                              0755
 
 
