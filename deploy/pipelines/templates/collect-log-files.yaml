@@ -3,27 +3,44 @@ parameters:
 steps:
   - script: |
       #!/bin/bash
+      
+      # Ensure that the script fails if a command fails. 
       set -e
-      if [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
-
-        cd ${LOG_PATH}
+      
+      if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
+        echo "Found log files"
+        
+        cd ${LOG_PATH} 
         git config --global user.email "${USER_EMAIL}"
         git config --global user.name "${USER_NAME}"
 
+        echo "Checking out ${SOURCE_BRANCH} branch..."
         git checkout -q ${SOURCE_BRANCH}
+        echo "Pulling last changes..."
         git pull
 
+        echo "Adding new logs..."
         git add --ignore-errors .
-        git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
-        git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
+        if [ $(git status | grep '#' | wc -l) -gt 0 ]; then
+            echo "Commiting changes..."
+            git commit -m "Adding new logs"
+            echo "Pushing changes..."
+            git push
+        else
+            echo "No changes to commit"
+        fi
       else
         echo "No logs found"
       fi
     displayName: Store log files in repository
+    continueOnError: true
     env:
       USER_EMAIL: $(Build.RequestedForEmail)
       USER_NAME: $(Build.RequestedFor)
-      BUILD_DEFINITION_NAME: $(Build.DefinitionName)
-      SOURCE_BRANCH: $(Build.SourceBranch)
+      SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
+
+  - publish: ${{ parameters.logPath }}/*.zip
+    artifact: logs_$(date +%s)
+    continueOnError: true
