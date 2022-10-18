@@ -29,6 +29,6 @@ steps:
       USER_EMAIL: $(Build.RequestedForEmail)
       USER_NAME: $(Build.RequestedFor)
       BUILD_DEFINITION_NAME: $(Build.DefinitionName)
-      SOURCE_BRANCH: $(Build.SourceBranch)
+      SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
