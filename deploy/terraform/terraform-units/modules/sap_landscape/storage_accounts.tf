@@ -244,11 +244,7 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_storage_account_network_rules" "transport" {
   provider           = azurerm.main
-<<<<<<< HEAD
   count              = var.NFS_provider == "AFS" && var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
-=======
-  count              = var.enable_firewall_for_keyvaults_and_storage && length(var.transport_storage_account_id) == 0 ? 1 : 0
->>>>>>> upstream/main
   storage_account_id = azurerm_storage_account.transport[0].id
   default_action     = "Deny"
 
