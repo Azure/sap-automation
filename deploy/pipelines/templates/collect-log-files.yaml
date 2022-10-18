@@ -6,6 +6,7 @@ steps:
       set -e
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
         echo "Found log files"
+        echo "##vso[build.uploadlog]${LOG_PATH}/*.zip"
         
         cd ${LOG_PATH}
         git config --global user.email "${USER_EMAIL}"
@@ -23,7 +24,6 @@ steps:
         echo "Pushing changes..."
         git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
 
-        echo "##vso[build.uploadlog]${LOG_PATH}/*.zip"
       else
         echo "No logs found"
       fi
