@@ -58,7 +58,6 @@
     - { node_tier: 'all',  type: 'xfs', src: '/dev/vg_sap/lv_usrsap', path: '/usr/sap' }
   when:
     - (item.node_tier == "all" or item.node_tier == node_tier)
-    - not scs_high_availability
     - node_tier != 'observer'
     - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
 
