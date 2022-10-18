@@ -20,7 +20,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/init{{ db_sid | upper }}.ora"
+    src:                               "{{ target_media_location }}/downloads/{{ db_sid | upper }}/init{{ db_sid | upper }}.ora"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
     remote_src:                        true
     owner:                             oracle
@@ -34,7 +34,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/downloads/orapw{{ db_sid | upper }}"
+    src:                               "{{ target_media_location }}/downloads/{{ db_sid | upper }}/orapw{{ db_sid | upper }}"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/orapw{{ db_sid | upper }}
     remote_src:                        true
     owner:                             oracle
@@ -223,7 +223,7 @@
   become:                              true
   become_user:                         "root"
   ansible.builtin.file:
-    path:                              /usr/sap/install/downloads/restore_completed.txt
+    path:                              /usr/sap/install/downloads/{{ db_sid | upper }}/restore_completed.txt
     state:                             touch
     mode:                              0755
     owner:                             oracle

@@ -220,7 +220,7 @@
 
 - name:                                "Oracle Data Guard - Observer:  Check if DB post-processing is completed"
   ansible.builtin.stat:
-    path:                              /usr/sap/install/downloads/post_processing_completed.txt
+    path:                              /usr/sap/install/downloads/{{ db_sid | upper }}/post_processing_completed.txt
   register:                            dg_enabled
 
 - name:                                "ENABLE FSFO"
