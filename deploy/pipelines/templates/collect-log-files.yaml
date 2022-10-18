@@ -11,17 +11,21 @@ steps:
         git config --global user.email "${USER_EMAIL}"
         git config --global user.name "${USER_NAME}"
 
-        echo "Checking out ${SOURCE_BRANCH} branch..."
-        git checkout -q ${SOURCE_BRANCH}
-        echo "Pulling last changes..."
-        git pull
+        # echo "Checking out ${SOURCE_BRANCH} branch..."
+        # git checkout -q ${SOURCE_BRANCH}
+        # echo "Pulling last changes..."
+        # git pull
 
         echo "Adding new logs..."
         git add --ignore-errors .
-        echo "Committing changes..."
-        git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
-        echo "Pushing changes..."
-        git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
+        if [ $(git status | grep '#' | wc -l) -gt 0 ]; then
+            echo "Commiting changes..."
+            git commit -m "Adding new logs"
+            echo "Pushing changes..."
+            git push
+        else
+            echo "No changes to commit"
+        fi
       else
         echo "No logs found"
       fi
@@ -36,4 +40,4 @@ steps:
       LOG_PATH: ${{ parameters.logPath }}
 
   - publish: ${LOG_PATH}/*.zip
-    artifact: logs_$(Get-Date -Format yyyy-MM-ddTHH:mm:ss.zzz)
+    artifact: logs_$(date +%s)
