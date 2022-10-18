@@ -16,20 +16,17 @@ steps:
         echo "Pulling last changes..."
         git pull
 
-        try{
-          echo "Adding new logs..."
-          git add --ignore-errors .
-          echo "Committing changes..."
-          git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
-          echo "Pushing changes..."
-          git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
-        } catch {
-          echo "No changes to commit"
-        }
+        echo "Adding new logs..."
+        git add --ignore-errors .
+        echo "Committing changes..."
+        git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
+        echo "Pushing changes..."
+        git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
       else
         echo "No logs found"
       fi
     displayName: Store log files in repository
+    failOnStderr: false
     env:
       USER_EMAIL: $(Build.RequestedForEmail)
       USER_NAME: $(Build.RequestedFor)
@@ -39,4 +36,5 @@ steps:
       LOG_PATH: ${{ parameters.logPath }}
 
   - publish: ${LOG_PATH}/*.zip
-    artifact: "logs_$(Get-Date -Format yyyyMMddhhmmss)"
+    artifact: "logs_$(Get-Date -Format yyyy-MM-ddTHH:mm:ss.zzz)"
+    
