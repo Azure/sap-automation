@@ -3,11 +3,14 @@ parameters:
 steps:
   - script: |
       #!/bin/bash
+      
+      # Ensure that the script fails if a command fails. 
       set -e
+      
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
         echo "Found log files"
         
-        cd ${LOG_PATH}
+        cd ${LOG_PATH} 
         git config --global user.email "${USER_EMAIL}"
         git config --global user.name "${USER_NAME}"
 
@@ -34,11 +37,10 @@ steps:
     env:
       USER_EMAIL: $(Build.RequestedForEmail)
       USER_NAME: $(Build.RequestedFor)
-      BUILD_DEFINITION_NAME: $(Build.DefinitionName)
       SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
 
-  - publish: ${LOG_PATH}/*.zip
+  - publish: ${{ parameters.logPath }}/*.zip
     artifact: logs_$(date +%s)
     continueOnError: true
