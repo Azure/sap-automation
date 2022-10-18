@@ -356,7 +356,7 @@ stages:
                   export fencing_id=$(az keyvault secret list --vault-name $workload_key_vault --query [].name -o tsv | grep ${workload_prefix}-fencing-spn-id | xargs)
                   if [ -z "$fencing_id" ]; then
                     az keyvault secret set --output none --name ${workload_prefix}-fencing-spn-id --vault-name $workload_key_vault --value $(FENCING_SPN_ID)
-                    az keyvault secret set --output none --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value $(FENCING_SPN_PWD)
+                    az keyvault secret set --output none --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value $FENCING_SPN_PWD
                     az keyvault secret set --output none --name ${workload_prefix}-fencing-spn-tenant --vault-name $workload_key_vault --value $(FENCING_SPN_TENANT)
                   fi
                 fi
@@ -475,6 +475,7 @@ stages:
               ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              FENCING_SPN_PWD:          $(FENCING_SPN_PWD)
               AZURE_DEVOPS_EXT_PAT:     $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
