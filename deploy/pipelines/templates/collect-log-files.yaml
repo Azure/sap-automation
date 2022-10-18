@@ -4,7 +4,7 @@ steps:
   - script: |
       #!/bin/bash
       set -e
-      if [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
+      if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
 
         cd ${LOG_PATH}
         git config --global user.email "${USER_EMAIL}"
