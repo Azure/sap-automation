@@ -5,16 +5,21 @@ steps:
       #!/bin/bash
       set -e
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
-
+        echo "Found log files"
         cd ${LOG_PATH}
         git config --global user.email "${USER_EMAIL}"
         git config --global user.name "${USER_NAME}"
 
+        echo "Checking out ${SOURCE_BRANCH} branch"
         git checkout -q ${SOURCE_BRANCH}
+        echo "Pulling last changes"
         git pull
 
+        echo "Adding new logs..."
         git add --ignore-errors .
+        echo "Committing changes..."
         git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
+        echo "Pushing changes..."
         git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
       else
         echo "No logs found"
