@@ -22,6 +22,8 @@ steps:
         git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
         echo "Pushing changes..."
         git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
+
+        echo "##vso[build.uploadlog]${LOG_PATH}/*.zip"
       else
         echo "No logs found"
       fi
@@ -33,3 +35,7 @@ steps:
       SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
+
+
+
+date +"%Y-%m-%dT%T.%3N%z"
