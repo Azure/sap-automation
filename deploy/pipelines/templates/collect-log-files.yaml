@@ -36,4 +36,4 @@ steps:
       LOG_PATH: ${{ parameters.logPath }}
 
   - publish: ${LOG_PATH}/*.zip
-    artifact: "logs_$(Get-Date -Format yyyy-MM-ddTHH:mm:ss.zzz)"
+    artifact: logs_$(Get-Date -Format yyyy-MM-ddTHH:mm:ss.zzz)
