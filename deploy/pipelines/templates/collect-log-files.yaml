@@ -41,6 +41,6 @@ steps:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
 
-  - publish: ${{ parameters.logPath }}/*.zip
-    artifact: logs_$(date +%s)
-    continueOnError: true
+  # - publish: ${{ parameters.logPath }}/*.zip
+  #   artifact: logs_$(date +%s)
+  #   continueOnError: true
