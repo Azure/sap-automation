@@ -11,10 +11,10 @@ steps:
         git config --global user.email "${USER_EMAIL}"
         git config --global user.name "${USER_NAME}"
 
-        # echo "Checking out ${SOURCE_BRANCH} branch..."
-        # git checkout -q ${SOURCE_BRANCH}
-        # echo "Pulling last changes..."
-        # git pull
+        echo "Checking out ${SOURCE_BRANCH} branch..."
+        git checkout -q ${SOURCE_BRANCH}
+        echo "Pulling last changes..."
+        git pull
 
         echo "Adding new logs..."
         git add --ignore-errors .
