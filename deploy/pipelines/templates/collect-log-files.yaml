@@ -6,13 +6,14 @@ steps:
       set -e
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
         echo "Found log files"
+        
         cd ${LOG_PATH}
         git config --global user.email "${USER_EMAIL}"
         git config --global user.name "${USER_NAME}"
 
-        echo "Checking out ${SOURCE_BRANCH} branch"
+        echo "Checking out ${SOURCE_BRANCH} branch..."
         git checkout -q ${SOURCE_BRANCH}
-        echo "Pulling last changes"
+        echo "Pulling last changes..."
         git pull
 
         echo "Adding new logs..."
