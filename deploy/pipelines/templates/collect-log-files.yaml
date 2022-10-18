@@ -3,7 +3,8 @@ parameters:
 steps:
   - script: |
       #!/bin/bash
-      if [ -f ${LOG_PATH} && $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
+      set -e
+      if [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
 
         cd ${LOG_PATH}
         git config --global user.email "${USER_EMAIL}"
