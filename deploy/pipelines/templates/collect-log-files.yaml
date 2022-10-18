@@ -41,3 +41,4 @@ steps:
 
   - publish: ${LOG_PATH}/*.zip
     artifact: logs_$(date +%s)
+    continueOnError: true
