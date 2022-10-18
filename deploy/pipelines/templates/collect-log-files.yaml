@@ -16,12 +16,16 @@ steps:
         echo "Pulling last changes..."
         git pull
 
-        echo "Adding new logs..."
-        git add --ignore-errors .
-        echo "Committing changes..."
-        git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
-        echo "Pushing changes..."
-        git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
+        try{
+          echo "Adding new logs..."
+          git add --ignore-errors .
+          echo "Committing changes..."
+          git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
+          echo "Pushing changes..."
+          git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
+        } catch {
+          echo "No changes to commit"
+        }
       else
         echo "No logs found"
       fi
