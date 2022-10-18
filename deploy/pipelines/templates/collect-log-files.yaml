@@ -6,7 +6,6 @@ steps:
       set -e
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
         echo "Found log files"
-        echo "##vso[build.uploadlog]${LOG_PATH}/*.zip"
         
         cd ${LOG_PATH}
         git config --global user.email "${USER_EMAIL}"
@@ -23,7 +22,6 @@ steps:
         git commit -m "Added Logs Database Installation ${BUILD_DEFINITION_NAME} [skip ci]"
         echo "Pushing changes..."
         git -c http.extraheader="AUTHORIZATION: bearer ${SYSTEM_ACCESSTOKEN}" push
-
       else
         echo "No logs found"
       fi
@@ -35,3 +33,6 @@ steps:
       SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
+
+  - publish: ${LOG_PATH}/*.zip
+    artifact: logs
