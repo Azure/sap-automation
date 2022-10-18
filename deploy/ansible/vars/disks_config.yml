@@ -17,6 +17,7 @@ disk_type_to_name_map:
   data:            '{{ node_tier | lower }}_data'
   log:             '{{ node_tier | lower }}_log'
   backup:          '{{ node_tier | lower }}_backup'
+  shared:          '{{ node_tier | lower }}_shared'
   sapdata1:        '{{ node_tier | lower }}_sapdata1'
   sapdata2:        '{{ node_tier | lower }}_sapdata2'
   sapdata3:        '{{ node_tier | lower }}_sapdata3'
