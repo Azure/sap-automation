@@ -35,7 +35,3 @@ steps:
       SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
-
-
-
-date +"%Y-%m-%dT%T.%3N%z"
