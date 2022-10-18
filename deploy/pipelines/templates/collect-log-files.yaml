@@ -26,7 +26,7 @@ steps:
         echo "No logs found"
       fi
     displayName: Store log files in repository
-    failOnStderr: false
+    continueOnError: true
     env:
       USER_EMAIL: $(Build.RequestedForEmail)
       USER_NAME: $(Build.RequestedFor)
@@ -37,4 +37,3 @@ steps:
 
   - publish: ${LOG_PATH}/*.zip
     artifact: "logs_$(Get-Date -Format yyyy-MM-ddTHH:mm:ss.zzz)"
-    
