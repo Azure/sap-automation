@@ -3,12 +3,12 @@ parameters:
 steps:
   - script: |
       #!/bin/bash
-      
+
       # Ensure that the script fails if a command fails. 
       set -e
-      
+
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
-        echo "Found log files"
+        echo "Found log files in ${LOG_PATH}"
         
         cd ${LOG_PATH} 
         git config --global user.email "${USER_EMAIL}"
@@ -30,7 +30,7 @@ steps:
             echo "No changes to commit"
         fi
       else
-        echo "No logs found"
+        echo "No logs found in ${LOG_PATH}"
       fi
     displayName: Store log files in repository
     continueOnError: true
@@ -41,6 +41,6 @@ steps:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       LOG_PATH: ${{ parameters.logPath }}
 
-  # - publish: ${{ parameters.logPath }}/*.zip
+  # - publish: ${{ parameters.logPath }}
   #   artifact: logs_$(date +%s)
   #   continueOnError: true
