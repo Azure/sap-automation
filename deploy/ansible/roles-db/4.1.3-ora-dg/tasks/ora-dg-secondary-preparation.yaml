@@ -27,6 +27,16 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "Oracle Data Guard - Create Folder for dbs folder copy from primary to secondary: "
+  become:                              true
+  become_user:                         "root"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}/dbs"
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 - name:                                "Oracle Data Guard - Preparation (Secondary): create createpfile.sql"
   become:                              true
   become_user:                         "root"
@@ -62,6 +72,8 @@
     path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
     state:                             touch
     mode:                              0755
+  when:
+    - createpfile_results.rc >= 2
   # when:  current_host == ora_primary
 
 # Copy the initSID.ora from primary to secondary
@@ -102,11 +114,20 @@
   failed_when:                         dbs_folder_copied_results.rc >= 2
   args:
     creates:                           /etc/sap_deployment_automation/dgscripts/dbscopied.txt
-    chdir:                             /etc/sap_deployment_automation/dgscripts
+    chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
 
+- name:                                "Oracle Data Guard - Preparation (Secondary): Create dbscopied.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/dbscopied.txt
+    state:                             touch
+    mode:                              0755
+  when:
+    - dbs_folder_copied_results.rc >= 2
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
