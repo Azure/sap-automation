@@ -5,8 +5,8 @@
 # |                                                                                                                                                                     |
 # +------------------------------------4------------------------------------------------------------------------------------*/
 
-- name:                          "DB2 Primary DB - Set Offline log Dir path "
-  ansible.builtin.shell:           db2 update db cfg for HDB using LOGARCHMETH1 "/db2/{{ db_sid }}/offline_logdir"
+- name:                                "DB2 Primary DB - Set Offline log Dir path "
+  ansible.builtin.shell:               db2 update db cfg for {{ db_sid }} using LOGARCHMETH1 "/db2/{{ db_sid | upper }}/offline_logdir"
   when:       ansible_hostname == primary_instance_name
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
@@ -28,7 +28,7 @@
 
 - name:                                "DB2 - Set fact for backup dir "
   ansible.builtin.set_fact:
-    db_sid_backup_dir:      "{{ target_media_location }}/db2backup"
+    db_sid_backup_dir:                 "{{ target_media_location }}/db2backup"
 
 - name:                                "DB2 HA: - Ensure backup directory exists for DB2 database with System Identifier {{ db_sid }}"
   ansible.builtin.file:
@@ -55,6 +55,17 @@
         executable: /bin/csh
       environment:
         PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+
+    - name:                            "SAP DB2: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0010:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
 
 # TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome
     - name:                            "DB2 HA: - Backup DB2 database for System Identifier {{ db_sid }}"

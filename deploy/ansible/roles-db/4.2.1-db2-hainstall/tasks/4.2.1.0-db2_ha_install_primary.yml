@@ -17,9 +17,8 @@
 ---
 
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
-- name:                                "SAP DB2 Install: Prep work"
+- name:                                "SAP DB2 Install: Preparation"
   block:
-
     - name:                            "SAP DB2 Install: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
@@ -43,6 +42,16 @@
         path:                          "{{ dir_params }}"
         state:                         directory
         mode:                          0755
+
+    - name:                            "SAP DB2: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0010:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
 
     - name:                            "SAP DB2: check if installed"
       ansible.builtin.stat:
@@ -84,6 +93,7 @@
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
+        always_upload_jinja_templates: false
       tags:
         - skip_ansible_lint
 
@@ -91,13 +101,17 @@
       ansible.builtin.debug:
         msg:
           - "{{ sap_inifile }}"
-          - "{{ bom.product_ids.dbl }}"
+          - "{{ bom.product_ids.dblha }}"
         verbosity:                     2
+
+    - name:                            "DBLoad: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting SAP DB2 Install. Please wait"
 
     - name:                            "SAP DB2 Install"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dblha }}              \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dblha }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false                                       \
                                                  SAPINST_CONTROL_URL={{ target_media_location }}/SWPM/product.catalog

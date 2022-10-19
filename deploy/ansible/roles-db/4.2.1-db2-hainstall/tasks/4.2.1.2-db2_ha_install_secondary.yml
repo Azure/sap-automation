@@ -14,7 +14,7 @@
 ---
 
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
-- name:                                "SAP DB2  Install Secondary: Prep work"
+- name:                                "SAP DB2 Install Secondary: Preparation"
   block:
     - name:                            "SAP DB2 Install Secondary: Set BOM facts"
       ansible.builtin.set_fact:
@@ -40,11 +40,22 @@
         state:                         absent
       when:                            reinstall
 
-    - name:                                "SAP DB2 Secodary: check if installed"
+    - name:                            "SAP DB2 Secodary: check if installed"
       ansible.builtin.stat:
-        path:                              /etc/sap_deployment_automation/sap_deployment_db2.txt
-      register:                            db2_installed
-      when:                                node_tier == 'db2'
+        path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
+      register:                        db2_installed
+      when:                            node_tier == 'db2'
+
+    - name:                            "SAP DB2: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SWPM/sapinst"
+      register:                        sapinst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0011:Unable to find sapinst, please check that the installation media is mounted"
+      when: not sapinst_found.stat.exists
+
 
   when:                              ansible_hostname == secondary_instance_name
 
@@ -75,6 +86,7 @@
         sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
+        always_upload_jinja_templates: false
 
       tags:
         - skip_ansible_lint
@@ -90,6 +102,10 @@
 #   SAP DB2: Install
 #   2230669 - System Provisioning Using a Parameter Input File
 #
+
+    - name:                            "DBLoad: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting SAP DB2 Install - Secondary DB. Please wait"
 
     - name:                            "SAP DB2 Install - Secondary DB"
       ansible.builtin.shell: |
