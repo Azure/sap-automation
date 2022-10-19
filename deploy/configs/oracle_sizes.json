@@ -26,7 +26,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -35,7 +35,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -44,7 +44,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -53,7 +53,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 64,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
@@ -139,7 +139,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -148,7 +148,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -157,7 +157,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -166,7 +166,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 128,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
@@ -252,7 +252,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -261,7 +261,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -270,7 +270,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -279,7 +279,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 256,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
@@ -365,7 +365,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 5
                 },
@@ -374,7 +374,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 10
                 },
@@ -383,7 +383,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 15
                 },
@@ -392,7 +392,7 @@
                     "count"             : 2,
                     "disk_type"         : "Premium_LRS",
                     "size_gb"           : 512,
-                    "caching"           : "None",
+                    "caching"           : "ReadOnly",
                     "write_accelerator" : false,
                     "lun_start"         : 20
                 },
