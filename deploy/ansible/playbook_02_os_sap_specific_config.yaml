@@ -139,7 +139,6 @@
         name:                          roles-sap-os/2.6-sap-mounts
       vars:
         scs_instance_number:           "{{ scs_instance_number }}"
-        server_count:                  "{{ ansible_play_hosts_all | length }}"
       when:                            node_tier != "oracle-asm"
       tags:
         - 2.6-sap-mounts

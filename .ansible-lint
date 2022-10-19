@@ -23,6 +23,7 @@ skip_list:
   - yaml[colons]
   - yaml[commas]
   - yaml[line-length]
+  - name[template]
 
   # csh is not supported in command
   - command-instead-of-shell
