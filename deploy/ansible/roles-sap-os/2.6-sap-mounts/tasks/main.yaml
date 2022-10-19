@@ -33,18 +33,19 @@
 
 - name:                                "2.6 SAP Mounts: - Set the NFS Server name"
   ansible.builtin.set_fact:
-    nfs_server:                        "{{ nfs_server_temp | first }}"
+    nfs_server:                        "{{ nfs_server_temp | first }}:{{ target_media_location }}"
+  when:                                (ansible_play_hosts_all | length > 1)
 
 - name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
   ansible.builtin.set_fact:
-    usr_sap_install_mount_point:       "{% if usr_sap_install_mountpoint is defined %}{{ usr_sap_install_mountpoint }}{% else %}({% if server_count > 1 %}{{ nfs_server }}:{{ target_media_location }}{% endif %}){% endif %}"
+    usr_sap_install_mount_point:       "{% if usr_sap_install_mountpoint is defined and NFS_provider in ['AFS', 'ANF'] %}{{ usr_sap_install_mountpoint }}{% else %}({% if nfs_server is defined %}{{ nfs_server }}{% endif %}){% endif %})"
 
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
     msg:
       - "NFS Provider: {{ NFS_provider }}"
       - "Install path: {{ usr_sap_install_mount_point }}"
-    verbosity:                         2
+    verbosity:                         0
 
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sap file systems"
@@ -208,6 +209,7 @@
     - tier == 'sapos'
     - node_tier != 'scs'
     - usr_sap_install_mountpoint is not defined
+    - nfs_server is defined
 
 # Mount File systems for SCS server in Multi-SID installations
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
