@@ -537,7 +537,7 @@ fi
 
 allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
 
-terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
+terraform -chdir="$terraform_module_directory" plan -no-color -input=false -detailed-exitcode $allParams | tee -a plan_output.log
 return_value=$?
 if [ 1 == $return_value ]
 then
@@ -838,7 +838,7 @@ if [ 1 == $ok_to_proceed ]; then
     allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}"  "${approve}" )
 
     if [ 1 == $called_from_ado ] ; then
-        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
+        terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -input=false -compact-warnings -json $allParams | tee -a apply_output.json
     else
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
     fi
