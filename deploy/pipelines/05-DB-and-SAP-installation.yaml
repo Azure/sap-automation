@@ -35,10 +35,6 @@ parameters:
       - NW750SPS20_DB2_v0001ms
       - ORACLE_19_00_ORA_MSID_v0002ms
 
-  - name: extra_params
-    displayName: Extra Parameters
-    type: string
-
   - name: base_os_configuration
     displayName: Core Operating System Configuration
     type: boolean
@@ -882,11 +878,9 @@ stages:
       - job: ACSS_Registration
         displayName: Register System in ACSS
         steps:
-          - checkout: self
-            persistCredentials: true
-            submodules: true
-          - download: current
-            artifact: ansible_data
+          - template: templates\download.yaml
+            parameters:
+              configurationName: ${{ parameters.sap_system_configuration_name }}
 
           # Parameters Required:
           #   parameters.acss_environment                     = Prod|NonProd
