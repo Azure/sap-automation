@@ -1,0 +1,87 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Retrieve or create the Winadm password from keyvault        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- name:                                "0.1 Password: - Construct winadm password secret name"
+  ansible.builtin.set_fact:
+    winsidadm_password_id:             "{{ secret_prefix }}-{{ sap_sid }}-win-sidadm-password"
+
+- name:                                "0.1 Password: - Get SAP password from key vault"
+  ansible.builtin.command: >-
+    az keyvault secret list
+      --vault-name {{ kv_name }}
+      --query [].name
+      --output yaml
+  changed_when:                        false
+  register:                            keyvault_secret_sap_password_exists
+
+- name:                                "0.1 Password: - Check for secret availability"
+  ansible.builtin.set_fact:
+    win_secret_exists:                     "{{ (winsidadm_password_id in keyvault_secret_sap_password_exists.stdout) | bool }}"
+
+- name:                                "0.1 Password: - Retrieve Windows sidadm password"
+  block:
+    - name:                            "0.1 Password: - Get Windows sidadm from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ winsidadm_password_id }}
+      changed_when:                    false
+      register:                        win_keyvault_secret_show_sap_password_id
+      no_log:                          true
+
+    - name:                            "0.1 Password: - Extract winadm password"
+      ansible.builtin.set_fact:
+        winadm_password: >-
+                                       {{ (win_keyvault_secret_show_sap_password_id.stdout | from_json).value }}
+  when:                                win_secret_exists
+
+- name:                                "0.1 Password: - Show SAP Password"
+  ansible.builtin.debug:
+    var:                               winadm_password
+    verbosity:                         4
+
+- name:                                "0.1 Password: - Construct winadm password secret name"
+  ansible.builtin.set_fact:
+    svcsidadm_password_id:             "{{ secret_prefix }}-{{ sap_sid }}-svc-sidadm-password"
+
+- name:                                "0.1 Password: - Get SAP Service password from key vault"
+  ansible.builtin.command: >-
+    az keyvault secret list
+      --vault-name {{ kv_name }}
+      --query [].name
+      --output yaml
+  changed_when:                        false
+  register:                            keyvault_secret_svc_password_exists
+
+- name:                                "0.1 Password: - Check for secret availability"
+  ansible.builtin.set_fact:
+    svc_secret_exists:                 "{{ (svcsidadm_password_id in keyvault_secret_sap_password_exists.stdout) | bool }}"
+
+- name:                                "0.1 Password: - Retrieve Windows svc password"
+  block:
+    - name:                            "0.1 Password: - Get Windows svc from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret show
+          --vault-name {{ kv_name }}
+          --name {{ svcsidadm_password_id }}
+      changed_when:                    false
+      register:                        svc_keyvault_secret_show_sap_password_id
+      no_log:                          true
+
+    - name:                            "0.1 Password: - Extract svc password"
+      ansible.builtin.set_fact:
+        svcadm_password: >-
+                                       {{ (svc_keyvault_secret_show_sap_password_id.stdout | from_json).value }}
+  when:                                svc_secret_exists
+
+- name:                                "0.1 Password: - Show SAP Password"
+  ansible.builtin.debug:
+    var:                               svcadm_password
+    verbosity:                         4
+
+...

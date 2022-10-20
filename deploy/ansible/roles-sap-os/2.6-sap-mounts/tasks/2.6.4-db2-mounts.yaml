@@ -118,16 +118,24 @@
 - name:                                "DB2: Set NFS Server variable"
   ansible.builtin.set_fact:
     sapmnt_nfs_mount: >-
-                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+
+- name:                                "DB2: Set NFS Server variable"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_mount
 
 - name:                                "DB2: Set NFS Server options"
   ansible.builtin.set_fact:
     sapmnt_nfs_opts: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
 
+- name:                                "DB2: Set NFS Server options"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_opts
+
 # Mount Filesystems
 - name:                                "Mount SAP Filesystems on Database for installation"
-  mount:
+  ansible.posix.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"

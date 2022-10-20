@@ -111,13 +111,21 @@
 # |  SAP SCS: Install                                                          |
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
+
+
+#
     - name:                            "User Creation: Progress"
       ansible.builtin.debug:
         msg:                           "Start user creation"
 
-    - name:                            "User Creation: SAP OS USERS and Group Creation {{ scs_virtual_hostname }}"
+    - name:                            "User Creation: Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed }}"
       ansible.builtin.shell: |
-                                       export SAPSYSTEMNAME={{ sid_to_be_deployed.sid | upper }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.generic }}                             \
                                                  SAPINST_SKIP_DIALOGS=true                                                            \
@@ -127,7 +135,7 @@
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}"
       register:                        generic_user_creation
       failed_when:                     generic_user_creation.rc > 0
       tags:

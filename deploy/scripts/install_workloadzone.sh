@@ -131,7 +131,7 @@ if [ -z "${network_logical_name}" ]; then
     return 64 #script usage wrong
 fi
 
-        
+
 # Convert the region to the correct code
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 get_region_code "$region"
@@ -237,7 +237,7 @@ then
         then
             load_config_vars "${deployer_config_information}" "keyvault"
         fi
-        
+
         load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
         if [ -z "${REMOTE_STATE_SA}" ]
         then
@@ -741,7 +741,7 @@ if [ -f plan_output.log ]; then
         if [ 1 == $called_from_ado ] ; then
             echo "##vso[task.logissue type=error]$LASTERROR"
         fi
-        
+
 
         return_value=1
     fi
@@ -850,14 +850,14 @@ then
             then
                 string_to_report=$(jq -c -r '.summary '  <<< "$errors_string" )
             fi
-            
+
             echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
             if [ 1 == $called_from_ado ] ; then
                 echo "##vso[task.logissue type=error]${string_to_report}"
             fi
-        
+
         done
-        
+
     fi
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -867,7 +867,7 @@ then
     existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
     if [[ -n ${existing} ]]
     then
-        
+
         readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
         for item in "${existing_resources[@]}"; do
             moduleID=$(jq -c -r '.address '  <<< "$item")
@@ -923,7 +923,7 @@ if [ 0 == $return_value ] ; then
             save_config_var "workloadkeyvault" "${workload_config_information}"
         fi
     fi
-    
+
 fi
 
 if [ 0 != $return_value ] ; then
@@ -961,6 +961,27 @@ EOF
 if [ -f "${workload_config_information}".err ]; then
     cat "${workload_config_information}".err
 fi
+
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "#             $cyan  Adding the subnets to storage account firewall $resetformatting                         #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+
+subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
+
+if [ -n "${subnet_id}" ]; then
+  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+fi
+
+subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw db_subnet_id | tr -d \")
+
+if [ -n "${subnet_id}" ]; then
+  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+fi
+
 
 unset TF_DATA_DIR
 

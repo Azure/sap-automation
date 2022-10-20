@@ -9,7 +9,7 @@ For example:
 ```text
 ---
 
-- hosts:      "{{ sap_sid| upper }}_SCS"
+- hosts:      "{{ sap_sid|upper }}_SCS"
   vars:
     sapbits_location_base_path:   https://npeus2saplibb546.blob.core.windows.net/sapbits
     sapbits_bom_files:            sapfiles

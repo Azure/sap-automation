@@ -108,3 +108,4 @@ variable "enable_purge_control_for_keyvaults" {
 variable "use_webapp" {
   default = false
 }
+

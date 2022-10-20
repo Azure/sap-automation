@@ -1,0 +1,20 @@
+---
+name:    'SWPM10SP35'
+target:  'SWPM10SP35'
+version: 35.7
+
+materials:
+
+  media:
+    # SWPM
+    - name:                     "SWPM 1.0 SP35 for NW higher than 7.0x"
+      archive:                  SWPM10SP35_7-20009707.SAR
+      checksum:                 b673c3e395900d34038256d9075ae0c5d2b96c721fd5b870e2301a8a754bd8a6
+      override_target_filename: "SWPM.SAR"
+      extract:                  true
+      extractDir:               SWPM
+      url:                      https://softwaredownloads.sap.com/file/0020000001261312022
+      path:                     download_basket
+
+
+...

@@ -55,11 +55,10 @@ hostAgent.sapAdmPassword                                              = {{ main_
 
 
 # Windows only: The password of the 'SAPServiceSID' user
-nwUsers.sapServiceSIDPassword                                         = {{ main_password }}
+nwUsers.sapServiceSIDPassword                                         = {{ sid_service_password }}
 
 # The password of the '<sapsid>adm' user
-nwUsers.sidadmPassword                                                = {{ main_password }}
-
+nwUsers.sidadmPassword                                                = {{ domain_user_password }}
 ...
 
 NW_GetSidFromCluster.fileShare                                        = {{ cluster_share }}
@@ -71,7 +70,7 @@ NW_GetSidFromCluster.networkName                                      = {{ sap_s
 NW_GetSidFromCluster.shareDecision                                    = FS
 
 # The drive to use for shared instances. Has to be a clustered drive assigned to the cluster group.
-# NW_GetSidFromCluster.sharedDrive = 
+# NW_GetSidFromCluster.sharedDrive =
 
 # The SAP System ID of the system to install
 NW_GetSidFromCluster.sid                                              = {{ sap_sid | upper }}
@@ -79,16 +78,16 @@ NW_GetSidFromCluster.sid                                              = {{ sap_s
 # The instance number of the (A)SCS instance.  Leave this value empty if you want to use the default instance number or if you want to specify two different numbers for ASCS and SCS instance.
 NW_SCS_Instance.instanceNumber                                        = {{ scs_instance_number }}
 # Dual stack only: The SCS instance number. Leave empty for default.
-# NW_SCS_Instance.scsInstanceNumber = 
+# NW_SCS_Instance.scsInstanceNumber =
 
 # The (A)SCS message server port. Leave empty for default.
-# NW_SCS_Instance.scsMSPort = 
+# NW_SCS_Instance.scsMSPort =
 
 # You can specify a virtual host name for the ASCS instance. Leave empty for default.
 NW_SCS_Instance.scsVirtualHostname                                   = {{ sap_scs_hostname }}
 
 # Password of the sidadm user.
-db2.sidAdmPassword                                                   = {{ main_password }}
+db2.sidAdmPassword                                                   = {{ domain_user_password }}
 
 # Password for the 'sapadm' user of the SAP Host Agent
 hostAgent.sapAdmPassword                                             = {{ main_password }}
@@ -101,3 +100,4 @@ nw_instance_ers.ersVirtualHostname                                   = {{ ers_vi
 
 # Restart (A)SCS instance during ERS installation. Default value 'true'. Possible values 'true' or 'false'. Leave empty for default.
 # nw_instance_ers.restartSCS = true
+

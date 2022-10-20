@@ -1,0 +1,22 @@
+@{
+    string parameterName = ViewBag.ParameterName;
+    string displayName = ViewBag.DisplayName;
+    bool isChecked = ViewBag.IsChecked;
+ }
+
+<div class="ms-TextField">
+    <div class="left-input">
+        @Html.Label(parameterName, displayName, new { @class = $"ms-Label" })
+    </div>
+
+    <div class="right-input">
+        @if (isChecked)
+        {
+            <fluent-checkbox id=@parameterName name=@parameterName checked value="True" onchange="this.value=this.checked"></fluent-checkbox>
+        }
+        else
+        {
+            <fluent-checkbox id=@parameterName name=@parameterName value="False" onchange="this.value=this.checked"></fluent-checkbox>
+        }
+    </div>
+</div>

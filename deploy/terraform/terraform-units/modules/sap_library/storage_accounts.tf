@@ -1,6 +1,6 @@
 /*
   Description:
-  Set up storage accounts for sap library 
+  Set up storage accounts for sap library
 */
 
 locals {
@@ -30,20 +30,9 @@ resource "azurerm_storage_account" "storage_tfstate" {
     }
   }
 
-  dynamic "network_rules" {
-    for_each = range(local.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-    content {
-      default_action = "Deny"
-      ip_rules = local.deployer_public_ip_address_used ? (
-        [local.deployer_public_ip_address]) : (
-        []
-      )
-      virtual_network_subnet_ids = var.use_webapp ? (
-        [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
-        [var.deployer_tfstate.subnet_mgmt_id]
-      )
-
-    }
+  routing  {
+    publish_microsoft_endpoints = true
+    choice                      = "MicrosoftRouting"
   }
 
   min_tls_version                 = "TLS1_2"
@@ -51,8 +40,30 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
 }
 
+resource "azurerm_storage_account_network_rules" "storage_tfstate" {
+  provider = azurerm.main
+  count          = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
+  storage_account_id = azurerm_storage_account.storage_tfstate[0].id
+  default_action = "Deny"
+
+  ip_rules = local.deployer_public_ip_address_used ? (
+    [
+      local.deployer_public_ip_address
+    ]) : (
+    []
+  )
+  virtual_network_subnet_ids = var.use_webapp ? (
+    [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
+    [var.deployer_tfstate.subnet_mgmt_id]
+  )
+
+}
+
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
-  count     = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  depends_on = [
+    azurerm_private_dns_zone.blob
+  ]
+  count     = length(var.dns_label) > 0 && var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
   name      = split(".", azurerm_private_endpoint.storage_tfstate[count.index].custom_dns_configs[count.index].fqdn)[0]
   zone_name = "privatelink.blob.core.windows.net"
   resource_group_name = coalesce(
@@ -156,10 +167,11 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
       "Blob"
     ]
   }
-}
+
+  }
 
 ##############################################################################################
-#                                                                   
+#
 #  SAPBits storage account which is used to store the SAP media and the BoM files
 #
 ##############################################################################################
@@ -177,20 +189,9 @@ resource "azurerm_storage_account" "storage_sapbits" {
   account_kind              = var.storage_account_sapbits.account_kind
   enable_https_traffic_only = true
 
-  dynamic "network_rules" {
-    for_each = range(local.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-    content {
-      default_action = "Deny"
-      ip_rules = local.deployer_public_ip_address_used ? (
-        [local.deployer_public_ip_address]) : (
-        []
-      )
-      virtual_network_subnet_ids = var.use_webapp ? (
-        [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
-        [var.deployer_tfstate.subnet_mgmt_id]
-      )
-
-    }
+  routing {
+    publish_microsoft_endpoints = true
+    choice                      = "MicrosoftRouting"
   }
 
   min_tls_version                 = "TLS1_2"
@@ -198,8 +199,30 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
 }
 
+resource "azurerm_storage_account_network_rules" "storage_sapbits" {
+  provider = azurerm.main
+  count          = local.enable_firewall_for_keyvaults_and_storage && !local.sa_sapbits_exists ? 1 : 0
+  storage_account_id = azurerm_storage_account.storage_sapbits[0].id
+  default_action = "Deny"
+  ip_rules = local.deployer_public_ip_address_used ? (
+    [
+      local.deployer_public_ip_address
+    ]) : (
+    []
+  )
+  virtual_network_subnet_ids = var.use_webapp ? (
+    [var.deployer_tfstate.subnet_webapp_id, var.deployer_tfstate.subnet_mgmt_id]) : (
+    [var.deployer_tfstate.subnet_mgmt_id]
+  )
+
+}
+
 resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
-  count     = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+  depends_on = [
+    azurerm_private_dns_zone.blob
+  ]
+
+  count     = length(var.dns_label) > 0 && var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
   name      = split(".", azurerm_private_endpoint.storage_sapbits[count.index].custom_dns_configs[count.index].fqdn)[0]
   zone_name = "privatelink.blob.core.windows.net"
   resource_group_name = coalesce(

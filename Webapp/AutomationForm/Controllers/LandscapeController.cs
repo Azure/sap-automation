@@ -223,7 +223,7 @@ namespace AutomationForm.Controllers
 
         [HttpPost]
         [ActionName("Deploy")]
-        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, string environment, string workload_environment, string deployer_region_parameter)
+        public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
             try
             {
@@ -231,12 +231,29 @@ namespace AutomationForm.Controllers
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
-                string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
-                bool isSystem = false;
 
                 await restHelper.UpdateRepo(path, content);
-                await restHelper.TriggerPipeline(pipelineId, id, isSystem, workload_environment, environment, deployer_region_parameter);
-                
+
+                string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
+                string branch = _configuration["SourceBranch"];
+                parameters.workload_zone = id;
+                PipelineRequestBody requestBody = new PipelineRequestBody
+                {
+                    resources = new Resources
+                    {
+                        repositories = new Repositories
+                        {
+                            self = new Self
+                            {
+                                refName = $"refs/heads/{branch}"
+                            }
+                        }
+                    },
+                    templateParameters = parameters
+                };
+
+                await restHelper.TriggerPipeline(pipelineId, requestBody);
+
                 TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }
             catch (Exception e)
@@ -374,10 +391,10 @@ namespace AutomationForm.Controllers
                 landscapeView.SapObject = landscape;
                 return View(landscapeView);
             }
-            catch (Exception e) 
-            { 
-                TempData["error"] = e.Message; 
-                return RedirectToAction("Index"); 
+            catch (Exception e)
+            {
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
             }
         }
 
@@ -410,7 +427,7 @@ namespace AutomationForm.Controllers
             try
             {
                 await UnsetDefault(id);
-                
+
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
 
@@ -443,6 +460,6 @@ namespace AutomationForm.Controllers
                 throw new Exception("Error unsetting the current default object: " + e.Message);
             }
         }
-        
+
     }
 }

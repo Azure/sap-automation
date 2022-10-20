@@ -86,7 +86,7 @@ locals {
   )
   management_subnet_deployed_prefixes = local.management_subnet_exists ? (
     data.azurerm_subnet.subnet_mgmt[0].address_prefixes) : (
-    azurerm_subnet.subnet_mgmt[0].address_prefixes
+    try(azurerm_subnet.subnet_mgmt[0].address_prefixes, [])
   )
 
   // Management NSG
@@ -116,7 +116,7 @@ locals {
   )
   management_subnet_nsg_deployed = local.management_subnet_nsg_exists ? (
     data.azurerm_network_security_group.nsg_mgmt[0]) : (
-    azurerm_network_security_group.nsg_mgmt[0]
+    try(azurerm_network_security_group.nsg_mgmt[0], "")
   )
 
   // Firewall subnet

@@ -120,7 +120,7 @@ database_high_availability = false
 
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
-database_size = "S4Demo"
+database_size = "E20ds_v4"
 
 # database_instance_number if provided defines the instance number of the HANA database
 #database_instance_number = ""

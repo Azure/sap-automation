@@ -109,14 +109,14 @@ locals {
   db_sid_specified = (length(var.database_sid) + length(try(var.databases[0].sid, ""))) > 0
 
   instance = {
-    sid = try(coalesce(
+    sid = upper(try(coalesce(
       var.database_sid,
       try(var.databases[0].sid, "")),
-      upper(var.databases[0].platform) == "HANA" ? (
+      upper(var.database_platform) == "HANA" ? (
         "HDB"
         ) : (
-      upper(substr(var.databases[0].platform, 0, 3)))
-    )
+      substr(var.database_platform, 0, 3))
+    ))
     instance_number = upper(local.databases_temp.platform) == "HANA" ? (
       coalesce(var.database_instance_number, try(var.databases[0].instance_number, "00"))
       ) : (

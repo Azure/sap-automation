@@ -407,6 +407,20 @@ function addTag(param) {
     lastTagContainer.children().last().append('<input class="ms-TextField-field" id="' + param + '_' + numTags + '__Value" name="' + param + '[' + numTags + '].Value" type="text" value="">');
 }
 
+function populateLocations(id, value) {
+    $.ajax({
+        type: "GET",
+        url: "/Armclient/GetLocationOptions",
+        data: { useRegionMapping: true },
+        success: function (data) {
+            populateAzureDropdownData(id, data);
+            $("#" + id).val(value);
+            $("#" + id).trigger('change');
+        },
+        error: function () { errorFunc([id], "Error retrieving locations"); }
+    });
+}
+
 // ===============
 // EVENT LISTENERS
 // ===============
@@ -629,18 +643,13 @@ function toggleDisableViaCheckbox(checkbox, id) {
     }
 }
 
-function toggleDisableViaOneInput(input, id) {
-    if ($("#" + input).val()) {
-        $("#" + id).prop('disabled', false);
+function toggleDisableViaNInputs(inputList, id) {
+    for (i = 0; i < inputList.length; i++) {
+        var input = inputList[i];
+        if ($("#" + input).val()) continue;
+        else break;
     }
-    else {
-        $("#" + id).prop('checked', false);
-        $("#" + id).prop('disabled', true);
-    }
-}
-
-function toggleDisableViaTwoInputs(input1, input2, id) {
-    if ($("#" + input1).val() && $("#" + input2).val()) {
+    if (i == inputList.length) {
         $("#" + id).prop('disabled', false);
     }
     else {

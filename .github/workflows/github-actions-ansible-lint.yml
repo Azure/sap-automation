@@ -10,6 +10,7 @@ jobs:
           packages: |
             ansible==2.10
             jinja2>=3.0.0
-            ansible-lint
+            ansible-lint==6.8.1
+            jmespath
       - run: "ansible-lint -v --force-color"
         working-directory: ${{ github.workspace }}

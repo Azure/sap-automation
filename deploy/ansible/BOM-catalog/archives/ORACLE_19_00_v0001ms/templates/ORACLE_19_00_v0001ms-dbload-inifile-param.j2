@@ -25,7 +25,7 @@ nwUsers.sidAdmUID                                                    = {{ sidadm
 
 NW_Delete_Sapinst_Users.removeUsers                                  = true
 NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
-NW_GetSidNoProfiles.sid                                              = {{ sap_sid| upper }}
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid | upper }}
 NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
 hostAgent.sapAdmPassword                                             = {{ main_password }}
 nwUsers.sidadmPassword                                               = {{ main_password }}
@@ -38,19 +38,19 @@ NW_readProfileDir.profileDir                                        = {{ sap_pro
 NW_ABAP_Import_Dialog.migmonJobNum                                   = 20
 NW_ABAP_Import_Dialog.migmonLoadArgs                                 = -stop_on_error -loadprocedure fast
 NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
-NW_getDBInfoGeneric.dbsid                                            = {{ db_sid| upper }}
+NW_getDBInfoGeneric.dbsid                                            = {{ db_sid | upper }}
 NW_getLoadType.loadType                                              = SAP
 ora.SysPassword                                                      = {{ main_password }}
 ora.SystemPassword                                                   = {{ main_password }}
 ora.createStatisticsCodeABAP                                         = CREATE
-ora.dbhome                                                           = /oracle/{{ db_sid| upper }}/19
+ora.dbhome                                                           = /oracle/{{ db_sid | upper }}/19
 #ora.oraclePassword                                                  = {{ main_password }}
 # ora.orasidPassword                                                 = {{ main_password }}
 storageBasedCopy.abapSchemaPassword                                  = {{ main_password }}
 storageBasedCopy.javaSchemaPassword                                  = {{ main_password }}
 # ora.hasTDE                                                         = false
 ora.multitenant.installMT                                            = FALSE
-ora.multitenant.pdbsid                                               = {{ db_sid| upper }}
+ora.multitenant.pdbsid                                               = {{ db_sid | upper }}
 storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
 
 # possible values are
@@ -80,29 +80,29 @@ storageBasedCopy.ora.serverVersion                                   = 19
 storageBasedCopy.ora.clientVersion                                   = 19
 
 # Name of Oracle Listener. Default value is: LISTENER
-# storageBasedCopy.ora.listenerName = 
+# storageBasedCopy.ora.listenerName =
 
 # Port of Oracle Listener. Default value ist: 1521
-# storageBasedCopy.ora.listenerPort = 
+# storageBasedCopy.ora.listenerPort =
 
 # Set Oracle advanced parameters. Default value is 'false'.
 # ora.advanced.parameter = false
 
 # Set advanced parameter maxDatafileSize in MB. Default value is 2000.
-# ora.maxDatafileSize = 
+# ora.maxDatafileSize =
 
 # Oracle mirrlog drive.
-# ora.mirrlogDrive = 
+# ora.mirrlogDrive =
 
 # Oracle oraarch drive.
-# ora.oraarchDrive = 
+# ora.oraarchDrive =
 
 
 # Oracle origlog drive.
-# ora.origlogDrive = 
+# ora.origlogDrive =
 
 # Radio button for database creation. Possible values are: 'CREATEDB', 'MCOD', 'PDBINST'
-# ora.rbDatabase = 
+# ora.rbDatabase =
 
 # Oracle sapdata drive.
-# ora.sapdataDrive = 
+# ora.sapdataDrive =

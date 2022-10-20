@@ -45,7 +45,7 @@
         {%- if lv_parts | length == 2 -%}
         {%- set _path = '/' ~ lv_parts[-1] -%}
         {%- else -%}
-        {%- set _path = ['/' ~lv_parts[-2], db_sid |upper, lv_parts[-1]] | join('/') -%}
+        {%- set _path = ['/' ~lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
         {%- endif -%}
         {{- _path -}}
     fstype: "{{ item.fstype }}"

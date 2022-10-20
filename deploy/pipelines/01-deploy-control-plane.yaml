@@ -49,6 +49,7 @@ stages:
           use_webapp_param: ${{ parameters.use_webapp_param }}
           use_deployer: ${{ parameters.use_deployer }}
     displayName: Deploy the control plane
+
     jobs:
       - job: Deploy_controlplane
         displayName: Deploy the control plane
@@ -486,12 +487,14 @@ stages:
           use_webapp_param: ${{ parameters.use_webapp_param }}
           use_deployer: ${{ parameters.use_deployer }}
     displayName: Deploy SAP configuration Web App
+
     dependsOn:
       - Deploy_controlplane
     condition: |
       and
       (
         eq(${{ parameters.use_webapp_param }}, true),
+        eq(${{ parameters.deploy_webapp_software }}, true),
         eq(dependencies.Deploy_controlplane.result, 'Succeeded')
       )
     jobs:
@@ -504,6 +507,7 @@ stages:
           - checkout: sap-automation
           - checkout: self
             persistCredentials: true
+            fetchDepth:                0
 
           - task: DotNetCoreCLI@2
             displayName: "Build the Web App"
@@ -544,6 +548,7 @@ stages:
               SDAF_GENERAL_GROUP_ID: $(SDAF_GENERAL_GROUP_ID)
               WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
               WEBAPP_ID: $(WEBAPP_ID)
+
           - bash: |
               #!/bin/bash
               printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"

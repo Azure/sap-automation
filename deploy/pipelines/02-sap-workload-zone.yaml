@@ -283,6 +283,35 @@ stages:
                   --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID
                   secrets_set=$? ; echo "Set Secrets returned $secrets_set"
 
+                  whoAmI=$(az account show --query id -o tsv)
+
+                  echo Executing using $whoAmI
+
+                  noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+
+                  if [ -z "$noAccess" ]; then
+
+                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $whoAmI --query "[].principalName | [0]")
+
+                    if [ -n "$perms" ]; then
+                      echo -e "$green --- Assign permissions ---$reset"
+                        az account set --subscription ${STATE_SUBSCRIPTION}
+                        az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
+
+                        az keyvault set-policy -n "${key_vault}" --secret-permissions get list recover restore set --object-id $ARM_CLIENT_ID --output none
+
+                        if [ -n "${REMOTE_STATE_SA}" ] ; then
+                          tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]")
+                          az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
+                        fi
+                        REMOTE_STATE_RG=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts  --subscription ${STATE_SUBSCRIPTION} --query "[].resourceGroup | [0]" )
+                    else
+                      echo -e "$boldred --- No permissions to set permissions ---$reset"
+                    fi
+                  fi
+
+
+
               fi
 
               echo -e "$green--- az login ---$reset"
@@ -328,6 +357,7 @@ stages:
                 cd $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)
 
                 if [ 0 != $secrets_set ] ; then
+                  echo "Install and call Set Secrets failed"
                   $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
                     --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
                     --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                   \
@@ -361,7 +391,7 @@ stages:
                   fi
                 fi
 
-                if [ ip_added_workload -eq 1 ]; then
+                if [ $ip_added_workload -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
                   if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#workload_key_vault}" != 0 ]; then
@@ -371,7 +401,7 @@ stages:
                 fi
 
                 az account set --subscription ${STATE_SUBSCRIPTION}
-                if [ ip_added_control_plane -eq 1 ]; then
+                if [ $ip_added_control_plane -eq 1 ]; then
                   echo -e "$green--- Remove IP ---$reset"
                   if [ "azure pipelines" == $(this_agent) ]; then
                     if [ "${#key_vault}" != 0 ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
+export PATH=${PATH}:/opt/terraform/bin:/opt/ansible/bin
 
 #########################################################################
 # Helper utilities

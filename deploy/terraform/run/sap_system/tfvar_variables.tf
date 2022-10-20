@@ -312,7 +312,7 @@ variable "database_high_availability" {
 
 variable "use_msi_for_clusters" {
   description = "If true, the Pacemaker cluser will use a managed identity"
-  default     = true
+  default     = false
 }
 
 variable "fencing_role_name" {
@@ -737,6 +737,7 @@ variable "bom_name" {
 }
 
 variable "Agent_IP" {
+  description = "If provided, contains the IP address of the agent"
   type    = string
   default = ""
 }

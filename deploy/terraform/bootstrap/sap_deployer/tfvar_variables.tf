@@ -22,9 +22,9 @@ variable "location" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 
@@ -44,9 +44,9 @@ variable "resourcegroup_tags" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Network                                          # 
-#                                                                             # 
+#                                                                             #
+#                            Network                                          #
+#                                                                             #
 ###############################################################################
 
 variable "management_network_name" {
@@ -70,9 +70,9 @@ variable "management_network_address_space" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Management Subnet                                # 
-#                                                                             # 
+#                                                                             #
+#                            Management Subnet                                #
+#                                                                             #
 ###############################################################################
 
 variable "management_subnet_name" {
@@ -91,9 +91,9 @@ variable "management_subnet_address_prefix" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Firewall                                         # 
-#                                                                             # 
+#                                                                             #
+#                            Firewall                                         #
+#                                                                             #
 ###############################################################################
 
 variable "management_firewall_subnet_arm_id" {
@@ -124,9 +124,9 @@ variable "firewall_allowed_ipaddresses" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Bastion                                          # 
-#                                                                             # 
+#                                                                             #
+#                            Bastion                                          #
+#                                                                             #
 ###############################################################################
 
 variable "management_bastion_subnet_arm_id" {
@@ -146,9 +146,9 @@ variable "bastion_deployment" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Management NSG                                   # 
-#                                                                             # 
+#                                                                             #
+#                            Management NSG                                   #
+#                                                                             #
 ###############################################################################
 
 variable "management_subnet_nsg_name" {
@@ -172,9 +172,9 @@ variable "deployer_enable_public_ip" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Deployer Information                             # 
-#                                                                             # 
+#                                                                             #
+#                            Deployer Information                             #
+#                                                                             #
 ###############################################################################
 
 variable "deployer_size" {
@@ -222,9 +222,9 @@ variable "deployer_private_ip_address" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Deployer authentication                          # 
-#                                                                             # 
+#                                                                             #
+#                            Deployer authentication                          #
+#                                                                             #
 ###############################################################################
 
 variable "deployer_authentication_type" {
@@ -249,9 +249,9 @@ variable "deployer_authentication_path_to_private_key" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Key Vault Information                            # 
-#                                                                             # 
+#                                                                             #
+#                            Key Vault Information                            #
+#                                                                             #
 ###############################################################################
 
 variable "user_keyvault_id" {
@@ -373,6 +373,11 @@ variable "agent_ado_url" {
   default     = ""
 }
 
+variable "ansible_core_version" {
+  description = "If provided, the version of ansible core to be installed"
+  default     = "2.13"
+}
+
 #########################################################################################
 #                                                                                       #
 #  Web Application settings                                                             #
@@ -412,4 +417,9 @@ variable "enable_firewall_for_keyvaults_and_storage" {
   description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
   default     = false
   type        = bool
+}
+
+variable "Agent_IP" {
+  description = "IP address of the agent"
+  default     = ""
 }

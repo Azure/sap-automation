@@ -445,3 +445,24 @@ resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
   }
 SETTINGS
 }
+
+resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
+
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.web_ostype) == "WINDOWS" ? (
+    local.webdispatcher_count) : (
+    0
+  )
+  virtual_machine_id   = azurerm_windows_virtual_machine.web[count.index].id
+  name                 = "configure_ansible"
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.9"
+  settings             = <<SETTINGS
+        {
+          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+        }
+    SETTINGS
+}
+

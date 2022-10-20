@@ -1,10 +1,9 @@
+# /*---------------------------------------------------------------------------------------------------8
+# |                                                                                                    |
+# |                      Playbook for SAP SCS HA Install and Pacemaker configuration                   |
+# |                                                                                                    |
+# +------------------------------------4--------------------------------------------------------------*/
 ---
-
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |        Playbook for SAP SCS HA Install and Pacemaker configuration         |
-# |                                                                            |
-# +------------------------------------4---------------------------------------*/
 
 - hosts:                               localhost
   name:                                "SCS Installation Playbook: - Initialization"
@@ -28,6 +27,7 @@
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/ers-install-done"
         state:                          absent
+
 
     - name:                            "SCS Installation Playbook: - Set scs fact"
       ansible.builtin.set_fact:
@@ -108,9 +108,7 @@
       loop:                            "{{ all_sids }}"
       loop_control:
         loop_var:                      sid_to_be_deployed
-      when:
-        - platform != "ORACLE"
-        - platform != "DB2"
+      when:                            platform != "ORACLE"
       tags:
         - 2.5-sap-users
 
@@ -314,13 +312,6 @@
             name:                  roles-os/1.16-services
           tags:
             - 1.16-services
-
-        - name:                    "SCS HA Installation Playbook: - Ensure the correct accounts are set"
-          ansible.builtin.include_role:
-            name:                  roles-os/1.11-accounts
-            tasks_from:            setup_hanausers_sudoers.yml
-          tags:
-            - 1.11-accounts
 
         - name:                    "SCS HA Installation Playbook: - Install Pacemaker"
           ansible.builtin.include_role:
