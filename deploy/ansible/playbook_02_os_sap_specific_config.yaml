@@ -138,14 +138,14 @@
       tags:
         - 2.3-sap-exports
 
-    - name:                        Include 2.6-sap-mounts role
-      ansible.builtin.include_role:
-        name:                      roles-sap-os/2.6-sap-mounts
-      vars:
-        scs_instance_number:  "{{ scs_instance_number }}"
-      when:                        node_tier != "oracle-asm"
-      tags:
-        - 2.6-sap-mounts
+    # - name:                        Include 2.6-sap-mounts role
+    #   ansible.builtin.include_role:
+    #     name:                      roles-sap-os/2.6-sap-mounts
+    #   vars:
+    #     scs_instance_number:  "{{ scs_instance_number }}"
+    #   when:                        node_tier != "oracle-asm"
+    #   tags:
+    #     - 2.6-sap-mounts
 
     - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
       ansible.builtin.include_role:
