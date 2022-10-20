@@ -35,9 +35,9 @@ parameters:
       - NW750SPS20_DB2_v0001ms
       - ORACLE_19_00_ORA_MSID_v0002ms
 
-  - name:                              extra_params
-    displayName:                       Extra Parameters
-    type:                              string
+  - name: extra_params
+    displayName: Extra Parameters
+    type: string
 
   - name: base_os_configuration
     displayName: Core Operating System Configuration
@@ -81,40 +81,35 @@ parameters:
 
   - name: application_server_installation
     displayName: APP Installation
-    type:                              boolean
-    default:                           true
-
-  - name:                              webdispatcher_installation
-    displayName:                       WebDispatcher Installation
-    type:                              boolean
-    default:                           false
-
-# 20220929 MKD - ACSS Registration <BEGIN>
-  - name:                              acss_registration
-    displayName:                       Register System in ACSS
-    type:                              boolean
-    default:                           true
-
-  - name:                              acss_environment
-    displayName:                       ACSS Prod/NonProd
-    type:                              string
-    values:
-      - NonProd
-      - Prod
-
-  - name:                              acss_sap_product
-    displayName:                       System Type
-    type:                              string
-    values:
-      - S4HANA
-      - ECC
-      - Other
-# 20220929 MKD - ACSS Registration <END>
+    type: boolean
+    default: true
 
   - name: webdispatcher_installation
     displayName: WebDispatcher Installation
     type: boolean
     default: false
+
+  # 20220929 MKD - ACSS Registration <BEGIN>
+  - name: acss_registration
+    displayName: Register System in ACSS
+    type: boolean
+    default: true
+
+  - name: acss_environment
+    displayName: ACSS Prod/NonProd
+    type: string
+    values:
+      - NonProd
+      - Prod
+
+  - name: acss_sap_product
+    displayName: System Type
+    type: string
+    values:
+      - S4HANA
+      - ECC
+      - Other
+  # 20220929 MKD - ACSS Registration <END>
 
   - name: sap_automation_repo_path
     displayName: The local path on the agent where the sap_automation repo can be found
@@ -456,7 +451,6 @@ stages:
               azureTenantId: $(ARM_TENANT_ID)
               azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
 
-
   - stage: Database_Installation
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
@@ -507,7 +501,6 @@ stages:
           - template: templates\collect-log-files.yaml
             parameters:
               logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
 
   - stage: SCS_Installation
     variables:
@@ -560,7 +553,6 @@ stages:
           - template: templates\collect-log-files.yaml
             parameters:
               logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
 
   - stage: Database_Load
     variables:
@@ -871,10 +863,10 @@ stages:
               CONFIG_REPO-PATH: $(CONFIG_REPO_PATH)
             failOnStderr: false
 
-# 20220929 MKD - ACSS Registration <BEGIN>
-  - stage:                              ACSS_Registration
-    displayName:                        Register System in ACSS
-    condition:                          eq(${{ parameters.acss_registration }}, true)
+  # 20220929 MKD - ACSS Registration <BEGIN>
+  - stage: ACSS_Registration
+    displayName: Register System in ACSS
+    condition: eq(${{ parameters.acss_registration }}, true)
     dependsOn:
       - Preparation_for_Ansible
       - SAP_Operating_System_Configuration
@@ -887,14 +879,14 @@ stages:
       - WebDispatcher_Installation
       - Post_Installation_Steps
     jobs:
-      - job:                           ACSS_Registration
-        displayName:                   Register System in ACSS
+      - job: ACSS_Registration
+        displayName: Register System in ACSS
         steps:
-          - checkout:                  self
-            persistCredentials:        true
-            submodules:                true
-          - download:                  current
-            artifact:                  ansible_data
+          - checkout: self
+            persistCredentials: true
+            submodules: true
+          - download: current
+            artifact: ansible_data
 
           # Parameters Required:
           #   parameters.acss_environment                     = Prod|NonProd
@@ -1008,7 +1000,7 @@ stages:
                 }
               EOF
               )
-              
+
               # ACSS Registration Command
               set -x
 
@@ -1024,12 +1016,11 @@ stages:
               set +x
               #--------------------------------------+---------------------------------------8
 
-            displayName:               ACSS Registration
+            displayName: ACSS Registration
             env:
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
 # 20220929 MKD - ACSS Registration <BEND>
 
-...
