@@ -189,12 +189,17 @@ stages:
                 cd $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)
                 sap_params_updated=0
 
-              echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
-                sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
-                
-                fqdn="$(grep -m1 "$sap_fqdn:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
+              echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml if not existing ---$reset"
+                bome_base_name="$(grep -m1 "bome_base_name:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
+                if [ -z $bome_base_name ] ; then
+                  sed -i 's|bom_base_name:.*|bom_base_name:                 '"$(bom)"'|'  sap-parameters.yaml
+                  bome_base_name="$(grep -m1 "bome_base_name:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
+                fi
+
+                fqdn="$(grep -m1 "sap_fqdn:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
                 if [ -z $fqdn ] ; then
                   sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
+                  fqdn="$(grep -m1 "sap_fqdn:" sap-parameters.yaml | cut -d':' -f2-  | tr -d ' ' | tr -d '"')"
                 fi
 
               echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
