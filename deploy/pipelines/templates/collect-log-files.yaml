@@ -72,5 +72,6 @@ steps:
         echo 'No logs found in ${LOG_PATH}'
       fi
     displayName: Collect log files
+    condition: always()
     env:
       LOG_PATH: ${{ parameters.logPath }}
