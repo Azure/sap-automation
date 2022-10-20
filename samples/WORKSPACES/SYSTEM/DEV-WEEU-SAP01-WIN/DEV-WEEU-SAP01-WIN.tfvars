@@ -194,6 +194,7 @@ database_vm_image = {
   offer           = "windowsserver",
   sku             = "2022-datacenter",
   version         = "latest"
+  type            = "source_image" # [custom, marketplace, source_image]
 }
 
 # database_vm_zones is an optional list defining the availability zones to deploy the database servers

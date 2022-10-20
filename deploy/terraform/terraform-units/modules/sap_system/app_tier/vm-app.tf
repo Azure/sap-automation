@@ -201,10 +201,10 @@ resource "azurerm_linux_virtual_machine" "app" {
     }
   }
 
-  source_image_id = local.app_custom_image ? local.app_os.source_image_id : null
+  source_image_id = var.application.os.type == "custom" ? local.app_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(local.app_custom_image ? 0 : 1)
+    for_each = range(var.application.os.type == "source_image" ? 1 : 0)
     content {
       publisher = local.app_os.publisher
       offer     = local.app_os.offer
@@ -214,7 +214,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   }
 
   dynamic "plan" {
-    for_each = range(local.app_custom_image ? 1 : 0)
+    for_each = range(var.application.os.type == "marketplace" ? 1 : 0)
     content {
       name      = local.app_os.offer
       publisher = local.app_os.publisher
