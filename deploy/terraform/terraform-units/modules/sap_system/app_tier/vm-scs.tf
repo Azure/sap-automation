@@ -355,10 +355,10 @@ resource "azurerm_windows_virtual_machine" "scs" {
     }
   }
 
-  source_image_id = var.application.os.type == "custom" ? local.scs_os.source_image_id : null
+  source_image_id = var.application.scs_os.type == "custom" ? local.scs_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application.os.type == "source_image" ? 1 : 0)
+    for_each = range(var.application.scs_os.type == "source_image" ? 1 : 0)
     content {
       publisher = local.scs_os.publisher
       offer     = local.scs_os.offer
@@ -368,7 +368,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   }
 
   dynamic "plan" {
-    for_each = range(var.application.os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.application.scs_os.type == "marketplace" ? 1 : 0)
     content {
       name      = local.scs_os.offer
       publisher = local.scs_os.publisher
