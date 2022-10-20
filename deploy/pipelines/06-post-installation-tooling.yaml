@@ -144,7 +144,7 @@ stages:
                   exit 2
                 fi
 
-                if [[ "azure pipelines" == $(this_agent) ]]; then
+                if [ "azure pipelines" = "$(this_agent)" ]; then
                   echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group using the 'POOL' variable."
                   exit 2
                 fi

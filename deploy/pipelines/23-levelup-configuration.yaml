@@ -65,7 +65,6 @@ stages:
               az keyvault secret set --vault-name $(Deployer_Key_Vault) --name "sapbits-location-base-path" --value $(storage_account_name) --output none
               az keyvault secret set --vault-name $(Deployer_Key_Vault) --name "sapbits-sas-token" --value $(storage_account_name_sas) --output none
               az keyvault secret delete --vault-name $(Deployer_Key_Vault) --name "sapbits-access-key"  --output none
-              
               exit $return_code
 
             displayName:               Update
