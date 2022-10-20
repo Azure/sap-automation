@@ -100,6 +100,14 @@
         - 1.5.2-disk-setup-ora-multi-sid
 
 
+    - name:                        Include 1.5.1-disk-setup-asm
+      ansible.builtin.include_role:
+        name:                      roles-os/1.5.1-disk-setup-asm
+      when:                        node_tier == "oracle-asm"
+      tags:
+        - 1.5.1-disk-setup-asm
+
+
     - name:                        Include 1.9-kernelparameters role
       ansible.builtin.include_role:
         name:                      roles-os/1.9-kernelparameters

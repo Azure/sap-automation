@@ -345,6 +345,45 @@
         - node_tier == 'oracle-multi-sid'
         - platform == 'ORACLE'
 
+    - name:                            "Install Oracle on ASM"
+      block:
+        - name:                        Setting the DB facts for ASM
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        Include 1.5.2-disk-setup-asm role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.2-disk-setup-asm
+
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        node_tier == 'oracle-asm'
+
+        - name:                        Installing Oracle ASM Grid
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.1-ora-asm-grid
+          when:                        node_tier == 'oracle-asm'
+
+        - name:                        Installing Oracle on ASM
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.2-ora-asm-db-install
+          when:                        node_tier == 'oracle-asm'
+
+        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
+            mode:                      0755
+      when:
+        - node_tier == 'oracle-asm'
+        - platform == 'ORACLE'    
+
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
