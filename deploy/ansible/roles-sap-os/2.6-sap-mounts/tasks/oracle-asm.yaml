@@ -75,6 +75,24 @@
 # ORASID should be the owner of the file systems /oracle directories.
 # .PARAMS folder is not required for oracle install as we are not passing any parameters files.
 
+# Mount install file system on Observer node.
+- name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
+  ansible.posix.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              "vers=4,minorversion=1,sec=sys"
+    state:                             mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+  loop:
+    - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
+  when:
+    - node_tier == 'observer'
+    - use_AFS
+
+
 - name:                                "Make oracle:oinstall as owners"
   ansible.builtin.file:
     path:                              /oracle
