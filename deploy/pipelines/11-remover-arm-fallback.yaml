@@ -9,108 +9,84 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                  Remove deployment
 parameters:
-  - name:                              cleanup_sap
-    displayName:                       Remove the SAP system
-    type:                              boolean
-    default:                           true
+  - name: cleanup_sap
+    displayName: Remove the SAP system
+    type: boolean
+    default: true
 
-  - name:                              sap_system
-    displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-X00
+  - name: sap_system
+    displayName: "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
+    type: string
+    default: DEV-WEEU-SAP01-X00
 
-  - name:                              cleanup_workload_zone
-    displayName:                       Remove the SAP workload zone
-    type:                              boolean
-    default:                           true
+  - name: cleanup_workload_zone
+    displayName: Remove the SAP workload zone
+    type: boolean
+    default: true
 
-  - name:                              workload_zone
-    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name: workload_zone
+    displayName: "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              cleanup_control_plane
-    displayName:                       Remove the control plane
-    type:                              boolean
-    default:                           true
+  - name: cleanup_control_plane
+    displayName: Remove the control plane
+    type: boolean
+    default: true
 
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name: deployer
+    displayName: "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
 
-  - name:                              library
-    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
+  - name: library
+    displayName: "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type: string
+    default: MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              workload_environment_parameter
-    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
-    type:                              string
-    default:                           DEV
+  - name: workload_environment
+    displayName: Workload Environment (DEV, QUA, PRD, ...)
+    type: string
+    default: DEV
 
-  - name:                              deployer_environment_parameter
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           MGMT
-
-trigger:                               none
-
-pool:
-  vmImage:                             ubuntu-latest
-
-variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment_parameter }}
-  - group:                             SDAF-${{ parameters.workload_environment_parameter }}
-
-  - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment_parameter }}
-  - name:                              deployer_folder
-    value:                             ${{ parameters.deployer }}
-  - name:                              deployer_config
-    value:                             ${{ parameters.deployer }}.tfvars
-  - name:                              library_folder
-    value:                             ${{ parameters.library }}
-  - name:                              library_config
-    value:                             ${{ parameters.library }}.tfvars
-  - name:                              zone_folder
-    value:                             ${{ parameters.workload_zone }}
-  - name:                              zone_config
-    value:                             ${{ parameters.workload_zone }}.tfvars
-  - name:                              sap_system_folder
-    value:                             ${{ parameters.sap_system }}
-  - name:                              sap_system_config
-    value:                             ${{ parameters.sap_system }}.tfvars
+  - name: deployer_environment
+    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: MGMT
 
 stages:
-  - stage:                             Remove_SAP_systems
-    displayName:                       Remove SAP System
-    condition:                         eq(${{ parameters.cleanup_sap }}, true)
+  - stage: Remove_SAP_systems
+    displayName: Remove SAP System
+    condition: eq(${{ parameters.cleanup_sap }}, true)
+    variables:
+      - template: variables/11-remover-arm-fallback-variables.yaml
+        parameters:
+          deployer: ${{ parameters.deployer }}
+          deployer_environment: ${{ parameters.deployer_environment }}
+          library: ${{ parameters.library }}
+          sap_system: ${{ parameters.sap_system }}
+          workload_environment: ${{ parameters.workload_environment }}
+          workload_zone: ${{ parameters.workload_zone }}
     jobs:
-      - job:                           Remove_SAP_system_RG
-        displayName:                   Remove SAP System ${{ parameters.cleanup_sap }}
+      - job: Remove_SAP_system_RG
+        displayName: Remove SAP System ${{ parameters.cleanup_sap }}
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
+          - group: SDAF-${{ parameters.workload_environment }}
         steps:
-          - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group $(sap_system_folder)
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: Remove Resource Group $(sap_system_folder)
             inputs:
-              deploymentScope:         "Resource Group"
+              deploymentScope: "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
-              action:                  "DeleteRG"
-              resourceGroupName:       "$(sap_system_folder)"
+              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
+              action: "DeleteRG"
+              resourceGroupName: "$(sap_system_folder)"
 
-      - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
-        displayName:                   Remove SAP System deployment artifacts from WORKSPACES
+      - job: Remove_sap_deployment_artifacts_in_WORKSPACES
+        displayName: Remove SAP System deployment artifacts from WORKSPACES
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
+          - group: SDAF-${{ parameters.workload_environment }}
         steps:
           - bash: |
               #!/bin/bash
@@ -154,33 +130,33 @@ stages:
                   git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
                 fi
 
-            displayName:               Remove SAP System deployment artifacts from WORKSPACES
+            displayName: Remove SAP System deployment artifacts from WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              false
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+            failOnStderr: false
 
-  - stage:                             Remove_SAP_workload_zone
-    displayName:                       Remove SAP workload zone
-    condition:                         eq(${{ parameters.cleanup_workload_zone }}, true)
+  - stage: Remove_SAP_workload_zone
+    displayName: Remove SAP workload zone
+    condition: eq(${{ parameters.cleanup_workload_zone }}, true)
     jobs:
-      - job:                           Remove_SAP_workload_zone
-        displayName:                   Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
+      - job: Remove_SAP_workload_zone
+        displayName: Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
+          - group: SDAF-${{ parameters.workload_environment }}
         steps:
-          - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: Remove Resource Group
             inputs:
-              deploymentScope:         "Resource Group"
+              deploymentScope: "Resource Group"
               azureResourceManagerConnection: "$(AZURE_CONNECTION_NAME)"
-              subscriptionId:          "$(ARM_SUBSCRIPTION_ID)"
-              action:                  "DeleteRG"
-              resourceGroupName:       "$(zone_folder)"
+              subscriptionId: "$(ARM_SUBSCRIPTION_ID)"
+              action: "DeleteRG"
+              resourceGroupName: "$(zone_folder)"
 
-      - job:                           Remove_zone_deployment_artefacts_in_WORKSPACES
-        displayName:                   Remove Workload Zone deployment artifacts
+      - job: Remove_zone_deployment_artefacts_in_WORKSPACES
+        displayName: Remove Workload Zone deployment artifacts
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment_parameter }}
+          - group: SDAF-${{ parameters.workload_environment }}
         steps:
           - bash: |
               #!/bin/bash
@@ -268,23 +244,23 @@ stages:
                   fi
                 fi
 
-            displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
+            displayName: Remove SAP Workload Zone deployment artifacts from WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              false
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+            failOnStderr: false
 
-  - stage:                             Remove_Control_plane
-    displayName:                       Remove Control Plane
-    condition:                         eq(${{ parameters.cleanup_control_plane }}, true)
+  - stage: Remove_Control_plane
+    displayName: Remove Control Plane
+    condition: eq(${{ parameters.cleanup_control_plane }}, true)
 
     jobs:
-      - job:                           Remove_control_plane_deployment
-        displayName:                   Remove Control Plane deployment
+      - job: Remove_control_plane_deployment
+        displayName: Remove Control Plane deployment
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment_parameter }}
+          - group: SDAF-${{ parameters.deployer_environment }}
         steps:
-          - checkout:                  self
-            persistCredentials:        true
+          - checkout: self
+            persistCredentials: true
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m"
@@ -454,13 +430,12 @@ stages:
 
                 exit $return_value
 
-            displayName:               Remove Control Plane deployment artifacts from WORKSPACES
+            displayName: Remove Control Plane deployment artifacts from WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              AZURE_DEVOPS_EXT_PAT:    $(PAT)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr:              false
-...
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT: $(PAT)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+            failOnStderr: false

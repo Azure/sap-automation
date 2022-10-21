@@ -5,86 +5,44 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-name: Removal
-
 parameters:
+  - name: deployer
+    displayName: "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: MGMT-WEEU-DEP01-INFRASTRUCTURE
 
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
+  - name: library
+    displayName: "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type: string
+    default: MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              library
-    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
+  - name: deployer_environment
+    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: MGMT
 
-  - name:                              deployer_environment_parameter
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           MGMT
-
-  - name:                              use_deployer
-    displayName:                       Run removal on self hosted agent
-    type:                              boolean
-    default:                           false
-
-
-trigger:                               none
-
-pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
-
-variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - name:                              parent_variable_group
-    value:                             SDAF-${{ parameters.deployer_environment_parameter }}
-
-  - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
-
-  - name:                              deployer_folder
-    value:                             ${{ parameters.deployer }}
-
-  - name:                              deployer_configuration_file
-    value:                             ${{ parameters.deployer }}.tfvars
-
-  - name:                              library_folder
-    value:                             ${{ parameters.library }}
-
-  - name:                              library_configuration_file
-    value:                             ${{ parameters.library }}.tfvars
-
-  - name:                              tf_url
-    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-  - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
-
-  - name:                              this_agent
-    value:                             $[lower(variables['run_on'])]
-
+  - name: use_deployer
+    displayName: Run removal on self hosted agent
+    type: boolean
+    default: false
 
 stages:
-  - stage:                             Remove_control_plane_remote
-    displayName:                       "Control plane removal (on agent)"
+  - stage: Remove_control_plane_remote
+    displayName: "Control plane removal (on agent)"
     pool:
-      name:                            $(POOL)
+      name: $(POOL)
     jobs:
-      - job:                           Remove_control_plane_remote
-        displayName:                   "Start control plane removal"
+      - job: Remove_control_plane_remote
+        displayName: "Start control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment_parameter }}
+          - group: SDAF-${{ parameters.deployer_environment }}
         workspace:
-          clean:                       all
+          clean: all
         steps:
-          - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
-            submodules:                true
+          - task: PostBuildCleanup@3
+          - checkout: self
+            persistCredentials: true
+            submodules: true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
@@ -274,36 +232,36 @@ stages:
                 fi
 
               exit $return_code
-            displayName:               Remove control plane
+            displayName: Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
-              key_vault:               $(Deployer_Key_Vault)
-            failOnStderr:              false
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              DEPLOYMENT_REPO_PATH: $(Build.Repository.LocalPath)
+              key_vault: $(Deployer_Key_Vault)
+            failOnStderr: false
 
-  - stage:                             Remove_control_plane
-    displayName:                       "Finalize control plane removal"
+  - stage: Remove_control_plane
+    displayName: "Finalize control plane removal"
     pool:
-      name:                            $(Agent)
+      name: $(Agent)
     dependsOn:
       - Remove_control_plane_remote
-    condition:  eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
+    condition: eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
     jobs:
-      - job:                           Remove_control_plane
-        displayName:                   "Finalize control plane removal"
+      - job: Remove_control_plane
+        displayName: "Finalize control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment_parameter }}
+          - group: SDAF-${{ parameters.deployer_environment }}
         workspace:
-          clean:                       all
+          clean: all
         steps:
-          - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
-            submodules:                true
+          - task: PostBuildCleanup@3
+          - checkout: self
+            persistCredentials: true
+            submodules: true
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
@@ -518,15 +476,13 @@ stages:
                 fi
 
               exit $return_code
-            displayName:               Remove control plane
+            displayName: Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
-              key_vault:               $(Deployer_Key_Vault)
-            failOnStderr:              false
-
-...
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              DEPLOYMENT_REPO_PATH: $(Build.Repository.LocalPath)
+              key_vault: $(Deployer_Key_Vault)
+            failOnStderr: false

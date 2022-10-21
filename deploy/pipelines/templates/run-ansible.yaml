@@ -43,13 +43,13 @@ steps:
       sudo chmod 600 $PARAMETERS_FOLDER/sshkey
     fi
 
-    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey -e $SAP_PARAMS -e "_workspace_directory=$PARAMETERS_FOLDER" $EXTRA_PARAMS $ANSIBLE_FILE_PATH"
+    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey -e @$SAP_PARAMS -e "_workspace_directory=$PARAMETERS_FOLDER" $EXTRA_PARAMS $ANSIBLE_FILE_PATH"
     echo "##[section]Executing [$command]..."
     echo "##[group]- output"
     eval $command
     echo "##[endgroup]"
 
-  displayName:                      ${{ parameters.displayName }}
+  displayName:                      "Ansible: ${{ parameters.displayName }}"
   env:
     AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
     AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
@@ -63,8 +63,6 @@ steps:
     PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
     EXTRA_PARAMS:                   ${{ parameters.extraParams }}
     SAP_PARAMS:                     ${{ parameters.sapParams }}
-    INVENTORY:                      $(Pipeline.Workspace)/ansible_data/${{ parameters.sidHosts }}
+    INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
     SSH_KEY_NAME:                   ${{ parameters.secretName }}
     VAULT_NAME:                     ${{ parameters.vaultName }}
-
-  continueOnError:           false

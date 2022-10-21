@@ -121,16 +121,21 @@ stages:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
           environment: ${{ parameters.environment }}
-    displayName: Preparation steps
+    displayName: 05-DB-and-SAP-installation
     jobs:
       - job: Preparation_step
-        displayName: Preparation steps
+        displayName: 05-DB-and-SAP-installation
         workspace:
           clean: all
         steps:
           - template: templates\download.yaml
           - bash: |
               #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              set -e
+              # Set execution rights on the scripts
+              find ${SCRIPT_PATH//$/} -type f -exec chmod +x "{}" \;
+
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                 echo -e "$green --- Install dos2unix ---$reset"
@@ -254,6 +259,7 @@ stages:
             name: Preparation
             displayName: Preparation for Ansible
             env:
+              SCRIPT_PATH: $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
               SYSTEM_ACCESSTOKEN: $(System.AccessToken)
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
               ANSIBLE_HOST_KEY_CHECKING: false
@@ -270,781 +276,180 @@ stages:
 
           - template: templates\run-ansible.yaml
             parameters:
-              displayName: "Validate the input parameters"
+              displayName: playbook_00_validate_parameters
               ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(FOLDER)"
-              sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(SAP_PARAMETERS)"
-              sidHosts: $(HOSTS)
+              secretName: "$(Preparation.SSH_KEY_NAME)"
+              vaultName: $(Preparation.VAULT_NAME)
+              parametersFolder: $(Preparation.FOLDER)
+              sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+              sidHosts: $(Preparation.HOSTS)
               extraParams: $(ExtraParams)
               azureClientId: $(ARM_CLIENT_ID)
               azureClientSecret: $(ARM_CLIENT_SECRET)
               azureTenantId: $(ARM_TENANT_ID)
               azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-  - stage: Validate_Parameters
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: Validate the input parameters
-    condition: always()
-    dependsOn:
-      - Preparation_for_Ansible
-    jobs:
-      - job: Validate_Parameters
-        displayName: Validate the input parameters
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "Validate the input parameters"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-  - stage: Core_Operating_System_Configuration
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: Core Operating System Configuration
-
-    dependsOn:
-      - Preparation_for_Ansible
-      - Validate_Parameters
-    condition: |
-      and
-      (
-        eq(${{ parameters.base_os_configuration }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: Core_Operating_System_Configuration
-        displayName: Core Operating System Configuration
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "Core Operating System Configuration"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_01_os_base_config.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-  - stage: SAP_Operating_System_Configuration
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: SAP Operating System Configuration
-
-    dependsOn:
-      - Preparation_for_Ansible
-      - Core_Operating_System_Configuration
-    condition: |
-      and
-      (
-        eq(${{ parameters.sap_os_configuration }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: SAP_Operating_System_Configuration
-        displayName: SAP Operating System Configuration
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "SAP Operating System Configuration"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_02_os_sap_specific_config.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-  - stage: Software_Acquisition
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: Software Acquisition
-
-    dependsOn:
-      - Preparation_for_Ansible
-      - Core_Operating_System_Configuration
-      - SAP_Operating_System_Configuration
-    condition: |
-      and
-      (
-        eq(${{ parameters.bom_processing }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: Software_Acquisition
-        timeoutInMinutes: 0
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SAP_AUTOMATION_ROOT_PATH: ${{ parameters.sap_automation_repo_path }}
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "Software Acquisition"
-              ansibleFilePath: $(SAP_AUTOMATION_ROOT_PATH)/deploy/ansible/playbook_03_bom_processing.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-  - stage: Database_Installation
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: Database Installation
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-    condition: |
-      and
-      (
-        eq(${{ parameters.database_install }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: Database_Installation
-        displayName: Database Installation
-        timeoutInMinutes: 0
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "Database Installation"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_00_db_install.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
+          - ${{ if eq(parameters.base_os_configuration, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_01_os_base_config
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_01_os_base_config.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.sap_os_configuration, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_02_os_sap_specific_config
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_02_os_sap_specific_config.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.bom_processing, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_03_bom_processing
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_03_bom_processing.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.database_install, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_04_00_00_db_install
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_00_db_install.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.scs_installation, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_05_00_00_sap_scs_install
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.db_load, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_05_01_sap_dbload
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_01_sap_dbload.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.high_availability_configuration, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_04_00_01_db_ha
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_01_db_ha.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.pas_installation, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_05_02_sap_pas_install
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_02_sap_pas_install.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.application_server_installation, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_05_03_sap_app_install
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_03_sap_app_install.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.webdispatcher_installation, true) }}:
+              - template: templates\run-ansible.yaml
+                parameters:
+                  displayName: playbook_05_04_sap_web_install
+                  ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
+                  secretName: "$(Preparation.SSH_KEY_NAME)"
+                  vaultName: $(Preparation.VAULT_NAME)
+                  parametersFolder: $(Preparation.FOLDER)
+                  sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts: $(Preparation.HOSTS)
+                  extraParams: $(ExtraParams)
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.acss_registration, true) }}:
+              - template: templates\acss-registration.yaml
+                parameters:
+                  displayName: "??"
+                  scriptPath: ${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates
+                  azureClientId: $(ARM_CLIENT_ID)
+                  azureClientSecret: $(ARM_CLIENT_SECRET)
+                  azureTenantId: $(ARM_TENANT_ID)
+                  azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+                  acssEnvironment: ${{ parameters.acss_environment }}
+                  acssSapProduct: ${{ parameters.acss_sap_product }}
+                  sapSystemConfigurationNanme: ${{ parameters.sap_system_configuration_name }}
           - template: templates\collect-log-files.yaml
             parameters:
               logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
-  - stage: SCS_Installation
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: SCS Installation
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-    condition: |
-      and
-      (
-        eq(${{ parameters.scs_installation }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: SCS_Installation
-        displayName: SCS Installation
-        timeoutInMinutes: 0
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "SCS Installation"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-          - template: templates\collect-log-files.yaml
-            parameters:
-              logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
-  - stage: Database_Load
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: Database Load
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - SCS_Installation
-    condition: |
-      and
-      (
-        eq(${{ parameters.db_load }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
-        in(dependencies.SCS_Installation.result, 'Succeeded', 'Skipped'),
-        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: Database_Load
-        displayName: Database Load
-        timeoutInMinutes: 0
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "Database Load"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_01_sap_dbload.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-          - template: templates\collect-log-files.yaml
-            parameters:
-              logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
-  - stage: HighAvailability_Setup
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: High Availability Setup
-
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - Database_Load
-    condition: |
-      and
-      (
-        eq(${{ parameters.high_availability_configuration }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
-        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: HighAvailability_Setup
-        displayName: High Availability Setup
-        timeoutInMinutes: 0
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "High Availability Setup"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_01_db_ha.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-
-  - stage: PAS_Installation
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: PAS Installation
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - SCS_Installation
-      - HighAvailability_Setup
-      - Database_Load
-    condition: |
-      and
-      (
-        eq(${{ parameters.pas_installation }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: PAS_Installation
-        displayName: PAS Installation
-        timeoutInMinutes: 0
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "PAS Installation"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_02_sap_pas_install.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-          - template: templates\collect-log-files.yaml
-            parameters:
-              logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
-  - stage: APP_Install
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: Application Server Install
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - SCS_Installation
-      - Database_Load
-      - PAS_Installation
-    condition: |
-      and
-      (
-        eq(${{ parameters.application_server_installation }}, true),
-        eq(dependencies.Preparation_for_Ansible.result, 'Succeeded'),
-        in(dependencies.Software_Acquisition.result, 'Succeeded', 'Skipped'),
-        in(dependencies.Database_Installation.result, 'Succeeded', 'Skipped'),
-        in(dependencies.PAS_Installation.result, 'Succeeded', 'Skipped'),
-        eq(dependencies.Validate_Parameters.result, 'Succeeded')
-      )
-    jobs:
-      - job: APP_Install
-        displayName: Application Server Install
-        timeoutInMinutes: 0
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "Application Server Install"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_03_sap_app_install.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-          - template: templates\collect-log-files.yaml
-            parameters:
-              logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
-  - stage: WebDispatcher_Installation
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: WebDispatcher Installation
-    condition: eq(${{ parameters.webdispatcher_installation }}, true)
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - SCS_Installation
-      - Database_Load
-      - PAS_Installation
-      - APP_Install
-    jobs:
-      - job: WebDispatcher_Installation
-        displayName: WebDispatcher Installation
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SID: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SID'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          DEPLOYMENT_REPO_PATH: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - template: templates\run-ansible.yaml
-            parameters:
-              displayName: "WebDispatcher Installation"
-              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
-              secretName: "$(SSH_KEY_NAME)"
-              vaultName: $(VAULT_NAME)
-              parametersFolder: "_workspace_directory=$(parameters_folder)"
-              sapParams: "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
-              sidHosts: $(SID_hosts)
-              extraParams: $(ExtraParams)
-              azureClientId: $(ARM_CLIENT_ID)
-              azureClientSecret: $(ARM_CLIENT_SECRET)
-              azureTenantId: $(ARM_TENANT_ID)
-              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
-          - template: templates\collect-log-files.yaml
-            parameters:
-              logPath: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-
-  - stage: Post_Installation_Steps
-    variables:
-      - template: variables/05-DB-and-SAP-installation-variables.yaml
-        parameters:
-          environment: ${{ parameters.environment }}
-    displayName: Post Installation Steps
-    condition: always()
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - SCS_Installation
-      - HighAvailability_Setup
-      - Database_Load
-      - PAS_Installation
-      - APP_Install
-      - WebDispatcher_Installation
-    jobs:
-      - job: Post_Installation_Steps
-        displayName: Post Installation Steps
-        variables:
-          SID_hosts: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
-          SAP_parameters: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
-          parameters_folder: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
-          CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
-          SSH_KEY_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
-          VAULT_NAME: $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          - script: |
-              #!/bin/bash
-              if [ -f $CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}.md ]; then
-                echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/$(Deployment_Configuration_Path)/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}.md"
-              fi
-            displayName: Copy system specifications
-            env:
-              CONFIG_REPO-PATH: $(CONFIG_REPO_PATH)
-            failOnStderr: false
-
-  # 20220929 MKD - ACSS Registration <BEGIN>
-  - stage: ACSS_Registration
-    displayName: Register System in ACSS
-    condition: eq(${{ parameters.acss_registration }}, true)
-    dependsOn:
-      - Preparation_for_Ansible
-      - SAP_Operating_System_Configuration
-      - Software_Acquisition
-      - Database_Installation
-      - SCS_Installation
-      - Database_Load
-      - PAS_Installation
-      - APP_Install
-      - WebDispatcher_Installation
-      - Post_Installation_Steps
-    jobs:
-      - job: ACSS_Registration
-        displayName: Register System in ACSS
-        steps:
-          - template: templates\download.yaml
-            parameters:
-              includeAnsibleData: true
-          # Parameters Required:
-          #   parameters.acss_environment                     = Prod|NonProd
-          #   parameters.acss_sap_product                     = S4HANA|ECC|Other
-          #   parameters.sap_system_configuration_name        = ENV-REGION-VNET-SID
-          #   ARM_CLIENT_ID                                   = 00000000-0000-0000-0000-000000000000
-          #   ARM_CLIENT_SECRET                               = ****
-          #   ARM_SUBSCRIPTION_ID                             = 00000000-0000-0000-0000-000000000000
-          #   ARM_TENANT_ID                                   = 00000000-0000-0000-0000-000000000000
-          #   SAP_SYSTEM_FOLDER                               = ENV-REGION-VNET-SID
-          #   TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME    = ENV-REGION-SAP_LIBRARY
-          #   TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME           = xxxxxxxxxxxxxxxxxxx
-          - script: |
-              #!/bin/bash
-
-              #--------------------------------------+---------------------------------------8
-              #                                                                              |
-              # Setup variables                                                              |
-              #                                                                              |
-              #--------------------------------------+---------------------------------------8
-              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
-              __basedir=`pwd`
-              acss_environment=${{ parameters.acss_environment }}
-              acss_sap_product=${{ parameters.acss_sap_product }}
-              acss_workloads_extension_url="https://github.com/Azure/Azure-Center-for-SAP-solutions-preview/raw/main/CLI_Documents/ACSS_CLI_Extension/workloads-0.1.0-py3-none-any.whl"
-              #--------------------------------------+---------------------------------------8
-
-
-
-              #--------------------------------------+---------------------------------------8
-              #                                                                              |
-              # Install ACSS Workloads extension for Azure CLI                               |
-              #                                                                              |
-              #--------------------------------------+---------------------------------------8
-              set -x
-              if [ -z "$(az extension list | grep \"name\": | grep \"workloads\")" ]
-              then
-                echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset"
-                wget $acss_workloads_extension_url || exit 1
-                az extension add --source=./workloads-0.1.0-py3-none-any.whl --yes || exit 1
-              else
-                echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset"
-              fi
-              set +x
-              #--------------------------------------+---------------------------------------8
-
-
-
-              #--------------------------------------+---------------------------------------8
-              #                                                                              |
-              # Authenticate to Azure                                                        |
-              #                                                                              |
-              #--------------------------------------+---------------------------------------8
-              az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
-              #--------------------------------------+---------------------------------------8
-
-
-
-              #--------------------------------------+---------------------------------------8
-              #                                                                              |
-              # Initialize Terraform and access State File                                   |
-              #                                                                              |
-              #--------------------------------------+---------------------------------------8
-              # Get Terraform State Outputs
-              # TODO: Should test if Terraform is available or needs to be installed
-              #
-              echo -e "$green--- Initializing Terraform for: ${{ parameters.sap_system_configuration_name }} ---$reset"
-              __configDir=${__basedir}/WORKSPACES/SYSTEM/${SAP_SYSTEM_FOLDER}
-              __moduleDir=${__basedir}/deploy/terraform/run/sap_system/
-              TF_DATA_DIR=${__configDir}
-
-              cd ${__configDir}
-
-              # Init Terraform
-              __output=$( \
-              terraform -chdir="${__moduleDir}"                                                       \
-              init -upgrade=true                                                                      \
-              --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}"                               \
-              --backend-config "resource_group_name=${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"  \
-              --backend-config "storage_account_name=${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"        \
-              --backend-config "container_name=tfstate"                                               \
-              --backend-config "key=${SAP_SYSTEM_FOLDER}.terraform.tfstate"                           \
-              )
-              [ $? -ne 0 ] && echo "$__output" && exit 1
-              echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"
-
-              # Fetch values from Terraform State file
-              acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" '{print $2}' | tr -d '\n\r\t[:space:]')
-              acss_sid=$(           terraform -chdir="${__moduleDir}" output sid                         | tr -d '"')
-              acss_resource_group=$(terraform -chdir="${__moduleDir}" output created_resource_group_name | tr -d '"')
-              acss_location=$(      terraform -chdir="${__moduleDir}" output region                      | tr -d '"')
-
-              unset TF_DATA_DIR __configDir __moduleDir __output
-              cd $__basedir
-              #--------------------------------------+---------------------------------------8
-
-
-
-              #--------------------------------------+---------------------------------------8
-              #                                                                              |
-              # Register in ACSS                                                             |
-              #                                                                              |
-              #--------------------------------------+---------------------------------------8
-              echo -e "$green--- Registering SID: $acss_sid in ACSS ---$reset"
-
-              # Create JSON Payload as variable
-              acss_configuration=$(cat << EOF
-                {
-                  "configurationType": "Discovery",
-                  "centralServerVmId": "${acss_scs_vm_id}"
-                }
-              EOF
-              )
-
-              # ACSS Registration Command
-              set -x
-
-              az workloads sap-virtual-instance create              \
-              --sap-virtual-instance-name  "${acss_sid}"            \
-              --resource-group             "${acss_resource_group}" \
-              --location                   "${acss_location}"       \
-              --environment                "${acss_environment}"    \
-              --sap-product                "${acss_sap_product}"    \
-              --configuration              "${acss_configuration}"  \
-               || exit 1
-
-              set +x
-              #--------------------------------------+---------------------------------------8
-
-            displayName: ACSS Registration
-            env:
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-# 20220929 MKD - ACSS Registration <BEND>
-
