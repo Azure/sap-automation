@@ -138,6 +138,15 @@ stages:
   - stage: Remove_SAP_workload_zone
     displayName: Remove SAP workload zone
     condition: eq(${{ parameters.cleanup_workload_zone }}, true)
+    variables:
+      - template: variables/11-remover-arm-fallback-variables.yaml
+        parameters:
+          deployer: ${{ parameters.deployer }}
+          deployer_environment: ${{ parameters.deployer_environment }}
+          library: ${{ parameters.library }}
+          sap_system: ${{ parameters.sap_system }}
+          workload_environment: ${{ parameters.workload_environment }}
+          workload_zone: ${{ parameters.workload_zone }}
     jobs:
       - job: Remove_SAP_workload_zone
         displayName: Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
@@ -252,7 +261,15 @@ stages:
   - stage: Remove_Control_plane
     displayName: Remove Control Plane
     condition: eq(${{ parameters.cleanup_control_plane }}, true)
-
+    variables:
+      - template: variables/11-remover-arm-fallback-variables.yaml
+        parameters:
+          deployer: ${{ parameters.deployer }}
+          deployer_environment: ${{ parameters.deployer_environment }}
+          library: ${{ parameters.library }}
+          sap_system: ${{ parameters.sap_system }}
+          workload_environment: ${{ parameters.workload_environment }}
+          workload_zone: ${{ parameters.workload_zone }}
     jobs:
       - job: Remove_control_plane_deployment
         displayName: Remove Control Plane deployment

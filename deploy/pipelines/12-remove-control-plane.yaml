@@ -29,6 +29,13 @@ parameters:
 stages:
   - stage: Remove_control_plane_remote
     displayName: "Control plane removal (on agent)"
+    variables:
+      - template: variables/11-remover-arm-fallback-variables.yaml
+        parameters:
+          deployer: ${{ parameters.deployer }}
+          deployer_environment: ${{ parameters.deployer_environment }}
+          library: ${{ parameters.library }}
+          use_deployer: ${{ parameters.use_deployer }}
     pool:
       name: $(POOL)
     jobs:
@@ -245,6 +252,13 @@ stages:
 
   - stage: Remove_control_plane
     displayName: "Finalize control plane removal"
+    variables:
+      - template: variables/11-remover-arm-fallback-variables.yaml
+        parameters:
+          deployer: ${{ parameters.deployer }}
+          deployer_environment: ${{ parameters.deployer_environment }}
+          library: ${{ parameters.library }}
+          use_deployer: ${{ parameters.use_deployer }}
     pool:
       name: $(Agent)
     dependsOn:
