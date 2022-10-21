@@ -268,6 +268,21 @@ stages:
           - publish: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts
             artifact: ansible_data
 
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName: "Validate the input parameters"
+              ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
+              secretName: "$(SSH_KEY_NAME)"
+              vaultName: $(VAULT_NAME)
+              parametersFolder: "_workspace_directory=$(FOLDER)"
+              sapParams: "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(SAP_PARAMETERS)"
+              sidHosts: $(HOSTS)
+              extraParams: $(ExtraParams)
+              azureClientId: $(ARM_CLIENT_ID)
+              azureClientSecret: $(ARM_CLIENT_SECRET)
+              azureTenantId: $(ARM_TENANT_ID)
+              azureSubscriptionId: $(ARM_SUBSCRIPTION_ID)
+
   - stage: Validate_Parameters
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
