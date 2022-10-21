@@ -3,9 +3,9 @@ parameters:
 steps:
   - script: |
       #!/bin/bash
-
-      # Ensure that the script fails if a command fails. 
-      set -e
+      # Exit immediately if a command exits with a non-zero status.
+      # Treat unset variables as an error when substituting.
+      set -eu
 
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
         echo "Found log files in ${LOG_PATH}"
@@ -45,6 +45,9 @@ steps:
 
   - script: |
       #!/bin/bash
+      # Exit immediately if a command exits with a non-zero status.
+      # Treat unset variables as an error when substituting.
+      set -eu
 
       timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S%:z")
 
