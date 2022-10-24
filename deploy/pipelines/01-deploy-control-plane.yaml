@@ -191,7 +191,7 @@ stages:
                        --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                        --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID)        \
                        --spn_secret $ARM_CLIENT_SECRET --tenant_id $(ARM_TENANT_ID)           \
-                       --auto-approve --ado --only_deployer
+                       --auto-approve --ado 
                     return_code=$?
                     if [ 0 != $return_code ]; then
                        echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
@@ -255,21 +255,21 @@ stages:
 
             displayName: Deploy control plane
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-              TF_VAR_agent_ado_url: $(System.CollectionUri)
-              AZURE_DEVOPS_EXT_PAT: $(PAT)
-              IS_PIPELINE_DEPLOYMENT: true
-              WEB_APP_CLIENT_SECRET: $(WEB_APP_CLIENT_SECRET)
-              APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              POOL: $(POOL)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              TF_VAR_ansible_core_version:    $(ansible_core_version)
-              TF_LOG:                         $(TF_LOG)
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                $(ARM_TENANT_ID)
+              TF_VAR_agent_ado_url:         $(System.CollectionUri)
+              AZURE_DEVOPS_EXT_PAT:         $(PAT)
+              IS_PIPELINE_DEPLOYMENT:       true
+              WEB_APP_CLIENT_SECRET:        $(WEB_APP_CLIENT_SECRET)
+              APP_REGISTRATION_APP_ID:      $(APP_REGISTRATION_APP_ID)
+              POOL:                         $(POOL)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              TF_VAR_ansible_core_version:  $(ansible_core_version)
+              TF_LOG:                       $(TF_LOG)
 
             failOnStderr: false
 
