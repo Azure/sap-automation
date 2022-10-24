@@ -57,7 +57,7 @@ stages:
 
     jobs:
       - job: Prepare_Deployer
-        displayName: Deploy the control plane
+        displayName: Prepare the self hosted agent
         workspace:
           clean: all
         steps:
@@ -442,10 +442,10 @@ stages:
 
                     fi
 
-                echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
                     cd ${CONFIG_REPO_PATH}
                     mkdir -p .sap_deployment_automation
-                    echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH >.sap_deployment_automation/config
+                    echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH >.sap_deployment_automation/config
 
                 echo -e "$green--- File Validations ---$reset"
                     if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
@@ -549,9 +549,9 @@ stages:
 
                     export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
-                    sudo chmod +x $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh
+                    sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
 
-                    $DEPLOYMENT_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
+                    $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
                        --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                        --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                        --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID)        \
