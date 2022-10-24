@@ -183,7 +183,7 @@ stages:
                         export TF_VAR_agent_pat=$(PAT)
                     fi
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                        unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
+                        unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                     fi
                     
                     export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -540,16 +540,11 @@ stages:
                     fi
 
                     if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                        unzip  -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
+                        unzip  -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(deployerfolder)
                     fi
 
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                        unzip -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
-                        pwd
-                        ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
-                        ls -ltr ..
-                        find . -name "terraform.tfstate"
-                        cat ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                        unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                     fi
 
                     export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
