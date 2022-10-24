@@ -184,7 +184,10 @@ stages:
                     fi
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                         unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
+                    else
+                      echo ${ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)}
                     fi
+                    
                     export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                     $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
                        --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
