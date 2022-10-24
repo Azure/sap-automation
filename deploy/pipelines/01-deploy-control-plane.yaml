@@ -323,6 +323,8 @@ stages:
                      ${storage_account_parameter}
                   return_code=$?
 
+                  echo "returncode: $return_code"
+
                   if [ 0 != $return_code ]; then
                      echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
                      if [ -f ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err ]; then
