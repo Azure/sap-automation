@@ -292,7 +292,6 @@ stages:
                       if [ ${#POOL_NAME} -eq 0 ]; then
                           echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
                       fi
-                      echo 'don' $(POOL)
 
                       export TF_VAR_agent_pool=$(POOL)
                       export TF_VAR_agent_pat=$(PAT)
@@ -319,7 +318,7 @@ stages:
                      --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                      --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID)        \
                      --spn_secret $ARM_CLIENT_SECRET --tenant_id $(ARM_TENANT_ID)           \
-                     --auto-approve --ado                                                   \
+                     --auto-approve --ado --only_deployer                                   \
                      ${storage_account_parameter}
                   return_code=$?
 
