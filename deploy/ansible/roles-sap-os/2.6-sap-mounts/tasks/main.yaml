@@ -158,6 +158,8 @@
     path:                              "/sapmnt/{{ sap_sid | upper }}"
     state:                             directory
     recurse:                           true
+  when: 
+    - node_tier != "oracle-asm"
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
@@ -263,6 +265,11 @@
 - import_tasks:                        "oracle.yaml"
   when:
     - node_tier == "oracle"
+
+# Import this task only if the tier is ora for oracle-asm.
+- import_tasks:                        "oracle-asm-prereq.yaml"
+  when:
+    - node_tier == "oracle-asm"
 
 - import_tasks:                        "oracle-multi-sid.yaml"
   when:

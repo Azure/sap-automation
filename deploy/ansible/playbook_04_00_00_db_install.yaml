@@ -353,10 +353,19 @@
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
-
-        - name:                        Include 1.5.2-disk-setup-asm role
+        
+        - name:                        Include 1.5.1.1-disk-setup-asm-sap
           ansible.builtin.include_role:
-            name:                      roles-os/1.5.2-disk-setup-asm
+            name:                      roles-os/1.5.1.1-disk-setup-asm-sap
+        
+        - name:                        Mount the file systems for ASM installation
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          when:                        node_tier == 'oracle-asm'
+
+        - name:                        Include 1.5.1-disk-setup-asm role
+          ansible.builtin.include_role:
+            name:                      roles-os/1.5.1-disk-setup-asm
 
         - name:                        Check for file system mounts
           ansible.builtin.include_role:

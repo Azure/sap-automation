@@ -96,6 +96,8 @@
     - name:                            "OS configuration playbook: - Configure volume groups and logical volumes"
       ansible.builtin.include_role:
         name:                          roles-os/1.5-disk-setup
+      when:                        
+        - node_tier not in ["oracle-multi-sid","oracle-asm"]
       tags:
         - 1.5-disk-setup
 
