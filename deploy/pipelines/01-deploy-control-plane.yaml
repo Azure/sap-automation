@@ -227,7 +227,7 @@ stages:
                     fi
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                       sudo apt install zip
-                      zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                      zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                       git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                       added=1
                     fi
@@ -628,7 +628,7 @@ stages:
                     if [ -n "${backend}" ]; then
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                             sudo apt install zip
-                            zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                            zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                             added=1
                         fi
@@ -652,7 +652,7 @@ stages:
                     if [ -n "${backend}" ]; then
                         if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                             sudo apt install zip
-                            zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                            zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                             git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                             added=1
                         fi
