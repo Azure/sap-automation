@@ -544,7 +544,7 @@ stages:
                     fi
 
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                        unzip -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
+                        unzip -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                         pwd
                         ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                         ls -ltr ..
