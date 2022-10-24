@@ -220,25 +220,30 @@ stages:
                     if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
                         git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                         added=1
+                        echo first
                     fi
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
                         git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                         added=1
+                        echo second
                     fi
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                       sudo apt install zip
                       zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                       git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                       added=1
+                      echo third
                     fi
                     if [ 1 == $added ]; then
                         git config --global user.email "$(Build.RequestedForEmail)"
                         git config --global user.name "$(Build.RequestedFor)"
                         git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
                         git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                        echo fourth
                     fi
                     if [ -f $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
                         echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+                        echo fifth
                     fi
                 echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
                     if [ 0 == $return_code ]; then
