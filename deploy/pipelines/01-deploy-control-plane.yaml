@@ -26,6 +26,11 @@ parameters:
     type: boolean
     default: true
 
+  - name:                              deploy_webapp_software
+    displayName:                       "Deploy the configuration web application software"
+    type:                              boolean
+    default:                           true
+    
   - name: use_deployer
     displayName: Run on self hosted agent
     type: boolean
