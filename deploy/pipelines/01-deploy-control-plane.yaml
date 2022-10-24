@@ -369,57 +369,17 @@ stages:
                       added=1
                   fi
 
-                  if [ -f ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                      git add ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
-                      added=1
-                  fi
-
                   if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
                       git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                       added=1
                   fi
 
-                  if [ 0 != $return_code ]; then
-                      if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                          sudo apt install zip
-                          echo first
-                          zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
-                          git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
-                          added=1
-                      fi
-                  else
-                      if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                          echo second
-                          git rm -q -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
-                          added=1
-                      fi
-                      if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                          git rm -q -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
-                          added=1
-                      fi
-                  fi
-
-                  if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
-                      git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                  if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                      sudo apt install zip
+                      echo first
+                      zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                      git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                       added=1
-                  fi
-
-                  if [ 0 != $return_code ]; then
-                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                          sudo apt install zip
-                          zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
-                          git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
-                          added=1
-                      fi
-                  else
-                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                          git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
-                          added=1
-                      fi
-                      if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                          git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
-                          added=1
-                      fi
                   fi
 
                   if [ 1 == $added ]; then
@@ -428,6 +388,10 @@ stages:
                       git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
 
                       git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                  fi
+
+                  if [ -f ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                      echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
                   fi
 
               echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
