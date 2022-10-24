@@ -184,8 +184,6 @@ stages:
                     fi
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                         unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
-                    else
-                      echo ${ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)}
                     fi
                     
                     export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -547,6 +545,7 @@ stages:
 
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                         unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
+                        ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                         cat ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                     fi
 
