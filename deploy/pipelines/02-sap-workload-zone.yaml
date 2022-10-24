@@ -133,6 +133,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"

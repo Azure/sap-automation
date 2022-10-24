@@ -153,6 +153,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
 
           - bash: |
               #!/bin/bash
@@ -311,6 +312,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
           - script: |
@@ -367,6 +369,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -414,6 +417,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -462,6 +466,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -512,6 +517,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -583,6 +589,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -658,6 +665,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -730,6 +738,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -784,6 +793,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -861,6 +871,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
             timeoutInMinutes:          0
@@ -930,6 +941,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -1043,6 +1055,7 @@ stages:
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
+            fetchDepth:                0
           - download:                  current
             artifact:                  ansible_data
 
@@ -1158,7 +1171,7 @@ stages:
                 }
               EOF
               )
-              
+
               # ACSS Registration Command
               set -x
 
