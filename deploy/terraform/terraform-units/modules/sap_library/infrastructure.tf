@@ -33,7 +33,7 @@ resource "azurerm_private_dns_zone" "dns" {
     azurerm_resource_group.library
   ]
   provider = azurerm.main
-  count    = length(var.dns_label) && !var.use_custom_dns_a_registration > 0 ? 1 : 0
+  count    = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration ? 1 : 0
   name     = var.dns_label
   resource_group_name = local.resource_group_exists ? (
     split("/", var.infrastructure.resource_group.arm_id)[4]) : (
