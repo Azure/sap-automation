@@ -30,7 +30,7 @@ parameters:
     displayName:                       "Deploy the configuration web application software"
     type:                              boolean
     default:                           true
-    
+
   - name: use_deployer
     displayName: Run on self hosted agent
     type: boolean
@@ -292,6 +292,7 @@ stages:
                       if [ ${#POOL_NAME} -eq 0 ]; then
                           echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
                       fi
+                      echo 'don' $(POOL)
 
                       export TF_VAR_agent_pool=$(POOL)
                       export TF_VAR_agent_pat=$(PAT)
