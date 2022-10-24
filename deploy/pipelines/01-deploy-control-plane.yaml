@@ -379,12 +379,14 @@ stages:
                   if [ 0 != $return_code ]; then
                       if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                           sudo apt install zip
+                          echo first
                           zip -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                           git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                           added=1
                       fi
                   else
                       if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                          echo second
                           git rm -q -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                           added=1
                       fi
