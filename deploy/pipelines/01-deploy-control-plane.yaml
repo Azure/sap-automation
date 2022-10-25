@@ -218,8 +218,6 @@ stages:
                     fi
                 echo -e "$green--- Update repo ---$reset"
                     if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                        pwd
-                        ls -ltr
                         git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                         added=1
                         echo first
@@ -612,18 +610,23 @@ stages:
 
                 echo -e "$green--- Update repo ---$reset"
                     if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                        pwd
+                        ls -ltr
                         git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                         added=1
+                        echo first
                     fi
 
                     if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
                         git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                         added=1
+                        echo second
                     fi
 
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
                         git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                         added=1
+                        echo third
                     fi
 
                     backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate)
@@ -633,21 +636,25 @@ stages:
                             zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                             added=1
+                            echo fifth
                         fi
                     else
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                             git rm -q --ignore-unmatch -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             added=1
+                            echo sixth
                         fi
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                             git rm -q  --ignore-unmatch -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                             added=1
+                            echo seventh
                         fi
                     fi
 
                     if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
                         git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
                         added=1
+                        echo eigths
                     fi
 
                     backend=$(grep "local" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate)
@@ -657,15 +664,18 @@ stages:
                             zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                             git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                             added=1
+                            echo ninth
                         fi
                     else
                         if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                             git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                             added=1
+                            echo tenth
                         fi
                         if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
                             git rm -q --ignore-unmatch -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                             added=1
+                            echo eleventh
                         fi
                     fi
 
@@ -675,10 +685,12 @@ stages:
                         git commit -m "Added updates from control plane deployment $(Build.DefinitionName) [skip ci]"
 
                         git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                        echo twelved
                     fi
 
                     if [ -f ${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
                         echo "##vso[task.uploadsummary]${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
+                        echo thirteenth
                     fi
 
                 echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
