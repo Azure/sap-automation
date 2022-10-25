@@ -629,6 +629,9 @@ stages:
                         echo third
                     fi
 
+                    pwd
+                    ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                    ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate)
                     backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate)
                     echo "after backend"
                     if [ -n "${backend}" ]; then
