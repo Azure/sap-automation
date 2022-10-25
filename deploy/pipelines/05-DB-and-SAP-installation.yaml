@@ -125,6 +125,7 @@ stages:
     jobs:
       - job: Preparation_step
         displayName: 05-DB-and-SAP-installation
+        timeoutInMinutes: 120
         workspace:
           clean: all
         steps:
@@ -269,12 +270,9 @@ stages:
               BOM_BASE_NAME: ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
             failOnStderr: true
-          - publish: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts
-            artifact: ansible_data
-
           - template: templates\run-ansible.yaml
             parameters:
-              displayName: playbook_00_validate_parameters
+              displayName: 00_validate_parameters
               ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
               secretName: "$(Preparation.SSH_KEY_NAME)"
               vaultName: $(Preparation.VAULT_NAME)
@@ -289,7 +287,7 @@ stages:
           - ${{ if eq(parameters.base_os_configuration, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_01_os_base_config
+                  displayName: 01_os_base_config
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_01_os_base_config.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -304,7 +302,7 @@ stages:
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_02_os_sap_specific_config
+                  displayName: 02_os_sap_specific_config
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_02_os_sap_specific_config.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -319,7 +317,7 @@ stages:
           - ${{ if eq(parameters.bom_processing, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_03_bom_processing
+                  displayName: 03_bom_processing
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_03_bom_processing.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -334,7 +332,7 @@ stages:
           - ${{ if eq(parameters.database_install, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_04_00_00_db_install
+                  displayName: 04_00_00_db_install
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_00_db_install.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -349,7 +347,7 @@ stages:
           - ${{ if eq(parameters.scs_installation, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_05_00_00_sap_scs_install
+                  displayName: 05_00_00_sap_scs_install
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -364,7 +362,7 @@ stages:
           - ${{ if eq(parameters.db_load, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_05_01_sap_dbload
+                  displayName: 05_01_sap_dbload
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_01_sap_dbload.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -379,7 +377,7 @@ stages:
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_04_00_01_db_ha
+                  displayName: 04_00_01_db_ha
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_01_db_ha.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -394,7 +392,7 @@ stages:
           - ${{ if eq(parameters.pas_installation, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_05_02_sap_pas_install
+                  displayName: 05_02_sap_pas_install
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_02_sap_pas_install.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -409,7 +407,7 @@ stages:
           - ${{ if eq(parameters.application_server_installation, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_05_03_sap_app_install
+                  displayName: 05_03_sap_app_install
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_03_sap_app_install.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
@@ -424,7 +422,7 @@ stages:
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
               - template: templates\run-ansible.yaml
                 parameters:
-                  displayName: playbook_05_04_sap_web_install
+                  displayName: 05_04_sap_web_install
                   ansibleFilePath: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
                   secretName: "$(Preparation.SSH_KEY_NAME)"
                   vaultName: $(Preparation.VAULT_NAME)
