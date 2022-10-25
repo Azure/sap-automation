@@ -629,11 +629,8 @@ stages:
                         echo third
                     fi
 
-                    pwd
-                    ls -ltr ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform
-                    cat ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
-                    backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate)
-                    echo "after backend"
+                    # || true suppresses the exitcode of grep. To not trigger the strict exit on error
+                    backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate || true)
                     if [ -n "${backend}" ]; then
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                             echo a
