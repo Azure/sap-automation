@@ -218,6 +218,8 @@ stages:
                     fi
                 echo -e "$green--- Update repo ---$reset"
                     if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                        pwd
+                        ls -ltr
                         git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                         added=1
                         echo first
