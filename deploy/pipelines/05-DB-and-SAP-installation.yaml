@@ -269,9 +269,6 @@ stages:
               BOM_BASE_NAME: ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
             failOnStderr: true
-          - publish: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts
-            artifact: ansible_data
-
           - template: templates\run-ansible.yaml
             parameters:
               displayName: 00_validate_parameters
