@@ -630,7 +630,7 @@ stages:
                     fi
 
                     # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-                    backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate || true)
+                    backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate || true)
                     if [ -n "${backend}" ]; then
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                             echo a
