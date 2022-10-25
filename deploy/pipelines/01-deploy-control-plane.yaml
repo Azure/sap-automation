@@ -221,10 +221,6 @@ stages:
                         git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                         added=1
                     fi
-                    if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
-                        git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
-                        added=1
-                    fi
                     if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                       sudo apt install zip
                       zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
@@ -611,11 +607,6 @@ stages:
 
                     if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
                         git add .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
-                        added=1
-                    fi
-
-                    if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
-                        git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                         added=1
                     fi
 
