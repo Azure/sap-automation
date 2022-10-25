@@ -49,7 +49,7 @@ steps:
     eval $command
     echo "##[endgroup]"
 
-  displayName:                      "Ansible: ${{ parameters.displayName }}"
+  displayName:                      ${{ parameters.displayName }}
   env:
     AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
     AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
