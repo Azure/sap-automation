@@ -125,6 +125,7 @@ stages:
     jobs:
       - job: Preparation_step
         displayName: 05-DB-and-SAP-installation
+        timeoutInMinutes: 120
         workspace:
           clean: all
         steps:
