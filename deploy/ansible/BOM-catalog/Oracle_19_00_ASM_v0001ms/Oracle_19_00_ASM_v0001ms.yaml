@@ -17,7 +17,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     Oracle19_v0003ms
+    - name:     Oracle19_v0004ms
     - name:     SWPM10SP36_latest
 
   media:
