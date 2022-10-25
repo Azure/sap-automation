@@ -661,7 +661,8 @@ stages:
                         echo eigths
                     fi
 
-                    backend=$(grep "local" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate)
+                    # || true suppresses the exitcode of grep. To not trigger the strict exit on error
+                    backend=$(grep "local" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate || true)
                     if [ -n "${backend}" ]; then
                         if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                             sudo apt install zip
