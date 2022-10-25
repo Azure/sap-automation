@@ -664,16 +664,16 @@ stages:
                     # || true suppresses the exitcode of grep. To not trigger the strict exit on error
                     backend=$(grep "local" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate || true)
                     if [ -n "${backend}" ]; then
-                        if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                        if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
                             sudo apt install zip
-                            zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                            zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
                             git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                             added=1
                             echo ninth
                         fi
                     else
-                        if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                            git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                        if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
+                            git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
                             added=1
                             echo tenth
                         fi
