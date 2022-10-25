@@ -28,7 +28,7 @@
 #
 
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
-  ansible.builtin.include_vars:        disks_config.yml
+  ansible.builtin.include_vars:        disks_config_asm.yml
 
 
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
@@ -69,7 +69,7 @@
   loop:                                "{{ volume_groups }}"
   register:                            vgscreated
   when:
-    - tier == "sapos"
+    - tier == "ora"
     - node_tier == "oracle-asm"
 
 - name:                                "1.5 Disk setup - Print vgcreated details"
@@ -77,14 +77,14 @@
     msg:                               "VOLUME GROUPS: {{ vgscreated | json_query('results[*].item') }}"
     verbosity:                         2
   when:
-    - tier == "sapos"
+    - tier == "ora"
     - vgscreated is defined
 
 - name:                                "1.5 Disk setup - Filter the volume group names from vgscreated results"
   ansible.builtin.set_fact:
     vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
   when:
-    - tier == "sapos"
+    - tier == "ora"
 
 
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
@@ -103,7 +103,7 @@
   loop:                                "{{ logical_volumes }}"
   register:                            lvscreated
   when:
-    - tier == "sapos"
+    - tier == "ora"
     - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
       item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.vg in vgcreatedlist
@@ -112,13 +112,13 @@
   ansible.builtin.set_fact:
     lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
   when:
-    - tier == "sapos"
+    - tier == "ora"
 
 - name:                                "1.5 Disk setup - Get the logical volumes from the list"
   ansible.builtin.set_fact:
     lvcreatedlist:                     "{{ lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
   when:
-    - tier == "sapos"
+    - tier == "ora"
 
 - name:                                "1.5 Disk setup - Filesystem creation"
   community.general.filesystem:
@@ -138,7 +138,7 @@
   ansible.builtin.set_fact:
     fscreatedlist_tmp:                 "{{ filesystemscreated.results | rejectattr('skipped', 'defined') | list }}"
   when:
-    - tier == "sapos"
+    - tier == "ora"
 
 - name:                                "1.5 Disk setup - Debug disk information"
   ansible.builtin.debug:
@@ -148,7 +148,7 @@
       - "Created Filesystems:      {{ fscreatedlist_tmp }} "
     verbosity:                         2
   when:
-    - tier == "sapos"
+    - tier == "ora"
 
 ...
 # /*---------------------------------------------------------------------------8

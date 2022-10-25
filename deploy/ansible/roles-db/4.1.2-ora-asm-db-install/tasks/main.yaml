@@ -43,7 +43,7 @@
 #   Oracle DB install: Response file
 - name:                               "SAP Oracle DB ASM: deploy Database install response file"
   ansible.builtin.template:
-    src:                              ORACLE_{{ ora_release }}c_00_asm_db_v1_install.rsp.j2
+    src:                              ORACLE_{{ ora_release }}c_00_ASM_db_v1_install.rsp.j2
     dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
     mode:                             0644
     force:                            true
@@ -62,8 +62,8 @@
   ansible.builtin.shell: |
                                       set -o errexit
                                       set -o pipefail
-                                      ./RUNINSTALLER -ohextract -silent |tee -a /oracle/installlogs/oraextract.log
-                                      ln -s /oracle/{{ db_sid }}/{{ ora_version }} /oracle/{{ db_sid }}/{{ ora_release }}
+                                      ./RUNINSTALLER -ohextract -silent |tee -a /etc/sap_deployment_automation/oracle/oraextract.log
+                                      ln -s /oracle/{{ db_sid | upper }}/{{ ora_version }} /oracle/{{ db_sid | upper }}/{{ ora_release }}
                                       touch /etc/sap_deployment_automation/oracle/oraextract.txt
   register:                           swinstaller_results
   failed_when:                        swinstaller_results.rc >= 2
@@ -87,7 +87,7 @@
   ansible.builtin.shell: |
                                       set -o errexit
                                       set -o pipefail
-                                      ./runInstaller -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /oracle/installlogs/dbinstall.log
+                                      ./runInstaller -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /etc/sap_deployment_automation/oracle/dbinstall.log
   register:                           dbinstaller_results
   environment:
     DB_SID:                           "{{ db_sid }}"
@@ -141,7 +141,7 @@
   ansible.builtin.shell: |
                                        set -o errexit
                                        set -o pipefail
-                                       /oracle/{{ db_sid }}/{{ ora_version }}/runInstaller -executeConfigTools -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_db_{{ ansible_hostname }}_{{ db_sid|upper }}_install.rsp |tee -a /oracle/installlogs/dbconfigtoolsinstall.log
+                                       /oracle/{{ db_sid }}/{{ ora_version }}/runInstaller -executeConfigTools -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_db_{{ ansible_hostname }}_{{ db_sid|upper }}_install.rsp |tee -a /etc/sap_deployment_automation/oracle/dbconfigtoolsinstall.log
   register:                            dbtools_installer_results
   environment:
     DB_SID:                            "{{ db_sid |upper }}"
@@ -174,7 +174,7 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       ./srvctl stop database -db orcl -f |tee /oracle/installlogs/dbstop.log
+                                       ./srvctl stop database -db orcl -f |tee /etc/sap_deployment_automation/oracle/dbstop.log
   register:                            dbstop_results
   failed_when:                         dbstop_results.rc >= 3
   args:
@@ -188,48 +188,233 @@
     mode:                              0755
 
 
-#STEP 4.1 SBP Patching for Oracle.
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Step 4 SBP Patching for Oracle                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 
-- name:                                "SAP Oracle DB ASM:Post Processing - SBP Patching"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       set -o errexit
-                                       set -o pipefail
-                                       mv  /oracle/{{ db_sid }}/{{ ora_version }}/OPatch   /oracle/{{ db_sid }}/{{ ora_version }}/OPatch.bck
-                                       cp -R OPATCH/OPatch  /oracle/{{ db_sid }}/{{ ora_version }}/.
-                                       cp -R SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/{{ db_sid }}/{{ ora_version }}/.
-                                       $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SAP19P_2108-70004508.ZIP |tee -a /oracle/installlogs/sbp.log
-  register:                            sbpscript_results
-  environment:
-    CV_ASSUME_DISTID:                  OL7
-    IHRDBMS:                           /oracle/{{ db_sid }}/{{ ora_version }}
-    ORACLE_HOME:                       /oracle/{{ db_sid }}/{{ ora_version }}
-    RDBMS:                             /oracle/{{ db_sid }}/{{ ora_release }}
-  failed_when:                         sbpscript_results.rc >= 2
-  args:
-    executable:                        /bin/csh
-    chdir:                             /usr/sap/install/SBP/
-    creates:                           /etc/sap_deployment_automation/oracle/sbpinstalled.txt
+- name:                            "ORACLE: Find MOPatch"
+  ansible.builtin.find:
+    paths:                         "{{ target_media_location }}/SBP/SAPSBP"
+    patterns:                      ["MOPatch"]
+    file_type:                     directory
+    recurse:                       true
+  register:                        mopatch_directory
 
-- name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"
+- name:                            "ORACLE: Find MOPatch"
+  ansible.builtin.fail:
+      msg:                           "Too many MOPatches found"
+  when:                            mopatch_directory.matched != 1
+
+- name:                            "ORACLE: MOPatch path"
+  ansible.builtin.set_fact:
+    mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
+  when:                            mopatch_directory.matched == 1
+
+- name:                            "ORACLE: Check if 'OPatch.bck' exists"
+  ansible.builtin.stat:
+    path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
+  register:                        opatch_stat
+
+- name:                            "ORACLE: backup OPatch"
+  ansible.builtin.copy:
+        src:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
+        dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
+        remote_src:                    true
+        mode:                          0755
+  when:
+    - not opatch_stat.stat.exists
+
+- name:                            "ORACLE: remove old OPatch"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/oracle/sbpinstalled.txt
-    state:                             touch
-    mode:                              0755
+    path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
+    state:                         absent
+  when:
+    - not opatch_stat.stat.exists
+
+- name:                            "ORACLE: copy OPatch"
+  # become:                              true
+  # become_user:                         "oracle"
+  ansible.builtin.copy:
+    src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    remote_src:                    true
+    mode:                          0755
+    owner:                         oracle
+    group:                         oinstall
+
+- name:                            "ORACLE: copy MOPatch"
+  # become:                              true
+  # become_user:                         "oracle"
+  ansible.builtin.copy:
+    src:                           "{{ mopatch_path }}"
+    dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    remote_src:                    true
+    mode:                          0777
+    owner:                         oracle
+    group:                         oinstall
+
+- name:                            "ORACLE - SBP Patching"
+  become:                          true
+  become_user:                     "oracle"
+  ansible.builtin.command:         $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
+  environment:
+    DB_SID:                        "{{ db_sid }}"
+    CV_ASSUME_DISTID:              OL7
+    IHRDBMS:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    ORACLE_HOME:                   /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    RDBMS:                         /oracle/{{ db_sid | upper }}/{{ ora_version }}
+  register:                        sbpscript_results
+  failed_when:                     sbpscript_results.rc >= 2
+  args:
+    creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
+    chdir:                         "{{ target_media_location }}/SBP"
+    executable:                    /bin/csh
+
+- name:                            "ORACLE: Post processing installer output"
+  ansible.builtin.debug:
+    var:                           sbpscript_results.stdout_lines
+    verbosity:                     2
+- name:                            "ORACLE: Post processing installer output"
+  ansible.builtin.copy:
+    dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp.log"
+    content:                       "{{ sbpscript_results.stdout }}"
+    mode:                          0777
+  when:                            sbpscript_results.stdout is defined
+
+    # - name:                                Remove SAPSBP
+    #   ansible.builtin.file:
+    #     path:                              "{{ mopatch_path }}"
+    #     state:                             absent
+
+
+
+
+
+# - name:                                "SAP Oracle DB ASM:Post Processing - SBP Patching"
+#   become:                              true
+#   become_user:                         oracle
+#   ansible.builtin.shell: |
+#                                        set -o errexit
+#                                        set -o pipefail
+#                                        mv  /oracle/{{ db_sid }}/{{ ora_version }}/OPatch   /oracle/{{ db_sid }}/{{ ora_version }}/OPatch.bck
+#                                        cp -R OPATCH/OPatch  /oracle/{{ db_sid }}/{{ ora_version }}/.
+#                                        cp -R SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/{{ db_sid }}/{{ ora_version }}/.
+#                                        $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }} |tee -a /etc/sap_deployment_automation/oracle/sbp.log
+#   register:                            sbpscript_results
+#   environment:
+#     CV_ASSUME_DISTID:                  OL7
+#     IHRDBMS:                           /oracle/{{ db_sid }}/{{ ora_version }}
+#     ORACLE_HOME:                       /oracle/{{ db_sid }}/{{ ora_version }}
+#     RDBMS:                             /oracle/{{ db_sid }}/{{ ora_release }}
+#   failed_when:                         sbpscript_results.rc >= 2
+#   args:
+#     executable:                        /bin/csh
+#     chdir:                             /usr/sap/install/SBP/
+#     creates:                           /etc/sap_deployment_automation/oracle/sbpinstalled.txt
+
+# - name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/oracle/sbpinstalled.txt
+#     state:                             touch
+#     mode:                              0755
 
 
 #STEP 4.2 SBP Patching for Oracle GRID.
 #STEP 4.2.1 SBP Patching for Oracle GRID.
 
+# Backup Oracle Grid Home prior to patching.
+
+- name:                            "ORACLE ASM : BACKUP ASM GRID"
+  # become:                              true
+  # become_user:                         "oracle"
+  ansible.builtin.copy:
+    src:                           "/oracle/stage/{{ ora_release }}/grid_home"
+    dest:                          /oracle/stage/{{ ora_release }}/grid_home.bck
+    remote_src:                    true
+    mode:                          0755
+    owner:                         oracle
+    group:                         oinstall
+
+# Check if MOPatch exists, backup the old MOPatch and copy the new one.
+
+- name:                            "ORACLE: Check if 'MOPatch.bck' exists for GRID"
+  ansible.builtin.stat:
+    path:                          /oracle/stage/{{ ora_release }}/grid_home/MOPatch.bck
+  register:                        mopatchgrid_stat
+
+- name:                            "ORACLE: backup MOPatch"
+  ansible.builtin.copy:
+        src:                           /oracle/stage/{{ ora_release }}/grid_home/MOPatch
+        dest:                          /oracle/stage/{{ ora_release }}/grid_home/MOPatch.bck
+        remote_src:                    true
+        mode:                          0755
+        owner:                         oracle
+        group:                         oinstall
+  when:
+    - not mopatchgrid_stat.stat.exists
+
+
+- name:                            "ORACLE: remove old MOPatch"
+  ansible.builtin.file:
+    path:                          /oracle/stage/{{ ora_release }}/grid_home/MOPatch
+    state:                         absent
+  when:
+    - not mopatchgrid_stat.stat.exists
+
+
+- name:                            "ORACLE: copy MOPatch for GRID"
+  # become:                              true
+  # become_user:                         "oracle"
+  ansible.builtin.copy:
+    src:                           "{{ mopatch_path }}"
+    dest:                          /oracle/stage/{{ ora_release }}/grid_home/
+    remote_src:                    true
+    mode:                          0777
+    owner:                         oracle
+    group:                         oinstall
+
+#Backup the existing Opatch and then copy the new Opatch from the downloads folder
+
+- name:                            "ORACLE: Check if 'OPatch.bck' exists for GRID"
+  ansible.builtin.stat:
+    path:                          /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
+  register:                        opatchgrid_stat
+
+- name:                            "ORACLE: backup OPatch"
+  ansible.builtin.copy:
+        src:                           /oracle/stage/{{ ora_release }}/grid_home/OPatch
+        dest:                          /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
+        remote_src:                    true
+        mode:                          0755
+        owner:                         oracle
+        group:                         oinstall
+  when:
+    - not opatchgrid_stat.stat.exists
+
+
+- name:                            "ORACLE: remove old OPatch"
+  ansible.builtin.file:
+    path:                          /oracle/stage/{{ ora_release }}/grid_home/OPatch
+    state:                         absent
+  when:
+    - not opatchgrid_stat.stat.exists
+
+- name:                            "ORACLE: copy OPatch for GRID"
+  # become:                              true
+  # become_user:                         "oracle"
+  ansible.builtin.copy:
+    src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    dest:                          /oracle/stage/{{ ora_release }}/grid_home/
+    remote_src:                    true
+    mode:                          0755
+    owner:                         oracle
+    group:                         oinstall
 
 - name:                                "SAP Oracle DB ASM: Prepare for GRID SBP Patching"
-  ansible.builtin.shell: |
-                                       set -o pipefail
-                                       cp -rp /oracle/stage/{{ ora_release }}/grid_home /oracle/stage/{{ ora_release }}/grid_home.bck
-                                       /oracle/stage/{{ ora_release }}/grid_home/crs/install/roothas.sh -prepatch |tee /oracle/installlogs/pre-patchcmd.log
-                                       cp -R /usr/sap/install/SBP/SAPSBP/SBP_191200210720_202108/MOPatch  /oracle/stage/{{ ora_release }}/grid_home/.
-                                       chown -R oracle:oinstall  /oracle/stage/{{ ora_release }}/grid_home/MOPatch
+  ansible.builtin.command:              /oracle/stage/{{ ora_release }}/grid_home/crs/install/roothas.sh -prepatch |tee /etc/sap_deployment_automation/oracle/pre-patchcmd.log
+  register:                            gridpreinstall
   args:
     creates:                           /etc/sap_deployment_automation/oracle/gridpreinstall.txt
 
@@ -238,32 +423,90 @@
     path:                              /etc/sap_deployment_automation/oracle/gridpreinstall.txt
     state:                             touch
     mode:                              0755
+  when:                                gridpreinstall.rc == 0
 
-#STEP 4.2.2 SBP Patching for Oracle GRID.
-- name:                                "SAP Oracle DB ASM: Oracle Post Processing - GRID SBP Patching Execution"
-  become:                              true
-  become_user:                         oracle
-  ansible.builtin.shell: |
-                                       set -o errexit
-                                       set -o pipefail
-                                       mv  /oracle/stage/{{ ora_release }}/grid_home/OPatch   /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
-                                       cp -R OPATCH/OPatch  /oracle/stage/{{ ora_release }}/grid_home/.
-                                       chmod 6751 /oracle/stage/{{ ora_release }}/grid_home/bin/oracle
-                                       $OHGRID/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SGR19P_2108-70004550.ZIP |tee -a /oracle/installlogs/sbpgrid.log
-  register:                            sbpgscript_results
+- name:                            "ORACLE ASM - GRID SBP Patching"
+  become:                          true
+  become_user:                     "oracle"
+  ansible.builtin.command:         $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
   environment:
-    OHGRID:                            /oracle/stage/{{ ora_release }}/grid_home
-    ORACLE_HOME:                       /oracle/stage/{{ ora_release }}/grid_home
+    DB_SID:                        "{{ db_sid }}"
+    CV_ASSUME_DISTID:              OL7
+    IHRDBMS:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    ORACLE_HOME:                   /oracle/{{ db_sid | upper }}/{{ ora_version }}
+    RDBMS:                         /oracle/{{ db_sid | upper }}/{{ ora_version }}
+  register:                        sbpscript_results
+  failed_when:                     sbpscript_results.rc >= 2
   args:
-    executable:                        /bin/csh
-    chdir:                             /usr/sap/install/SBP/
-    creates:                           /etc/sap_deployment_automation/oracle/sbpginstalled.txt
+    creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
+    chdir:                         "{{ target_media_location }}/SBP"
+    executable:                    /bin/csh
 
-- name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/oracle/sbpginstalled.txt
-    state:                             touch
-    mode:                               0755
+- name:                            "ORACLE: Post processing installer output"
+  ansible.builtin.debug:
+    var:                           sbpscript_results.stdout_lines
+    verbosity:                     2
+- name:                            "ORACLE: Post processing installer output"
+  ansible.builtin.copy:
+    dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp.log"
+    content:                       "{{ sbpscript_results.stdout }}"
+    mode:                          0777
+  when:                            sbpscript_results.stdout is defined
+
+
+#$IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch }}
+#STEP 4.2.2 SBP Patching for Oracle GRID.
+- name:                            "ORACLE: Post Processing - GRID SBP Patching"
+  become:                          true
+  become_user:                     "oracle"
+  ansible.builtin.command:         $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch }}
+  environment:
+    OHGRID:                         /oracle/stage/{{ ora_release }}/grid_home
+    ORACLE_HOME:                    /oracle/stage/{{ ora_release }}/grid_home
+  register:                         gridsbpscript_results
+  failed_when:                      gridsbpscript_results.rc >= 2
+  args:
+    creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
+    chdir:                          "{{ target_media_location }}/SBP"
+    executable:                     /bin/csh
+
+- name:                            "ORACLE: Post processing installer output"
+  ansible.builtin.debug:
+    var:                           gridsbpscript_results.stdout_lines
+    verbosity:                     2
+
+- name:                            "ORACLE: Post processing installer output"
+  ansible.builtin.copy:
+    dest:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sbp.log"
+    content:                       "{{ gridsbpscript_results.stdout }}"
+    mode:                          0777
+  when:                            gridsbpscript_results.stdout is defined
+
+
+# - name:                                "SAP Oracle DB ASM: Oracle Post Processing - GRID SBP Patching Execution"
+#   become:                              true
+#   become_user:                         oracle
+#   ansible.builtin.shell: |
+#                                        set -o errexit
+#                                        set -o pipefail
+#                                        mv  /oracle/stage/{{ ora_release }}/grid_home/OPatch   /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
+#                                        cp -R OPATCH/OPatch  /oracle/stage/{{ ora_release }}/grid_home/.
+#                                        chmod 6751 /oracle/stage/{{ ora_release }}/grid_home/bin/oracle
+#                                        $OHGRID/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/SGR19P_2108-70004550.ZIP |tee -a /etc/sap_deployment_automation/oracle/sbpgrid.log
+#   register:                            sbpgscript_results
+#   environment:
+#     OHGRID:                            /oracle/stage/{{ ora_release }}/grid_home
+#     ORACLE_HOME:                       /oracle/stage/{{ ora_release }}/grid_home
+#   args:
+#     executable:                        /bin/csh
+#     chdir:                             /usr/sap/install/SBP/
+#     creates:                           /etc/sap_deployment_automation/oracle/sbpginstalled.txt
+
+# - name:                                "SAP Oracle DB ASM: Create flag after a successful script execution"
+#   ansible.builtin.file:
+#     path:                              /etc/sap_deployment_automation/oracle/sbpginstalled.txt
+#     state:                             touch
+#     mode:                               0755
 
 
 #STEP 4.2.3 Post-Processing SBP Patching for Oracle GRID.
@@ -277,10 +520,7 @@
                                        set -o errexit
                                        set -o pipefail
                                        /oracle/stage/{{ ora_release }}/grid_home/rdbms/install/rootadd_rdbms.sh
-                                       /oracle/stage/{{ ora_release }}/grid_home/crs/install/roothas.sh -postpatch |tee /oracle/installlogs/post-processing.log
-                                       chown oracle:oinstall /oracle/{{ db_sid }}/{{ ora_version }}/bin/oracle
-                                       chmod 6751  /oracle/{{ db_sid }}/{{ ora_version }}/bin/oracle
-                                       chmod 755 /opt/oracle
+                                       /oracle/stage/{{ ora_release }}/grid_home/crs/install/roothas.sh -postpatch |tee /etc/sap_deployment_automation/oracle/post-processing.log
   register:                            sbppostpro_results
   args:
     chdir:                            /oracle/stage/{{ ora_release }}/grid_home/
@@ -291,6 +531,28 @@
     path:                             /etc/sap_deployment_automation/oracle/sbpgpostprocess.txt
     state:                            touch
     mode:                             0755
+  when:                               sbppostpro_results.rc <= 2
+
+- name:                            "ORACLE: Permissions"
+  ansible.builtin.file:
+    path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oracle
+    state:                         file
+    owner:                         oracle
+    group:                         oinstall
+    mode:                          06751
+  tags:
+    - skip_ansible_lint
+
+
+- name:                            "/opt/ORACLE: Permissions"
+  ansible.builtin.file:
+    path:                          /opt/oracle
+    state:                         file
+    owner:                         oracle
+    mode:                          755
+  tags:
+    - skip_ansible_lint
+
 
 # Wait for the ASM DB to come up and running before chnaging the DISK Attributes.
 - name:                               "SAP Oracle DB ASM: Sleep for 30 seconds and continue with play"

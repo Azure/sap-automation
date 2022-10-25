@@ -81,6 +81,53 @@ admin_groups:
     enabled:      true
     node_tier:    oracle
 
+
+# Admin groups for Oracle ASM
+  - name:         dba
+    gid:          "{{ dba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         oper
+    gid:          "{{ oper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmoper
+    gid:          "{{ asmoper_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmadmin
+    gid:          "{{ asmadmin_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         asmdba
+    gid:          "{{ asmdba_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+  - name:         oinstall
+    gid:          "{{ oinstall_gid }}"
+    state:        present
+    tier:         ora
+    enabled:      true
+    node_tier:    oracle-asm
+
+
+
+
 # Admin groups for Oracle Non-ASM Multi-SID
   - name:         dba
     gid:          "{{ dba_gid }}"

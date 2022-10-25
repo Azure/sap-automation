@@ -417,14 +417,21 @@
     extended:                          true
   register:                            datadiskcreated
   args:
-    creates:      /etc/sap_deployment_automation/asmdatadisks.txt
+    creates:      "/etc/sap_deployment_automation/asmdatadisks.txt"
   tags:
     - skip_ansible_lint
 
+- name:                                Print datadiskcreated
+  ansible.builtin.debug:
+    var:                               datadiskcreated
+    verbosity:                         2
+
 - name:                                Initialize ASM DISKS DATA File"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/asmdatadisks.txt
+    path:                              "/etc/sap_deployment_automation/asmdatadisks.txt"
     mode:                              0755
+    state:                             touch
+  #when:                                datadiskcreated.rc == 0
 
 - name:                                Print datadiskcreated
   ansible.builtin.debug:
@@ -476,15 +483,16 @@
     extended:                          true
   register:                            archdiskcreated
   args:
-    creates:                           /etc/sap_deployment_automation/asmarchdisks.txt
+    creates:                           "/etc/sap_deployment_automation/asmarchdisks.txt"
   tags:
     - skip_ansible_lint
 
 - name:                                Initialize ASM DISKS ARCH File"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/asmarchdisks.txt
+    path:                              "/etc/sap_deployment_automation/asmarchdisks.txt"
     state:                             touch
     mode:                              0755
+  #when:                                archdiskcreated == 0
 
 - name:                                Print archdiskcreated
   ansible.builtin.debug:
@@ -535,15 +543,16 @@
     extended:                          true
   register:                            recodiskcreated
   args:
-    creates:                           /etc/sap_deployment_automation/asmrecodisks.txt
+    creates:                           "/etc/sap_deployment_automation/asmrecodisks.txt"
   tags:
     - skip_ansible_lint
 
 - name:                                Initialize ASM DISKS RECO File
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/asmrecodisks.txt
+    path:                              "/etc/sap_deployment_automation/asmrecodisks.txt"
     state:                             touch
     mode:                              0755
+  #when:                                recodiskcreated == 0
 
 - name:                                Print recodiskcreated
   ansible.builtin.debug:

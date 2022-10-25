@@ -358,6 +358,13 @@
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1.1-disk-setup-asm-sap
         
+        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.5-sap-users
+          when: node_tier == "oracle-asm"
+          tags:
+            - 2.5-sap-users
+
         - name:                        Mount the file systems for ASM installation
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
@@ -376,6 +383,7 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.1.1-ora-asm-grid
           when:                        node_tier == 'oracle-asm'
+          tags:                        4.1.1-ora-asm-grid
 
         - name:                        Installing Oracle on ASM
           ansible.builtin.include_role:
