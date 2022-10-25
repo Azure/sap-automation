@@ -630,8 +630,10 @@ stages:
                     fi
 
                     backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate)
+                    echo "after backend"
                     if [ -n "${backend}" ]; then
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                            echo a
                             sudo apt install zip
                             zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
@@ -640,11 +642,13 @@ stages:
                         fi
                     else
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
+                            echo b
                             git rm -q --ignore-unmatch -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             added=1
                             echo sixth
                         fi
                         if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                            echo c
                             git rm -q  --ignore-unmatch -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                             added=1
                             echo seventh
