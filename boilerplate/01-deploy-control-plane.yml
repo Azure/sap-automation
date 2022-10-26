@@ -1,0 +1,52 @@
+name: Deploying the control plane defined in $(deployerfolder) $(libraryfolder)
+
+parameters:
+  - name: deployer
+    displayName: "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+
+  - name: library
+    displayName: "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
+    type: string
+    default: MGMT-WEEU-SAP_LIBRARY
+
+  - name: environment
+    displayName: "Environment name, MGMT, DEV, QA, etc"
+    type: string
+    default: MGMT
+
+  - name: use_webapp_param
+    displayName: "Deploy the configuration web application"
+    type: boolean
+    default: true
+
+  - name: deploy_webapp_software
+    displayName: "Deploy the configuration web application software"
+    type: boolean
+    default: true
+
+  - name: use_deployer
+    displayName: Run on self hosted agent
+    type: boolean
+    default: false
+
+trigger: none
+
+pool:
+  name: $[coalesce(variables['run_on'], variables['Agent'])]
+
+extends:
+  template: ./resources.yml
+  parameters:
+    stages:
+      - template: deploy\pipelines\01-deploy-control-plane.yaml@sap-automation
+        parameters:
+          deployer: ${{ parameters.deployer }}
+          library: ${{ parameters.library }}
+          environment: ${{ parameters.environment }}
+          use_webapp_param: ${{ parameters.use_webapp_param }}
+          use_deployer: ${{ parameters.use_deployer }}
+          deploy_webapp_software: ${{ parameters.deploy_webapp_software }}
+          sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
+          config_repo_path: $(Build.SourcesDirectory)/config
