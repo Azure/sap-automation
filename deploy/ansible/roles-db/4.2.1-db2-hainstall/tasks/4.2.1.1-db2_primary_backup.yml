@@ -6,10 +6,15 @@
 # +------------------------------------4------------------------------------------------------------------------------------*/
 
 - name:                                "DB2 Primary DB - Set Offline log Dir path "
-  ansible.builtin.shell:               db2 update db cfg for {{ db_sid }} using LOGARCHMETH1 "/db2/{{ db_sid | upper }}/offline_logdir"
-  when:       ansible_hostname == primary_instance_name
+  ansible.builtin.shell:               db2 update db cfg for {{ db_sid }} using LOGARCHMETH1 "DISK:/db2/{{ db_sid | upper }}/offline_logdir"
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
+  args:
+    executable:                        /bin/csh
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  when:                                ansible_hostname == primary_instance_name
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |   DB2 -  Create Primary DB backup                                          |

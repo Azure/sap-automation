@@ -35,12 +35,19 @@
         - { dest: '/db2/{{ db_sid }}/saptmp4' }
       run_once: true
 
+    - name:                            "DB2 - check if database is already started"
+      ansible.builtin.shell:           ps -ef | grep {{ db_sid }} | grep db2sysc | grep -v grep | wc -l
+      register:                        db2_started
+      ignore_errors: true
+      run_once: true
+
     - name:                            "DB2 - Start the Secondary/Standby DB"
       ansible.builtin.shell:           db2start
       args:
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+      when:                            db2_started.rc == "0"
 
       # ##################### Start of Restore without Encryption ##################################
     - name:                            "DB2 - Restore without encryption"
