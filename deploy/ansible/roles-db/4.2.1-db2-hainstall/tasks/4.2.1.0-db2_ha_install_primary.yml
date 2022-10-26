@@ -50,7 +50,7 @@
 
     - name:                            "ErrorHandling"
       ansible.builtin.fail:
-        msg:                           "INSTALL:0010:Unable to find sapinst, please check that the installation media is mounted"
+        msg:                           "INSTALL:0009:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
     - name:                            "SAP DB2: check if installed"
