@@ -129,7 +129,7 @@
     opts:                              defaults
     state:                             mounted
   when:
-    - 'scs' in supported_tiers
+    - "'scs' in supported_tiers"
     - usr_sap_install_mountpoint is undefined
 
 # Mount Filesystems
