@@ -129,8 +129,8 @@
     opts:                              defaults
     state:                             mounted
   when:
-    - item.node_tier in supported_tiers
-    - usr_sap_install_mountpoint is undefined or server_count == 1
+    - 'scs' in supported_tiers
+    - usr_sap_install_mountpoint is undefined
 
 # Mount Filesystems
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt on (scs) {{ ansible_hostname }}"
