@@ -6,25 +6,25 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              workload_zone
-    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name: workload_zone
+    displayName: "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type: string
+    default: DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              workload_environment_parameter
-    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
-    type:                              string
-    default:                           DEV
+  - name: workload_environment_parameter
+    displayName: Workload Environment (DEV, QUA, PRD, ...)
+    type: string
+    default: DEV
 
-  - name:                              deployer_environment_parameter
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           MGMT
+  - name: deployer_environment_parameter
+    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: MGMT
 
-  - name:                              deployer_region_parameter
-    displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           WEEU
+  - name: deployer_region_parameter
+    displayName: Deployer region name code (MGMT, DEV, QA, PRD, ...)
+    type: string
+    default: WEEU
     values:
       - AUCE
       - AUC2
@@ -74,41 +74,37 @@ parameters:
       - WEUS
       - WUS2
 
-  - name:                              inherit_settings
-    displayName:                       Inherit Terraform state file information from control plane
-    type:                              boolean
-    default:                           true
+  - name: inherit_settings
+    displayName: Inherit Terraform state file information from control plane
+    type: boolean
+    default: true
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name: sap_automation_repo_path
+    displayName: The local path on the agent where the sap_automation repo can be found
+    type: string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name: config_repo_path
+    displayName: The local path on the agent where the config repo can be found
+    type: string
 
 stages:
-  - stage:                             Deploy_SAP_workload_zone
-    displayName:                       Deploy SAP workload zone
+  - stage: Deploy_SAP_workload_zone
+    displayName: Deploy SAP workload zone
     variables:
-    - template:                       variables/02-sap-workload-zone-variables.yaml
-      parameters:
-        workload_zone:                    ${{ parameters.workload_zone }}
-        workload_environment_parameter:   ${{ parameters.workload_environment_parameter }}   
-        deployer_environment_parameter:   ${{ parameters.deployer_environment_parameter }}
-        deployer_region_parameter:        ${{ parameters.deployer_region_parameter }}
-        inherit_settings:                 ${{ parameters.inherit_settings }}
+      - template: variables/02-sap-workload-zone-variables.yaml
+        parameters:
+          workload_zone: ${{ parameters.workload_zone }}
+          workload_environment_parameter: ${{ parameters.workload_environment_parameter }}
+          deployer_environment_parameter: ${{ parameters.deployer_environment_parameter }}
+          deployer_region_parameter: ${{ parameters.deployer_region_parameter }}
+          inherit_settings: ${{ parameters.inherit_settings }}
     jobs:
-      - job:                           Deploy_SAP_workload_zone
-        displayName:                   Deploy SAP workload zone
+      - job: Deploy_SAP_workload_zone
+        displayName: Deploy SAP workload zone
         workspace:
-          clean:                       all
+          clean: all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: sap-automation
-          - checkout: self
-            persistCredentials: true
-            fetchDepth: 0
+          - template: templates\download.yaml
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
@@ -499,16 +495,15 @@ stages:
 
               exit $return_code
 
-            displayName:                Deploy SAP Workload Zone
+            displayName: Deploy SAP Workload Zone
             env:
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              FENCING_SPN_PWD:          $(FENCING_SPN_PWD)
-              AZURE_DEVOPS_EXT_PAT:     $(PAT)
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              FENCING_SPN_PWD: $(FENCING_SPN_PWD)
+              AZURE_DEVOPS_EXT_PAT: $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-            failOnStderr:               false
-...
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+            failOnStderr: false

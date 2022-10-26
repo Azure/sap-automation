@@ -38,11 +38,7 @@ stages:
         workspace:
           clean: all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: sap-automation
-          - checkout: self
-            persistCredentials: true
-            fetchDepth: 0
+          - template: templates\download.yaml
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"

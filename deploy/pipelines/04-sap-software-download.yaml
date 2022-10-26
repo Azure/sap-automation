@@ -61,10 +61,7 @@ stages:
         workspace:
           clean: all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
-          - checkout: sap-automation
+          - template: templates\download.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -182,10 +179,7 @@ stages:
           BOM_NAME: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
         timeoutInMinutes: 0
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
-          - checkout: sap-automation
+          - template: templates\download.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
