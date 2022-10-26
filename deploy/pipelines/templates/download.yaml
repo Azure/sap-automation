@@ -2,9 +2,9 @@ parameters:
   includeAnsibleData: false
 steps:
   - checkout: sap-automation
-    path: $(Pipeline.Workspace)/sap-automation
+    path: s/sap-automation
   - checkout: self
-    path: $(Pipeline.Workspace)/config
+    path: s/config
     persistCredentials: true
     fetchDepth: 0
   - ${{ if eq(parameters.includeAnsibleData, true) }}:
