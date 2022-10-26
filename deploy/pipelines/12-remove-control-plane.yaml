@@ -26,11 +26,19 @@ parameters:
     type: boolean
     default: false
 
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
 stages:
   - stage: Remove_control_plane_remote
     displayName: "Control plane removal (on agent)"
     variables:
-      - template: variables/11-remover-arm-fallback-variables.yaml
+      - template: variables/12-remove-control-plane-variables.yaml
         parameters:
           deployer: ${{ parameters.deployer }}
           deployer_environment: ${{ parameters.deployer_environment }}
@@ -251,7 +259,7 @@ stages:
   - stage: Remove_control_plane
     displayName: "Finalize control plane removal"
     variables:
-      - template: variables/11-remover-arm-fallback-variables.yaml
+      - template: variables/12-remove-control-plane-variables.yaml
         parameters:
           deployer: ${{ parameters.deployer }}
           deployer_environment: ${{ parameters.deployer_environment }}
