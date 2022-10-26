@@ -2,10 +2,12 @@ parameters:
   includeAnsibleData: false
 steps:
   - checkout: sap-automation
+    path: $(Pipeline.Workspace)/sap-automation
   - checkout: self
+    path: $(Pipeline.Workspace)/config
     persistCredentials: true
     fetchDepth: 0
   - ${{ if eq(parameters.includeAnsibleData, true) }}:
-    - download: current
-      artifact: ansible_data
-      displayName: "Download ansible_data"
+      - download: current
+        artifact: ansible_data
+        displayName: "Download ansible_data"

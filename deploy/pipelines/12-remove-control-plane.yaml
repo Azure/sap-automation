@@ -46,10 +46,7 @@ stages:
         workspace:
           clean: all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
-            submodules: true
+          - template: templates\download.yaml
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
@@ -112,8 +109,8 @@ stages:
                 fi
 
               echo -e "$green--- Convert config files to UX format ---$reset"
-                dos2unix -q DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
-                dos2unix -q LIBRARY/$(library_folder)/$(library_configuration_file)    2> /dev/null
+                dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
+                dos2unix -q $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)    2> /dev/null
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
                 ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
@@ -192,9 +189,9 @@ stages:
                   fi
                 fi
 
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_controlplane.sh                            \
-                  --deployer_parameter_file DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) \
-                  --library_parameter_file LIBRARY/$(library_folder)/$(library_configuration_file)     \
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh                            \
+                  --deployer_parameter_file $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) \
+                  --library_parameter_file $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)     \
                   --storage_account $REMOTE_STATE_SA                                                   \
                   --subscription ${STATE_SUBSCRIPTION}                                                 \
                   --resource_group $REMOTE_STATE_RG                                                    \
@@ -209,20 +206,20 @@ stages:
 
                 changed=0
 
-                if [ -f DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate ]; then
-                    git add -f DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
+                if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate ]; then
+                    git add -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/.terraform/terraform.tfstate
                     changed=1
                 fi
 
-                if [ -f LIBRARY/$(library_folder)/.terraform/terraform.tfstate ]; then
-                    git add -f LIBRARY/$(library_folder)/.terraform/terraform.tfstate
+                if [ -f $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/.terraform/terraform.tfstate ]; then
+                    git add -f $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/.terraform/terraform.tfstate
                     changed=1
                 fi
 
-                if [ -f DEPLOYER/$(deployer_folder)/terraform.tfstate ]; then
+                if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/terraform.tfstate ]; then
                     sudo apt install zip
-                    zip -P $ARM_CLIENT_SECRET DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
-                    git add -f DEPLOYER/$(deployer_folder)/state.zip
+                    zip -P $ARM_CLIENT_SECRET $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/terraform.tfstate
+                    git add -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip
                     changed=1
                 fi
 
@@ -246,7 +243,8 @@ stages:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH: $(Build.Repository.LocalPath)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault: $(Deployer_Key_Vault)
             failOnStderr: false
 
@@ -272,10 +270,7 @@ stages:
         workspace:
           clean: all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout: self
-            persistCredentials: true
-            submodules: true
+          - template: templates\download.yaml
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
@@ -331,7 +326,7 @@ stages:
                 fi
 
               echo -e "$green--- Convert config files to UX format ---$reset"
-                dos2unix -q DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
+                dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) 2> /dev/null
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
                 ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
@@ -367,15 +362,15 @@ stages:
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
               echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
-                if [ -f DEPLOYER/$(deployer_folder)/state.zip ]; then
+                if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip ]; then
                     echo "Unzipping state.zip"
-                    unzip -qq -o -P $ARM_CLIENT_SECRET DEPLOYER/$(deployer_folder)/state.zip
+                    unzip -qq -o -P $ARM_CLIENT_SECRET $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip
                 fi
 
-                sudo chmod +x $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_deployer.sh
-                cd DEPLOYER/$(deployer_folder)
+                sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh
+                cd $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)
 
-                $DEPLOYMENT_REPO_PATH/deploy/scripts/remove_deployer.sh --auto-approve                 \
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh --auto-approve                 \
                   --parameterfile $(deployer_configuration_file)
 
                 return_code=$?
@@ -497,6 +492,7 @@ stages:
               ARM_CLIENT_ID: $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID: $(ARM_TENANT_ID)
-              DEPLOYMENT_REPO_PATH: $(Build.Repository.LocalPath)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault: $(Deployer_Key_Vault)
             failOnStderr: false
