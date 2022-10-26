@@ -26,6 +26,14 @@ parameters:
     type: boolean
     default: false
 
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
 stages:
   - stage: Remove_control_plane_remote
     displayName: "Control plane removal (on agent)"
