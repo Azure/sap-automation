@@ -26,7 +26,7 @@ parameters:
 
 variables:
   - group:                             "SDAF-General"
-  
+
   - group:                             SDAF-${{ parameters.environment }}
 
   - name:                              run_on
@@ -57,4 +57,4 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+    value:                             $[upper(coalesce(variables['POOL'], variables['Agent']))]

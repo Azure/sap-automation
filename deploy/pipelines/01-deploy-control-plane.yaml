@@ -182,7 +182,7 @@ stages:
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                                 unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
-                            
+
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
                                --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
@@ -275,6 +275,7 @@ stages:
       dependsOn:
           - Prepare_Deployer
       condition: eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+      pool: $(this_agent)
       variables:
           - template: variables/01-deploy-control-plane-variables.yaml
             parameters:
@@ -291,6 +292,7 @@ stages:
             workspace:
                 clean: all
             steps:
+                - task: PostBuildCleanup@3
                 - template: templates\download.yaml
                 - bash: |
                       #!/bin/bash
@@ -738,7 +740,7 @@ stages:
           (
             eq(${{ parameters.use_webapp_param }}, true),
             eq(${{ parameters.deploy_webapp_software }}, true),
-            eq(dependencies.Deploy_controlplane.result, 'Succeeded')
+            in(dependencies.Deploy_controlplane.result, 'Succeeded', 'Skipped')
           )
       jobs:
           - job: Deploy_web_app
@@ -747,11 +749,12 @@ stages:
                 clean: all
             steps:
                 - template: templates\download.yaml
+                - task: PostBuildCleanup@3
                 - task: DotNetCoreCLI@2
                   displayName: "Build the Web App"
                   inputs:
                       command: "build"
-                      projects: "$(System.DefaultWorkingDirectory)/Webapp/**/*.csproj"
+                      projects: "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/AutomationForm/*.csproj"
 
                 - task: DotNetCoreCLI@2
                   displayName: "Publish the Web App"
@@ -766,7 +769,7 @@ stages:
                 - task: AzureWebApp@1
                   displayName: "Deploy the Web App"
                   inputs:
-                      azureSubscription: ${{ variables.AZURE_CONNECTION_NAME }}
+                      azureSubscription: CONTROL_PLANE
                       appType: "webApp"
                       appName: $(WEBAPP_URL_BASE)
                       package: "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
@@ -787,6 +790,7 @@ stages:
                       WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
                       WEBAPP_ID: $(WEBAPP_ID)
 
+
                 - bash: |
                       #!/bin/bash
                       printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
@@ -800,3 +804,4 @@ stages:
                       WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
                       WEBAPP_ID: $(WEBAPP_ID)
                       WEBAPP_IDENTITY: $(WEBAPP_IDENTITY)
+
