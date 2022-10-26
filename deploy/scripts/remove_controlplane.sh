@@ -33,7 +33,7 @@ keep_agent=0
 #                                                                                              #
 #   The script experts the following exports:                                                  #
 #   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                             #
-#   DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                 #
+#   SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation                 #
 #                                                                                              #
 ################################################################################################
 
@@ -46,7 +46,7 @@ function showhelp {
     echo "#                                                                                                               #"
     echo "#   The script experts the following exports:                                                                   #"
     echo "#                                                                                                               #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                          #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation                          #"
     echo "#                                                                                                               #"
     echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for         #"
     echo "#    the deployer and the library and the environment.                                                          #"
@@ -62,7 +62,7 @@ function showhelp {
     echo "#                                                                                                               #"
     echo "#   Example:                                                                                                    #"
     echo "#                                                                                                               #"
-    echo "#   DEPLOYMENT_REPO_PATH/scripts/remove_region.sh \                                                             #"
+    echo "#   SAP_AUTOMATION_REPO_PATH/scripts/remove_region.sh \                                                             #"
     echo "#      --deployer_parameter_file DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json \  #"
     echo "#      --library_parameter_file LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json \                      #"
     echo "#                                                                                                               #"
@@ -124,7 +124,7 @@ if [ -z "$library_parameter_file" ]; then
 fi
 
 
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -212,7 +212,7 @@ param_dirname=$(pwd)
 
 relative_path="${curdir}"/"${deployer_dirname}"
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/sap_deployer/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sap_deployer/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ -z "${storage_account}" ]; then
@@ -265,7 +265,7 @@ if [ -f ./.terraform/terraform.tfstate ]; then
 
         #Initialize the statefile and copy to local
 
-        terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
@@ -277,11 +277,11 @@ if [ -f ./.terraform/terraform.tfstate ]; then
         terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
         terraform -chdir="${terraform_module_directory}" init -reconfigure  --backend-config "path=${param_dirname}/terraform.tfstate"
     else
-        terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
         terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
    fi
 else
-    terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+    terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
     terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
 fi
 return_value=$?
@@ -307,7 +307,7 @@ param_dirname=$(pwd)
 
 #Library
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 #Reinitialize
@@ -425,7 +425,7 @@ else
 
   param_dirname=$(pwd)
 
-  terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+  terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
   export TF_DATA_DIR="${param_dirname}/.terraform"
 
   extra_vars=""
