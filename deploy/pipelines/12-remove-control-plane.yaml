@@ -64,9 +64,9 @@ stages:
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
               green="\e[1;32m" ; reset="\e[0m"
 
-              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                git fetch -q --all
-                git checkout -q $(Build.SourceBranchName)
+              # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+              #   git fetch -q --all
+              #   git checkout -q $(Build.SourceBranchName)
 
               echo -e "$green--- Install Terraform ---$reset"
                 wget -q $(tf_url)
