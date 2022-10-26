@@ -26,13 +26,13 @@ parameters:
     type: boolean
     default: false
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name: sap_automation_repo_path
+    displayName: The local path on the agent where the sap_automation repo can be found
+    type: string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name: config_repo_path
+    displayName: The local path on the agent where the config repo can be found
+    type: string
 
 stages:
   - stage: Remove_control_plane_remote
@@ -57,6 +57,10 @@ stages:
           - template: templates\download.yaml
           - bash: |
               #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              # Treat unset variables as an error when substituting.
+              set -eu
+
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
               green="\e[1;32m" ; reset="\e[0m"
 
