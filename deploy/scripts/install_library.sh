@@ -25,10 +25,10 @@ function showhelp {
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                 #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: install_deployer.sh                                                          #"
@@ -160,7 +160,7 @@ then
 fi
 
 #Persisting the parameters across executions
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}""${environment}""${region_code}"
 
@@ -183,14 +183,14 @@ init "${automation_config_directory}" "${generic_config_information}" "${library
 export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile}"
 
-if [ ! -n "${DEPLOYMENT_REPO_PATH}" ]; then
+if [ ! -n "${SAP_AUTOMATION_REPO_PATH}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#   Missing environment variables (DEPLOYMENT_REPO_PATH)!!!                             #"
+    echo "#   Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!!                             #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -212,7 +212,7 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                        #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -220,7 +220,7 @@ if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
     exit 3
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
 if [ ! -d ${terraform_module_directory} ]
 then

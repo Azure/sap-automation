@@ -252,11 +252,10 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
     }
   }
 
-  source_image_id = local.hdb_custom_image ? local.hdb_os.source_image_id : null
+  source_image_id = var.database.os.type == "custom" ? local.hdb_os.source_image_id : null
 
-  # If source_image_id is not defined, deploy with source_image_reference
   dynamic "source_image_reference" {
-    for_each = range(local.hdb_custom_image ? 0 : 1)
+    for_each = range(var.database.os.type == "source_image" ? 1 : 0)
     content {
       publisher = local.hdb_os.publisher
       offer     = local.hdb_os.offer
@@ -265,7 +264,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
     }
   }
   dynamic "plan" {
-    for_each = range(local.hdb_custom_image ? 1 : 0)
+    for_each = range(var.database.os.type == "marketplace" ? 1 : 0)
     content {
       name      = local.hdb_os.offer
       publisher = local.hdb_os.publisher

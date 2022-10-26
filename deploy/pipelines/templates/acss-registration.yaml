@@ -1,0 +1,21 @@
+parameters:
+    displayName: ''
+    scriptPath: ''
+    azureClientId: ''
+    azureClientSecret: ''
+    azureTenantId: ''
+    azureSubscriptionId: ''
+    acssEnvironment: ''
+    acssSapProduct: ''
+    sapSystemConfigurationName: ''
+steps:
+- bash: ${{ parameters.scriptPath }}/acss-registration.sh
+  displayName: "ACSS: ${{ parameters.displayName }}"
+  env:
+    ARM_SUBSCRIPTION_ID: ${{ parameters.azureSubscriptionId }}
+    ARM_CLIENT_ID: ${{ parameters.azureClientId }}
+    ARM_CLIENT_SECRET: ${{ parameters.azureClientSecret }}
+    ARM_TENANT_ID: ${{ parameters.azureTenantId }}
+    ACSS_ENVIRONMENT: ${{ parameters.acssEnvironment }}
+    ACSS_SAP_PRODUCT: ${{ parameters.acssSapProduct }}
+    SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sapSystemConfigurationName }}

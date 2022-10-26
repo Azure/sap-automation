@@ -99,7 +99,7 @@ then
     exit 64 #script usage wrong
 fi
 
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -144,7 +144,7 @@ fi
 
 #Persisting the parameters across executions
 
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 
@@ -366,7 +366,7 @@ else
     tfstate_parameter=" "
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 cd ${param_dirname}
 
@@ -407,7 +407,7 @@ if [ -f terraform.tfstate ]; then
   if [ "${deployment_system}" == sap_deployer ]
   then
     echo "Reinitializing deployer in case of on a new deployer"
-    terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+    terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
     terraform -chdir="${terraform_module_directory}" init  -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
 
   fi
@@ -415,14 +415,14 @@ if [ -f terraform.tfstate ]; then
   if [ "${deployment_system}" == sap_library ]
   then
     echo "Reinitializing library in case of on a new deployer"
-    terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+    terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
     terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
   fi
 
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ ! -d ./.terraform/ ];

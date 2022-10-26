@@ -97,8 +97,8 @@ module "common_infrastructure" {
 module "hdb_node" {
   source = "../../terraform-units/modules/sap_system/hdb_node"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
@@ -149,6 +149,10 @@ module "hdb_node" {
   deploy_application_security_groups = var.deploy_application_security_groups
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
+
+  use_custom_dns_a_registration     = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id    = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
 }
 
 
@@ -161,12 +165,13 @@ module "hdb_node" {
 module "app_tier" {
   source = "../../terraform-units/modules/sap_system/app_tier"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
   order_deployment = null
+
   application                                  = local.application
   infrastructure                               = local.infrastructure
   options                                      = local.options
@@ -196,6 +201,10 @@ module "app_tier" {
   deploy_application_security_groups           = var.deploy_application_security_groups
   use_msi_for_clusters                         = var.use_msi_for_clusters
   fencing_role_name                            = var.fencing_role_name
+  use_custom_dns_a_registration                = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id               = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name            = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+
 }
 
 #########################################################################################
@@ -207,8 +216,8 @@ module "app_tier" {
 module "anydb_node" {
   source = "../../terraform-units/modules/sap_system/anydb_node"
   providers = {
-    azurerm.main     = azurerm
-    azurerm.deployer = azurerm.deployer
+    azurerm.main          = azurerm
+    azurerm.deployer      = azurerm.deployer
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   depends_on = [module.common_infrastructure]
@@ -252,6 +261,10 @@ module "anydb_node" {
   deploy_application_security_groups = var.deploy_application_security_groups
   use_msi_for_clusters               = var.use_msi_for_clusters
   fencing_role_name                  = var.fencing_role_name
+  use_custom_dns_a_registration      = data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration
+  management_dns_subscription_id     = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
+  management_dns_resourcegroup_name  = data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name
+
 }
 
 #########################################################################################

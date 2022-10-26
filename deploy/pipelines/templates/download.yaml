@@ -1,0 +1,13 @@
+parameters:
+  includeAnsibleData: false
+steps:
+  - checkout: sap-automation
+    path: s/sap-automation
+  - checkout: self
+    path: s/config
+    persistCredentials: true
+    fetchDepth: 0
+  - ${{ if eq(parameters.includeAnsibleData, true) }}:
+      - download: current
+        artifact: ansible_data
+        displayName: "Download ansible_data"

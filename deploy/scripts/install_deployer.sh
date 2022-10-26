@@ -28,10 +28,10 @@ function showhelp {
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
     echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   ~/.sap_deployment_automation folder                                                 #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: install_deployer.sh                                                          #"
@@ -115,7 +115,7 @@ get_region_code $region
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
 #Persisting the parameters across executions
-automation_config_directory=~/.sap_deployment_automation/
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
 
@@ -127,14 +127,14 @@ param_dirname=$(pwd)
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
 
 var_file="${param_dirname}"/"${parameterfile}"
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
-terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}"/.terraform
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1

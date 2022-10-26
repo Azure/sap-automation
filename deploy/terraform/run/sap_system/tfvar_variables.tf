@@ -350,6 +350,7 @@ variable "database_vm_image" {
     "offer"           = ""
     "sku"             = ""
     "version"         = ""
+    "type"            = "custom"
   }
 }
 

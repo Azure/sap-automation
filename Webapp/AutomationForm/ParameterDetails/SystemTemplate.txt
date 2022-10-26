@@ -161,6 +161,8 @@ $$database_vm_storage_nic_ips$$
 #  offer           = "Oracle-Linux",
 #  sku             = "82-gen2",
 #  version         = "latest"
+#  type = "source_image" # [custom, marketplace, source_image]
+
 #}
 
 #SUSE 15 SP3
@@ -171,6 +173,7 @@ $$database_vm_storage_nic_ips$$
 #  offer           = "sles-sap-15-sp3"
 #  sku             = "gen2"
 #  version         = "latest"
+#  type = "source_image" # [custom, marketplace, source_image]
 #}
 
 #RedHat
@@ -181,6 +184,7 @@ $$database_vm_storage_nic_ips$$
 #  offer           = "RHEL-SAP-HA"
 #  sku             = "8_4"
 #  version         = "latest"
+#  type = "source_image" # [custom, marketplace, source_image]
 #}
 
 # The vm_image defines the Virtual machine image to use, 

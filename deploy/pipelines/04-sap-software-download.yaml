@@ -1,17 +1,6 @@
----
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# |               This pipeline performs the software download                 |
-# |              and must run on a self hosted deployment agent                |
-# |                      due to long run time                                  |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-
-name:                                  SAP Software download $(bom) $(environment_code) $(location_code)
-
 parameters:
-  - name:                              bom_base_name
-    displayName:                       Name of Bill of Materials (BoM)
+  - name: bom_base_name
+    displayName: Name of Bill of Materials (BoM)
     type: string
     default:
     values:
@@ -34,73 +23,53 @@ parameters:
       - ORACLE_19_00_ORA_MSID_v0002ms
       - ERP6_EHP8_WIN_MSS2019_v0001ms
 
-  - name:                              environment
-    displayName:                       Control Plane Environment
-    default:                           MGMT
+  - name: environment
+    displayName: Control Plane Environment
+    default: MGMT
 
-  - name:                              region
-    displayName:                       Control Plane (SAP Library) location code
-    type:                              string
-    default:                           WEEU
+  - name: region
+    displayName: Control Plane (SAP Library) location code
+    type: string
+    default: WEEU
 
-  - name:                              re_download
-    displayName:                       Re-download software from SAP
-    type:                              boolean
-    default:                           false
+  - name: re_download
+    displayName: Re-download software from SAP
+    type: boolean
+    default: false
 
-trigger:                               none
+  - name: sap_automation_repo_path
+    displayName: The local path on the agent where the sap_automation repo can be found
+    type: string
 
-pool:
-  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
-
-variables:
-  - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.environment }}
-
-  - name:                              bom
-    value:                             $[coalesce(variables['BoM_OverRide'], '${{ parameters.bom_base_name }}','foo')]
-
-  - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
-
-  - name:                              environment_code
-    value:                             ${{ parameters.environment }}
-
-  - name:                              location_code
-    value:                             ${{ parameters.region }}
-
-  - name:                              check_storage_account
-    value:                             $[not(${{ parameters.re_download }})]
-
-  - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
-
-  - name:                              key_vault
-    value:                             $[variables['Deployer_Key_Vault']]
+  - name: config_repo_path
+    displayName: The local path on the agent where the config repo can be found
+    type: string
 
 stages:
-  - stage:                             Prepare_download
-    displayName:                       Preparation
+  - stage: Prepare_download
+    variables:
+      - template: variables/04-sap-software-download-variables.yaml
+        parameters:
+          bom_base_name: ${{ parameters.bom_base_name }}
+          environment: ${{ parameters.environment }}
+          re_download: ${{ parameters.re_download }}
+          region: ${{ parameters.region }}
+    displayName: Preparation
     jobs:
-      - job:                           Prepare_download_job
-        displayName:                   Preparation
+      - job: Prepare_download_job
+        displayName: Preparation
         workspace:
-          clean:                       all
+          clean: all
         steps:
-          - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
-            submodules:                true
-            fetchDepth:                0
+          - template: templates\download.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
 
-                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-                environment_file_name=$HOME/.sap_deployment_automation/$(environment_code)$(location_code)
-                cd $HOME; mkdir -p .sap_deployment_automation
+                environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(environment_code)$(location_code)
+                cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -117,20 +86,20 @@ stages:
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 
               echo -e "$green--- Validations ---$reset"
-              if [ ! -f ${environment_file_name} ]; then
-                echo -e "$boldred--- ${environment_file_name} was not found ---$reset"
-                echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-                exit 2
-              fi
-              if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
-                echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-                exit 2
-              fi
+                if [ ! -f ${environment_file_name} ]; then
+                  echo -e "$boldred--- ${environment_file_name} was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
+                  exit 2
+                fi
+                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
 
-              if [ "azure pipelines" == $(this_agent) ]; then
-                echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
-                exit 2
-              fi
+                if [ "azure pipelines" == $(this_agent) ]; then
+                  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
+                  exit 2
+                fi
 
               echo -e "$green--- az login ---$reset"
 
@@ -179,32 +148,38 @@ stages:
                 else
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
                 fi
-
-            displayName:               Prepare download
-            name:                      Preparation
+            displayName: Prepare download
+            name: Preparation
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-            failOnStderr:              false
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+            failOnStderr: false
 
-  - stage:                             Software_download
-    displayName:                       Download software
+  - stage: Software_download
+    variables:
+      - template: variables/04-sap-software-download-variables.yaml
+        parameters:
+          bom_base_name: ${{ parameters.bom_base_name }}
+          environment: ${{ parameters.environment }}
+          re_download: ${{ parameters.re_download }}
+          region: ${{ parameters.region }}
+    displayName: Download software
 
     jobs:
-      - job:                           Software_download
-        displayName:                   Download software
+      - job: Software_download
+        displayName: Download software
         variables:
-          kv_name:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
-          S-USER:                      $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
-          S-PASSWORD:                  $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
-          BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
-        timeoutInMinutes:              0
+          kv_name: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          S-USER: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
+          S-PASSWORD: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
+          BOM_NAME: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
+        timeoutInMinutes: 0
         steps:
-          - task:                      PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
+          - template: templates\download.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -212,9 +187,8 @@ stages:
 
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                export HOME=$(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)
-                environment_file_name=$HOME/.sap_deployment_automation/$(environment_code)$(location_code)
-                cd $HOME; mkdir -p .sap_deployment_automation
+                environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(environment_code)$(location_code)
+                cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
               echo -e "$green--- Validations ---$reset"
@@ -254,20 +228,26 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-          - task:                            Ansible@0
-            displayName:                     Download software
-            timeoutInMinutes:                0
+            displayName: Download
+            name: download
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+            failOnStderr: false
+          - task: Ansible@0
+            displayName: Download software
+            timeoutInMinutes: 0
             inputs:
-              ansibleInterface:              "agentMachine"
-              playbookPathOnAgentMachine:    deploy/ansible/playbook_bom_downloader.yaml
-              args:                          ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
-              failOnStderr:                  false
+              ansibleInterface: "agentMachine"
+              playbookPathOnAgentMachine: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml
+              args: ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
+              failOnStderr: false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(Build.Repository.LocalPath)
-              ARM_CLIENT_ID:                 $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:             $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                 $(ARM_TENANT_ID)
-
-...
+              ANSIBLE_PYTHON_INTERPRETER: auto_silent
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)

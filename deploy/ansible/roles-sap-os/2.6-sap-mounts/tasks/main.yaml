@@ -129,7 +129,7 @@
     opts:                              defaults
     state:                             mounted
   when:
-    - 'scs' in supported_tiers
+    - "'scs' in supported_tiers"
     - usr_sap_install_mountpoint is undefined
 
 # Mount Filesystems
@@ -200,6 +200,7 @@
   when:
     - tier == 'sapos'
     - node_tier != 'scs'
+    - "'scs' not in supported_tiers"
     - usr_sap_install_mountpoint is not defined
 
 # Mount File systems for SCS server in Multi-SID installations

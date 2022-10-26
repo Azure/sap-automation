@@ -96,7 +96,7 @@ then
     exit 3
 fi
 
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -145,7 +145,7 @@ echo "Keyvault: $keyvault"
 
 #Persisting the parameters across executions
 
-automation_config_directory=~/.sap_deployment_automation
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
 if [ $deployer_environment != $environment ]; then
@@ -426,7 +426,7 @@ then
 
             echo $allParams
 
-            "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+            "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
 
             if [ -f secret.err ]; then
                 error_message=$(cat secret.err)
@@ -440,7 +440,7 @@ then
             if [ $answer == 'Y' ]; then
                 allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
 
-                "${DEPLOYMENT_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
                 if [ $? -eq 255 ]
                 then
                     exit $?
@@ -464,7 +464,7 @@ then
     load_config_vars "${workload_config_information}" "deployer_tfstate_key"
     if [ -n "${deployer_tfstate_key}" ]
     then
-        # Deployer state was specified in ~/.sap_deployment_automation library config
+        # Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
     fi
 else
@@ -515,7 +515,7 @@ else
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 fi
 
-terraform_module_directory="$(realpath "${DEPLOYMENT_REPO_PATH}"/deploy/terraform/run/"${deployment_system}" )"
+terraform_module_directory="$(realpath "${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}" )"
 
 if [ ! -d "${terraform_module_directory}" ]
 then

@@ -69,11 +69,11 @@ function init() {
         touch "${app_config_information}"
         touch "${generic_config_information}"
         if [ -n "${DEPLOYMENT_REPO_PATH}" ]; then
-            # Store repo path in ~/.sap_deployment_automation/config
+            # Store repo path in $CONFIG_REPO_PATH/.sap_deployment_automation/config
             save_config_var "DEPLOYMENT_REPO_PATH" "${generic_config_information}"
         fi
         if [ -n "$ARM_SUBSCRIPTION_ID" ]; then
-            # Store ARM Subscription info in ~/.sap_deployment_automation
+            # Store ARM Subscription info in $CONFIG_REPO_PATH/.sap_deployment_automation
             save_config_var "ARM_SUBSCRIPTION_ID" "${app_config_information}"
         fi
         
