@@ -148,7 +148,7 @@ stages:
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
                 if [ -z "$devops_extension_installed" ]; then
-                  az extension add --name azure-devops --output none
+                  az extension add --name azure-devops
                 fi
                 az devops configure -d organization=$(System.CollectionUri)
                 az devops configure -d project=$(System.TeamProject)
