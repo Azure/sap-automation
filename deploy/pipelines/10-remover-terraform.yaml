@@ -53,7 +53,7 @@ parameters:
 stages:
   - stage: Remove_SAP_systems
     displayName: "Removing the SAP System"
-    condition: eq(${{ parameters.cleanup_sap }}, true)
+    condition: and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_sap }}, true)) 
     variables:
       - template: variables/10-remover-terraform-variables.yaml
         parameters:
@@ -324,7 +324,7 @@ stages:
 
   - stage: Remove_SAP_workload_zone
     displayName: "Removing the SAP workload zone"
-    condition: eq(${{ parameters.cleanup_zone }}, true)
+    condition: and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_zone }}, true))
     variables:
       - template: variables/10-remover-terraform-variables.yaml
         parameters:
