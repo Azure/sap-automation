@@ -90,7 +90,7 @@ stages:
                             if [ -z $devops_extension_installed ]; then
                               az extension add --name azure-devops --output none
                             fi
-                            az devops configure --defaults organization=$(System.CollectionUri) project=$(System.TeamProject) --output none
+                            az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                             echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
                             if [ -z ${VARIABLE_GROUP_ID} ]; then
@@ -321,7 +321,7 @@ stages:
                             az extension add --name azure-devops --output none
                           fi
 
-                          az devops configure --defaults organization=$(System.CollectionUri) project=$(System.TeamProject)
+                          az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)'
                           export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                           echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
                           if [ -z ${VARIABLE_GROUP_ID} ]; then
