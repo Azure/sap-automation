@@ -1,5 +1,6 @@
 parameters:
   includeAnsibleData: false
+  getLatestFromBranch: false
 steps:
   - checkout: sap-automation
     path: s/sap-automation
@@ -11,3 +12,20 @@ steps:
       - download: current
         artifact: ansible_data
         displayName: "Download ansible_data"
+  - ${{ if eq(parameters.getLatestFromBranch, true) }}:
+      - script: |
+          #!/bin/bash
+          # Exit immediately if a command exits with a non-zero status.
+          # Treat unset variables as an error when substituting.
+          set -eu
+
+          export currentFolder=PWD
+
+          cd s/config
+          git checkout -q $(Build.SourceBranchName)
+          git pull
+
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+
+          cd $currentFolder
