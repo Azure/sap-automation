@@ -183,6 +183,24 @@ stages:
                                 unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
+                          if [ $(use_webapp) == "true" ]; then
+                              echo "Use WebApp is selected"
+
+                              if [ -z ${APP_REGISTRATION_APP_ID} ]; then
+                                  echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
+                                  exit 2
+                              fi
+
+                              if [ -z ${WEB_APP_CLIENT_SECRET} ]; then
+                                  echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
+                                  exit 2
+                              fi
+                              export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
+                              export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
+                              export TF_VAR_use_webapp=true
+
+                          fi
+
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                             $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
                                --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
