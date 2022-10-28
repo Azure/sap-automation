@@ -131,6 +131,8 @@ stages:
           clean: all
         steps:
           - template: templates\download.yaml
+            parameters:
+              getLatestFromBranch: true
           - bash: |
               #!/bin/bash
               # Exit immediately if a command exits with a non-zero status.
