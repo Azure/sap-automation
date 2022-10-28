@@ -34,3 +34,4 @@ steps:
           git config --global user.name "$(Build.RequestedFor)"
 
           cd $currentFolder
+        displayName: Get latest from branch
