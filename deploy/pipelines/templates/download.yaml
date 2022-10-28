@@ -24,9 +24,9 @@ steps:
           # Treat unset variables as an error when substituting.
           set -eu
 
-          export currentFolder=PWD
+          export currentFolder=$(pwd)
 
-          cd s/config
+          cd $(Build.SourcesDirectory)/config
           git checkout -q $(Build.SourceBranchName)
           git pull
 
@@ -34,3 +34,4 @@ steps:
           git config --global user.name "$(Build.RequestedFor)"
 
           cd $currentFolder
+        displayName: Get latest from branch
