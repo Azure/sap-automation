@@ -41,3 +41,7 @@ flowchart LR
         end
     end
 ```
+
+## Custom Nightly
+
+To validate the remote repository every night on your own environment there is a nightly.yml inside custom. You can change this to your own needs. The configuration of variables is just an example. Look for the MGMTNIGHTLY and the NIGHT configuration inside the WORKSAPCES for the configuration you want to deploy there. The deployment will be removed after success.
