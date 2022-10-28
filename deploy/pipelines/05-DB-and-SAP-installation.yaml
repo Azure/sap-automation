@@ -117,6 +117,7 @@ parameters:
 
 stages:
   - stage: Preparation_for_Ansible
+    condition: and(not(failed()), not(canceled()))
     variables:
       - template: variables/05-DB-and-SAP-installation-variables.yaml
         parameters:

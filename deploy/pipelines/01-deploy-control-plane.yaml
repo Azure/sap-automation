@@ -45,6 +45,7 @@ parameters:
 
 stages:
     - stage: Prepare_Deployer
+      condition: and(not(failed()), not(canceled()))
       variables:
           - template: variables/01-deploy-control-plane-variables.yaml
             parameters:
