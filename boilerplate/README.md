@@ -48,5 +48,5 @@ To validate the remote repository every night on your own environment there is a
 
 Create the following libraries to support the nightly build:
 
-- MGMTNIGHLY
+- MGMTNIGHTLY
 - NIGHT
