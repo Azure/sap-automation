@@ -15,6 +15,11 @@ steps:
   - ${{ if eq(parameters.getLatestFromBranch, true) }}:
       - script: |
           #!/bin/bash
+          # This script will get the latest commit from the branch and set it as the commit to checkout.
+          # This is needed because some  jobs are dependent on commits of previous jobs.
+          #
+          # !!! This is absolutely not the best way to do this but it works for now !!!
+
           # Exit immediately if a command exits with a non-zero status.
           # Treat unset variables as an error when substituting.
           set -eu
