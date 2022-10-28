@@ -213,7 +213,9 @@ Write-Host "Creating the deployment credentials for the control plane. Service P
 
 $ARM_CLIENT_ID = ""
 $ARM_TENANT_ID = ""
-$ARM_CLIENT_SECRET = ""
+$ARM_CLIENT_SECRET = "Please update"
+
+$SPN_Created = $false
 
 $found_appName = (az ad sp list --show-mine --query "[?displayName=='$app_name'].displayName | [0]" --only-show-errors)
 if ($found_appName.Length -gt 0) {
@@ -224,10 +226,12 @@ if ($found_appName.Length -gt 0) {
   $ARM_CLIENT_ID = $ExistingData.appId
 
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
+
   Write-Host "Please update the Control Plane Service Principal Password manually if needed"
 }
 else {
   Write-Host "Creating the Service Principal" $app_name
+  $SPN_Created = $true
   $MGMTData = (az ad sp create-for-rbac --role "Contributor" --scopes $scopes --name $app_name --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $MGMTData.appId
   $ARM_TENANT_ID = $MGMTData.tenant
@@ -257,9 +261,12 @@ if ($AlreadySet) {
   Write-Host "The secret is already set"
 }
 else {
-  az pipelines variable-group variable update --group-id $MGMTGroupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $MGMTGroupID  --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
+  if ( $SPN_Created ) {
+    az pipelines variable-group variable update --group-id $MGMTGroupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
   }
+
+  az pipelines variable-group variable update --group-id $MGMTGroupID  --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
+}
 
 $dev_scopes = "/subscriptions/" + $DevSubscriptionID
 $dev_app_name = $DevPrefix + " Deployment credential"
@@ -267,6 +274,8 @@ if ($Env:SDAF_WorkloadZone_SPN_NAME.Length -ne 0) {
   $dev_app_name = $Env:SDAF_WorkloadZone_SPN_NAME
 }
 
+
+$SPN_Created = $false
 $found_appName = (az ad sp list --show-mine --query "[?displayName=='$dev_app_name'].displayName | [0]" --only-show-errors)
 
 if ($found_appName.Length -ne 0) {
@@ -277,7 +286,8 @@ if ($found_appName.Length -ne 0) {
   Write-Host "Please update the Workload zone Service Principal Password manually if needed"
 }
 else {
-  Write-Host "Creating the Service Principal" $app_name
+  Write-Host "Creating the Service Principal" $dev_app_name
+  $SPN_Created = $true
   $Data = (az ad sp create-for-rbac --role="Contributor" --scopes=$dev_scopes --name=$dev_app_name --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $Data.appId
   $ARM_TENANT_ID = $Data.tenant
@@ -308,7 +318,10 @@ if ($AlreadySet) {
   Write-Host "The secret is already set"
 }
 else {
-  az pipelines variable-group variable update --group-id $GroupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
+  if ($SPN_Created) {
+    az pipelines variable-group variable update --group-id $GroupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
+  }
+
 }
 
 
@@ -329,9 +342,9 @@ else {
 
 $pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
 
-$POOL_NAME_FOUND = (az pipelines pool list  --organization $Organization  --query "[?name=='$Pool_Name'].name | [0]")
+$POOL_NAME_FOUND = (az pipelines pool list  --query "[?name=='$Pool_Name'].name | [0]")
 if ($POOL_NAME_FOUND.Length -gt 0) {
-  Write-Host "Agent pool " + $Pool_Name + " already exists"
+  Write-Host "Agent pool " $Pool_Name  " already exists"
 }
 else {
   Write-Host "The browser will now open, please create an Agent Pool with the name '$Pool_Name'. Ensure that the Agent Pool is defined using the Self-hosted pool type."
@@ -342,7 +355,7 @@ else {
 
 Write-Host "The browser will now open, please ensure that the '" $Env:ADO_PROJECT " Build Service' has 'Allow' in the Contribute section"
 
-$permissions_url=$ADO_ORGANIZATION+"/"+[uri]::EscapeDataString($ADO_Project)+"/_settings/repositories?_a=permissions"
+$permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
 
 Start-Process $permissions_url
 Read-Host -Prompt "Once you have verified the permission, Press any key to continue"
