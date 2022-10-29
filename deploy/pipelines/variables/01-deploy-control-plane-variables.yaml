@@ -30,6 +30,10 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name:                              connection_name
+    displayName:                       Service Connection Name
+    type:                              string
+
 variables:
   - group:                             "SDAF-General"
 
@@ -64,3 +68,8 @@ variables:
 
   - name:                              this_agent
     value:                             $[upper(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              connection_name
+    value:                             ${{ parameters.connection_name }}
+    type:                              string
+

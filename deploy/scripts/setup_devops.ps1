@@ -104,6 +104,7 @@ if ($Project_ID.Length -eq 0) {
     $import_code=$true
     $code_repo_id=(az repos create --name sap-automation --query id)
     az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
+    az repos update --repository $code_repo_id --default-branch main
   }
 }
 
@@ -112,7 +113,6 @@ else {
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
   $repo_id = (az repos list --query "[].id | [0]").Replace("""", "")
 }
-
 
 $idx = $url.IndexOf("_api")
 $pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
@@ -190,7 +190,7 @@ Write-Host "Creating the variable group SDAF-General"
 
 $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 ansible_core_version 2.13 --output yaml  --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 ansible_core_version=2.13 --output yaml  --authorize true --output none
   $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 }
 
@@ -203,7 +203,7 @@ $APP_REGISTRATION_ID = ""
 $WEB_APP_CLIENT_SECRET = "Enter your App registration secret here"
 
 if ($found_appRegistration.Length -ne 0) {
-  Write-Host "Found an existing App Registration" + $ApplicationName
+  Write-Host "Found an existing App Registration:" $ApplicationName
   $ExistingData = (az ad app list --show-mine --query "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 
   $APP_REGISTRATION_ID = $ExistingData.appId
