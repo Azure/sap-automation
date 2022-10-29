@@ -783,7 +783,7 @@ stages:
                 - task:                  AzureWebApp@1
                   displayName:           "Deploy the Configuration Web Application"
                   inputs:
-                      azureSubscription: ${{variables.AZURE_CONNECTION_NAME}}
+                      azureSubscription: ${{variables.connection_name}}
                       appType:           "webApp"
                       appName:           $(WEBAPP_URL_BASE)
                       package:           "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
@@ -803,7 +803,7 @@ stages:
                       SDAF_GENERAL_GROUP_ID:    $(SDAF_GENERAL_GROUP_ID)
                       WEBAPP_URL_BASE:          $(WEBAPP_URL_BASE)
                       WEBAPP_ID:                $(WEBAPP_ID)
-                      AZURE_CONNECTION_NAME:    ${{variables.AZURE_CONNECTION_NAME}}
+                      AZURE_CONNECTION_NAME:    ${{variables.connection_name}}
 
                 - bash: |
                       #!/bin/bash

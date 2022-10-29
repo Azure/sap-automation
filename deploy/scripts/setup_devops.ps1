@@ -99,7 +99,7 @@ if ($Project_ID.Length -eq 0) {
 
   Write-Host "You can optionally import the code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code-"
 
-  $confirmation = Read-Host "Do you want to import the code from GitHub?"
+  $confirmation = Read-Host "Do you want to import the code from GitHub y/n?"
   if ($confirmation -eq 'y') {
     $import_code=$true
     $code_repo_id=(az repos create --name sap-automation --query id)
@@ -119,7 +119,7 @@ $pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
 
 Write-Host "Creating the pipelines"
 
-$pipeline_name = 'Deploy Controlplane'
+$pipeline_name = 'Deploy Control plane'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
   az pipelines create --name 'Deploy Controlplane' --branch main --description 'Deploys the control plane'  --skip-run --yaml-path "/pipelines/01-deploy-control-plane.yml" --repository $repo_id --repository-type tfsgit --output none
@@ -265,6 +265,9 @@ else {
   $epExists = (az devops service-endpoint list   --query "[?name=='Control_Plane_Service_Connection'].name | [0]")
   if ($epExists.Length -eq 0) {
     az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $ControlPlaneSubscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name "Control_Plane_Service_Connection" --output none --only-show-errors
+
+    $epId = az devops service-endpoint list  --query "[?name=='Control_Plane_Service_Connection'].id" -o tsv
+    az devops service-endpoint update --id $epId --enable-for-all true
   }
 
 }
@@ -323,6 +326,8 @@ else {
   $epExists = (az devops service-endpoint list   --query "[?name=='WorkloadZone_Service_Connection'].name | [0]")
   if ($epExists.Length -eq 0) {
     az devops service-endpoint azurerm create  --azure-rm-service-principal-id $Data.appId --azure-rm-subscription-id $DevSubscriptionID --azure-rm-subscription-name $DevSubscriptionName --azure-rm-tenant-id $Data.tenant --name "WorkloadZone_Service_Connection" --output none --only-show-errors
+    $epId = az devops service-endpoint list  --query "[?name=='WorkloadZone_Service_Connection'].id" -o tsv
+    az devops service-endpoint update --id $epId --enable-for-all true
   }
 }
 
