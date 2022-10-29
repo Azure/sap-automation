@@ -1,4 +1,3 @@
----
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |               This pipeline deploys the SAP Infrastructure                 |
@@ -6,39 +5,40 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name: sap_system
-    displayName: "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
-    type: string
-    default: DEV-WEEU-SAP01-X00
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
 
-  - name: environment
-    displayName: Workload Environment (DEV, QUA, PRD, ...)
-    type: string
-    default: DEV
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QA, PRD, ...)
+    type:                              string
+    default:                           DEV
 
-  - name: sap_automation_repo_path
-    displayName: The local path on the agent where the sap_automation repo can be found
-    type: string
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-  - name: config_repo_path
-    displayName: The local path on the agent where the config repo can be found
-    type: string
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
-  - stage: Deploy_SAP_infrastructure
+  - stage:                             Deploy_SAP_infrastructure
     variables:
-      - template: variables/03-sap-system-deployment-variables.yaml
+      - template:                      variables/03-sap-system-deployment-variables.yaml
         parameters:
-          sap_system: ${{ parameters.sap_system }}
-          environment: ${{ parameters.environment }}
-    displayName: Deploy SAP infrastructure
+          sap_system:                  ${{ parameters.sap_system }}
+          environment:                 ${{ parameters.environment }}
+    displayName:                       Deploy SAP infrastructure
     jobs:
-      - job: Deploy_SAP_infrastructure
-        displayName: Deploy SAP infrastructure
+      - job:                           Deploy_SAP_infrastructure
+        displayName:                   Deploy SAP infrastructure
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - template: templates\download.yaml
+          - template:                  templates\download.yaml
+          - task:                      PostBuildCleanup@3
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
@@ -260,15 +260,15 @@ stages:
                 fi
               exit $return_code
 
-            displayName: Deploy_SAP_infrastructure
+            displayName:               Deploy_SAP_infrastructure
             env:
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
 
-            failOnStderr: false
+            failOnStderr:               false

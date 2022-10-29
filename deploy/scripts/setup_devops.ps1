@@ -54,8 +54,6 @@ else {
 }
 
 
-az upgrade --yes
-
 az login
 
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -85,6 +83,7 @@ if ($extension_name.Length -eq 0) {
 
 $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]")
 
+$import_code=$false
 if ($Project_ID.Length -eq 0) {
   Write-Host "Creating the project: " $ADO_PROJECT
   $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git  --query id).Replace("""", "")
@@ -97,6 +96,15 @@ if ($Project_ID.Length -eq 0) {
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
 
   az repos update --repository $repo_id --default-branch main
+
+  Write-Host "You can optionally import the code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code-"
+
+  $confirmation = Read-Host "Do you want to import the code from GitHub?"
+  if ($confirmation -eq 'y') {
+    $import_code=$true
+    $code_repo_id=(az repos create --name sap-automation --query id)
+    az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
+  }
 }
 
 else {
@@ -114,64 +122,75 @@ Write-Host "Creating the pipelines"
 $pipeline_name = 'Deploy Controlplane'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  az pipelines create --name 'Deploy Controlplane' --branch main --description 'Deploys the control plane'  --skip-run --yaml-path "/01-deploy-control-plane.yml" --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Deploy Controlplane' --branch main --description 'Deploys the control plane'  --skip-run --yaml-path "/pipelines/01-deploy-control-plane.yml" --repository $repo_id --repository-type tfsgit --output none
 }
 
 $pipeline_name = 'SAP workload zone deployment'
 $wz_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($wz_pipeline_id.Length -eq 0) {
-  az pipelines create --name 'SAP workload zone deployment' --branch main --description 'Deploys the workload zone'  --skip-run --yaml-path "/02-sap-workload-zone.yml" --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'SAP workload zone deployment' --branch main --description 'Deploys the workload zone'  --skip-run --yaml-path "/pipelines/02-sap-workload-zone.yml" --repository $repo_id --repository-type tfsgit --output none
   $wz_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 }
 
 $pipeline_name = 'SAP system deployment (infrastructure)'
 $system_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($system_pipeline_id.Length -eq 0) {
-  az pipelines create --name 'SAP system deployment (infrastructure)' --branch main --description 'SAP system deployment (infrastructure)'  --skip-run --yaml-path "/03-sap-system-deployment.yml" --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'SAP system deployment (infrastructure)' --branch main --description 'SAP system deployment (infrastructure)'  --skip-run --yaml-path "/pipelines/03-sap-system-deployment.yml" --repository $repo_id --repository-type tfsgit --output none
   $system_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 }
 
 $pipeline_name = 'SAP Software acquisition'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  az pipelines create --name 'SAP Software acquisition' --branch main --description 'Downloads the software from SAP'  --skip-run --yaml-path "/04-sap-software-download.yml" --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'SAP Software acquisition' --branch main --description 'Downloads the software from SAP'  --skip-run --yaml-path "/pipelines/04-sap-software-download.yml" --repository $repo_id --repository-type tfsgit --output none
 }
 
 $pipeline_name = 'Configuration and SAP installation'
 $installation_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($installation_pipeline_id.Length -eq 0) {
-  $installation_pipeline_id = (az pipelines create --name 'Configuration and SAP installation' --branch main --description 'Configures the Operating System and installs the SAP application'  --skip-run --yaml-path "/05-DB-and-SAP-installation.yml" --repository $repo_id --repository-type tfsgit --output none)
+  $installation_pipeline_id = (az pipelines create --name 'Configuration and SAP installation' --branch main --description 'Configures the Operating System and installs the SAP application'  --skip-run --yaml-path "/pipelines/05-DB-and-SAP-installation.yml" --repository $repo_id --repository-type tfsgit --output none)
 }
 
 $pipeline_name = 'Remove deployments'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  az pipelines create --name 'Remove deployments' --branch main --description 'Removes either the SAP system or the workload zone'  --skip-run --yaml-path "/10-remover-terraform.yml" --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Remove deployments' --branch main --description 'Removes either the SAP system or the workload zone'  --skip-run --yaml-path "/pipelines/10-remover-terraform.yml" --repository $repo_id --repository-type tfsgit --output none
 }
 
 $pipeline_name = 'Remove deployments via ARM'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  az pipelines create --name 'Remove deployments via ARM' --branch main --description 'Removes the resource groups via ARM. Use this only as last resort'  --skip-run --yaml-path "/11-remover-arm-fallback.yml" --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Remove deployments via ARM' --branch main --description 'Removes the resource groups via ARM. Use this only as last resort'  --skip-run --yaml-path "/pipelines/11-remover-arm-fallback.yml" --repository $repo_id --repository-type tfsgit --output none
 }
 
 $pipeline_name = 'Remove control plane'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  az pipelines create --name 'Remove control plane' --branch main --description 'Removes the control plane'  --skip-run --yaml-path "/12-remove-control-plane.yml" --repository $repo_id --repository-type tfsgit --output none
+  az pipelines create --name 'Remove control plane' --branch main --description 'Removes the control plane'  --skip-run --yaml-path "/pipelines/12-remove-control-plane.yml" --repository $repo_id --repository-type tfsgit --output none
 }
 
-$pipeline_name = 'Update repository'
-$pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
-if ($pipeline_id.Length -eq 0) {
-  az pipelines create --name 'Update repository' --branch main --description 'Updates the codebase'  --skip-run --yaml-path "/20-update-ado-repository.yml" --repository $repo_id --repository-type tfsgit --output none
+if ($import_code)
+{
+  $pipeline_name = 'Update repository'
+  $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+  if ($pipeline_id.Length -eq 0) {
+    az pipelines create --name 'Update repository' --branch main --description 'Updates the codebase'  --skip-run --yaml-path "/pipelines/20-update-ado-repository.yml" --repository $repo_id --repository-type tfsgit --output none
+  }
 }
+
+$pipeline_name = 'Create Control Plane configuration'
+$sample_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+if ($sample_pipeline_id.Length -eq 0) {
+  az pipelines create --name $pipeline_name --branch main --description 'Create sample configuration'  --skip-run --yaml-path "/pipelines/22-sample-deployer-configuration.yml" --repository $repo_id --repository-type tfsgit --output none
+  $sample_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+}
+
 
 Write-Host "Creating the variable group SDAF-General"
 
 $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 --output yaml  --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 ansible_core_version 2.13 --output yaml  --authorize true --output none
   $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 }
 
@@ -238,6 +257,7 @@ else {
   $ARM_CLIENT_SECRET = $MGMTData.password
 
   az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $DevSubscriptionID --output none
+  az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $ControlPlaneSubscriptionID --output none
 
   Write-Host "Create the Service Endpoint in Azure DevOps"
 
@@ -252,7 +272,7 @@ else {
 $MGMTGroupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 if ($MGMTGroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $ControlPlanePrefix
-  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=MGMT-POOL AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id --output yaml  --authorize true --output none
+  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id --output yaml  --authorize true --output none
   $MGMTGroupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 }
 
@@ -324,6 +344,18 @@ else {
 
 }
 
+if ($import_code)
+{
+}
+else
+{
+
+  $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
+  Write-Host "The browser will now open, please create a new Github connection"
+  Start-Process $gh_connection_url
+
+}
+
 
 $AlreadySet = [Boolean](az pipelines variable-group variable list --group-id $GroupID --query PAT.isSecret --only-show-errors)
 
@@ -360,3 +392,9 @@ $permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Projec
 Start-Process $permissions_url
 Read-Host -Prompt "Once you have verified the permission, Press any key to continue"
 
+
+$pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId="+$sample_pipeline_id
+
+Write-Host "The browser will now open, please create the control plane configuration in the region you select"
+
+Start-Process $pipeline_url

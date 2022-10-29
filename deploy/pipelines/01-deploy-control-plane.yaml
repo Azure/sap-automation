@@ -6,70 +6,72 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-    - name: deployer
-      displayName: "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-      type: string
-      default: MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name:                              deployer
+    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
 
-    - name: library
-      displayName: "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
-      type: string
-      default: MGMT-WEEU-SAP_LIBRARY
+  - name:                              library
+    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
+    type:                              string
+    default:                           MGMT-WEEU-SAP_LIBRARY
 
-    - name: environment
-      displayName: "Environment name, MGMT, DEV, QA, etc"
-      type: string
-      default: MGMT
+  - name:                              environment
+    displayName:                       "Environment name, MGMT, DEV, QA, etc"
+    type:                              string
+    default:                           MGMT
 
-    - name: use_webapp_param
-      displayName: "Deploy the configuration web application"
-      type: boolean
-      default: true
+  - name:                              use_webapp_param
+    displayName:                       "Deploy the configuration web application infrastructure"
+    type:                              boolean
+    default:                           true
 
-    - name: deploy_webapp_software
-      displayName: "Deploy the configuration web application software"
-      type: boolean
-      default: true
+  - name:                              deploy_webapp_software
+    displayName:                       "Deploy the configuration web application software"
+    type:                              boolean
+    default:                           true
 
-    - name: use_deployer
-      displayName: Run on self hosted agent
-      type: boolean
+  - name:                              use_deployer
+    displayName:                       Run on self hosted agent
+    type:                              boolean
+    default:                           false
 
-    - name: sap_automation_repo_path
-      displayName: The local path on the agent where the sap_automation repo can be found
-      type: string
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-    - name: config_repo_path
-      displayName: The local path on the agent where the config repo can be found
-      type: string
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
-    - stage: Prepare_Deployer
+    - stage:                           Prepare_Deployer
       variables:
-          - template: variables/01-deploy-control-plane-variables.yaml
+          - template:                  variables/01-deploy-control-plane-variables.yaml
             parameters:
-                deployer: ${{ parameters.deployer }}
-                library: ${{ parameters.library }}
-                environment: ${{ parameters.environment }}
-                use_webapp_param: ${{ parameters.use_webapp_param }}
-                use_deployer: ${{ parameters.use_deployer }}
-      displayName: Deploy the control plane
+                deployer:              ${{ parameters.deployer }}
+                library:               ${{ parameters.library }}
+                environment:           ${{ parameters.environment }}
+                use_webapp_param:      ${{ parameters.use_webapp_param }}
+                use_deployer:          ${{ parameters.use_deployer }}
+      displayName:                     Deploy the control plane
 
       jobs:
-          - job: Prepare_Deployer
-            displayName: Prepare the self hosted agent
+          - job:                       Prepare_Deployer
+            displayName:               Prepare the self hosted agent
             workspace:
-                clean: all
+                clean:                 all
             steps:
-                - template: templates\download.yaml
+                - template:            templates\download.yaml
                 - bash: |
                       #!/bin/bash
 
-                      set -e
                         echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
                             green="\e[1;32m"
                             reset="\e[0m"
                             boldred="\e[1;31m"
+
+                            set -e
 
                             ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                             LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
@@ -86,10 +88,7 @@ stages:
                             git checkout -q $(Build.SourceBranchName)
                         echo -e "$green--- Configure devops CLI extension ---$reset"
                             az config set extension.use_dynamic_install=yes_without_prompt
-                            devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                            if [ -z $devops_extension_installed ]; then
-                              az extension add --name azure-devops --output none
-                            fi
+
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                             echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
@@ -315,8 +314,6 @@ stages:
                 - bash: |
                       #!/bin/bash
 
-                      set -e
-
                       echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
                           green="\e[1;32m"
                           reset="\e[0m"
@@ -333,11 +330,6 @@ stages:
 
                       echo -e "$green--- Configure devops CLI extension ---$reset"
                           az config set extension.use_dynamic_install=yes_without_prompt
-
-                          devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                          if [ -z $devops_extension_installed ]; then
-                            az extension add --name azure-devops --output none
-                          fi
 
                           az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)'
                           export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
@@ -439,7 +431,6 @@ stages:
                                   echo "REMOTE_STATE_RG="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
                               fi
 
-
                               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
                               if [[ ${#az_var} -ne 0 ]]; then
                                   echo "deployer_tfstate_key="${az_var}  | tee -a  $deployer_environment_file_name > /dev/null
@@ -539,7 +530,8 @@ stages:
 
                           if [ -n $(POOL) ]; then
                               echo 'Deployer Agent Pool' $(POOL)
-                              POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
+                              POOL_NAME=$(az pipelines pool list --query "[?name=='$(POOL)'].name | [0]")
+
                               if [ ${#POOL_NAME} -eq 0 ]; then
                                   echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
                               fi
@@ -720,36 +712,36 @@ stages:
                           fi
                       exit $return_code
 
-                  displayName: Deploy control plane
+                  displayName:         Deploy control plane
                   env:
-                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID: $(ARM_TENANT_ID)
-                      TF_VAR_agent_ado_url: $(System.CollectionUri)
-                      AZURE_DEVOPS_EXT_PAT: $(PAT)
-                      IS_PIPELINE_DEPLOYMENT: true
-                      WEB_APP_CLIENT_SECRET: $(WEB_APP_CLIENT_SECRET)
-                      APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-                      POOL: $(POOL)
-                      SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-                      CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+                      SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
+                      ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+                      ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
+                      ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+                      ARM_TENANT_ID:               $(ARM_TENANT_ID)
+                      TF_VAR_agent_ado_url:        $(System.CollectionUri)
+                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
+                      IS_PIPELINE_DEPLOYMENT:      true
+                      WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
+                      APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
+                      POOL:                        $(POOL)
+                      SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
+                      CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
                       TF_VAR_ansible_core_version: $(ansible_core_version)
-                      TF_LOG: $(TF_LOG)
+                      TF_LOG:                      $(TF_LOG)
 
                   failOnStderr: false
 
-    - stage: Web_App_Deployment
+    - stage:                           Web_App_Deployment
       variables:
-          - template: variables/01-deploy-control-plane-variables.yaml
+          - template:                  variables/01-deploy-control-plane-variables.yaml
             parameters:
-                deployer: ${{ parameters.deployer }}
-                library: ${{ parameters.library }}
-                environment: ${{ parameters.environment }}
-                use_webapp_param: ${{ parameters.use_webapp_param }}
-                use_deployer: ${{ parameters.use_deployer }}
-      displayName: Deploy SAP configuration Web App
+                deployer:              ${{ parameters.deployer }}
+                library:               ${{ parameters.library }}
+                environment:           ${{ parameters.environment }}
+                use_webapp_param:      ${{ parameters.use_webapp_param }}
+                use_deployer:          ${{ parameters.use_deployer }}
+      displayName:                     Deploy SAP configuration Web App
 
       dependsOn:
           - Deploy_controlplane
@@ -761,37 +753,37 @@ stages:
             in(dependencies.Deploy_controlplane.result, 'Succeeded', 'Skipped')
           )
       jobs:
-          - job: Deploy_web_app
-            displayName: Deploy SAP configuration Web App
+          - job:                       Deploy_web_app
+            displayName:               Deploy SAP configuration Web App
             workspace:
-                clean: all
+                clean:                 all
             steps:
-                - template: templates\download.yaml
-                - task: PostBuildCleanup@3
-                - task: DotNetCoreCLI@2
-                  displayName: "Build the Web App"
+                - template:            templates\download.yaml
+                - task:                PostBuildCleanup@3
+                - task:                DotNetCoreCLI@2
+                  displayName:         "Build the Configuration Web Application"
                   inputs:
-                      command: "build"
-                      projects: "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/AutomationForm/*.csproj"
+                      command:         "build"
+                      projects:        "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/AutomationForm/*.csproj"
 
-                - task: DotNetCoreCLI@2
-                  displayName: "Publish the Web App"
+                - task:                DotNetCoreCLI@2
+                  displayName:         "Publish the Configuration Web Application"
                   inputs:
-                      command: publish
-                      projects: "**/Webapp/**/*.csproj"
+                      command:            publish
+                      projects:           "**/Webapp/**/*.csproj"
                       publishWebProjects: false
-                      arguments: "--output $(Build.ArtifactStagingDirectory)/WebApp"
-                      zipAfterPublish: true
-                      modifyOutputPath: true
+                      arguments:          "--output $(Build.ArtifactStagingDirectory)/WebApp"
+                      zipAfterPublish:    true
+                      modifyOutputPath:   true
 
-                - task: AzureWebApp@1
-                  displayName: "Deploy the Web App"
+                - task:                  AzureWebApp@1
+                  displayName:           "Deploy the Configuration Web Application"
                   inputs:
                       azureSubscription: ${{variables.AZURE_CONNECTION_NAME}}
-                      appType: "webApp"
-                      appName: $(WEBAPP_URL_BASE)
-                      package: "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
-                      deploymentMethod: "auto"
+                      appType:           "webApp"
+                      appName:           $(WEBAPP_URL_BASE)
+                      package:           "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
+                      deploymentMethod:  "auto"
                       appSettings: '-CollectionUri $(System.CollectionUri)
                           -ProjectName "$(System.TeamProject)"
                           -RepositoryId $(Build.Repository.ID)
@@ -801,15 +793,13 @@ stages:
                           -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
                           -IS_PIPELINE_DEPLOYMENT true'
                   env:
-                      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-                      SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
+                      ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+                      SYSTEM_PIPELINE_ID:       $(SYSTEM_PIPELINE_ID)
                       WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
-                      SDAF_GENERAL_GROUP_ID: $(SDAF_GENERAL_GROUP_ID)
-                      WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
-                      WEBAPP_ID: $(WEBAPP_ID)
-                      AZURE_CONNECTION_NAME: ${{variables.AZURE_CONNECTION_NAME}}
-
-
+                      SDAF_GENERAL_GROUP_ID:    $(SDAF_GENERAL_GROUP_ID)
+                      WEBAPP_URL_BASE:          $(WEBAPP_URL_BASE)
+                      WEBAPP_ID:                $(WEBAPP_ID)
+                      AZURE_CONNECTION_NAME:    ${{variables.AZURE_CONNECTION_NAME}}
 
                 - bash: |
                       #!/bin/bash
@@ -818,10 +808,10 @@ stages:
                       echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
                   displayName: "Documentation"
                   env:
-                      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-                      SYSTEM_PIPELINE_ID: $(SYSTEM_PIPELINE_ID)
+                      ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+                      SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
                       APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-                      WEBAPP_URL_BASE: $(WEBAPP_URL_BASE)
-                      WEBAPP_ID: $(WEBAPP_ID)
-                      WEBAPP_IDENTITY: $(WEBAPP_IDENTITY)
+                      WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
+                      WEBAPP_ID:               $(WEBAPP_ID)
+                      WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)
 
