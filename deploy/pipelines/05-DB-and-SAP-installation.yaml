@@ -122,7 +122,8 @@ parameters:
     type:                              string
 
 stages:
-  - stage:                             Preparation_for_Ansible
+  - stage: Preparation_for_Ansible
+    condition: and(not(failed()), not(canceled()))
     variables:
       - template:                      variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
@@ -135,7 +136,9 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - template:                  templates\download.yaml
+          - template: templates\download.yaml
+            parameters:
+              getLatestFromBranch: true
           - task:                      PostBuildCleanup@3
           - bash: |
               #!/bin/bash

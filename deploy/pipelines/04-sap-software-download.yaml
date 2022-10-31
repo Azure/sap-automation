@@ -52,7 +52,8 @@ parameters:
     type:                              string
 
 stages:
-  - stage:                             Prepare_download
+  - stage: Prepare_download
+    condition: and(not(failed()), not(canceled()))
     variables:
       - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
