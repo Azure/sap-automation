@@ -10,18 +10,17 @@ parameters:
     displayName: "defining the Agent"
     type: string
 
-variables:
-  - name: Agent
-    value: ${{ lower(parameters.Agentname) }}
-  - name: run_on
-    value: ""
-
 pool:
   name:                                $[coalesce(variables['run_on'], variables['Agent'])]
 
 stages:
 
   - stage:                             print_hello_world
+    variables:
+      - name: Agent
+        value: ${{ lower(parameters.Agentname) }}
+      - name: run_on
+        value: ""
     displayName:                       Printing Hello World
     jobs:
       - job:                           Hello_World
