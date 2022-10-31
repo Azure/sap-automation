@@ -1,3 +1,10 @@
+#--------------------------------------+---------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the System and Workload removal     |
+#                                                                              |
+#--------------------------------------+---------------------------------------8
+
+
 parameters:
   deployer_environment: ''
   workload_environment: ''
@@ -15,7 +22,7 @@ variables:
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
- 
+
   - name:                              variable_group
     value:                             SDAF-${{ parameters.workload_environment }}
 

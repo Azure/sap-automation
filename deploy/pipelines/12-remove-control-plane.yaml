@@ -6,56 +6,56 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name: deployer
-    displayName: "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type: string
-    default: MGMT-WEEU-DEP01-INFRASTRUCTURE
+  - name:                              deployer
+    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                              string
+    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
 
-  - name: library
-    displayName: "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type: string
-    default: MGMT-WEEU-SAP_LIBRARY
+  - name:                              library
+    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type:                              string
+    default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name: deployer_environment
-    displayName: Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type: string
-    default: MGMT
+  - name:                              deployer_environment_parameter
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
 
-  - name: use_deployer
-    displayName: Run removal on self hosted agent
-    type: boolean
-    default: false
+  - name:                              use_deployer
+    displayName:                       Run removal on self hosted agent
+    type:                              boolean
+    default:                           false
 
-  - name: sap_automation_repo_path
-    displayName: The local path on the agent where the sap_automation repo can be found
-    type: string
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-  - name: config_repo_path
-    displayName: The local path on the agent where the config repo can be found
-    type: string
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
   - stage: Remove_control_plane_remote
     condition: and(not(failed()), not(canceled()))
     displayName: "Control plane removal (on agent)"
     variables:
-      - template: variables/12-remove-control-plane-variables.yaml
+      - template:                      variables/12-remove-control-plane-variables.yaml
         parameters:
-          deployer: ${{ parameters.deployer }}
-          deployer_environment: ${{ parameters.deployer_environment }}
-          library: ${{ parameters.library }}
-          use_deployer: ${{ parameters.use_deployer }}
+          deployer:                    ${{ parameters.deployer }}
+          deployer_environment:        ${{ parameters.deployer_environment }}
+          library:                     ${{ parameters.library }}
+          use_deployer:                ${{ parameters.use_deployer }}
     pool:
-      name: $(POOL)
+      name:                            $(POOL)
     jobs:
-      - job: Remove_control_plane_remote
-        displayName: "Start control plane removal"
+      - job:                           Remove_control_plane_remote
+        displayName:                   "Start control plane removal"
         variables:
-          - group: SDAF-${{ parameters.deployer_environment }}
+          - group:                     SDAF-${{ parameters.deployer_environment }}
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - template: templates\download.yaml
+          - template:                  templates\download.yaml
           - bash: |
               #!/bin/bash
               # Exit immediately if a command exits with a non-zero status.
@@ -249,41 +249,41 @@ stages:
                 fi
 
               exit $return_code
-            displayName: Remove control plane
+            displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault: $(Deployer_Key_Vault)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              key_vault:                $(Deployer_Key_Vault)
             failOnStderr: false
 
-  - stage: Remove_control_plane
-    displayName: "Finalize control plane removal"
+  - stage:                              Remove_control_plane
+    displayName:                        "Finalize control plane removal"
     variables:
-      - template: variables/12-remove-control-plane-variables.yaml
+      - template:                       variables/12-remove-control-plane-variables.yaml
         parameters:
-          deployer: ${{ parameters.deployer }}
-          deployer_environment: ${{ parameters.deployer_environment }}
-          library: ${{ parameters.library }}
-          use_deployer: ${{ parameters.use_deployer }}
+          deployer:                     ${{ parameters.deployer }}
+          deployer_environment:         ${{ parameters.deployer_environment }}
+          library:                      ${{ parameters.library }}
+          use_deployer:                 ${{ parameters.use_deployer }}
     pool:
-      name: $(Agent)
+      name:                             $(Agent)
     dependsOn:
       - Remove_control_plane_remote
-    condition: eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
+    condition:                          eq(dependencies.Remove_control_plane_remote.result, 'Succeeded')
     jobs:
-      - job: Remove_control_plane
-        displayName: "Finalize control plane removal"
+      - job:                            Remove_control_plane
+        displayName:                    "Finalize control plane removal"
         variables:
-          - group: SDAF-${{ parameters.deployer_environment }}
+          - group:                     SDAF-${{ parameters.deployer_environment }}
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - template: templates\download.yaml
+          - template:                  templates\download.yaml
           - bash: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
@@ -498,14 +498,14 @@ stages:
                 fi
 
               exit $return_code
-            displayName: Remove control plane
+            displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault: $(Deployer_Key_Vault)
-            failOnStderr: false
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              key_vault:                $(Deployer_Key_Vault)
+            failOnStderr:               false

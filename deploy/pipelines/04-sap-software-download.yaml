@@ -1,7 +1,13 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline downloads the SAP software                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
 parameters:
-  - name: bom_base_name
-    displayName: Name of Bill of Materials (BoM)
-    type: string
+  - name:                              bom_base_name
+    displayName:                       Name of Bill of Materials (BoM)
+    type:                              string
     default:
     values:
       - S4HANA_2021_ISS_v0001ms
@@ -23,46 +29,46 @@ parameters:
       - ORACLE_19_00_ORA_MSID_v0002ms
       - ERP6_EHP8_WIN_MSS2019_v0001ms
 
-  - name: environment
-    displayName: Control Plane Environment
-    default: MGMT
+  - name:                              environment
+    displayName:                       Control Plane Environment
+    default:                           MGMT
 
-  - name: region
-    displayName: Control Plane (SAP Library) location code
-    type: string
-    default: WEEU
+  - name:                              region
+    displayName:                       Control Plane (SAP Library) location code
+    type:                              string
+    default:                           WEEU
 
-  - name: re_download
-    displayName: Re-download software from SAP
-    type: boolean
-    default: false
+  - name:                              re_download
+    displayName:                       Re-download software from SAP
+    type:                              boolean
+    default:                           false
 
-  - name: sap_automation_repo_path
-    displayName: The local path on the agent where the sap_automation repo can be found
-    type: string
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-  - name: config_repo_path
-    displayName: The local path on the agent where the config repo can be found
-    type: string
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
   - stage: Prepare_download
     condition: and(not(failed()), not(canceled()))
     variables:
-      - template: variables/04-sap-software-download-variables.yaml
+      - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
-          environment: ${{ parameters.environment }}
-          re_download: ${{ parameters.re_download }}
-          region: ${{ parameters.region }}
-    displayName: Preparation
+          bom_base_name:               ${{ parameters.bom_base_name }}
+          environment:                 ${{ parameters.environment }}
+          re_download:                 ${{ parameters.re_download }}
+          region:                      ${{ parameters.region }}
+    displayName:                       Preparation
     jobs:
       - job: Prepare_download_job
-        displayName: Preparation
+        displayName:                   Preparation
         workspace:
-          clean: all
+          clean:                       all
         steps:
-          - template: templates\download.yaml
+          - template:                  templates\download.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -149,38 +155,38 @@ stages:
                 else
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
                 fi
-            displayName: Prepare download
-            name: Preparation
+            displayName:                Prepare download
+            name:                       Preparation
             env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-            failOnStderr: false
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+            failOnStderr:               false
 
-  - stage: Software_download
+  - stage:                             Software_download
     variables:
-      - template: variables/04-sap-software-download-variables.yaml
+      - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
-          bom_base_name: ${{ parameters.bom_base_name }}
-          environment: ${{ parameters.environment }}
-          re_download: ${{ parameters.re_download }}
-          region: ${{ parameters.region }}
-    displayName: Download software
+          bom_base_name:               ${{ parameters.bom_base_name }}
+          environment:                 ${{ parameters.environment }}
+          re_download:                 ${{ parameters.re_download }}
+          region:                      ${{ parameters.region }}
+    displayName:                       Download software
 
     jobs:
-      - job: Software_download
-        displayName: Download software
+      - job:                           Software_download
+        displayName:                   Download software
         variables:
-          kv_name: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
-          S-USER: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
-          S-PASSWORD: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
-          BOM_NAME: $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
-        timeoutInMinutes: 0
+          kv_name:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          S-USER:                      $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
+          S-PASSWORD:                  $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
+          BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
+        timeoutInMinutes:              0
         steps:
-          - template: templates\download.yaml
+          - template:                  templates\download.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -229,26 +235,26 @@ stages:
                 fi
 
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
-            displayName: Download
-            name: download
+            displayName:               Download
+            name:                      download
             env:
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-            failOnStderr: false
-          - task: Ansible@0
-            displayName: Download software
-            timeoutInMinutes: 0
+              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+            failOnStderr:              false
+          - task:                      Ansible@0
+            displayName:               Download software
+            timeoutInMinutes:          0
             inputs:
-              ansibleInterface: "agentMachine"
+              ansibleInterface:           "agentMachine"
               playbookPathOnAgentMachine: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml
-              args: ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
-              failOnStderr: false
+              args:                       ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
+              failOnStderr:               false
             env:
               ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_PYTHON_INTERPRETER: auto_silent
-              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
+              ARM_CLIENT_ID:                 $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:             $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                 $(ARM_TENANT_ID)
