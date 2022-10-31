@@ -1,7 +1,7 @@
 ---
-name:    'Oracle19_v0003ms'
+name:    'Oracle19_v0004ms'
 target:  'Oracle 19'
-version: 3
+version: 4
 platform: "ORACLE"
 # New SBP Patch included  in this version
 
@@ -110,5 +110,13 @@ materials:
       # creates:     SIGNATURE.SMF
       url:          https://softwaredownloads.sap.com/file/0020000001075272022
   
+    - name:         "Oracle GRID SBP - Bundle patches for 19c: SBPJDK19P"
+      archive:      SBPJDK19P_2208-70004550.ZIP
+      checksum:     a871c9da35cdce3b8bcf3b21726b0fa52829816dbcbdf40c1737864cb375cbaf
+      extract:      false
+      extractDir:   SBP/SBPJDK
+      path:         SBP
+      # creates:     SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000001074602022
 
 ...

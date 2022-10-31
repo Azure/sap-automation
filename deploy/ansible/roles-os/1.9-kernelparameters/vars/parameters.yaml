@@ -51,7 +51,7 @@ parameters:
     - { tier: 'os', name: 'net.ipv6.conf.all.accept_source_route',         value: '0',                        state: 'present' }
     - { tier: 'os', name: 'net.ipv6.conf.default.accept_redirects',        value: '0',                        state: 'present' }
     - { tier: 'os', name: 'net.ipv6.conf.default.accept_source_route',     value: '0',                        state: 'present' }
-    - { tier: 'os', name: 'kernel.sem',                                    value: '250 32000 32 4096',        state: 'present' }
+    - { tier: 'os', name: 'kernel.sem',                                    value: '250 32000 100 4096',        state: 'present' }
 
   suse15:
     - { tier: 'os',    name: 'fs.protected_hardlinks',                        value: '1',                     state: 'present' }

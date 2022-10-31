@@ -57,30 +57,17 @@
     group:                             oinstall
     mode:                              0755
 
-# - name:                                "SAP Oracle ASM: Permission for Grid software Directory"
-#   ansible.builtin.file:
-#     path:                              /oracle
-#     state:                             directory
-#     recurse:                           true
-#     owner:                             oracle
-#     group:                             oinstall
-#     mode:                              0755
-
-# - name:                                "SAP Oracle ASM: Flag for Oracle Permissions"
-#   ansible.builtin.file:
-#     path:                              "/etc/sap_deployment_automation/oracle/oraclegridpermissions.txt"
-#     owner:                             oracle
-#     group:                             oinstall
-#     mode:                              0755
-
-
-
-
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
 # |                       Oracle Grid: Response file                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
+- name:                                "Oracle: Setting the primary and Secondary DB names"
+  ansible.builtin.set_fact:
+    ora_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:                      "{{ ansible_hostname }}"
 
 - name:                               "SAP Oracle ASM: deploy Grid install response file"
   become:                             true
@@ -108,9 +95,6 @@
     owner:                             oracle
     group:                             oinstall
     remote_src:                        yes
-  # args:
-  #   chdir:                             "/oracle/stage/{{ ora_release }}/grid_home"
-  #   creates:                           /etc/sap_deployment_automation/oracle/gridswunzip.txt
 
 
 - name:                                "SAP Oracle ASM: create after a successful unzip"
@@ -134,6 +118,8 @@
     path:                              "/etc/sap_deployment_automation/oracle/CVUQDISK.txt"
     state:                             touch
     mode:                              0755
+
+
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -175,9 +161,9 @@
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
-                                       /oracle/oraInventory/orainstRoot.sh
-                                       /oracle/stage/{{ ora_release }}/grid_home/root.sh
-  register:                            rootscript_results
+                                       /oracle/oraInventory/orainstRoot.sh |tee -a /etc/sap_deployment_automation/oracle/orainst.log
+                                       /oracle/stage/{{ ora_release }}/grid_home/root.sh |tee -a /etc/sap_deployment_automation/oracle/gridrootexec.log
+  register:                            grid_rootscript_results
   args:
     executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/oracle/gridinstall_rootscript.txt"
@@ -187,6 +173,10 @@
     path:                              "/etc/sap_deployment_automation/oracle/gridinstall_rootscript.txt"
     state:                             touch
     mode:                              0755
+
+# - name:                               "SAP Oracle DB ASM: Sleep for 30 seconds and continue with play"
+#   ansible.builtin.wait_for:
+#     timeout:                          60
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -200,9 +190,9 @@
   ansible.builtin.shell: |
                                        set -o errexit
                                        set -o pipefail
-                                       ./gridSetup.sh -executeConfigTools -silent -responseFile /etc/sap_deployment_automation/oracle/ORACLE_19c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp |tee -a /etc/sap_deployment_automation/oracle/asm_tools_install.log
+                                       ./gridSetup.sh -executeConfigTools  -responseFile /etc/sap_deployment_automation/oracle/ORACLE_19c_00_ASM_{{ ansible_hostname }}_{{ db_sid }}_install.rsp -silent |tee -a /etc/sap_deployment_automation/oracle/asm_tools_install.log
   register:                            tools_installer_results
-  failed_when:        gridinstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+  failed_when:                         tools_installer_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
@@ -216,6 +206,71 @@
     path:                              "/etc/sap_deployment_automation/oracle/asm_tools_install.txt"
     state:                             touch
     mode:                              0755
+
+# - fail:
+#     msg:   "check before creating additional ASM Disk groups"
+
+# Make sure the paritions created are owned by oracle:oinstall before adding the additional disk groups for ASM.
+- name:                             "SAP Oracle ASM: Ensure Partition Permissions are inplace for data disk group"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       chown -R oracle:oinstall '{{ item }}1'
+  register:                            partion_owner_data_results
+  loop:                                "{{ datadisklist }}"
+  args:
+    chdir:                              /dev
+    creates:                            "/etc/sap_deployment_automation/partionownersdata.txt"
+
+- name:                                "SAP Oracle ASM: Partion owner creation"
+  ansible.builtin.file:
+    path:                             "/etc/sap_deployment_automation/partionownersdata.txt"
+    state:                            touch
+    mode:                             0755
+  #when:                               partion_owner_data_results.rc == 0
+
+# For ARCH
+
+- name:                             "SAP Oracle ASM: Ensure Partition Permissions are inplace for arch disk group"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       chown -R oracle:oinstall '{{ item }}1'
+  register:                            partion_owner_arch_results
+  loop:                                "{{ archdisklist }}"
+  args:
+    chdir:                              /dev
+    creates:                            "/etc/sap_deployment_automation/partionownersarch.txt"
+
+- name:                                "SAP Oracle ASM: Partion owner creation ARCH"
+  ansible.builtin.file:
+    path:                             "/etc/sap_deployment_automation/partionownersarch.txt"
+    state:                            touch
+    mode:                             0755
+  #when:                               partion_owner_arch_results.rc == 0
+
+# For RECO
+
+- name:                             "SAP Oracle ASM: Ensure Partition Permissions are inplace for reco disk group"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       set -o errexit
+                                       chown -R oracle:oinstall '{{ item }}1'
+  register:                            partion_owner_reco_results
+  loop:                                "{{ recodisklist }}"
+  args:
+    chdir:                              /dev
+    creates:                            "/etc/sap_deployment_automation/partionownersreco.txt"
+
+- name:                                "SAP Oracle ASM: Partion owner creation ARCH"
+  ansible.builtin.file:
+    path:                             "/etc/sap_deployment_automation/partionownersreco.txt"
+    state:                            touch
+    mode:                             0755
+  #when:                               partion_owner_reco_results.rc == 0
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -233,7 +288,7 @@
                                        ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ archlistrsp }}1'
   register:                            diskgroup_creation_results
   environment:
-    DB_SID:                            "{{ db_sid }}"
+    DB_SID:                            "{{ db_sid | upper }}"
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
