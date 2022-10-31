@@ -4,7 +4,7 @@
 # |               This pipeline deploys the control plane                      |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-trigger:                               none
+
 pool:
   name:                                $[coalesce(variables['run_on'], variables['Agent'])]
 
