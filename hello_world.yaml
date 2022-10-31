@@ -5,6 +5,15 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+parameters:
+  - name: Agentname
+    displayName: "defining the Agent"
+    type: string
+
+variables:
+  - name: Agent
+    value: ${{ lower(parameters.Agentname) }}
+
 pool:
   name:                                $[coalesce(variables['run_on'], variables['Agent'])]
 
