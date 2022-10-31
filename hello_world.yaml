@@ -13,6 +13,8 @@ parameters:
 variables:
   - name: Agent
     value: ${{ lower(parameters.Agentname) }}
+  - name: run_on
+    value: ""
 
 pool:
   name:                                $[coalesce(variables['run_on'], variables['Agent'])]
