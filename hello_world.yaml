@@ -10,9 +10,6 @@ parameters:
     displayName: "defining the Agent"
     type: string
 
-pool:
-  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
-
 stages:
 
   - stage:                             print_hello_world
