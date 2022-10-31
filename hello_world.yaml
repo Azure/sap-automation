@@ -1,0 +1,25 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline deploys the control plane                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+trigger:                               none
+pool:
+  name:                                $[coalesce(variables['run_on'], variables['Agent'])]
+
+stages:
+
+  - stage:                             print_hello_world
+    displayName:                       Printing Hello World
+    jobs:
+      - job:                           Hello_World
+        displayName:                   Printing Hello World
+        workspace:
+          clean:                       all
+        steps:
+          - checkout:                  self
+            persistCredentials:        true
+          - bash: |
+                #!/bin/bash
+                echo "Hello World"
