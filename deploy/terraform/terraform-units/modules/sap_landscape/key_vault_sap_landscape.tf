@@ -48,7 +48,8 @@ resource "azurerm_key_vault" "kv_user" {
 
   lifecycle {
     ignore_changes = [
-      network_acls
+      network_acls,
+      tags
     ]
   }
 
@@ -387,6 +388,9 @@ resource "azurerm_private_endpoint" "kv_user" {
     subresource_names = [
       "Vault"
     ]
+  }
+  lifecycle {
+    ignore_changes = [tags]
   }
 }
 

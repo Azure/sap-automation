@@ -68,6 +68,7 @@ pool:
 
 stages:
   - stage:                             Preparation_for_Ansible
+    condition: and(not(failed()), not(canceled()))
     displayName:                       Preparation steps
     jobs:
       - job:                           Preparation_step
