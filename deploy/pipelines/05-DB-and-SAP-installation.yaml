@@ -276,7 +276,6 @@ stages:
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
-            failOnStderr:                    true
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
