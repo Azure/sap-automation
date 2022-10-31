@@ -153,12 +153,9 @@ stages:
                 cd $HOME
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                if [ -z "$devops_extension_installed" ]; then
-                  az extension add --name azure-devops
-                fi
-                az devops configure -d organization=$(System.CollectionUri)
-                az devops configure -d project=$(System.TeamProject)
+                az config set extension.use_dynamic_install=yes_without_prompt  --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
               echo -e "$green--- Validations ---$reset"
                 ENVIRONMENT=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT

@@ -75,7 +75,7 @@ stages:
                             reset="\e[0m"
                             boldred="\e[1;31m"
 
-                            set -e
+                            set -eu
 
                             ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
                             LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
@@ -95,7 +95,7 @@ stages:
 
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                            echo VARIABLE_GROUP_ID ${VARIABLE_GROUP_ID}
+                            echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
                             if [ -z ${VARIABLE_GROUP_ID} ]; then
                                 echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                                 exit 2
@@ -139,7 +139,7 @@ stages:
                                 exit 2
                             fi
                         # Check if running on deployer
-                        if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                        if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                             echo -e "$green --- Install dos2unix ---$reset"
                             sudo apt-get -qq install dos2unix
                             sudo apt -qq install zip
@@ -223,7 +223,6 @@ stages:
                             echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                             added=0
                             cd $CONFIG_REPO_PATH
-                            git fetch -q --all
                             git pull -q
                             if [ -f ${deployer_environment_file_name} ]; then
                                file_deployer_tfstate_key=$(cat ${deployer_environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs)
@@ -243,6 +242,10 @@ stages:
                               sudo apt install zip
                               zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
+                              added=1
+                            fi
+                            if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
+                              git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
                               added=1
                             fi
                             if [ 1 == $added ]; then
@@ -317,6 +320,8 @@ stages:
                 - template: templates\download.yaml
                 - bash: |
                       #!/bin/bash
+
+                      set -ue
 
                       echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
                           green="\e[1;32m"
@@ -498,13 +503,13 @@ stages:
                           deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
 
                           export key_vault=""
+                          ip_added=0
 
                           if [ -f ${deployer_environment_file_name} ]; then
                               if [ 0 == $bootstrapped ]; then
                                   export key_vault=$(cat ${deployer_environment_file_name} | grep key_vault | awk -F'=' '{print $2}' | xargs) ; echo "Key Vault: $key_vault"
                                   if [ -n "${key_vault}" ]; then
                                       echo 'Deployer Key Vault' ${key_vault}
-                                      ip_added=0
 
                                       if [ "azure pipelines" = "$(this_agent)" ]; then
                                           this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
@@ -620,16 +625,23 @@ stages:
                               added=1
                           fi
 
+                          if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate ]; then
+                              git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate
+                              added=1
+                          fi
                           # || true suppresses the exitcode of grep. To not trigger the strict exit on error
-                          backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate || true)
+                          backend=$(grep "local" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/.terraform/terraform.tfstate || true)
                           if [ -n "${backend}" ]; then
+                              echo "Local Terraform state"
                               if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
+                                  echo "Compressing the deployer state file"
                                   zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                                   added=1
                               fi
                           else
+                              echo "Remote Terraform state"
                               if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                                   git rm -q --ignore-unmatch -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                                   added=1
@@ -640,29 +652,32 @@ stages:
                               fi
                           fi
 
-                          if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
-                              git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
-                              added=1
-                          fi
-
                           # || true suppresses the exitcode of grep. To not trigger the strict exit on error
                           backend=$(grep "local" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate || true)
                           if [ -n "${backend}" ]; then
-                              if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
+                              echo "Local Terraform state"
+                              if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
-                                  zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                                  echo "Compressing the library state file"
+                                  zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                                   added=1
                               fi
                           else
-                              if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
-                                  git rm -q -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                              echo "Remote Terraform state"
+                              if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
+                                  git rm -q -f --ignore-unmatch ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                                   added=1
                               fi
                               if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
                                   git rm -q --ignore-unmatch -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                                   added=1
                               fi
+                          fi
+
+                          if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate ]; then
+                              git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/.terraform/terraform.tfstate
+                              added=1
                           fi
 
                           if [ 1 == $added ]; then

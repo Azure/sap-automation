@@ -82,14 +82,7 @@ stages:
                 az config set extension.use_dynamic_install=yes_without_promp --output none
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
 
-                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                if [ -z $devops_extension_installed ]; then
-                  az extension add --name azure-devops --output none
-                fi
-
-                az devops configure -d organization=$(System.CollectionUri)
-                az devops configure -d project=$(System.TeamProject)
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
               echo -e "$green--- Validations ---$reset"
                 if [ ! -f ${environment_file_name} ]; then

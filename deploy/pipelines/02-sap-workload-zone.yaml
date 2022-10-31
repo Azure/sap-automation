@@ -21,7 +21,7 @@ parameters:
     type:                              string
     default:                           MGMT
 
-  - name:                              deployer_region_parameter
+  - name:                              deployer_region
     displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
     type:                              string
     default:                           WEEU
@@ -151,12 +151,9 @@ stages:
                 cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                if [ -z "$devops_extension_installed" ]; then
-                  az extension add --name azure-devops --output none
-                fi
-                az devops configure -d organization=$(System.CollectionUri)
-                az devops configure -d project=$(System.TeamProject)
+                az config set extension.use_dynamic_install=yes_without_prompt  --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID

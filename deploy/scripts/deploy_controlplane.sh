@@ -138,11 +138,13 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 # Check that webapp exports are defined, if deploying webapp
-if [ $TF_VAR_use_webapp = "true" ]; then
-    validate_webapp_exports
-    return_code=$?
-    if [ 0 != $return_code ]; then
-        exit $return_code
+if [ -n $TF_VAR_use_webapp ]; then
+    if [ $TF_VAR_use_webapp == "true" ]; then
+        validate_webapp_exports
+        return_code=$?
+        if [ 0 != $return_code ]; then
+            exit $return_code
+        fi
     fi
 fi
 
@@ -479,7 +481,9 @@ if [ 2 == $step ]; then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
     STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id  | tr -d \")
 
-    az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address ${this_ip}
+    if [ $ado_flag != "--ado" ] ; then
+        az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address ${this_ip} --output none
+    fi
 
     export TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
 
@@ -557,7 +561,7 @@ if [ 3 == $step ]; then
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
-    echo "calling installer.sh with parameters: $allParams"
+    echo -e "$cyan calling installer.sh with parameters: $allParams"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
@@ -591,6 +595,8 @@ if [ 4 == $step ]; then
 
     cd "${library_dirname}" || exit
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}"  "${ado_flag}")
+
+    echo -e "$cyan calling installer.sh with parameters: $allParams"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?

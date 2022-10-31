@@ -83,8 +83,8 @@ stages:
             persistCredentials:        true
           - bash: |
               #!/bin/bash
-              az extension add --name azure-devops
-              az devops configure --defaults organization=$(System.CollectionUri) project=$(System.TeamProject)
+              az config set extension.use_dynamic_install=yes_without_prompt  --output none
+              az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)'
               export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
 
               WORKLOADZONE_PIPELINE_ID=$(az pipelines list --query "[?name=='$(workload_zone_deployment_pipeline_name)'].id | [0]")

@@ -286,6 +286,8 @@ else
 fi
 return_value=$?
 
+deployer_statefile_foldername_path="${param_dirname}"
+
 if [ -f init_error.log ] ; then
   echo ""
   echo "#########################################################################################"
@@ -341,13 +343,13 @@ if [ -f ./.terraform/terraform.tfstate ]; then
 
         #Initialize the statefile and copy to local
         sed -i /"use_microsoft_graph"/d "${param_dirname}/.terraform/terraform.tfstate"
-        terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate"
-        terraform -chdir="${terraform_module_directory}" init -reconfigure  --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state  --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
+        terraform -chdir="${terraform_module_directory}" init -reconfigure  --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
     else
-        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
     fi
 else
-    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+    terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"
 fi
 
 if [ -f init_error.log ] ; then
@@ -374,7 +376,7 @@ fi
 
 var_file="${param_dirname}"/"${library_file_parametername}"
 
-allParams=$(printf " -var-file=%s -var use_deployer=false -var deployer_statefile_foldername=%s %s %s " "${var_file}" "${relative_path}" "${extra_vars}" "${approveparam}" )
+allParams=$(printf " -var-file=%s -var use_deployer=false -var deployer_statefile_foldername=%s %s %s " "${var_file}" "${deployer_statefile_foldername_path}" "${extra_vars}" "${approveparam}" )
 
 export TF_DATA_DIR="${param_dirname}/.terraform"
 export TF_use_spn=false
@@ -460,8 +462,4 @@ fi
 cd "${curdir}" || exit
 
 unset TF_DATA_DIR
-
-
-
-
 exit $return_value

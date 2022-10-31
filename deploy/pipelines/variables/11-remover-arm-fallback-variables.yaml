@@ -5,6 +5,9 @@ parameters:
   sap_system: ""
   workload_environment: ""
   workload_zone: ""
+  cleanup_workload_zone: false
+  cleanup_control_plane: false
+  connection_name: ""
 
 variables:
   - group: "SDAF-General"

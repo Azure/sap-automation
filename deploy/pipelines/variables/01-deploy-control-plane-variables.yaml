@@ -33,6 +33,7 @@ parameters:
   - name:                              connection_name
     displayName:                       Service Connection Name
     type:                              string
+    default:                           Control_Plane_Service_Connection
 
 variables:
   - group:                             "SDAF-General"
@@ -71,5 +72,4 @@ variables:
 
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
-    type:                              string
 
