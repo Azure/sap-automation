@@ -71,6 +71,7 @@
     state:  mounted
   loop:
     - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
+    - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle' }
   when:                                
     - item.tier == "sapos" or item.tier == "ora"
     - NFS_provider != "NONE"
