@@ -58,7 +58,7 @@ parameters:
 stages:
   - stage: Remove_SAP_systems
     displayName: "Removing the SAP System"
-    condition: and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_sap }}, true)) 
+    condition: and(not(failed()), not(canceled()), eq(${{ parameters.cleanup_sap }}, true))
     variables:
       - template:                      variables/10-remover-terraform-variables.yaml
         parameters:
@@ -191,7 +191,7 @@ stages:
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -464,7 +464,7 @@ stages:
 
               echo -e "$green--- az login ---$reset"
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"

@@ -137,7 +137,7 @@ stages:
                 export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
 
               echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"

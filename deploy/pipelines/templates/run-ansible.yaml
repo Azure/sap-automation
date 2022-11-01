@@ -11,6 +11,9 @@ parameters:
     parametersFolder: ''
     extraParams: ''
     sapParams: ''
+    passwordSecretName: ''
+    userNameSecretName: ''
+
 steps:
 - script: |
     #!/bin/bash
@@ -32,7 +35,7 @@ steps:
       fi
     else
       echo "##[section]Running on an Azure DevOps agent..."
-      az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+      az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
       az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
 
     fi
@@ -43,7 +46,15 @@ steps:
       sudo chmod 600 $PARAMETERS_FOLDER/sshkey
     fi
 
-    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey -e @$SAP_PARAMS -e "_workspace_directory=$PARAMETERS_FOLDER" $EXTRA_PARAMS $ANSIBLE_FILE_PATH"
+    password_secret=$(az keyvault secret show --name $PASSWORD_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv)
+    export ANSIBLE_PASSWORD=$password_secret
+
+    become_user_name=$(az keyvault secret show --name $USERNAME_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv)
+
+    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey -e @$SAP_PARAMS \
+      -e "_workspace_directory=$PARAMETERS_FOLDER"  -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}' \
+      -e become_user_name=$become_user_name \$EXTRA_PARAMS $ANSIBLE_FILE_PATH"
+
     echo "##[section]Executing [$command]..."
     echo "##[group]- output"
     eval $command
@@ -66,3 +77,5 @@ steps:
     INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
     SSH_KEY_NAME:                   ${{ parameters.secretName }}
     VAULT_NAME:                     ${{ parameters.vaultName }}
+    PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
+    USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}

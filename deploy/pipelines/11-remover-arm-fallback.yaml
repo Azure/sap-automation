@@ -310,7 +310,7 @@ stages:
                 else
                   export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
                 fi
-                return_value=0
+                return_code=0
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ARM_SUBSCRIPTION_ID.value" | tr -d \")
@@ -354,7 +354,7 @@ stages:
                 if [ ${#rg} != 0 ]; then
                   echo "Deleting resource group: $(library_folder)"
                   az group delete --name $(library_folder) --yes --only-show-errors
-                  return_value=$?
+                  return_code=$?
                 else
                   echo "Resource group $(library_folder) does not exist."
                 fi
@@ -363,7 +363,7 @@ stages:
                 if [ ${#rg} != 0 ]; then
                   echo "Deleting resource group: $(deployer_folder)"
                   az group delete --name $(deployer_folder) --yes --only-show-errors
-                  return_value=$?
+                  return_code=$?
                 else
                   echo "Resource group $(deployer_folder) does not exist"
                 fi
@@ -373,7 +373,7 @@ stages:
                 export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                 export LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
 
-                if [ 0 == $return_value ] ; then
+                if [ 0 == $return_code ] ; then
                   cd $CONFIG_REPO_PATH
                   git checkout -q $(Build.SourceBranchName)
                   git pull
@@ -467,7 +467,7 @@ stages:
 
                 fi
 
-                exit $return_value
+                exit $return_code
 
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:

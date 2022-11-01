@@ -88,18 +88,16 @@ if ($Project_ID.Length -eq 0) {
   Write-Host "Creating the project: " $ADO_PROJECT
   $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git  --query id).Replace("""", "")
 
-  az devops configure --defaults organization=$ADO_ORGANIZATION project='$ADO_PROJECT'
+  az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_id = (az repos list --query "[].id | [0]").Replace("""", "")
+  $repo_id = (az repos list --query "[?name=='$Env:ADO_Project'].id | [0]").Replace("""", "")
 
   Write-Host "Importing the repo"
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
 
   az repos update --repository $repo_id --default-branch main
 
-  Write-Host "You can optionally import the code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code-"
-
-  $confirmation = Read-Host "Do you want to import the code from GitHub y/n?"
+  $confirmation = Read-Host "You can optionally import Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to import the code from GitHub y/n?"
   if ($confirmation -eq 'y') {
     $import_code = $true
     $code_repo_id = (az repos create --name sap-automation --query id)
@@ -109,25 +107,18 @@ if ($Project_ID.Length -eq 0) {
 }
 
 else {
-  Write-Host "Project: $ADO_PROJECT already exists, do you want to re-import the code from GitHub y/n?"
-  $confirmation = Read-Host "Do you want to import the code from GitHub y/n?"
+  $confirmation = Read-Host "Project: $ADO_PROJECT already exists, do you want to re-import the code from GitHub y/n?"
+  $repo_id = (az repos list --query "[?name=='$Env:ADO_Project'].id | [0]").Replace("""", "")
+  az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
+
   if ($confirmation -eq 'y') {
-    az devops configure --defaults organization=$ADO_ORGANIZATION project='$ADO_PROJECT'
-
-    $repo_id = (az repos list --query "[].id | [0]").Replace("""", "")
-    az repos delete --id $repo_id
-
-    $repo_id = (az repos list --query "[].id | [0]").Replace("""", "")
-    az repos delete --id $repo_id
 
     Write-Host "Importing the repo"
     az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
 
     az repos update --repository $repo_id --default-branch main
 
-    Write-Host "You can optionally import the code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code-"
-
-    $confirmation = Read-Host "Do you want to import the code from GitHub y/n?"
+    $confirmation = Read-Host "You can optionally import Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to import the code from GitHub y/n?"
     if ($confirmation -eq 'y') {
       $import_code = $true
       $code_repo_id = (az repos create --name sap-automation --query id)
@@ -141,12 +132,17 @@ else {
 $idx = $url.IndexOf("_api")
 $pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
 
-Write-Host "Creating the pipelines"
+
+
+$repo_id = (az repos list --query "[?name=='$Env:ADO_Project'].id | [0]").Replace("""", "")
+$repo_name = (az repos list --query "[?name=='$Env:ADO_Project'].id | [0]").Replace("""", "")
+Write-Host "Creating the pipelines in repo: " $repo_name "(" $repo_id ")"
 
 $pipeline_name = 'Deploy Control plane'
-$pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
-if ($pipeline_id.Length -eq 0) {
+$control_plane_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+if ($control_plane_pipeline_id.Length -eq 0) {
   az pipelines create --name $pipeline_name --branch main --description 'Deploys the control plane'  --skip-run --yaml-path "/pipelines/01-deploy-control-plane.yml" --repository $repo_id --repository-type tfsgit --output none
+  $control_plane_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 }
 
 $pipeline_name = 'SAP Workload Zone deployment'
@@ -172,7 +168,7 @@ if ($pipeline_id.Length -eq 0) {
 $pipeline_name = 'Configuration and SAP installation'
 $installation_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($installation_pipeline_id.Length -eq 0) {
-  $installation_pipeline_id = (az pipelines create --name $pipeline_name --branch main --description 'Configures the Operating System and installs the SAP application' --skip-run --yaml-path "/pipelines/05-DB-and-SAP-installation.yml" --repository $repo_id --repository-type tfsgit --output none)
+  $installation_pipeline_id = (az pipelines create --name $pipeline_name --branch main --description 'Configures the Operating System and installs the SAP application' --skip-run --yaml-path "/pipelines/05-DB-and-SAP-installation.yml" --repository $repo_id --repository-type tfsgit --output debug)
 }
 
 $pipeline_name = 'Remove System of Workload Zone'
@@ -298,7 +294,7 @@ else {
 $MGMTGroupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 if ($MGMTGroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $ControlPlanePrefix
-  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id --output yaml  --authorize true --output none
+  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=ERROR yaml  --authorize true --output none
   $MGMTGroupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 }
 
@@ -357,7 +353,7 @@ else {
 $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $WorkloadZonePrefix
-  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$DevSubscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection --output yaml  --authorize true --output none
+  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$DevSubscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection  TF_LOG=ERROR --output yaml  --authorize true --output none
   $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
 }
 
@@ -420,6 +416,24 @@ Read-Host -Prompt "Once you have verified the permission, Press any key to conti
 
 $pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sample_pipeline_id
 
-Write-Host "The browser will now open, please create the control plane configuration in the region you select."
+$control_plane_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $control_plane_pipeline_id
 
-Start-Process $pipeline_url
+
+az devops wiki create --name SDAF
+
+$fname="start.md"
+
+Add-Content $fname "# Welcome to the SDAF Wiki"
+Add-Content $fname ""
+Add-Content $fname ""
+Add-Content $fname "## Next steps"
+Add-Content $fname ""
+Add-Content $fname "Use the [Create Control Plane Configuration Sample]("+ $pipeline_url + ") to create the control plane configuration in the region you select."
+Add-Content $fname ""
+Add-Content $fname "Once it is complete use the [Deploy Control PlanePipeline ]("+ $control_plane_pipeline_url + ") to create the control plane configuration in the region you select."
+
+
+
+url=(az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md  --query page.url)
+Start-Process $wiki_url
+

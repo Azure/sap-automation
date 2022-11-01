@@ -162,7 +162,7 @@ stages:
                             echo -e "$green--- Configuring variables ---$reset"
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- az login ---$reset"
-                            az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                            az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                             return_code=$?
                             if [ 0 != $return_code ]; then
                                 echo -e "$boldred--- Login failed ---$reset"
@@ -184,7 +184,8 @@ stages:
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                                unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                                pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                                unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
                           if [ $(use_webapp) == "true" ]; then
@@ -277,22 +278,23 @@ stages:
 
                   displayName: Deploy control plane
                   env:
-                      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID: $(ARM_TENANT_ID)
-                      TF_VAR_agent_ado_url: $(System.CollectionUri)
-                      AZURE_DEVOPS_EXT_PAT: $(PAT)
-                      IS_PIPELINE_DEPLOYMENT: true
-                      WEB_APP_CLIENT_SECRET: $(WEB_APP_CLIENT_SECRET)
-                      APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-                      POOL: $(POOL)
-                      SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-                      CONFIG_REPO_PATH: ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+                      SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
+                      ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+                      ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
+                      ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+                      ARM_TENANT_ID:               $(ARM_TENANT_ID)
+                      TF_VAR_agent_ado_url:        $(System.CollectionUri)
+                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
+                      IS_PIPELINE_DEPLOYMENT:      true
+                      WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
+                      APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
+                      POOL:                        $(POOL)
+                      SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
+                      CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
                       TF_VAR_ansible_core_version: $(ansible_core_version)
-                      TF_LOG: $(TF_LOG)
-                      DEPLOYER_TFSTATE_KEY: "${{ parameters.deployer }}.terraform.tfstate"
+                      TF_LOG:                      $(TF_LOG)
+                      TF_IN_AUTOMATION:            true
+                      DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
 
                   failOnStderr: false
 
@@ -522,7 +524,7 @@ stages:
                           fi
 
                       echo -e "$green--- az login ---$reset"
-                          az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                          az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
                           return_code=$?
                           if [ 0 != $return_code ]; then
                               echo -e "$boldred--- Login failed ---$reset"
@@ -552,11 +554,13 @@ stages:
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                              unzip  -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(deployerfolder)
+                              pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                              unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                              unzip -qq -o -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                            pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                              unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                           fi
 
                           export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
@@ -749,6 +753,9 @@ stages:
                       CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
                       TF_VAR_ansible_core_version: $(ansible_core_version)
                       TF_LOG:                      $(TF_LOG)
+                      TF_IN_AUTOMATION:            true
+                      DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
+
 
                   failOnStderr: false
 

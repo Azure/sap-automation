@@ -411,10 +411,10 @@ if [ "${secret}" == "${secretname}"  ];
 then
     v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
     if [ "${v}" != "${client_secret}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value="${client_secret}" --only-show-errors --output none
     fi
 else
-    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${client_secret}" --only-show-errors --output none
+    az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value="${client_secret}" --only-show-errors --output none
 fi
 
 exit $return_code
