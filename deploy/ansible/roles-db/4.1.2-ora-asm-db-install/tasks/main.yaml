@@ -38,7 +38,7 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
-    mode:                              0755
+    mode:                              '0755'
 
 - name:                                "SAP Oracle DB ASM: Create Oracle Install Log  directory"
   ansible.builtin.file:
@@ -46,14 +46,14 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
-    mode:                              0755
+    mode:                              '0755'
 
 #   Oracle DB install: Response file
 - name:                               "SAP Oracle DB ASM: deploy Database install response file"
   ansible.builtin.template:
     src:                              ORACLE_{{ ora_release }}c_00_ASM_db_v1_install.rsp.j2
     dest:                             "/etc/sap_deployment_automation/oracle/ORACLE_{{ ora_release }}c_00_ASM_db_{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
-    mode:                             0644
+    mode:                             '0644'
     force:                            true
 
 
@@ -86,7 +86,7 @@
   ansible.builtin.file:
     path:                             "/etc/sap_deployment_automation/oracle/oraextract.txt"
     state:                            touch
-    mode:                             0777
+    mode:                             '0755'
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -115,7 +115,7 @@
   ansible.builtin.file:
     path:                             "/etc/sap_deployment_automation/oracle/dbinstall.txt"
     state:                            touch
-    mode:                             0777
+    mode:                             '0755'
 
 # +------------------------------------4--------------------------------------*/
 # |                                                                            |
@@ -137,7 +137,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracle/dbrootscripstexecuted.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
 
 - name:                                "SAP Oracle DB ASM: Set permissions"
   ansible.builtin.file:
@@ -170,7 +170,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracle/dbtools_install.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
 
 # - name: "FAIL Here"
 #   fail:
@@ -200,7 +200,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracle/dbstopped.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
 
 
 # /*---------------------------------------------------------------------------8
@@ -237,7 +237,7 @@
         src:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
         remote_src:                    true
-        mode:                          0755
+        mode:                          '0755'
   when:
     - not opatch_stat.stat.exists
 
@@ -255,7 +255,7 @@
     src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
     dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                    true
-    mode:                          0755
+    mode:                          '0755'
     owner:                         oracle
     group:                         oinstall
 
@@ -266,7 +266,7 @@
     src:                           "{{ mopatch_path }}"
     dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                    true
-    mode:                          0777
+    mode:                          '0755'
     owner:                         oracle
     group:                         oinstall
 
@@ -295,14 +295,14 @@
   ansible.builtin.copy:
     dest:                          "/etc/sap_deployment_automation/oracle/sbp.log"
     content:                       "{{ sbpscript_results.stdout }}"
-    mode:                          0777
+    mode:                          '0777'
   when:                            sbpscript_results.stdout is defined
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful SBP installation"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracle/sbp_installed.txt
     state:                             touch
-    mode:                               0755
+    mode:                               '0755'
   
    
 
@@ -318,7 +318,7 @@
     src:                           "/oracle/stage/{{ ora_release }}/grid_home"
     dest:                          /oracle/stage/{{ ora_release }}/grid_home.bck
     remote_src:                    true
-    mode:                          0755
+    mode:                          '0755'
     owner:                         oracle
     group:                         oinstall
 
@@ -334,7 +334,7 @@
         src:                           /oracle/stage/{{ ora_release }}/grid_home/MOPatch
         dest:                          /oracle/stage/{{ ora_release }}/grid_home/MOPatch.bck
         remote_src:                    true
-        mode:                          0755
+        mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
   when:
@@ -356,7 +356,7 @@
     src:                           "{{ mopatch_path }}"
     dest:                          /oracle/stage/{{ ora_release }}/grid_home/
     remote_src:                    true
-    mode:                          0777
+    mode:                          '0777'
     owner:                         oracle
     group:                         oinstall
 
@@ -372,7 +372,7 @@
         src:                           /oracle/stage/{{ ora_release }}/grid_home/OPatch
         dest:                          /oracle/stage/{{ ora_release }}/grid_home/OPatch.bck
         remote_src:                    true
-        mode:                          0755
+        mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
   when:
@@ -393,7 +393,7 @@
     src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
     dest:                          /oracle/stage/{{ ora_release }}/grid_home/
     remote_src:                    true
-    mode:                          0755
+    mode:                          '0755'
     owner:                         oracle
     group:                         oinstall
 
@@ -408,7 +408,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracle/gridpreinstall.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
   when:                                gridpreinstall.rc == 0
 
 #$IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oraclegrid_sbp_patch }}
@@ -438,14 +438,14 @@
   ansible.builtin.copy:
     dest:                          "/etc/sap_deployment_automation/oracle/sbpgrid.log"
     content:                       "{{ gridsbpscript_results.stdout }}"
-    mode:                          0777
+    mode:                          '0777'
   when:                            gridsbpscript_results.stdout is defined
 
 - name:                                "SAP Oracle DB ASM: Create flag after a successful SBP Grid installation"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/oracle/gridsbp_installed.txt
     state:                             touch
-    mode:                               0755
+    mode:                               '0755'
 
 #STEP 4.2.3 Post-Processing SBP Patching for Oracle GRID.
 #SAP Note 2893317 - ORA-12547:  TNS:lost contact during SWPM system copy import -NetWeaver
@@ -468,7 +468,7 @@
   ansible.builtin.file:
     path:                             /etc/sap_deployment_automation/oracle/sbpgpostprocess.txt
     state:                            touch
-    mode:                             0755
+    mode:                             '0755'
   #when:                               sbppostpro_results.rc >= 2
 
 - name:                            "ORACLE: Permissions"
@@ -477,7 +477,7 @@
     state:                         file
     owner:                         oracle
     group:                         oinstall
-    mode:                          6751
+    mode:                          '6751'
   tags:
     - skip_ansible_lint
 
@@ -528,7 +528,7 @@
   ansible.builtin.file:
     path:                             /etc/sap_deployment_automation/oracle/diskgroupupdated.txt
     state:                            touch
-    mode:                             0755
+    mode:                             '0755'
 
 ...
 # /*---------------------------------------------------------------------------8

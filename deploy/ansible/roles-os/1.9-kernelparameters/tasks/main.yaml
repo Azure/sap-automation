@@ -49,6 +49,13 @@
                                           (parameters[distribution_id] | default([]))) | unique
                                         }}'
 
+# Print Distribution ID if it is passed correctly.
+- name:                                "1.9 Kernel parameters - Display parameters which will be applied"
+  ansible.builtin.debug:
+    var:                              "{{ distribution_id }}"
+    verbosity:                         2
+
+
 # print only when -vv, otherwise you will have terminal nausea
 - name:                                "1.9 Kernel parameters - Display parameters which will be applied"
   ansible.builtin.debug:

@@ -47,20 +47,26 @@
     verbosity:                         2
 
 # Mount Filesystems
+
+- name:                                "2.6 SAP Mounts: - Check if the 'sap' disk exists"
+  ansible.builtin.set_fact:
+    sap_disk_exists:                   "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'sap') |
+      map(attribute='type') | sort | unique |
+      list | length }}"
+
+
 - name:                                "2.6 SAP Mounts: - Mount local sap file systems"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               '/dev/vg_sap/lv_usrsap'
+    path:                              '/usr/sap'
+    fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
-  loop:
-    - { node_tier: 'all',  type: 'xfs', src: '/dev/vg_sap/lv_usrsap', path: '/usr/sap' }
   when:
-    - (item.node_tier == "all" or item.node_tier == node_tier)
-    - not scs_high_availability
-    - node_tier != 'observer'
-    - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
+    - sap_disk_exists == '1'
+    - usr_sap_mountpoint is undefined
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.posix.mount:
@@ -268,6 +274,16 @@
 
 # Import this task only if the tier is ora for oracle-asm.
 - import_tasks:                        "oracle-asm-prereq.yaml"
+  when:
+    - node_tier == "oracle-asm"
+
+- name:                                "2.6 SAP Mounts: - Mount local sap file systems"
+  ansible.posix.mount:
+    src:                               '/dev/vg_oracle/lv_oracle'
+    path:                              '/oracle'
+    fstype:                            'xfs'
+    opts:                              defaults
+    state:                             mounted
   when:
     - node_tier == "oracle-asm"
 
