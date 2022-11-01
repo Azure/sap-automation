@@ -55,9 +55,10 @@ storageBasedCopy.ora.ABAPSchema                                     = SAPSR3
 
 # Path to 'ORACLE_HOME' directory of GRID software
 ora.grid.ORACLE_HOME                                                = /oracle/stage/{{ ora_release }}/grid_home
+ora.whatIsInstance = isSingle
 
 # ORACLE_SID' of 'GRID', default value is: '+ASM'
-# ora.grid.ORACLE_SID = +ASM
+ora.grid.ORACLE_SID = +ASM
 
 # Install Multitenant Pluggable DB, possible values are
 #         FALSE:    no pluggable installation (default value)
@@ -81,7 +82,7 @@ ora.whatInstallation                                                 = isASM
 # possible values are
 #         true:  Database on ASM.
 #         false: Database not on ASM.
-#ora.whatIsASM                                                        = true
+ora.whatIsASM                                                        = true
 
 # possible values are
 #         true:  Database Software installed as oracle user.
