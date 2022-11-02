@@ -21,6 +21,19 @@
   loop: "{{ logical_volumes }}"
   register: oravgstat
 
+- name:     "Mount SAP Filesystems on Database for installation when using Shared File systems"
+  ansible.posix.mount:
+    src:    "{{ item.src }}"
+    path:   "{{ item.path }}"
+    fstype: "{{ item.type }}"
+    opts:   defaults
+    state:  mounted
+  loop:
+    - { type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
+    - { type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle' }
+  when:                                
+    - NFS_provider != "NONE"
+
 - name:                                Print oravgstat
   ansible.builtin.debug:
     var:                               oravgstat
