@@ -67,6 +67,7 @@
   when:
     - sap_disk_exists == '1'
     - usr_sap_mountpoint is undefined
+    - node_tier != "oracle-asm"
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.posix.mount:
@@ -277,15 +278,6 @@
   when:
     - node_tier == "oracle-asm"
 
-- name:                                "2.6 SAP Mounts: - Mount local sap file systems"
-  ansible.posix.mount:
-    src:                               '/dev/vg_oracle/lv_oracle'
-    path:                              '/oracle'
-    fstype:                            'xfs'
-    opts:                              defaults
-    state:                             mounted
-  when:
-    - node_tier == "oracle-asm"
 
 # Import this task only if the tier is ora for oracle-asm.
 - import_tasks:                        "oracle-asm.yaml"
