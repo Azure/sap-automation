@@ -218,7 +218,7 @@
     - tier == 'sapos'
     - node_tier != 'scs'
     - usr_sap_install_mountpoint is not defined
-
+    
 # Mount File systems for SCS server in Multi-SID installations
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
   block:

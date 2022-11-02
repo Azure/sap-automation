@@ -33,8 +33,6 @@
   ansible.builtin.debug:
     var:                               lvexists
 
-# - fail: msg="here"
-
 - name:                                "SAP Mounts: - Create SAP Directories (sapmnt)"
   ansible.builtin.file:
     owner:                             root
@@ -45,8 +43,21 @@
   when: 
     - node_tier == "oracle-asm"
 
+- name:     "Mount SAP Filesystems on Database for usrsap and oracle"
+  ansible.posix.mount:
+    src:    "{{ item.src }}"
+    path:   "{{ item.path }}"
+    fstype: "{{ item.type }}"
+    opts:   defaults
+    state:  mounted
+  loop:
+    - { type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
+    - { type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle'  }
+  when:                                
+    - node_tier == "oracle-asm"
+    
 
-# Mount Filesystems
+# Mount Filesystems when AFS is not used.
 - name:     "Mount SAP Filesystems on Database for installation when using NFS Cluster"
   ansible.posix.mount:
     src:    "{{ item.src }}"
@@ -55,82 +66,19 @@
     opts:   defaults
     state:  mounted
   loop:
-    # - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',    path: '{{ target_media_location }}' }                # Special Install Structure; Destroy on Completion
-    - { tier: 'ora',            type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ db_sid | upper }}',     path: '/sapmnt/{{ db_sid | upper }}' }
+    - { type: 'nfs4',    src: '{{ nfs_server }}:{{ target_media_location }}',      path: '{{ target_media_location }}'  }  
+    - { type: 'nfs4',    src: '{{ nfs_server }}:/sapmnt/{{ db_sid | upper }}',     path: '/sapmnt/{{ db_sid | upper }}' }
   when:                                
-    - item.tier == "sapos" or item.tier == "ora"
     - NFS_provider == "NONE"
 
-- name:     "Mount SAP Filesystems on Database for installation when using Shared File systems"
-  ansible.posix.mount:
-    src:    "{{ item.src }}"
-    path:   "{{ item.path }}"
-    fstype: "{{ item.type }}"
-    opts:   defaults
-    state:  mounted
-  loop:
-    - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
-    - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle' }
-  when:                                
-    - item.tier == "sapos" or item.tier == "ora"
-    - NFS_provider != "NONE"
 
-
-
-
-# Mount install file system on Observer node.
+# Mount install file system .
 - name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
   ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
+    src:                               "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+    path:                              "{{ target_media_location }}"
+    fstype:                            "nfs4"
     opts:                              "vers=4,minorversion=1,sec=sys"
     state:                             mounted
-  vars:
-    # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
-  loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}', path: '{{ target_media_location }}' }
   when:
-    - node_tier != 'observer'
     - use_AFS
-
-# ORASID should be the owner of the file systems /oracle directories.
-# .PARAMS folder is not required for oracle install as we are not passing any parameters files.
-
-# Mount install file system on Observer node.
-- name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
-  ansible.posix.mount:
-    src:                               "{{ item.src }}"
-    path:                              "{{ item.path }}"
-    fstype:                            "{{ item.type }}"
-    opts:                              "vers=4,minorversion=1,sec=sys"
-    state:                             mounted
-  vars:
-    # Get all the hostnames in <SID>_SCS group and return only the first hostname
-    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
-  loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
-  when:
-    - node_tier == 'observer'
-    - use_AFS
-
-
-# - name:                                "Make oracle:oinstall as owners"
-#   ansible.builtin.file:
-#     path:                              /oracle
-#     group:                             oracle:oinstall
-#     mode:                              0777
-
-# - name:                                "Make oracle:oinstall as owners"
-#   ansible.builtin.file:
-#     path:                              "{{ target_media_location }}"
-#     group:                             oracle:oinstall
-#     mode:                              0777
-
-
-# Debug for testing
-- name:                                "Print oracle filesystems"
-  ansible.builtin.debug:
-    var:                               oraclefilesystemmounts
