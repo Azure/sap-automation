@@ -95,7 +95,7 @@
 
     - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
       ansible.builtin.include_role:
-        name:                      roles-os/1.5-disk-setup-asm-sap
+        name:                      roles-os/1.5.1.1-disk-setup-asm-sap
       when:                        
         - node_tier == "oracle-asm"
       tags:
