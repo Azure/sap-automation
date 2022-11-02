@@ -283,6 +283,8 @@ stages:
           clean:                       all
         steps:
           - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch:     true
           - task:                      PostBuildCleanup@3
           - bash: |
               #!/bin/bash
@@ -399,8 +401,6 @@ stages:
 
                 if [ 0 == $return_code ] ; then
                   cd $CONFIG_REPO_PATH
-                  git checkout -q $(Build.SourceBranchName)
-                  git pull
                   changed=0
                   echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
                     if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
@@ -424,10 +424,12 @@ stages:
                     fi
 
                     if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
+                      rm .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                       git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                       changed=1
                     fi
                     if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
+                      rm .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                       git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
                       changed=1
                     fi

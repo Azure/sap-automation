@@ -321,6 +321,8 @@ stages:
             steps:
                 - task: PostBuildCleanup@3
                 - template: templates\download.yaml
+                  parameters:
+                    getLatestFromBranch: true
                 - bash: |
                       #!/bin/bash
 
