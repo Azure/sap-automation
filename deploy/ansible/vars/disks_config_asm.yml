@@ -60,14 +60,14 @@ disk_type_to_name_map:
 # Adding Tier and disk types for Oracle installation ASM.
 logical_volumes:
 
-  - tier:       'ora'
+  - tier:       'sapos'
     node_tier:  'oracle-asm'
     vg:         'vg_oracle'
     lv:         'lv_oracle'
     size:       '64g'
     fstype:     'xfs'
 
-  - tier:       'ora'
+  - tier:       'sapos'
     node_tier:  'oracle-asm'
     vg:         'vg_sap'
     lv:         'lv_usrsap'
