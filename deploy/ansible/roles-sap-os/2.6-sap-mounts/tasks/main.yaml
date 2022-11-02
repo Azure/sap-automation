@@ -277,7 +277,7 @@
 - import_tasks:                        "oracle-asm-prereq.yaml"
   when:
     - node_tier == "oracle-asm"
-    - tier == "ora"
+   
 
 
 # Import this task only if the tier is ora for oracle-asm.
