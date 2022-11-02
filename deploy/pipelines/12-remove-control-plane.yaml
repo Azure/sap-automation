@@ -211,29 +211,29 @@ stages:
                 fi
 
                 if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
-                  git rm -q -f -r --ignore-unmatch "$(Deployment_Configuration_Path)/DEPLOYER/$(deployer_folder)/.terraform"
+                  git rm -q -f -r --ignore-unmatch "DEPLOYER/$(deployer_folder)/.terraform"
                   changed=1
                 fi
 
                 if [ -f  "LIBRARY/$(library_folder)/backend-config.tfvars ]; then
-                    git rm -q -f $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/backend-config.tfvars
+                    git rm -q -f LIBRARY/$(library_folder)/backend-config.tfvars
                     changed=1
                 fi
 
                 if [ -f "LIBRARY/$(library_folder)/state.zip ]; then
                   echo "Removing the compressed state file."
-                  git rm -q  --ignore-unmatch $(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/state.zip
+                  git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
                   changed=1
                 fi
 
                 if [ -f "LIBRARY/$(library_folder)/terraform.tfstate" ]; then
                   echo "Removing the state file."
-                  git rm -q -f --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/terraform.tfstate"
+                  git rm -q -f --ignore-unmatch "LIBRARY/$(library_folder)/terraform.tfstate"
                   changed=1
                 fi
 
                 if [ -d "LIBRARY/$(library_folder)/.terraform" ]; then
-                  git rm -q -f -r --ignore-unmatch "$(Deployment_Configuration_Path)/LIBRARY/$(library_folder)/.terraform/terraform.tfstate"
+                  git rm -q -f -r --ignore-unmatch "LIBRARY/$(library_folder)/.terraform/terraform.tfstate"
                   changed=1
                 fi
 
