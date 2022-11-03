@@ -37,6 +37,10 @@ if ($Control_plane_subscriptionID.Length -eq 0) {
   $ControlPlaneSubscriptionName = (az account show --query name -o tsv)
   exit
 }
+else {
+  az account set --sub $Control_plane_subscriptionID
+  $ControlPlaneSubscriptionName = (az account show --query name -o tsv)
+}
 
 if ($ControlPlaneSubscriptionName.Length -eq 0) {
   Write-Host "ControlPlaneSubscriptionName is not set"
@@ -50,6 +54,10 @@ if ($Workload_zone_subscriptionID.Length -eq 0) {
   $Workload_zoneSubscriptionName = (az account show --query name -o tsv)
 
   exit
+}
+else {
+  az account set --sub $Workload_zone_subscriptionID
+  $Workload_zoneSubscriptionName = (az account show --query name -o tsv)
 }
 
 if ($Workload_zoneSubscriptionName.Length -eq 0) {
@@ -543,14 +551,19 @@ $pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
 
 $POOL_NAME_FOUND = (az pipelines pool list  --query "[?name=='$Pool_Name'].name | [0]")
 if ($POOL_NAME_FOUND.Length -gt 0) {
-  Write-Host "Agent pool" $Pool_Name  "already exists"
+  Write-Host ("Agent pool" + $Pool_Name + "already exists")
 }
 else {
-  Write-Host ""
-  Write-Host "The browser will now open, please create an Agent Pool with the name '$Pool_Name'. Ensure that the Agent Pool is defined using the Self-hosted pool type."
 
-  Start-Process $pool_url.Replace("""", "")
-  Read-Host -Prompt "Once you have created the Agent pool, Press any key to continue"
+  Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
+  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
+
+  $uri = $ADO_ORGANIZATION+"/_apis/distributedtask/pools?api-version=6.0"
+  $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} `
+    -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true})
+
+    Write-Host "Agent pool" $Pool_Name  "created"
+
 }
 Write-Host ""
 Write-Host "The browser will now open, Select the '" $Env:ADO_PROJECT " Build Service' user and ensure that it has 'Allow' in the Contribute section."
