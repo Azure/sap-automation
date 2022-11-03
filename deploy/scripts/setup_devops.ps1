@@ -147,7 +147,7 @@ if ($Project_ID.Length -eq 0) {
 
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_id = (az repos list --query "[?name=='$Env:ADO_Project'].id | [0]").Replace("""", "")
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
@@ -178,7 +178,7 @@ else {
   Add-Content -Path $fname -Value "DevOps Project: $ADO_PROJECT"
 
   $confirmation = Read-Host "Project: $ADO_PROJECT already exists, do you want to import the code from GitHub y/n?"
-  $repo_id = (az repos list --query "[?name=='$Env:ADO_Project'].id | [0]").Replace("""", "")
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
   if ($confirmation -eq 'y') {
@@ -231,8 +231,8 @@ else {
 
 #endregion
 
-$repo_id = (az repos list --query "[?name=='$Env:ADO_Project'].id | [0]").Replace("""", "")
-$repo_name = (az repos list --query "[?name=='$Env:ADO_Project'].name | [0]").Replace("""", "")
+$repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
+$repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]").Replace("""", "")
 
 #region Create pipelines
 Write-Host "Creating the pipelines in repo: " $repo_name "(" $repo_id ")" -foregroundColor Green
@@ -566,7 +566,7 @@ else {
 
 }
 Write-Host ""
-Write-Host "The browser will now open, Select the '" $Env:ADO_PROJECT " Build Service' user and ensure that it has 'Allow' in the Contribute section."
+Write-Host "The browser will now open, Select the '" $ADO_PROJECT " Build Service' user and ensure that it has 'Allow' in the Contribute section."
 
 $permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
 
