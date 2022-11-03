@@ -558,7 +558,7 @@ else {
   Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
-  $uri = $ADO_ORGANIZATION+"/_apis/distributedtask/pools?api-version=6.0"
+  $uri = $ADO_ORGANIZATION+"/_apis/distributedtask/pools?api-version=6.0?authorizePipelines=true"
   $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} `
     -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true})
 
