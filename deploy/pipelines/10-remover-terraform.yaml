@@ -42,10 +42,15 @@ parameters:
     type:                              string
     default:                           MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              environment
+  - name:                              workload_environment
     displayName:                       Environment (DEV, QUA, PRD)
     type:                              string
     default:                           DEV
+
+  - name:                              deployer_environment
+    displayName:                       Environment (MGMT)
+    type:                              string
+    default:                           MMGMT
 
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
@@ -66,7 +71,6 @@ stages:
           workload_environment:        ${{ parameters.workload_environment }}
           workload_zone:               ${{ parameters.workload_zone }}
           sap_system:                  ${{ parameters.sap_system }}
-          use_deployer:                ${{ parameters.use_deployer }}
     jobs:
       - job:                           Remove_SAP_systems
         displayName:                   "Removing the SAP System"
@@ -333,7 +337,6 @@ stages:
           workload_environment:        ${{ parameters.workload_environment }}
           workload_zone:               ${{ parameters.workload_zone }}
           sap_system:                  ${{ parameters.sap_system }}
-          use_deployer:                ${{ parameters.use_deployer }}
 
     jobs:
       - job:                           Remove_SAP_workload_zone

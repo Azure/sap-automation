@@ -105,6 +105,8 @@ if ($url.Length -eq 0) {
   exit
 }
 
+$pipeline_permission_url = ""
+
 $idx = $url.IndexOf("_api")
 $pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
 
@@ -164,6 +166,8 @@ if ($Project_ID.Length -eq 0) {
     $code_repo_id = (az repos create --name sap-automation --query id)
     az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
     az repos update --repository $code_repo_id --default-branch main
+    $queryString = "?api-version=6.0-preview"
+    $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
   }
   else {
     Add-Content -Path $fname -Value ""
@@ -205,9 +209,9 @@ else {
     Add-Content -Path $fname -Value ""
     Add-Content -Path $fname -Value "Using the code directly from GitHub"
 
-    $resources_url= $ADO_ORGANIZATION + "/_git/" + [uri]::EscapeDataString($ADO_Project) + "?path=/pipelines/resources.yml"
+    $resources_url = $ADO_ORGANIZATION + "/_git/" + [uri]::EscapeDataString($ADO_Project) + "?path=/pipelines/resources.yml"
 
-    $log=("Please update [resources.yml]("+ $resources_url + ") to point to Github instead of Azure DevOps.")
+    $log = ("Please update [resources.yml](" + $resources_url + ") to point to Github instead of Azure DevOps.")
 
     $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
     Write-Host ""
@@ -215,7 +219,7 @@ else {
     Start-Process $gh_connection_url
     Read-Host "Please press enter when you have created the connection"
 
-    $ghConn=(az devops service-endpoint list --query "[?type=='github'].name | [0]")
+    $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]")
 
     Add-Content -Path $fname -Value $log
 
@@ -241,15 +245,39 @@ Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value "### Pipelines"
 Add-Content -Path $fname -Value ""
 
+$pipeline_name = 'Create Control Plane configuration'
+$sample_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+if ($sample_pipeline_id.Length -eq 0) {
+  az pipelines create --name $pipeline_name --branch main --description 'Create sample configuration'  --skip-run --yaml-path "/pipelines/22-sample-deployer-configuration.yml" --repository $repo_id --repository-type tfsgit --output none
+  $sample_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+}
+$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sample_pipeline_id
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+Add-Content -Path $fname -Value $log
+
+$bodyText = [PSCustomObject]@{
+  pipelines = @([ordered]@{
+      id         = $sample_pipeline_id
+      authorized = $true
+    })
+}
+
+
 $pipeline_name = 'Deploy Control plane'
 $control_plane_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($control_plane_pipeline_id.Length -eq 0) {
   az pipelines create --name $pipeline_name --branch main --description 'Deploys the control plane'  --skip-run --yaml-path "/pipelines/01-deploy-control-plane.yml" --repository $repo_id --repository-type tfsgit --output none
   $control_plane_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
-
 }
+
+$bodyText.pipelines += @{
+  id         = $control_plane_pipeline_id
+  authorized = $true
+}
+
+
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $control_plane_pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'SAP Workload Zone deployment'
@@ -260,8 +288,13 @@ if ($wz_pipeline_id.Length -eq 0) {
 
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $wz_pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
+
+$bodyText.pipelines += @{
+  id         = $wz_pipeline_id
+  authorized = $true
+}
 
 $pipeline_name = 'SAP SID Infrastructure deployment'
 $system_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
@@ -271,8 +304,12 @@ if ($system_pipeline_id.Length -eq 0) {
 
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $system_pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $system_pipeline_id
+  authorized = $true
+}
 
 $pipeline_name = 'SAP Software acquisition'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
@@ -282,8 +319,12 @@ if ($pipeline_id.Length -eq 0) {
 
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
 
 $pipeline_name = 'Configuration and SAP installation'
 $installation_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
@@ -291,8 +332,12 @@ if ($installation_pipeline_id.Length -eq 0) {
   $installation_pipeline_id = (az pipelines create --name $pipeline_name --branch main --description 'Configures the Operating System and installs the SAP application' --skip-run --yaml-path "/pipelines/05-DB-and-SAP-installation.yml" --repository $repo_id --repository-type tfsgit --output none)
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $installation_pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
 
 $pipeline_name = 'Remove System of Workload Zone'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
@@ -300,9 +345,18 @@ if ($pipeline_id.Length -eq 0) {
   az pipelines create --name $pipeline_name --branch main --description 'Removes either the SAP system or the workload zone'  --skip-run --yaml-path "/pipelines/10-remover-terraform.yml" --repository $repo_id --repository-type tfsgit --output none
   $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 }
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
+
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
 
 $pipeline_name = 'Remove deployments via ARM'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
@@ -310,9 +364,14 @@ if ($pipeline_id.Length -eq 0) {
   az pipelines create --name $pipeline_name --branch main --description 'Removes the resource groups via ARM. Use this only as last resort'  --skip-run --yaml-path "/pipelines/11-remover-arm-fallback.yml" --repository $repo_id --repository-type tfsgit --output none
   $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 }
+
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
 
 $pipeline_name = 'Remove control plane'
 $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
@@ -321,30 +380,30 @@ if ($pipeline_id.Length -eq 0) {
   $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
 
 if ($import_code) {
   $pipeline_name = 'Update repository'
   $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
   if ($pipeline_id.Length -eq 0) {
     az pipelines create --name $pipeline_name --branch main --description 'Updates the codebase'  --skip-run --yaml-path "/pipelines/20-update-ado-repository.yml" --repository $repo_id --repository-type tfsgit --output none
-    }
-    $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
-    $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
-    $log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
-    Add-Content -Path $fname -Value $log
-    }
+  }
+  $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+  $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+  $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+  Add-Content -Path $fname -Value $log
+  $bodyText.pipelines += @{
+    id         = $pipeline_id
+    authorized = $true
+  }
 
-$pipeline_name = 'Create Control Plane configuration'
-$sample_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
-if ($sample_pipeline_id.Length -eq 0) {
-  az pipelines create --name $pipeline_name --branch main --description 'Create sample configuration'  --skip-run --yaml-path "/pipelines/22-sample-deployer-configuration.yml" --repository $repo_id --repository-type tfsgit --output none
-  $sample_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 }
-$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sample_pipeline_id
-$log=("["+$pipeline_name+"]("+ $this_pipeline_url + ")")
-Add-Content -Path $fname -Value $log
+
 
 #endregion
 
@@ -403,7 +462,7 @@ if ($Env:SDAF_MGMT_SPN_NAME.Length -ne 0) {
   $spn_name = $Env:SDAF_MGMT_SPN_NAME
 }
 
-Add-Content -Path $fname -Value ("Control Plane Service Principal:"+ $spn_name)
+Add-Content -Path $fname -Value ("Control Plane Service Principal:" + $spn_name)
 
 $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
@@ -440,32 +499,47 @@ else {
   $ARM_TENANT_ID = $Control_plane_SPN_data.tenant
   $ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
 
-  az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Workload_zone_subscriptionID --output none
-  az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --output none
-
-  Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green
-
-  $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $Control_plane_SPN_data.password
-  $epExists = (az devops service-endpoint list   --query "[?name=='Control_Plane_Service_Connection'].name | [0]")
-  if ($epExists.Length -eq 0) {
-    az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name "Control_Plane_Service_Connection" --output none --only-show-errors
-
-    $epId = az devops service-endpoint list  --query "[?name=='Control_Plane_Service_Connection'].id" -o tsv
-    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
-  }
-
 }
+
+az role assignment create --assignee $ARM_CLIENT_ID --role "Contributor" --subscription $Workload_zone_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "Contributor" --subscription $Control_plane_subscriptionID --output none
+
+az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Workload_zone_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --output none
+
 
 $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 if ($Control_plane_groupID.Length -eq 0) {
   Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG='ERROR'  --output none  --authorize true
+  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id  --output none  --authorize true
   $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 }
 
 if ($ARM_CLIENT_SECRET -ne "Please update") {
   az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --secret true --output none --only-show-errors
 }
+
+Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green
+
+$Service_Connection_Name = "Control_Plane_Service_Connection"
+$Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
+
+$epExists = (az devops service-endpoint list   --query "[?name=='$Service_Connection_Name'].name | [0]")
+if ($epExists.Length -eq 0) {
+  Write-Host "Creating Service Endpoint" $Service_Connection_Name -ForegroundColor Green
+  az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+  $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
+  az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+}
+else {
+  Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
+  az devops service-endpoint delete --id $epId --yes
+  az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+  $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
+  az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+}
+
 
 $ARM_CLIENT_SECRET = "Please update"
 
@@ -503,30 +577,42 @@ else {
   $ARM_TENANT_ID = $Data.tenant
   $ARM_CLIENT_SECRET = $Data.password
 
-  Write-Host "Assigning reader permissions to the control plane subscription" -ForegroundColor Green
-
-  az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Control_plane_subscriptionID --output none
-
   Write-Host "Create the Service Endpoint in Azure DevOps" -ForegroundColor Green
 
-  $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $Data.password
-  $epExists = (az devops service-endpoint list   --query "[?name=='WorkloadZone_Service_Connection'].name | [0]")
-  if ($epExists.Length -eq 0) {
-    az devops service-endpoint azurerm create  --azure-rm-service-principal-id $Data.appId --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $Data.tenant --name "WorkloadZone_Service_Connection" --output none --only-show-errors
-    $epId = az devops service-endpoint list  --query "[?name=='WorkloadZone_Service_Connection'].id" -o tsv
-    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
-  }
 }
+
+Write-Host "Assigning reader permissions to the control plane subscription" -ForegroundColor Green
+az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Control_plane_subscriptionID --output none
 
 $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection  TF_LOG=ERROR --output yaml  --authorize true --output none
+  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection  --output yaml  --authorize true --output none
   $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
 }
 
+
 if ($ARM_CLIENT_SECRET -ne "Please update") {
   az pipelines variable-group variable update --group-id $GroupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID  --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --secret true --output none --only-show-errors
+  $Service_Connection_Name = "WorkloadZone_Service_Connection"
+  $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
+
+  $epExists = (az devops service-endpoint list   --query "[?name=='$Service_Connection_Name'].name | [0]")
+  if ($epExists.Length -eq 0) {
+    Write-Host "Creating Service Endpoint" $Service_Connection_Name -ForegroundColor Green
+    az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+    $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
+    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+  }
+  else {
+    Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
+    az devops service-endpoint delete --id $epId --yes
+    az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+    $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
+    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+  }
+
 }
 
 #endregion
@@ -544,7 +630,13 @@ else {
   $PAT = Read-Host -Prompt "Enter the PAT you just created"
   az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "PAT" --value $PAT --secret true --only-show-errors
   az pipelines variable-group variable update --group-id $GroupID  --name "PAT" --value $PAT --secret true --only-show-errors
-  <# Action when all if and elseif conditions are false #>
+  # Create header with PAT
+  $token = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($PAT)"))
+  $header = @{authorization = "Basic $token" }
+  $body = $bodyText | ConvertTo-Json -Depth 10
+
+  Invoke-WebRequest -Method PATCH -Uri $pipeline_permission_url -Headers $header -ContentType "application/json" -Body $body
+
 }
 
 $pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
@@ -558,11 +650,11 @@ else {
   Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
-  $uri = $ADO_ORGANIZATION+"/_apis/distributedtask/pools?api-version=6.0?authorizePipelines=true"
-  $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} `
-    -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true})
+  $uri = $ADO_ORGANIZATION + "/_apis/distributedtask/pools?api-version=6.0?authorizePipelines=true"
+  $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } `
+    -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
 
-    Write-Host "Agent pool" $Pool_Name  "created"
+  Write-Host "Agent pool" $Pool_Name  "created"
 
 }
 Write-Host ""
@@ -578,7 +670,7 @@ $pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) 
 $control_plane_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $control_plane_pipeline_id
 
 $WIKI_NAME_FOUND = (az devops wiki list  --query "[?name=='SDAF'].name | [0]")
- if ($WIKI_NAME_FOUND.Length -gt 0) {
+if ($WIKI_NAME_FOUND.Length -gt 0) {
   Write-Host "Wiki SDAF already exists"
 }
 else {
@@ -587,22 +679,22 @@ else {
 
 Add-Content -Path $fname -Value "## Next steps"
 Add-Content -Path $fname -Value ""
-Add-Content -Path $fname -Value ( "Use the [Create Control Plane Configuration Sample]("+ $pipeline_url + ") to create the control plane configuration in the region you select." )
+Add-Content -Path $fname -Value ( "Use the [Create Control Plane Configuration Sample](" + $pipeline_url + ") to create the control plane configuration in the region you select." )
 Add-Content -Path $fname -Value ""
-Add-Content -Path $fname -Value ( "Once it is complete use the [Deploy Control Plane Pipeline ]("+ $control_plane_pipeline_url + ") to create the control plane configuration in the region you select.")
+Add-Content -Path $fname -Value ( "Once it is complete use the [Deploy Control Plane Pipeline ](" + $control_plane_pipeline_url + ") to create the control plane configuration in the region you select.")
 Add-Content -Path $fname -Value ""
 
 
-$eTag=(az devops wiki page show --path 'Next steps' --wiki SDAF --query eTag )
+$eTag = (az devops wiki page show --path 'Next steps' --wiki SDAF --query eTag )
 if ($eTag.Length -gt 0) {
-  $page_id=(az devops wiki page update --path 'Next steps' --wiki SDAF --file-path .\start.md --only-show-errors --version $eTag --query page.id)
+  $page_id = (az devops wiki page update --path 'Next steps' --wiki SDAF --file-path .\start.md --only-show-errors --version $eTag --query page.id)
 }
 else {
-  $page_id=(az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md --output none --only-show-errors --query page.id)
+  $page_id = (az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md --output none --only-show-errors --query page.id)
 }
 
 
-$wiki_url= $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_wiki/wikis/SDAF/" + $page_id + "/Next-steps"
+$wiki_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_wiki/wikis/SDAF/" + $page_id + "/Next-steps"
 Start-Process $wiki_url
 
 if (Test-Path .\start.md) {

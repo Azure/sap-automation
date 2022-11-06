@@ -114,7 +114,12 @@ stages:
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
               echo -e "$green--- Get key_vault name ---$reset"
-
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                    exit 2
+                fi
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
                 if [ -n ${az_var} ]; then
                     kv_name=${az_var}; echo "Key Vault="$kv_name

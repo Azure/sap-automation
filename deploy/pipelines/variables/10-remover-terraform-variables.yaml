@@ -10,7 +10,6 @@ parameters:
   workload_environment: ''
   workload_zone: ''
   sap_system: ''
-  use_deployer: ''
 
 variables:
   - group:                             "SDAF-General"
@@ -21,7 +20,7 @@ variables:
     value:                             SDAF-${{ parameters.deployer_environment }}
 
   - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.workload_environment }}
