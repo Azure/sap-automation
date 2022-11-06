@@ -134,12 +134,12 @@ resource "azurerm_lb_probe" "scs" {
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
-  number_of_probes    = local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS" ? 4 : 2
+  number_of_probes    = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
 }
 
 resource "azurerm_lb_probe" "clst" {
   provider        = azurerm.main
-  count           = local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS" ? 1 : 0
+  count           = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 1 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
   name = format("%s%s%s%s",
     var.naming.resource_prefixes.scs_clst_hp,
@@ -150,12 +150,12 @@ resource "azurerm_lb_probe" "clst" {
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
-  number_of_probes    = local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS" ? 4 : 2
+  number_of_probes    = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
 }
 
 resource "azurerm_lb_probe" "fs" {
   provider        = azurerm.main
-  count           = local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS" ? 1 : 0
+  count           = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 1 : 0
   loadbalancer_id = azurerm_lb.scs[0].id
   name = format("%s%s%s",
     local.prefix,
@@ -165,7 +165,7 @@ resource "azurerm_lb_probe" "fs" {
   port                = local.hp_ports[count.index]
   protocol            = "Tcp"
   interval_in_seconds = 5
-  number_of_probes    = local.scs_high_availability && upper(local.scs_ostype) == "WINDOWS" ? 4 : 2
+  number_of_probes    = local.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? 4 : 2
 }
 
 # Create the SCS Load Balancer Rules
@@ -306,7 +306,7 @@ resource "azurerm_availability_set" "scs" {
 ##############################################################################################
 resource "azurerm_availability_set" "app" {
   provider = azurerm.main
-  count = local.use_app_avset && length(var.application.avset_arm_ids) == 0 ? (
+  count = local.use_app_avset && length(var.application_tier.avset_arm_ids) == 0 ? (
     max(length(local.app_zones), 1)) : (
     0
   )
@@ -356,7 +356,7 @@ resource "azurerm_lb" "web" {
       local.resource_suffixes.web_alb_feip
     )
     subnet_id = local.web_subnet_deployed.id
-    private_ip_address = var.application.use_DHCP ? (
+    private_ip_address = var.application_tier.use_DHCP ? (
       null) : (
       try(
         local.web_lb_ips[0],
@@ -366,7 +366,7 @@ resource "azurerm_lb" "web" {
         )
       )
     )
-    private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = var.application_tier.use_DHCP ? "Dynamic" : "Static"
     zones                         = ["1", "2", "3"]
   }
   lifecycle {
@@ -538,7 +538,7 @@ resource "azurerm_private_dns_a_record" "scs" {
   count    = local.enable_scs_lb_deployment && length(local.dns_label) > 0 ? 1 : 0
   name = lower(format("%sscs%scl1",
     local.sid,
-    var.application.scs_instance_number
+    var.application_tier.scs_instance_number
   ))
   resource_group_name = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name           = var.landscape_tfstate.dns_label

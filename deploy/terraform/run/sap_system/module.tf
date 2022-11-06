@@ -14,24 +14,24 @@ module "sap_namegenerator" {
   sap_vnet_name    = local.vnet_logical_name
   sap_sid          = local.sap_sid
   db_sid           = local.db_sid
-  app_ostype       = upper(try(local.application.app_os.os_type, "LINUX"))
+  app_ostype       = upper(try(local.application_tier.app_os.os_type, "LINUX"))
   anchor_ostype    = upper(try(local.anchor_vms.os.os_type, "LINUX"))
   db_ostype        = upper(try(local.database.os.os_type, "LINUX"))
   db_server_count  = var.database_server_count
-  app_server_count = try(local.application.application_server_count, 0)
-  web_server_count = try(local.application.webdispatcher_count, 0)
-  scs_server_count = local.application.scs_high_availability ? (
-    2 * local.application.scs_server_count) : (
-    local.application.scs_server_count
+  app_server_count = try(local.application_tier.application_server_count, 0)
+  web_server_count = try(local.application_tier.webdispatcher_count, 0)
+  scs_server_count = local.application_tier.scs_high_availability ? (
+    2 * local.application_tier.scs_server_count) : (
+    local.application_tier.scs_server_count
   )
   app_zones                  = []
-  scs_zones                  = try(local.application.scs_zones, [])
-  web_zones                  = try(local.application.web_zones, [])
+  scs_zones                  = try(local.application_tier.scs_zones, [])
+  web_zones                  = try(local.application_tier.web_zones, [])
   db_zones                   = try(local.database.zones, [])
   resource_offset            = try(var.options.resource_offset, 0)
   custom_prefix              = var.custom_prefix
   database_high_availability = local.database.high_availability
-  scs_high_availability      = local.application.scs_high_availability
+  scs_high_availability      = local.application_tier.scs_high_availability
   use_zonal_markers          = var.use_zonal_markers
 }
 
@@ -68,7 +68,7 @@ module "common_infrastructure" {
   NFS_provider                       = var.NFS_provider
   custom_prefix                      = var.use_prefix ? var.custom_prefix : " "
   ha_validator = format("%d%d-%s",
-    local.application.scs_high_availability ? 1 : 0,
+    local.application_tier.scs_high_availability ? 1 : 0,
     local.database.high_availability ? 1 : 0,
     var.NFS_provider
   )
@@ -103,7 +103,7 @@ module "hdb_node" {
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment && local.application.enable_deployment ? (
+    local.db_zonal_deployment && local.application_tier.enable_deployment ? (
       module.app_tier.scs_vm_ids[0]
     ) : (null)
   ) : (null)
@@ -172,7 +172,7 @@ module "app_tier" {
   depends_on = [module.common_infrastructure]
   order_deployment = null
 
-  application                                  = local.application
+  application_tier                             = local.application
   infrastructure                               = local.infrastructure
   options                                      = local.options
   resource_group                               = module.common_infrastructure.resource_group
@@ -222,7 +222,7 @@ module "anydb_node" {
   }
   depends_on = [module.common_infrastructure]
   order_deployment = local.enable_db_deployment ? (
-    local.db_zonal_deployment && local.application.enable_deployment ? (
+    local.db_zonal_deployment && local.application_tier.enable_deployment ? (
       module.app_tier.scs_vm_ids[0]
     ) : (null)
   ) : (null)
@@ -282,7 +282,7 @@ module "output_files" {
   database            = local.database
   infrastructure      = local.infrastructure
   authentication      = local.authentication
-  authentication_type = try(local.application.authentication.type, "key")
+  authentication_type = try(local.application_tier.authentication.type, "key")
   nics_dbnodes_admin  = module.hdb_node.nics_dbnodes_admin
   nics_dbnodes_db     = module.hdb_node.nics_dbnodes_db
   loadbalancers       = module.hdb_node.loadbalancers
