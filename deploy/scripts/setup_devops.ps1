@@ -163,11 +163,9 @@ if ($Project_ID.Length -eq 0) {
 
     $import_code = $true
     Write-Host "Creating sap-automation repository" -ForegroundColor Green
-    $code_repo_id = (az repos create --name sap-automation --query id)
+    $code_repo_id = (az repos create --name sap-automation --query id --output none)
     az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
     az repos update --repository $code_repo_id --default-branch main
-    $queryString = "?api-version=6.0-preview"
-    $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
   }
   else {
     Add-Content -Path $fname -Value ""
@@ -233,6 +231,11 @@ else {
 
 }
 
+$code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]").Replace("""", "")
+
+$queryString = "?api-version=6.0-preview"
+$pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
+
 #endregion
 
 $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
@@ -244,6 +247,16 @@ Write-Host "Creating the pipelines in repo: " $repo_name "(" $repo_id ")" -foreg
 Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value "### Pipelines"
 Add-Content -Path $fname -Value ""
+
+$SUserName = 'Enter your S User'
+$SPassword = 'Enter your S user password'
+
+$provideSUser = Read-Host "Do you want to provide the S user details y/n?"
+if ($provideSUser -eq 'y') {
+  $SUserName = Read-Host "Enter your S User ID"
+  $SPassword = Read-Host "Enter your S user password"
+}
+
 
 $pipeline_name = 'Create Control Plane configuration'
 $sample_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
@@ -411,7 +424,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username='Enter your S User' S-Password='Enter your S user password' tf_version=1.2.8 ansible_core_version=2.13 --output yaml  --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username=$SUserName S-Password=$SPassword tf_version=1.2.8 ansible_core_version=2.13 --output yaml  --authorize true --output none
   $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 }
 
@@ -425,6 +438,8 @@ Add-Content -Path $fname -Value $WorkloadZonePrefix
 Add-Content -Path $fname -Value "### Credentials"
 Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value ("Web Application:" + $ApplicationName)
+
+
 
 #region App registration
 Write-Host "Creating the App registration in Azure Active Directory" -ForegroundColor Green
@@ -544,6 +559,13 @@ else {
 $ARM_CLIENT_SECRET = "Please update"
 
 az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
+
+if( $provideSUser ) {
+  az pipelines variable-group variable update --group-id $general_group_id  --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $general_group_id  --name "S-Username" --value $SUserName  --output none --only-show-errors
+}
+
+
 #endregion
 
 
@@ -627,17 +649,19 @@ else {
   Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
   Start-Process $pat_url
 
-  $PAT = Read-Host -Prompt "Enter the PAT you just created"
-  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "PAT" --value $PAT --secret true --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID  --name "PAT" --value $PAT --secret true --only-show-errors
-  # Create header with PAT
-  $token = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($PAT)"))
-  $header = @{authorization = "Basic $token" }
-  $body = $bodyText | ConvertTo-Json -Depth 10
-
-  Invoke-WebRequest -Method PATCH -Uri $pipeline_permission_url -Headers $header -ContentType "application/json" -Body $body
 
 }
+
+$PAT = Read-Host -Prompt "Please enter the PAT"
+az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
+az pipelines variable-group variable update --group-id $GroupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
+# Create header with PAT
+$token = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($PAT)"))
+$header = @{authorization = "Basic $token" }
+$body = $bodyText | ConvertTo-Json -Depth 10
+$body = $bodyText | ConvertTo-Json -Depth 10 | Out-File -FilePath "body.json" -Encoding utf8 -Force
+
+Invoke-WebRequest -Method PATCH -Uri $pipeline_permission_url -Headers $header -ContentType "application/json" -Body $body
 
 $pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
 
@@ -686,13 +710,13 @@ Add-Content -Path $fname -Value ""
 
 
 $eTag = (az devops wiki page show --path 'Next steps' --wiki SDAF --query eTag )
-if ($eTag.Length -gt 0) {
+if ($eTag -ne $null) {
   $page_id = (az devops wiki page update --path 'Next steps' --wiki SDAF --file-path .\start.md --only-show-errors --version $eTag --query page.id)
 }
 else {
-  $page_id = (az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md --output none --only-show-errors --query page.id)
+  az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md --output none --only-show-errors
+  $page_id=(az devops wiki page show --path 'Next steps' --wiki SDAF --query page.id )
 }
-
 
 $wiki_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_wiki/wikis/SDAF/" + $page_id + "/Next-steps"
 Start-Process $wiki_url
