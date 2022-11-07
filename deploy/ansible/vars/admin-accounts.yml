@@ -172,7 +172,7 @@ admin_groups:
     node_tier:    oracle-multi-sid
 
 
-  # Users on the Observer node
+  # Users Groups on the Observer node
   - name:         dba
     gid:          "{{ dba_gid }}"
     state:        present
@@ -444,6 +444,35 @@ admin_users:
     state:        present
     tier:         ora
     node_tier:    oracle-asm
+    enabled:      true
+
+# Admin users for Observer
+
+  - name:         "ora{{ sap_sid | lower }}"
+    comment:      "Oracle Database System Administrator"
+    uid:          "{{ orasid_uid }}"
+    group:        dba
+    groups:       ["oper","sapinst","oinstall"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    observer
+    enabled:      true
+
+  
+  - name:         "oracle"
+    comment:      "Oracle Database software Administrator"
+    uid:          "{{ oracle_uid }}"
+    group:        oinstall
+    groups:       ["oper", "sapsys", "sapinst", "asmdba", "dba", "asmadmin", "asmoper"]
+    sudoers_role: "admin_no_password"
+    password:     "{{ main_password }}"
+    shell:        /bin/csh
+    state:        present
+    tier:         ora
+    node_tier:    observer
     enabled:      true
 
 ...

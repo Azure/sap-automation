@@ -530,6 +530,53 @@
     state:                            touch
     mode:                             '0755'
 
+- name:                            "ORACLE: environment variables to the Bash profile"
+  become:                          true
+  become_user:                     "oracle"
+  ansible.builtin.blockinfile:
+    path:                          /home/oracle/.bashrc
+    insertafter:                   'fi '
+    block: |
+            # User Specific environment
+            export ORACLE_HOME=/oracle/{{ db_sid }}/{{ ora_release }}
+            export ORACLE_SID={{ db_sid }}
+            export ORACLE_BASE=/oracle
+            export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+            export TNS_ADMIN=$ORACLE_HOME/network/admin
+            export DB_SID={{ db_sid }}
+            export OHGRID=/oracle/stage/{{ ora_release }}/grid_home
+            export IHRDBMS=/oracle/{{ db_sid | upper}}/{{ ora_release }}
+            PATH="$PATH:$ORACLE_HOME/bin" 
+            export PATH
+
+- name:                            "ORACLE: create .cshrc"
+  become:                          true
+  become_user:                     "oracle"
+  ansible.builtin.blockinfile:
+    create:                        true
+    path:                          /home/oracle/.cshrc
+    marker_begin:                  "-- BEGIN"
+    marker_end:                    "-- END"
+    block: |
+         # User Specific environment
+         setenv  ORACLE_HOME /oracle/{{ db_sid }}/{{ ora_release }}
+         setenv  ORACLE_SID  {{ db_sid }}
+         setenv  ORACLE_BASE /oracle
+         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+         setenv  DB_SID {{ db_sid }}
+         setenv  OHGRID  /oracle/stage/{{ ora_release }}/grid_home
+         setenv  IHRDBMS /oracle/{{ db_sid | upper}}/{{ ora_release }}
+         set path = ($path $ORACLE_HOME/bin)
+    mode:                             '0755'
+    
+# - name:                            "ORACLE: Create sbp_installed.txt"
+#   ansible.builtin.file:
+#      path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
+#      state:                         touch
+#      mode:                          0755
+#   when:                            sbpscript_results.rc < 2
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

@@ -108,15 +108,6 @@
       tags:
         - 1.5.2-disk-setup-ora-multi-sid
 
-    # - name:                            "OS configuration playbook: - Configure volume groups and logical volumes (oracle ASM)"
-    #   ansible.builtin.include_role:
-    #     name:                          roles-os/1.5.1-disk-setup-asm
-    #   when:                            node_tier == "oracle-asm"
-    #   tags:
-    #     - 1.5.1-disk-setup-asm
-
-
-
     - name:                            "OS configuration playbook: - Chrony role"
       ansible.builtin.include_role:
         name:                          roles-os/1.7-chrony
@@ -147,7 +138,9 @@
         name:                          roles-os/1.11-accounts
       vars:
         tier:                          ora
-      when:                            node_tier == "oracle"
+      when:                            node_tier == "oracle" or node_tier == "observer"
+
+
 
     - name:                            "OS configuration playbook: - Configure MOTD"
       ansible.builtin.include_role:

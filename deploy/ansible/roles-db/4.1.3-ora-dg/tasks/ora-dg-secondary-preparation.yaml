@@ -12,7 +12,7 @@
   become_user:                         "root"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts
-    mode:                              0755
+    mode:                              '0755'
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -22,7 +22,7 @@
   become_user:                         "root"
   ansible.builtin.file:
     path:                              "{{ target_media_location }}/downloads/{{ db_sid| upper }}"
-    mode:                              0755
+    mode:                              '0755'
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -32,7 +32,7 @@
   become_user:                         "root"
   ansible.builtin.file:
     path:                              "{{ target_media_location }}/downloads/{{ db_sid| upper }}/dbs"
-    mode:                              0755
+    mode:                              '0755'
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -48,7 +48,7 @@
     block: |
          CREATE PFILE FROM SPFILE;
          exit;
-    mode:                              0755
+    mode:                              '0755'
 
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY"
@@ -71,7 +71,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
   when:
     - createpfile_results.rc >= 2
   # when:  current_host == ora_primary
@@ -125,7 +125,7 @@
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/dbscopied.txt
     state:                             touch
-    mode:                              0755
+    mode:                              '0755'
   when:
     - dbs_folder_copied_results.rc >= 2
 ...
