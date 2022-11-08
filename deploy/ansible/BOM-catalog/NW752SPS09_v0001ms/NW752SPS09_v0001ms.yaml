@@ -21,7 +21,7 @@ product_ids:
 
 materials:
   dependencies:
-    - name:                            HANA_2_00_063_v0001ms
+    - name:                            HANA_2_00_065_v0001ms
     - name:                            SWPM10SP35_latest
     - name:                            SUM20SP14_latest
 
@@ -29,11 +29,11 @@ materials:
 
     # kernel components
 
-    - name:                            "Kernel Part II (753)"
-      archive:                         SAPEXEDB_900-80002572.SAR
-      checksum:                        83eb0450e30e7cefb09aa3def0a3f7f0bdbf5b2ee1ccbe481443084f50f98e37
-      url:                             https://softwaredownloads.sap.com/file/0020000001557752021
-      path:                            download_basket
+    # - name:                            "Kernel Part II (753)"
+    #   archive:                         SAPEXEDB_900-80002572.SAR
+    #   checksum:                        83eb0450e30e7cefb09aa3def0a3f7f0bdbf5b2ee1ccbe481443084f50f98e37
+    #   url:                             https://softwaredownloads.sap.com/file/0020000001557752021
+    #   path:                            download_basket
 
     - name:                            "Kernel Part I (753)"
       archive:                         SAPEXE_900-80002573.SAR
