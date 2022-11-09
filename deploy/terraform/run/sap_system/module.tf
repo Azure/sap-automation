@@ -49,7 +49,7 @@ module "common_infrastructure" {
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
-  application_tier                   = local.application
+  application_tier                   = local.application_tier
   database                           = local.database
   infrastructure                     = local.infrastructure
   options                            = local.options
