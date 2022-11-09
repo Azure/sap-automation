@@ -1,0 +1,39 @@
+parameters:
+  includeAnsibleData: false
+  getLatestFromBranch: false
+steps:
+  - checkout: sap-automation
+    path: s/sap-automation
+  - checkout: sap-samples
+    path: s/samples
+  - checkout: self
+    path: s/config
+    persistCredentials: true
+    fetchDepth: 0
+  - ${{ if eq(parameters.includeAnsibleData, true) }}:
+      - download: current
+        artifact: ansible_data
+        displayName: "Download ansible_data"
+  - ${{ if eq(parameters.getLatestFromBranch, true) }}:
+      - script: |
+          #!/bin/bash
+          # This script will get the latest commit from the selected branch and pulls all latest commits of that branch.
+          # This is needed because some  jobs are dependent on commits of previous jobs.
+          #
+          # !!! This is absolutely not the best way to do this but it works for now !!!
+
+          # Exit immediately if a command exits with a non-zero status.
+          # Treat unset variables as an error when substituting.
+          set -eu
+
+          export currentFolder=$(pwd)
+
+          cd $(Build.SourcesDirectory)/config
+          git checkout -q $(Build.SourceBranchName)
+          git pull
+
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+
+          cd $currentFolder
+        displayName: Get latest from branch
