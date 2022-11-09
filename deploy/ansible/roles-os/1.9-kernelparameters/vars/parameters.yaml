@@ -90,7 +90,16 @@ parameters:
     - { tier: 'os', name: 'net.core.bpf_jit_harden',                       value: '2',                        state: 'present' }
     - { tier: 'ha', name: 'net.ipv4.tcp_keepalive_time',                   value: '300',                      state: 'present' }
 
-  oracle-linux8:
-    - { tier: 'os', name: 'kernel.sem',                                     value: '1250 256000 100 1024',          state: 'present' }
-    - { tier: 'os', name: 'vm.max_map_count',                               value: '2000000',                       state: 'present' }
+  oraclelinux8:
+    - { tier: 'os', name: 'kernel.sem',                                     value: '32000 1024000000 500 32000',    state: 'present' }
+    - { tier: 'os', name: 'vm.max_map_count',                               value: '2147483647',                    state: 'present' }
+    - { tier: 'os', name: 'kernel.shmmni',                                  value: '4096',                          state: 'present' }
+    - { tier: 'os', name: 'kernel.panic_on_oops',                           value: '1',                             state: 'present' }
+    - { tier: 'os', name: 'kernel.shmall',                                  value: '1073741824',                    state: 'present' }
+    - { tier: 'os', name: 'kernel.shmmax',                                  value: '4398046511104',                 state: 'present' }
+    - { tier: 'os', name: 'fs.file-max',                                    value: '6815744',                       state: 'present' }
+    - { tier: 'os', name: 'fs.aio-max-nr',                                  value: '1048576',                       state: 'present' }
+    - { tier: 'os', name: 'net.ipv4.tcp_tw_reuse',                          value: '1',                             state: 'present' }
+    - { tier: 'os', name: 'net.ipv4.tcp_timestamps',                        value: '1',                             state: 'present' }
+
 ...

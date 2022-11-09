@@ -139,6 +139,10 @@
   failed_when:        gridinstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     CV_ASSUME_DISTID:                  OL7
+    ORACLE_SID:                       "{{db_sid |upper }}"
+    ORACLE_BASE:                      /oracle/BASE
+    ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
+    DB_SID:                           "{{db_sid |upper }}"
   args:
     executable:                        /bin/csh
     chdir:                             "/oracle/stage/{{ ora_release }}/grid_home"
@@ -196,9 +200,13 @@
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
+    ORACLE_SID:                       "{{db_sid |upper }}"
+    ORACLE_BASE:                      /oracle/BASE
+    ORACLE_HOME:                      /oracle/GRID/{{ ora_version }}
+    
   args:
     executable:                        /bin/csh
-    chdir:                             "/oracle/stage/{{ ora_release }}/grid_home"
+    chdir:                             "/oracle/GRID/{{ ora_version }}"
     creates:                           /etc/sap_deployment_automation/oracle/asm_tools_install.txt
 
 - name:                                "SAP Oracle ASM: Create after a successful Config tool execution"

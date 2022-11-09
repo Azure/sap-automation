@@ -715,3 +715,12 @@ materials:
       checksum:                        02132b43b349c45e8fc6731ceb8a78ef406477a942637bb53b8228d9e11ad6a7
       download:                        false
       url:                             https://softwaredownloads.sap.com/file/0010000000297212015
+
+# other components
+
+    - name:                            "SAPCAR"
+      archive:                         SAPCAR_1115-70006178.EXE
+      checksum:                        765412436934362cc5497e3d659fbb78be91093a091c11ec4fbe84dfb415a0e5
+      override_target_filename:        "SAPCAR.EXE"
+      url:                             https://softwaredownloads.sap.com/file/0020000000098642022
+      path:                            downloads

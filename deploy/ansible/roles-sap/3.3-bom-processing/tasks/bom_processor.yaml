@@ -186,8 +186,7 @@
 
 #   06) Extract files - UNRAR
 - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
-  ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
-                                       {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
   args:
     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
@@ -196,7 +195,7 @@
   when:
     - item.extract is not undefined
     - item.extract
-    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="RAR") ) or
+    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="EXE") ) or
       ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="RAR") )
 
 

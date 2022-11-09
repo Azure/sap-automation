@@ -49,6 +49,13 @@
     - node_tier == 'hana'
     - distribution_id == 'redhat8'
 
+
+- name:                                2.10.2 - SAP Note 2777782
+  ansible.builtin.include_tasks:       2.10.2.yaml
+  when:
+    - node_tier == 'oracle' or node_tier == 'oracle-asm'
+    - distribution_id == 'oraclelinux'
+
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
 
