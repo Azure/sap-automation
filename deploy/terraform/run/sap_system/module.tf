@@ -49,7 +49,7 @@ module "common_infrastructure" {
     azurerm.dnsmanagement = azurerm.dnsmanagement
   }
   is_single_node_hana                = "true"
-  application_tier                   = local.application
+  application_tier                   = local.application_tier
   database                           = local.database
   infrastructure                     = local.infrastructure
   options                            = local.options
@@ -172,7 +172,7 @@ module "app_tier" {
   depends_on = [module.common_infrastructure]
   order_deployment = null
 
-  application_tier                             = local.application
+  application_tier                             = local.application_tier
   infrastructure                               = local.infrastructure
   options                                      = local.options
   resource_group                               = module.common_infrastructure.resource_group
