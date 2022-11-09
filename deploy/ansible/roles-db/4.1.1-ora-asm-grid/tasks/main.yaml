@@ -49,9 +49,17 @@
     owner:                             oracle
     group:                             oinstall
 
-- name:                                "SAP Oracle ASM: Create Grid software directory"
+- name:                                "SAP Oracle ASM: Create Grid extract software directory"
   ansible.builtin.file:
     path:                              /oracle/stage/{{ ora_release }}/grid_home
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+    mode:                              0755
+
+- name:                                "SAP Oracle ASM: Create Grid software directory"
+  ansible.builtin.file:
+    path:                              /oracle/GRID
     state:                             directory
     owner:                             oracle
     group:                             oinstall
@@ -166,7 +174,7 @@
   become_user:                         root
   ansible.builtin.shell: |
                                        /oracle/oraInventory/orainstRoot.sh |tee -a /etc/sap_deployment_automation/oracle/orainst.log
-                                       /oracle/stage/{{ ora_release }}/grid_home/root.sh |tee -a /etc/sap_deployment_automation/oracle/gridrootexec.log
+                                       /oracle/GRID/{{ ora_release }}/root.sh |tee -a /etc/sap_deployment_automation/oracle/gridrootexec.log
   register:                            grid_rootscript_results
   args:
     executable:                        /bin/csh
@@ -300,7 +308,7 @@
     CV_ASSUME_DISTID:                  OL7
   args:
     executable:                        /bin/csh
-    chdir:                             "/oracle/stage/{{ ora_release }}/grid_home/bin"
+    chdir:                             "/oracle/GRID/{{ ora_release }}/bin"
     creates:                           /etc/sap_deployment_automation/oracle/diskgroups_created.txt
 
 - name:                                "SAP Oracle ASM: Created after a successful disk group creation"
@@ -308,6 +316,31 @@
     path:                             "/etc/sap_deployment_automation/oracle/diskgroups_created.txt"
     state:                            touch
     mode:                             0755
+
+
+- name:                               "SAP Oracle DB ASM: Update ASM Disk groups ARCH and RECO for DBLOAD"
+  become:                             true
+  become_user:                        oracle
+  ansible.builtin.shell: |
+                                      set -o errexit
+                                      ./asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.rdbms={{ ora_version }}
+                                      ./asmca -silent -editDiskGroupAttributes -diskGroupName ARCH -attribute compatible.rdbms={{ ora_version }}
+                                      ./asmca -silent -editDiskGroupAttributes -diskGroupName RECO -attribute compatible.rdbms={{ ora_version }}
+  register:                           diskgroupupdate_results
+  failed_when:                        diskgroupupdate_results.rc >= 1
+  environment:
+    DB_SID:                           "{{ db_sid }}"
+    CV_ASSUME_DISTID:                 OL7
+  args:
+    executable:                       /bin/csh
+    chdir:                            /oracle/GRID/{{ ora_release }}/bin
+    creates:                          /etc/sap_deployment_automation/oracle/diskgroupupdated.txt
+
+- name:                               "SAP Oracle DB ASM: Create flag after a sucessfull change"
+  ansible.builtin.file:
+    path:                             /etc/sap_deployment_automation/oracle/diskgroupupdated.txt
+    state:                            touch
+    mode:                             '0755'
 
 ...
 # /*---------------------------------------------------------------------------8
