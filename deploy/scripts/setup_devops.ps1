@@ -125,7 +125,6 @@ Add-Content -Path $fname -Value "## Deployment details"
 Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value "Azure DevOps organization: $ADO_Organization"
 
-
 #region Install extension
 
 Write-Host "Installing the DevOps extensions" -ForegroundColor Green
@@ -154,24 +153,8 @@ if ($Project_ID.Length -eq 0) {
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
 
-  az repos update --repository $repo_id --default-branch main
+  az repos update --repository $repo_id --default-branch main --output none
 
-  $confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to import the code from GitHub y/n?"
-  if ($confirmation -eq 'y') {
-    Add-Content -Path $fname -Value ""
-    Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
-
-    $import_code = $true
-    Write-Host "Creating sap-automation repository" -ForegroundColor Green
-    $code_repo_id = (az repos create --name sap-automation --query id --output none)
-    az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
-    az repos update --repository $code_repo_id --default-branch main
-  }
-  else {
-    Add-Content -Path $fname -Value ""
-    Add-Content -Path $fname -Value "Using the code directly from GitHub"
-
-  }
 }
 
 else {
@@ -179,55 +162,73 @@ else {
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "DevOps Project: $ADO_PROJECT"
 
-  $confirmation = Read-Host "Project: $ADO_PROJECT already exists, do you want to import the code from GitHub y/n?"
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  if ($confirmation -eq 'y') {
+  Write-Host "Importing the repository from GitHub" -ForegroundColor Green
 
-    Write-Host "Importing the repository from GitHub" -ForegroundColor Green
+  Add-Content -Path $fname -Value ""
+  Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
 
-    Add-Content -Path $fname -Value ""
-    Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
-
+  try {
     az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
-
-    az repos update --repository $repo_id --default-branch main
-
-    $confirmation = Read-Host "You can optionally import Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to import the code from GitHub y/n?"
-    if ($confirmation -eq 'y') {
-      $import_code = $true
-      Write-Host "Creating sap-automation repository" -ForegroundColor Green
-      $code_repo_id = (az repos create --name sap-automation --query id)
-      az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
-      az repos update --repository $code_repo_id --default-branch main
+  }
+  catch {
+    {
+      Write-Host "The repository already exists" -ForegroundColor Yellow
     }
   }
-  else {
-    Add-Content -Path $fname -Value ""
-    Add-Content -Path $fname -Value "Using the code directly from GitHub"
 
-    $resources_url = $ADO_ORGANIZATION + "/_git/" + [uri]::EscapeDataString($ADO_Project) + "?path=/pipelines/resources.yml"
 
-    $log = ("Please update [resources.yml](" + $resources_url + ") to point to Github instead of Azure DevOps.")
+  az repos update --repository $repo_id --default-branch main --output none
 
-    $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
-    Write-Host ""
-    Write-Host "The browser will now open, please create a new Github connection, record the name of the connection."
-    Start-Process $gh_connection_url
-    Read-Host "Please press enter when you have created the connection"
+}
 
-    $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]")
+$confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to import the code from GitHub y/n?"
+if ($confirmation -eq 'y') {
+  Add-Content -Path $fname -Value ""
+  Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
 
-    Add-Content -Path $fname -Value $log
+  $import_code = $true
+  $repo_name="sap-automation"
+  Write-Host "Creating $repo_name repository" -ForegroundColor Green
+  az repos create --name $repo_name --query id  --output none
+  $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]").Replace("""", "")
+  az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
+  az repos update --repository $code_repo_id --default-branch main --output none
 
-    Add-Content -Path $fname -Value "Change the following lines in the resources.yml file:"
+  $import_code = $true
+  $repo_name="sap-samples"
+  Write-Host "Creating $repo_name repository" -ForegroundColor Green
+  az repos create --name $repo_name --query id  --output none
+  $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]").Replace("""", "")
+  az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id --output none
+  az repos update --repository $sample_repo_id --default-branch main --output none
 
-    Add-Content -Path $fname -Value "type: GitHub"
-    Add-Content -Path $fname -Value "name: Azure/sap-automation"
-    Add-Content -Path $fname -Value ("endpoint: " + $ghConn)
+}
+else {
+  Add-Content -Path $fname -Value ""
+  Add-Content -Path $fname -Value "Using the code directly from GitHub"
 
-  }
+  $resources_url = $ADO_ORGANIZATION + "/_git/" + [uri]::EscapeDataString($ADO_Project) + "?path=/pipelines/resources.yml"
+
+  $log = ("Please update [resources.yml](" + $resources_url + ") to point to Github instead of Azure DevOps.")
+
+  $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
+  Write-Host ""
+  Write-Host "The browser will now open, please create a new Github connection, record the name of the connection."
+  Start-Process $gh_connection_url
+  Read-Host "Please press enter when you have created the connection"
+
+  $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]")
+
+  Add-Content -Path $fname -Value $log
+
+  Add-Content -Path $fname -Value "Change the following lines in the resources.yml file:"
+
+  Add-Content -Path $fname -Value "type: GitHub"
+  Add-Content -Path $fname -Value "name: Azure/sap-automation"
+  Add-Content -Path $fname -Value ("endpoint: " + $ghConn)
 
 }
 
@@ -241,13 +242,6 @@ $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelin
 $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
 $repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]").Replace("""", "")
 
-#region Create pipelines
-Write-Host "Creating the pipelines in repo: " $repo_name "(" $repo_id ")" -foregroundColor Green
-
-Add-Content -Path $fname -Value ""
-Add-Content -Path $fname -Value "### Pipelines"
-Add-Content -Path $fname -Value ""
-
 $SUserName = 'Enter your S User'
 $SPassword = 'Enter your S user password'
 
@@ -256,6 +250,14 @@ if ($provideSUser -eq 'y') {
   $SUserName = Read-Host "Enter your S User ID"
   $SPassword = Read-Host "Enter your S user password"
 }
+
+#region Create pipelines
+Write-Host "Creating the pipelines in repo: " $repo_name "(" $repo_id ")" -foregroundColor Green
+
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value "### Pipelines"
+Add-Content -Path $fname -Value ""
+
 
 
 $pipeline_name = 'Create Control Plane configuration'
@@ -454,7 +456,7 @@ if ($found_appRegistration.Length -ne 0) {
 
   $confirmation = Read-Host "Reset the app registration secret y/n?"
   if ($confirmation -eq 'y') {
-    $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --only-show-errors)
+    $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
   }
 
 }
@@ -466,7 +468,7 @@ else {
 
   Remove-Item manifest.json
 
-  $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --only-show-errors)
+  $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
 }
 
 #endregion
@@ -502,7 +504,7 @@ if ($found_appName.Length -gt 0) {
   $confirmation = Read-Host "Reset the Control Plane Service Principal password y/n?"
   if ($confirmation -eq 'y') {
 
-    $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --only-show-errors)
+    $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
   }
 
 }
@@ -543,14 +545,15 @@ $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
 $epExists = (az devops service-endpoint list   --query "[?name=='$Service_Connection_Name'].name | [0]")
 if ($epExists.Length -eq 0) {
   Write-Host "Creating Service Endpoint" $Service_Connection_Name -ForegroundColor Green
-  az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+  az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
   $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
   az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
 }
 else {
   Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
+  $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
   az devops service-endpoint delete --id $epId --yes
-  az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+  az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
   $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
   az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
 }
@@ -588,7 +591,7 @@ if ($found_appName.Length -ne 0) {
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
   $confirmation = Read-Host "Reset the Workload zone Service Principal password y/n?"
   if ($confirmation -eq 'y') {
-    $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --only-show-errors)
+    $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors)
   }
 }
 else {
@@ -598,8 +601,6 @@ else {
   $ARM_CLIENT_ID = $Data.appId
   $ARM_TENANT_ID = $Data.tenant
   $ARM_CLIENT_SECRET = $Data.password
-
-  Write-Host "Create the Service Endpoint in Azure DevOps" -ForegroundColor Green
 
 }
 
@@ -629,6 +630,7 @@ if ($ARM_CLIENT_SECRET -ne "Please update") {
   }
   else {
     Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
+    $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
     az devops service-endpoint delete --id $epId --yes
     az devops service-endpoint azurerm create  --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Workload_zone_subscriptionID --azure-rm-subscription-name $Workload_zoneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
     $epId = az devops service-endpoint list  --query "[?name=='$Service_Connection_Name'].id" -o tsv
@@ -656,25 +658,25 @@ $PAT = Read-Host -Prompt "Please enter the PAT"
 az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
 az pipelines variable-group variable update --group-id $GroupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
 # Create header with PAT
-$token = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes(":$($PAT)"))
-$header = @{authorization = "Basic $token" }
-$body = $bodyText | ConvertTo-Json -Depth 10
-$body = $bodyText | ConvertTo-Json -Depth 10 | Out-File -FilePath "body.json" -Encoding utf8 -Force
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
-Invoke-WebRequest -Method PATCH -Uri $pipeline_permission_url -Headers $header -ContentType "application/json" -Body $body
+# To be added later
+# $body = $bodyText | ConvertTo-Json -Depth 10
+#
+#$body = $bodyText | ConvertTo-Json -Depth 10 | Out-File -FilePath "body.json" -Encoding utf8 -Force
 
-$pool_url = $url.Substring(0, $idx) + "_settings/agentpools"
+#Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } -ContentType "application/json" -Body $body
 
 $POOL_NAME_FOUND = (az pipelines pool list  --query "[?name=='$Pool_Name'].name | [0]")
 if ($POOL_NAME_FOUND.Length -gt 0) {
-  Write-Host ("Agent pool" + $Pool_Name + "already exists")
+  Write-Host "Agent pool"  $Pool_Name  "already exists" -ForegroundColor Yellow
 }
 else {
 
   Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
-  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
-  $uri = $ADO_ORGANIZATION + "/_apis/distributedtask/pools?api-version=6.0?authorizePipelines=true"
+
+  $uri = $ADO_ORGANIZATION + "/_apis/distributedtask/pools?api-version=6.0&authorizePipelines=true"
   $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } `
     -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
 
