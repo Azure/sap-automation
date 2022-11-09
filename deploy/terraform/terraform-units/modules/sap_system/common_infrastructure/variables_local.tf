@@ -13,7 +13,7 @@ locals {
   resource_suffixes           = var.naming.resource_suffixes
   //Region and metadata
   region = var.infrastructure.region
-  sid    = upper(var.application.sid)
+  sid    = upper(var.application_tier.sid)
   prefix = length(trimspace(var.custom_prefix)) > 0 ? (
     trimspace(var.custom_prefix)) : (
     trimspace(var.naming.prefix.SDU)
@@ -35,9 +35,9 @@ locals {
 
 
   db_zones         = try(var.database.zones, [])
-  app_zones        = try(var.application.app_zones, [])
-  scs_zones        = try(var.application.scs_zones, [])
-  web_zones        = try(var.application.web_zones, [])
+  app_zones        = try(var.application_tier.app_zones, [])
+  scs_zones        = try(var.application_tier.scs_zones, [])
+  web_zones        = try(var.application_tier.web_zones, [])
   zones            = distinct(concat(local.db_zones, local.app_zones, local.scs_zones, local.web_zones))
   zonal_deployment = length(local.zones) > 0 ? true : false
 
@@ -93,7 +93,7 @@ locals {
 
 
   //Enable APP deployment
-  enable_app_deployment = try(var.application.enable_deployment, false)
+  enable_app_deployment = try(var.application_tier.enable_deployment, false)
 
   //Enable SID deployment
   enable_sid_deployment = local.enable_db_deployment || local.enable_app_deployment
@@ -200,7 +200,7 @@ locals {
 
   enable_admin_subnet = (
     (
-      var.application.dual_nics ||
+      var.application_tier.dual_nics ||
       var.database.dual_nics
     )
     &&
@@ -463,7 +463,7 @@ locals {
 
   password_required = (
     try(var.database.authentication.type, "key") == "password" ||
-    try(var.application.authentication.type, "key") == "password"
+    try(var.application_tier.authentication.type, "key") == "password"
   )
 
   // Current service principal
@@ -481,7 +481,7 @@ locals {
   // 'Cg==` is empty string, base64 encoded.
   cloudinit_growpart_config = null
 
-  app_tier_os = upper(try(var.application.app_os.os_type, "LINUX"))
+  app_tier_os = upper(try(var.application_tier.app_os.os_type, "LINUX"))
 
 
 
