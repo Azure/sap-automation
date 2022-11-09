@@ -528,7 +528,7 @@ az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administ
 $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 if ($Control_plane_groupID.Length -eq 0) {
   Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id  --output none  --authorize true
+  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none  --authorize true
   $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 }
 
@@ -610,7 +610,7 @@ az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscripti
 $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection  --output yaml  --authorize true --output none
+  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection  TF_LOG=OFF --output yaml  --authorize true --output none
   $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
 }
 
