@@ -1,4 +1,4 @@
-variable "application" {
+variable "application_tier" {
   validation {
     condition = (
       length(trimspace(try(var.application.sid, ""))) != 0
