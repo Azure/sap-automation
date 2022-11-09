@@ -131,48 +131,48 @@ locals {
   app_authentication_defined = (length(local.app_authentication.type) + length(local.app_authentication.username)) > 3
 
   application_temp = {
-    sid = try(coalesce(var.sid, try(var.application.sid, "")), "")
+    sid = try(coalesce(var.sid, try(var.application_tier.sid, "")), "")
 
     enable_deployment        = local.enable_app_tier_deployment
-    use_DHCP                 = var.app_tier_use_DHCP || try(var.application.use_DHCP, false)
-    dual_nics                = var.app_tier_dual_nics || try(var.application.dual_nics, false)
-    vm_sizing_dictionary_key = try(coalesce(var.app_tier_sizing_dictionary_key, var.app_tier_vm_sizing, try(var.application.vm_sizing, "")), "Optimized")
+    use_DHCP                 = var.app_tier_use_DHCP || try(var.application_tier.use_DHCP, false)
+    dual_nics                = var.app_tier_dual_nics || try(var.application_tier.dual_nics, false)
+    vm_sizing_dictionary_key = try(coalesce(var.app_tier_sizing_dictionary_key, var.app_tier_vm_sizing, try(var.application_tier.vm_sizing, "")), "Optimized")
 
     application_server_count = local.enable_app_tier_deployment ? (
-      max(var.application_server_count, try(var.application.application_server_count, 0))
+      max(var.application_server_count, try(var.application_tier.application_server_count, 0))
       ) : (
       0
     )
-    app_sku       = try(coalesce(var.application_server_sku, var.application.app_sku), "")
-    app_no_ppg    = var.application_server_no_ppg || try(var.application.app_no_ppg, false)
-    app_no_avset  = var.application_server_no_avset || try(var.application.app_no_avset, false)
+    app_sku       = try(coalesce(var.application_server_sku, var.application_tier.app_sku), "")
+    app_no_ppg    = var.application_server_no_ppg || try(var.application_tier.app_no_ppg, false)
+    app_no_avset  = var.application_server_no_avset || try(var.application_tier.app_no_avset, false)
     avset_arm_ids = var.application_server_vm_avset_arm_ids
 
     scs_server_count = local.enable_app_tier_deployment ? (
-      max(var.scs_server_count, try(var.application.scs_server_count, 0))
+      max(var.scs_server_count, try(var.application_tier.scs_server_count, 0))
       ) : (
       0
     )
     scs_high_availability = local.enable_app_tier_deployment ? (
-      var.scs_high_availability || try(var.application.scs_high_availability, false)
+      var.scs_high_availability || try(var.application_tier.scs_high_availability, false)
       ) : (
       false
     )
-    scs_instance_number = coalesce(var.scs_instance_number, try(var.application.scs_instance_number, "00"))
-    ers_instance_number = coalesce(var.ers_instance_number, try(var.application.ers_instance_number, "02"))
+    scs_instance_number = coalesce(var.scs_instance_number, try(var.application_tier.scs_instance_number, "00"))
+    ers_instance_number = coalesce(var.ers_instance_number, try(var.application_tier.ers_instance_number, "02"))
 
-    scs_sku      = try(coalesce(var.scs_server_sku, var.application.scs_sku), "")
-    scs_no_ppg   = var.scs_server_no_ppg || try(var.application.scs_no_ppg, false)
-    scs_no_avset = var.scs_server_no_avset || try(var.application.scs_no_avset, false)
+    scs_sku      = try(coalesce(var.scs_server_sku, var.application_tier.scs_sku), "")
+    scs_no_ppg   = var.scs_server_no_ppg || try(var.application_tier.scs_no_ppg, false)
+    scs_no_avset = var.scs_server_no_avset || try(var.application_tier.scs_no_avset, false)
 
     webdispatcher_count = local.enable_app_tier_deployment ? (
-      max(var.webdispatcher_server_count, try(var.application.webdispatcher_count, 0))
+      max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
       ) : (
       0
     )
-    web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application.web_sku), "")
-    web_no_ppg   = var.webdispatcher_server_no_ppg || try(var.application.web_no_ppg, false)
-    web_no_avset = var.webdispatcher_server_no_avset || try(var.application.web_no_avset, false)
+    web_sku      = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
+    web_no_ppg   = var.webdispatcher_server_no_ppg || try(var.application_tier.web_no_ppg, false)
+    web_no_avset = var.webdispatcher_server_no_avset || try(var.application_tier.web_no_avset, false)
 
   }
 
