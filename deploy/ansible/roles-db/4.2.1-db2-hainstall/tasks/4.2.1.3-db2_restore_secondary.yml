@@ -51,7 +51,7 @@
 
       # ##################### Start of Restore without Encryption ##################################
     - name:                            "DB2 - Restore without encryption"
-      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} on /db2/{{ db_sid }} no encrypt
+      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} on /db2/{{ db_sid }} no encrypt without prompting
       args:
         executable:                    /bin/csh
       environment:
