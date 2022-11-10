@@ -63,6 +63,7 @@ resource "azurerm_private_dns_a_record" "kv_user" {
 #Errors can occure when the dns record has not properly been activated, add a wait timer to give
 #it just a little bit more time
 resource "time_sleep" "wait_for_dns_refresh" {
+  count           = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   create_duration = "120s"
 
   depends_on = [azurerm_private_dns_a_record.kv_user]

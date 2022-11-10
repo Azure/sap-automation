@@ -358,13 +358,20 @@ if [ 1 == $step ]; then
     echo ""
 
     if [ -z "$keyvault" ]; then
-        read -r -p "Deployer keyvault name: " keyvault
+        if [ $ado_flag != "--ado" ] ; then
+
+            read -r -p "Deployer keyvault name: " keyvault
+        else
+            exit 10
+        fi
     fi
-    access_error=$(az keyvault secret list --vault "$keyvault" --only-show-errors | grep "Max retries exceeded attempting to connect to Vault")
-    if [ -n "${access_error}" ]; then
+
+    kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]")
+
+    if [ -z $kv_name_check ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo "#                    ${boldred} Unable to access keyvault: MGMTWEEUDEP01user05A {resetformatting}                  #"
+        echo -e "#                               $boldred  Unable to access keyvault $resetformatting                            #"
         echo "#                             Please ensure the key vault exists.                       #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
