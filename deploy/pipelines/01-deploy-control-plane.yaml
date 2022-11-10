@@ -242,7 +242,8 @@ stages:
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                               sudo apt install zip
-                              zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                              pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                              zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                               added=1
                             fi
@@ -643,7 +644,8 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the deployer state file"
-                                  zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                                  pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                                  zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                                   added=1
                               fi
@@ -666,7 +668,8 @@ stages:
                               if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                                   sudo apt install zip
                                   echo "Compressing the library state file"
-                                  zip -j -P $ARM_CLIENT_SECRET ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                                  pass=$(echo $ARM_CLIENT_SECRET | sed 's/-//g')
+                                  zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                                   git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                                   added=1
                               fi
@@ -793,7 +796,7 @@ stages:
                   displayName:         "Build the Configuration Web Application"
                   inputs:
                       command:         "build"
-                      projects:        "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/AutomationForm/*.csproj"
+                      projects:        "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
 
                 - task:                DotNetCoreCLI@2
                   displayName:         "Publish the Configuration Web Application"
