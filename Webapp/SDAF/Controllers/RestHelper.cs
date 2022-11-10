@@ -25,6 +25,8 @@ namespace AutomationForm.Controllers
         private readonly string PAT;
         private readonly string branch;
         private readonly string sdafGeneralId;
+
+        private readonly string sampleUrl="https://api.github.com/repos/Azure/SAP-automation-samples";
         private HttpClient client;
         public RestHelper(IConfiguration configuration)
         {
@@ -122,7 +124,7 @@ namespace AutomationForm.Controllers
         // Get an array of file names from azure sap-automation region given a directory
         public async Task<string[]> GetTemplateFileNames(string scopePath)
         {
-            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{scopePath}?ref=main";
+            string getUri = $"{sampleUrl}/contents/{scopePath}?ref=main";
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
