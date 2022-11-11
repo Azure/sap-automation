@@ -159,7 +159,7 @@ namespace AutomationForm.Controllers
         // Get a file from azure sap-automation repository
         public async Task<string> GetTemplateFile(string path)
         {
-            string getUri = $"https://api.github.com/repos/Azure/sap-automation/contents/{path}?ref=main";
+            string getUri = $"{sampleUrl}/contents/{path}?ref=main";
 
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             string responseBody = await response.Content.ReadAsStringAsync();
