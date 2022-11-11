@@ -52,6 +52,11 @@ parameters:
     type:                              string
     default:                           MMGMT
 
+  - name:                              use_deployer
+    displayName:                       Run removal on self hosted agent
+    type:                              boolean
+    default:                           true
+
   - name:                              sap_automation_repo_path
     displayName:                       The local path on the agent where the sap_automation repo can be found
     type:                              string
