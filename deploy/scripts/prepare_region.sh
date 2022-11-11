@@ -133,7 +133,7 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 # Check that webapp exports are defined, if deploying webapp
-if [ $TF_VAR_use_webapp = "true" ]; then
+if [ "$TF_VAR_use_webapp" == "true" ]; then
     validate_webapp_exports
     return_code=$?
     if [ 0 != $return_code ]; then
@@ -449,7 +449,7 @@ if [ 2 == $step ]; then
         exit 20
     fi
 
-    if [ $TF_VAR_use_webapp = "true" ]; then
+    if [ "$TF_VAR_use_webapp" == "true" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                           $cyan Configuring the Web App $resetformatting                                   #"
@@ -590,7 +590,7 @@ export deployer_ip="${deployer_public_ip_address}"
 export terraform_state_storage_account="${REMOTE_STATE_SA}"
 
 if [ 5 == $step ]; then
-    if [ $ado_flag != "--ado" ] ; then
+    if [ "$ado_flag" != "--ado" ] ; then
         cd "${curdir}" || exit
         
         load_config_vars "${deployer_config_information}" "sshsecret"
