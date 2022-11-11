@@ -629,16 +629,22 @@ if [ 0 == $return_value ] ; then
 
     if [ "${deployment_system}" == sap_library ]
     then
+        # This block should only execute if there is already a state file on remote / storage account. ( Reusing since we are already using $deployment_parameter to selectively run terraform plan/apply )
+        if [ "${deployment_parameter}" == " " ] 
+        then
 
-        tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
-        STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+          echo "deploying sap library"
+          tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
+          STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+          echo "${tfstate_resource_id}"
+          echo "${STATE_SUBSCRIPTION}"
+          az account set --sub "${STATE_SUBSCRIPTION}"
 
-        az account set --sub "${STATE_SUBSCRIPTION}"
+          REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
 
-        REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
-
-        get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
-
+          get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+        
+        fi
     fi
 
     ok_to_proceed=true
@@ -869,7 +875,7 @@ if [ 1 == $ok_to_proceed ]; then
 
     allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}"  "${approve}" )
 
-    if [ 1 == $called_from_ado ] ; then
+    if [ 1 == "$called_from_ado" ] ; then
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json $allParams | tee -a apply_output.json
     else
         terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -json $allParams | tee -a  apply_output.json
