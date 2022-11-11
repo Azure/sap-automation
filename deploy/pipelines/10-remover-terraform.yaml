@@ -191,7 +191,7 @@ stages:
                   REMOTE_STATE_SA=$(cat ${workload_environment_file_name}  | grep REMOTE_STATE_SA   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 fi
 
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
+              echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- az login ---$reset"
@@ -503,7 +503,7 @@ stages:
                   fi
                 fi
 
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
+              echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
 
               echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"

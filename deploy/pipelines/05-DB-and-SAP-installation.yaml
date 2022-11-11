@@ -150,7 +150,7 @@ stages:
                 echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
               fi
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
+              echo -e "$green--- Convert config file to UX format ---$reset"
               echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
                 export HOME=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME
