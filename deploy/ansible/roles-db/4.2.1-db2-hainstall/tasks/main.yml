@@ -50,6 +50,10 @@
 - name:                                "DB2 - HA Configuration Post Install Checks"
   import_tasks:                        4.2.1.6-db2_post_install_checks.yaml
 
+- name:                                "DB2 - HA Configuration Post Install Checks"
+  import_tasks:                        4.2.1.7-sap-profile-changes.yaml
+                          
+
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
 # +------------------------------------4--------------------------------------*/
