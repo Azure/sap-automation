@@ -96,7 +96,7 @@
   block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }})"
       ansible.builtin.stat:
-        path:                          "{{ playbook_dir }}/BOM-catalog/{{ bom_name }}/{{ bom_name }}.yaml"
+        path:                          "{{ BOM_directory }}/{{ bom_name }}/{{ bom_name }}.yaml"
       register:                        microsoft_supplied_bom
       delegate_to:                     localhost
 
@@ -123,7 +123,7 @@
 
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
           ansible.builtin.stat:
-            path:                      "{{ playbook_dir }}/BOM-catalog/archives/{{ bom_name }}/{{ bom_name }}.yaml"
+            path:                      "{{ BOM_directory }}/archives/{{ bom_name }}/{{ bom_name }}.yaml"
           register:                    microsoft_supplied_bom_archive
           delegate_to:                 localhost
 

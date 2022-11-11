@@ -17,6 +17,8 @@ download_directory: "/mnt/downloads"
 check_storage_account: true
 bom_processing_become: true # BOM processing as root user
 
+BOM_directory: "{{ playbook_dir }}/BOM-catalog"
+
 always_upload_jinja_templates: true
 
 # SAP Configuration for templates and install
