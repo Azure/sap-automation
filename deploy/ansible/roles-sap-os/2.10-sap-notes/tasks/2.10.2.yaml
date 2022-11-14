@@ -24,6 +24,8 @@
   ansible.builtin.command:             tuned-adm profile oracle throughput-performance virtual-guest
   changed_when:                        false
 
+
+
 - name:                                "2.10.1 sap-notes: - Set GRUB config path"
   ansible.builtin.set_fact:
     grub_config_file:                  "{{ grub_config_path | default('/etc/default/grub') }}"

@@ -54,7 +54,7 @@
   ansible.builtin.include_tasks:       2.10.2.yaml
   when:
     - node_tier == 'oracle' or node_tier == 'oracle-asm'
-    - distribution_id == 'oraclelinux'
+    - distribution_id == 'oraclelinux8'
 
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
