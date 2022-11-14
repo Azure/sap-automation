@@ -122,7 +122,7 @@ stages:
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
+              echo -e "$green--- Convert config file to UX format ---$reset"
 
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 

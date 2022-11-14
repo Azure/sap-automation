@@ -23,9 +23,9 @@ product_ids:
 
 materials:
   dependencies:
-    - name:     HANA_2_00_059_v0003ms
-    - name:     SWPM20SP12_latest
-    - name:     SUM20SP14_latest
+    - name:     HANA_2_00_059_v0004ms
+    - name:     SWPM20SP13_latest
+    - name:     SUM20SP15_latest
 
   media:
 
@@ -926,9 +926,9 @@ materials:
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000001469192020
 
-    - name:         "Attribute Change Package 04 for SAP_BASIS 754"
+    - name:         "Attribute Change Package 05 for SAP_BASIS 754"
       archive:      SAP_BASIS754.SAR
-      checksum:     e85136db1f0dc21d2d66328887f41414ae31e3f746a7e1f993a52d24c8e7dffc
+      checksum:     38ba3f82157e32a75429b02dbf34e7e8299e85f012e955e5fbfe914ea53e9d84
       download:     false
       url:          https://softwaredownloads.sap.com/file/0010000001496942020
 

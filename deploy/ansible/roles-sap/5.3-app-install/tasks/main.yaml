@@ -102,7 +102,7 @@
     sap_installSAPHostAgent:           "false"
     sap_profile_dir:                   /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
     sap_scs_hostname:                  "{{ scs_server }}"
-    sap_db_hostname:                   "{{ db_virtual_host }}"
+    sap_db_hostname:                   "{{ db_lb_virtual_host }}"
     sap_ciVirtualHostname:             "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
     sap_appVirtualHostname:            "{{ virtual_host }}"
     param_directory:                   "{{ dir_params }}"

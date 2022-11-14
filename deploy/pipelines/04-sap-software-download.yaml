@@ -51,6 +51,10 @@ parameters:
     displayName:                       The local path on the agent where the config repo can be found
     type:                              string
 
+  - name:                              sample_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
 stages:
   - stage: Prepare_download
     condition: and(not(failed()), not(canceled()))
@@ -68,7 +72,7 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - template:                  templates\download.yaml
+          - template:                  templates\download_samples.yaml
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -101,9 +105,19 @@ stages:
                   exit 2
                 fi
 
+                if [ "your S User" == $(S-Username) ]; then
+                  echo "##vso[task.logissue type=error]Please define the S-Username variable."
+                  exit 2
+                fi
+
+                if [ "your S user password" == $(S-Password) ]; then
+                  echo "##vso[task.logissue type=error]Please define the S-Password variable."
+                  exit 2
+                fi
+
               echo -e "$green--- az login ---$reset"
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $(ARM_CLIENT_ID) --password=${ARM_CLIENT_SECRET} --tenant $(ARM_TENANT_ID) --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -111,7 +125,7 @@ stages:
                   exit $return_code
                 fi
 
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                az account set --subscription $(ARM_SUBSCRIPTION_ID) --output none
 
               echo -e "$green--- Get key_vault name ---$reset"
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
@@ -130,8 +144,6 @@ stages:
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
 
               echo -e "$green--- BoM $(bom) ---$reset"
-
-              echo -e "$green--- Save BOM ---$reset"
                   echo "##vso[build.updatebuildnumber]Downloading BoM defined in $(bom)"
                   echo "##vso[task.setvariable variable=BOM_NAME;isOutput=true]$(bom)"
 
@@ -139,7 +151,7 @@ stages:
 
                 export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
                 if [ -z $SUsername ]; then
-                  az keyvault secret set --output none --name S-Username --vault-name $kv_name --value $(S-Username)
+                  az keyvault secret set --name "S-Username" --vault-name $kv_name --value="$(S-Username)" --output none
                   echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$(S-Username)"
                 else
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
@@ -148,7 +160,7 @@ stages:
 
                 export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
                 if [ -z $SPassword ]; then
-                  az keyvault secret set --output none --name S-Password --vault-name $kv_name --value $(S-Password)
+                  az keyvault secret set --output none --name "S-Password" --vault-name $kv_name --value="$(S-Password)"
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$(S-Password)"
                 else
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
@@ -161,6 +173,7 @@ stages:
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
             failOnStderr:               false
 
@@ -178,30 +191,19 @@ stages:
       - job:                           Software_download
         displayName:                   Download software
         variables:
-          kv_name:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
-          S-USER:                      $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
-          S-PASSWORD:                  $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SPASSWORD'] ]
           BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
+          KV_NAME:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
         timeoutInMinutes:              0
         steps:
-          - template:                  templates\download.yaml
+          - template:                  templates\download_samples.yaml
           - bash: |
+
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
+              cd $CONFIG_REPO_PATH
 
-              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-                export DEPLOYMENT_REPO_PATH=$(Build.Repository.LocalPath)
-                environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(environment_code)$(location_code)
-                cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-
-              echo -e "$green--- Validations ---$reset"
-              if [ ! -f ${environment_file_name} ]; then
-                echo -e "$boldred--- ${environment_file_name} was not found ---$reset"
-                echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-                exit 2
-              fi
+              sample_path=$SAMPLE_REPO_PATH/SAP
 
               echo -e "$green--- az login ---$reset"
                 if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
@@ -224,7 +226,7 @@ stages:
                   exit 2
                 fi
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $(ARM_CLIENT_ID) --password=$(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -232,27 +234,23 @@ stages:
                   exit $return_code
                 fi
 
+                command="ansible-playbook '-e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) ' ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+
+                echo "##[section]Executing [$command]..."
+                echo "##[group]- output"
+                eval $command
+                echo "##[endgroup]"
+
                 az account set --subscription $(ARM_SUBSCRIPTION_ID)
             displayName:               Download
             name:                      download
             env:
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-            failOnStderr:              false
-          - task:                      Ansible@0
-            displayName:               Download software
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:           "agentMachine"
-              playbookPathOnAgentMachine: ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml
-              args:                       ' -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(kv_name)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) '
-              failOnStderr:               false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              ARM_CLIENT_ID:                 $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:             $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                 $(ARM_TENANT_ID)
+              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              ExtraParams:              $(ExtraParams)
+            failOnStderr:               false
+

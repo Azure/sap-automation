@@ -172,18 +172,11 @@ stages:
 
                 echo "Agent Pool: " $(this_agent)
 
-              echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
+              echo -e "$green--- Set CONFIG_REPO_PATH variable ---$reset"
                 echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
 
                 deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
                 workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
-
-                echo $deployer_environment_file_name
-                echo $workload_environment_file_name
-                echo "after"
-
-                dos2unix -q ${deployer_environment_file_name}
-                dos2unix -q ${workload_environment_file_name}
 
                 if [ ! -f $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
                   echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
@@ -197,10 +190,10 @@ stages:
                   exit 2
                 fi
 
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
+              echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
-
                 dos2unix -q ${deployer_environment_file_name}
+                dos2unix -q ${workload_environment_file_name}
 
               echo -e "$green--- Read parameter values ---$reset"
 
@@ -254,6 +247,7 @@ stages:
                   key_vault=$(cat ${workload_environment_file_name}  | grep workload_key_vault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                   REMOTE_STATE_SA=$(cat ${workload_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                   STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+
                 fi
 
               echo -e "$green--- Update .sap_deployment_automation/config as CONFIG_REPO_PATH can change on devops agent ---$reset"
@@ -273,39 +267,45 @@ stages:
               else
                 echo -e "$green --- Set secrets ---$reset"
 
-                  az login --identity --allow-no-subscriptions --output none
-                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}"      \
-                   --environment "${ENVIRONMENT}" --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID \
-                  --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID
-                  secrets_set=$? ; echo "Set Secrets returned $secrets_set"
+                az login --identity --allow-no-subscriptions --output none
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}"      \
+                  --environment "${ENVIRONMENT}" --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID \
+                --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID
+                secrets_set=$? ; echo "Set Secrets returned $secrets_set"
 
-                  whoAmI=$(az account show --query id -o tsv)
+                whoAmI=$(az account show --query id -o tsv)
 
-                  echo Executing using $whoAmI
+                echo Executing using $whoAmI
+                echo -e "$green --- Assign permissions ---$reset"
 
-                  noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+                az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
 
-                  if [ -z "$noAccess" ]; then
+                if [ -n "${REMOTE_STATE_SA}" ] ; then
+                  TFSTATE_STORAGE_ACCOUNT=$(cat ${workload_environment_file_name}  | grep tfstate_resource_id   | awk -F'=' '{print $2}' | xargs) ;
 
-                    perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $whoAmI --query "[].principalName | [0]")
+                  tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts -o tsv --query "[].id | [0]")
+                  az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${TFSTATE_STORAGE_ACCOUNT}" --output none
 
-                    if [ -n "$perms" ]; then
-                      echo -e "$green --- Assign permissions ---$reset"
-                        az account set --subscription ${STATE_SUBSCRIPTION}
-                        az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
-
-                        az keyvault set-policy -n "${key_vault}" --secret-permissions get list recover restore set --object-id $ARM_CLIENT_ID --output none
-
-                        if [ -n "${REMOTE_STATE_SA}" ] ; then
-                          tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]")
-                          az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
-                        fi
-                        REMOTE_STATE_RG=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts  --subscription ${STATE_SUBSCRIPTION} --query "[].resourceGroup | [0]" )
-                    else
-                      echo -e "$boldred --- No permissions to set permissions ---$reset"
+                  resource_group_name=$(az resource show --id "${TFSTATE_STORAGE_ACCOUNT}" --query resourceGroup | tr -d \")
+                  if [ -n ${resource_group_name} ]; then
+                    az resource list --resource-group "${resource_group_name}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones
+                    dns_resource_id=$(az resource list --resource-group "${resource_group_name}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones -o tsv --query "[].id | [0]")
+                    echo $dns_resource_id
+                    if [ -n ${resource_group_name} ]; then
+                      az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope "${dns_resource_id}"
                     fi
                   fi
 
+                fi
+
+                resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup --subscription ${STATE_SUBSCRIPTION} | tr -d \")
+
+                if [ -n ${resource_group_name} ]; then
+                  resource_group_id=$(az group show --name ${resource_group_name} --subscription ${STATE_SUBSCRIPTION} --query id | tr -d \")
+                  az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Network Contributor" --scope "${resource_group_id}" --output none
+                fi
+
+                az keyvault set-policy --name "${key_vault}" --secret-permissions get list --object-id $ARM_OBJECT_ID --output none
               fi
 
               echo -e "$green--- az login ---$reset"
@@ -316,6 +316,7 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
+
                 az account set --subscription ${STATE_SUBSCRIPTION}
                 resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup | tr -d \")
                 if [ -z ${resource_group_name} ]; then
@@ -499,6 +500,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}

@@ -78,13 +78,13 @@ resource "local_file" "ansible_inventory_new_yml" {
     platform            = var.shared_home ? format("%s-multi-sid", lower(var.platform)) : lower(var.platform),
     db_connection       = var.platform == "SQLSERVER" ? "winrm" : "ssh"
     db_become_user      = var.platform == "SQLSERVER" ? var.ansible_user : "root"
-    scs_connection      = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
-    scs_become_user     = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "root" : var.ansible_user
-    ers_connection      = upper(var.app_tier_os_types["scs"]) == "LINUX" ? "ssh" : "winrm"
-    app_connection      = upper(var.app_tier_os_types["app"]) == "LINUX" ? "ssh" : "winrm"
-    app_become_user     = upper(var.app_tier_os_types["app"]) == "LINUX" ? "root" : var.ansible_user
-    web_connection      = upper(var.app_tier_os_types["web"]) == "LINUX" ? "ssh" : "winrm"
-    web_become_user     = upper(var.app_tier_os_types["web"]) == "LINUX" ? "root" : var.ansible_user
+    scs_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  "winrm"          : "ssh"
+    scs_become_user     = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  var.ansible_user : "root"
+    ers_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  "winrm"          : "ssh"
+    app_connection      = upper(var.app_tier_os_types["app"]) == "WINDOWS" ?  "winrm"          : "ssh"
+    app_become_user     = upper(var.app_tier_os_types["app"]) == "WINDOWS" ?  var.ansible_user : "root"
+    web_connection      = upper(var.app_tier_os_types["web"]) == "WINDOWS" ?  "winrm"          : "ssh"
+    web_become_user     = upper(var.app_tier_os_types["web"]) == "WINDOWS" ?  var.ansible_user : "root"
     app_connectiontype  = try(var.authentication_type, "key")
     web_connectiontype  = try(var.authentication_type, "key")
     scs_connectiontype  = try(var.authentication_type, "key")
@@ -97,7 +97,7 @@ resource "local_file" "ansible_inventory_new_yml" {
     observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : []
     ansible_winrm_server_cert_validation = var.platform == "SQLSERVER" ? (
       "ansible_winrm_server_cert_validation: ignore") : (
-      upper(var.app_tier_os_types["scs"]) == "LINUX" ? "" : "ansible_winrm_server_cert_validation: ignore"
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  "ansible_winrm_server_cert_validation: ignore" : ""
 
     )
 

@@ -351,6 +351,24 @@ then
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""
+
+      # Check for resource that can be imported
+
+      existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+      if [[ -n ${existing} ]]
+      then
+        readarray -t existing_resources < <(echo ${existing} | jq -c '.' )
+        for item in "${existing_resources[@]}"; do
+            moduleID=$(jq -c -r '.address '  <<< "$item")
+            resourceID=$(jq -c -r '.summary' <<< "$item" | awk -F'\"' '{print $2}')
+            echo "Trying to import" $resourceID "into" $moduleID
+
+            echo terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+            terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $extra_vars $moduleID $resourceID
+        done
+        terraform -chdir="${terraform_module_directory}"  apply ${approve} -parallelism="${parallelism}" -var-file="${var_file}" $extra_vars -json | tee -a  apply_output.json
+        return_value=$?
+      fi
     fi
 else
   return_value=0

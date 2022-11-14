@@ -406,7 +406,7 @@ if ($import_code) {
   $pipeline_name = 'Update repository'
   $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
   if ($pipeline_id.Length -eq 0) {
-    az pipelines create --name $pipeline_name --branch main --description 'Updates the codebase'  --skip-run --yaml-path "/pipelines/20-update-ado-repository.yml" --repository $repo_id --repository-type tfsgit --output none
+    az pipelines create --name $pipeline_name --branch main --description 'Updates the codebase'  --skip-run --yaml-path "/pipelines/20-update-repositories.yml" --repository $repo_id --repository-type tfsgit --output none
   }
   $pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
   $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
@@ -426,7 +426,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username=$SUserName S-Password=$SPassword tf_version=1.2.8 ansible_core_version=2.13 --output yaml  --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main S-Username=$SUserName S-Password=$SPassword tf_version=1.3.4 ansible_core_version=2.13 --output yaml  --authorize true --output none
   $general_group_id = (az pipelines variable-group list  --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 }
 
@@ -486,6 +486,7 @@ $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 Write-Host "Creating the deployment credentials for the control plane. Service Principal Name:" $spn_name -ForegroundColor Green
 
 $ARM_CLIENT_ID = ""
+$ARM_OBJECT_ID = ""
 $ARM_TENANT_ID = ""
 $ARM_CLIENT_SECRET = "Please update"
 
@@ -498,7 +499,7 @@ if ($found_appName.Length -gt 0) {
   Write-Host "Updating the variable group"
 
   $ARM_CLIENT_ID = $ExistingData.appId
-
+  $ARM_OBJECT_ID = $ExistingData.Id
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
 
   $confirmation = Read-Host "Reset the Control Plane Service Principal password y/n?"
@@ -514,6 +515,7 @@ else {
   $Control_plane_SPN_data = (az ad sp create-for-rbac --role "Contributor" --scopes $scopes --name $spn_name --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $Control_plane_SPN_data.appId
   $ARM_TENANT_ID = $Control_plane_SPN_data.tenant
+  $ARM_OBJECT_ID = $Control_plane_SPN_data.Id
   $ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
 
 }
@@ -528,7 +530,7 @@ az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administ
 $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 if ($Control_plane_groupID.Length -eq 0) {
   Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none  --authorize true
+  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
   $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 }
 
@@ -560,6 +562,7 @@ else {
 
 
 $ARM_CLIENT_SECRET = "Please update"
+$ARM_OBJECT_ID=""
 
 az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
 
@@ -589,6 +592,8 @@ if ($found_appName.Length -ne 0) {
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $ExistingData.appId
   $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
+  $ARM_OBJECT_ID = $ExistingData.Id
+
   $confirmation = Read-Host "Reset the Workload zone Service Principal password y/n?"
   if ($confirmation -eq 'y') {
     $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors)
@@ -599,6 +604,7 @@ else {
   $SPN_Created = $true
   $Data = (az ad sp create-for-rbac --role="Contributor" --scopes=$workload_zone_scopes --name=$workload_zone_spn_name --only-show-errors) | ConvertFrom-Json
   $ARM_CLIENT_ID = $Data.appId
+  $ARM_OBJECT_ID = $Data.Id
   $ARM_TENANT_ID = $Data.tenant
   $ARM_CLIENT_SECRET = $Data.password
 
@@ -606,11 +612,12 @@ else {
 
 Write-Host "Assigning reader permissions to the control plane subscription" -ForegroundColor Green
 az role assignment create --assignee $ARM_CLIENT_ID --role "Reader" --subscription $Control_plane_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Account Contributor" --subscription $Control_plane_subscriptionID --output none
 
 $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors )
 if ($GroupID.Length -eq 0) {
   Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection  TF_LOG=OFF --output yaml  --authorize true --output none
+  az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=DEV_Service_Connection TF_LOG=OFF --output none  --authorize true
   $GroupID = (az pipelines variable-group list  --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
 }
 
@@ -650,41 +657,41 @@ else {
   Write-Host ""
   Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
   Start-Process $pat_url
+  $PAT = Read-Host -Prompt "Please enter the PAT"
+  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
+  az pipelines variable-group variable update --group-id $GroupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
+  # Create header with PAT
+  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
+
+  # To be added later
+  # $body = $bodyText | ConvertTo-Json -Depth 10
+  #
+  #$body = $bodyText | ConvertTo-Json -Depth 10 | Out-File -FilePath "body.json" -Encoding utf8 -Force
+
+  #Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } -ContentType "application/json" -Body $body
+
+  $POOL_NAME_FOUND = (az pipelines pool list  --query "[?name=='$Pool_Name'].name | [0]")
+  if ($POOL_NAME_FOUND.Length -gt 0) {
+    Write-Host "Agent pool"  $Pool_Name  "already exists" -ForegroundColor Yellow
+  }
+  else {
+
+    Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
+
+
+    $uri = $ADO_ORGANIZATION + "/_apis/distributedtask/pools?api-version=6.0&authorizePipelines=true"
+    $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } `
+      -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
+
+    Write-Host "Agent pool" $Pool_Name  "created"
+
+  }
 
 
 }
 
-$PAT = Read-Host -Prompt "Please enter the PAT"
-az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
-az pipelines variable-group variable update --group-id $GroupID  --name "PAT" --value $PAT --secret true --only-show-errors --output none
-# Create header with PAT
-$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
-
-# To be added later
-# $body = $bodyText | ConvertTo-Json -Depth 10
-#
-#$body = $bodyText | ConvertTo-Json -Depth 10 | Out-File -FilePath "body.json" -Encoding utf8 -Force
-
-#Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } -ContentType "application/json" -Body $body
-
-$POOL_NAME_FOUND = (az pipelines pool list  --query "[?name=='$Pool_Name'].name | [0]")
-if ($POOL_NAME_FOUND.Length -gt 0) {
-  Write-Host "Agent pool"  $Pool_Name  "already exists" -ForegroundColor Yellow
-}
-else {
-
-  Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
-
-
-  $uri = $ADO_ORGANIZATION + "/_apis/distributedtask/pools?api-version=6.0&authorizePipelines=true"
-  $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } `
-    -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
-
-  Write-Host "Agent pool" $Pool_Name  "created"
-
-}
 Write-Host ""
-Write-Host "The browser will now open, Select the '" $ADO_PROJECT " Build Service' user and ensure that it has 'Allow' in the Contribute section."
+Write-Host "The browser will now open, Select the'" $ADO_PROJECT "Build Service' user and ensure that it has 'Allow' in the Contribute section."
 
 $permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
 
