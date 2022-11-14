@@ -311,7 +311,6 @@ stages:
                 library: ${{ parameters.library }}
                 environment: ${{ parameters.environment }}
                 use_webapp_param: ${{ parameters.use_webapp_param }}
-                #use_deployer: ${{ parameters.use_deployer }}
       displayName: Deploy the control plane
 
       jobs:
