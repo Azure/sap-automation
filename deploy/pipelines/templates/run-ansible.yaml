@@ -19,7 +19,6 @@ steps:
     #!/bin/bash
     # Exit immediately if a command exits with a non-zero status.
     # Treat unset variables as an error when substituting.
-    set -eu
 
     #Stage could be executed on a different machine by default, need to login again for ansible
     #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
@@ -39,6 +38,7 @@ steps:
       az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
 
     fi
+    set -eu
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
       echo "##[section]Retrieving sshkey..."
@@ -46,14 +46,18 @@ steps:
       sudo chmod 600 $PARAMETERS_FOLDER/sshkey
     fi
 
+    echo $EXTRA_PARAMS
+
     password_secret=$(az keyvault secret show --name $PASSWORD_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv)
     export ANSIBLE_PASSWORD=$password_secret
+
+    # -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'
 
     become_user_name=$(az keyvault secret show --name $USERNAME_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv)
 
     command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey -e @$SAP_PARAMS \
-      -e "_workspace_directory=$PARAMETERS_FOLDER"  -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}' \
-      -e become_user_name=$become_user_name \$EXTRA_PARAMS $ANSIBLE_FILE_PATH"
+      -e "_workspace_directory=$PARAMETERS_FOLDER"   \
+      -e become_user_name=$become_user_name $ANSIBLE_FILE_PATH"
 
     echo "##[section]Executing [$command]..."
     echo "##[group]- output"

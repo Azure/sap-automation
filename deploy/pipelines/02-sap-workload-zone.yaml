@@ -109,40 +109,63 @@ stages:
           - task:                      PostBuildCleanup@3
           - bash: |
               #!/bin/bash
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
+
               echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $(workload_zone_folder)"
-              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
-              # Check if running on deployer
-              if [ ! -f /etc/profile.d/deploy_server.sh ]; then
-                echo -e "$green --- Install dos2unix ---$reset"
+                # Check if running on deployer
+                if [ ! -f /etc/profile.d/deploy_server.sh ]; then
+                  echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
-              fi
+                fi
 
-              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+
                 cd $CONFIG_REPO_PATH
                 git checkout -q $(Build.SourceBranchName)
 
-              echo -e "$green--- Validations ---$reset"
+                echo -e "$green--- Validations ---$reset"
 
                 if [ -z $ARM_SUBSCRIPTION_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
 
                 if [ -z $ARM_CLIENT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
 
                 if [ -z $ARM_CLIENT_SECRET ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
 
                 if [ -z $ARM_TENANT_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
                   exit 2
                 fi
+
+                if [ -z $CP_ARM_SUBSCRIPTION_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
+                  exit 2
+                fi
+
+                if [ -z $CP_ARM_CLIENT_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(parent_variable_group) variable group."
+                  exit 2
+                fi
+
+                if [ -z $CP_ARM_CLIENT_SECRET ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(parent_variable_group) variable group."
+                  exit 2
+                fi
+
+                if [ -z $CP_ARM_TENANT_ID ]; then
+                  echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(parent_variable_group) variable group."
+                  exit 2
+                fi
+
               echo -e "$green--- Set WORKSPACES folder ---$reset"
 
                 ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs ) ; echo Environment $ENVIRONMENT
@@ -159,21 +182,20 @@ stages:
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID
                 if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
-                    echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
-                    exit 2
+                  echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
+                  exit 2
                 fi
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                 echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
-                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
-                    exit 2
+                  echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                  exit 2
                 fi
 
                 echo "Agent Pool: " $(this_agent)
 
               echo -e "$green--- Set CONFIG_REPO_PATH variable ---$reset"
-                echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
 
                 deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
                 workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
@@ -198,6 +220,7 @@ stages:
               echo -e "$green--- Read parameter values ---$reset"
 
                 if [ "true" == $(inherit) ]; then
+
                   az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" | tr -d \")
                   if [ -z ${az_var} ]; then
                     deployer_tfstate_key=$(cat ${deployer_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
@@ -247,105 +270,82 @@ stages:
                   key_vault=$(cat ${workload_environment_file_name}  | grep workload_key_vault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                   REMOTE_STATE_SA=$(cat ${workload_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                   STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
-
                 fi
-
-              echo -e "$green--- Update .sap_deployment_automation/config as CONFIG_REPO_PATH can change on devops agent ---$reset"
 
               secrets_set=1
               if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                 echo -e "$green --- Install terraform ---$reset"
 
-                  wget -q $(tf_url)
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-                    exit 2
-                  fi
-                  unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-                  rm -f terraform_$(tf_version)_linux_amd64.zip
+                wget -q $(tf_url)
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                  exit 2
+                fi
+                unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                rm -f terraform_$(tf_version)_linux_amd64.zip
+                az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+
               else
                 echo -e "$green --- Set secrets ---$reset"
 
-                az login --identity --allow-no-subscriptions --output none
+                az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}"      \
                   --environment "${ENVIRONMENT}" --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID \
                 --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID
-                secrets_set=$? ; echo "Set Secrets returned $secrets_set"
-
-                whoAmI=$(az account show --query id -o tsv)
-
-                echo Executing using $whoAmI
-                echo -e "$green --- Assign permissions ---$reset"
-
-                az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
-
-                if [ -n "${REMOTE_STATE_SA}" ] ; then
-                  TFSTATE_STORAGE_ACCOUNT=$(cat ${workload_environment_file_name}  | grep tfstate_resource_id   | awk -F'=' '{print $2}' | xargs) ;
-
-                  tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts -o tsv --query "[].id | [0]")
-                  az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${TFSTATE_STORAGE_ACCOUNT}" --output none
-
-                  resource_group_name=$(az resource show --id "${TFSTATE_STORAGE_ACCOUNT}" --query resourceGroup | tr -d \")
-                  if [ -n ${resource_group_name} ]; then
-                    az resource list --resource-group "${resource_group_name}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones
-                    dns_resource_id=$(az resource list --resource-group "${resource_group_name}"  --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones -o tsv --query "[].id | [0]")
-                    echo $dns_resource_id
-                    if [ -n ${resource_group_name} ]; then
-                      az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope "${dns_resource_id}"
-                    fi
-                  fi
-
-                fi
-
-                resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup --subscription ${STATE_SUBSCRIPTION} | tr -d \")
-
-                if [ -n ${resource_group_name} ]; then
-                  resource_group_id=$(az group show --name ${resource_group_name} --subscription ${STATE_SUBSCRIPTION} --query id | tr -d \")
-                  az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Network Contributor" --scope "${resource_group_id}" --output none
-                fi
-
-                az keyvault set-policy --name "${key_vault}" --secret-permissions get list --object-id $ARM_OBJECT_ID --output none
+                secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
               fi
 
+              debug_variable='--output none'
+              debug_variable=''
+              az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+
+              perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $ARM_CLIENT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
+              if [ -n "$perms" ]; then
+                echo -e "$green --- Assign subscription permissions to $perms ---$reset"
+                  az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
+              fi
+
+              az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --output none --secret-permissions get list recover restore set --output none
+
+              tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+
+              az role assignment create --assignee-object-id $ARM_OBJECT_ID --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}"  --output none
+
+              resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
+
+              if [ -n ${resource_group_name} ]; then
+
+                for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
+                  echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
+                  az role assignment create --assignee-object-id $ARM_OBJECT_ID --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
+                done
+              fi
+
+              resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup --subscription ${STATE_SUBSCRIPTION} -o tsv)
+              echo $resource_group_name
+
+              if [ -n ${resource_group_name} ]; then
+                resource_group_id=$(az group show --name ${resource_group_name} --subscription ${STATE_SUBSCRIPTION} --query id -o tsv)
+
+                vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
+                if [ -n ${vnet_resource_id} ]; then
+                  echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
+                  az role assignment create --assignee-object-id $ARM_OBJECT_ID --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
+                fi
+              fi
+
+              echo "Assigning get and list secrets permissions for $ARM_OBJECT_ID to ${vnet_resource_id}"
+              az keyvault set-policy --name "${key_vault}" --secret-permissions get list --object-id $ARM_OBJECT_ID --output none
+
               echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
-                fi
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
-                resource_group_name=$(az keyvault show --name "${key_vault}" --query resourceGroup | tr -d \")
-                if [ -z ${resource_group_name} ]; then
-                  echo "##vso[task.logissue type=error]Unable to find resource group for key vault ${key_vault}."
-                  exit 2
-                fi
-
-                ip_added_workload=0
-
-                if [ "azure pipelines" == $(this_agent) ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ---$reset"
-                  if [ -n "${workload_key_vault}" ]; then
-                    az account set --subscription $(ARM_SUBSCRIPTION_ID)
-                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip}  --output none --only-show-errors
-                    ip_added_workload=1
-                  fi
-                fi
-
-                ip_added_control_plane=0
-                az account set --subscription ${STATE_SUBSCRIPTION}
-
-                if [ "azure pipelines" == $(this_agent) ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  if [ -n "${key_vault}" ]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    ip_added_control_plane=1
-                  fi
                 fi
 
               echo -e "$green--- Deploy the workload zone ---$reset"
@@ -356,7 +356,7 @@ stages:
                   $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
                     --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
                     --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                   \
-                    --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
+                    --deployer__te_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
                     --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                 else
                   $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)       \
@@ -380,28 +380,9 @@ stages:
                 else
                   export fencing_id=$(az keyvault secret list --vault-name $workload_key_vault --query [].name -o tsv | grep ${workload_prefix}-fencing-spn-id | xargs)
                   if [ -z "$fencing_id" ]; then
-                    az keyvault secret set --output none --name ${workload_prefix}-fencing-spn-id --vault-name $workload_key_vault --value $(FENCING_SPN_ID)
-                    az keyvault secret set --output none --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value $FENCING_SPN_PWD
-                    az keyvault secret set --output none --name ${workload_prefix}-fencing-spn-tenant --vault-name $workload_key_vault --value $(FENCING_SPN_TENANT)
-                  fi
-                fi
-
-                if [ $ip_added_workload -eq 1 ]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [ "azure pipelines" == $(this_agent) ]; then
-                    if [ "${#workload_key_vault}" != 0 ]; then
-                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
-                fi
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
-                if [ $ip_added_control_plane -eq 1 ]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [ "azure pipelines" == $(this_agent) ]; then
-                    if [ "${#key_vault}" != 0 ]; then
-                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
+                    az keyvault secret set --name ${workload_prefix}-fencing-spn-id --vault-name $workload_key_vault --value $(FENCING_SPN_ID)  --output none
+                    az keyvault secret set --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value=$FENCING_SPN_PWD  --output none
+                    az keyvault secret set --name ${workload_prefix}-fencing-spn-tenant --vault-name $workload_key_vault --value $(FENCING_SPN_TENANT)  --output none
                   fi
                 fi
 
@@ -501,6 +482,11 @@ stages:
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
               ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
+              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
+              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID)
+              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
+              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
+              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}

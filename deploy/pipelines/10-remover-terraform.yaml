@@ -280,6 +280,7 @@ stages:
 
                 changed=0
                 # Pull changes
+                git checkout -q $(Build.SourceBranchName)
                 git pull origin $(Build.SourceBranchName)
 
                 if [ 0 == $return_code ]; then
@@ -359,7 +360,6 @@ stages:
 
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
               cd $CONFIG_REPO_PATH
-              git checkout -q $(Build.SourceBranchName)
 
               ENVIRONMENT=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                  LOCATION=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
@@ -403,6 +403,12 @@ stages:
                   exit 2
                 fi
 
+                if [ ! -f LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
+                  echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
+                  exit 2
+                fi
+
                 if [ -z $(Deployer_Key_Vault) ]; then
                   if [ ! -f ${workload_environment_file_name} ]; then
                     echo -e "$boldred--- $workload_environment_file_name was not found ---$reset"
@@ -415,6 +421,7 @@ stages:
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
+              echo -e "$green--- Set variables ---$reset"
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID
                 if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
@@ -429,18 +436,7 @@ stages:
                     exit 2
                 fi
 
-              echo -e "$green--- Set WORKSPACES folder as new CONFIG_REPO_PATH ---$reset"
 
-                if [ ! -f LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
-                  echo -e "$boldred--- $(workload_zone_configuration_file) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(workload_zone_configuration_file) was not found."
-                  exit 2
-                fi
-
-                echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH > .sap_deployment_automation/config
-
-              echo -e "$green--- Set variables ---$reset"
-                echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH > .sap_deployment_automation/config
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
                 if [ -z ${az_var} ]; then
@@ -479,34 +475,6 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                ip_added=0
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
-
-                ip_added_workload=0
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ---$reset"
-                  if [ -n "${workload_key_vault}" ]; then
-                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip}  --output none --only-show-errors
-                    ip_added_workload=1
-                  fi
-                fi
-
-                ip_added_control_plane=0
-                az account set --subscription ${STATE_SUBSCRIPTION}
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  if [ -n "${key_vault}" ]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    ip_added_control_plane=1
-                  fi
-                fi
 
               echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
@@ -524,14 +492,12 @@ stages:
 
                 return_code=$?
 
-                az account set --subscription ${STATE_SUBSCRIPTION}
-                if [[ ip_added_control_plane -eq 1 ]]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [ "azure pipelines" = "$(this_agent)" ]; then
-                    if [ -n "${key_vault}" ]; then
-                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
+
+                #stop the pipeline after you have reset the whitelisting on your resources
+                echo "Return code from remover.sh $return_code."
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
+                  exit $return_code
                 fi
 
                 #stop the pipeline after you have reset the whitelisting on your resources
@@ -544,13 +510,14 @@ stages:
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 changed=0
+                git checkout -q $(Build.SourceBranchName)
                 git pull
 
                 if [ 0 == $return_code ]; then
 
-                  if [ -f  $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK ]; then
-                    git rm -q -f $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK
-                    echo "Removed $CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION$NETWORK"
+                  if [ -f  ${workload_environment_file_name} ]; then
+                    git rm -q -f ${workload_environment_file_name}
+                    echo "Removed ${workload_environment_file_name}"
 
                     changed=1
                   fi
@@ -558,8 +525,8 @@ stages:
                   if [ -f  ${workload_environment_file_name}.md ]; then
                     git rm -q  --ignore-unmatch -f ${workload_environment_file_name}.md
                     changed=1
-
                   fi
+
                   if [ -d $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform ]; then
                     git rm -r  --ignore-unmatch -f $(Deployment_Configuration_Path)/LANDSCAPE/$(workload_zone_folder)/.terraform
                     changed=1
