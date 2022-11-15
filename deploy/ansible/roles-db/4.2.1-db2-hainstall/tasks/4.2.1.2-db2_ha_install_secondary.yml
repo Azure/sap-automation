@@ -56,7 +56,6 @@
         msg:                           "INSTALL:0011:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-
   when:                              ansible_hostname == secondary_instance_name
 
 - name:                                "DB2 Install - Secondary DB"
@@ -103,7 +102,7 @@
 #   2230669 - System Provisioning Using a Parameter Input File
 #
 
-    - name:                            "DBLoad: progress"
+    - name:                            "SAP DB2 Install: progress"
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Install - Secondary DB. Please wait"
 
@@ -124,6 +123,10 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Installation succeeded."
+
     - name:                            "DB2 Install Secondary: flag"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
@@ -133,6 +136,19 @@
   when:
     - not db2_installed.stat.exists
     - ansible_hostname == secondary_instance_name
+
+- name:                                "SAP DB2 Install: Install DB2"
+  block:
+
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Already installed."
+
+
+  when:
+    - db2_installed.stat.exists
+    - ansible_hostname == primary_instance_name
+
 # *====================================4=======================================8
 
 ...

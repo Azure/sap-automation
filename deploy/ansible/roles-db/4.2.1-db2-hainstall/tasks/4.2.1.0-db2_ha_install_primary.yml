@@ -104,7 +104,7 @@
           - "{{ bom.product_ids.dblha }}"
         verbosity:                     2
 
-    - name:                            "DBLoad: progress"
+    - name:                            "SAP DB2 Install: progress"
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Install. Please wait"
 
@@ -125,6 +125,10 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Installation succeeded."
+
   # TBC - Add another check to remove the contents of /sapmnt/<SID> if installation fails
 
 
@@ -137,6 +141,19 @@
   when:
     - not db2_installed.stat.exists
     - ansible_hostname == primary_instance_name
+
+- name:                                "SAP DB2 Install: Install DB2"
+  block:
+
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Already installed."
+
+
+  when:
+    - db2_installed.stat.exists
+    - ansible_hostname == primary_instance_name
+
 # *====================================4=======================================8
 
 ...
