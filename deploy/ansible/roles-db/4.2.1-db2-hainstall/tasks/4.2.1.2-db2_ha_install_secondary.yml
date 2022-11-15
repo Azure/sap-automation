@@ -21,6 +21,7 @@
         sap_inifile:                   "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
         sap_inifile_template:          "{{ bom_base_name }}-dbloadstandby-inifile-param.j2"
         dir_params:                    "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
+        mem_size:                      "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
     - name:                            "SAP DB2 Secondary: Create run flag directory"
       ansible.builtin.file:
@@ -85,6 +86,7 @@
         sap_scs_hostname:               "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
+        db2_memory:                    "{{ mem_size | int }}"
         always_upload_jinja_templates: false
 
       tags:

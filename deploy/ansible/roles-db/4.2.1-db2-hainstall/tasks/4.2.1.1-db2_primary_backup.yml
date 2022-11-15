@@ -33,10 +33,6 @@
   loop:
     - path:                            "{{ target_media_location }}/db2backup"
 
-- name:                                "DB2 - Set fact for backup dir "
-  ansible.builtin.set_fact:
-    db_sid_backup_dir:                 "{{ target_media_location }}/db2backup"
-
 - name:                                "DB2 HA: - Ensure backup directory exists for DB2 database with System Identifier {{ db_sid }}"
   ansible.builtin.file:
     path:                              "{{ db_sid_backup_dir }}"
@@ -73,6 +69,9 @@
         msg:                           "INSTALL:0010:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
+    - name:                            "SAP DB2: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting SAP DB2 Backup. Please wait"
 
 # TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome
 # ToDO: make this async after we fix issues.
