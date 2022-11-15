@@ -130,7 +130,7 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: usr/sap"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'usrsap',
@@ -391,7 +391,7 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
 - name:                                "ANF Mount: sap_trans"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'trans',
@@ -410,7 +410,7 @@
     - tier == 'sapos'
 
 - name:                                "ANF Mount: install"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'install',
@@ -511,7 +511,7 @@
     - node_tier == 'hana'
 
 - name:                                "ANF Mount: HANA data"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
@@ -535,7 +535,7 @@
     - ansible_hostname == db_hosts[0]
 
 - name:                                "ANF Mount: HANA log"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':                'log',
@@ -559,7 +559,7 @@
     - ansible_hostname == db_hosts[0]
 
 - name:                                "ANF Mount: HANA data (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
@@ -583,7 +583,7 @@
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: HANA log (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':                'log',
@@ -607,7 +607,7 @@
     - ansible_hostname == db_hosts[1]
 
 - name:                                "ANF Mount: HANA shared"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
@@ -631,7 +631,7 @@
     - ansible_hostname == db_hosts[0]
 
 - name:                                "ANF Mount: HANA shared (secondary)"
-  ansible.builtin.include_tasks:       2.6.1.1-nfs-mount.yaml
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
     - {
       'type':              'data',
