@@ -634,16 +634,17 @@ if [ 0 == $return_value ] ; then
 
     if [ "${deployment_system}" == sap_library ]
     then
+      if [ "$deployment_parameter" == " " ]
+        then  # This is not a new deployment. Reusing variable previously declared in the shell script above.
+          tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
+          STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
-        tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id| tr -d \")
-        STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+          az account set --sub "${STATE_SUBSCRIPTION}"
 
-        az account set --sub "${STATE_SUBSCRIPTION}"
+          REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
 
-        REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name| tr -d \")
-
-        get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
-
+          get_and_store_sa_details "${REMOTE_STATE_SA}" "${system_config_information}"
+      fi
     fi
 
     ok_to_proceed=true
@@ -956,13 +957,13 @@ if [ 1 == $ok_to_proceed ]; then
 
     if [ $rerun_apply == 1 ] ; then
         echo ""
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                          $cyan Re running Terraform apply$resetformatting                                  #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
         echo ""
         if [ 1 == $called_from_ado ] ; then
             terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -compact-warnings $allParams
