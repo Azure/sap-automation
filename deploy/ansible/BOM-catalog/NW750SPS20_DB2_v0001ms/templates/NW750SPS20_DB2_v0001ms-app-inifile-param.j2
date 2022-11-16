@@ -34,10 +34,11 @@ nwUsers.sapadmUID                                                               
 nwUsers.sapsysGID                                                                           = {{ sapsys_gid }}
 nwUsers.sidAdmUID                                                                           = {{ sidadm_uid }}
 
+NW_getDBInfoGeneric.dbhost                                                                  = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                                                   = {{ db_sid | upper }}
+
 # ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
 NW_getUnicode.isUnicode = true
-
-
 
 # Specify whether this system is to be a Unicode system.
 NW_GetSidNoProfiles.unicode = true
