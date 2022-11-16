@@ -190,7 +190,7 @@ if ($confirmation -eq 'y') {
   Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
 
   $import_code = $true
-  $repo_name="sap-automation"
+  $repo_name = "sap-automation"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
   az repos create --name $repo_name --query id  --output none
   $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]").Replace("""", "")
@@ -198,7 +198,7 @@ if ($confirmation -eq 'y') {
   az repos update --repository $code_repo_id --default-branch main --output none
 
   $import_code = $true
-  $repo_name="sap-samples"
+  $repo_name = "sap-samples"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
   az repos create --name $repo_name --query id  --output none
   $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]").Replace("""", "")
@@ -530,13 +530,13 @@ az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administ
 $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 if ($Control_plane_groupID.Length -eq 0) {
   Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
+  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID CP_ARM_CLIENT_ID=$ARM_CLIENT_ID CP_ARM_OBJECT_ID=$ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
   $Control_plane_groupID = (az pipelines variable-group list  --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 }
 
 if ($ARM_CLIENT_SECRET -ne "Please update") {
-  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "CP_ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "CP_ARM_CLIENT_ID" --value $ARM_CLIENT_ID --output none --only-show-errors
 }
 
 Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green
@@ -562,11 +562,11 @@ else {
 
 
 $ARM_CLIENT_SECRET = "Please update"
-$ARM_OBJECT_ID=""
+$ARM_OBJECT_ID = ""
 
 az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
 
-if( $provideSUser ) {
+if ( $provideSUser ) {
   az pipelines variable-group variable update --group-id $general_group_id  --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
   az pipelines variable-group variable update --group-id $general_group_id  --name "S-Username" --value $SUserName  --output none --only-show-errors
 }
@@ -724,7 +724,7 @@ if ($eTag -ne $null) {
 }
 else {
   az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md --output none --only-show-errors
-  $page_id=(az devops wiki page show --path 'Next steps' --wiki SDAF --query page.id )
+  $page_id = (az devops wiki page show --path 'Next steps' --wiki SDAF --query page.id )
 }
 
 $wiki_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_wiki/wikis/SDAF/" + $page_id + "/Next-steps"

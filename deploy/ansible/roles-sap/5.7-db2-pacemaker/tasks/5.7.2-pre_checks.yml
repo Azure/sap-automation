@@ -9,18 +9,18 @@
 # +------------------------------------4--------------------------------------*/
 
 # Note -  feng shui is required to change db specific naming conventions for these variables. Right now re-using the variables for DB2
-- name:                                "Check the fencing agent configuration variables are set"
-  ansible.builtin.assert:
-    that:
-      - "sap_hana_fencing_spn_subscription_id is defined"
-      - "sap_hana_fencing_spn_subscription_id | trim | length > 0"
-      - "sap_hana_fencing_spn_tenant_id is defined"
-      - "sap_hana_fencing_spn_tenant_id | trim | length > 0"
-      - "sap_hana_fencing_spn_client_id is defined"
-      - "sap_hana_fencing_spn_client_id | trim | length > 0"
-      - "sap_hana_fencing_spn_client_pwd is defined"
-      - "sap_hana_fencing_spn_client_pwd | trim | length > 0"
-    fail_msg:                          "Fencing SPN details are missing"
+# - name:                                "Check the fencing agent configuration variables are set"
+#   ansible.builtin.assert:
+#     that:
+#       - "sap_hana_fencing_spn_subscription_id is defined"
+#       - "sap_hana_fencing_spn_subscription_id | trim | length > 0"
+#       - "sap_hana_fencing_spn_tenant_id is defined"
+#       - "sap_hana_fencing_spn_tenant_id | trim | length > 0"
+#       - "sap_hana_fencing_spn_client_id is defined"
+#       - "sap_hana_fencing_spn_client_id | trim | length > 0"
+#       - "sap_hana_fencing_spn_client_pwd is defined"
+#       - "sap_hana_fencing_spn_client_pwd | trim | length > 0"
+#     fail_msg:                          "Fencing SPN details are missing"
 
 - name:                                "Check the required cluster password is set"
   ansible.builtin.assert:

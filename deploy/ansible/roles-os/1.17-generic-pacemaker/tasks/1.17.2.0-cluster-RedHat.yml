@@ -89,10 +89,10 @@
       tags:
         - skip_ansible_lint
 
-    - name:                                "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
-      ansible.builtin.command:             pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
-      register:                            quorum
-      changed_when:                        quorum.rc == 0
+    - name:                            "1.17 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
+      ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
+      register:                        quorum
+      changed_when:                    quorum.rc == 0
 
   when:                                ansible_hostname == primary_instance_name
 

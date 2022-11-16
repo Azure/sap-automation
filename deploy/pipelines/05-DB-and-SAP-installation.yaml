@@ -41,6 +41,11 @@ parameters:
       - ORACLE_19_00_ORA_MSID_v0002ms
       - ERP6_EHP8_WIN_MSS2019_v0001ms
 
+  - name:                              extra_params
+    displayName:                       Extra Parameters
+    type:                              string
+    default:                           ""
+
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
     type:                              boolean
@@ -128,10 +133,10 @@ stages:
       - template:                      variables/05-DB-and-SAP-installation-variables.yaml
         parameters:
           environment:                 ${{ parameters.environment }}
-    displayName:                       05-DB-and-SAP-installation
+    displayName:                       OS Configuration and SAP Installation
     jobs:
-      - job:                           Preparation_step
-        displayName:                   05-DB-and-SAP-installation
+      - job:                           Installation_step
+        displayName:                   OS Configuration and SAP Installation
         timeoutInMinutes:              0
         workspace:
           clean:                       all
@@ -244,12 +249,8 @@ stages:
               echo -e "$green--- az login ---$reset"
                 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
-                if [ -f "$deployer_file" ]; then
-                  az login --identity --allow-no-subscriptions --output none
-                else
-                  az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
-                  az account set --subscription $AZURE_SUBSCRIPTION_ID
-                fi
+                az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+                az account set --subscription $AZURE_SUBSCRIPTION_ID
 
                 return_code=$?
                 if [ 0 != $return_code ]; then

@@ -24,6 +24,7 @@
         sap_inifile:                   "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
         sap_inifile_template:          "{{ bom_base_name }}-dbload-inifile-param.j2"
         dir_params:                    "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
+        mem_size:                      "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
     - name:                            "SAP DB2: Create run flag directory"
       ansible.builtin.file:
@@ -64,6 +65,13 @@
 
 - name:                                "SAP DB2 Install: Install DB2"
   block:
+
+    - name:                            "SAP DB2 Install:  variables"
+      ansible.builtin.debug:
+        msg:
+          - "INIFILE:    {{ sap_inifile }}"
+          - "mem_size:   {{ mem_size | int }}"
+
     - name:                            "DB2 Install: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
@@ -93,6 +101,7 @@
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         tier:                          "{{ tier }}"
         param_directory:               "{{ dir_params }}"
+        db2_memory:                    "{{ mem_size | int }}"
         always_upload_jinja_templates: false
       tags:
         - skip_ansible_lint
@@ -104,7 +113,7 @@
           - "{{ bom.product_ids.dblha }}"
         verbosity:                     2
 
-    - name:                            "DBLoad: progress"
+    - name:                            "SAP DB2 Install: progress"
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Install. Please wait"
 
@@ -125,6 +134,10 @@
       tags:
         - skip_ansible_lint
 
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Installation succeeded."
+
   # TBC - Add another check to remove the contents of /sapmnt/<SID> if installation fails
 
 
@@ -137,6 +150,19 @@
   when:
     - not db2_installed.stat.exists
     - ansible_hostname == primary_instance_name
+
+- name:                                "SAP DB2 Install: Install DB2"
+  block:
+
+    - name:                            "SAP DB2 Install: progress"
+      ansible.builtin.debug:
+        msg:                           "SAP DB2 Already installed."
+
+
+  when:
+    - db2_installed.stat.exists
+    - ansible_hostname == primary_instance_name
+
 # *====================================4=======================================8
 
 ...

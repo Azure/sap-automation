@@ -23,41 +23,41 @@
         name:                          jmespath
         state:                         present
 
-    - name: ensure netaddr is installed in the playbook python
+    - name:                            "0.0 Validations - ensure netaddr is installed in the controller"
       ansible.builtin.pip:
-        name: netaddr
-        state: present
+        name:                          netaddr
+        state:                         present
 
-    - name: "0.0 Validations - Create Progress folder"
+    - name:                            "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
-        path: "{{ _workspace_directory }}/.progress"
-        state: directory
-        mode: 0755
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
 
-    - name: "0.0 Validations - Remove os-install-done flag"
+    - name:                            "0.0 Validations - Remove os-install-done flag"
       ansible.builtin.file:
-        path: "{{ _workspace_directory }}/.progress/validation-done"
-        state: absent
+        path:                          "{{ _workspace_directory }}/.progress/validation-done"
+        state:                         absent
 
-    - name: "0.0 Validations - Initialize tier"
+    - name:                            "0.0 Validations - Initialize tier"
       ansible.builtin.set_fact:
-        tier: fencing
+        tier:                          fencing
 
-    - name: "0.0 Validations - Retrieve the Fencing SPN details"
+    - name:                            "0.0 Validations - Retrieve the Fencing SPN details"
       ansible.builtin.include_role:
-        name: roles-misc/0.2-kv-secrets
-      when: platform != "ORACLE"
+        name:                          roles-misc/0.2-kv-secrets
+      when:                            platform != "ORACLE"
       tags:
         - kv-secrets
 
-    - name: "0.0 Validations - Retrieve the storage account details"
+    - name:                            "0.0 Validations - Retrieve the storage account details"
       ansible.builtin.include_role:
-        name: roles-misc/0.3.sap-installation-media-storage-details
-        public: true
+        name:                          roles-misc/0.3.sap-installation-media-storage-details
+        public:                        true
       tags:
         - kv-sap-installation-media-storage-details
 
-    - name: "0.0 Validations - Check required variables are present and not empty"
+    - name:                            "0.0 Validations - Check required variables are present and not empty"
       ansible.builtin.assert:
         that:
           - "{{ item_to_check.parameter is defined }}" # Has the variable been defined
@@ -65,33 +65,33 @@
         fail_msg: "{{ item_to_check.error }}"
       loop:
         - {
-            parameter: "bom_base_name",
-            error: "Please provide the Bill of materials name in bom_base_name parameter",
+            parameter:                 "bom_base_name",
+            error:                     "Please provide the Bill of materials name in bom_base_name parameter",
           }
         - {
-            parameter: "kv_name",
-            error: "Please provide the workload zone key vault name in kv_name parameter",
+            parameter:                 "kv_name",
+            error:                     "Please provide the workload zone key vault name in kv_name parameter",
           }
         - {
-            parameter: "sap_fqdn",
-            error: "Please provide the SAP fqdn in  in sap_fqdn parameter",
+            parameter:                 "sap_fqdn",
+            error:                     "Please provide the SAP fqdn in  in sap_fqdn parameter",
           }
         - {
-            parameter: "sap_sid",
-            error: "Please provide the SAP SID in sap_sid parameter",
+            parameter:                 "sap_sid",
+            error:                     "Please provide the SAP SID in sap_sid parameter",
           }
         - {
-            parameter: "secret_prefix",
-            error: "Please provide the Key Vault secret prefix in secret_prefix parameter",
+            parameter:                 "secret_prefix",
+            error:                     "Please provide the Key Vault secret prefix in secret_prefix parameter",
           }
         - {
-            parameter: "sapbits_location_base_path",
-            error: "Please provide the sapbits_location_base_path in the deployer key vault",
+            parameter:                 "sapbits_location_base_path",
+            error:                     "Please provide the sapbits_location_base_path in the deployer key vault",
           }
       loop_control:
-        loop_var: item_to_check
+        loop_var:                      item_to_check
 
-    - name: "0.0 Validations - Check required SCS HA variables are present and not empty"
+    - name:                            "0.0 Validations - Check required SCS HA variables are present and not empty"
       ansible.builtin.assert:
         that:
           - "{{ item_to_check.parameter is defined }}" # Has the variable been defined
@@ -99,26 +99,26 @@
         fail_msg: "{{ item_to_check.error }}"
       loop:
         - {
-            parameter: "NFS_provider",
-            error: "A highly available SCS deployment requires that NFS_Provider provided",
+            parameter:                 "NFS_provider",
+            error:                     "A highly available SCS deployment requires that NFS_Provider provided",
           }
         - {
-            parameter: "sap_mnt",
-            error: "A highly available SCS deployment requires a shared sap_mnt is provided",
+            parameter:                 "sap_mnt",
+            error:                     "A highly available SCS deployment requires a shared sap_mnt is provided",
           }
         - {
-            parameter: "scs_lb_ip",
-            error: "A highly available SCS deployment requires that scs_lb_ip is provided",
+            parameter:                 "scs_lb_ip",
+            error:                     "A highly available SCS deployment requires that scs_lb_ip is provided",
           }
         - {
-            parameter: "ecs_lb_ip",
-            error: "A highly available SCS deployment requires  that ers_lb_ip is provided",
+            parameter:                 "ecs_lb_ip",
+            error:                     "A highly available SCS deployment requires  that ers_lb_ip is provided",
           }
       loop_control:
-        loop_var: item_to_check
+        loop_var:                      item_to_check
       when: scs_high_availability
 
-    - name: "0.0 Validations - Check required SCS HA fencing variables are present and not empty"
+    - name:                            "0.0 Validations - Check required SCS HA fencing variables are present and not empty"
       ansible.builtin.assert:
         that:
           - "{{ item_to_check.parameter is defined }}" # Has the variable been defined
@@ -126,28 +126,28 @@
         fail_msg: "{{ item_to_check.error }}"
       loop:
         - {
-            parameter: "fencing_spn_client_id",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_client_id",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
         - {
-            parameter: "fencing_spn_client_pwd",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_client_pwd",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
         - {
-            parameter: "fencing_spn_subscription_id",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_subscription_id",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
         - {
-            parameter: "fencing_spn_tenant_id",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_tenant_id",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
       loop_control:
-        loop_var: item_to_check
+        loop_var:                      item_to_check
       when:
         - scs_high_availability
         - not use_msi_for_clusters
 
-    - name: "0.0 Validations - Check required Database HA variables are present and not empty"
+    - name:                            "0.0 Validations - Check required Database HA variables are present and not empty"
       ansible.builtin.assert:
         that:
           - "{{ item_to_check.parameter is defined }}" # Has the variable been defined
@@ -155,40 +155,40 @@
         fail_msg: "{{ item_to_check.error }}"
       loop:
         - {
-            parameter: "db_lb_ip",
-            error: "A highly available SCS deployment requires that scs_lb_ip is provided",
+            parameter:                 "db_lb_ip",
+            error:                     "A highly available SCS deployment requires that scs_lb_ip is provided",
           }
         - {
-            parameter: "fencing_spn_client_id",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_client_id",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
         - {
-            parameter: "fencing_spn_client_pwd",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_client_pwd",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
         - {
-            parameter: "fencing_spn_subscription_id",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_subscription_id",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
         - {
-            parameter: "fencing_spn_tenant_id",
-            error: "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+            parameter:                 "fencing_spn_tenant_id",
+            error:                     "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
           }
       loop_control:
-        loop_var: item_to_check
+        loop_var:                      item_to_check
       when:
         - db_high_availability
         - platform == "HANA"
 
-    - name: "0.0 Validations - sharedHome variables"
+    - name:                            "0.0 Validations - sharedHome variables"
       ansible.builtin.debug:
-        var: sid_to_be_deployed
-      when: MULTI_SIDS is defined
-      loop: "{{ MULTI_SIDS }}"
+        var:                           sid_to_be_deployed
+      when:                            MULTI_SIDS is defined
+      loop:                            "{{ MULTI_SIDS }}"
       loop_control:
-        loop_var: sid_to_be_deployed
+        loop_var:                      sid_to_be_deployed
 
-    - name: "0.0 Validations - Validate ORACLE parameters"
+    - name:                            "0.0 Validations - Validate ORACLE parameters"
       ansible.builtin.assert:
         that:
           - "{{ item_to_check.parameter }} is defined" # Has the variable been defined
@@ -196,23 +196,23 @@
         fail_msg: "{{ item_to_check.error }}"
       loop:
         - {
-            parameter: "ora_release",
-            error: "Oracle deployments requires that ora_release is provided",
+            parameter:                 "ora_release",
+            error:                     "Oracle deployments requires that ora_release is provided",
           }
         - {
-            parameter: "ora_version",
-            error: "Oracle deployments requires that ora_version is provided",
+            parameter:                 "ora_version",
+            error:                     "Oracle deployments requires that ora_version is provided",
           }
         - {
-            parameter: "oracle_sbp_patch",
-            error: "Oracle deployments requires that oracle_sbp_patch is provided",
+            parameter:                 "oracle_sbp_patch",
+            error:                     "Oracle deployments requires that oracle_sbp_patch is provided",
           }
       loop_control:
-        loop_var: item_to_check
+        loop_var:                      item_to_check
       when:
         - platform == 'ORACLE'
 
-    - name: "0.0 Validations - Show ORACLE parameters"
+    - name:                            "0.0 Validations - Show ORACLE parameters"
       ansible.builtin.debug:
         msg:
           - "ora_release: {{ ora_release }}"
@@ -222,43 +222,39 @@
       when:
         - platform == 'ORACLE'
 
-    - name: "0.0 Validations - Get Access Token"
+    - name:                            "0.0 Validations - Get Access Token"
       ansible.builtin.command: >-
-        az account get-access-token
-      changed_when: false
-      register: access_token_data
+        az account get-access-token --query accessToken -o tsv
+      changed_when:                    false
+      register:                        access_token_data
 
-    - name: "0.0 Validations - Save the Json data to a Variable as a Fact"
+    - name:                            "0.0 Validations - Save the access token"
       ansible.builtin.set_fact:
-        json_azure_account: "{{ access_token_data.stdout | from_json }}"
+        access_token:                  "{{ access_token_data.stdout }}"
       no_log: true
 
-    - name: "0.0 Validations - Extract details"
-      ansible.builtin.set_fact:
-        access_token: "{{ json_azure_account | json_query('accessToken') }}"
-
-    - name: "0.0 Validations - Retrieve Subscription ID and Resource Group Name"
-      ansible.builtin.command: curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-      register: azure_metadata
-      no_log: true
-      changed_when: false
+    - name:                            "0.0 Validations - Retrieve Subscription ID and Resource Group Name"
+      ansible.builtin.command:         curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+      register:                        azure_metadata
+      no_log:                          true
+      changed_when:                    false
       args:
-        warn: false
+        warn:                          false
 
-    - name: "0.0 Validations - Show IMDS results"
+    - name:                            "0.0 Validations - Show IMDS results"
       ansible.builtin.debug:
-        var: azure_metadata
-        verbosity: 2
+        var:                           azure_metadata
+        verbosity:                     2
 
-    - name: "0.0 Validations - Save the Json data to a Variable as a Fact"
+    - name:                            "0.0 Validations - Save the Json data to a Variable as a Fact"
       ansible.builtin.set_fact:
-        json_azure_data: "{{ azure_metadata.stdout | from_json }}"
-      no_log: true
+        json_azure_data:               "{{ azure_metadata.stdout | from_json }}"
+      no_log:                          true
 
-    - name: "0.0 Validations - Extract details"
+    - name:                            "0.0 Validations - Extract details"
       ansible.builtin.set_fact:
-        subscription_id: "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-        resource_group_name: "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+        subscription_id:               "{{ json_azure_data | json_query('compute.subscriptionId') }}"
+        resource_group_name:           "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -279,39 +275,39 @@
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name: "0.0 Validations: - Set Python version {{ distribution_id }}"
+    - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
         python_version: "python2"
 
-    - name: "0.0 Validations: - Set Python version {{ distribution_id }}"
+    - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
         python_version: "python3"
       when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'sles_sap15']
 
-    - name: "0.0 Validations - Get details from local host"
+    - name:                            "0.0 Validations - Get details from local host"
       ansible.builtin.set_fact:
         subscription_id: "{{ hostvars.localhost.subscription_id }}"
         resource_group_name: "{{ hostvars.localhost.resource_group_name }}"
         access_token: "{{ hostvars.localhost.access_token }}"
       no_log: true
 
-    - name: "0.0 Validations - Variables"
+    - name:                            "0.0 Validations - Variables"
       ansible.builtin.debug:
         var: hostvars
         verbosity: 4
 
-    - name: "0.0 Validations - groupsnames"
+    - name:                            "0.0 Validations - groupsnames"
       ansible.builtin.debug:
         var: group_names
         verbosity: 4
 
-    - name: "0.0 Validations - Variables"
+    - name:                            "0.0 Validations - Variables"
       ansible.builtin.debug:
         msg:
           - "Virtual Host Name: {{ virtual_host }}"
           - "DNS:               {{ ansible_domain }}"
 
-    - name: "0.0 Validations - Validate SCS and HDB instance numbers"
+    - name:                            "0.0 Validations - Validate SCS and HDB instance numbers"
       ansible.builtin.assert:
         that:
           - "scs_instance_number != hdb_instance_number"
@@ -320,7 +316,7 @@
       tags:
         - 0.0-scs-db-instance-single
 
-    - name: "0.0 Validations - Validate SCS and HDB SIDs"
+    - name:                            "0.0 Validations - Validate SCS and HDB SIDs"
       ansible.builtin.assert:
         that:
           - "sap_sid != db_sid"
@@ -338,7 +334,7 @@
       tags:
         - 0.0-scs-pas
 
-    - name: "0.0 Validations - Validate SCS and PAS instance numbers"
+    - name:                            "0.0 Validations - Validate SCS and PAS instance numbers"
       ansible.builtin.assert:
         that:
           - "scs_instance_number != pas_instance_number"
@@ -347,7 +343,7 @@
       tags:
         - 0.0-scs-pas-single
 
-    - name: "0.0 Validations - Check internet connectivity"
+    - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
         url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
         headers:
@@ -365,7 +361,7 @@
       tags:
         - 0.0-internet
 
-    - name: "0.0 Validations - Check internet connectivity"
+    - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
         url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2016-08-01"
         headers:
@@ -420,30 +416,30 @@
     #     - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['redhat7', 'redhat8']
     #     - yum_results is defined
 
-    - name: "0.0 Validations - Show Mounts"
+    - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.command: df -h
       register: mounts
       failed_when: false
       tags:
         - 0.0-mounts
 
-    - name: "0.0 Validations - Show Mounts"
+    - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         var: mounts.stdout_lines
       when: mounts is defined
 
-    - name: "0.0 Validations - Show Hosts"
+    - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.command: cat /etc/hosts
       register: hosts
       tags:
         - 0.0-hosts
 
-    - name: "0.0 Validations - Show Hosts"
+    - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
         var: hosts.stdout_lines
       when: hosts is defined
 
-    - name: "0.0 Validations - Create validation-done flag"
+    - name:                            "0.0 Validations - Create validation-done flag"
       delegate_to: localhost
       become: false
       ansible.builtin.file:
@@ -451,7 +447,7 @@
         state: touch
         mode: 0755
 
-    - name: "0.0 Validations - Netmask"
+    - name:                            "0.0 Validations - Netmask"
       ansible.builtin.debug:
         msg:
           - "Netmask: {{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
@@ -473,7 +469,7 @@
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name: "0.0 Validations - Validate that MULTISID is provided"
+    - name:                            "0.0 Validations - Validate that MULTISID is provided"
       ansible.builtin.assert:
         that:
           - MULTI_SIDS is defined # Has the variable been defined
@@ -488,7 +484,7 @@
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name: "0.0 Validations - VAlidate web_sid presence of Web Dispatchers are deployed"
+    - name:                            "0.0 Validations - VAlidate web_sid presence of Web Dispatchers are deployed"
       ansible.builtin.assert:
         that:
           - web_sid is defined # Has the variable been defined
