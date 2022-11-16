@@ -65,6 +65,8 @@ parameters:
     displayName:                       The local path on the agent where the config repo can be found
     type:                              string
 
+trigger:                               none
+
 stages:
   - stage: Remove_SAP_systems
     displayName: "Removing the SAP System"
