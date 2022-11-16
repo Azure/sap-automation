@@ -550,4 +550,38 @@
         path:                          "/etc/sap_deployment_automation/asmdiskinitialised.txt"
         state:                         touch
         mode:                          0755
+  
+  
+    - name:                                "Make oracle:oinstall are the owners for ASM Data Disks "
+      become:                               true
+      become_user:                          root
+      ansible.builtin.file:
+        path:                              '{{ item }}1'
+        owner:                             oracle
+        group:                             oinstall
+        mode:                              '755'
+      loop:                               '{{ datadisklist }}'
+    
+    - name:                                "Make oracle:oinstall are the owners for ASM Arch Disks "
+      become:                               true
+      become_user:                          root
+      ansible.builtin.file:
+        path:                              '{{ item }}1'
+        owner:                             oracle
+        group:                             oinstall
+        mode:                              '755'
+      loop:                               '{{ archdisklist }}'
+    
+    - name:                                "Make oracle:oinstall are the owners for ASM Reco Disks "
+      become:                               true
+      become_user:                          root
+      ansible.builtin.file:
+        path:                              '{{ item }}1'
+        owner:                             oracle
+        group:                             oinstall
+        mode:                              '755'
+      loop:                               '{{ recodisklist }}'  
+      
+      
+      
   #when: not oracleasm_initialised.stat.exists
