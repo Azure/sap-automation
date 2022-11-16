@@ -63,14 +63,11 @@
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
   when:           
      - swap_size == '0'
-  notify:      
-    - Swap reboot                          
-
-
-# - name:                                "Swap reboot"
-#   ansible.builtin.reboot:
-#   when:           
-#     - swap_size == '0'
+                           
+- name:                                "Swap reboot"
+  ansible.builtin.reboot:
+  when:           
+    - swap_size == '0'
 
 # - name:                               "Get SWAP Size"
 #   set_fact:
