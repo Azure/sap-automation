@@ -763,12 +763,14 @@ stages:
 
       dependsOn:
           - Deploy_controlplane
+          - Prepare_Deployer
       condition: |
           and
           (
             eq(${{ parameters.use_webapp_param }}, true),
             eq(${{ parameters.deploy_webapp_software }}, true),
-            in(dependencies.Deploy_controlplane.result, 'Succeeded', 'Skipped')
+            eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
+            eq(dependencies.Prepare_Deployer.result, 'Succeeded')
           )
       jobs:
           - job:                       Deploy_web_app

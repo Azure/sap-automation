@@ -118,7 +118,6 @@
   name:                                "PAS Installation Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -235,7 +234,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                       Playbook for Restting the DB2 parameters             |
+# |                       Playbook for Reseting the DB2 parameters             |
 # |  2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912            |
 # +------------------------------------4--------------------------------------*/
 - hosts:                               "{{ sap_sid | upper }}_DB[0]"
