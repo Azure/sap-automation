@@ -114,7 +114,7 @@ output "firewall_id" {
 
 output "sid_keyvault_user_id" {
   description = "User credentials keyvault"
-  value = local.enable_sid_deployment && local.use_local_credentials ? (
+  value = local.enable_sid_deployment && local.use_local_credentials &&  length(local.user_key_vault_id) == 0 ? (
     azurerm_key_vault.sid_keyvault_user[0].id) : (
   local.user_key_vault_id)
 }
