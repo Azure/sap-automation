@@ -237,7 +237,7 @@
 # |                       Playbook for Reseting the DB2 parameters             |
 # |  2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912            |
 # +------------------------------------4--------------------------------------*/
-- hosts:                               "{{ sap_sid | upper }}_DB[0]"
+- hosts:                               "{{ sap_sid | upper }}_DB"
 
   name:                                "Restting the DB2 LOCK escalationparameters"
   serial:                              1

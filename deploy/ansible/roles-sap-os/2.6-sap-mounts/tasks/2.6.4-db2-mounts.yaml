@@ -150,6 +150,7 @@
     }
   when:
     - item.tier == "db2"
+    - sap_mnt is undefined
 
 # Debug for testing
 - name:                                "DB2: Print filesystems"

@@ -9,12 +9,12 @@
 ###############################################################################################################################################################################################################################
 
 # Location of Export CD
-SAPINST.CD.PACKAGE.LOAD                                                                     = /usr/sap/install/CD_EXPORT
-SAPINST.CD.PACKAGE.RDBMS.CLIENT                                                             = /usr/sap/install/sapdb2_software/db2client
-SAPINST.CD.PACKAGE.RDBMS                                                                    = /usr/sap/install/sapdb2_software/db2server/LINUXX86_64
-NW_Unpack.sapExeDbSar                                                                       = /usr/sap/install/download_basket
-NW_Unpack.sapExeSar                                                                         = /usr/sap/install/download_basket
-archives.downloadBasket                                                                     = /usr/sap/install/download_basket
+SAPINST.CD.PACKAGE.LOAD                                                                     = {{ target_media_location }}/CD_EXPORT
+SAPINST.CD.PACKAGE.CLIENT                                                                   = {{ target_media_location }}/sapdb2_software/db2client
+SAPINST.CD.PACKAGE.RDBMS                                                                    = {{ target_media_location }}/sapdb2_software/db2server/LINUXX86_64
+NW_Unpack.sapExeDbSar                                                                       = {{ target_media_location }}/download_basket
+NW_Unpack.sapExeSar                                                                         = {{ target_media_location }}/download_basket
+archives.downloadBasket                                                                     = {{ target_media_location }}/download_basket
 
 NW_CI_Instance.ascsVirtualHostname                                                          = {{ sap_scs_hostname }}
 NW_CI_Instance.ciInstanceNumber                                                             = {{ sap_ciInstanceNumber }}
