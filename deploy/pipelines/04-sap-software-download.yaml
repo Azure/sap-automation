@@ -77,12 +77,6 @@ stages:
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
-              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
-
-                environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(environment_code)$(location_code)
-                cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
-
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_promp --output none
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
@@ -95,7 +89,7 @@ stages:
                   echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
                   exit 2
                 fi
-                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ ! -n $ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
@@ -105,19 +99,19 @@ stages:
                   exit 2
                 fi
 
-                if [ "your S User" == $(S-Username) ]; then
+                if [ "your S User" == "${SUsername}" ]; then
                   echo "##vso[task.logissue type=error]Please define the S-Username variable."
                   exit 2
                 fi
 
-                if [ "your S user password" == $(S-Password) ]; then
+                if [ "your S user password" == "${SPassword}" ]; then
                   echo "##vso[task.logissue type=error]Please define the S-Password variable."
                   exit 2
                 fi
 
               echo -e "$green--- az login ---$reset"
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=${ARM_CLIENT_SECRET} --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $ARM_CLIENT_ID --password=${ARM_CLIENT_SECRET} --tenant $ARM_TENANT_ID --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -125,7 +119,7 @@ stages:
                   exit $return_code
                 fi
 
-                az account set --subscription $(ARM_SUBSCRIPTION_ID) --output none
+                az account set --subscription $ARM_SUBSCRIPTION_ID --output none
 
               echo -e "$green--- Get key_vault name ---$reset"
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
@@ -149,29 +143,35 @@ stages:
 
               echo -e "$green--- Set S-Username and S-Password in the key_vault if not yet there ---$reset"
 
-                export SUsername=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Username | xargs)
-                if [ -z $SUsername ]; then
-                  az keyvault secret set --name "S-Username" --vault-name $kv_name --value="$(S-Username)" --output none
-                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$(S-Username)"
+                export SUsernamefromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Username')] | [0]"  -o tsv)
+                if [ -z $SUsernamefromVault ]; then
+                  echo -e "$green--- Setting the S username in key vault ---$reset"
+                  az keyvault secret set --name "S-Username" --vault-name $kv_name --value="${SUsername}" --subscription "${ARM_SUBSCRIPTION_ID}" --output none
+                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsername"
                 else
                   echo -e "$green--- $SUsername present in keyvault. In case of download errors check that user and password are correct ---$reset"
-                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsername"
+                  echo "##vso[task.setvariable variable=SUSERNAME;isOutput=true]$SUsernamefromVault"
                 fi
 
-                export SPassword=$(az keyvault secret list --vault-name $kv_name --query [].name -o tsv | grep S-Password | xargs)
-                if [ -z $SPassword ]; then
-                  az keyvault secret set --output none --name "S-Password" --vault-name $kv_name --value="$(S-Password)"
-                  echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]$(S-Password)"
-                else
+                export SPasswordfromVault=$(az keyvault secret list --vault-name "${kv_name}" --subscription "${ARM_SUBSCRIPTION_ID}" --query "[].{Name:name} | [? contains(Name,'S-Password')] | [0]"  -o tsv)
+                if [ -z $SPasswordfromVault ]; then
+                  echo -e "$green--- Setting the S user name password in key vault ---$reset"
+                  az keyvault secret set --name "S-Password" --vault-name $kv_name --value "${SPassword}" --subscription "${ARM_SUBSCRIPTION_ID}" --output none
                   echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPassword}"
+                else
+                  echo "##vso[task.setvariable variable=SPASSWORD;isOutput=true]${SPasswordfromVault}"
+                  echo -e "$green--- Password present in keyvault. In case of download errors check that user and password are correct ---$reset"
                 fi
             displayName:                Prepare download
             name:                       Preparation
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              SUsername:                $(S-Username)
+              SPassword:                $(S-Password)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
@@ -206,27 +206,27 @@ stages:
               sample_path=$SAMPLE_REPO_PATH/SAP
 
               echo -e "$green--- az login ---$reset"
-                if [ ! -n $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ ! -n $ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
 
-                if [ ! -n $(ARM_CLIENT_ID) ]; then
+                if [ ! -n $ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
 
-                if [ ! -n $(ARM_CLIENT_SECRET) ]; then
+                if [ ! -n $ARM_CLIENT_SECRET ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
 
-                if [ ! -n $(ARM_TENANT_ID) ]; then
+                if [ ! -n $ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$(ARM_CLIENT_SECRET) --tenant $(ARM_TENANT_ID)
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -234,20 +234,19 @@ stages:
                   exit $return_code
                 fi
 
-                command="ansible-playbook '-e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" $(ExtraParams) ' ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
+                command="ansible-playbook '-e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
 
                 echo "##[section]Executing [$command]..."
                 echo "##[group]- output"
                 eval $command
                 echo "##[endgroup]"
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
             displayName:               Download
             name:                      download
             env:
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
