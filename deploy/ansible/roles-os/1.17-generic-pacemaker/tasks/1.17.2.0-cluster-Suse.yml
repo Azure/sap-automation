@@ -110,7 +110,6 @@
                                        power_timeout=240
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-                                       pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
       when:
         - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4","sles_sap12.5"]
 
@@ -125,8 +124,6 @@
                                        power_timeout=240
                                        pcmk_reboot_timeout=900
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-                                       pcmk_host_list="{{ hostvars[primary_instance_name]['primary_vm_name'] }} {{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
-
       when:
         - use_msi_for_clusters
         - distribution_full_id in ["sles_sap15.1","sles_sap15.2", "sles_sap15.3"]

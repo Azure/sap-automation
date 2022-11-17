@@ -45,7 +45,7 @@
 # | DB2 - Take backup on the primary node                                      |
 # |                                                                            |
 # /*---------------------------------------------------------------------------8
-
+# TODO: take online backup on primary node
 - name:                                "DB2 Backup:- Ensure backup is taken on primary node"
   become:                              true
   become_user:                         "db2{{ db_sid | lower }}"
@@ -75,6 +75,7 @@
 
 # TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome
 # ToDO: make this async after we fix issues.
+# db2 backup database {{ db_sid }} online to {{ db_sid_backup_dir }}
     - name:                            "DB2 HA: - Backup DB2 database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
                              db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}

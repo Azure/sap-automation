@@ -344,7 +344,9 @@ $bodyText.pipelines += @{
 $pipeline_name = 'Configuration and SAP installation'
 $installation_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
 if ($installation_pipeline_id.Length -eq 0) {
-  $installation_pipeline_id = (az pipelines create --name $pipeline_name --branch main --description 'Configures the Operating System and installs the SAP application' --skip-run --yaml-path "/pipelines/05-DB-and-SAP-installation.yml" --repository $repo_id --repository-type tfsgit --output none) --only-show-errors
+  $installation_pipeline_id = (az pipelines create --name $pipeline_name --branch main --description 'Configures the Operating System and installs the SAP application' --skip-run --yaml-path "/pipelines/05-DB-and-SAP-installation.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors)
+  $installation_pipeline_id = (az pipelines list  --query "[?name=='$pipeline_name'].id | [0]")
+
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $installation_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
@@ -567,8 +569,12 @@ $ARM_OBJECT_ID = ""
 az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
 
 if ( $provideSUser ) {
-  az pipelines variable-group variable update --group-id $general_group_id  --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $general_group_id  --name "S-Username" --value $SUserName  --output none --only-show-errors
+  if ($SPassword.Length -eq 0) {
+    az pipelines variable-group variable update --group-id $general_group_id  --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
+  }
+  if ($SUserName.Length -eq 0) {
+    az pipelines variable-group variable update --group-id $general_group_id  --name "S-Username" --value $SUserName  --output none --only-show-errors
+  }
 }
 
 
@@ -673,11 +679,13 @@ else {
   $POOL_NAME_FOUND = (az pipelines pool list  --query "[?name=='$Pool_Name'].name | [0]")
   if ($POOL_NAME_FOUND.Length -gt 0) {
     Write-Host "Agent pool"  $Pool_Name  "already exists" -ForegroundColor Yellow
+    $uri = $ADO_ORGANIZATION + "/_apis/distributedtask/pools?api-version=6.0&authorizePipelines=true"
+    $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } `
+      -Body (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
   }
   else {
 
     Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
-
 
     $uri = $ADO_ORGANIZATION + "/_apis/distributedtask/pools?api-version=6.0&authorizePipelines=true"
     $result = Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } `
@@ -720,7 +728,7 @@ if ($WIKI_NAME_FOUND.Length -gt 0) {
   }
 }
 else {
-  az devops wiki create --name SDAF
+  az devops wiki create --name SDAF --output none --only-show-errors
   az devops wiki page create --path 'Next steps' --wiki SDAF --file-path .\start.md --output none --only-show-errors
 }
 

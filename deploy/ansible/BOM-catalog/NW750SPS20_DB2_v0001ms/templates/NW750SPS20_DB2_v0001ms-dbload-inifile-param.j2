@@ -42,7 +42,7 @@ nwUsers.sidadmPassword                                              = {{ main_pa
 #Database Parameters
 
 db6.DB2SoftwarePath                                                 = /db2/db2{{ db_sid | upper }}/db2_software
-db6.DatabaseMemory                                                  = 42980
+db6.DatabaseMemory                                                  = {{ db2_memory }}
 db6.TablespacePoolSizes                                             = SAPSID#DATA{20}
 db6.UseStandardTablespacePool                                       = true
 db6.cluster.ClusterType                                             = HADR (High Availability Disaster Recovery)
