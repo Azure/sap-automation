@@ -12,7 +12,7 @@
   ansible.builtin.stat:
     path:                              /usr/sap/install/downloads/{{ db_sid | upper }}/restore_completed.txt
   register:                            secondary_completed
-  when:                                node_tier == 'oracle'
+  when:                                node_tier == "oracle" or node_tier == "oracle-asm"
 
 - name: "Execute Block only if secondary DB restore is completed"
   block:

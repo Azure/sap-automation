@@ -64,6 +64,45 @@
         alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl4.dbf' size 400M reuse;
         exit
     mode:                              '0755'
+  when:                                node_tier == "oracle"
+
+
+- name:                                "Oracle Data Guard for oracle asm - Preparation: create standbyredologs.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/standbyredologs.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        exit
+    mode:                              '0755'
+  when:                                node_tier == "oracle-asm"
+
+
+- name:                                "Oracle Data Guard for oracle asm - Preparation: create fralogs.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/fralogs.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        alter database add standby logfile '+ARCH' size 400M reuse;
+        exit
+    mode:                              '0755'
+  when:                                node_tier == "oracle-asm"
+
+
 
 - name:                                "Oracle Data Guard - Preparation: create enableforcelogging.sql"
   become:                              true
