@@ -175,7 +175,7 @@ stages:
                 cd $CONFIG_REPO_PATH; mkdir -p .sap_deployment_automation
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt  --output none
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
