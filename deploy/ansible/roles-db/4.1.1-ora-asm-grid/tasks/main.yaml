@@ -80,6 +80,62 @@
     # ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                      "{{ ansible_hostname }}"
 
+- name:                               "Get the List of Data disks"
+  become:                             true
+  become_user:                        root
+  ansible.builtin.shell:              "oracleasm listdisks |grep DATA"
+  register:                           asm_dlist
+
+- name:                               "Get the List of ARCH disks"
+  become:                             true
+  become_user:                        root
+  ansible.builtin.shell:              "oracleasm listdisks |grep ARCH"
+  register:                           asm_alist
+
+- name:                               "Get the List of RECO disks"
+  become:                             true
+  become_user:                        root
+  ansible.builtin.shell:              "oracleasm listdisks |grep RECO"
+  register:                           asm_rlist
+
+# - name:                               "Get the List of OLOG disks"
+#   become:                             true
+#   become_user:                        root
+#   ansible.builtin.shell:            "oracleasm listdisks |grep OLOG"
+#   register:                          asm_olist
+
+
+- name:                              "Prepare the Data disk list"
+  set_fact:
+    asm_dlist1:                    "{{ asm_dlist.stdout_lines | list }}"
+    asm_alist1:                    "{{ asm_alist.stdout_lines | list }}"
+    asm_rlist1:                    "{{ asm_rlist.stdout_lines | list }}"
+    
+
+- name:                            "DISPLAY Oracle lists"
+  ansible.builtin.debug:
+    var:                           asm_dlist1,asm_alist1,asm_rlist1
+    verbosity:                     2
+
+
+- name:                           "Append /dev/oracleasm/disk to each of of the disk"
+  ansible.builtin.set_fact:  
+    asm_datadisklist:     "{{ asm_dlist1 | map('regex_replace', '^(.*)$','/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_archdisklist:     "{{ asm_alist1 | map('regex_replace', '^(.*)$','/dev/oracleasm/disks/\\1') | join(',') }}"
+    asm_recodisklist:     "{{ asm_rlist1 | map('regex_replace', '^(.*)$','/dev/oracleasm/disks/\\1') | join(',') }}"
+    
+
+- name:                            "DISPLAY Oracle lists with prefix"
+  ansible.builtin.debug:
+    var:                           asm_datadisklist,asm_archdisklist,asm_recodisklist
+    verbosity:                     2
+
+# - name:                              "Prepare the Data disk list"
+#   vars:
+#     prefix:                          /dev/oracleasm/disks/
+#     datadisk_list:                   result
+#     result1:                          "{{ [prefix] | product(datadisk_list) | map('join') | list }}"
+
 - name:                               "SAP Oracle ASM: deploy Grid install response file"
   become:                             true
   become_user:                        oracle
@@ -263,67 +319,7 @@
 
 
 
-# Make sure the paritions created are owned by oracle:oinstall before adding the additional disk groups for ASM.
-# - name:                             "SAP Oracle ASM: Ensure Partition Permissions are inplace for data disk group"
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.shell: |
-#                                        set -o errexit
-#                                        chown -R oracle:oinstall '{{ item }}1'
-#   register:                            partion_owner_data_results
-#   loop:                                "{{ datadisklist }}"
-#   args:
-#     chdir:                              /dev
-#     creates:                            "/etc/sap_deployment_automation/partionownersdata.txt"
 
-# - name:                                "SAP Oracle ASM: Partion owner creation"
-#   ansible.builtin.file:
-#     path:                             "/etc/sap_deployment_automation/partionownersdata.txt"
-#     state:                            touch
-#     mode:                             '0755'
-#   #when:                               partion_owner_data_results.rc == 0
-
-# For ARCH
-
-# - name:                             "SAP Oracle ASM: Ensure Partition Permissions are inplace for arch disk group"
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.shell: |
-#                                        set -o errexit
-#                                        chown -R oracle:oinstall '{{ item }}1'
-#   register:                            partion_owner_arch_results
-#   loop:                                "{{ archdisklist }}"
-#   args:
-#     chdir:                              /dev
-#     creates:                            "/etc/sap_deployment_automation/partionownersarch.txt"
-
-# - name:                                "SAP Oracle ASM: Partion owner creation ARCH"
-#   ansible.builtin.file:
-#     path:                             "/etc/sap_deployment_automation/partionownersarch.txt"
-#     state:                            touch
-#     mode:                             '0755'
-#   #when:                               partion_owner_arch_results.rc == 0
-
-# # For RECO
-
-# - name:                             "SAP Oracle ASM: Ensure Partition Permissions are inplace for reco disk group"
-#   become:                              true
-#   become_user:                         root
-#   ansible.builtin.shell: |
-#                                        set -o errexit
-#                                        chown -R oracle:oinstall '{{ item }}1'
-#   register:                            partion_owner_reco_results
-#   loop:                                "{{ recodisklist }}"
-#   args:
-#     chdir:                              /dev
-#     creates:                            "/etc/sap_deployment_automation/partionownersreco.txt"
-
-# - name:                                "SAP Oracle ASM: Partion owner creation ARCH"
-#   ansible.builtin.file:
-#     path:                             "/etc/sap_deployment_automation/partionownersreco.txt"
-#     state:                            touch
-#     mode:                             '0755'
-#   #when:                               partion_owner_reco_results.rc == 0
 
 # - fail:
 #     msg:   "check before creating additional ASM Disk groups"
@@ -340,8 +336,8 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o errexit
-                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -diskList '{{ recolistrsp }}1'
-                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ archlistrsp }}1'
+                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -diskList '{{ asm_recodisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ asm_archdisklist }}'
   register:                            diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
