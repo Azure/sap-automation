@@ -88,19 +88,38 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            oracle_permissions_set
 
-# - name:     "Mount SAP Filesystems on Database for installation when using Shared File systems"
-#   ansible.posix.mount:
-#     src:    "{{ item.src }}"
-#     path:   "{{ item.path }}"
-#     fstype: "{{ item.type }}"
-#     opts:   defaults
-#     state:  mounted
-#   loop:
-#     - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_sap/lv_usrsap',                             path: '/usr/sap' }
-#     - { tier: 'sapos',          type: 'xfs',   src: '/dev/vg_oracle/lv_oracle',                          path: '/oracle' }
-#   when:                                
-#     - item.tier == "sapos" or item.tier == "ora"
-#     - NFS_provider != "NONE"
+- name:                                "AFS Mount: Mount Install"
+  block:
+
+    - name:                            "AFS Mount: Mount Install folder when using AFS ({{ usr_sap_install_mountpoint }}/{{ bom_base_name }})"
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+        path:                          "{{ target_media_location }}"
+        fstype:                        'nfs4'
+        opts:                          "vers=4,minorversion=1,sec=sys"
+        state:                         mounted
+      when:
+        - node-tier == 'oracle' or node-tier == 'oracle-asm'
+        - use_AFS
+  rescue:
+    - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
+      ansible.builtin.debug:
+        msg:                           "Trying to remount Install Folder"
+
+    - name:                            "AFS Mount: Pause for 5 seconds"
+      ansible.builtin.pause:
+        seconds:                       15
+
+    - name:                            Mount Install folder when using AFS
+      ansible.posix.mount:
+        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+        path:                          "{{ target_media_location }}"
+        fstype:                        'nfs4'
+        opts:                          "vers=4,minorversion=1,sec=sys"
+        state:                         mounted
+      when:
+        - node-tier == 'oracle' or node-tier == 'oracle-asm'
+        - use_AFS
 
 
 - name:                                "ORACLE: Make orasid:dba as owners for oraclae installation folders"
@@ -160,6 +179,9 @@
   when:
     - node_tier == 'observer'
     - use_AFS
+
+
+
 
 # Debug for testing
 - name:                                "ORACLE: Print oracle filesystems"
