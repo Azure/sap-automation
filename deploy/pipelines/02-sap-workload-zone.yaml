@@ -298,7 +298,7 @@ stages:
                 echo -e "$green --- Set secrets ---$reset"
 
                 echo -e "$green--- az login ---$reset"
-                  az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                  az login --identity  --allow-no-subscriptions --output none
                   return_code=$?
                   if [ 0 != $return_code ]; then
                     echo -e "$boldred--- Login failed ---$reset"
