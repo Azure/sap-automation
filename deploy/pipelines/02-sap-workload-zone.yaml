@@ -296,7 +296,6 @@ stages:
 
               else
                 echo -e "$green--- az login ---$reset"
-                  az login --identity  --allow-no-subscriptions --output none
                   az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
 
                   return_code=$?
