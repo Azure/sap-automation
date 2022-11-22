@@ -379,7 +379,22 @@ namespace AutomationForm.Controllers
         {
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException(JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString());
+                string errorMessage;
+                switch (response.StatusCode)
+                {
+                    case System.Net.HttpStatusCode.Unauthorized:
+                        errorMessage = "Unauthorized, please ensure that the Personal Access Token has sufficient permissions and thaat it has not expired.";
+                    break;
+                    case System.Net.HttpStatusCode.NotFound:
+                        errorMessage = "Could not find the template.";
+                        break;
+                    default:
+                        errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();
+                        break;
+
+                }
+               throw new HttpRequestException(errorMessage);
+
             }
         }
 

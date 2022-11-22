@@ -476,7 +476,7 @@ stages:
                   azureSubscriptionId:         $(ARM_SUBSCRIPTION_ID)
                   acssEnvironment:             ${{ parameters.acss_environment }}
                   acssSapProduct:              ${{ parameters.acss_sap_product }}
-                  sapSystemConfigurationNanme: ${{ parameters.sap_system_configuration_name }}
+                  sapSystemConfigurationName:  ${{ parameters.sap_system_configuration_name }}
           - template:                          templates\collect-log-files.yaml
             parameters:
               logPath:                         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
