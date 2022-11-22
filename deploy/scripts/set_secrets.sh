@@ -146,6 +146,8 @@ if [ -z "$subscription" ]; then
     load_config_vars "${environment_config_information}" "subscription"
 fi
 
+load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
+
 if [ "$workload" != 1 ]; then
     load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
     if [ "$STATE_SUBSCRIPTION" ]; then
@@ -203,7 +205,7 @@ fi
 
 if [ -z "${tenant_id}" ]; then
     load_config_vars "${environment_config_information}" "tenant_id"
-    if [ ! -n "${tenant_id}" ]; then
+    if [ -z "${tenant_id}" ]; then
         read -r -p "SPN Tenant ID: " tenant_id
     fi
 else
