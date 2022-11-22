@@ -19,6 +19,7 @@
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}-dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
+    mem_size:                          "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
 - name:                                "SAP DB2: Create run flag directory"
   ansible.builtin.file:
@@ -76,6 +77,7 @@
         db2_sslencryption_label:       "sap_db2{{ db_sid }}_{{ sap_db_hostname }}_ssl_comm_000"
         sap_scs_hostname:              "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
         tier:                          "{{ tier }}"
+        db2_memory:                    "{{ mem_size | int }}"
         param_directory:               "{{ dir_params }}"
       tags:
         - skip_ansible_lint

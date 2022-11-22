@@ -55,27 +55,30 @@
       when:                            db2_started.rc == 0
       failed_when:                     db2_start_result.rc > 1
 
-    - name:                            "DB2 - Get backup timestamp fact from primary DB"
-      ansible.builtin.debug:
-        var:              "{{ hostvars[primary_instance_name] }}"
-
-
 
     - name:                            "DB2 - Get backup timestamp fact from primary DB"
       ansible.builtin.set_fact:
-        backup_timestamp:              "{{ hostvars[primary_instance_name][db2_backup_timestamp] }}"
+        backup_timestamp:              "{{ hostvars[primary_instance_name]['db2_backup_timestamp'] }}"
 
-    - name:                             "DB2 - Display backup timestamp fact from primary DB"
+    - name:                            "DB2 - Get backup timestamp fact from primary DB"
       ansible.builtin.debug:
-        msg:                            "Backup timestamp: {{ backup_timestamp }}"
+        var:                           "{{ hostvars[primary_instance_name]['db2_backup_timestamp'] }}"
+
+    - name:                            "DB2 - Progress"
+      ansible.builtin.debug:
+        msg:                           "DB2 - Restoring database, please wait"
+
 
       # ##################### Start of Restore without Encryption ##################################
     - name:                            "DB2 - Restore without encryption"
-      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} on /db2/{{ db_sid }} taken at {{ backup_timestamp }} no encrypt without prompting
+      ansible.builtin.shell:           db2 restore database {{ db_sid }} from {{ db_sid_backup_dir }} taken at {{ backup_timestamp }} on /db2/{{ db_sid }} no encrypt without prompting
       args:
         executable:                    /bin/csh
+      register:                        db2_restore_result
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+      failed_when:                     db2_restore_result.rc > 2
+      when:                            db2_started.rc == 0
       # ######### ########### End of Restore without Encryption ####################################
   when:
     - ansible_hostname == secondary_instance_name

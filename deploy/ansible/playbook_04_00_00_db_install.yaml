@@ -357,17 +357,18 @@
         - node_tier == 'oracle-multi-sid'
         - platform == 'ORACLE'
 
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for DB2 DB Install                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid | upper }}_DB[0]"
+- hosts:                               "{{ sap_sid| upper }}_DB[0]"
   name:                                "DB Installation - SAP DB2"
   remote_user:                         "{{ orchestration_ansible_user }}"
+  # become_user:                         "{{ become_user_name }}"
   become:                              true
-  become_user:                         root
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -394,15 +395,68 @@
         - name:                        Check for file system mounts
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
-          when:                        platform == 'DB2'
 
         - name:                        Installing DB2
           ansible.builtin.include_role:
             name:                      roles-db/4.2.0-db2-install
-          when:                        platform == 'DB2'
 
+      vars:
+        # become_user:                   root
       when:
         - platform == 'DB2'
+        - not db_high_availability
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for DB2 DB HA Install                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid| upper }}_DB"
+  name:                                "DB Installation - SAP DB2 HA"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  # become_user:                         "{{ become_user_name }}"
+  become:                              true
+  gather_facts:                        false
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+    - name:                            "Install SAP DB2"
+      block:
+
+        - name:                        Setting the DB facts
+          ansible.builtin.set_fact:
+            tier:                      db2                                    # Actions for Oracle DB Servers
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            bom_processing:            true
+            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+
+          tags:
+            - always
+
+        - name:                        Check for file system mounts
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+
+        - name:                        Installing DB2
+          ansible.builtin.include_role:
+            name:                      roles-db/4.2.1-db2-hainstall
+
+      vars:
+        # become_user:                   root
+      when:
+        - platform == 'DB2'
+        - db_high_availability
+        - (ansible_play_hosts_all | length) >= 2
 
 
 # add platform in sap-parameters.yaml to execute tasks for DB2, ORACLE, MSSQL, SYBASE

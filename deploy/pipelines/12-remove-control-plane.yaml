@@ -141,16 +141,16 @@ stages:
                   REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
                 fi
 
-                export STATE_SUBSCRIPTION=$(ARM_SUBSCRIPTION_ID) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
 
               echo -e "$green--- az login ---$reset"
 
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
 
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
@@ -160,19 +160,18 @@ stages:
                   exit 2
                 fi
 
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
 
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
 
               echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
@@ -249,10 +248,10 @@ stages:
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault:                $(Deployer_Key_Vault)
@@ -349,11 +348,11 @@ stages:
 
               echo -e "$green--- az login ---$reset"
 
-                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                if [ -z $ARM_SUBSCRIPTION_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
                   exit 2
                 fi
-                if [ -z $(ARM_CLIENT_ID) ]; then
+                if [ -z $ARM_CLIENT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                   exit 2
                 fi
@@ -361,18 +360,18 @@ stages:
                   echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
                   exit 2
                 fi
-                if [ -z $(ARM_TENANT_ID) ]; then
+                if [ -z $ARM_TENANT_ID ]; then
                   echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                   exit 2
                 fi
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                az account set --subscription $ARM_SUBSCRIPTION_ID
 
               echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
                 if [ -f $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/state.zip ]; then
@@ -497,10 +496,10 @@ stages:
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               key_vault:                $(Deployer_Key_Vault)

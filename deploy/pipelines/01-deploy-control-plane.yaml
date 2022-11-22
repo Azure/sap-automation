@@ -68,6 +68,7 @@ stages:
                 clean:                 all
             steps:
                 - template:            templates\download.yaml
+                - task:                PostBuildCleanup@3
                 - bash: |
                       #!/bin/bash
 
@@ -162,14 +163,14 @@ stages:
                             echo -e "$green--- Configuring variables ---$reset"
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- az login ---$reset"
-                            az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                            az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                             return_code=$?
                             if [ 0 != $return_code ]; then
                                 echo -e "$boldred--- Login failed ---$reset"
                                 echo "##vso[task.logissue type=error]az login failed."
                                 exit $return_code
                             fi
-                            az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                            az account set --subscription $ARM_SUBSCRIPTION_ID
                             echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n $(PAT) ]; then
                                 echo 'Deployer Agent PAT is defined'
@@ -207,21 +208,19 @@ stages:
                           fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
-                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
+                            set +eu
+
+                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                                --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                               --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID)        \
-                               --spn_secret $ARM_CLIENT_SECRET --tenant_id $(ARM_TENANT_ID)           \
+                               --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
+                               --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
                                --auto-approve --ado --only_deployer
                             return_code=$?
-                            if [ 0 != $return_code ]; then
-                               echo "##vso[task.logissue type=error]Return code from deploy_controlplane $return_code."
-                               if [ -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err ]; then
-                                   error_message=$(cat .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.err)
-                                   echo "##vso[task.logissue type=error]Error message: $error_message."
-                               fi
-                            fi
-                            az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                            echo "Return code from deploy_controlplane $return_code."
+
+                            set -eu
+
                             echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                             added=0
                             cd $CONFIG_REPO_PATH
@@ -280,10 +279,10 @@ stages:
                   displayName: Deploy control plane
                   env:
                       SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID:               $(ARM_TENANT_ID)
+                      ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
+                      ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
+                      ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
+                      ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
@@ -311,6 +310,7 @@ stages:
                 library: ${{ parameters.library }}
                 environment: ${{ parameters.environment }}
                 use_webapp_param: ${{ parameters.use_webapp_param }}
+                use_deployer: ${{ parameters.use_deployer }}
       displayName: Deploy the control plane
 
       jobs:
@@ -325,7 +325,6 @@ stages:
                     getLatestFromBranch: true
                 - bash: |
                       #!/bin/bash
-
                       set -ue
 
                       echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
@@ -435,7 +434,7 @@ stages:
                               if [[ ${#az_var} -ne 0 ]]; then
                                   echo "REMOTE_STATE_SA="${az_var}
                                   echo "REMOTE_STATE_SA="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
-                                  echo "STATE_SUBSCRIPTION="$(ARM_SUBSCRIPTION_ID) | tee -a  $deployer_environment_file_name > /dev/null
+                                  echo "STATE_SUBSCRIPTION="$ARM_SUBSCRIPTION_ID | tee -a  $deployer_environment_file_name > /dev/null
                                   echo "step=3" | tee -a  $deployer_environment_file_name > /dev/null
                               fi
 
@@ -526,7 +525,7 @@ stages:
                           fi
 
                       echo -e "$green--- az login ---$reset"
-                          az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID) --output none
+                          az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                           return_code=$?
                           if [ 0 != $return_code ]; then
                               echo -e "$boldred--- Login failed ---$reset"
@@ -534,7 +533,7 @@ stages:
                               exit $return_code
                           fi
 
-                          az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                          az account set --subscription $ARM_SUBSCRIPTION_ID
 
                           echo -e "$green--- Deploy the Control Plane ---$reset"
 
@@ -569,12 +568,12 @@ stages:
 
                           sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
 
-                          $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh               \
+                          $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                             --subscription $(ARM_SUBSCRIPTION_ID) --spn_id $(ARM_CLIENT_ID)        \
-                             --spn_secret $ARM_CLIENT_SECRET --tenant_id $(ARM_TENANT_ID)           \
-                             --auto-approve --ado                                                   \
+                             --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID                                \
+                             --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
+                             --auto-approve --ado                                                                       \
                              ${storage_account_parameter}
                           return_code=$?
 
@@ -586,19 +585,7 @@ stages:
                              fi
                           fi
 
-                          if [[ 1 -eq $ip_added ]]; then
-
-                             agent_name=$(echo $(Agent) | tr '[:upper:]' '[:lower:]')
-
-                             if [ "azure pipelines" = "$(this_agent)" ]; then
-                                 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                                 if [ -n ${key_vault} ]; then
-                                     az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --no-wait --only-show-errors --output none
-                                 fi
-                             fi
-                          fi
-
-                          az account set --subscription $(ARM_SUBSCRIPTION_ID)
+                          az account set --subscription $ARM_SUBSCRIPTION_ID
 
                           echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                           added=0
@@ -719,9 +706,9 @@ stages:
 
                               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value")
                               if [ -z ${az_var} ]; then
-                                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $(ARM_SUBSCRIPTION_ID) --output none --only-show-errors
+                                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $ARM_SUBSCRIPTION_ID --output none --only-show-errors
                               else
-                                  az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $(ARM_SUBSCRIPTION_ID) --output none --only-show-errors
+                                  az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $ARM_SUBSCRIPTION_ID --output none --only-show-errors
                               fi
 
                               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
@@ -743,10 +730,10 @@ stages:
                   displayName:         Deploy control plane
                   env:
                       SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
-                      ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
-                      ARM_TENANT_ID:               $(ARM_TENANT_ID)
+                      ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
+                      ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
+                      ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
+                      ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
@@ -776,12 +763,14 @@ stages:
 
       dependsOn:
           - Deploy_controlplane
+          - Prepare_Deployer
       condition: |
           and
           (
             eq(${{ parameters.use_webapp_param }}, true),
             eq(${{ parameters.deploy_webapp_software }}, true),
-            in(dependencies.Deploy_controlplane.result, 'Succeeded', 'Skipped')
+            eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
+            eq(dependencies.Prepare_Deployer.result, 'Succeeded')
           )
       jobs:
           - job:                       Deploy_web_app
@@ -810,7 +799,7 @@ stages:
                 - task:                  AzureWebApp@1
                   displayName:           "Deploy the Configuration Web Application"
                   inputs:
-                      azureSubscription: ${{ parameters.connection_name }}
+                      azureSubscription: ${{parameters.connection_name}}
                       appType:           "webApp"
                       appName:           $(WEBAPP_URL_BASE)
                       package:           "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
@@ -825,7 +814,7 @@ stages:
                           -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
                           -IS_PIPELINE_DEPLOYMENT true'
                   env:
-                      ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+                      ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
                       SYSTEM_PIPELINE_ID:       $(SYSTEM_PIPELINE_ID)
                       WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
                       SAP_INSTALL_PIPELINE_ID:  $(SAP_INSTALL_PIPELINE_ID)
@@ -836,12 +825,12 @@ stages:
 
                 - bash: |
                       #!/bin/bash
-                      printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
                       echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
                   displayName: "Documentation"
                   env:
-                      ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+                      ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
                       SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
                       APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
                       WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
