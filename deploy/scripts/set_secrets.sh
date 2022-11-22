@@ -48,7 +48,7 @@ function showhelp {
     echo "#########################################################################################"
 }
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:hw --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,workload,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hw --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -84,6 +84,10 @@ while :; do
         ;;
     -t | --tenant_id)
         tenant_id="$2"
+        shift 2
+        ;;
+    -b | --keyvault_subscription)
+        STATE_SUBSCRIPTION="$2"
         shift 2
         ;;
     -w | --workload)
@@ -145,8 +149,6 @@ fi
 if [ -z "$subscription" ]; then
     load_config_vars "${environment_config_information}" "subscription"
 fi
-
-load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
 
 if [ "$workload" != 1 ]; then
     load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
