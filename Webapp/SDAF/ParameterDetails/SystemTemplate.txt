@@ -23,8 +23,8 @@
 ##########################################################################################
 
 # The automation supports both creating resources (greenfield) or using existing resources (brownfield)
-# For the greenfield scenario the automation defines default names for resources, 
-# if there is a XXXXname variable then the name is customizable 
+# For the greenfield scenario the automation defines default names for resources,
+# if there is a XXXXname variable then the name is customizable
 # for the brownfield scenario the Azure resource identifiers for the resources must be specified
 
 #########################################################################################
@@ -77,7 +77,7 @@ $$bom_name$$
 # 1. Subnets are defined as part of the workload zone  deployment                       #
 #    In this model multiple SAP System share the subnets                                #
 # 2. Subnets are deployed as part of the SAP system                                     #
-#    In this model each SAP system has its own sets of subnets                          # 
+#    In this model each SAP system has its own sets of subnets                          #
 #                                                                                       #
 # The automation supports both creating the subnets (greenfield)                        #
 # or using existing subnets (brownfield)                                                #
@@ -87,7 +87,7 @@ $$bom_name$$
 #                                                                                       #
 #########################################################################################
 
-# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name 
+# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name
 $$network_logical_name$$
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
@@ -132,22 +132,22 @@ $$database_vm_use_DHCP$$
 # Optional, Defines if the database server will have two network interfaces
 $$database_dual_nics$$
 
-# database_vm_db_nic_ips, if provided provides the static IP addresses 
+# database_vm_db_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the database subnet
 $$database_vm_db_nic_ips$$
 
-# database_vm_db_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# database_vm_db_nic_secondary_ips, if provided provides the secondary static IP addresses
 # for the network interface cards connected to the application subnet
 $$database_vm_db_nic_secondary_ips$$
 
-# database_vm_admin_nic_ips, if provided provides the static IP addresses 
+# database_vm_admin_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the admin subnet
 $$database_vm_admin_nic_ips$$
 
 # database_loadbalancer_ips defines the load balancer IP addresses for the database tier's load balancer.
 $$database_loadbalancer_ips$$
 
-# database_vm_admin_nic_ips, if provided provides the static IP addresses 
+# database_vm_admin_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the storage subnet
 $$database_vm_storage_nic_ips$$
 
@@ -186,8 +186,8 @@ $$database_vm_storage_nic_ips$$
 #  type            = "marketplace"
 #}
 
-# The vm_image defines the Virtual machine image to use, 
-# if source_image_id is specified the deployment will use the custom image provided, 
+# The vm_image defines the Virtual machine image to use,
+# if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
 
 $$database_vm_image$$
@@ -253,8 +253,8 @@ $$scs_server_zones$$
 # scs_server_sku, if defined provides the SKU to use for the SCS servers
 $$scs_server_sku$$
 
-# The vm_image defines the Virtual machine image to use for the application servers, 
-# if source_image_id is specified the deployment will use the custom image provided, 
+# The vm_image defines the Virtual machine image to use for the application servers,
+# if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
 $$scs_server_image$$
 
@@ -264,15 +264,15 @@ $$scs_server_no_ppg$$
 # scs_server_no_avset defines the that the SCS virtual machines will not be placed in an availability set
 $$scs_server_no_avset$$
 
-# scs_server_app_nic_ips, if provided provides the static IP addresses 
+# scs_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
 $$scs_server_app_nic_ips$$
 
-# scs_server_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# scs_server_nic_secondary_ips, if provided provides the secondary static IP addresses
 # for the network interface cards connected to the application subnet
 $$scs_server_nic_secondary_ips$$
 
-# scs_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# scs_server_app_admin_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
 $$scs_server_admin_nic_ips$$
 
@@ -301,15 +301,15 @@ $$application_server_sku$$
 # app_tier_dual_nics is a boolean flag controlling if the application tier servers should have two network cards
 $$app_tier_dual_nics$$
 
-# application_server_app_nic_ips, if provided provides the static IP addresses 
+# application_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
 $$application_server_app_nic_ips$$
 
-# application_server_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# application_server_nic_secondary_ips, if provided provides the secondary static IP addresses
 # for the network interface cards connected to the application subnet
 $$application_server_nic_secondary_ips$$
 
-# application_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# application_server_app_admin_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the admin subnet
 $$application_server_admin_nic_ips$$
 
@@ -328,8 +328,8 @@ $$application_server_no_avset$$
 # application_server_tags, if defined provides the tags to be associated to the application servers
 $$application_server_tags$$
 
-# The vm_image defines the Virtual machine image to use for the application servers, 
-# if source_image_id is specified the deployment will use the custom image provided, 
+# The vm_image defines the Virtual machine image to use for the application servers,
+# if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
 $$application_server_image$$
 
@@ -344,15 +344,15 @@ $$application_server_vm_avset_arm_ids$$
 # webdispatcher_server_count defines how many web dispatchers to deploy
 $$webdispatcher_server_count$$
 
-# webdispatcher_server_app_nic_ips, if provided provides the static IP addresses 
+# webdispatcher_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
 $$webdispatcher_server_app_nic_ips$$
 
-# webdispatcher_server_nic_secondary_ips, if provided provides the secondary static IP addresses 
+# webdispatcher_server_nic_secondary_ips, if provided provides the secondary static IP addresses
 # for the network interface cards connected to the application subnet
 $$webdispatcher_server_nic_secondary_ips$$
 
-# webdispatcher_server_app_admin_nic_ips, if provided provides the static IP addresses 
+# webdispatcher_server_app_admin_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
 $$webdispatcher_server_admin_nic_ips$$
 
@@ -375,8 +375,8 @@ $$webdispatcher_server_tags$$
 # webdispatcher_server_zones is an optional list defining the availability zones to which deploy the web dispatchers
 $$webdispatcher_server_zones$$
 
-# The vm_image defines the Virtual machine image to use for the web dispatchers, 
-# if source_image_id is specified the deployment will use the custom image provided, 
+# The vm_image defines the Virtual machine image to use for the web dispatchers,
+# if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
 $$webdispatcher_server_image$$
 
@@ -387,14 +387,17 @@ $$webdispatcher_server_image$$
 #########################################################################################
 
 # resource_offset can be used to provide an offset for resource naming
-# server#, disk# 
+# server#, disk#
 $$resource_offset$$
 
-# vm_disk_encryption_set_id if defined defines the custom encryption key 
+# vm_disk_encryption_set_id if defined defines the custom encryption key
 $$vm_disk_encryption_set_id$$
 
 # deploy_application_security_groups if defined will create application security groups
 $$deploy_application_security_groups$$
+
+# use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
+$$use_msi_for_clusters$$
 
 #########################################################################################
 #                                                                                       #
@@ -544,7 +547,7 @@ $$automation_path_to_public_key$$
 # If empty Terraform will create the ssh key and persist it in keyvault
 $$automation_path_to_private_key$$
 
-# vm_disk_encryption_set_id if defined defines the custom encryption key 
+# vm_disk_encryption_set_id if defined defines the custom encryption key
 $$vm_disk_encryption_set_id$$
 
 # nsg_asg_with_vnet if set controls where the Application Security Groups are created
@@ -560,11 +563,11 @@ $$resourcegroup_name$$
 $$resourcegroup_arm_id$$
 
 # PPG
-# The proximity placement group names and arm_ids are optional can be used to 
+# The proximity placement group names and arm_ids are optional can be used to
 # control the naming and the creation of the proximity placement groups
-# The proximityplacementgroup_names list value is optional, 
+# The proximityplacementgroup_names list value is optional,
 # it can be used to override the name of the proximity placement groups that will be provisioned
-# The proximityplacementgroup_arm_ids list value is optional, 
+# The proximityplacementgroup_arm_ids list value is optional,
 # it can be used to provide an existing proximity placement groups for the deployment
 
 $$proximityplacementgroup_names$$
@@ -590,7 +593,7 @@ $$enable_purge_control_for_keyvaults$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# admin_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# admin_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$admin_subnet_name$$
 
 # admin_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
@@ -599,7 +602,7 @@ $$admin_subnet_address_prefix$$
 # admin_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$admin_subnet_arm_id$$
 
-# admin_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# admin_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$admin_subnet_nsg_name$$
 
 # admin_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -612,7 +615,7 @@ $$admin_subnet_nsg_arm_id$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# db_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# db_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$db_subnet_name$$
 
 # db_subnet_address_prefix is a mandatory parameter if the subnets are not defined in the workload or if existing subnets are not used
@@ -621,7 +624,7 @@ $$db_subnet_address_prefix$$
 # db_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$db_subnet_arm_id$$
 
-# db_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# db_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$db_subnet_nsg_name$$
 
 # db_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -634,7 +637,7 @@ $$db_subnet_nsg_arm_id$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# app_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# app_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$app_subnet_name$$
 
 # app_subnet_address_prefix is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
@@ -643,7 +646,7 @@ $$app_subnet_address_prefix$$
 # app_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$app_subnet_arm_id$$
 
-# app_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# app_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$app_subnet_nsg_name$$
 
 # app_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -656,7 +659,7 @@ $$app_subnet_nsg_arm_id$$
 #########################################################################################
 
 # If defined these parameters control the subnet name and the subnet prefix
-# web_subnet_name is an optional parameter and should only be used if the default naming is not acceptable 
+# web_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$web_subnet_name$$
 
 # web_subnet_address_prefix is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
@@ -665,7 +668,7 @@ $$web_subnet_address_prefix$$
 # web_subnet_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing subnet to use
 $$web_subnet_arm_id$$
 
-# web_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name 
+# web_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$web_subnet_nsg_name$$
 
 # web_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
@@ -694,7 +697,7 @@ $$anchor_vm_authentication_type$$
 # Defines if the anchor VM should use accelerated networking
 $$anchor_vm_accelerated_networking$$
 
-# The anchor_vm_image defines the Virtual machine image to use, 
+# The anchor_vm_image defines the Virtual machine image to use,
 # if source_image_id is specified the deployment will use the custom image provided
 # in this case os_type must also be specified
 $$anchor_vm_image$$
