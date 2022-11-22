@@ -301,6 +301,8 @@ stages:
               debug_variable='--output none'
               debug_variable=''
               az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+              az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --application-id $ARM_CLIENT_ID --secret-permissions get list recover restore set --output none
+
 
               perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $ARM_CLIENT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
               if [ -n "$perms" ]; then
@@ -308,7 +310,6 @@ stages:
                   az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
               fi
 
-              az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --output none --secret-permissions get list recover restore set --output none
 
               tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
