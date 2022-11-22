@@ -334,8 +334,8 @@ stages:
                 fi
               fi
 
-              echo "Assigning get and list secrets permissions for $ARM_OBJECT_ID to ${vnet_resource_id}"
-              az keyvault set-policy --name "${key_vault}" --secret-permissions get list --object-id $ARM_OBJECT_ID --output none
+              echo "Assigning get and list secrets permissions for $ARM_OBJECT_ID to ${key_vault}"
+              az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --application-id $ARM_CLIENT_ID --secret-permissions get list --output none
 
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
