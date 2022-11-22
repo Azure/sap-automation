@@ -208,7 +208,7 @@ if ($confirmation -eq 'y') {
 
     Write-Host "Using a non standard DevOps project name, need to update some of the parameter files" -ForegroundColor Green
 
-    $objectId = (az devops invoke --area git --resource refs --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+    $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
     $fname = "resources.yml"
     if (Test-Path $fname) {
@@ -257,7 +257,7 @@ if ($confirmation -eq 'y') {
 
     az devops invoke `
       --area git --resource pushes `
-      --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id `
+      --route-parameters project=$ADO_Project repositoryId=$repo_id `
       --http-method POST --in-file "SDAF.json" `
       --api-version "6.0"
 
@@ -283,7 +283,7 @@ if ($confirmation -eq 'y') {
     Add-Content -Path $fname "      name: $ADO_Project/sap-samples"
     Add-Content -Path $fname "      ref: refs/heads/main"
 
-    $objectId = (az devops invoke --area git --resource refs --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+    $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
     Remove-Item "sdaf.json"
 
@@ -309,7 +309,7 @@ if ($confirmation -eq 'y') {
 
     az devops invoke `
       --area git --resource pushes `
-      --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id `
+      --route-parameters project=$ADO_Project repositoryId=$repo_id `
       --http-method POST --in-file "SDAF.json" `
       --api-version "6.0"
 
@@ -335,7 +335,7 @@ else {
   $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]")
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
 
-  $objectId = (az devops invoke --area git --resource refs --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+  $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
   $fname = "resources.yml"
   if (Test-Path $fname) {
@@ -386,7 +386,7 @@ else {
 
   az devops invoke `
     --area git --resource pushes `
-    --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id `
+    --route-parameters project=$ADO_Project repositoryId=$repo_id `
     --http-method POST --in-file "SDAF.json" `
     --api-version "6.0"
 
@@ -416,7 +416,7 @@ else {
   Add-Content -Path $fname "      name: Azure/sap-automation-samples"
   Add-Content -Path $fname "      ref: refs/heads/main"
 
-  $objectId = (az devops invoke --area git --resource refs --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+  $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
   Remove-Item "sdaf.json"
 
@@ -442,7 +442,7 @@ else {
 
   az devops invoke `
     --area git --resource pushes `
-    --route-parameters project=$Env:ADO_PROJECT repositoryId=$repo_id `
+    --route-parameters project=$ADO_Project repositoryId=$repo_id `
     --http-method POST --in-file "SDAF.json" `
     --api-version "6.0"
 
