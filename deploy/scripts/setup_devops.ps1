@@ -763,6 +763,8 @@ if ($Control_plane_groupID.Length -eq 0) {
 if ($ARM_CLIENT_SECRET -ne "Please update") {
   az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "CP_ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
   az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "CP_ARM_CLIENT_ID" --value $ARM_CLIENT_ID --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $Control_plane_groupID  --name "CP_ARM_OBJECT_ID" --value $ARM_OBJECT_ID --output none --only-show-errors
+
 }
 
 Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green
@@ -854,7 +856,8 @@ if ($GroupID.Length -eq 0) {
 
 if ($ARM_CLIENT_SECRET -ne "Please update") {
   az pipelines variable-group variable update --group-id $GroupID  --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID  --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID  --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID  --name "ARM_OBJECT_ID" --value $ARM_OBJECT_ID --output none --only-show-errors
   $Service_Connection_Name = "WorkloadZone_Service_Connection"
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
 
