@@ -301,19 +301,17 @@ stages:
               debug_variable='--output none'
               debug_variable=''
               az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
-              az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --application-id $ARM_CLIENT_ID --secret-permissions get list recover restore set --output none
 
 
               perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $ARM_CLIENT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
               if [ -n "$perms" ]; then
                 echo -e "$green --- Assign subscription permissions to $perms ---$reset"
-                  az role assignment create --assignee-object-id $ARM_CLIENT_ID --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
+                az role assignment create --assignee $ARM_OBJECT_ID --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
               fi
-
 
               tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
-              az role assignment create --assignee-object-id $ARM_OBJECT_ID --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}"  --output none
+              az role assignment create --assignee $ARM_OBJECT_ID --role "Storage Account Contributor" --scope "${tfstate_resource_id}"  --output none
 
               resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
 
@@ -321,7 +319,7 @@ stages:
 
                 for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
                   echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
-                  az role assignment create --assignee-object-id $ARM_OBJECT_ID --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
+                  az role assignment create --assignee $ARM_OBJECT_ID  --role "Private DNS Zone Contributor" --scope $scope --output none
                 done
               fi
 
@@ -334,12 +332,12 @@ stages:
                 vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
                 if [ -n ${vnet_resource_id} ]; then
                   echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
-                  az role assignment create --assignee-object-id $ARM_OBJECT_ID --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
+                  az role assignment create --assignee $ARM_OBJECT_ID --role "Network Contributor"  --scope $vnet_resource_id --output none
                 fi
               fi
 
               echo "Assigning get and list secrets permissions for $ARM_OBJECT_ID to ${vnet_resource_id}"
-              az keyvault set-policy --name "${key_vault}" --secret-permissions get list --object-id $ARM_OBJECT_ID --output none
+              az keyvault set-policy --name "${key_vault}" --secret-permissions get list recover restore set --object-id $ARM_OBJECT_ID --output none
 
               echo -e "$green--- az login ---$reset"
                 az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
