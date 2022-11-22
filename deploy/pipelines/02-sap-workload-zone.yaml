@@ -311,6 +311,7 @@ stages:
                   --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                 secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
                 az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --application-id $ARM_CLIENT_ID --secret-permissions get list  --output none
+                az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
               fi
 
               debug_variable='--output none'
