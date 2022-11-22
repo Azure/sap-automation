@@ -99,7 +99,7 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       when:
-        - node-tier == 'oracle' or node-tier == 'oracle-asm'
+        - node_tier == 'oracle' or node_tier == 'oracle-asm'
         - use_AFS
   rescue:
     - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
@@ -118,7 +118,7 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       when:
-        - node-tier == 'oracle' or node-tier == 'oracle-asm'
+        - node_tier == 'oracle' or node_tier == 'oracle-asm'
         - use_AFS
 
 

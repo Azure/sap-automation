@@ -55,6 +55,11 @@
     var:                              "{{ distribution_id }}"
     verbosity:                         2
 
+- name:                                "Calculate the Huge Pages"
+  ansible.builtin.set_fact:             
+    main_memory:                       "{{ ansible_memory_mb.real.total*0.8 }}"
+    hugepage_size:                     "{{ main_memory * 1024 * 1024 }}/{{ 2*1024 }}"
+
 
 # print only when -vv, otherwise you will have terminal nausea
 - name:                                "1.9 Kernel parameters - Display parameters which will be applied"
@@ -74,6 +79,8 @@
   loop:                                "{{ get_parameters_to_apply }}"
   when:
     - item.tier in ["all", tier]
+
+
 
 # ----------------------------------------
 # END
