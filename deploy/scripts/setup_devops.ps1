@@ -316,6 +316,11 @@ if ($confirmation -eq 'y') {
     Remove-Item $fname
   }
 
+  $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]").Replace("""", "")
+
+  $queryString = "?api-version=6.0-preview"
+  $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
+
 
 }
 else {
@@ -337,29 +342,29 @@ else {
 
   $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
-  $fname = "resources.yml"
-  if (Test-Path $fname) {
-    Remove-Item $fname
+  $templatename = "resources.yml"
+  if (Test-Path $templatename) {
+    Remove-Item $templatename
   }
 
-  Add-Content -Path $fname ""
-  Add-Content -Path $fname "parameters:"
-  Add-Content -Path $fname "  - name: stages"
-  Add-Content -Path $fname "    type: stageList"
-  Add-Content -Path $fname "    default: []"
-  Add-Content -Path $fname ""
-  Add-Content -Path $fname "stages:"
-  Add-Content -Path $fname "  - `${{ parameters.stages }}"
-  Add-Content -Path $fname ""
-  Add-Content -Path $fname "resources:"
-  Add-Content -Path $fname "  repositories:"
-  Add-Content -Path $fname "    - repository: sap-automation"
-  Add-Content -Path $fname "      type: GitHub"
-  Add-Content -Path $fname -Value ("      endpoint: " + $ghConn)
-  Add-Content -Path $fname "      name: Azure/sap-automation"
-  Add-Content -Path $fname "      ref: refs/heads/experimental"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "parameters:"
+  Add-Content -Path $templatename "  - name: stages"
+  Add-Content -Path $templatename "    type: stageList"
+  Add-Content -Path $templatename "    default: []"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "stages:"
+  Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "resources:"
+  Add-Content -Path $templatename "  repositories:"
+  Add-Content -Path $templatename "    - repository: sap-automation"
+  Add-Content -Path $templatename "      type: GitHub"
+  Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
+  Add-Content -Path $templatename "      name: Azure/sap-automation"
+  Add-Content -Path $templatename "      ref: refs/heads/experimental"
 
-  $cont = Get-Content -Path $fname -Raw
+  $cont = Get-Content -Path $templatename -Raw
 
   $inputfile = "sdaf.json"
 
@@ -389,31 +394,31 @@ else {
     --http-method POST --in-file $inputfile `
     --api-version "6.0" --output none
 
-  Remove-Item $fname
-  $fname = "resources_including_samples.yml"
-  Add-Content -Path $fname ""
-  Add-Content -Path $fname "parameters:"
-  Add-Content -Path $fname "  - name: stages"
-  Add-Content -Path $fname "    type: stageList"
-  Add-Content -Path $fname "    default: []"
-  Add-Content -Path $fname ""
-  Add-Content -Path $fname "stages:"
-  Add-Content -Path $fname "  - `${{ parameters.stages }}"
-  Add-Content -Path $fname ""
-  Add-Content -Path $fname "resources:"
-  Add-Content -Path $fname "  repositories:"
-  Add-Content -Path $fname "    - repository: sap-automation"
-  Add-Content -Path $fname "      type: GitHub"
-  Add-Content -Path $fname -Value ("      endpoint: " + $ghConn)
-  Add-Content -Path $fname "      name: Azure/sap-automation"
-  Add-Content -Path $fname "      ref: refs/heads/experimental"
-  Add-Content -Path $fname "    - repository: sap-samples"
-  Add-Content -Path $fname "      type: GitHub"
-  Add-Content -Path $fname -Value ("      endpoint: " + $ghConn)
-  Add-Content -Path $fname "      name: Azure/sap-automation-samples"
-  Add-Content -Path $fname "      ref: refs/heads/main"
+  Remove-Item $templatename
+  $templatename = "resources_including_samples.yml"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "parameters:"
+  Add-Content -Path $templatename "  - name: stages"
+  Add-Content -Path $templatename "    type: stageList"
+  Add-Content -Path $templatename "    default: []"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "stages:"
+  Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "resources:"
+  Add-Content -Path $templatename "  repositories:"
+  Add-Content -Path $templatename "    - repository: sap-automation"
+  Add-Content -Path $templatename "      type: GitHub"
+  Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
+  Add-Content -Path $templatename "      name: Azure/sap-automation"
+  Add-Content -Path $templatename "      ref: refs/heads/experimental"
+  Add-Content -Path $templatename "    - repository: sap-samples"
+  Add-Content -Path $templatename "      type: GitHub"
+  Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
+  Add-Content -Path $templatename "      name: Azure/sap-automation-samples"
+  Add-Content -Path $templatename "      ref: refs/heads/main"
 
-  $cont = Get-Content -Path $fname -Raw
+  $cont = Get-Content -Path $templatename -Raw
 
   $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
@@ -445,7 +450,7 @@ else {
     --http-method POST --in-file $inputfile `
     --api-version "6.0"
 
-  Remove-Item $fname
+  Remove-Item $templatename
   Remove-Item $inputfile
 
   Add-Content -Path $fname -Value $log
@@ -457,11 +462,6 @@ else {
   Add-Content -Path $fname -Value ("endpoint: " + $ghConn)
 
 }
-
-$code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]").Replace("""", "")
-
-$queryString = "?api-version=6.0-preview"
-$pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
 
 #endregion
 
