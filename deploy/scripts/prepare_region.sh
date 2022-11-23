@@ -133,7 +133,7 @@ if [ 0 != $return_code ]; then
     exit $return_code
 fi
 # Check that webapp exports are defined, if deploying webapp
-if [ "$TF_VAR_use_webapp" == "true" ]; then
+if [ "${TF_VAR_use_webapp}" = "true" ]; then
     validate_webapp_exports
     return_code=$?
     if [ 0 != $return_code ]; then
@@ -449,14 +449,14 @@ if [ 2 == $step ]; then
         exit 20
     fi
 
-    if [ $TF_VAR_use_webapp = "true" ]; then
+    if [ "${TF_VAR_use_webapp}" = "true" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                           $cyan Configuring the Web App $resetformatting                                   #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
-        export TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
+        TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
         az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}"
     fi
 
@@ -498,8 +498,10 @@ if [ 3 == $step ]; then
     fi
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
-    TF_VAR_sa_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "sa-connection-string" | jq -r .value)
-    export TF_VAR_sa_connection_string
+    if [ "${TF_VAR_use_webapp}" = "true" ]; then
+      TF_VAR_sa_connection_string=$(az keyvault secret show --vault-name "${keyvault}" --name "sa-connection-string" | jq -r .value)
+      export TF_VAR_sa_connection_string
+    fi
 
     echo "calling installer.sh with parameters: $allParams"
 
