@@ -971,17 +971,20 @@ echo "##########################################################################
 echo ""
 
 subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
+sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw sapbits_storage_account_name | tr -d \")
 
 if [ -n "${subnet_id}" ]; then
-  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+  echo "Adding the app subnet"
+  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id
+  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${sapbits_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id
 fi
 
 subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw db_subnet_id | tr -d \")
 
 if [ -n "${subnet_id}" ]; then
-  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+  echo "Adding the db subnet"
+  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id
 fi
-
 
 unset TF_DATA_DIR
 

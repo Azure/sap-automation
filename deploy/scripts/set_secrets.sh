@@ -48,7 +48,7 @@ function showhelp {
     echo "#########################################################################################"
 }
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:hw --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,workload,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hw --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -84,6 +84,10 @@ while :; do
         ;;
     -t | --tenant_id)
         tenant_id="$2"
+        shift 2
+        ;;
+    -b | --keyvault_subscription)
+        STATE_SUBSCRIPTION="$2"
         shift 2
         ;;
     -w | --workload)
@@ -203,7 +207,7 @@ fi
 
 if [ -z "${tenant_id}" ]; then
     load_config_vars "${environment_config_information}" "tenant_id"
-    if [ ! -n "${tenant_id}" ]; then
+    if [ -z "${tenant_id}" ]; then
         read -r -p "SPN Tenant ID: " tenant_id
     fi
 else
@@ -324,39 +328,40 @@ else
     fi
 fi
 
-result=$(grep "ERROR: The user, group or application" stdout.az)
+if [ -f stdout.az ]; then
+  result=$(grep "ERROR: The user, group or application" stdout.az)
 
-if [ -n "${result}" ]; then
-    printf -v val "%-20.20s" "$keyvault"
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#          No access to add the secrets in the$boldred" "${val}" "$resetformatting keyvault           #"
-    echo "#            Please add an access policy for the account you use                        #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    rm stdout.az
-    echo "No access to add the secrets in the " "${val}" "keyvault" > secret.err
-    return_code=77
-    exit $return_code
+  if [ -n "${result}" ]; then
+      printf -v val "%-20.20s" "$keyvault"
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#          No access to add the secrets in the$boldred" "${val}" "$resetformatting keyvault           #"
+      echo "#            Please add an access policy for the account you use                        #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      rm stdout.az
+      echo "No access to add the secrets in the " "${val}" "keyvault" > secret.err
+      return_code=77
+      exit $return_code
+  fi
+
+  result=$(grep "The Vault may not exist" stdout.az)
+  if [ -n "${result}" ]; then
+      printf -v val "%-20.20s could not be found!" "$keyvault"
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#                     $boldred Keyvault" "${val}" "$resetformatting               #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+      echo ""
+      rm stdout.az
+      return_code=65 #/* name unknown */
+      echo "Keyvault" "${val}"  > secret.err
+      exit $return_code
+
+  fi
 fi
-
-result=$(grep "The Vault may not exist" stdout.az)
-if [ -n "${result}" ]; then
-    printf -v val "%-20.20s could not be found!" "$keyvault"
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                     $boldred Keyvault" "${val}" "$resetformatting               #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    rm stdout.az
-    return_code=65 #/* name unknown */
-    echo "Keyvault" "${val}"  > secret.err
-    exit $return_code
-
-fi
-
 #turn off output, we do not want to show the details being uploaded to keyvault
 secretname="${environment}"-client-id
 deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)

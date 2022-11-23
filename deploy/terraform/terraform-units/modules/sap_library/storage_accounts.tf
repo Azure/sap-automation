@@ -42,6 +42,13 @@ resource "azurerm_storage_account" "storage_tfstate" {
   }
 }
 
+resource "azurerm_role_assignment" "storage_tfstate_contributor" {
+  scope                = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = var.deployer_tfstate.deployer_uai.principal_id
+}
+
+
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   provider           = azurerm.main
   count              = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
