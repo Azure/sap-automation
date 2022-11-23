@@ -15,6 +15,6 @@ materials:
 
     - name:         "Patch 2 for SOFTWARE UPDATE MANAGER 2.0 SP15 (Windows)"
       archive:      SUM20SP15_2-80002458.SAR
-      checksum:     6ac0a2e402bdf2544c6b1b45465b90549c1d6bb1724070d505840067b0d86f4f
+      checksum:     e77492dc7f79859d20d32d44a2c3d9fe77c5ecb2dae558d4113c998ac6af7b2c
       download:     false
-      url:          https://softwaredownloads.sap.com/file/0020000001549162022
+      url:          https://softwaredownloads.sap.com/file/0020000001572192022
