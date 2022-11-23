@@ -310,8 +310,8 @@
     - name:                            "0.0 Validations - Validate SCS and HDB instance numbers"
       ansible.builtin.assert:
         that:
-          - "scs_instance_number != hdb_instance_number"
-        fail_msg:                      "Please ensure that the scs_instance_number is different from the hdb_instance_number when performing a standalone installation"
+          - "scs_instance_number != db_instance_number"
+        fail_msg:                      "Please ensure that the scs_instance_number is different from the db_instance_number when performing a standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
       tags:
         - 0.0-scs-db-instance-single

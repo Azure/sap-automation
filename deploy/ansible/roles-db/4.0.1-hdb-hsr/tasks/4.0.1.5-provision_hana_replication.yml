@@ -21,7 +21,7 @@
 
     - name:                            "HANA HSR: - Ensure keystore entry exists"
       ansible.builtin.shell: |
-                                       hdbuserstore SET hdbhaloc localhost:3{{ hdb_instance_number }}15 {{ hana_1_hsr_user }} {{ hana_1_hsr_password }}
+                                       hdbuserstore SET hdbhaloc localhost:3{{ db_instance_number }}15 {{ hana_1_hsr_user }} {{ hana_1_hsr_password }}
       changed_when:                    false
   vars:
     ansible_python_interpreter:        python3
@@ -144,7 +144,7 @@
 
 - name:                                "HANA HSR: - Ensure System Replication is configured command on secondary"
   ansible.builtin.debug:
-    msg:                               "{{ hdbnsutil_command }} -sr_register --remoteHost={{ primary_instance_name }} --remoteInstance={{ hdb_instance_number }}
+    msg:                               "{{ hdbnsutil_command }} -sr_register --remoteHost={{ primary_instance_name }} --remoteInstance={{ db_instance_number }}
                                         --replicationMode={{ hana_replication_mode }} --operationMode={{ hana_operation_mode }} --name=SITEB"
     verbosity:                         4
 
@@ -159,7 +159,7 @@
       become:                          true
       ansible.builtin.shell: >
         {{ hdbnsutil_command }} -sr_register --remoteHost={{ primary_instance_name }}
-        --remoteInstance={{ hdb_instance_number }} --replicationMode={{ hana_replication_mode }}
+        --remoteInstance={{ db_instance_number }} --replicationMode={{ hana_replication_mode }}
         --operationMode={{ hana_operation_mode }} --name=SITEB
       register:                        hsr_secondary_registration
       changed_when:                    "'adding site' in hsr_secondary_registration.stdout"

@@ -53,7 +53,7 @@
       failed_when:                     vip.rc > 1
 
     - name:                            "Ensure the netcat resource for the Load Balancer Healthprobe is created - Probe port for Azure Load Balacer"
-      ansible.builtin.command:         pcs resource create nc_db2{{ db_sid | lower }}_{{ db_sid | upper }} azure-lb port=625{{ hdb_instance_number }}
+      ansible.builtin.command:         pcs resource create nc_db2{{ db_sid | lower }}_{{ db_sid | upper }} azure-lb port=625{{ db_instance_number }}
       register:                        netcat
       failed_when:                     netcat.rc > 1
 

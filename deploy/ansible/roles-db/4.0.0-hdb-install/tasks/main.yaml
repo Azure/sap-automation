@@ -80,7 +80,7 @@
         _rsp_sapmnt:                   "/hana/shared"                              # Default Value
         _rsp_hostname:                 "{{ hana_host }}"
         _rsp_sid:                      "{{ db_sid | upper }}"
-        _rsp_number:                   "{{ hdb_instance_number }}"
+        _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
         param_directory:               "{{ dir_params }}"
 

@@ -55,7 +55,7 @@
     # @TODO: ensure that we have the probe port set as it is configured on the LB
     - name:                            "DB2 HA - SUSE - Ensure DB2 azure-lb resource agent is configured - probe port for Azure load Balancer"
       ansible.builtin.shell: >
-                                       crm configure primitive rsc_nc_db2{{ db_sid | lower }}_{{ db_sid }} azure-lb port=625{{ hdb_instance_number }}
+                                       crm configure primitive rsc_nc_db2{{ db_sid | lower }}_{{ db_sid }} azure-lb port=625{{ db_instance_number }}
       register:                        sap_db2_nc_ip
       failed_when:                     sap_db2_nc_ip.rc > 1
 

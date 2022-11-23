@@ -116,7 +116,7 @@
       - "INSTALLED:  {{ dbload_installed.stat.exists }}"
       - "INIFILE:    {{ sap_inifile }}"
       - "PRODUCT ID: {{ bom.product_ids.dbl }}"
-      - "INSTANCE:   {{ hdb_instance_number }}"
+      - "INSTANCE:   {{ db_instance_number }}"
       - "SCSHOST:    {{ scs_server }}"
       - "DBHOST:     {{ db_virtual_host }}"
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
