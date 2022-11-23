@@ -296,7 +296,7 @@ stages:
 
               else
                 echo -e "$green--- az login ---$reset"
-                  az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                  az login --identity --output none
 
                   return_code=$?
                   if [ 0 != $return_code ]; then
@@ -311,24 +311,26 @@ stages:
                   --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret $ARM_CLIENT_SECRET      \
                   --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                 secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
-                az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --application-id $ARM_CLIENT_ID --secret-permissions get list  --output none
+                az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --secret-permissions get list  --output none
               fi
 
               debug_variable='--output none'
               debug_variable=''
 
-              perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $ARM_CLIENT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
+              az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+
+              perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
               if [ -n "$perms" ]; then
                 echo -e "$green --- Assign subscription permissions to $perms ---$reset"
-                az role assignment create --assignee-object-id $ARM_CLIENT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
+                az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
               fi
 
               tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
-              perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --assignee $ARM_CLIENT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
+              perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
               if [ -n "$perms" ]; then
-                echo "Assigning Storage Account Contributor permissions for $ARM_CLIENT_ID to ${tfstate_resource_id}"
-                az role assignment create --assignee-object-id $ARM_CLIENT_ID  --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
+                echo "Assigning Storage Account Contributor permissions for $ARM_OBJECT_ID to ${tfstate_resource_id}"
+                az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Storage Account Contributor" --scope "${tfstate_resource_id}" --output none
               fi
 
               resource_group_name=$(az resource show --id "${tfstate_resource_id}" --query resourceGroup -o tsv)
@@ -336,10 +338,10 @@ stages:
               if [ -n ${resource_group_name} ]; then
 
                 for scope in $(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/privateDnsZones --query "[].id" --output tsv); do
-                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --scope $scope --assignee $ARM_CLIENT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
+                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Private DNS Zone Contributor" --scope $scope --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
                   if [ -n "$perms" ]; then
-                    echo "Assigning DNS Zone Contributor permissions for $ARM_CLIENT_ID to ${scope}"
-                    az role assignment create --assignee-object-id $ARM_CLIENT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
+                    echo "Assigning DNS Zone Contributor permissions for $ARM_OBJECT_ID to ${scope}"
+                    az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Private DNS Zone Contributor" --scope $scope --output none
                   fi
                 done
               fi
@@ -351,10 +353,10 @@ stages:
 
                 vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
                 if [ -n ${vnet_resource_id} ]; then
-                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor" --scope $vnet_resource_id --assignee $ARM_CLIENT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
+                  perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor" --scope $vnet_resource_id --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
                   if [ -n "$perms" ]; then
-                    echo "Assigning Network Contributor rights for $ARM_CLIENT_ID to ${vnet_resource_id}"
-                    az role assignment create --assignee-object-id $ARM_CLIENT_ID  --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
+                    echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
+                    az role assignment create --assignee-object-id $ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Network Contributor"  --scope $vnet_resource_id --output none
                   fi
                 fi
               fi
