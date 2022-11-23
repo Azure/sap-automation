@@ -192,6 +192,106 @@
 
   when:
     - not dbload_installed.stat.exists
+  
+
+- name:                                "Oracle Post-Processing"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/ora_sga_updated.txt"
+  register:                            ora_sga_updated
+  
+  block:
+    
+    - name:                                 "Set the SGA and PGA Sizes for RAM < 4TB"
+      set_facts:
+        ora_sga:                            "{{ (ansible_memory_mb.real.total*0.85) |round |int }}"
+        ora_pga:                            "{{ (ansible_memory_mb.real.total*0.85)*0.2 |round |int }}"
+      when:                                 ansible_memory_mb.real.total < 4194304 
+    
+    - name:                                 "Set the SGA and PGA Sizes for RAM > 4TB"
+      set_facts:
+        ora_sga:                            "{{ (ansible_memory_mb.real.total*0.95) |round |int }}"
+        ora_pga:                            "{{ ((ansible_memory_mb.real.total*0.95)*0.2) |round |int }}"
+      when:                                 ansible_memory_mb.real.total > 4194304
+     
+    - name:                                "Oracle SGA & PGA: create updatesga.sql"
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.blockinfile:
+        create: true
+        path: /etc/sap_deployment_automation/{{ db_sid| upper }}/updatesga.sql
+        marker_begin: "-- BEGIN"
+        marker_end:   "-- END"
+        block: |
+             ALTER SYSTEM SET sga_max_size={{ ora_sga }} SCOPE=spfile;
+             ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }} SCOPE=spfile;
+             SHUTDOWN IMMEDIATE;
+             exit
+        mode: '0755'
+
+    - name:                                "Oracle Startup: create startup.sql"
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.blockinfile:
+        create: true
+        path: /etc/sap_deployment_automation/{{ db_sid| upper }}/startup.sql
+        marker_begin: "-- BEGIN"
+        marker_end:   "-- END"
+        block: |
+             STARTUP;
+             exit
+        mode: '0755'
+
+    - name:                                "Oracle SGA Change Execution"
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.shell: |
+                                           set -o pipefail
+                                           sqlplus / as sysdba @updatesga.sql | tee updatesga.log
+      register:                            updatesga_results
+      failed_when:                         updatesga_results.rc >= 2
+      args:
+        creates:                           /etc/sap_deployment_automation/{{ db_sid| upper }}/sgaupdated.txt
+        chdir:                             /etc/sap_deployment_automation/{{ db_sid| upper }}
+        executable:                        /bin/csh
+
+
+    - name:                               " Create sgaupdated.txt"
+      ansible.builtin.file:
+        path:                              /etc/sap_deployment_automation/dgscripts/sgaupdated.txt
+        state:                             touch
+        mode:                              '0755'             
+      when:                                updatesga_results.rc >= 2
+
+    - name:                                " Start Oracle after SGA Change"
+      become:                              true
+      become_user:                         "oracle"
+      ansible.builtin.shell: |
+                                           set -o pipefail
+                                           sqlplus / as sysdba @startup.sql | tee startup.log
+      register:                            dbstarted_results
+      failed_when:                         dbstarted_results.rc >= 2
+      args:
+        creates:                           /etc/sap_deployment_automation/{{ db_sid| upper }}/db_startup_completed.txt
+        chdir:                             /etc/sap_deployment_automation/{{ db_sid| upper }}
+        executable:                        /bin/csh
+
+    - name:                               " Create db_startup_completed.txt"
+      ansible.builtin.file:
+        path:                              /etc/sap_deployment_automation/dgscripts/db_startup_completed.txt
+        state:                             touch
+        mode:                              '0755'             
+      when:                                updatesga_results.rc >= 2
+
+    - name:                               " Create sgaupdated.txt"
+      ansible.builtin.file:
+        path:                              /etc/sap_deployment_automation/dgscripts/ora_sga_updated.txt
+        state:                             touch
+        mode:                              '0755'             
+      when:                                updatesga_results.rc >= 2
+
+  when: 
+    - node_tier in ["oracle","oracle-asm"]
+    - not ora_sga_updated.stat.exists
 
 - name:                                "DBLoad: - status"
   block:

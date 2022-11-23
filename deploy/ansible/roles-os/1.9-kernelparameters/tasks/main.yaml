@@ -80,10 +80,16 @@
 # SAP Note 1672954 : Usage of hugepages on a Linux system that runs an Oracle database.
 - name:                               "Oracle Specific Parameters"
   block:
-    - name:                                "Calculate the Huge Pages"
+    - name:                                "Calculate the Huge Pages when RAM  < 4TB"
       ansible.builtin.set_fact:             
-        huge_pages:                       "{{ ((ansible_memory_mb.real.total*0.8*1024*1024)/(2*1024*1024)) |round |int }}"
-        
+        huge_pages:                       "{{ ((ansible_memory_mb.real.total*0.85*1024*1024)/(2*1024*1024)) |round |int }}"
+      when:                                 ansible_memory_mb.real.total < 4194304 
+    
+    - name:                                "Calculate the Huge Pages when RAM > 4TB "
+      ansible.builtin.set_fact:             
+        huge_pages:                       "{{ ((ansible_memory_mb.real.total*0.95*1024*1024)/(2*1024*1024)) |round |int }}"
+      when:                                 ansible_memory_mb.real.total > 4194304
+    
     # print only when -vv, otherwise you will have terminal nausea
     - name:                                "Display Huge pages value"
       ansible.builtin.debug:
