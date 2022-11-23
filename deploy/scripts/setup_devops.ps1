@@ -210,28 +210,28 @@ if ($confirmation -eq 'y') {
 
     $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
-    $fname = "resources.yml"
-    if (Test-Path $fname) {
-      Remove-Item $fname
+    $templatename = "resources.yml"
+    if (Test-Path $templatename) {
+      Remove-Item $templatename
     }
 
-    Add-Content -Path $fname ""
-    Add-Content -Path $fname "parameters:"
-    Add-Content -Path $fname "  - name: stages"
-    Add-Content -Path $fname "    type: stageList"
-    Add-Content -Path $fname "    default: []"
-    Add-Content -Path $fname ""
-    Add-Content -Path $fname "stages:"
-    Add-Content -Path $fname "  - `${{ parameters.stages }}"
-    Add-Content -Path $fname ""
-    Add-Content -Path $fname "resources:"
-    Add-Content -Path $fname "  repositories:"
-    Add-Content -Path $fname "    - repository: sap-automation"
-    Add-Content -Path $fname "      type: git"
-    Add-Content -Path $fname "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $fname "      ref: refs/heads/experimental"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "parameters:"
+    Add-Content -Path $templatename "  - name: stages"
+    Add-Content -Path $templatename "    type: stageList"
+    Add-Content -Path $templatename "    default: []"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "stages:"
+    Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "resources:"
+    Add-Content -Path $templatename "  repositories:"
+    Add-Content -Path $templatename "    - repository: sap-automation"
+    Add-Content -Path $templatename "      type: git"
+    Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
+    Add-Content -Path $templatename "      ref: refs/heads/experimental"
 
-    $cont = Get-Content -Path $fname -Raw
+    $cont = Get-Content -Path $templatename -Raw
 
     $inputfile = "sdaf.json"
 
@@ -261,31 +261,32 @@ if ($confirmation -eq 'y') {
       --http-method POST --in-file "SDAF.json" `
       --api-version "6.0"
 
-    Remove-Item $fname
-    $fname = "resources_including_samples.yml"
-    Add-Content -Path $fname ""
-    Add-Content -Path $fname "parameters:"
-    Add-Content -Path $fname "  - name: stages"
-    Add-Content -Path $fname "    type: stageList"
-    Add-Content -Path $fname "    default: []"
-    Add-Content -Path $fname ""
-    Add-Content -Path $fname "stages:"
-    Add-Content -Path $fname "  - `${{ parameters.stages }}"
-    Add-Content -Path $fname ""
-    Add-Content -Path $fname "resources:"
-    Add-Content -Path $fname "  repositories:"
-    Add-Content -Path $fname "    - repository: sap-automation"
-    Add-Content -Path $fname "      type: git"
-    Add-Content -Path $fname "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $fname "      ref: refs/heads/experimental"
-    Add-Content -Path $fname "    - repository: sap-samples"
-    Add-Content -Path $fname "      type: git"
-    Add-Content -Path $fname "      name: $ADO_Project/sap-samples"
-    Add-Content -Path $fname "      ref: refs/heads/main"
+    Remove-Item $templatename
+    $templatename = "resources_including_samples.yml"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "parameters:"
+    Add-Content -Path $templatename "  - name: stages"
+    Add-Content -Path $templatename "    type: stageList"
+    Add-Content -Path $templatename "    default: []"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "stages:"
+    Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "resources:"
+    Add-Content -Path $templatename "  repositories:"
+    Add-Content -Path $templatename "    - repository: sap-automation"
+    Add-Content -Path $templatename "      type: git"
+    Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
+    Add-Content -Path $templatename "      ref: refs/heads/experimental"
+    Add-Content -Path $templatename "    - repository: sap-samples"
+    Add-Content -Path $templatename "      type: git"
+    Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
+    Add-Content -Path $templatename "      ref: refs/heads/main"
 
     $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
     Remove-Item "sdaf.json"
+    $cont = Get-Content -Path $templatename -Raw
 
     $postBody = [PSCustomObject]@{
       refUpdates = @(@{

@@ -500,6 +500,7 @@ stages:
               CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
               CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
+              SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               AZURE_DEVOPS_EXT_PAT:    $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
