@@ -397,7 +397,7 @@ else {
 
   Remove-Item $templatename
   $templatename = "resources_including_samples.yml"
-  Add-Content -Path $templatename ""
+
   Add-Content -Path $templatename "parameters:"
   Add-Content -Path $templatename " - name: stages"
   Add-Content -Path $templatename " type: stageList"
@@ -419,7 +419,7 @@ else {
   Add-Content -Path $templatename " name: Azure/sap-automation-samples"
   Add-Content -Path $templatename " ref: refs/heads/main"
 
-  $cont = Get-Content -Path $templatename -Raw
+  $cont2 = Get-Content -Path $templatename -Raw
 
   $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
@@ -435,7 +435,7 @@ else {
         changes = @(@{
             changetype = "edit"
             item       = @{path = "/pipelines/resources_including_samples.yml" }
-            newContent = @{content = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($cont))
+            newContent = @{content = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($cont2))
               contentType          = "base64Encoded"
             }
 
