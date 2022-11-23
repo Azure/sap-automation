@@ -364,8 +364,10 @@ stages:
 
               echo -e "$green--- Deploy the workload zone ---$reset"
                 cd $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)
-                az logout --output none
-                az login --identity --output none
+                if [ -f /etc/profile.d/deploy_server.sh ]; then
+                  az logout --output none
+                  az login --identity --output none
+                fi
 
                 if [ 0 != $secrets_set ] ; then
                   echo "Install and call Set Secrets failed"

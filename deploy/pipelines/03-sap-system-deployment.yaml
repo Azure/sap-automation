@@ -115,6 +115,17 @@ stages:
                   fi
                   unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                   rm -f terraform_$(tf_version)_linux_amd64.zip
+
+                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+              else
+                echo -e "$green --- Running on deployer ---$reset"
+                az login --identity --output none
               fi
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -136,40 +147,6 @@ stages:
                 export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
                 export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
 
-              echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
-                fi
-
-                ip_added_workload=0
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ---$reset"
-                  if [ -n "${workload_key_vault}" ]; then
-                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip}  --output none --only-show-errors
-                    ip_added_workload=1
-                  fi
-                fi
-
-                ip_added_control_plane=0
-                az account set --subscription ${STATE_SUBSCRIPTION}
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  if [ -n "${key_vault}" ]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    ip_added_control_plane=1
-                  fi
-                fi
-
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
                 $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
@@ -184,27 +161,6 @@ stages:
                     echo "##vso[task.logissue type=error]Error message: $error_message."
                   fi
                 fi
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-                if [[ ip_added_workload -eq 1 ]]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [ "azure pipelines" = "$(this_agent)" ]; then
-                    if [ -n "${workload_key_vault}" ]; then
-                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
-                fi
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
-                if [[ ip_added_control_plane -eq 1 ]]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [ "azure pipelines" = "$(this_agent)" ]; then
-                    if [ -n "${key_vault}" ]; then
-                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
-                fi
-
                 # Pull changes if there are other deployment jobs
 
                 cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
