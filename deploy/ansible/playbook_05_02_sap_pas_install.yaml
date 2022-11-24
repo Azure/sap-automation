@@ -135,7 +135,7 @@
         main_password:                 "{{ hostvars.localhost.sap_password }}"
         sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
         sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
-        pas_file_path:                 /INSTALL/DISTRIBUTED/ABAP/APP1
+        pas_file_path:                 INSTALL/DISTRIBUTED/ABAP/APP1
         always_upload_jinja_templates: false
       tags:
         - always
@@ -217,8 +217,13 @@
               vars:
                 suffix:                "_PAS"
                 prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  "{{ pas_file_path }}"
+                path:                  "{{ pas_file_path.replace('//','/') }}"
                 tier:                  'pas'
+                tmp_directory:         "/etc/sap_deployment_automation/"
+                this_sid:              "{{ sid_to_be_deployed.sid }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
 
             - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
               ansible.builtin.debug:
