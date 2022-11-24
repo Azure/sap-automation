@@ -71,7 +71,6 @@
     msg:
       - "Packages for {{ distribution_id }} : {{ packages_for_tier }}"
       - "Packages for {{ distribution_full_id }} : {{ packages_for_specific_tier }}"
-    verbosity:                         2
   when:                                packages_for_tier is defined
 
 
