@@ -154,7 +154,7 @@ resource "azurerm_key_vault_secret" "pk" {
   ]
   count = (local.enable_key && !local.key_exist) ? (
     (
-      !bootstrap || !local.user_keyvault_exist) ? (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
       1) : (
       0
     )) : (
@@ -174,7 +174,7 @@ resource "azurerm_key_vault_secret" "username" {
   ]
   count = (local.enable_key && !local.key_exist) ? (
     (
-      !bootstrap || !local.user_keyvault_exist) ? (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
       1) : (
       0
     )) : (
@@ -193,7 +193,7 @@ resource "azurerm_key_vault_secret" "pat" {
   ]
   count = (local.enable_key && !local.key_exist) ? (
     (
-      !bootstrap || !local.user_keyvault_exist) ? (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
       1) : (
       0
     )) : (
@@ -229,7 +229,7 @@ resource "azurerm_key_vault_secret" "pwd" {
   ]
   count = (local.enable_password && !local.pwd_exist) ? (
     (
-      !bootstrap || !local.user_keyvault_exist) ? (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
       1) : (
       0
     )) : (
