@@ -92,7 +92,7 @@
 - name:                                "5.6 SCSERS - Set variables"
   ansible.builtin.set_fact:
     ensa2:                             true
-    DB:                                "{{ db_sid | upper }}/HDB{{ hdb_instance_number }}"
+    DB:                                "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
 
 
 - name:                                "5.6 SCSERS - Enqueue Server Setup"

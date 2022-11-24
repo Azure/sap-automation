@@ -48,4 +48,4 @@ cluster_name:                         db{{ sid | lower }}
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-sapcontrol_command:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ hdb_instance_number }}/exe/sapcontrol -nr {{ hdb_instance_number }}"
+sapcontrol_command:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe/sapcontrol -nr {{ db_instance_number }}"
