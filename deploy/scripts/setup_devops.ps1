@@ -724,7 +724,7 @@ if ($found_appName.Length -gt 0) {
   $confirmation = Read-Host "Reset the Control Plane Service Principal password y/n?"
   if ($confirmation -eq 'y') {
 
-    $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
+    $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
   }
 
 }
