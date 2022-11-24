@@ -7,7 +7,7 @@
   ansible.builtin.set_fact:
     main_mem1:                          "{{ansible_memory_mb.real.total }}"
     ora_sga:                            "{{ (ansible_memory_mb.real.total*0.85) |round |int }}"
-    ora_pga:                            "{{ min(((ansible_memory_mb.real.total*0.85)*0.2)) |round |int }}"
+    ora_pga:                            "{{ ((ansible_memory_mb.real.total*0.85)*0.2), 4194304 |round |int | min }}"
   when:                                 
     - ansible_memory_mb.real.total < 4194304
     - "PAS not in supported_tiers"
@@ -18,7 +18,7 @@
   ansible.builtin.set_fact:
     main_mem1:                          "{{ansible_memory_mb.real.total }}"
     ora_sga:                            "{{ (ansible_memory_mb.real.total*0.7) |round |int }}"
-    ora_pga:                            "{{ min(((ansible_memory_mb.real.total*0.7)*0.2)) |round |int }}"
+    ora_pga:                            "{{ ((ansible_memory_mb.real.total*0.7)*0.2)),  4194304 |round |int | min }}"
   when:                                 
     - ansible_memory_mb.real.total < 4194304
     - "PAS in supported_tiers"

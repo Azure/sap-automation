@@ -307,7 +307,7 @@ admin_users:
 
 # Admin users for Oracle Non-ASM
 
-  - name:         "ora{{ sap_sid | lower }}"
+  - name:         "ora{{ db_sid | lower }}"
     comment:      "Oracle Database System Administrator"
     uid:          "{{ orasid_uid }}"
     group:        dba
