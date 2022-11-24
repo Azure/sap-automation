@@ -1,16 +1,44 @@
 
-    
+- name:                                 "Set Variables"
+  ansible.builtin.set_fact:
+    PAS:                                'pas'
+
 - name:                                 "Set the SGA and PGA Sizes for RAM < 4TB"
   ansible.builtin.set_fact:
+    main_mem1:                          "{{ansible_memory_mb.real.total }}"
     ora_sga:                            "{{ (ansible_memory_mb.real.total*0.85) |round |int }}"
-    ora_pga:                            "{{ (ansible_memory_mb.real.total*0.85)*0.2 |round |int }}"
-  when:                                 ansible_memory_mb.real.total < 4194304 
+    ora_pga:                            "{{ min(((ansible_memory_mb.real.total*0.85)*0.2)) |round |int }}"
+  when:                                 
+    - ansible_memory_mb.real.total < 4194304
+    - "PAS not in supported_tiers"
+    
+
+
+- name:                                 "Set the SGA and PGA Sizes for RAM < 4TB Single Node Deployments"
+  ansible.builtin.set_fact:
+    main_mem1:                          "{{ansible_memory_mb.real.total }}"
+    ora_sga:                            "{{ (ansible_memory_mb.real.total*0.7) |round |int }}"
+    ora_pga:                            "{{ min(((ansible_memory_mb.real.total*0.7)*0.2)) |round |int }}"
+  when:                                 
+    - ansible_memory_mb.real.total < 4194304
+    - "PAS in supported_tiers"
+
+
+- name:                                "Show Main Memory"
+  ansible.builtin.debug:
+    msg:                               "{{main_mem1,ora_sga,ora_pga}}"
+
+
 
 - name:                                 "Set the SGA and PGA Sizes for RAM > 4TB"
   ansible.builtin.set_fact:
     ora_sga:                            "{{ (ansible_memory_mb.real.total*0.95) |round |int }}"
     ora_pga:                            "{{ ((ansible_memory_mb.real.total*0.95)*0.2) |round |int }}"
-  when:                                 ansible_memory_mb.real.total > 4194304
+  when:                                 
+    - ansible_memory_mb.real.total > 4194304
+    - supported_tiers != "pas"
+    - supported_tiers == "scs"
+
  
 - name:                                "Oracle SGA & PGA: create updatesga.sql"
   become:                              true
@@ -21,8 +49,8 @@
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
-         ALTER SYSTEM SET sga_max_size={{ ora_sga }} SCOPE=spfile;
-         ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }} SCOPE=spfile;
+         ALTER SYSTEM SET sga_max_size={{ ora_sga }}M SCOPE=spfile;
+         ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }}M SCOPE=spfile;
          SHUTDOWN IMMEDIATE;
          exit
     mode: '0755'
@@ -39,6 +67,9 @@
          STARTUP;
          exit
     mode: '0755'
+
+# - fail:
+#    msg:  "vamshi testing"
 
 - name:                                "Oracle SGA Change Execution"
   become:                              true
