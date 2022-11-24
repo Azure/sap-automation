@@ -260,7 +260,7 @@ packages:
   # ------------------------ End - packages required for Clustering --------------------------------------8
   sles_sap15.1:
   sles_sap15.2:
-    - { tier: 'sapos', package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
+    - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
   sles_sap15.3:
 #    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
