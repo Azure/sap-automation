@@ -23,6 +23,7 @@ parameters:
       - NW752SPS09_v0001ms
       - ⁠NW750SPS20_DB2_v0001ms
       - ORACLE_19_00_v0002ms
+      - ORACLE_19_00_v0003ms
       - NW750SPS20_DB2_v0001ms
       - DB2_UDB_11_5_v0001ms
       - ORACLE_19_00_ORA_MSID_v0001ms
