@@ -75,6 +75,15 @@
 # +------------------------------------4--------------------------------------*/
 - name:                                "ORACLE: Installation"
   block:
+    - name:                            "ORACLE Installation: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+      register:                        orainst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0012:Unable to find Oracle installation media, please check that the installation media is mounted"
+      when: not orainst_found.stat.exists
 
     - name:                            "ORACLE: Execute RUNINSTALLER PreCheck"
       become:                          true
