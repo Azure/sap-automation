@@ -102,9 +102,9 @@
     - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
 
-    - name:                            "3.3.1 BoM Template processing: Using ini file {{ sap_inifile }} from {{ new_template }}"
-      ansible.builtin.debug:
-        var:                           new_template_result
+- name:                                "3.3.1 BoM Template processing: Using ini file {{ sap_inifile }} from {{ new_template }}"
+  ansible.builtin.debug:
+    var:                               new_template_result
 
 
 - name:                                "3.3.1 BoM Template processing: Create ini files ({{ bom_base_name }})"
