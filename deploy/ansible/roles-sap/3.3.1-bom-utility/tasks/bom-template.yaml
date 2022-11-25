@@ -86,6 +86,7 @@
   when:
     - distribution_id in ['suse15', 'redhat8']
     - not always_upload_jinja_templates
+    - false
 
 - name:                                "3.3.1 BoM Template processing: {{ bom_name }} Download: {{ new_template }} from the storage account"
   ansible.builtin.get_url:
@@ -101,11 +102,12 @@
     - distribution_id != 'suse15'
     - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
+    - false
 
 - name:                                "3.3.1 BoM Template processing: New ini file download"
   ansible.builtin.debug:
     var:                               new_template_result
-
+  when:                                new_template_result is defined
 
 - name:                                "3.3.1 BoM Template processing: Create ini files ({{ bom_base_name }})"
   block:
@@ -123,6 +125,7 @@
         force:                         true
 
   when:
+    - new_template_result is defined
     - new_template_result is succeeded or new_template_result is skipped
 
 - name:                                "3.3.1 BoM Template processing: {{ bom_name }} Download: {{ sap_inifile_template }} from the storage account"
@@ -224,7 +227,7 @@
       when:                                result is failed or always_upload_jinja_templates
 
   when:
-    - new_template_result is failed
+    - new_template_result is undefined
 
 ...
 # /*---------------------------------------------------------------------------8
