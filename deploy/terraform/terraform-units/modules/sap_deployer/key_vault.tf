@@ -31,7 +31,7 @@ resource "azurerm_key_vault" "kv_user" {
         [
           local.enable_deployer_public_ip ? (
             azurerm_public_ip.deployer[0].ip_address) : (
-            ""),
+          ""),
           length(var.Agent_IP) > 0 ? var.Agent_IP : ""
         ]
       )
@@ -152,7 +152,15 @@ resource "azurerm_key_vault_secret" "pk" {
     azurerm_key_vault_access_policy.kv_user_msi[0],
     time_sleep.wait_for_dns_refresh
   ]
-  count        = (local.enable_key && !local.key_exist) ? 1 : 0
+  count = (local.enable_key && !local.key_exist) ? (
+    (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+
   name         = local.pk_secret_name
   value        = local.public_key
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
@@ -164,7 +172,14 @@ resource "azurerm_key_vault_secret" "username" {
     azurerm_key_vault_access_policy.kv_user_msi[0],
     time_sleep.wait_for_dns_refresh
   ]
-  count        = (!local.username_exist) ? 1 : 0
+  count = (local.enable_key && !local.key_exist) ? (
+    (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
   name         = local.username_secret_name
   value        = local.username
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
@@ -176,7 +191,15 @@ resource "azurerm_key_vault_secret" "pat" {
     azurerm_key_vault_access_policy.kv_user_msi[0],
     time_sleep.wait_for_dns_refresh
   ]
-  count        = length(var.agent_pat) > 0 ? 1 : 0
+  count = (local.enable_key && !local.key_exist) ? (
+    (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
+
   name         = "PAT"
   value        = var.agent_pat
   key_vault_id = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
@@ -204,7 +227,14 @@ resource "azurerm_key_vault_secret" "pwd" {
     azurerm_key_vault_access_policy.kv_user_msi[0],
     time_sleep.wait_for_dns_refresh
   ]
-  count = (local.enable_password && !local.pwd_exist) ? 1 : 0
+  count = (local.enable_password && !local.pwd_exist) ? (
+    (
+      !var.bootstrap || !local.user_keyvault_exist) ? (
+      1) : (
+      0
+    )) : (
+    0
+  )
   name  = local.pwd_secret_name
   value = local.password
   key_vault_id = local.user_keyvault_exist ? (

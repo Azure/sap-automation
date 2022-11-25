@@ -52,7 +52,11 @@ variable "assign_subscription_permissions" {
   type        = bool
 }
 
-variable "bootstrap" {}
+variable "bootstrap" {
+  description = "Which phase of deployment"
+  type        = bool
+
+}
 
 variable "use_private_endpoint" {
   description = "Boolean value indicating if private endpoint should be used for the deployment"

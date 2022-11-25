@@ -199,6 +199,11 @@
             prefix:                    "{{ app_bom_id.replace('.', '/').replace('/PD', '').split(':')[1] }}"
             path:                      "{{ app_file_path }}"
             tier:                      'app'
+            tmp_directory:             "/etc/sap_deployment_automation/"
+            this_sid:                  "{{ sid_to_be_deployed.sid }}"
+          loop:                        "{{ all_sids }}"
+          loop_control:
+            loop_var:                  sid_to_be_deployed
 
         - name:                        "APP Playbook - Install: Errors from APP installation"
           ansible.builtin.debug:

@@ -9,6 +9,16 @@
   ansible.builtin.set_fact:
     nfs_service:                       "{% if distribution_id == 'redhat8' %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}nfsserver{% endif %}{% endif %}"
 
+- name:                                "ANF Mount: Set the NFSmount options"
+  ansible.builtin.set_fact:
+    mnt_options:                       "'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys'"
+  when: distribution_full_id not in ['redhat8.4', 'sles_sap15.2', 'suse15.3']
+
+- name:                                "ANF Mount: Set the NFSmount options"
+  ansible.builtin.set_fact:
+    mnt_options:                       "'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys,nconnect=8'"
+  when: distribution_full_id in ['redhat8.4', 'sles_sap15.2', 'suse15.3']
+
 - name:                                "AFS Mount: Define this SID"
   ansible.builtin.set_fact:
     this_sid:
@@ -518,7 +528,31 @@
       'temppath':          'hanadata',
       'folder':            'hanadata',
       'mount':             '{{ hana_data_mountpoint[0] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
+      'path':              '/hana/data',
+      'permissions':       '0755',
+      'set_chattr_on_dir': false,
+      'target_nodes' :     ['hana'],
+      'create_temp_folders': true
+    }
+  vars:
+    primary_host:                     "{{ db_hosts[0] }}"
+  when:
+    - tier == 'sapos'
+    - node_tier == 'hana'
+    - hana_data_mountpoint is defined
+    - hana_data_mountpoint | length > 0
+    - ansible_hostname == db_hosts[0]
+
+- name:                                "ANF Mount: HANA data"
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+  loop:
+    - {
+      'type':              'data',
+      'temppath':          'hanadata',
+      'folder':            'hanadata',
+      'mount':             '{{ hana_data_mountpoint[0] }}',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/data',
       'permissions':       '0755',
       'set_chattr_on_dir': false,
@@ -542,7 +576,7 @@
       'temppath':            'hanalog',
       'folder':              'hanalog',
       'mount' :              '{{ hana_log_mountpoint[0] }}',
-      'opts':                'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':                '{{ mnt_options }}',
       'path' :               '/hana/log',
       'permissions':         '0755',
       'set_chattr_on_dir':   false,
@@ -566,7 +600,7 @@
       'temppath':          'hanadata',
       'folder':            'hanadata',
       'mount':             '{{ hana_data_mountpoint[1] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/data',
       'permissions':       '0755',
       'set_chattr_on_dir': false,
@@ -590,7 +624,7 @@
       'temppath':            'hanalog',
       'folder':              'hanalog',
       'mount' :              '{{ hana_log_mountpoint[1] }}',
-      'opts':                'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':                '{{ mnt_options }}',
       'path' :               '/hana/log',
       'permissions':         '0755',
       'set_chattr_on_dir':   false,
@@ -614,7 +648,7 @@
       'temppath':          'hanashared',
       'folder':            'hanashared',
       'mount':             '{{ hana_shared_mountpoint[0] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/shared',
       'permissions':       '0775',
       'set_chattr_on_dir': false,
@@ -638,7 +672,7 @@
       'temppath':          'hanashared',
       'folder':            'hanashared',
       'mount':             '{{ hana_shared_mountpoint[1] }}',
-      'opts':              'rw,vers=4,minorversion=1,hard,timeo=600,rsize=262144,wsize=262144,intr,noatime,lock,_netdev,sec=sys',
+      'opts':              '{{ mnt_options }}',
       'path':              '/hana/shared',
       'permissions':       '0775',
       'set_chattr_on_dir': false,

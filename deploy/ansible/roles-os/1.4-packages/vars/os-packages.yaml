@@ -260,8 +260,10 @@ packages:
   # ------------------------ End - packages required for Clustering --------------------------------------8
   sles_sap15.1:
   sles_sap15.2:
+    - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
   sles_sap15.3:
 #    - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
+    - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
     # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
   oraclelinux8:
