@@ -75,7 +75,7 @@
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ new_template }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-    dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+    dest:                              "{{ download_directory }}/bom/{{ new_template }}"
     mode:                              0644
     force:                             true
   delegate_to:                         localhost
@@ -91,7 +91,7 @@
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_base_name }}/templates/\
                                         {{ new_template }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-    dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
+    dest:                              "{{ download_directory }}/bom/{{ new_template }}"
     mode:                              0644
     force:                             true
   delegate_to:                         localhost
@@ -102,7 +102,7 @@
     - distribution_id != 'redhat8'
     - not always_upload_jinja_templates
 
-- name:                                "3.3.1 BoM Template processing: Using ini file {{ sap_inifile }} from {{ new_template }}"
+- name:                                "3.3.1 BoM Template processing: New ini file download"
   ansible.builtin.debug:
     var:                               new_template_result
 
