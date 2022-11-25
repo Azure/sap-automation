@@ -132,7 +132,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
     for_each = range(var.deployer.os.type == "marketplace" ? 1 : 0)
     content {
       publisher = var.deployer.os.publisher
-      offer     = var.deployer.os_os.offer
+      offer     = var.deployer.os.offer
       sku       = var.deployer.os.sku
       version   = var.deployer.os.version
     }
