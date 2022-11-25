@@ -145,6 +145,7 @@ locals {
       )
     }
     os = {
+      os_type = "LINUX"
       source_image_id = try(coalesce(
         var.deployer_image.source_image_id,
         try(var.deployers[0].os.source_image_id, "")
@@ -167,6 +168,7 @@ locals {
         var.deployer_image.version,
         try(var.deployers[0].sku, "")
       ), "")
+      type = "marketplace"
     }
 
 
