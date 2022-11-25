@@ -150,7 +150,6 @@
 
 - name:                            "DB2 Install - Set LOCK variable for PAS"
   become:                          true
-  become_user:                     db2{{ db_sid | lower }}
   ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=FALSE
   args:
     creates:                       /etc/sap_deployment_automation/lock_escalation_false.txt
