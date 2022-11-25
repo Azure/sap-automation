@@ -129,23 +129,24 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   source_image_id = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.deployer.os.source_image_id == "" ? 1 : 0)
+    for_each = range(var.deployer.os.type == "marketplace" ? 1 : 0)
     content {
       publisher = var.deployer.os.publisher
-      offer     = var.deployer.os.offer
+      offer     = var.deployer.os_os.offer
       sku       = var.deployer.os.sku
       version   = var.deployer.os.version
     }
   }
 
   dynamic "plan" {
-    for_each = range(var.deployer.plan.use ? 1 : 0)
+    for_each = range(var.deployer.os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.deployer.plan.name
-      product   = var.deployer.plan.product
-      publisher = var.deployer.plan.publisher
+      name      = var.deployer.os.offer
+      publisher = var.deployer.os.publisher
+      product   = var.deployer.os.sku
     }
   }
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.deployer.id]

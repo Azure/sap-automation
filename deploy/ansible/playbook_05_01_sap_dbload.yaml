@@ -232,8 +232,13 @@
               vars:
                 suffix:                '_DBLOAD'
                 prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
+                path:                  'INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
+                tmp_directory:         "/etc/sap_deployment_automation"
+                this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
+              loop:                    "{{ all_sids }}"
+              loop_control:
+                loop_var:              sid_to_be_deployed
 
             - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
               ansible.builtin.set_fact:

@@ -99,7 +99,8 @@ resource "azurerm_windows_web_app" "webapp" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.deployer.id]
   }
   connection_string {
     name  = "sa_tfstate_conn_str"

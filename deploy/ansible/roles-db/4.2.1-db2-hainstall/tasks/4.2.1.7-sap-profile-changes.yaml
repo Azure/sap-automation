@@ -6,10 +6,8 @@
 # virtual IP address that you defined and configured for the Azure Load Balancer                                #
 #################################################################################################################
 
-
 - name:                                " 4.2.1.7 - SAP Profile changes - DB2 Installations"
   block:
-
 
     - name:                            "4.2.1.7 - SAP DEFAULT.PFL changes "
       ansible.builtin.replace:
@@ -53,11 +51,9 @@
       tags:
         - virtdbhostpara
 
-
   when:
     - inventory_hostname == primary_instance_name
     - platform == 'DB2'
     - db_high_availability
-
 
 ...

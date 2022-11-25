@@ -84,7 +84,7 @@
       failed_when:                     oraprecheck_results.rc > 3
       # changed_when:                    oraprecheck_results.rc < 3
       environment:
-        DB_SID:                        "{{ db_sid }}"
+        DB_SID:                        "{{ db_sid | upper }}"
         CV_ASSUME_DISTID:              OL7
       args:
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
