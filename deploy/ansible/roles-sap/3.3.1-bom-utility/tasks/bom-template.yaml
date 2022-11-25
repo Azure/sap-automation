@@ -106,7 +106,8 @@
   block:
 
     - name:                            "3.3.1 BoM Template processing: Using ini file {{ sap_inifile }} from {{ new_template }}"
-      ansible.builtin.debug:           "Using new Ini file template"
+      ansible.builtin.debug:
+        msg:                           "Using new Ini file template"
 
     - name:                            "3.3.1 BoM Template processing: Create ini file {{ sap_inifile }} from {{ new_template }}"
       ansible.builtin.template:
