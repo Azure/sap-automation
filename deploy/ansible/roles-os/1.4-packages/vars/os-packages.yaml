@@ -128,6 +128,7 @@ packages:
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
+    - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
@@ -173,6 +174,7 @@ packages:
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
+    - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'sapos', package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos', package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
@@ -218,6 +220,7 @@ packages:
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
+    - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'os',    package: 'cloud-regionsrv-client',                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cloud-regionsrv-client-plugin-azure',          node_tier: 'all',     state: 'present' }
