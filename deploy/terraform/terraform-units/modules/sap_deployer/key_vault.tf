@@ -25,7 +25,7 @@ resource "azurerm_key_vault" "kv_user" {
     content {
 
       bypass         = "AzureServices"
-      default_action = local.management_subnet_exists ? "Deny" : "Allow"
+      default_action = local.management_subnet_exists ? "Allow" : "Deny"
 
       ip_rules = compact(
         [
@@ -47,9 +47,7 @@ resource "azurerm_key_vault" "kv_user" {
     }
   }
 
-
 }
-
 resource "azurerm_private_dns_a_record" "kv_user" {
   count               = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
   name                = split(".", azurerm_private_endpoint.kv_user[count.index].custom_dns_configs[count.index].fqdn)[0]
@@ -347,21 +345,21 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
 
 }
 
-# resource "azurerm_key_vault_access_policy" "webapp" {
-#   count = var.use_webapp ? 1 : 0
-#   key_vault_id = local.user_keyvault_exist ? (
-#     local.user_key_vault_id) : (
-#     azurerm_key_vault.kv_user[0].id
-#   )
+resource "azurerm_key_vault_access_policy" "webapp" {
+  count = var.use_webapp ? 1 : 0
+  key_vault_id = local.user_keyvault_exist ? (
+    local.user_key_vault_id) : (
+    azurerm_key_vault.kv_user[0].id
+  )
 
-#   tenant_id = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
-#   object_id = azurerm_windows_web_app.webapp[0].identity[0].principal_id
-#   secret_permissions = [
-#     "Get",
-#     "List",
-#     "Set",
-#     "Recover"
-#   ]
+  tenant_id = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
+  object_id = azurerm_windows_web_app.webapp[0].identity[0].principal_id
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Recover"
+  ]
 
-# }
+}
 

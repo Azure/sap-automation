@@ -84,7 +84,7 @@ resource "azurerm_windows_web_app" "webapp" {
     "IS_PIPELINE_DEPLOYMENT" = false
   }
 
-  virtual_network_subnet_id = local.webapp_subnet_exists? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
+  virtual_network_subnet_id = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
   site_config {
     # ip_restriction = [{
     #   action                    = "Allow"
@@ -99,8 +99,7 @@ resource "azurerm_windows_web_app" "webapp" {
   }
 
   identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.deployer.id]
+    type = "SystemAssigned"
   }
   connection_string {
     name  = "sa_tfstate_conn_str"
