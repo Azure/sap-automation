@@ -103,8 +103,8 @@ namespace AutomationForm.Controllers
                         // scanning the file's contents. In most production
                         // scenarios, an anti-virus/anti-malware scanner API
                         // is used on the file before making the file available
-                        // for download or for use by other systems.
-                        // For more information, see the topic that accompanies
+                        // for download or for use by other systems. 
+                        // For more information, see the topic that accompanies 
                         // this sample.
 
                         AppFile file = new AppFile()
@@ -208,7 +208,7 @@ namespace AutomationForm.Controllers
                 await _appFileService.CreateAsync(file);
 
                 TempData["success"] = "Successfully created file " + id;
-
+                
                 return RedirectToAction("Index", sourceController);
             }
             catch (Exception e)
@@ -222,7 +222,7 @@ namespace AutomationForm.Controllers
             return View();
 
         }
-
+        
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id, string sourceController, bool isImagesFile=false)
         {
@@ -281,7 +281,7 @@ namespace AutomationForm.Controllers
         {
             AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
             if (file == null) return NotFound();
-
+            
             file.Id = newId;
             byte[] bytes = Encoding.UTF8.GetBytes(fileContent);
             file.Content = bytes;
@@ -291,7 +291,7 @@ namespace AutomationForm.Controllers
                 await _appFileService.CreateAsync(file);
 
                 TempData["success"] = "Successfully created file " + id;
-
+                
                 return RedirectToAction("Index", sourceController);
             }
             catch (Exception e)

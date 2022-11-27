@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace AutomationForm.Models
@@ -11,7 +7,7 @@ namespace AutomationForm.Models
     {
         public string name { get; set; }
         public string description { get; set; }
-        
+
         public int id { get; set; }
         public Variables variables { get; set; }
         public VariableGroupProjectReference[] variableGroupProjectReferences { get; set; }

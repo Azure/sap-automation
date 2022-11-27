@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AutomationForm.Models
+﻿namespace AutomationForm.Models
 {
 
     public class PipelineRequestBody
@@ -30,7 +25,7 @@ namespace AutomationForm.Models
     public class Templateparameters
     {
         public string workload_zone { get; set; }
-        public string workload_environment_parameter { get; set;}
+        public string workload_environment_parameter { get; set; }
         public string deployer_environment_parameter { get; set; }
         public string deployer_region_parameter { get; set; }
         public string sap_system { get; set; }

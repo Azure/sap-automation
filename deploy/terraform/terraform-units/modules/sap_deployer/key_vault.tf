@@ -36,9 +36,14 @@ resource "azurerm_key_vault" "kv_user" {
         ]
       )
 
-      virtual_network_subnet_ids = var.use_service_endpoint ? local.management_subnet_exists ? (
-        [data.azurerm_subnet.subnet_mgmt[0].id]) : (
-      [azurerm_subnet.subnet_mgmt[0].id]) : null
+      virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
+        [data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id]) : (
+        [data.azurerm_subnet.subnet_mgmt[0].id])
+        ) : (var.use_webapp ? (
+          [azurerm_subnet.subnet_mgmt[0].id, azurerm_subnet.webapp[0].id]) : (
+          [azurerm_subnet.subnet_mgmt[0].id]
+        )
+      ))
     }
   }
 

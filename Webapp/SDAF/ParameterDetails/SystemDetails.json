@@ -619,6 +619,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "use_msi_for_clusters",
+        "Required": false,
+        "Description": "Used to control if managed identities should be used for clustering.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },

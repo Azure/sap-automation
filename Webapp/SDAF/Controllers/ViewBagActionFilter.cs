@@ -7,7 +7,7 @@ namespace AutomationForm.Controllers
     public class ViewBagActionFilter : ActionFilterAttribute
     {
         private readonly IConfiguration _configuration;
-        
+
         public ViewBagActionFilter(IConfiguration configuration)
         {
             _configuration = configuration;

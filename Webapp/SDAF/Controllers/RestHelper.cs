@@ -2,18 +2,16 @@ using AutomationForm.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 using System.Threading.Tasks;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace AutomationForm.Controllers
 {
@@ -26,7 +24,7 @@ namespace AutomationForm.Controllers
         private readonly string branch;
         private readonly string sdafGeneralId;
 
-        private readonly string sampleUrl="https://api.github.com/repos/Azure/SAP-automation-samples";
+        private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
         private HttpClient client;
         public RestHelper(IConfiguration configuration)
         {
@@ -384,7 +382,7 @@ namespace AutomationForm.Controllers
                 {
                     case System.Net.HttpStatusCode.Unauthorized:
                         errorMessage = "Unauthorized, please ensure that the Personal Access Token has sufficient permissions and thaat it has not expired.";
-                    break;
+                        break;
                     case System.Net.HttpStatusCode.NotFound:
                         errorMessage = "Could not find the template.";
                         break;
@@ -393,7 +391,7 @@ namespace AutomationForm.Controllers
                         break;
 
                 }
-               throw new HttpRequestException(errorMessage);
+                throw new HttpRequestException(errorMessage);
 
             }
         }

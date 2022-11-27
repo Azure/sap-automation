@@ -1,12 +1,11 @@
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using AutomationForm.Models;
-using System;
 using Azure.Data.Tables;
-using System.Linq;
 using Azure.Storage.Blobs;
-using System.IO;
 using Azure.Storage.Blobs.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace AutomationForm.Services
 {
@@ -78,7 +77,7 @@ namespace AutomationForm.Services
             AppFileEntity fileEntity = new AppFileEntity(file.Id, blobClient.Uri.ToString());
             await client.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
         }
-        
+
         public async Task DeleteAsync(string rowKey, string partitionKey)
         {
             BlobClient blobClient = blobContainerClient.GetBlobClient(rowKey);

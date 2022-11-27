@@ -1,5 +1,3 @@
-using System;
-
 namespace AutomationForm.Models
 {
     public class ErrorViewModel

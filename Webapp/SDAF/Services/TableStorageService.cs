@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutomationForm.Models;
-using Microsoft.Extensions.Configuration;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 
 namespace AutomationForm.Services
 {
