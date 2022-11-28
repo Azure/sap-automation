@@ -1,8 +1,8 @@
 
 ###############################################################################
-#                                                                             # 
-#                             Resource Group                                  # 
-#                                                                             # 
+#                                                                             #
+#                             Resource Group                                  #
+#                                                                             #
 ###############################################################################
 
 output "created_resource_group_id" {
@@ -26,9 +26,9 @@ output "workload_zone_prefix" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Network                                          # 
-#                                                                             # 
+#                                                                             #
+#                            Network                                          #
+#                                                                             #
 ###############################################################################
 
 output "vnet_sap_arm_id" {
@@ -88,15 +88,15 @@ output "subnet_mgmt_id" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Key Vault                                        # 
-#                                                                             # 
+#                                                                             #
+#                            Key Vault                                        #
+#                                                                             #
 ###############################################################################
 
 
 output "landscape_key_vault_user_arm_id" {
   description = "Azure resource identifier for the user credential keyvault"
-  value       = try(module.sap_landscape.kv_user, "")
+  value       = len(var.user_keyvault_id) > 0 ; var.user_keyvault_id : try(module.sap_landscape.kv_user, "")
 }
 
 output "spn_kv_id" {
@@ -105,7 +105,7 @@ output "spn_kv_id" {
 
 output "workloadzone_kv_name" {
   description = "User credential keyvault name"
-  value       = try(split("/", module.sap_landscape.kv_user)[8], "")
+  value       = len(var.user_keyvault_id) > 0 ; split("/", var.user_keyvault_id)[8] : split("/", module.sap_landscape.kv_user)[8]
 }
 
 output "landscape_key_vault_private_arm_id" {
@@ -130,9 +130,9 @@ output "sid_password_secret_name" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            iSCSI                                            # 
-#                                                                             # 
+#                                                                             #
+#                            iSCSI                                            #
+#                                                                             #
 ###############################################################################
 
 output "iscsi_authentication_type" {
@@ -148,9 +148,9 @@ output "iscsi_private_ip" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            DNS                                 # 
-#                                                                             # 
+#                                                                             #
+#                            DNS                                 #
+#                                                                             #
 ###############################################################################
 output "dns_info_iscsi" {
   description = "value"
@@ -186,9 +186,9 @@ output "dns_resource_group_name" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            Storage accounts                                 # 
-#                                                                             # 
+#                                                                             #
+#                            Storage accounts                                 #
+#                                                                             #
 ###############################################################################
 
 output "storageaccount_name" {
@@ -223,9 +223,9 @@ output "witness_storage_account_key" {
 
 
 ###############################################################################
-#                                                                             # 
-#                            ANF                                              # 
-#                                                                             # 
+#                                                                             #
+#                            ANF                                              #
+#                                                                             #
 ###############################################################################
 
 output "ANF_pool_settings" {
@@ -233,9 +233,9 @@ output "ANF_pool_settings" {
 }
 
 ###############################################################################
-#                                                                             # 
-#                            Mount info                                       # 
-#                                                                             # 
+#                                                                             #
+#                            Mount info                                       #
+#                                                                             #
 ###############################################################################
 
 output "saptransport_path" {

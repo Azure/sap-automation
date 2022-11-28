@@ -68,14 +68,6 @@
     mode:                              0755
     state:                             directory
 
-- name:                                "DB2: Create filepermission.txt"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
-    mode:                              0644
-    state:                             touch
-
 # Debug - Fail
 # - name:                                "DB2: fail here"
 #   ansible.builtin.fail:

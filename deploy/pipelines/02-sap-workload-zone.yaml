@@ -352,7 +352,7 @@ stages:
                 resource_group_id=$(az group show --name ${resource_group_name} --subscription ${STATE_SUBSCRIPTION} --query id -o tsv)
 
                 vnet_resource_id=$(az resource list --resource-group "${resource_group_name}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Network/virtualNetworks -o tsv --query "[].id | [0]")
-                if [ -n ${vnet_resource_id} ]; then
+                if [ -n "${vnet_resource_id}" ]; then
                   perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Network Contributor" --scope $vnet_resource_id --assignee $ARM_OBJECT_ID --query "[].principalName | [0]" -o tsv  --only-show-errors)
                   if [ -z "$perms" ]; then
                     echo "Assigning Network Contributor rights for $ARM_OBJECT_ID to ${vnet_resource_id}"
@@ -437,20 +437,6 @@ stages:
               echo -e "$green--- Adding variables to the variable group " $(variable_group) "---$reset"
                 az logout
                 if [ -n $VARIABLE_GROUP_ID ]; then
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
-                  else
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
-                  fi
-
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value | tr -d \")
-                  if [ -z ${az_var} ]; then
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value $landscape_tfstate_key --output none --only-show-errors
-                  else
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value $landscape_tfstate_key --output none --only-show-errors
-                  fi
-
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
                   if [ -z ${az_var} ]; then
                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value $REMOTE_STATE_SA --output none --only-show-errors
@@ -478,6 +464,23 @@ stages:
                   else
                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${key_vault} --output none --only-show-errors
                   fi
+
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
+                  if [ -n "${workload_key_vault}"]; then
+                    if [ -z ${az_var} ]; then
+                      az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
+                    else
+                      az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Key_Vault --value $workload_key_vault --output none --only-show-errors
+                    fi
+                  fi
+
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value | tr -d \")
+                  if [ -z ${az_var} ]; then
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value $landscape_tfstate_key --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value $landscape_tfstate_key --output none --only-show-errors
+                  fi
+
 
                 fi
 
