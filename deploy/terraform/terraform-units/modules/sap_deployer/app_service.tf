@@ -104,13 +104,14 @@ resource "azurerm_windows_web_app" "webapp" {
   connection_string {
     name  = "sa_tfstate_conn_str"
     type  = "Custom"
-    value = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.keyvault_names.user_access)
+    value = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
   }
 
   lifecycle {
     ignore_changes = [
       app_settings,
-      zip_deploy_file
+      zip_deploy_file,
+      tags
     ]
   }
 
