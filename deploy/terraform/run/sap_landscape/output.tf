@@ -97,7 +97,7 @@ output "subnet_mgmt_id" {
 
 output "landscape_key_vault_user_arm_id" {
   description = "Azure resource identifier for the user credential keyvault"
-  value       = len(var.user_keyvault_id) > 0 ? var.user_keyvault_id : try(module.sap_landscape.kv_user, "")
+  value       = length(var.user_keyvault_id) > 0 ? var.user_keyvault_id : try(module.sap_landscape.kv_user, "")
 }
 
 output "spn_kv_id" {
@@ -106,7 +106,7 @@ output "spn_kv_id" {
 
 output "workloadzone_kv_name" {
   description = "User credential keyvault name"
-  value       = len(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : split("/", module.sap_landscape.kv_user)[8]
+  value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : split("/", module.sap_landscape.kv_user)[8]
 }
 
 output "landscape_key_vault_private_arm_id" {
