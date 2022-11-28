@@ -12,6 +12,7 @@
   environment:
     PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
   register:                            db2_list_active_databases
+  failed_when:                         db2_list_active_databases.rc not in [0,4]
 
 - name:                                "DB2 - Stop the DB only if it is active"
   become:                              true
@@ -21,7 +22,7 @@
     executable: /bin/csh
   environment:
     PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-  when:                                db2_list_active_databases.stdout.find("{{ db_sid | upper }}") != -1
+  when:                                db2_list_active_databases.rc == 0
 
 - name:                                "Change to ksh Shell"
   ansible.builtin.user:
