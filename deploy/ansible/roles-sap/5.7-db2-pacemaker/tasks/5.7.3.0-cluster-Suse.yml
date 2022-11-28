@@ -3,7 +3,17 @@
 # SLES Clustering - Deploy DB2 clustering Resources
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
 
-- name:                                " DB2 - Stop the primary DB"
+- name:                                "DB2 - Find if the databases are active"
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2 list active databases
+  args:
+    executable: /bin/csh
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  register:                            db2_list_active_databases
+
+- name:                                "DB2 - Stop the DB only if it is active"
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
   ansible.builtin.shell:               db2stop force
@@ -11,6 +21,7 @@
     executable: /bin/csh
   environment:
     PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  when:                                db2_list_active_databases.stdout.find("{{ db_sid | upper }}") != -1
 
 - name:                                "Change to ksh Shell"
   ansible.builtin.user:
