@@ -289,7 +289,7 @@
 - import_tasks:                        "oracle-observer.yaml"
   when:
     - node_tier == "observer"
-    - tier == "ora"
+  
 
 - import_tasks:                        "oracle-multi-sid.yaml"
   when:
