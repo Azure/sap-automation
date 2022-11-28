@@ -33,7 +33,8 @@ output "workload_zone_prefix" {
 
 output "vnet_sap_arm_id" {
   description = "Azure resource identifier for the Virtual Network"
-  value       = module.sap_landscape.vnet_sap_id
+
+  value       = length(var.network_arm_id) > 0 ? var.network_arm_id : module.sap_landscape.vnet_sap_id
 }
 
 output "route_table_id" {
@@ -43,22 +44,22 @@ output "route_table_id" {
 
 output "admin_subnet_id" {
   description = "Azure resource identifier for the admin subnet"
-  value       = module.sap_landscape.admin_subnet_id
+  value       = length(var.admin_subnet_arm_id) > 0 ? var.admin_subnet_arm_id : module.sap_landscape.admin_subnet_id
 }
 
 output "app_subnet_id" {
   description = "Azure resource identifier for the app subnet"
-  value       = module.sap_landscape.app_subnet_id
+  value       = length(var.app_subnet_arm_id) > 0 ? var.app_subnet_arm_id : module.sap_landscape.app_subnet_id
 }
 
 output "db_subnet_id" {
   description = "Azure resource identifier for the db subnet"
-  value       = module.sap_landscape.db_subnet_id
+  value       = length(var.db_subnet_arm_id) > 0 ? var.db_subnet_arm_id : module.sap_landscape.db_subnet_id
 }
 
 output "web_subnet_id" {
   description = "Azure resource identifier for the web subnet"
-  value       = module.sap_landscape.web_subnet_id
+  value       = length(var.web_subnet_arm_id) > 0 ? var.web_subnet_arm_id : module.sap_landscape.web_subnet_id
 }
 
 
@@ -96,7 +97,7 @@ output "subnet_mgmt_id" {
 
 output "landscape_key_vault_user_arm_id" {
   description = "Azure resource identifier for the user credential keyvault"
-  value       = len(var.user_keyvault_id) > 0 ; var.user_keyvault_id : try(module.sap_landscape.kv_user, "")
+  value       = len(var.user_keyvault_id) > 0 ? var.user_keyvault_id : try(module.sap_landscape.kv_user, "")
 }
 
 output "spn_kv_id" {
@@ -105,7 +106,7 @@ output "spn_kv_id" {
 
 output "workloadzone_kv_name" {
   description = "User credential keyvault name"
-  value       = len(var.user_keyvault_id) > 0 ; split("/", var.user_keyvault_id)[8] : split("/", module.sap_landscape.kv_user)[8]
+  value       = len(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : split("/", module.sap_landscape.kv_user)[8]
 }
 
 output "landscape_key_vault_private_arm_id" {
