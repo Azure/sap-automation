@@ -24,9 +24,8 @@
 
     - name:                            "DB2 HA - SUSE - Ensure the Resource Defaults are configured"
       ansible.builtin.shell: >
-                                       crm configure rsc_defaults \$id="rsc-options"
-                                       resource-stickiness="1000"
-                                       migration-threshold="5000"
+                                       sudo crm configure rsc_defaults resource-stickiness="1000"
+                                       sudo crm configure rsc_defaults migration-threshold="5000"
 
     - name:                            "DB2 HA - SUSE - Ensure SAP DB2 primitive resource is configured"
       ansible.builtin.shell: >
