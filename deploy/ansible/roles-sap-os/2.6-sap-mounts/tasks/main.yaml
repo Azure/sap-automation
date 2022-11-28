@@ -286,6 +286,11 @@
     - node_tier == "oracle-asm"
     - tier == "ora"
 
+- import_tasks:                        "oracle-observer.yaml"
+  when:
+    - node_tier == "observer"
+    - tier == "ora"
+
 - import_tasks:                        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
