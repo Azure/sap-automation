@@ -25,22 +25,22 @@
       - db_server_temp is defined
       - db_server_temp | length > 0
 
-    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes "
-      ansible.builtin.replace:
-        path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
-        backup:                        true
-        regexp:                        '^SAPDBHOST'
-        replace:                       '#SAPDBHOST'
-      tags:
-        - dbhostcomment
+  - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes "
+    ansible.builtin.replace:
+      path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+      backup:                        true
+      regexp:                        '^SAPDBHOST'
+      replace:                       '#SAPDBHOST'
+    tags:
+      - dbhostcomment
 
-    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
-      ansible.builtin.lineinfile:
-        path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
-        line:                          SAPDBHOST = {{ db_lb_virtual_host }}
-        insertafter:                   '#SAPDBHOST'
-      tags:
-        - dbhostpara
+  - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname "
+    ansible.builtin.lineinfile:
+      path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
+      line:                          SAPDBHOST = {{ db_lb_virtual_host }}
+      insertafter:                   '#SAPDBHOST'
+    tags:
+      - dbhostpara
 
   when:
     - inventory_hostname == primary_instance_name
