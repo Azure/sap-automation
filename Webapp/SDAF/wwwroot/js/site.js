@@ -26,6 +26,7 @@ var azureResourceIds = [
     "transport_storage_account_id",
     "transport_private_endpoint_id",
     "install_storage_account_id",
+    "azure_files_sapmnt_id",
     "install_private_endpoint_id",
     "user_keyvault_id",
     "automation_keyvault_id",
@@ -201,7 +202,7 @@ function updateModel(object) {
 // retain all other form values selected for editing or on submit error
 // remove the loading background and access the form
 function retainFormValues() {
-    
+
     // default to only show basic parameters
     $("#advanced-filter").prop("checked", false);
     $("#advanced-filter").trigger("change");
@@ -466,7 +467,8 @@ $("#subscription").on("change", function () {
             ids: ["diagnostics_storage_account_arm_id",
                 "witness_storage_account_arm_id",
                 "transport_storage_account_id",
-                "install_storage_account_id"
+                "install_storage_account_id",
+                "azure_files_sapmnt_id"
             ],
             controller: "/Armclient/GetStorageAccountOptions",
             errorMessage: "Error retrieving storage accounts for specified subscription",
