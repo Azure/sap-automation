@@ -80,7 +80,7 @@ data "azurerm_key_vault" "kv_user" {
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user_msi" {
-
+  count        = var.key_vault.kv_exists ? 1 : 0
   key_vault_id = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 
   tenant_id = azurerm_user_assigned_identity.deployer.tenant_id
