@@ -95,6 +95,9 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
       primary = pub.value.primary
     }
   }
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "db" {

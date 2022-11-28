@@ -196,7 +196,7 @@ if ($found_appName.Length -ne 0) {
   Write-Host "Updating the variable group"
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
   az pipelines variable-group variable update --group-id $DevGroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
-  Write-Host "Please update the Workoad zone Service Principal Password manually if needed"
+  Write-Host "Please update the Workload zone Service Principal Password manually if needed"
 }
 else {
   Write-Host "Creating the Service Principal" $app_name

@@ -41,6 +41,10 @@ resource "azurerm_network_interface" "scs" {
       primary = pub.value.primary
     }
   }
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_network_interface_application_security_group_association" "scs" {
@@ -236,6 +240,9 @@ resource "azurerm_linux_virtual_machine" "scs" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_role_assignment" "scs" {
@@ -404,6 +411,10 @@ resource "azurerm_managed_disk" "scs" {
     )) : (
     null
   )
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "scs" {
@@ -458,4 +469,24 @@ resource "azurerm_virtual_machine_extension" "scs_win_aem_extension" {
     "system": "SAP"
   }
 SETTINGS
+}
+
+resource "azurerm_virtual_machine_extension" "configure_ansible_scs" {
+
+  provider = azurerm.main
+  count = local.enable_deployment && upper(local.scs_ostype) == "WINDOWS" ? (
+    local.scs_server_count) : (
+    0
+  )
+  virtual_machine_id   = azurerm_windows_virtual_machine.scs[count.index].id
+  name                 = "configure_ansible"
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.9"
+  settings             = <<SETTINGS
+        {
+          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+        }
+    SETTINGS
 }

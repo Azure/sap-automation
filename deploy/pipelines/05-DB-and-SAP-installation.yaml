@@ -34,7 +34,12 @@ parameters:
       - NW750SPS20_v0004ms
       - NW752SPS09_v0001ms
       - ORACLE_19_00_v0002ms
+      - NW750SPS20_DB2_v0001ms
       - ORACLE_19_00_ORA_MSID_v0002ms
+
+  - name:                              extra_params
+    displayName:                       Extra Parameters
+    type:                              string
 
   - name:                              base_os_configuration
     displayName:                       Core Operating System Configuration
@@ -86,6 +91,28 @@ parameters:
     type:                              boolean
     default:                           false
 
+# 20220929 MKD - ACSS Registration <BEGIN>
+  - name:                              acss_registration
+    displayName:                       Register System in ACSS
+    type:                              boolean
+    default:                           true
+
+  - name:                              acss_environment
+    displayName:                       ACSS Prod/NonProd
+    type:                              string
+    values:
+      - NonProd
+      - Prod
+
+  - name:                              acss_sap_product
+    displayName:                       System Type
+    type:                              string
+    values:
+      - S4HANA
+      - ECC
+      - Other
+# 20220929 MKD - ACSS Registration <END>
+
 trigger:                               none
 
 variables:
@@ -106,6 +133,9 @@ variables:
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              ExtraParams
+    value:                             ${{ parameters.extra_params }}
 
 pool:
   name:                                $[coalesce(variables['POOL'], variables['Agent'])]
@@ -153,7 +183,7 @@ stages:
                 environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK ; echo configuration_file $environment_file_name
                           params_file=$HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml              ;  echo sap_parameters_file $params_file
 
-              if [[ "azure pipelines" == $(this_agent) ]]; then
+              if [ "azure pipelines" = "$(this_agent)" ]; then
                   echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group using the 'POOL' variable."
                   exit 2
                 fi
@@ -191,7 +221,6 @@ stages:
                     exit 2
                 fi
 
-
                 echo "##vso[build.updatebuildnumber]Deploying $(sap_system_folder) using BoM ${bom_file}"
 
                 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
@@ -213,7 +242,7 @@ stages:
                   sed -i 's|sap_fqdn:.*|sap_fqdn:                      '"$(sap_fqdn)"'|'  sap-parameters.yaml
                 fi
 
-              echo -e "$green--- Get sshkey to connect to SAP VMs ---$reset"
+              echo -e "$green--- Get connection details ---$reset"
                 mkdir -p artifacts
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
@@ -223,16 +252,25 @@ stages:
                   export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
                 fi
 
-              echo -e "$green--- az login ---$reset"
+                echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey"
+                echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
 
-                az login --identity --allow-no-subscriptions --output none
+              echo -e "$green--- az login ---$reset"
+                #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
+                deployer_file=/etc/profile.d/deploy_server.sh
+                if [ -f "$deployer_file" ]; then
+                  az login --identity --allow-no-subscriptions --output none
+                else
+                  az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+                  az account set --subscription $AZURE_SUBSCRIPTION_ID
+                fi
+
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
-                az keyvault secret show --name ${ENVIRONMENT}-${LOCATION}-${NETWORK}-sid-sshkey --vault-name $workload_key_vault --query value -o tsv > artifacts/$(sap_system_folder)_sshkey
                 cp sap-parameters.yaml artifacts/.
                 cp ${SID}_hosts.yaml artifacts/.
 
@@ -240,10 +278,13 @@ stages:
             name:                      Preparation
             displayName:               Preparation for Ansible
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              SYSTEM_ACCESSTOKEN:        $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:      $(System.AccessToken)
               ANSIBLE_HOST_KEY_CHECKING: false
+              AZURE_CLIENT_ID:           $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:           $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact:                  ansible_data
@@ -263,6 +304,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -275,28 +318,25 @@ stages:
               echo $(SAP_parameters)
               echo $(parameters_folder)
               echo $(DEPLOYMENT_REPO_PATH)
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               "Variables & Process sshkey"
+              echo $(SSH_KEY_NAME)
+              echo $(VAULT_NAME)
+            displayName:               "Display Variables"
 
-          - task:                      Ansible@0
-            displayName:               Validate the input parameters
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_00_validate_parameters.yaml"
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "Validate the input parameters"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_00_validate_parameters.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
 
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           false
 
   - stage:                             Core_Operating_System_Configuration
     displayName:                       Core Operating System Configuration
@@ -320,6 +360,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -327,26 +369,21 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Core Operating System Configuration
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_01_os_base_config.yaml"
 
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           false
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "Core Operating System Configuration"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_01_os_base_config.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
 
   - stage:                             SAP_Operating_System_Configuration
     displayName:                       SAP Operating System Configuration
@@ -370,6 +407,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -377,25 +416,21 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               SAP Operating System Configuration
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           false
+
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "SAP Operating System Configuration"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_02_os_sap_specific_config.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
 
   - stage:                             Software_Acquisition
     displayName:                       Software Acquisition
@@ -420,6 +455,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -427,26 +464,21 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Software Acquisition
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           false
+
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "Software Acquisition"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_03_bom_processing.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
 
   - stage: Database_Installation
     displayName:                       Database Installation
@@ -473,6 +505,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -480,26 +514,22 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Database Installation
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           false
+
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "Database Installation"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_00_db_install.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -546,6 +576,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -553,26 +585,22 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               SCS Installation
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-              continueOnError:           true
+
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "SCS Installation"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -623,6 +651,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -630,26 +660,22 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Database Load
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "Database Load"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_01_sap_dbload.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -697,6 +723,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -704,27 +732,21 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               High Availability Setup
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           false
-            name: HA
+
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "High Availability Setup"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_04_00_01_db_ha.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
 
   - stage: PAS_Installation
     displayName:                       PAS Installation
@@ -755,6 +777,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -762,27 +786,22 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               PAS Installation
-            timeoutInMinutes:          0
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "PAS Installation"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_02_sap_pas_install.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -835,6 +854,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -843,26 +864,22 @@ stages:
           - download:                  current
             artifact:                  ansible_data
             timeoutInMinutes:          0
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               Application Server Install
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
 
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "Application Server Install"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_03_sap_app_install.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -906,6 +923,8 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
           CONFIGURATION_NAME:          $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.CONFIGURATION_NAME'] ]
+          SSH_KEY_NAME:                 $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SSH_KEY_NAME'] ]
+          VAULT_NAME:                  $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.VAULT_NAME'] ]
 
         steps:
           - checkout:                  self
@@ -913,25 +932,22 @@ stages:
             submodules:                true
           - download:                  current
             artifact:                  ansible_data
-          - script: |
-              sudo chmod 600 $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey
-            displayName:               Process sshkey
-          - task:                      Ansible@0
-            displayName:               WebDispatcher Installation
-            inputs:
-              ansibleInterface:        "agentMachine"
-              playbookPathOnAgentMachine: "$(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml"
-              inventoriesAgentMachine: "file"
-              inventoryFileOnAgentMachine: $(Pipeline.Workspace)/ansible_data/$(SID_hosts)
-              args:                    '--private-key $(Pipeline.Workspace)/ansible_data/$(CONFIGURATION_NAME)_sshkey -e "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)" -e "_workspace_directory=$(parameters_folder)" $(ExtraParams)'
-              failOnStderr:            false
-            env:
-              ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ANSIBLE_PYTHON_INTERPRETER:    auto_silent
-              DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
-            continueOnError:           true
+
+          - template: templates\run-ansible.yaml
+            parameters:
+              displayName:                  "WebDispatcher Installation"
+              ansibleFilePath:              $(DEPLOYMENT_REPO_PATH)/deploy/ansible/playbook_05_04_sap_web_install.yaml
+              secretName:                   "$(SSH_KEY_NAME)"
+              vaultName:                    $(VAULT_NAME)
+              parametersFolder:             "_workspace_directory=$(parameters_folder)"
+              sapParams:                    "@$(Pipeline.Workspace)/ansible_data/$(SAP_parameters)"
+              sidHosts:                     $(SID_hosts)
+              extraParams:                  $(ExtraParams)
+              azureClientId:                $(ARM_CLIENT_ID)
+              azureClientSecret:            $(ARM_CLIENT_SECRET)
+              azureTenantId:                $(ARM_TENANT_ID)
+              azureSubscriptionId:          $(ARM_SUBSCRIPTION_ID)
+
           - script: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
@@ -1002,5 +1018,168 @@ stages:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
             failOnStderr:              false
+
+
+
+# 20220929 MKD - ACSS Registration <BEGIN>
+  - stage:                              ACSS_Registration
+    displayName:                        Register System in ACSS
+    condition:                          eq(${{ parameters.acss_registration }}, true)
+    dependsOn:
+      - Preparation_for_Ansible
+      - SAP_Operating_System_Configuration
+      - Software_Acquisition
+      - Database_Installation
+      - SCS_Installation
+      - Database_Load
+      - PAS_Installation
+      - APP_Install
+      - WebDispatcher_Installation
+      - Post_Installation_Steps
+    jobs:
+      - job:                           ACSS_Registration
+        displayName:                   Register System in ACSS
+        steps:
+          - checkout:                  self
+            persistCredentials:        true
+            submodules:                true
+          - download:                  current
+            artifact:                  ansible_data
+
+          # Parameters Required:
+          #   parameters.acss_environment                     = Prod|NonProd
+          #   parameters.acss_sap_product                     = S4HANA|ECC|Other
+          #   parameters.sap_system_configuration_name        = ENV-REGION-VNET-SID
+          #   ARM_CLIENT_ID                                   = 00000000-0000-0000-0000-000000000000
+          #   ARM_CLIENT_SECRET                               = ****
+          #   ARM_SUBSCRIPTION_ID                             = 00000000-0000-0000-0000-000000000000
+          #   ARM_TENANT_ID                                   = 00000000-0000-0000-0000-000000000000
+          #   SAP_SYSTEM_FOLDER                               = ENV-REGION-VNET-SID
+          #   TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME    = ENV-REGION-SAP_LIBRARY
+          #   TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME           = xxxxxxxxxxxxxxxxxxx
+          - script: |
+              #!/bin/bash
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Setup variables                                                              |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              __basedir=`pwd`
+              acss_environment=${{ parameters.acss_environment }}
+              acss_sap_product=${{ parameters.acss_sap_product }}
+              acss_workloads_extension_url="https://github.com/Azure/Azure-Center-for-SAP-solutions-preview/raw/main/CLI_Documents/ACSS_CLI_Extension/workloads-0.1.0-py3-none-any.whl"
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Install ACSS Workloads extension for Azure CLI                               |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              set -x
+              if [ -z "$(az extension list | grep \"name\": | grep \"workloads\")" ]
+              then
+                echo -e "$green--- Installing ACSS \"Workloads\" CLI extension ---$reset"
+                wget $acss_workloads_extension_url || exit 1
+                az extension add --source=./workloads-0.1.0-py3-none-any.whl --yes || exit 1
+              else
+                echo -e "$green--- ACSS \"Workloads\" CLI extension already installed ---$reset"
+              fi
+              set +x
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Authenticate to Azure                                                        |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Initialize Terraform and access State File                                   |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              # Get Terraform State Outputs
+              # TODO: Should test if Terraform is available or needs to be installed
+              #
+              echo -e "$green--- Initializing Terraform for: ${{ parameters.sap_system_configuration_name }} ---$reset"
+              __configDir=${__basedir}/WORKSPACES/SYSTEM/${SAP_SYSTEM_FOLDER}
+              __moduleDir=${__basedir}/deploy/terraform/run/sap_system/
+              TF_DATA_DIR=${__configDir}
+
+              cd ${__configDir}
+
+              # Init Terraform
+              __output=$( \
+              terraform -chdir="${__moduleDir}"                                                       \
+              init -upgrade=true                                                                      \
+              --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}"                               \
+              --backend-config "resource_group_name=${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"  \
+              --backend-config "storage_account_name=${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"        \
+              --backend-config "container_name=tfstate"                                               \
+              --backend-config "key=${SAP_SYSTEM_FOLDER}.terraform.tfstate"                           \
+              )
+              [ $? -ne 0 ] && echo "$__output" && exit 1
+              echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"
+
+              # Fetch values from Terraform State file
+              acss_scs_vm_id=$(     terraform -chdir="${__moduleDir}" output scs_vm_ids                  | awk -F\" '{print $2}' | tr -d '\n\r\t[:space:]')
+              acss_sid=$(           terraform -chdir="${__moduleDir}" output sid                         | tr -d '"')
+              acss_resource_group=$(terraform -chdir="${__moduleDir}" output created_resource_group_name | tr -d '"')
+              acss_location=$(      terraform -chdir="${__moduleDir}" output region                      | tr -d '"')
+
+              unset TF_DATA_DIR __configDir __moduleDir __output
+              cd $__basedir
+              #--------------------------------------+---------------------------------------8
+
+
+
+              #--------------------------------------+---------------------------------------8
+              #                                                                              |
+              # Register in ACSS                                                             |
+              #                                                                              |
+              #--------------------------------------+---------------------------------------8
+              echo -e "$green--- Registering SID: $acss_sid in ACSS ---$reset"
+
+              # Create JSON Payload as variable
+              acss_configuration=$(cat << EOF
+                {
+                  "configurationType": "Discovery",
+                  "centralServerVmId": "${acss_scs_vm_id}"
+                }
+              EOF
+              )
+              
+              # ACSS Registration Command
+              set -x
+
+              az workloads sap-virtual-instance create              \
+              --sap-virtual-instance-name  "${acss_sid}"            \
+              --resource-group             "${acss_resource_group}" \
+              --location                   "${acss_location}"       \
+              --environment                "${acss_environment}"    \
+              --sap-product                "${acss_sap_product}"    \
+              --configuration              "${acss_configuration}"  \
+               || exit 1
+
+              set +x
+              #--------------------------------------+---------------------------------------8
+
+            displayName:               ACSS Registration
+            env:
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+# 20220929 MKD - ACSS Registration <BEND>
 
 ...

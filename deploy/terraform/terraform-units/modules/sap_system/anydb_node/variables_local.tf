@@ -26,13 +26,13 @@ locals {
     )
   )
 
-  // Allowing changing the base for indexing, default is zero-based indexing, 
+  // Allowing changing the base for indexing, default is zero-based indexing,
   // if customers want the first disk to start with 1 they would change this
   offset = try(var.options.resource_offset, 0)
 
   //Allowing to keep the old nic order
   legacy_nic_order = try(var.options.legacy_nic_order, false)
-  // Availability Set 
+  // Availability Set
   availabilityset_arm_ids = try(var.database.avset_arm_ids, [])
   availabilitysets_exist  = length(local.availabilityset_arm_ids) > 0 ? true : false
 
@@ -294,11 +294,11 @@ locals {
             storage_type.name,
             storage_type.lun_start + disk_count + var.options.resource_offset
           )
-          storage_account_type      = storage_type.disk_type,
-          disk_size_gb              = storage_type.size_gb,
+          storage_account_type      = storage_type.disk_type
+          disk_size_gb              = storage_type.size_gb
           disk_iops_read_write      = try(storage_type.disk-iops-read-write, null)
           disk_mbps_read_write      = try(storage_type.disk-mbps-read-write, null)
-          caching                   = storage_type.caching,
+          caching                   = storage_type.caching
           write_accelerator_enabled = try(storage_type.write_accelerator, false)
           type                      = storage_type.name
           lun                       = storage_type.lun_start + idx
@@ -309,7 +309,11 @@ locals {
     ]
   ) : []
 
-  all_data_disk_per_dbnode = distinct(concat(local.data_disk_per_dbnode, local.append_data_disk_per_dbnode))
+  all_data_disk_per_dbnode = distinct(
+    concat(
+      local.data_disk_per_dbnode, local.append_data_disk_per_dbnode
+    )
+  )
 
   anydb_disks = flatten([
     for vm_counter in range(var.database_server_count) : [

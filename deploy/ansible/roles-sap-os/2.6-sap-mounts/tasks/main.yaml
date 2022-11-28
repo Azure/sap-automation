@@ -65,9 +65,9 @@
     opts:                              defaults
     state:                             mounted
   when:
-    - sap_disk_exists == '1'
-    - usr_sap_mountpoint is undefined
-    - node_tier != "oracle-asm"
+    - (item.node_tier == "all" or item.node_tier == node_tier)
+    - node_tier != 'observer'
+    - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.posix.mount:

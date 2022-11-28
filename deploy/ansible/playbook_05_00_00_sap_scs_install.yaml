@@ -332,13 +332,6 @@
           tags:
             - 1.16-services
 
-        - name:                    "SCS HA Installation Playbook: - Ensure the correct accounts are set"
-          ansible.builtin.include_role:
-            name:                  roles-os/1.11-accounts
-            tasks_from:            setup_hanausers_sudoers.yml
-          tags:
-            - 1.11-accounts
-
         - name:                    "SCS HA Installation Playbook: - Install Pacemaker"
           ansible.builtin.include_role:
             name:                  roles-os/1.17-generic-pacemaker       # Configures the Pacemaker cluster with Azure fence agent
