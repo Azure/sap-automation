@@ -139,7 +139,7 @@ resource "tls_private_key" "deployer" {
 resource "azurerm_key_vault_secret" "ppk" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0],
+    azurerm_key_vault_access_policy.kv_user_msi,
     time_sleep.wait_for_dns_refresh
   ]
   count        = (local.enable_key && !local.key_exist) ? 1 : 0
@@ -151,7 +151,7 @@ resource "azurerm_key_vault_secret" "ppk" {
 resource "azurerm_key_vault_secret" "pk" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0],
+    azurerm_key_vault_access_policy.kv_user_msi,
     time_sleep.wait_for_dns_refresh
   ]
   count = (local.enable_key && !local.key_exist) ? (
@@ -171,7 +171,7 @@ resource "azurerm_key_vault_secret" "pk" {
 resource "azurerm_key_vault_secret" "username" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0],
+    azurerm_key_vault_access_policy.kv_user_msi,
     time_sleep.wait_for_dns_refresh
   ]
   count = (local.enable_key && !local.key_exist) ? (
@@ -190,7 +190,7 @@ resource "azurerm_key_vault_secret" "username" {
 resource "azurerm_key_vault_secret" "pat" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0],
+    azurerm_key_vault_access_policy.kv_user_msi,
     time_sleep.wait_for_dns_refresh
   ]
   count = (local.enable_key && !local.key_exist) ? (
@@ -226,7 +226,7 @@ resource "random_password" "deployer" {
 resource "azurerm_key_vault_secret" "pwd" {
   depends_on = [
     azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-    azurerm_key_vault_access_policy.kv_user_msi[0],
+    azurerm_key_vault_access_policy.kv_user_msi,
     time_sleep.wait_for_dns_refresh
   ]
   count = (local.enable_password && !local.pwd_exist) ? (
