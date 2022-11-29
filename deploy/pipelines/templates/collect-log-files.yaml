@@ -10,7 +10,7 @@ steps:
       if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
         echo "Found log files in ${LOG_PATH}"
 
-        cd ${LOG_PATH} 
+        cd ${LOG_PATH}
         ls -ltr
 
         git config --global user.email "${USER_EMAIL}"
@@ -47,7 +47,7 @@ steps:
       #!/bin/bash
       # Exit immediately if a command exits with a non-zero status.
       # Treat unset variables as an error when substituting.
-      set -eu
+      set -u
 
       timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S%:z")
 
@@ -66,7 +66,7 @@ steps:
 
           for logfile in $logfiles; do
             echo "##[group]- $logfile"
-            cat $logfile
+            # cat $logfile
             echo "##vso[task.uploadfile]${logfile}"
             echo "##[endgroup]"
           done
