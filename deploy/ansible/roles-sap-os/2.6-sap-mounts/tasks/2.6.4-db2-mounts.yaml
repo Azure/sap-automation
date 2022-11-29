@@ -68,14 +68,6 @@
     mode:                              0755
     state:                             directory
 
-- name:                                "DB2: Create filepermission.txt"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/filepermission.txt
-    mode:                              0644
-    state:                             touch
-
 # Debug - Fail
 # - name:                                "DB2: fail here"
 #   ansible.builtin.fail:
@@ -96,7 +88,7 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '/db2',       group: 'db{{ db_sid | lower }}adm',   owner: 'db2{{ db_sid | lower }}'}
+     - { path: '/db2',       group: '{{ db2sysadm_gid }}',   owner: '{{ db2sidadm_uid }}'}
   when:
     - not db2_permissions_set.stat.exists
 

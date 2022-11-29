@@ -30,7 +30,7 @@ disk_type_to_name_map:
   # orabackup: '{{ node_tier | lower }}_orabackup'
   # ------------------- Begin - disktypes required for DB2 -------------------8
   sapdata:         '{{ node_tier | lower }}_sapdata'
-  log_dir:         '{{ node_tier | lower }}_logdir'
+  log_dir:         '{{ node_tier | lower }}_log_dir'
   offline_log_dir: '{{ node_tier | lower }}_offline_logdir'
   saptmp:          '{{ node_tier | lower }}_saptmp'
   # ------------------- End - disktypes required for DB2 ---------------------8
@@ -247,8 +247,8 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'db2'
-    vg:         'vg_db2_logdir'
-    lv:         'lv_db2_logdir'
+    vg:         'vg_db2_log_dir'
+    lv:         'lv_db2_log_dir'
     size:       '100%FREE'
     stripesize: 64
     fstype:     'xfs'

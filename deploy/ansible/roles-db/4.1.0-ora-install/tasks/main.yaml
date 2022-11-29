@@ -75,6 +75,19 @@
 # +------------------------------------4--------------------------------------*/
 - name:                                "ORACLE: Installation"
   block:
+    - name:                            "ORACLE Installation: check media exists"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
+      register:                        orainst_found
+
+    - name:                            "ErrorHandling"
+      ansible.builtin.fail:
+        msg:                           "INSTALL:0012:Unable to find Oracle installation media, please check that the installation media is mounted"
+      when: not orainst_found.stat.exists
+
+    - name:                            "ORACLE: Execute RUNINSTALLER PreCheck - progress"
+      ansible.builtin.debug:
+        msg:                           "Running the installation pre-check , please wait"
 
     - name:                            "ORACLE: Execute RUNINSTALLER PreCheck"
       become:                          true
@@ -84,7 +97,7 @@
       failed_when:                     oraprecheck_results.rc > 3
       # changed_when:                    oraprecheck_results.rc < 3
       environment:
-        DB_SID:                        "{{ db_sid }}"
+        DB_SID:                        "{{ db_sid | upper }}"
         CV_ASSUME_DISTID:              OL7
       args:
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
@@ -120,6 +133,10 @@
 # |                                                                            |
 # | Step 2 run the installation check                                          |
 # +------------------------------------4--------------------------------------*/
+
+    - name:                            "ORACLE: ORACLE: Execute RUNINSTALLER - progress"
+      ansible.builtin.debug:
+        msg:                           "Running the installation, please wait"
 
     - name:                            "ORACLE: Execute RUNINSTALLER"
       become:                          true
@@ -297,6 +314,10 @@
         mode:                          0777
         owner:                         oracle
         group:                         oinstall
+
+    - name:                            "ORACLE: Post Processing - SBP Patching - progress"
+      ansible.builtin.debug:
+        msg:                           "Running the installation, please wait"
 
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true

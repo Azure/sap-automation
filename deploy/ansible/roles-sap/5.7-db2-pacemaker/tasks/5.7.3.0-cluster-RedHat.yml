@@ -11,6 +11,17 @@
 # if it is not started, then we do not need to stop it
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "DB2 - Find if the databases are active"
+  become:                              true
+  become_user:                         db2{{ db_sid | lower }}
+  ansible.builtin.shell:               db2 list active databases
+  args:
+    executable: /bin/csh
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  register:                            db2_list_active_databases
+  failed_when:                         db2_list_active_databases.rc not in [0,4]
+
 - name:                                " DB2 - Stop the primary DB"
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
@@ -19,6 +30,7 @@
     executable: /bin/csh
   environment:
     PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+  when:                                db2_list_active_databases.rc == 0
 
 
 - name:                                "Change to ksh Shell"

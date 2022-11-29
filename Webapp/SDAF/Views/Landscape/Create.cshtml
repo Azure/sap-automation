@@ -54,7 +54,7 @@
 </fluent-breadcrumb>
 
 <div>
-    
+
     <div class="text-center">
         <h2 style="text-align: center">New workload zone</h2>
         <p>
@@ -63,7 +63,7 @@
             </a>
         </p>
     </div>
-    
+
     @if (!ViewData.ModelState.IsValid)
     {
         <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
@@ -83,12 +83,12 @@
             <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 3)" id="expert-filter">Expert</fluent-checkbox>
         </div>
         <div id="checkbox-and-searchbar">
-            <fluent-checkbox id="landscape-default-checkbox" onchange="toggleDefault(this, 'landscape-default-checkbox', 'Landscape')">Use default</fluent-checkbox><br />
+            <fluent-checkbox id="landscape-default-checkbox" onchange="toggleDefault(this, 'landscape-default-checkbox', 'Landscape')">Use values from the default workload zone</fluent-checkbox><br />
             <input id="searchbar" placeholder="Filter..." class="ms-TextField-field" onkeyup="filterResults(this.value)" />
         </div>
-    
+
     </div>
-    
+
     <form class="wrapper" asp-controller="landscape" asp-action="create">
         @Html.AntiForgeryToken()
 

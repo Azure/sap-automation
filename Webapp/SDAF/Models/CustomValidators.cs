@@ -1,10 +1,8 @@
 using AutomationForm.Controllers;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AutomationForm.Models
 {
@@ -14,7 +12,7 @@ namespace AutomationForm.Models
         {
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
-                bool isDefault = (bool) context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
+                bool isDefault = (bool)context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
                 if (isDefault) return ValidationResult.Success;
                 else
                 {
@@ -40,7 +38,7 @@ namespace AutomationForm.Models
             if (value == null || Regex.IsMatch((string)value, pattern)) return true;
             else return false;
         }
-        public class AddressPrefixValidator : ValidationAttribute 
+        public class AddressPrefixValidator : ValidationAttribute
         {
             public override bool IsValid(object value)
             {
@@ -61,7 +59,7 @@ namespace AutomationForm.Models
                     if (!RegexValidation(v, pattern)) return false;
                 }
                 return true;
-            
+
             }
         }
         public class SubnetArmIdValidator : ValidationAttribute
@@ -193,7 +191,8 @@ namespace AutomationForm.Models
                     }
                     return true;
                 }
-                else if (value.GetType() == typeof(string)) {
+                else if (value.GetType() == typeof(string))
+                {
                     return RegexValidation(value, pattern);
                 }
                 else
@@ -213,7 +212,7 @@ namespace AutomationForm.Models
             }
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
-                bool isDefault = (bool) context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
+                bool isDefault = (bool)context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
                 if (isDefault) return ValidationResult.Success;
 
                 string prefix = (string)value;
@@ -229,12 +228,12 @@ namespace AutomationForm.Models
                 }
             }
         }
-        
+
         public class VnetRequired : ValidationAttribute
         {
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
-                bool isDefault = (bool) context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
+                bool isDefault = (bool)context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
                 if (isDefault) return ValidationResult.Success;
 
                 string prefix = (string)value;
@@ -250,7 +249,7 @@ namespace AutomationForm.Models
                 }
             }
         }
-        
+
         public class DatabasePlatformValidator : ValidationAttribute
         {
             public override bool IsValid(object value)
@@ -338,7 +337,7 @@ namespace AutomationForm.Models
                     if (anydb_sizes.Contains(size))
                     {
                         return ValidationResult.Success;
-                    } 
+                    }
                     else
                     {
                         return new ValidationResult($"Invalid size for {platform} database platform");

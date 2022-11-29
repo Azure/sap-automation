@@ -1,19 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AutomationForm.Models;
+﻿using AutomationForm.Models;
 using AutomationForm.Services;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using Azure;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Net;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace AutomationForm.Controllers
 {
@@ -253,7 +249,7 @@ namespace AutomationForm.Controllers
                 };
 
                 await restHelper.TriggerPipeline(pipelineId, requestBody);
-                
+
                 TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }
             catch (Exception e)
@@ -391,10 +387,10 @@ namespace AutomationForm.Controllers
                 landscapeView.SapObject = landscape;
                 return View(landscapeView);
             }
-            catch (Exception e) 
-            { 
-                TempData["error"] = e.Message; 
-                return RedirectToAction("Index"); 
+            catch (Exception e)
+            {
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
             }
         }
 
@@ -427,7 +423,7 @@ namespace AutomationForm.Controllers
             try
             {
                 await UnsetDefault(id);
-                
+
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
 
@@ -460,6 +456,6 @@ namespace AutomationForm.Controllers
                 throw new Exception("Error unsetting the current default object: " + e.Message);
             }
         }
-        
+
     }
 }

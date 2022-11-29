@@ -1,19 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
 using AutomationForm.Models;
-using AutomationForm.Services;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Net;
-using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
-using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace AutomationForm.Controllers
 {
@@ -87,7 +76,7 @@ namespace AutomationForm.Controllers
                 EnvironmentModel environment = restHelper.GetVariableGroup(id).Result;
                 return View(environment);
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 TempData["error"] = e.Message;
                 return RedirectToAction("Index");

@@ -47,7 +47,6 @@
       block:
         - name:                        "DB2 Primary DB - Set HA parameters - SLES"
           ansible.builtin.shell: |
-            db2 connect to {{ db_sid }}
             db2 update db cfg for {{ db_sid }} using HADR_LOCAL_HOST {{ db_hadr_local_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_LOCAL_SVC {{ db_sid | upper }}_HADR_1 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
@@ -58,7 +57,6 @@
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
             db2 update db cfg for {{ db_sid }} using HADR_PEER_WINDOW 900 immediate
             db2 update db cfg for {{ db_sid }} using indexrec RESTART logindexbuild ON immediate
-            db2 disconnect {{ db_sid }}
           register:                db2_update
           failed_when:             db2_update.rc not in [0,2]
           args:
@@ -148,7 +146,6 @@
       block:
         - name:                        "DB2 Secondary DB - Set HA parameters - SLES"
           ansible.builtin.shell: |
-            db2 connect to {{ db_sid }}
             db2 update db cfg for {{ db_sid }} using HADR_LOCAL_HOST {{ db_hadr_local_host }} immediate
             db2 update db cfg for {{ db_sid }} using HADR_LOCAL_SVC {{ db_sid | upper }}_HADR_2 immediate
             db2 update db cfg for {{ db_sid }} using HADR_REMOTE_HOST {{ db_hadr_remote_host }} immediate
@@ -159,7 +156,6 @@
             db2 update db cfg for {{ db_sid }} using HADR_SPOOL_LIMIT 1000 immediate
             db2 update db cfg for {{ db_sid }} using HADR_PEER_WINDOW 900 immediate
             db2 update db cfg for {{ db_sid }} using indexrec RESTART logindexbuild ON immediate
-            db2 disconnect {{ db_sid }}
           args:
             executable:                /bin/csh
           environment:

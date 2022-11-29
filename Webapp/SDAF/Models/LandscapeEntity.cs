@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
+using System;
+using System.Text.Json;
 
 namespace AutomationForm.Models
 {
     public class LandscapeEntity : ITableEntity
     {
-        public LandscapeEntity() {}
+        public LandscapeEntity() { }
         public LandscapeEntity(LandscapeModel landscape)
         {
             RowKey = landscape.Id;

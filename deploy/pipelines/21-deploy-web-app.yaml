@@ -26,10 +26,10 @@ parameters:
   - name:                              workload_zone_deployment_pipeline
     displayName:                       "Workload zone pipeline name"
     type:                              string
-    default:                           SAP workload zone deployment
+    default:                           SAP Workload Zone deployment
 
   - name:                              system_deployment_pipeline
-    displayName:                       "SAP system deployment pipeline name"
+    displayName:                       "SAP SID Infrastructure deployment"
     type:                              string
     default:                           SAP system deployment (infrastructure)
 

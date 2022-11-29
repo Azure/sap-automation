@@ -25,7 +25,7 @@
 
     - name:                            "SAP DB2 Secondary: Create run flag directory"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
         state:                         directory
         mode:                          0755
 
@@ -37,13 +37,13 @@
 
     - name:                            "SAP DB2 Secondary: Install reset"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
         state:                         absent
       when:                            reinstall
 
     - name:                            "SAP DB2 Secodary: check if installed"
       ansible.builtin.stat:
-        path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       register:                        db2_installed
       when:                            node_tier == 'db2'
 
@@ -117,9 +117,9 @@
                                                  SAPINST_CONTROL_URL={{ target_media_location }}/SWPM/product.catalog
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       /etc/sap_deployment_automation/sap_deployment_db2.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
-        TMPDIR:                        "{{ tmp_directory }}"
+        TMPDIR:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
       tags:
@@ -131,7 +131,7 @@
 
     - name:                            "DB2 Install Secondary: flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/sap_deployment_db2.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
         state:                         touch
         mode:                          0755
 
@@ -141,13 +141,16 @@
       become_user:                     db2{{ db_sid | lower }}
       ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=FALSE
       args:
-        creates:                       /etc/sap_deployment_automation/lock_escalation_false.txt
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/lock_escalation_false.txt"
         executable:                    /bin/csh
       register:                        db2_lock_escalation
+      environment:
+        PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        ANSIBLE_REMOTE_TEMP:           "/tmp"
 
     - name:                            "DB2 Install - Create lock escalation run flag"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/lock_escalation_false.txt
+        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/lock_escalation_false.txt"
         state:                         touch
         mode:                          0755
       when:                            db2_lock_escalation.rc == 0

@@ -1,6 +1,4 @@
-﻿using AutomationForm.Controllers;
-using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
 
@@ -175,7 +173,7 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
 
-        public bool? database_no_ppg { get; set; }= false;
+        public bool? database_no_ppg { get; set; } = false;
 
         public bool? database_no_avset { get; set; } = false;
 
@@ -252,7 +250,7 @@ namespace AutomationForm.Models
 
         public string scs_server_sku { get; set; }
 
-        public bool? scs_high_availability { get; set; }= false;
+        public bool? scs_high_availability { get; set; } = false;
 
         public string scs_instance_number { get; set; }
 
@@ -276,9 +274,9 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
 
-        public bool? scs_server_no_avset { get; set; }= false;
+        public bool? scs_server_no_avset { get; set; } = false;
 
-        public bool? scs_server_no_ppg { get; set; }= false;
+        public bool? scs_server_no_ppg { get; set; } = false;
 
         // Web Dispatchers
 
@@ -320,7 +318,7 @@ namespace AutomationForm.Models
 
         public string vm_disk_encryption_set_id { get; set; }
 
-        public bool? nsg_asg_with_vnet { get; set; }= false;
+        public bool? nsg_asg_with_vnet { get; set; } = false;
 
         // NFS Support
 
@@ -330,7 +328,7 @@ namespace AutomationForm.Models
 
         public string azure_files_sapmnt_id { get; set; }
 
-         [PrivateEndpointIdValidator]
+        [PrivateEndpointIdValidator]
         public string sapmnt_private_endpoint_id { get; set; }
 
         // ANF Settings
@@ -413,7 +411,7 @@ namespace AutomationForm.Models
         [KeyvaultIdValidator]
         public string spn_keyvault_id { get; set; }
 
-        public bool? enable_purge_control_for_keyvaults { get; set; }= false;
+        public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
         public bool? deploy_application_security_groups { get; set; } = true;
     }
@@ -439,7 +437,8 @@ namespace AutomationForm.Models
         public string version { get; set; }
 
         public string type { get; set; }
-        public bool IsInitialized {
+        public bool IsInitialized
+        {
             get
             {
                 return (os_type != null

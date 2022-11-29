@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
 
@@ -9,9 +8,9 @@ namespace AutomationForm.Models
     {
         public bool IsValid()
         {
-            return 
-                environment != null && 
-                location    != null &&
+            return
+                environment != null &&
+                location != null &&
                 network_logical_name != null
                 ;
         }
@@ -79,13 +78,13 @@ namespace AutomationForm.Models
 
         public string resourcegroup_name { get; set; }
 
-        
+
         [NetworkAddressValidator(ErrorMessage = "Invalid network address arm id")]
         public string network_arm_id { get; set; }
 
         public string network_name { get; set; }
 
-        
+
         [SubnetArmIdValidator(ErrorMessage = "Invalid admin subnet arm id")]
         public string admin_subnet_arm_id { get; set; }
 
@@ -96,7 +95,7 @@ namespace AutomationForm.Models
 
         public string admin_subnet_nsg_name { get; set; }
 
-        
+
         [SubnetArmIdValidator(ErrorMessage = "Invalid db subnet arm id")]
         public string db_subnet_arm_id { get; set; }
         public string db_subnet_name { get; set; }
@@ -159,7 +158,7 @@ namespace AutomationForm.Models
         public string anf_subnet_nsg_name { get; set; }
 
         public string ANF_account_arm_id { get; set; }
-        
+
         public string ANF_account_name { get; set; }
 
         public string ANF_service_level { get; set; }
@@ -175,11 +174,11 @@ namespace AutomationForm.Models
         public bool? peer_with_control_plane_vnet { get; set; } = true;
 
         public bool? enable_firewall_for_keyvaults_and_storage { get; set; }
-        
+
         public bool? ANF_use_existing_pool { get; set; }
 
         public string ANF_pool_name { get; set; }
-        
+
         public bool? ANF_transport_volume_use_existing { get; set; }
 
         public string ANF_transport_volume_name { get; set; }
@@ -216,7 +215,7 @@ namespace AutomationForm.Models
         public string automation_path_to_public_key { get; set; }
 
         public string automation_path_to_private_key { get; set; }
-        
+
 
         public string dns_label { get; set; }
 
@@ -228,11 +227,11 @@ namespace AutomationForm.Models
         public int? transport_volume_size { get; set; }
 
         [GuidValidator]
-        public string[] additional_users_to_add_to_keyvault_policies  { get; set; }
-        
+        public string[] additional_users_to_add_to_keyvault_policies { get; set; }
+
         [StorageAccountIdValidator]
         public string diagnostics_storage_account_arm_id { get; set; }
-        
+
         [StorageAccountIdValidator]
         public string witness_storage_account_arm_id { get; set; }
 

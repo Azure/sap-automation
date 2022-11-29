@@ -1,16 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using Azure;
+﻿using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Compute;
+using Azure.ResourceManager.KeyVault;
+using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
-using Azure.ResourceManager.Network;
-using Azure.ResourceManager.KeyVault;
-using Azure.ResourceManager.Compute;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
+using System.Collections.Generic;
 
 namespace AutomationForm.Controllers
 {
@@ -32,7 +30,7 @@ namespace AutomationForm.Controllers
             try
             {
                 SubscriptionCollection subscriptions = _armClient.GetSubscriptions();
-                
+
                 foreach (SubscriptionResource s in subscriptions.GetAll())
                 {
                     options.Add(new SelectListItem
@@ -148,7 +146,7 @@ namespace AutomationForm.Controllers
             {
                 SubscriptionResource subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(subscriptionId));
                 Pageable<VirtualNetworkResource> virtualNetworks = subscription.GetVirtualNetworks();
-                
+
                 foreach (VirtualNetworkResource n in virtualNetworks)
                 {
                     options.Add(new SelectListItem

@@ -1,9 +1,9 @@
-﻿using System.Threading.Tasks;
-using System.Collections.Generic;
-using AutomationForm.Models;
-using Azure.Data.Tables;
-using System.Linq;
+﻿using AutomationForm.Models;
 using Azure;
+using Azure.Data.Tables;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AutomationForm.Services
 {

@@ -404,6 +404,17 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.2.0-db2-install
 
+        - name:                        "Database Installation Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            tier:                      'db2'
+            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            tmp_directory:             "/etc/sap_deployment_automation"
+            this_sid:                  "{{ sap_sid }}"
+
       vars:
         # become_user:                   root
       when:
@@ -458,6 +469,17 @@
         - name:                        Installing DB2
           ansible.builtin.include_role:
             name:                      roles-db/4.2.1-db2-hainstall
+
+        - name:                        "Database Installation Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                      roles-sap/7.0.0-post-install
+          vars:
+            suffix:                    "_DB"
+            tier:                      'db2'
+            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
+            tmp_directory:             "/etc/sap_deployment_automation"
+            this_sid:                  "{{ sap_sid }}"
 
       vars:
         # become_user:                   root

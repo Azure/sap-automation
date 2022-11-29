@@ -1,22 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AutomationForm.Models;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System;
-using System.Text;
-using System.Net.Http;
-using Microsoft.Extensions.Configuration;
-using System.Net.Http.Headers;
+﻿using AutomationForm.Models;
+using AutomationForm.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Reflection;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Net;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
-using AutomationForm.Services;
+using System.Threading.Tasks;
 
 namespace AutomationForm.Controllers
 {
@@ -109,7 +107,7 @@ namespace AutomationForm.Controllers
                 }
                 stringBuilder.AppendLine(lineToAdd);
             }
-            
+
             return stringBuilder.ToString();
         }
         // Create the text that sets a model property to its value for a tfvars file
@@ -179,7 +177,7 @@ namespace AutomationForm.Controllers
                 if (value == null) return "#" + property.Name + " = \"\"";
                 str.Append(property.Name + " = " + $"\"{value}\"");
             }
-            
+
             return str.ToString();
         }
         public static StringContent CreateHttpContent(string changeType, string path, string content, GitRequestBody requestBody)
@@ -227,12 +225,12 @@ namespace AutomationForm.Controllers
             string id;
             if (model.GetType() == typeof(LandscapeModel))
             {
-                LandscapeModel landscape = (LandscapeModel) Convert.ChangeType(model, typeof(LandscapeModel));
+                LandscapeModel landscape = (LandscapeModel)Convert.ChangeType(model, typeof(LandscapeModel));
                 id = (landscape.environment + "-" + MapRegion(landscape.location) + "-" + landscape.network_logical_name + "-infrastructure").ToUpper();
             }
             else if (model.GetType() == typeof(SystemModel))
             {
-                SystemModel system = (SystemModel) Convert.ChangeType(model, typeof(SystemModel));
+                SystemModel system = (SystemModel)Convert.ChangeType(model, typeof(SystemModel));
                 id = (system.environment + "-" + MapRegion(system.location) + "-" + system.network_logical_name + "-" + system.sid).ToUpper();
             }
             else
@@ -303,34 +301,32 @@ namespace AutomationForm.Controllers
             {
                 modelState.AddModelError(formFile.Name,
                     $"{fieldDisplayName}({trustedFileNameForDisplay}) is named incorrectly");
-                
+
                 return Array.Empty<byte>();
             }
 
             try
             {
-                using (var memoryStream = new MemoryStream())
+                using var memoryStream = new MemoryStream();
+                await formFile.CopyToAsync(memoryStream);
+
+                // Check the content length in case the file's only
+                // content was a BOM and the content is actually
+                // empty after removing the BOM.
+                if (memoryStream.Length == 0)
                 {
-                    await formFile.CopyToAsync(memoryStream);
+                    modelState.AddModelError(formFile.Name,
+                        $"{fieldDisplayName}({trustedFileNameForDisplay}) is empty.");
+                }
 
-                    // Check the content length in case the file's only
-                    // content was a BOM and the content is actually
-                    // empty after removing the BOM.
-                    if (memoryStream.Length == 0)
-                    {
-                        modelState.AddModelError(formFile.Name,
-                            $"{fieldDisplayName}({trustedFileNameForDisplay}) is empty.");
-                    }
-
-                    if (!IsValidFileExtension(formFile.FileName, memoryStream, permittedExtensions))
-                    {
-                        modelState.AddModelError(formFile.Name,
-                            $"{fieldDisplayName}({trustedFileNameForDisplay}) file type isn't permitted.");
-                    }
-                    else
-                    {
-                        return memoryStream.ToArray();
-                    }
+                if (!IsValidFileExtension(formFile.FileName, memoryStream, permittedExtensions))
+                {
+                    modelState.AddModelError(formFile.Name,
+                        $"{fieldDisplayName}({trustedFileNameForDisplay}) file type isn't permitted.");
+                }
+                else
+                {
+                    return memoryStream.ToArray();
                 }
             }
             catch (Exception ex)
@@ -359,7 +355,7 @@ namespace AutomationForm.Controllers
 
             return true;
         }
-        
+
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new StringReader(hclString);
@@ -428,7 +424,7 @@ namespace AutomationForm.Controllers
                     }
                 }
             }
-            return jsonString.ToString();   
+            return jsonString.ToString();
         }
 
         public static async Task<AppFile> GetImagesFile(ITableStorageService<AppFile> appFileService)
@@ -445,17 +441,15 @@ namespace AutomationForm.Controllers
             {
                 byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + filename);
 
-                using (MemoryStream memory = new MemoryStream(byteContent))
+                using MemoryStream memory = new MemoryStream(byteContent);
+                file = new AppFile()
                 {
-                    file = new AppFile()
-                    {
-                        Id = WebUtility.HtmlEncode(filename),
-                        Content = byteContent,
-                        UntrustedName = filename,
-                        Size = memory.Length,
-                        UploadDT = DateTime.UtcNow
-                    };
-                }
+                    Id = WebUtility.HtmlEncode(filename),
+                    Content = byteContent,
+                    UntrustedName = filename,
+                    Size = memory.Length,
+                    UploadDT = DateTime.UtcNow
+                };
             }
             return file ?? new AppFile();
         }
