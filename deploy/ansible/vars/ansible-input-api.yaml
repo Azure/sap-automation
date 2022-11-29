@@ -49,14 +49,14 @@ hana_components: "all"
 
 # DB2 specific parameters
 # db2_sid:                     "DB6"
-db2sysadm_gid: 3000
-db2sysctrl_gid: 3001
+db2sysadm_gid:   3000
+db2sysctrl_gid:  3001
 db2sysmaint_gid: 3002
-db2sysmon_gid: 3003
-db2sidadm_uid: 3004
-db2sapsid_uid: 3005
-db2hadr_port1: 51012
-db2hadr_port2: 51013
+db2sysmon_gid:   3003
+db2sidadm_uid:   3004
+db2sapsid_uid:   3005
+db2hadr_port1:   51012
+db2hadr_port2:   51013
 
 tmp_directory: "/tmp"
 url_internet: "http://www.github.com" # URL to use for internet access checks"

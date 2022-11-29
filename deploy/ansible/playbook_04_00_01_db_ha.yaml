@@ -127,7 +127,6 @@
   name:                                DB Data Guard setup - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "root"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -157,7 +156,6 @@
   name:                                DB Dataguard setup - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "root"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -194,7 +192,6 @@
   name:                                DB Dataguard setup - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "root"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
@@ -238,7 +235,6 @@
   name:                                Observer Playbook
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
