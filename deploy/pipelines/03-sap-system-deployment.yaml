@@ -1,11 +1,8 @@
----
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |               This pipeline deploys the SAP Infrastructure                 |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
-name: SAP Infrastructure Deployment $(sap_system_folder)
 
 parameters:
   - name:                              sap_system
@@ -14,54 +11,26 @@ parameters:
     default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
-    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    displayName:                       Workload Environment (DEV, QA, PRD, ...)
     type:                              string
     default:                           DEV
 
-trigger:                               none
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
 
-pool:
-  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
-  vmImage:                             ubuntu-latest
-
-variables:
-  - group:                             "SDAF-General"
-
-  - group:                             SDAF-${{ parameters.environment }}
-
-  - name:                              sap_system_folder
-    value:                             ${{ parameters.sap_system }}
-
-  - name:                              sap_system_configuration
-    value:                             ${{ parameters.sap_system }}.tfvars
-
-  - name:                              tf_url
-    value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
-
-  - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
-
-  - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
-
-  - name:                              REMOTE_STATE_SA
-    value:                             $[variables['Terraform_Remote_Storage_Account_Name']]
-
-  - name:                              REMOTE_STATE_RG
-    value:                             $[variables['Terraform_Remote_Storage_Resource_Group_Name']]
-
-  - name:                              STATE_SUBSCRIPTION
-    value:                             $[variables['Terraform_Remote_Storage_Subscription']]
-
-  - name:                              deployer_tfstate_key
-    value:                             $[variables['Deployer_State_FileName']]
-
-  - name:                              key_vault
-    value:                             $[variables['Deployer_Key_Vault']]
-
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
 
 stages:
-  - stage:                             Deploy_SAP_infrastructure
+  - stage: Deploy_SAP_infrastructure
+    condition: and(not(failed()), not(canceled()))
+    variables:
+      - template:                      variables/03-sap-system-deployment-variables.yaml
+        parameters:
+          sap_system:                  ${{ parameters.sap_system }}
+          environment:                 ${{ parameters.environment }}
     displayName:                       Deploy SAP infrastructure
     jobs:
       - job:                           Deploy_SAP_infrastructure
@@ -69,41 +38,40 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - task: PostBuildCleanup@3
-          - checkout:                  self
-            persistCredentials:        true
-            submodules:                true
+          - template:                  templates\download.yaml
+          - task:                      PostBuildCleanup@3
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
-                  git checkout -q $(Build.SourceBranchName)
+                cd $CONFIG_REPO_PATH
+                git checkout -q $(Build.SourceBranchName)
+
               echo -e "$green--- Read parameters ---$reset"
+                      HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
+                ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
+                  LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
+                    NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
+                        SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
 
-                     HOME=${DEPLOYMENT_REPO_PATH}/$(Deployment_Configuration_Path)
-              ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
-                 LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
-                  NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
-                      SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
+                cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
 
-                cd $HOME; mkdir -p .sap_deployment_automation
+              echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
+                echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
 
-              echo -e "$green--- Set DEPLOYMENT_REPO_PATH variable and ---$reset"
-                echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
               echo -e "$green--- Validations ---$reset"
-
-                if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
-                  echo -e "$boldred--- $(sap_system_configuration) was not found ---$reset"
-                  echo "##vso[task.logissue type=error]File $(sap_system_configuration) was not found."
+                if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
+                  echo -e "$boldred--- $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found."
                   exit 2
                 fi
 
-                environment_file_name=$HOME/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
-
+                environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
                 if [ ! -f $environment_file_name ]; then
-                  echo -e "$boldred--- $ENVIRONMENT$LOCATION$NETWORK was not found ---$reset"
-                  echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $ENVIRONMENT$LOCATION$NETWORK was not found."
+                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
                   exit 2
                 fi
 
@@ -132,7 +100,7 @@ stages:
                   exit 2
                 fi
 
-                # Check if running on deployer
+              # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
                 echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
@@ -147,22 +115,30 @@ stages:
                   fi
                   unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
                   rm -f terraform_$(tf_version)_linux_amd64.zip
+
+                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+              else
+                echo -e "$green --- Running on deployer ---$reset"
+                az login --identity --output none
               fi
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                devops_extension_installed=$(az extension list --query [].path | grep azure-devops)
-                if [ -z "$devops_extension_installed" ]; then
-                  az extension add --name azure-devops --output none
-                fi
-                az devops configure -d organization=$(System.CollectionUri)
-                az devops configure -d project=$(System.TeamProject)
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
 
-              echo -e "$green--- --- Convert config file to UX format ---$reset"
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
+              echo -e "$green--- Convert config file to UX format ---$reset"
 
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
 
               echo -e "$green--- Define variables ---$reset"
-                cd $HOME/SYSTEM/$(sap_system_folder)
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
 
                 export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                 export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
@@ -171,43 +147,8 @@ stages:
                 export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
                 export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
 
-              echo -e "$green--- az login ---$reset"
-                az login --service-principal --username $(ARM_CLIENT_ID) --password $ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
-                return_code=$?
-                if [ 0 != $return_code ]; then
-                  echo -e "$boldred--- Login failed ---$reset"
-                  echo "##vso[task.logissue type=error]az login failed."
-                  exit $return_code
-                fi
-
-                ip_added_workload=0
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ---$reset"
-                  if [ -n "${workload_key_vault}" ]; then
-                    az keyvault network-rule add --name ${workload_key_vault} --ip-address ${this_ip}  --output none --only-show-errors
-                    ip_added_workload=1
-                  fi
-                fi
-
-                ip_added_control_plane=0
-                az account set --subscription ${STATE_SUBSCRIPTION}
-
-                if [ "azure pipelines" = "$(this_agent)" ]; then
-                  this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-                  echo -e "$green--- Set IP ${this_ip} ---$reset"
-                  if [ -n "${key_vault}" ]; then
-                    az keyvault network-rule add --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    ip_added_control_plane=1
-                  fi
-                fi
-
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
-
-                ${DEPLOYMENT_REPO_PATH}/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
                  --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
                  --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                  \
                  --ado --auto-approve
@@ -220,30 +161,9 @@ stages:
                     echo "##vso[task.logissue type=error]Error message: $error_message."
                   fi
                 fi
-
-                az account set --subscription $(ARM_SUBSCRIPTION_ID)
-                if [[ ip_added_workload -eq 1 ]]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [ "azure pipelines" = "$(this_agent)" ]; then
-                    if [ -n "${workload_key_vault}" ]; then
-                      az keyvault network-rule remove --name ${workload_key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
-                fi
-
-                az account set --subscription ${STATE_SUBSCRIPTION}
-                if [[ ip_added_control_plane -eq 1 ]]; then
-                  echo -e "$green--- Remove IP ---$reset"
-                  if [ "azure pipelines" = "$(this_agent)" ]; then
-                    if [ -n "${key_vault}" ]; then
-                      az keyvault network-rule remove --name ${key_vault} --ip-address ${this_ip} --output none --only-show-errors
-                    fi
-                  fi
-                fi
-
                 # Pull changes if there are other deployment jobs
 
-                cd $HOME/SYSTEM/$(sap_system_folder)
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
                 echo -e "$green--- Pull the latest content from DevOps ---$reset"
                   git pull
 
@@ -290,19 +210,19 @@ stages:
                 fi
 
                 if [ -f ${SID}.md ]; then
-                  echo "##vso[task.uploadsummary]$HOME/SYSTEM/$(sap_system_folder)/${SID}.md"
+                  echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure
             env:
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
 
-            failOnStderr:              false
-...
+            failOnStderr:               false
