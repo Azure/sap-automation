@@ -72,7 +72,7 @@
   name:                                DB Installation - HANA
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
+  become_user:                         "root"
   gather_facts:                        true                                    # Important to collect hostvars information
   any_errors_fatal:                    true
   vars_files:
