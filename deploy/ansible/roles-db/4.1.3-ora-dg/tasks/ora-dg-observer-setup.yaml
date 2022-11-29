@@ -31,6 +31,7 @@
     - usr_sap_install_mountpoint is undefined
 
 - name:                                "Oracle Data Guard - Observer: Change group ID for oinstall"
+  become:                              true
   ansible.builtin.group:
     name:                              oinstall
     gid:                               "{{ oinstall_gid }}"
