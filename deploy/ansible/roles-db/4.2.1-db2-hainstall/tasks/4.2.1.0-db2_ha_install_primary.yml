@@ -128,7 +128,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
-        TMPDIR:                        "{{ tmp_directory }}"
+        TMPDIR:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
       tags:
