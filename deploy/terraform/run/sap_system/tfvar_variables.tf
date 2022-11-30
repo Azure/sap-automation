@@ -316,8 +316,8 @@ variable "use_msi_for_clusters" {
 }
 
 variable "fencing_role_name" {
-  description = "If specified the role name to use for the fencing"
-  default     = "Reader"
+  description = "If specified the role name to use for the fencing agent"
+  default     = "Virtual Machine Contributor"
 }
 
 

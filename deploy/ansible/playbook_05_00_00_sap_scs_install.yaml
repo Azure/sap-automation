@@ -49,7 +49,6 @@
         tier:                          fencing
       tags:
         - kv-secrets
-      when:                            platform != "ORACLE"
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
