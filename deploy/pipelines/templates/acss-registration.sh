@@ -55,6 +55,8 @@ TF_DATA_DIR=${__configDir}
 
 cd ${__configDir}
 
+ls
+
 # Init Terraform
 __output=$( \
 terraform -chdir="${__moduleDir}"                                                       \
