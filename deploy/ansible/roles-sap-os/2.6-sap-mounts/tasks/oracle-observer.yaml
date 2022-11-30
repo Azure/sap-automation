@@ -98,7 +98,7 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       when:
-        - node-tier == 'observer'
+        - node_tier == 'observer'
         - use_AFS
   rescue:
     - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
