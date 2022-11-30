@@ -302,7 +302,10 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.shell: |
-                              cd {{ target_media_location }}/SBP
+                              setenv DB_SID {{ db_sid| upper }};
+                              setenv IHRDBMS /oracle/{{ db_sid | upper }}/{{ ora_version }};
+                              setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }};
+                              cd {{ target_media_location }}/SBP;
                               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
       args:
         chdir:                         "{{ target_media_location }}/SBP"
