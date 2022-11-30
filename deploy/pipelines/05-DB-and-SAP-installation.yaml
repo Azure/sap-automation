@@ -469,16 +469,18 @@ stages:
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                    templates\acss-registration.yaml
                 parameters:
-                  displayName:                 "ACSS Registration"
-                  scriptPath:                  ${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates
-                  azureClientId:               $(ARM_CLIENT_ID)
-                  azureClientSecret:           $(ARM_CLIENT_SECRET)
-                  azureTenantId:               $(ARM_TENANT_ID)
-                  azureSubscriptionId:         $(ARM_SUBSCRIPTION_ID)
-                  acssEnvironment:             ${{ parameters.acss_environment }}
-                  acssSapProduct:              ${{ parameters.acss_sap_product }}
-                  sapSystemConfigurationName:  ${{ parameters.sap_system_configuration_name }}
-                  parametersFolder:            $(Preparation.FOLDER)
+                  displayName:                    "ACSS Registration"
+                  scriptPath:                     ${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates
+                  azureClientId:                  $(ARM_CLIENT_ID)
+                  azureClientSecret:              $(ARM_CLIENT_SECRET)
+                  azureTenantId:                  $(ARM_TENANT_ID)
+                  azureSubscriptionId:            $(ARM_SUBSCRIPTION_ID)
+                  TF_Remote_SA_Name:              $(Terraform_Remote_Storage_Account_Name)
+                  TF_Remote_Storage_Subscription: $(Terraform_Remote_Storage_Subscription)
+                  acssEnvironment:                ${{ parameters.acss_environment }}
+                  acssSapProduct:                 ${{ parameters.acss_sap_product }}
+                  sapSystemConfigurationName:     ${{ parameters.sap_system_configuration_name }}
+                  parametersFolder:               $(Preparation.FOLDER)
           - template:                          templates\collect-log-files.yaml
             parameters:
               logPath:                         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs

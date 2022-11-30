@@ -9,6 +9,8 @@ parameters:
     acssSapProduct: ''
     sapSystemConfigurationName: ''
     parametersFolder: ''
+    TF_Remote_SA_Name: ''
+    TF_Remote_Storage_Subscription: ''
 steps:
 - bash: ${{ parameters.scriptPath }}/acss-registration.sh
   displayName: "ACSS: ${{ parameters.displayName }}"
@@ -21,3 +23,5 @@ steps:
     ACSS_SAP_PRODUCT: ${{ parameters.acssSapProduct }}
     SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sapSystemConfigurationName }}
     ROOT_FOLDER: ${{ parameters.parametersFolder }}
+    TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME: ${{ parameters.TF_Remote_SA_Name }}
+    TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION: ${{ parameters.TF_Remote_Storage_Subscription }}
