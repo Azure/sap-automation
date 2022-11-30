@@ -12,7 +12,7 @@ green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 __basedir="${ROOT_FOLDER}"
 acss_environment=${ACSS_ENVIRONMENT}
 acss_sap_product=${ACSS_SAP_PRODUCT}
-acss_workloads_extension_url="https://github.com/Azure/Azure-Center-for-SAP-solutions-preview/raw/main/CLI_Documents/ACSS_CLI_Extension/workloads-0.1.0-py3-none-any.whl"
+acss_workloads_extension_url="a"
 #--------------------------------------+---------------------------------------8
 
 #--------------------------------------+---------------------------------------8
@@ -55,7 +55,7 @@ TF_DATA_DIR=${__configDir}
 
 cd ${__configDir}
 
-az account set --subscription ${TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION}
+az account set --subscription ${ARM_SUBSCRIPTION_ID}
 
 tfstate_resource_id=$(az resource list --name "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" --subscription ${TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
@@ -108,7 +108,7 @@ az workloads sap-virtual-instance create              \
 --sap-virtual-instance-name  "${acss_sid}"            \
 --resource-group             "${acss_resource_group}" \
 --location                   "${acss_location}"       \
---environment                "${acss_environment}"    \
+a--environment                "${acss_environment}"    \
 --sap-product                "${acss_sap_product}"    \
 --configuration              "${acss_configuration}"  \
   || exit 1
