@@ -66,7 +66,7 @@
     state:                             mounted
   when:
     - node_tier != 'observer'
-    # - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
+    - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (shared)"
   ansible.posix.mount:
