@@ -301,11 +301,11 @@
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.command:         $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
+      ansible.builtin.shell: |
+                              $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
       args:
-        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
         chdir:                         "{{ target_media_location }}/SBP"
-        #executable:                    /bin/csh
+        creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
       environment:
         DB_SID:                        "{{ db_sid| upper }}"
         #CV_ASSUME_DISTID:              OL7
