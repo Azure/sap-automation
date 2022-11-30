@@ -49,7 +49,7 @@ az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SE
 # TODO: Should test if Terraform is available or needs to be installed
 #
 echo -e "$green--- Initializing Terraform for: $SAP_SYSTEM_CONFIGURATION_NAME ---$reset"
-__configDir=${__basedir}/WORKSPACES/SYSTEM/${SAP_SYSTEM_FOLDER}
+__configDir=${__basedir}/WORKSPACES/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}
 __moduleDir=${__basedir}/deploy/terraform/run/sap_system/
 TF_DATA_DIR=${__configDir}
 
@@ -63,7 +63,7 @@ init -upgrade=true                                                              
 --backend-config "resource_group_name=${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"  \
 --backend-config "storage_account_name=${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"        \
 --backend-config "container_name=tfstate"                                               \
---backend-config "key=${SAP_SYSTEM_FOLDER}.terraform.tfstate"                           \
+--backend-config "key=${SAP_SYSTEM_CONFIGURATION_NAME}.terraform.tfstate"                           \
 )
 [ $? -ne 0 ] && echo "$__output" && exit 1
 echo -e "$green--- Successfully configured the backend "azurerm"! Terraform will automatically use this backend unless the backend configuration changes. ---$reset"
