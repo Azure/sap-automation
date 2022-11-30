@@ -19,6 +19,15 @@
       map(attribute='type') | sort | unique |
       list | length }}"
 
+- name:                                "2.6 SAP Mounts: - Check if the backup disk exists"
+  ansible.builtin.set_fact:
+    backupdisks_count:                 "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'backup') |
+      map(attribute='type') | sort | unique |
+      list | length | int }}"
+
+
 - name:                                "2.6 SAP Mounts: - choose the shared disk"
   ansible.builtin.set_fact:
     sharedpath:                        "{% if shareddisk == '1' %}/dev/vg_hana_shared/lv_hana_shared\
@@ -88,6 +97,7 @@
     state:                             mounted
   when:
     - node_tier == 'hana'
+    - backupdisks_count > 0
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
