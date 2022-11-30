@@ -301,7 +301,7 @@
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.command:         $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
+      ansible.builtin.command:         $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
       environment:
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
