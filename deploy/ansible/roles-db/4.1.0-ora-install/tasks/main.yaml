@@ -302,7 +302,8 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.shell: |
-                              $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
+                              cd {{ target_media_location }}/SBP
+                              $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
       args:
         chdir:                         "{{ target_media_location }}/SBP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp_installed.txt"
