@@ -8,7 +8,8 @@ parameters:
     acssEnvironment: ''
     acssSapProduct: ''
     sapSystemConfigurationName: ''
-    parametersFolder: ''
+    sap_automation_repo_path: ''
+    config_repo_path: ''
     TF_Remote_SA_Name: ''
     TF_Remote_Storage_Subscription: ''
 steps:
@@ -22,6 +23,7 @@ steps:
     ACSS_ENVIRONMENT: ${{ parameters.acssEnvironment }}
     ACSS_SAP_PRODUCT: ${{ parameters.acssSapProduct }}
     SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sapSystemConfigurationName }}
-    ROOT_FOLDER: ${{ parameters.parametersFolder }}
+    ROOT_FOLDER: ${{ parameters.config_repo_path }}
+    CODE_FOLDER: ${{ parameters.sap_automation_repo_path }}
     TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME: ${{ parameters.TF_Remote_SA_Name }}
     TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION: ${{ parameters.TF_Remote_Storage_Subscription }}

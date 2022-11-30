@@ -480,7 +480,9 @@ stages:
                   acssEnvironment:                ${{ parameters.acss_environment }}
                   acssSapProduct:                 ${{ parameters.acss_sap_product }}
                   sapSystemConfigurationName:     ${{ parameters.sap_system_configuration_name }}
-                  parametersFolder:               $(Preparation.FOLDER)
+                  sap_automation_repo_path:       $(Build.SourcesDirectory)/sap-automation
+                  config_repo_path:               $(Build.SourcesDirectory)/config
+
           - template:                          templates\collect-log-files.yaml
             parameters:
               logPath:                         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs

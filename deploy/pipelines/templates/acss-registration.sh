@@ -50,7 +50,7 @@ az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SE
 #
 echo -e "$green--- Initializing Terraform for: $SAP_SYSTEM_CONFIGURATION_NAME ---$reset"
 __configDir=${__basedir}
-__moduleDir=${__basedir}/deploy/terraform/run/sap_system/
+__moduleDir=${CODE_FOLDER}/deploy/terraform/run/sap_system/
 TF_DATA_DIR=${__configDir}
 
 cd ${__configDir}
