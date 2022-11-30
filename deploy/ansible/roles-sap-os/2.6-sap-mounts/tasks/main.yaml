@@ -302,12 +302,19 @@
     - sap_mnt is defined or sap_trans is defined
     - NFS_provider == 'AFS'
 
+
+
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:
     - sap_mnt is defined or sap_trans is defined
     - NFS_provider == 'ANF'
+
+# Import NFS mounts and permissions changes for oracle and oracle-asm installation.
+- import_tasks:                        "oracle-nfs-mounts.yaml"
+  when:
+    - node_tier in ['oracle','oracle-asm','observer']
 
 
 ...

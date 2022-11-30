@@ -563,7 +563,7 @@
         opts:                          "vers=4,minorversion=1,sec=sys"
         state:                         mounted
       when:
-        - tier == 'sapos'
+        - tier == 'sapos' or node_tier in ['oracle','oracle-asm','observer']
   when: usr_sap_install_mountpoint is defined
 
 - name:                                "AFS Mount: sap_trans"
