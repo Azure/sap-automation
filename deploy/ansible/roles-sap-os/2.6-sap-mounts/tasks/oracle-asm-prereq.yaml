@@ -72,13 +72,13 @@
     - NFS_provider == "NONE"
 
 
-# Mount install file system .
-- name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
-  ansible.posix.mount:
-    src:                               "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
-    path:                              "{{ target_media_location }}"
-    fstype:                            "nfs4"
-    opts:                              "vers=4,minorversion=1,sec=sys"
-    state:                             mounted
-  when:
-    - use_AFS
+# # Mount install file system .
+# - name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
+#   ansible.posix.mount:
+#     src:                               "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
+#     path:                              "{{ target_media_location }}"
+#     fstype:                            "nfs4"
+#     opts:                              "vers=4,minorversion=1,sec=sys"
+#     state:                             mounted
+#   when:
+#     - use_AFS
