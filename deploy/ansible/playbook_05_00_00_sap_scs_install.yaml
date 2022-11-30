@@ -49,7 +49,11 @@
         tier:                          fencing
       tags:
         - kv-secrets
-      when:                            platform != "ORACLE"
+      # when:                            
+      #   - node_tier != 'oracle'
+      #   - node_tier != 'oracle-asm'
+      #   - node_tier != 'observer'
+
 
     - name:                            "SCS Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:
@@ -144,7 +148,7 @@
   name:                                "SCS Installation Playbook: - SCS"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
+  become_user:                         "root"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -271,7 +275,7 @@
   name:                                "SCS HA Install and Pacemaker Resources"
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
+  become_user:                         "root"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
@@ -290,10 +294,7 @@
               - sap_mnt is defined
             fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
 
-        - name:                        "Debug for spn client id"
-          ansible.builtin.debug:
-            var:                     "{{ hostvars.localhost }}"
-
+            
         - name:                        "SCS HA Installation Playbook: - Initialize facts"
           ansible.builtin.set_fact:
             tier:                       ha
