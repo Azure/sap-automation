@@ -97,7 +97,7 @@
     state:                             mounted
   when:
     - node_tier == 'hana'
-    - backupdisks_count > 0
+    - (backupdisks_count | int) > 0
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
