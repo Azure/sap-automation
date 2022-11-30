@@ -49,7 +49,7 @@ az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SE
 # TODO: Should test if Terraform is available or needs to be installed
 #
 echo -e "$green--- Initializing Terraform for: $SAP_SYSTEM_CONFIGURATION_NAME ---$reset"
-__configDir=${__basedir}/WORKSPACES/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}
+__configDir=${__basedir}
 __moduleDir=${__basedir}/deploy/terraform/run/sap_system/
 TF_DATA_DIR=${__configDir}
 
