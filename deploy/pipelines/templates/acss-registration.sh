@@ -108,7 +108,7 @@ az workloads sap-virtual-instance create              \
 --sap-virtual-instance-name  "${acss_sid}"            \
 --resource-group             "${acss_resource_group}" \
 --location                   "${acss_location}"       \
-a--environment                "${acss_environment}"    \
+--environment                "${acss_environment}"    \
 --sap-product                "${acss_sap_product}"    \
 --configuration              "${acss_configuration}"  \
   || exit 1
