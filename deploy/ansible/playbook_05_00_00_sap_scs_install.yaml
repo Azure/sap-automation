@@ -290,6 +290,10 @@
               - sap_mnt is defined
             fail_msg:                  A highly available SCS deployment requires a shared sap_mnt
 
+        - name:                        "Debug for spn client id"
+          ansible.builtin.debug:
+            var:                     "{{ hostvars.localhost }}"
+
         - name:                        "SCS HA Installation Playbook: - Initialize facts"
           ansible.builtin.set_fact:
             tier:                       ha
