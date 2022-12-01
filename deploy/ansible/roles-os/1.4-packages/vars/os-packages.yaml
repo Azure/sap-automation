@@ -158,6 +158,8 @@ packages:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   redhat8.4:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+  redhat8.6:
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'glibc',                                        node_tier: 'all',     state: 'present' }
