@@ -73,10 +73,10 @@ locals {
     transport_volume_size         = var.ANF_transport_volume_size
     transport_volume_throughput   = var.ANF_transport_volume_throughput
 
-    use_existing_install_volume = var.ANF_install_volume_use_existing
-    install_volume_name         = var.ANF_install_volume_name
-    install_volume_size         = var.ANF_install_volume_size
-    install_volume_throughput   = var.ANF_install_volume_throughput
+    use_existing_install_volume   = var.ANF_install_volume_use_existing
+    install_volume_name           = var.ANF_install_volume_name
+    install_volume_size           = var.ANF_install_volume_size
+    install_volume_throughput     = var.ANF_install_volume_throughput
 
   }
 
