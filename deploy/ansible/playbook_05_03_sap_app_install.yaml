@@ -162,6 +162,13 @@
 
     - name:                            Run the APP installation Playbook
       block:
+        
+        - name:                        "APP Playbook - Install: Include 2.6-sap-mounts role"
+          ansible.builtin.include_role:
+            name:                     roles-sap-os/2.6-sap-mounts
+          tags:      
+            - 2.6-sap-mounts
+        
         - name:                        "APP Playbook - Install: Include 5.3-app-install"
           ansible.builtin.include_role:
             name:                      roles-sap/5.3-app-install
