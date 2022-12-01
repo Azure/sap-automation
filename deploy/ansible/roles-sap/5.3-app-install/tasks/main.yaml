@@ -134,7 +134,7 @@
 # 2230669 - System Provisioning Using a Parameter Input File
 #
     - name:                            "APP Install: HANA HSR - Update Profile"
-      import_tasks:                    ../../4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
+      import_tasks:                    ../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
       when:
         - db_high_availability
         - platform == "HANA"

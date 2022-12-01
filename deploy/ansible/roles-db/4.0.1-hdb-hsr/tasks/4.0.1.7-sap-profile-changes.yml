@@ -43,7 +43,6 @@
       - dbhostpara
 
   when:
-    - inventory_hostname == primary_instance_name
     - platform == 'HANA'
     - db_high_availability
 
