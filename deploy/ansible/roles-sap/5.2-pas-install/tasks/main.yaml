@@ -105,8 +105,8 @@
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
+    # support older app inifile templates where hdb_instance_number was used
     hdb_instance_number:               "{{ db_instance_number }}"
-
   tags:
     - skip_ansible_lint
 
