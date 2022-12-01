@@ -86,6 +86,3 @@
   when:
     - hana_system_replication_needed
 
-- name:                                "HANA HSR: - Provision replication"
-  import_tasks:                        4.0.1.7-sap-profile-changes.yml
-  when:                                hana_system_replication_needed

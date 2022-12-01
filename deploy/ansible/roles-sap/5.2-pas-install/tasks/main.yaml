@@ -143,6 +143,13 @@
 # |                                                                            |
 # *====================================4=======================================8
 
+
+    - name:                            "PAS Install: HANA HSR - Update Profile"
+      import_tasks:                    ../../4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
+      when:
+        - db_high_availability
+        - platform == "HANA"
+
     - name:                            "PAS Install: progress"
       ansible.builtin.debug:
         msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
