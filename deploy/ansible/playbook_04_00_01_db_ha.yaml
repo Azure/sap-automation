@@ -39,18 +39,14 @@
         - name:                        Run the keyvault role
           ansible.builtin.include_role:
             name:                      roles-misc/0.2-kv-secrets
-          when:                      platform != "ORACLE"
           tags:
             - kv-secrets
-
       when:                            db_high_availability
-
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  become_user:                         "{{ become_user_name }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults

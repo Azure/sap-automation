@@ -179,6 +179,7 @@
     - name:                            "SCS Install: show"
       ansible.builtin.debug:
         var:                           scs_installed_according_to_sapinst
+        verbosity:                     2
 
     - name:                            "SCS Install: flag"
       ansible.builtin.file:
