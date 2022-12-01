@@ -124,6 +124,12 @@
       ansible.builtin.debug:
         msg:                           "Starting Web Install ({{ sid_to_be_deployed.sid | upper }})"
 
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "SAP Web Dispatcher Install"
       ansible.builtin.command: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
@@ -135,7 +141,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
       environment:
-        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0
