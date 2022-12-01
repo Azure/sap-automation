@@ -78,7 +78,7 @@
                                        set -o pipefail
                                        sqlplus / as sysdba @updatesga.sql | tee updatesga.log
   register:                            updatesga_results
-  failed_when:                         updatesga_results.rc >= 2
+  failed_when:                         updatesga_results.rc != 0
   args:
     creates:                           /etc/sap_deployment_automation/{{ db_sid| upper }}/sgaupdated.txt
     chdir:                             /etc/sap_deployment_automation/{{ db_sid| upper }}
@@ -90,7 +90,7 @@
     path:                              /etc/sap_deployment_automation/dgscripts/sgaupdated.txt
     state:                             touch
     mode:                              '0755'             
-  when:                                updatesga_results.rc >= 2
+  when:                                updatesga_results.rc == 0
 
 - name:                                " Start Oracle after SGA Change"
   become:                              true
@@ -99,7 +99,7 @@
                                        set -o pipefail
                                        sqlplus / as sysdba @startup.sql | tee startup.log
   register:                            dbstarted_results
-  failed_when:                         dbstarted_results.rc >= 2
+  failed_when:                         dbstarted_results.rc != 0
   args:
     creates:                           /etc/sap_deployment_automation/{{ db_sid| upper }}/db_startup_completed.txt
     chdir:                             /etc/sap_deployment_automation/{{ db_sid| upper }}
@@ -110,11 +110,11 @@
     path:                              /etc/sap_deployment_automation/dgscripts/db_startup_completed.txt
     state:                             touch
     mode:                              '0755'             
-  when:                                updatesga_results.rc >= 2
+  when:                                updatesga_results.rc == 0
 
 - name:                               " Create sgaupdated.txt"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/ora_sga_updated.txt
     state:                             touch
     mode:                              '0755'             
-  when:                                updatesga_results.rc >= 2
+  when:                                updatesga_results.rc == 0
