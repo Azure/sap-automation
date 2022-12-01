@@ -42,7 +42,7 @@
   zypper:
     name:                              'python-xml'
     state:                             latest
-  when:                                distribution_id == "suse15"
+  when:                                distribution_id in ['suse15', 'sles_sap15']
   tags:
     - skip_ansible_lint
 
