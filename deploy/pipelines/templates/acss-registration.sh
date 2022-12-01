@@ -12,7 +12,7 @@ green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 __basedir="${ROOT_FOLDER}"
 acss_environment=${ACSS_ENVIRONMENT}
 acss_sap_product=${ACSS_SAP_PRODUCT}
-acss_workloads_extension_url="a"
+acss_workloads_extension_url="https://github.com/Azure/Azure-Center-for-SAP-solutions-preview/raw/main/CLI_Documents/ACSS_CLI_Extension/workloads-0.1.0-py3-none-any.whl"
 #--------------------------------------+---------------------------------------8
 
 #--------------------------------------+---------------------------------------8

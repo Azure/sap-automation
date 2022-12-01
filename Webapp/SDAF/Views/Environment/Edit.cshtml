@@ -78,6 +78,16 @@
         </div>
         <div class="ms-TextField">
             <div class="left-input">
+                @Html.LabelFor(m => m.variables.ARM_OBJECT_ID, new { @class = $"ms-Label" })
+                <p>Enter the Service principal object ID</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.ARM_OBJECT_ID.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.ARM_OBJECT_ID)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
                 @Html.LabelFor(m => m.variables.ARM_CLIENT_SECRET, new { @class = $"ms-Label" })
                 <p>Enter the Service principal password</p>
             </div>
