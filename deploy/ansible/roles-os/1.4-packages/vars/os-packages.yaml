@@ -298,5 +298,6 @@ packages:
   oraclelinux8.5:
   oraclelinux8.6:
     - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
-    
+  oraclelinux8.7:
+  oraclelinux8.8:  
 
