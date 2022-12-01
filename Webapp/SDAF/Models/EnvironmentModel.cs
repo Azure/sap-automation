@@ -17,6 +17,7 @@ namespace AutomationForm.Models
     {
         public Variable Agent { get; set; }
         public Variable ARM_CLIENT_ID { get; set; }
+        public Variable ARM_OBJECT_ID { get; set; }
         public Variable ARM_CLIENT_SECRET { get; set; }
         public Variable ARM_SUBSCRIPTION_ID { get; set; }
         public Variable ARM_TENANT_ID { get; set; }
