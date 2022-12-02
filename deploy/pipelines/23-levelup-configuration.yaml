@@ -1,0 +1,76 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline updates the sample configuration               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+name: Update the sample configuration
+
+parameters:
+  - name:                              storage_account_name
+    displayName:                       The SAP software storage account path
+    type:                              string
+    default:                           MGMT
+
+  - name:                              storage_account_name_sas
+    displayName:                       The SAP software storage SAS token
+    type:                              string
+    default:                           xxx
+
+  - name:                              deployer_environment_parameter
+    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                              string
+    default:                           MGMT
+
+trigger:                               none
+
+pool:
+  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
+
+variables:
+  - group:                             "SDAF-General"
+
+  - group:                             SDAF-${{ parameters.deployer_environment_parameter }}
+
+  - name:                              deployer_environment
+    value:                             ${{ parameters.deployer_environment_parameter }}
+
+  - name:                              this_agent
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+
+  - name:                              storage_account_name
+    value:                             ${{ parameters.storage_account_name }}
+
+  - name:                              storage_account_name_sas
+    value:                             ${{ parameters.storage_account_name_sas }}
+
+stages:
+  - stage:                             Update_key_vault
+    displayName:                       Update Storage account name and SAS token in key vault
+    jobs:
+      - job:                           Update_key_vault
+        displayName:                   Update Storage account name and SAS token in key vault
+        workspace:
+          clean:                       all
+        steps:
+          - task: PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
+            submodules:                true
+          - bash: |
+              echo -e "$green --- Set secrets ---$reset"
+
+              az login --identity --allow-no-subscriptions --output none
+              az keyvault secret set --vault-name $(Deployer_Key_Vault) --name "sapbits-location-base-path" --value $(storage_account_name) --output none
+              az keyvault secret set --vault-name $(Deployer_Key_Vault) --name "sapbits-sas-token" --value $(storage_account_name_sas) --output none
+              az keyvault secret delete --vault-name $(Deployer_Key_Vault) --name "sapbits-access-key"  --output none
+              exit $return_code
+
+            displayName:               Update
+            env:
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              Deployer_Key_Vault:      $(Deployer_Key_Vault)
+              DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
+            failOnStderr:              false
+...

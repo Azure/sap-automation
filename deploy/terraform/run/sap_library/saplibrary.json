@@ -1,0 +1,13 @@
+{
+    "infrastructure": {
+        "environment"                   : "np",
+        "region"                        : "westeurope"
+    },
+    "deployer": {
+        "environment"                   : "np",
+        "region"                        : "westeurope",
+        "vnet"                          : "DEP00"
+    },
+    "tfstate_resource_id"               : "",
+    "dns_label"                         : "sap.agcicat.net"
+}

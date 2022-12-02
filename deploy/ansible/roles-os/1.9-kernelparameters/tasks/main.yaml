@@ -1,0 +1,79 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |            Role to set kernel parameters for general hardening             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Description:  A set of common parameters recommeneded from CIS, RH and SUSE -
+#               are applied to the host along with some distro specific params.
+#
+# Objects:
+#   External:
+#             parameters.yaml                  - parameter file
+#
+#   Internal:
+#             get_parameters_to_apply             - object to store the params
+#                                                applicable for a host
+#
+#   Created:
+#
+#
+# -------------------------------------+---------------------------------------8
+# Reviews:
+#
+#
+#
+# -------------------------------------+---------------------------------------8
+---
+# -------------------------------------+---------------------------------------8
+#
+#   Task: 1.9                                  - kernel parameters
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# <Comment Header>
+#
+# -------------------------------------+---------------------------------------8
+- name:                                "1.9 Kernel parameters - Ensure parameters are available"
+  ansible.builtin.include_vars:        parameters.yaml
+
+# ----------------------------------------
+# BEGIN
+# ----------------------------------------
+
+- name:                                "1.9 Kernel parameters - Gather list of parameters which need to be applied"
+  ansible.builtin.set_fact:
+    get_parameters_to_apply:           '{{
+                                          (parameters["common"] +
+                                          (parameters[distribution_id] | default([]))) | unique
+                                        }}'
+
+# print only when -vv, otherwise you will have terminal nausea
+- name:                                "1.9 Kernel parameters - Display parameters which will be applied"
+  ansible.builtin.debug:
+    var:                               get_parameters_to_apply
+    verbosity:                         2
+
+- name:                                "1.9 Kernel parameters - Set relevant kernel parameters"
+  become:                              true
+  ansible.posix.sysctl:
+    name:                              "{{ item.name }}"
+    value:                             "{{ item.value }}"
+    state:                             "{{ item.state }}"
+    sysctl_set:                        true
+    reload:                            true
+    ignoreerrors:                      true
+  loop:                                "{{ get_parameters_to_apply }}"
+  when:
+    - item.tier in ["all", tier]
+    - item.node_tier in ["all", node_tier]
+
+# ----------------------------------------
+# END
+# ----------------------------------------
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

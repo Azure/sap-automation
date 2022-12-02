@@ -1,0 +1,228 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline deploys the SAP Infrastructure                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+parameters:
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
+
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
+stages:
+  - stage: Deploy_SAP_infrastructure
+    condition: and(not(failed()), not(canceled()))
+    variables:
+      - template:                      variables/03-sap-system-deployment-variables.yaml
+        parameters:
+          sap_system:                  ${{ parameters.sap_system }}
+          environment:                 ${{ parameters.environment }}
+    displayName:                       Deploy SAP infrastructure
+    jobs:
+      - job:                           Deploy_SAP_infrastructure
+        displayName:                   Deploy SAP infrastructure
+        workspace:
+          clean:                       all
+        steps:
+          - template:                  templates\download.yaml
+          - task:                      PostBuildCleanup@3
+          - script: |
+              #!/bin/bash
+              echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+
+              echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
+                cd $CONFIG_REPO_PATH
+                git checkout -q $(Build.SourceBranchName)
+
+              echo -e "$green--- Read parameters ---$reset"
+                      HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
+                ENVIRONMENT=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ; echo "Environment: $ENVIRONMENT"
+                  LOCATION=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ; echo "Location:    $LOCATION"
+                    NETWORK=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ; echo "Network:     $NETWORK"
+                        SID=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ; echo "SID:         $SID"
+
+                cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
+
+              echo -e "$green--- Set CONFIG_REPO_PATH variable and ---$reset"
+                echo CONFIG_REPO_PATH=$CONFIG_REPO_PATH > .sap_deployment_automation/config
+
+              echo -e "$green--- Validations ---$reset"
+                if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
+                  echo -e "$boldred--- $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) was not found."
+                  exit 2
+                fi
+
+                environment_file_name=$HOME_CONFIG/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
+                if [ ! -f $environment_file_name ]; then
+                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Please rerun the workload zone deployment. Workload zone configuration file $environment_file_name was not found."
+                  exit 2
+                fi
+
+                if [ -z $(ARM_SUBSCRIPTION_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                  exit 2
+                fi
+
+                if [ -z $(ARM_CLIENT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                  exit 2
+                fi
+
+                if [ -z $ARM_CLIENT_SECRET ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                  exit 2
+                fi
+
+                if [ -z $(ARM_TENANT_ID) ]; then
+                  echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                  exit 2
+                fi
+
+                if [ -z ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not defined in the parameter file."
+                  exit 2
+                fi
+
+              # Check if running on deployer
+              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                echo -e "$green --- Install dos2unix ---$reset"
+                  sudo apt-get -qq install dos2unix
+
+                echo -e "$green --- Install terraform ---$reset"
+
+                  wget -q $(tf_url)
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                    exit 2
+                  fi
+                  unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                  rm -f terraform_$(tf_version)_linux_amd64.zip
+
+                  az login --service-principal --username $(ARM_CLIENT_ID) --password=$ARM_CLIENT_SECRET --tenant $(ARM_TENANT_ID)  --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+              else
+                echo -e "$green --- Running on deployer ---$reset"
+                az login --identity --output none
+              fi
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
+              echo -e "$green--- Convert config file to UX format ---$reset"
+
+                dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
+
+              echo -e "$green--- Define variables ---$reset"
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
+
+                export REMOTE_STATE_SA=$(cat ${environment_file_name}      | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                export STATE_SUBSCRIPTION=$(cat ${environment_file_name}   | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                export deployer_tfstate_key=$(cat ${environment_file_name} | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                export key_vault=$(cat ${environment_file_name}            | grep keyvault=            | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                export landscape_tfstate_key=$(cat "${environment_file_name}"  | grep landscape_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+
+              echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh --parameterfile $(sap_system_configuration) --type sap_system \
+                 --state_subscription ${STATE_SUBSCRIPTION} --storageaccountname ${REMOTE_STATE_SA}                               \
+                 --deployer_tfstate_key ${deployer_tfstate_key} --landscape_tfstate_key ${landscape_tfstate_key}                  \
+                 --ado --auto-approve
+
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo "##vso[task.logissue type=error]Return code from installer $return_code."
+                  if [ -f ${environment_file_name}.err ]; then
+                    error_message=$(cat ${environment_file_name}.err)
+                    echo "##vso[task.logissue type=error]Error message: $error_message."
+                  fi
+                fi
+                # Pull changes if there are other deployment jobs
+
+                cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
+                echo -e "$green--- Pull the latest content from DevOps ---$reset"
+                  git pull
+
+              echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
+
+                added=0
+
+                if [ -f $.terraform/terraform.tfstate ]; then
+                  git add -f .terraform/terraform.tfstate
+                  added=1
+                fi
+
+                if [ -f sap-parameters.yaml ]; then
+                  git add sap-parameters.yaml
+                  added=1
+                fi
+
+                if [ -f ${SID}_hosts.yaml ]; then
+                  git add -f ${SID}_hosts.yaml
+                  added=1
+                fi
+
+                if [ -f ${SID}.md ]; then
+                  git add    ${SID}.md
+                  added=1
+                fi
+
+                if [ -f ${SID}_resource_names.json ]; then
+                  git add    ${SID}_resource_names.json
+                  added=1
+                fi
+
+                if [ -f $(sap_system_configuration) ]; then
+                  git add    $(sap_system_configuration)
+                  added=1
+                fi
+
+                if [ 1 == $added ]; then
+                  git config --global user.email "$(Build.RequestedForEmail)"
+                  git config --global user.name "$(Build.RequestedFor)"
+                  git commit -m "Added updates from devops system deployment $(Build.DefinitionName) [skip ci]"
+
+                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push --set-upstream origin $(Build.SourceBranchName)
+                fi
+
+                if [ -f ${SID}.md ]; then
+                  echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
+                fi
+              exit $return_code
+
+            displayName:               Deploy_SAP_infrastructure
+            env:
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+
+            failOnStderr:               false

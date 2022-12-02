@@ -1,0 +1,163 @@
+# This pipeline publishes and deploys the control plane UI
+
+trigger:
+- none
+
+pool:
+  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
+  vmImage:                             'ubuntu-latest'
+
+parameters:
+  - name:                              webappName
+    displayName:                       Web App Name
+    type:                              string
+    default:                           $(WEBAPP_URL_BASE)
+
+  - name:                              keyvault
+    displayName:                       Keyvault Name
+    type:                              string
+    default:                           $(Deployer_Key_Vault)
+
+  - name:                              environment
+    displayName:                       "Environment name (MGMT, DEV, QA, etc)"
+    type:                              string
+    default:                           MGMT
+
+  - name:                              workload_zone_deployment_pipeline
+    displayName:                       "Workload zone pipeline name"
+    type:                              string
+    default:                           SAP Workload Zone deployment
+
+  - name:                              system_deployment_pipeline
+    displayName:                       "SAP SID Infrastructure deployment"
+    type:                              string
+    default:                           SAP system deployment (infrastructure)
+
+  - name:                              sap_install_pipeline
+    displayName:                       "SAP configuration and installation pipeline name"
+    type:                              string
+    default:                           Configuration and SAP installation
+
+variables:
+  - group:                             "SDAF-General"
+  - group:                             SDAF-${{ parameters.environment }}
+
+  - name:                              solution
+    value:                             '**/*.sln'
+
+  - name:                              buildPlatform
+    value:                             Any CPU
+
+  - name:                              buildConfiguration
+    value:                             Release
+
+  - name:                              webappName
+    value:                             ${{ parameters.webappName }}
+
+  - name:                              keyvault
+    value:                             ${{ parameters.keyvault }}
+
+  - name:                              workload_zone_deployment_pipeline_name
+    value:                             ${{ parameters.workload_zone_deployment_pipeline }}
+
+  - name:                              system_deployment_pipeline_name
+    value:                             ${{ parameters.system_deployment_pipeline }}
+
+  - name:                              sap_install_pipeline_name
+    value:                             ${{ parameters.sap_install_pipeline }}
+
+  - name:                              secret
+    value:                             $[format('@Microsoft.KeyVault(SecretUri=https://{0}.vault.azure.net/secrets/PAT/)', variables.keyvault)]
+
+stages:
+  - stage:                             Web_App_Deployment
+    displayName:                       Deploy SAP configuration Web App
+    jobs:
+      - job:                           Deploy_web_app
+        displayName:                   Deploy SAP configuration Web App
+        workspace:
+          clean:                       all
+        steps:
+          - task:                      PostBuildCleanup@3
+          - checkout:                  self
+            persistCredentials:        true
+          - bash: |
+              #!/bin/bash
+              az config set extension.use_dynamic_install=yes_without_prompt  --output none
+              az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)'
+              export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
+
+              WORKLOADZONE_PIPELINE_ID=$(az pipelines list --query "[?name=='$(workload_zone_deployment_pipeline_name)'].id | [0]")
+              SYSTEM_PIPELINE_ID=$(az pipelines list --query "[?name=='$(system_deployment_pipeline_name)'].id | [0]")
+              SAP_INSTALL_PIPELINE_ID=$(az pipelines list --query "[?name=='$(sap_install_pipeline_name)'].id | [0]")
+              SDAF_GENERAL_GROUP_ID=$(az pipelines variable-group list --group-name "SDAF-General" --query '[0].id')
+
+              if [ -z $(PAT) ]; then
+                echo "##vso[task.logissue type=error]Variable PAT was not defined"
+                exit 2
+              fi
+
+              if [ -z $WORKLOADZONE_PIPELINE_ID ]; then
+                echo "##vso[task.logissue type=error]Pipeline '$(workload_zone_deployment_pipeline_name)' does not exist. Please create it or correct the name to continue"
+                exit 2
+              fi
+
+              if [ -z $SYSTEM_PIPELINE_ID ]; then
+                echo "##vso[task.logissue type=error]Pipeline '$(system_deployment_pipeline_name)' does not exist. Please create it or correct the name to continue"
+                exit 2
+              fi
+
+              if [ -z $SAP_INSTALL_PIPELINE_ID ]; then
+                echo "##vso[task.logissue type=error]Pipeline '$(sap_install_pipeline_name)' does not exist. Please create it or correct the name to continue"
+                exit 2
+              fi
+
+              echo "##vso[task.setvariable variable=WORKLOADZONE_PIPELINE_ID]${WORKLOADZONE_PIPELINE_ID}"
+              echo "##vso[task.setvariable variable=SYSTEM_PIPELINE_ID]${SYSTEM_PIPELINE_ID}"
+              echo "##vso[task.setvariable variable=SAP_INSTALL_PIPELINE_ID]${SAP_INSTALL_PIPELINE_ID}"
+              echo "##vso[task.setvariable variable=SDAF_GENERAL_GROUP_ID]${SDAF_GENERAL_GROUP_ID}"
+
+              echo "##vso[build.updatebuildnumber]Deploying the Web Application $(webappName)"
+
+            displayName:                         'Configure pipeline metadata'
+
+          - task:                                DotNetCoreCLI@2
+            displayName:                         'Build the Web App'
+            inputs:
+              command:                           'build'
+              projects:                          '$(System.DefaultWorkingDirectory)/Webapp/**/*.csproj'
+
+          - task:                                DotNetCoreCLI@2
+            displayName:                         'Publish the Web App'
+            inputs:
+              command:                           publish
+              projects:                          '**/Webapp/**/*.csproj'
+              publishWebProjects:                false
+              arguments:                         '--output $(Build.ArtifactStagingDirectory)/WebApp'
+              zipAfterPublish:                   true
+              modifyOutputPath:                  true
+
+          - task:                                AzureWebApp@1
+            displayName:                         'Deploy the Web App'
+            inputs:
+              azureSubscription:                 $(AZURE_CONNECTION_NAME)
+              appType:                           'webApp'
+              appName:                           $(webappName)
+              package:                           '$(Build.ArtifactStagingDirectory)/WebApp/*.zip'
+              deploymentMethod:                  'auto'
+              appSettings:                       '-CollectionUri $(System.CollectionUri)
+                                                  -ProjectName "$(System.TeamProject)"
+                                                  -RepositoryId $(Build.Repository.ID)
+                                                  -SourceBranch "$(Build.SourceBranchName)"
+                                                  -WORKLOADZONE_PIPELINE_ID $(WORKLOADZONE_PIPELINE_ID)
+                                                  -SYSTEM_PIPELINE_ID $(SYSTEM_PIPELINE_ID)
+                                                  -SAP_INSTALL_PIPELINE_ID $(SAP_INSTALL_PIPELINE_ID)
+                                                  -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
+                                                  -IS_PIPELINE_DEPLOYMENT true
+                                                  -PAT $(secret)'
+          - bash: |
+              #!/bin/bash
+              printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s \naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(webappName) $(webappName) $(webappName) $(WEBAPP_IDENTITY) $(ARM_SUBSCRIPTION_ID) $(WEBAPP_ID) $(webappName) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+              echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
+            displayName:                         'Documentation'
