@@ -1,0 +1,23 @@
+---
+# Set 'sap-hana' as tuned profile
+# Add GRUB arguments to the config
+# Set 'never' for transparent_hugepage
+# Disable SELinux
+# Disable core file creation
+# SAP Note 2777782 - SAP HANA DB: Recommended OS Settings for RHEL 8
+- name:                                "2.10.1 sap-notes: - Collect facts about installed packages"
+  ansible.builtin.package_facts:
+
+- name:                                "2.10.1 sap-notes: - Disable SELinux"
+  selinux:
+    state:                             disabled
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  tags: ansible_skip_lint
+
+- name:                                "2.10.1 - Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +-------------------------------------4--------------------------------------*/

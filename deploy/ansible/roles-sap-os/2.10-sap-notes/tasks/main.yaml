@@ -43,6 +43,12 @@
 # Disable SELinux
 # Disable core file creation
 
+- name:                                2.10.1 - Disable SELinux
+  ansible.builtin.include_tasks:       2.10.1-all.yaml
+  when:
+    - distribution_id == 'redhat8'
+
+
 - name:                                2.10.1 - SAP Note 2777782
   ansible.builtin.include_tasks:       2.10.1.yaml
   when:
