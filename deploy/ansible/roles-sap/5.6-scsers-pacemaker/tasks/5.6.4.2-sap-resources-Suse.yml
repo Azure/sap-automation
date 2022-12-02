@@ -57,7 +57,6 @@
 
   when:
     - inventory_hostname == primary_instance_name
-    - ensa1 is defined
     - ensa1 | default(false)
 
 # [1] Create the SAP cluster resources - if using ENSA2 -
@@ -116,9 +115,7 @@
 
   when:
     - inventory_hostname == primary_instance_name
-    - ensa1 is not defined
     - ensa2 | default(false)
-
 
 # End of SAP Resources Cluster configuration
 ...

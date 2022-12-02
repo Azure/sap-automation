@@ -34,7 +34,6 @@
                                        op stop interval=0 timeout=600 \
                                        --group g-{{ sap_sid }}_ERS \
                                        --before nc_{{ sap_sid }}_ERS
-
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
@@ -57,10 +56,8 @@
     - ensa1 | default(false)
 
 # Use the following if using ENSA2
-
 - name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install"
   block:
-
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
@@ -69,7 +66,7 @@
                                        meta resource-stickiness=5000
                                        op monitor interval=20 on-fail=restart timeout=60 \
                                        op start interval=0 timeout=600 op stop interval=0 timeout=600 \
-                                       --group g-{{ sap_sid }}_ASCS                                    \
+                                       --group g-{{ sap_sid }}_ASCS \
                                        --before nc_{{ sap_sid }}_ASCS
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
@@ -106,7 +103,6 @@
 
   when:
     - inventory_hostname == secondary_instance_name
-    - ensa1 is not defined
     - ensa2 | default(false)
 
 # End of SAP Resources cluster configuration

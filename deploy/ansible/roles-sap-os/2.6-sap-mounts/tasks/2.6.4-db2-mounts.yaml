@@ -79,16 +79,14 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            db2_permissions_set
 
-- name:                                "DB2: Make db2sid:dba as owners for DB2
-                                        directories"
+- name:                                "DB2: Make db2sid:dba as owners for DB2 directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
     owner:                             "{{ item.owner }}"
     group:                             "{{ item.group }}"
     recurse:                           true
-  loop:
-     - { path: '/db2',       group: '{{ db2sysadm_gid }}',   owner: '{{ db2sidadm_uid }}'}
+  loop: { path: '/db2', group: '{{ db2sysadm_gid }}', owner: '{{ db2sidadm_uid }}' }
   when:
     - not db2_permissions_set.stat.exists
 
