@@ -43,10 +43,24 @@
 # Disable SELinux
 # Disable core file creation
 
-- name:                                2.10.1 - Disable SELinux
-  ansible.builtin.include_tasks:       2.10.1-all.yaml
-  when:
-    - distribution_id == 'redhat8'
+# Disable SELinux
+- name:                                "2.10.1 sap-notes: - Disable SELinux"
+  ansible.posix.selinux:
+    state:                             disabled
+  when:                                node_tier not in ['scs', 'ers', 'pas', 'app']
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  tags: ansible_skip_lint
+
+- name:                                "2.10.1 sap-notes: - Disable SELinux"
+  ansible.posix.selinux:
+    policy:                            targeted
+    state:                             permissive
+  when:                                node_tier in ['scs', 'ers', 'pas', 'app']
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  tags: ansible_skip_lint
+
+- name:                                "2.10.1 - Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
 
 
 - name:                                2.10.1 - SAP Note 2777782
