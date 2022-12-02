@@ -86,7 +86,8 @@
     owner:                             "{{ item.owner }}"
     group:                             "{{ item.group }}"
     recurse:                           true
-  loop: { path: '/db2', group: '{{ db2sysadm_gid }}', owner: '{{ db2sidadm_uid }}' }
+  loop:
+    - { path: '/db2', group: '{{ db2sysadm_gid }}', owner: '{{ db2sidadm_uid }}' }
   when:
     - not db2_permissions_set.stat.exists
 
