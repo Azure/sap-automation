@@ -285,7 +285,7 @@
 - import_tasks:                        "oracle-asm.yaml"
   when:
     - node_tier == "oracle-asm"
-    
+    - tier == "ora"
 
 - import_tasks:                        "oracle-observer.yaml"
   when:

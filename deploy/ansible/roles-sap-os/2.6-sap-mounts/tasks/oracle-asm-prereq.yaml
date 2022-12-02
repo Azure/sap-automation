@@ -71,14 +71,13 @@
   when:                                
     - NFS_provider == "NONE"
 
+- name:                                "ORACLE: Create sap_deployment_automation folder"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
 
-# # Mount install file system .
-# - name:                                "ORACLE: Mount SAP : Mount Install folder when using AFS"
-#   ansible.posix.mount:
-#     src:                               "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
-#     path:                              "{{ target_media_location }}"
-#     fstype:                            "nfs4"
-#     opts:                              "vers=4,minorversion=1,sec=sys"
-#     state:                             mounted
-#   when:
-#     - use_AFS
