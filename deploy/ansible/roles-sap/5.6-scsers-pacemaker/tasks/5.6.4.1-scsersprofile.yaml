@@ -98,7 +98,7 @@
 - name:                                "5.6 SCSERS - Enqueue Server Setup"
   block:
 
-    - name:                            "5.6 SCSERS - Get the variable for ENSA1"
+    - name:                            "5.6 SCSERS - Get the variable to determine ENSA version""
       become_user:                     "{{ sap_sid | lower }}adm"
       ansible.builtin.command:         "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList"
       vars:
@@ -115,16 +115,16 @@
         PYTHONPATH:                    "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
         PATH:                          "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ ansible_hostname }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
         LD_LIBRARY_PATH:               "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
-      register:                         enq_server1
+      register:                         enq_server
       changed_when:                     false
 
     - name:                             "5.6 SCSERS - Is ENSA1"
       ansible.builtin.set_fact:
-        ensa1:                          "{{ 'enserver' in enq_server1.stdout_lines }}"
+        ensa1:                          "{{ 'enserver' in enq_server.stdout_lines }}"
 
     - name:                             "5.6 SCSERS - Capture the Enqueue server version"
       ansible.builtin.set_fact:
-        ensa2:                          "{{ 'enq_server' in enq_server1.stdout_lines }}"
+        ensa2:                          "{{ 'enq_server' in enq_server.stdout_lines }}"
 
     - name:                             "5.6 SCSERS - Print the value of ENSA1/ENSA2"
       ansible.builtin.debug:
@@ -134,7 +134,6 @@
 
   when:
     - inventory_hostname == secondary_instance_name
-    - 1 == 2  # ToDO Fix later
 
 # Following are the changes in ASCS/ERS profiles based if ENSA1 is applicable
 
@@ -196,7 +195,7 @@
   when:
     - inventory_hostname == secondary_instance_name
     - ensa1 is defined
-    - ensa1
+    - ensa1 | default(false)
 
 
 #################################################################################################################
@@ -265,6 +264,6 @@
     - inventory_hostname == primary_instance_name
     - platform == 'DB2'
     - db_high_availability
-
+    - ensa1 | default(false)
 
 ...
