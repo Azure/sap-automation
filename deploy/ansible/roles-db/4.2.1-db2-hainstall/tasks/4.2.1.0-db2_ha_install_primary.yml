@@ -26,23 +26,21 @@
         dir_params:                    "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
         mem_size:                      "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
-    - name:                            "SAP DB2: Create run flag directory"
+    - name:                            "SAP DB2: Create directories"
       ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+        path:                          "{{ item.path }}"
         state:                         directory
-        mode:                          0755
+        mode:                          '{{ item.mode }}'
+      loop:
+        - { mode: '0755', path: '{{ dir_params }}' }
+        - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+        - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
     - name:                            "SAP DB2: Install reset"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
         state:                         absent
       when:                            reinstall
-
-    - name:                            "SAP DB2: Create hidden directory"
-      ansible.builtin.file:
-        path:                          "{{ dir_params }}"
-        state:                         directory
-        mode:                          0755
 
     - name:                            "SAP DB2: check media exists"
       ansible.builtin.stat:
@@ -128,7 +126,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
       tags:

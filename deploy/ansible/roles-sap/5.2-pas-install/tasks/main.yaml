@@ -19,6 +19,12 @@
     state:                             directory
     mode:                              0755
 
+- name:                                "PAS Install: Create temporary installation directory directory for sid"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+    state:                             directory
+    mode:                              0755
+
 #   0x) Create hidden directory for parameter files
 - name:                                "PAS Install: Create hidden directory"
   ansible.builtin.file:
@@ -114,6 +120,7 @@
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
+    hdb_instance_number:               "{{ db_instance_number }}"
 
   tags:
     - skip_ansible_lint
@@ -167,7 +174,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
       environment:
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
       register:                        pas_installation
       failed_when:                     pas_installation.rc > 0

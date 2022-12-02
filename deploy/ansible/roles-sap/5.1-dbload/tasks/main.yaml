@@ -8,12 +8,15 @@
 
 ---
 
-- name:                                "DBLoad: -  Create run flag directory"
+- name:                                "DBLoad: -  Create directories"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
-  when:                                node_tier != "oracle"
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "DBLoad: -  reset"
   ansible.builtin.file:
@@ -46,19 +49,6 @@
     scs_server:                        "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
     db_virtual_host:                   "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     dir_params:                        "{{ tmp_directory }}/.params"
-
-#   0x) Create hidden directory for parameter files
-- name:                                "DBLoad: Create hidden directory"
-  ansible.builtin.file:
-    path:                              "{{ dir_params }}"
-    state:                             directory
-    mode:                              0755
-
-- name:                                "DBLoad: Create temp directory for sid"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
-    state:                             directory
-    mode:                              0755
 
 - name:                                "SCS Install: check media exists"
   ansible.builtin.stat:
@@ -107,6 +97,7 @@
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+    hdb_instance_number:               "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
 
@@ -149,7 +140,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
       environment:
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        dbload_results
       tags:

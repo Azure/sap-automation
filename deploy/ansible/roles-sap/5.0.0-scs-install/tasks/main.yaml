@@ -108,6 +108,7 @@
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     scs_instance_number:               "{{ sid_to_be_deployed.ascs_inst_no }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+    hdb_instance_number:               "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
 
@@ -147,7 +148,7 @@
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
       tags:

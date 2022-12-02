@@ -14,19 +14,15 @@
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
-- name:                                "ERS Install: Create hidden directory"
+- name:                                "ERS Install: Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              '{{ item.mode }}'
   loop:
-    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-
-- name:                                "ERS Install: Create run flag directory"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
-    state:                             directory
-    mode:                              0755
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "ERS Install: reset"
   ansible.builtin.file:
@@ -85,6 +81,7 @@
     sap_appVirtualHostname:
     sap_scs_hostname:                  "{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1"
     param_directory:                   "{{ dir_params }}"
+    hdb_instance_number:               "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
 
@@ -149,7 +146,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           tags:
             - skip_ansible_lint
@@ -189,7 +186,7 @@
             creates:                   "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
           environment:
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
-            TMPDIR:                    "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+            TMPDIR:                    "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
           tags:

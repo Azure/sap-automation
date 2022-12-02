@@ -18,19 +18,17 @@
     sap_inifile_template:              "{{ bom_base_name }}-web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
-- name:                                "Web Install: Create hidden directory"
+- name:                                "Web Install: Create directories"
   ansible.builtin.file:
-    path:                              "{{ dir_params }}"
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "Web Install: Create temp directory for sid"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
-    state:                             directory
-    mode:                              0755
-
-- name:                                "Web Install: Create run flag directory"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
     state:                             directory
@@ -99,6 +97,7 @@
     sap_scs_hostname:                  "{{ scs_server }}"
     sap_webVirtualHostname:            "{{ inventory_hostname }}"
     sap_installSAPHostAgent:           false
+    hdb_instance_number:               "{{ db_instance_number }}"
 
   tags:
     - skip_ansible_lint
@@ -143,7 +142,7 @@
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_web.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0
       tags:

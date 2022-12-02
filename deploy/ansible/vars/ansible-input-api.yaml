@@ -58,7 +58,7 @@ db2sapsid_uid:   3005
 db2hadr_port1:   51012
 db2hadr_port2:   51013
 
-tmp_directory: "/tmp"
+tmp_directory: "/var/tmp"
 url_internet: "http://www.github.com" # URL to use for internet access checks"
 check_outbound: false
 

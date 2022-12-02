@@ -16,6 +16,16 @@
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
 - name:                                "SAP DB2 Install Secondary: Preparation"
   block:
+    - name:                            "SAP DB2: Create directories"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          '{{ item.mode }}'
+      loop:
+        - { mode: '0755', path: '{{ dir_params }}' }
+        - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+        - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+
     - name:                            "SAP DB2 Install Secondary: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
@@ -119,7 +129,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
       tags:
