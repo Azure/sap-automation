@@ -222,7 +222,6 @@
                 prefix:                "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
                 path:                  'INSTALL/DISTRIBUTED/ABAP/ASCS'
                 tier:                  'scs'
-                tmp_directory:         "/etc/sap_deployment_automation"
                 this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
               loop:                    "{{ all_sids }}"
               loop_control:
@@ -389,7 +388,6 @@
                 prefix:                "{{ scs_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
                 path:                  'INSTALL/HA/ABAP/ASCS'
                 tier:                  'scs'
-                tmp_directory:         "/etc/sap_deployment_automation"
                 this_sid:              "{{ sap_sid | upper }}"
               when:
                 - scs_bom_id is defined
@@ -403,7 +401,6 @@
                 prefix:                "{{ ers_bom_id.replace('.', '/').replace('/ABAPHA', '').split(':')[1] }}"
                 path:                  'INSTALL/HA/ABAP/ERS'
                 tier:                  'ers'
-                tmp_directory:         "/etc/sap_deployment_automation"
                 this_sid:              "{{ sap_sid | upper }}"
               when:
                 - ers_bom_id is defined

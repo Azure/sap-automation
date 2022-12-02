@@ -412,7 +412,6 @@
             tier:                      'db2'
             prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
-            tmp_directory:             "/etc/sap_deployment_automation"
             this_sid:                  "{{ sap_sid }}"
 
       vars:
@@ -478,7 +477,6 @@
             tier:                      'db2'
             prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
-            tmp_directory:             "/etc/sap_deployment_automation"
             this_sid:                  "{{ sap_sid }}"
 
       vars:

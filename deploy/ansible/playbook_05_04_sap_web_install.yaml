@@ -128,7 +128,6 @@
             prefix:                    ""
             path:                      "{{ file_path }}"
             tier:                      'web'
-            tmp_directory:             "/etc/sap_deployment_automation"
             this_sid:                  "{{ sid_to_be_deployed.sid | upper }}"
           loop:                        "{{ all_sids }}"
           loop_control:
