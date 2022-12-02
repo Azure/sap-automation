@@ -32,7 +32,6 @@
         line:                          "SAPDBHOST = {{ db_lb_virtual_host }}"
         state:                         present
       check_mode:                      yes
-      changed_when:                    false
       register:                        check_default_pfl
       when:
         - db_high_availability
