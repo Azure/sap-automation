@@ -39,7 +39,7 @@ locals {
     tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
   }
 
-cp_spn = {
+  cp_spn = {
     subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id[0].value, null)
     client_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null,
     client_secret   = var.use_spn ? data.azurerm_key_vault_secret.cp_client_secret[0].value : null,
@@ -73,10 +73,10 @@ cp_spn = {
     transport_volume_size         = var.ANF_transport_volume_size
     transport_volume_throughput   = var.ANF_transport_volume_throughput
 
-    use_existing_install_volume   = var.ANF_install_volume_use_existing
-    install_volume_name           = var.ANF_install_volume_name
-    install_volume_size           = var.ANF_install_volume_size
-    install_volume_throughput     = var.ANF_install_volume_throughput
+    use_existing_install_volume = var.ANF_install_volume_use_existing
+    install_volume_name         = var.ANF_install_volume_name
+    install_volume_size         = var.ANF_install_volume_size
+    install_volume_throughput   = var.ANF_install_volume_throughput
 
   }
 
