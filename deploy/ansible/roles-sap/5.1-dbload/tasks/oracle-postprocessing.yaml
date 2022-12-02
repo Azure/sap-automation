@@ -87,7 +87,7 @@
 
 - name:                               " Create sgaupdated.txt"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/sgaupdated.txt
+    path:                              /etc/sap_deployment_automation/{{ db_sid| upper }}/sgaupdated.txt
     state:                             touch
     mode:                              '0755'             
   when:                                updatesga_results.rc == 0
@@ -107,14 +107,14 @@
 
 - name:                               " Create db_startup_completed.txt"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/db_startup_completed.txt
+    path:                              /etc/sap_deployment_automation/{{ db_sid| upper }}/db_startup_completed.txt
     state:                             touch
     mode:                              '0755'             
   when:                                updatesga_results.rc == 0
 
 - name:                               " Create sgaupdated.txt"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/dgscripts/ora_sga_updated.txt
+    path:                              /etc/sap_deployment_automation/{{ db_sid| upper }}/ora_sga_updated.txt
     state:                             touch
     mode:                              '0755'             
   when:                                updatesga_results.rc == 0
