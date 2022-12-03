@@ -263,23 +263,17 @@ locals {
 
 resource "local_file" "sap_inventory_for_wiki_md" {
   content = templatefile(format("%s/sid-description.tmpl", path.module), {
-    sid           = var.sap_sid,
-    db_sid        = var.db_sid
-    kv_name       = local.kv_name,
-    scs_lb_ip     = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
-    platform      = lower(var.platform)
-    kv_pwd_secret = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
-    db_servers    = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
-    scs_servers   = var.naming.virtualmachine_names.SCS_COMPUTERNAME
-    pas_server = length(local.ips_app) > 0 ? (
-      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
-      []
-    )
-    application_servers = length(local.ips_app) > 1 ? (
-      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app) - 1)) : (
-      []
-    )
-    webdisp_servers   = var.naming.virtualmachine_names.WEB_COMPUTERNAME
+    sid                 = var.sap_sid,
+    db_sid              = var.db_sid
+    kv_name             = local.kv_name,
+    scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
+    platform            = lower(var.platform)
+    kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+    db_servers          = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+    scs_servers         = var.naming.virtualmachine_names.SCS_COMPUTERNAME
+    pas_server          = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
+    application_servers = try(slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.naming.virtualmachine_names.APP_COMPUTERNAME) - 1), "")
+    webdisp_servers     = var.naming.virtualmachine_names.WEB_COMPUTERNAME
     }
   )
   filename             = format("%s/%s_inventory.md", path.cwd, var.sap_sid)
