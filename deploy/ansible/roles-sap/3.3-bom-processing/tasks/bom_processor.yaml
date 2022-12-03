@@ -138,6 +138,12 @@
   register:                            result
   until:                               result is succeeded
   retries:                             2
+  failed_when:                         result.status_code != 200
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.download is undefined or item.download
+    - item.archive is defined
+    - item.archive | trim | length > 1
   delay:                               5
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   vars:
@@ -166,6 +172,16 @@
     - distribution_id != 'suse15'
     - distribution_id != 'sles_sap15'
     - distribution_id != 'redhat8'
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "DOWNLOAD:0001:Unable to download the content from the storage account, please ensure the deployer has access to the storage account."
+  when: result.status_code==403
+
+- name:                                "ErrorHandling"
+  ansible.builtin.fail:
+    msg:                               "DOWNLOAD:0002:Unable to download the file from the storage account, please ensure that the BoM has been downloaded to the storage account."
+  when: result.status_code==404
 
 #   05) Extract files - SAPCAR
 - name:                                "3.3 BoM Processing: - Extract File, SAPCAR"
