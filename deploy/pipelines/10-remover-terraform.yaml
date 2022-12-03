@@ -568,6 +568,11 @@ stages:
                       az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Zone_State_FileName" --yes --only-show-errors
                     fi
 
+                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query WZ_PAT.value)
+                    if [ -n "${az_var}" ]; then
+                      az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT.value --yes --only-show-errors
+                    fi
+
                   fi
                 fi
 
