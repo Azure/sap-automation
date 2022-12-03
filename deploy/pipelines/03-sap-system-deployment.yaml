@@ -128,11 +128,6 @@ stages:
                 az login --identity --output none
               fi
 
-              echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt --output none
-
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-
               echo -e "$green--- Convert config file to UX format ---$reset"
 
                 dos2unix -q SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
@@ -166,6 +161,14 @@ stages:
                 cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
                 echo -e "$green--- Pull the latest content from DevOps ---$reset"
                   git pull
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+
+                az logout
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
 
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
