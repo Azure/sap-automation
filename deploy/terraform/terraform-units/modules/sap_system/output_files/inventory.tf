@@ -261,7 +261,7 @@ locals {
   )
 }
 
-resource "local_file" "sap_inventory_md" {
+resource "local_file" "sap_inventory_for_wiki_md" {
   content = templatefile(format("%s/sid-description.tmpl", path.module), {
     sid           = var.sap_sid,
     db_sid        = var.db_sid
