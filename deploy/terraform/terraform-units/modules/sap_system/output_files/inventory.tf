@@ -272,7 +272,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",",var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
     scs_servers         = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
     pas_server          = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
-    application_servers = length(var.naming.virtualmachine_names.APP_COMPUTERNAME) > 1 ? join(",", slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.naming.virtualmachine_names.APP_COMPUTERNAME) - 1)) : ""
+    application_servers = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
     webdisp_servers     = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
     }
   )

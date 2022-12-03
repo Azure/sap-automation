@@ -220,11 +220,9 @@ stages:
 
                 file_name=${SID}_inventory.md
                 if [ -f ${SID}_inventory.md ]; then
-                  WIKI_NAME_FOUND = $(az devops wiki list --query "[?name=='SDAF'].name | [0]")
-                  echo $WIKI_NAME_FOUND
+                  WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
                   if [ -n "${WIKI_NAME_FOUND}" ]; then
-                    eTag = $(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
-                    echo $eTag
+                    eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
                     if [ -n "$eTag" ]; then
                       az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
                     else
