@@ -270,7 +270,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
     db_servers          = "D" #try(var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME, "")
-    scs_servers         = "S" try(var.naming.virtualmachine_names.SCS_COMPUTERNAME, "")
+    scs_servers         = "S" #try(var.naming.virtualmachine_names.SCS_COMPUTERNAME, "")
     pas_server          = "P" #try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
     application_servers = "A" #try(slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.naming.virtualmachine_names.APP_COMPUTERNAME) - 1), "")
     webdisp_servers     = "W" #try(var.naming.virtualmachine_names.WEB_COMPUTERNAME,"")
