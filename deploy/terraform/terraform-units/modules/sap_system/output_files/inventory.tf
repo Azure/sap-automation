@@ -273,11 +273,11 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     scs_servers   = var.naming.virtualmachine_names.SCS_COMPUTERNAME
     pas_server = length(local.ips_app) > 0 ? (
       slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
-      ""
+      []
     )
     application_servers = length(local.ips_app) > 1 ? (
       slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app) - 1)) : (
-      ""
+      []
     )
     webdisp_servers   = var.naming.virtualmachine_names.WEB_COMPUTERNAME
     }
