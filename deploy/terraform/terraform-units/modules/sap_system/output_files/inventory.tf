@@ -267,13 +267,13 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     db_sid              = var.db_sid
     kv_name             = local.kv_name,
     scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
-    platform            = lower(var.platform)
+    platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
-    db_servers          = try(var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME, "")
-    scs_servers         = try(var.naming.virtualmachine_names.SCS_COMPUTERNAME, "")
+    db_servers          = "D" #try(var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME, "")
+    scs_servers         = "S" try(var.naming.virtualmachine_names.SCS_COMPUTERNAME, "")
     pas_server          = "P" #try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
     application_servers = "A" #try(slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.naming.virtualmachine_names.APP_COMPUTERNAME) - 1), "")
-    webdisp_servers     = try(var.naming.virtualmachine_names.WEB_COMPUTERNAME,"")
+    webdisp_servers     = "W" #try(var.naming.virtualmachine_names.WEB_COMPUTERNAME,"")
     }
   )
   filename             = format("%s/%s_inventory.md", path.cwd, var.sap_sid)
