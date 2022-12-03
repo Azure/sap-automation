@@ -78,6 +78,8 @@
       failed_when:                     hana_replication_status.rc != 0
       args:
         executable: /bin/sh
+      environment:
+        ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}"
 
     - name:                            "HANA HSR: - Debug replication status"
       ansible.builtin.debug:

@@ -38,6 +38,8 @@
     allow_world_readable_tmpfiles:     true
   tags:
     - skip_ansible_lint
+  environment:
+    ANSIBLE_REMOTE_TEMP:               "{{ tmp_directory }}"
 
 - name:                                "HANA HSR: - Show replication status"
   ansible.builtin.debug:
