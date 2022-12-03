@@ -269,11 +269,11 @@ resource "local_file" "sap_inventory_for_wiki_md" {
     scs_lb_ip           = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
-    db_servers          = try(var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",",var.naming.virtualmachine_names.ANYDB_COMPUTERNAME), "")
-    scs_servers         = try(join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME), "")
-    pas_server          = try(join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME[0]), "")
-    application_servers = try(join(",", (slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.naming.virtualmachine_names.APP_COMPUTERNAME) - 1))), "")
-    webdisp_servers     = try(join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME), "")
+    db_servers          = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",",var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
+    scs_servers         = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
+    pas_server          = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
+    application_servers = length(var.naming.virtualmachine_names.APP_COMPUTERNAME) > 1 ? join(",", slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(var.naming.virtualmachine_names.APP_COMPUTERNAME) - 1)) : ""
+    webdisp_servers     = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
     }
   )
   filename             = format("%s/%s_inventory.md", path.cwd, var.sap_sid)
