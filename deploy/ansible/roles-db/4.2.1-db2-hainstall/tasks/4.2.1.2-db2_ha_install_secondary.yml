@@ -33,7 +33,6 @@
         - { mode: '0755', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
         - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-
     - name:                            "SAP DB2 Secondary: Create run flag directory"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
@@ -130,7 +129,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       environment:
-        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
       tags:
@@ -176,7 +175,6 @@
     - name:                            "SAP DB2 Install: progress"
       ansible.builtin.debug:
         msg:                           "SAP DB2 Already installed."
-
 
   when:
     - db2_installed.stat.exists
