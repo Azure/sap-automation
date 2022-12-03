@@ -212,6 +212,19 @@ stages:
                 if [ -f ${SID}.md ]; then
                   echo "##vso[task.uploadsummary]$HOME_CONFIG/SYSTEM/$(sap_system_folder)/${SID}.md"
                 fi
+
+                file_name=${SID}_inventory.md
+                if [ -f "${file_name}" ]; then
+                WIKI_NAME_FOUND = $(az devops wiki list --query "[?name=='SDAF'].name | [0]")
+                if [ -n "${WIKI_NAME_FOUND}" ]; then
+                  $eTag = $(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
+                  if [ -n "$eTag" ]; then
+                    az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none)
+                  else
+                    az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
+                  fi
+                fi
+
               exit $return_code
 
             displayName:               Deploy_SAP_infrastructure

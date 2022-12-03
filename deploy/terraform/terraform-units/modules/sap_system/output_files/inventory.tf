@@ -78,13 +78,13 @@ resource "local_file" "ansible_inventory_new_yml" {
     platform            = var.shared_home ? format("%s-multi-sid", lower(var.platform)) : lower(var.platform),
     db_connection       = var.platform == "SQLSERVER" ? "winrm" : "ssh"
     db_become_user      = var.platform == "SQLSERVER" ? var.ansible_user : "root"
-    scs_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  "winrm"          : "ssh"
-    scs_become_user     = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  var.ansible_user : "root"
-    ers_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  "winrm"          : "ssh"
-    app_connection      = upper(var.app_tier_os_types["app"]) == "WINDOWS" ?  "winrm"          : "ssh"
-    app_become_user     = upper(var.app_tier_os_types["app"]) == "WINDOWS" ?  var.ansible_user : "root"
-    web_connection      = upper(var.app_tier_os_types["web"]) == "WINDOWS" ?  "winrm"          : "ssh"
-    web_become_user     = upper(var.app_tier_os_types["web"]) == "WINDOWS" ?  var.ansible_user : "root"
+    scs_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "winrm" : "ssh"
+    scs_become_user     = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? var.ansible_user : "root"
+    ers_connection      = upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "winrm" : "ssh"
+    app_connection      = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? "winrm" : "ssh"
+    app_become_user     = upper(var.app_tier_os_types["app"]) == "WINDOWS" ? var.ansible_user : "root"
+    web_connection      = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? "winrm" : "ssh"
+    web_become_user     = upper(var.app_tier_os_types["web"]) == "WINDOWS" ? var.ansible_user : "root"
     app_connectiontype  = try(var.authentication_type, "key")
     web_connectiontype  = try(var.authentication_type, "key")
     scs_connectiontype  = try(var.authentication_type, "key")
@@ -97,7 +97,7 @@ resource "local_file" "ansible_inventory_new_yml" {
     observers           = length(var.observer_ips) > 0 ? var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME : []
     ansible_winrm_server_cert_validation = var.platform == "SQLSERVER" ? (
       "ansible_winrm_server_cert_validation: ignore") : (
-      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ?  "ansible_winrm_server_cert_validation: ignore" : ""
+      upper(var.app_tier_os_types["scs"]) == "WINDOWS" ? "ansible_winrm_server_cert_validation: ignore" : ""
 
     )
 
@@ -145,7 +145,7 @@ resource "local_file" "sap-parameters_yml" {
 
     oracle = local.oracle
 
-    domain=local.domain_info
+    domain = local.domain_info
 
     hana_data = length(try(var.hana_data[0], "")) > 1 ? (
       format("hana_data_mountpoint:          %s", jsonencode(var.hana_data))) : (
@@ -255,9 +255,34 @@ locals {
     ""
   )
 
-  domain_info=upper(var.platform) == "SQLSERVER" ? (
+  domain_info = upper(var.platform) == "SQLSERVER" ? (
     format("domain: %s\ndomain_user: %s\ndomain_name: %s\n", local.domain, local.domain_user, local.domain_name)) : (
     ""
   )
 }
 
+resource "local_file" "sap_inventory_md" {
+  content = templatefile(format("%s/sid-description.tmpl", path.module), {
+    sid           = var.sap_sid,
+    db_sid        = var.db_sid
+    kv_name       = local.kv_name,
+    scs_lb_ip     = length(var.scs_lb_ip) > 0 ? var.scs_lb_ip : try(local.ips_scs[0], "")
+    platform      = lower(var.platform)
+    kv_pwd_secret = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+    db_servers    = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
+    scs_servers   = var.naming.virtualmachine_names.SCS_COMPUTERNAME
+    pas_server = length(local.ips_app) > 0 ? (
+      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 0, 1)) : (
+      ""
+    )
+    application_servers = length(local.ips_app) > 1 ? (
+      slice(var.naming.virtualmachine_names.APP_COMPUTERNAME, 1, length(local.ips_app) - 1)) : (
+      ""
+    )
+    webdisp_servers   = var.naming.virtualmachine_names.WEB_COMPUTERNAME
+    }
+  )
+  filename             = format("%s/%s_inventory.md", path.cwd, var.sap_sid)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
