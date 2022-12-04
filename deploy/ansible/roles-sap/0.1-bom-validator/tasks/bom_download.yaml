@@ -90,7 +90,17 @@
 
         - name:                        "ErrorHandling"
           ansible.builtin.fail:
-            msg:                       "DOWNLOAD:0001:Download failed, please check the URL ({{ item.url }}) and the credentials"
+            msg:                       "DOWNLOAD:0001:Download failed, please check the URL ({{ item.url }})"
+          when:                        result.status_code 400
+
+        - name:                        "ErrorHandling"
+          ansible.builtin.fail:
+            msg:                       "DOWNLOAD:0002:Download failed, please check the S-user credentials"
+          when:                        result.status_code 401
+
+        - name:                        "ErrorHandling"
+          ansible.builtin.fail:
+            msg:                       "DOWNLOAD:0003:Download from SAP failed, URL ({{ item.url }})"
           when:                        result.status_code != 200
 
     - name:                            "BOM: Create checksums"
