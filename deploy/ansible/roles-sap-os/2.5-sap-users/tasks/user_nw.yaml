@@ -14,6 +14,17 @@
     sap_inifile:                       "{{ bom_base_name }}-generic-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
+- name:                                "User Creation: Create directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+
+
 - name:                                "User Creation: Set the Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
@@ -26,21 +37,6 @@
 - name:                                "User Creation: Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server:                        "{{ scs_server_temp | first }}"
-
-#   0x) Create hidden directory for parameter files
-- name:                                "User Creation: Create hidden directory"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             directory
-    mode:                              '{{ item.mode }}'
-  loop:
-    - { state: 'directory', mode: '0755', path: '{{ dir_params }}' }
-
-- name:                                "User Creation: Create run flag directory"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}"
-    state:                             directory
-    mode:                              0755
 
 - name:                                "User Creation: reset"
   ansible.builtin.file:
@@ -135,7 +131,7 @@
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-        TMPDIR:                        "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        generic_user_creation
       failed_when:                     generic_user_creation.rc > 0
       tags:

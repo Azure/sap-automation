@@ -45,7 +45,7 @@
     path:                              "{{ item.path }}"
     state:                             directory
     mode:                              0755
-  become:                              true
+  become:                              "{{ bom_processing_become }}"
   become_user:                         root
   delegate_to:                         localhost
   loop:

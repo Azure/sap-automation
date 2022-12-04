@@ -265,6 +265,38 @@
     - node_tier == 'scs'
     - scs_installed.stat.exists
 
+- name:                                "SCSERS - Enqueue Server Setup"
+  block:
+    - name:                            "SCSERS - Get the variable to determine ENSA version"
+      become_user:                     "{{ sap_sid | lower }}adm"
+      ansible.builtin.shell:           "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList"
+      environment:
+        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/home/{{ sap_sid | lower }}adm
+        DIR_LIBRARY:                   /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
+        LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
+        SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
+      register:                        enq_server
+      failed_when:                     enq_server.rc > 3
+      changed_when:                    false
+
+    # enserver, EnqueueServer
+    - name:                            "SCSERS - Is ENSA1"
+      ansible.builtin.set_fact:
+        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
+
+    # enq_server, Enqueue Server 2
+    - name:                            "SCSERS - Is ENSA2"
+      ansible.builtin.set_fact:
+        ensa2:                         "{{ enq_server.stdout_lines | select('search', 'enq_server') | length > 0 }}"
+
+    - name:                            "SCSERS - Print the value of ENSA1/ENSA2"
+      ansible.builtin.debug:
+        msg:
+          - "{{ ensa1 }}"
+          - "{{ ensa2 }}"
+  when:
+    - inventory_hostname == primary_instance_name
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

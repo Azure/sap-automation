@@ -93,7 +93,7 @@
       when:                            ansible_distribution_major_version == "7"
 
     - name:                            "Ensure the order constraint for the SAP DB2 is configured - Rhel - 8"
-      ansible.builtin.command:         pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-clone then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper}}
+      ansible.builtin.command:         pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-clone then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
       register:                        constraint
       failed_when:                     constraint.rc > 1
       when:                            ansible_distribution_major_version == "8"

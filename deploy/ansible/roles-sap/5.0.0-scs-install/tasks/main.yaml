@@ -23,11 +23,15 @@
     sap_inifile_template:              "{{ bom_base_name }}-scs-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
-- name:                                "SCS Install: Create run flag directory"
+- name:                                "SCS Install: -  Create directories"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
+    path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              0755
+    mode:                              '{{ item.mode }}'
+  loop:
+    - { mode: '0755', path: '{{ dir_params }}' }
+    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "SCS Install: reset"
   ansible.builtin.file:
@@ -45,20 +49,6 @@
   ansible.builtin.debug:
     var:                               scs_installed
     verbosity:                         2
-
-
-#   0x) Create hidden directory for parameter files
-- name:                                "SCS Install: Create hidden directory"
-  ansible.builtin.file:
-    path:                              "{{ dir_params }}"
-    state:                             directory
-    mode:                              0755
-
-- name:                                "SCS Install: Create temp directory for sid"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}"
-    state:                             directory
-    mode:                              0755
 
 - name:                                "SCS Install: check media exists"
   ansible.builtin.stat:

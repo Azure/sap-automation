@@ -8,8 +8,6 @@
 
 - name:                                "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Cluster Configuration after Install "
   block:
-    # - name:                           "Set the cluster on maintenace mode"
-    #   ansible.builtin.command:        crm configure property maintenance-mode="true"
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >

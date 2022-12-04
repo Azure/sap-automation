@@ -64,6 +64,10 @@
       ansible.builtin.command:         pcs cluster start --all
       changed_when:                    false
 
+    - name:                            "1.17 Generic Pacemaker - Enable cluster to auto-start after reboot"
+      ansible.builtin.command:         pcs cluster enable --all
+      changed_when:                    false
+
     - name:                            "1.17 Generic Pacemaker - Allow Concurrent Fencing"
       ansible.builtin.command:         pcs property set concurrent-fencing=true
       changed_when:                    false
