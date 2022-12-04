@@ -22,8 +22,7 @@
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
-    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
-
+    - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
 - name:                                "User Creation: Set the Server name list"
   ansible.builtin.set_fact:
@@ -40,13 +39,13 @@
 
 - name:                                "User Creation: reset"
   ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
     state:                             absent
   when:                                reinstall
 
 - name:                                "User Creation: check if Completed"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
   register:                            users_created
 
 - name:                                "User Creation: check if installed"
@@ -114,12 +113,6 @@
       ansible.builtin.debug:
         msg:                           "Start user creation"
 
-    - name:                            "User Creation: Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
     - name:                            "User Creation: SAP OS USERS and Group Creation {{ sid_to_be_deployed }}"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
@@ -128,7 +121,7 @@
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"
-        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+        creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
@@ -154,7 +147,7 @@
 
     - name:                            "User Creation: flag"
       ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | lower }}/user_created.txt"
+        path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/user_created.txt"
         state:                         touch
         mode:                          0755
       when:                            generic_user_creation.rc == 0
