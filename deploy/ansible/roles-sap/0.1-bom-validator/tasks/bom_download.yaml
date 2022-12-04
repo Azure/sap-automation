@@ -81,11 +81,17 @@
           become_user:                 root
           register:                    result
           no_log:                      false
+          failed_when:                 false
 
         - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
           ansible.builtin.debug:
             var:                           result
             verbosity:                     2
+
+        - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
+          ansible.builtin.fail:
+            msg:                           "Download failed, please check the URL ({{ item.url }}) and the credentials"
+          when:                            result is failed
 
     - name:                            "BOM: Create checksums"
       block:
