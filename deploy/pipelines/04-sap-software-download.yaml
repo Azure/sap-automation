@@ -34,6 +34,11 @@ parameters:
     displayName:                       Control Plane Environment
     default:                           MGMT
 
+  - name:                              extra_params
+    displayName:                       Extra Parameters
+    type:                              string
+    default:                           ""
+
   - name:                              region
     displayName:                       Control Plane (SAP Library) location code
     type:                              string
@@ -234,6 +239,8 @@ stages:
                   echo "##vso[task.logissue type=error]az login failed."
                   exit $return_code
                 fi
+
+                echo $ExtraParams
 
                 command="ansible-playbook '-e "BOM_directory=${sample_path}" -e "bom_base_name=$(BOM_NAME)" -e "deployer_kv_name=$(KV_NAME)" -e "check_storage_account=$(check_storage_account)" ' ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_bom_downloader.yaml"
 
