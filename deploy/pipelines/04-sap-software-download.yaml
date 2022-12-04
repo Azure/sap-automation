@@ -230,6 +230,8 @@ stages:
                 echo "##[group]- output"
                 eval $command
                 echo "##[endgroup]"
+                return_code=$?
+                exit $return_code
             displayName:               Download
             name:                      download
             env:
