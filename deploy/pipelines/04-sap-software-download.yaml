@@ -229,8 +229,8 @@ stages:
                 echo "##[section]Executing [$command]..."
                 echo "##[group]- output"
                 eval $command
-                echo "##[endgroup]"
                 return_code=$?
+                echo "##[endgroup]"
                 exit $return_code
             displayName:               Download
             name:                      download
