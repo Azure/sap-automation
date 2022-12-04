@@ -213,7 +213,7 @@
           - "ora_version: {{ ora_version }}"
           - "oracle_sbp_patch: {{ oracle_sbp_patch }}"
           - "oracle_sbp_patch: {{ oracle_sbp_patch | trim }}"
-          - "oracle_sbp_patch: {{ oracle_sbp_patch | trim }}"
+          - "oracle_sbp_patch: {{ oracle_sbp_patch | string | trim }}"
           - "oracle_sbp_patch: {{ oracle_sbp_patch | replace(' ', '') | length }}"
 
       when:
