@@ -54,6 +54,8 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                                           "Perform BoM processing"
+      when:
+        - "'scs' in supported_tiers"
       block:
 
         - name:                                       Set facts
@@ -91,9 +93,6 @@
                 path:                                 "{{ _workspace_directory }}/.progress/bom-processing"
                 state:                                touch
                 mode:                                 0755
-
-      when:
-        - "'scs' in supported_tiers"
 
 ...
 # /*---------------------------------------------------------------------------8

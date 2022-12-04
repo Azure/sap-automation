@@ -1,25 +1,25 @@
 name: Deploying the control plane defined in $(deployerfolder) $(libraryfolder)
 
 variables:
-  #01
+  # 01
   deployer:                         "MGMTNIGHTLY-WEEU-DEP01-INFRASTRUCTURE"
   library:                          "MGMTNIGHTLY-WEEU-SAP_LIBRARY"
   deployer_environment_parameter:   "MGMTNIGHTLY"
   use_webapp_param:                 "false"
   deploy_webapp_software:           "false"
   use_deployer:                     "true"
-  #02
+  # 02
   workload_zone:                    "NIGHT-WEEU-XXX01-INFRASTRUCTURE"
   workload_environment_parameter:   "NIGHT"
   deployer_region_parameter:        "WEEU"
   inherit_settings:                 "true"
-  #03
+  # 03
   sap_system:                       "NIGHT-WEEU-XXX01-X01"
-  #04
+  # 04
   bom_base_name:                    "S4HANA_2021_ISS_v0001ms"
   region:                           "WEEU"
   re_download:                      "false"
-  #05
+  # 05
   base_os_configuration:            "true"
   sap_os_configuration:             "true"
   bom_processing:                   "true"
@@ -36,7 +36,7 @@ variables:
   acss_sap_product:                 "S4HANA"
   # 20220929 MKD - ACSS Registration <END>
 
-  #10
+  # 10
   cleanup_sap:                      "true"
   cleanup_zone:                     "true"
 
@@ -45,7 +45,7 @@ trigger: none
 pool:
   name: $[coalesce(variables['run_on'], variables['Agent'])]
 
-#01-deploy-control-plane
+# 01-deploy-control-plane
 extends:
   template: ..\resources.yml
   parameters:
@@ -61,7 +61,7 @@ extends:
           sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
           config_repo_path: $(Build.SourcesDirectory)/config
 
-#02-sap-workload-zone
+# 02-sap-workload-zone
       - template: deploy\pipelines\02-sap-workload-zone.yaml@sap-automation
         parameters:
           workload_zone: ${{ variables.workload_zone }}
@@ -72,7 +72,7 @@ extends:
           sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
           config_repo_path: $(Build.SourcesDirectory)/config
 
-#03-sap-system-deployment
+# 03-sap-system-deployment
       - template: deploy\pipelines\03-sap-system-deployment.yaml@sap-automation
         parameters:
           sap_system: ${{ variables.sap_system }}
@@ -80,7 +80,7 @@ extends:
           sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
           config_repo_path: $(Build.SourcesDirectory)/config
 
-#04-sap-software-download
+# 04-sap-software-download
       - ${{ if eq(false, true) }}:
         - template: deploy\pipelines\04-sap-software-download.yaml@sap-automation
           parameters:
@@ -91,7 +91,7 @@ extends:
             sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
             config_repo_path: $(Build.SourcesDirectory)/config
 
-#05-sap-software-deployment
+# 05-sap-software-deployment
       - template: deploy\pipelines\05-DB-and-SAP-installation.yaml@sap-automation
         parameters:
           sap_system_configuration_name: ${{ variables.sap_system }}
@@ -113,7 +113,7 @@ extends:
           sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
           config_repo_path: $(Build.SourcesDirectory)/config
 
-#10-remover-terraform
+# 10-remover-terraform
       - template: deploy\pipelines\10-remover-terraform.yaml@sap-automation
         parameters:
           deployer_environment: ${{ variables.deployer_environment_parameter }}

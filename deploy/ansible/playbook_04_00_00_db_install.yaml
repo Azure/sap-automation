@@ -98,6 +98,7 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "Database Installation Playbook: - Install HANA"
+      when: node_tier == 'hana'
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -157,9 +158,10 @@
           tags:
             - 4.0.0-hdb-install
 
-      when: node_tier == 'hana'
-
     - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
+      when:
+        - db_high_availability
+        - node_tier == 'hana'
       block:
         - name:                        "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
@@ -218,9 +220,6 @@
             state:                     touch
             mode:                      0755
 
-      when:
-        - db_high_availability
-        - node_tier == 'hana'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -246,6 +245,9 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "Database Installation Playbook: - Install Oracle"
+      when:
+        - node_tier == 'oracle-multi-sid'
+        - platform == 'ORACLE'
       block:
 
         - name:                        "Database Installation Playbook: - Setting the DB facts"
@@ -258,9 +260,6 @@
         - name:                        "Configure accounts for ora-msid"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
-      when:
-        - node_tier == 'oracle-multi-sid'
-        - platform == 'ORACLE'
 
 
 # /*----------------------------------------------------------------------------8
@@ -287,6 +286,9 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "Database Installation Playbook: - Install Oracle"
+      when:
+        - platform == 'ORACLE'
+        - node_tier == 'oracle'
       block:
 
         - name:                        "Database Installation Playbook: - Setting the DB facts"
@@ -318,12 +320,12 @@
             path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
-      when:
-        - platform == 'ORACLE'
-        - node_tier == 'oracle'
 
 
     - name:                            "Install Oracle for MSID"
+      when:
+        - node_tier == 'oracle-multi-sid'
+        - platform == 'ORACLE'
       block:
         - name:                        Setting the DB facts for MSID
           ansible.builtin.set_fact:
@@ -353,9 +355,6 @@
             path:                      "{{ _workspace_directory }}/.progress/db-install-done"
             state:                     touch
             mode:                      0755
-      when:
-        - node_tier == 'oracle-multi-sid'
-        - platform == 'ORACLE'
 
 
 # /*----------------------------------------------------------------------------8
@@ -380,6 +379,9 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "Install SAP DB2"
+      when:
+        - platform == 'DB2'
+        - not db_high_availability
       block:
 
         - name:                        "DB2 : Setting the DB facts"
@@ -413,12 +415,6 @@
             prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             this_sid:                  "{{ sap_sid }}"
-
-      vars:
-        # become_user:                   root
-      when:
-        - platform == 'DB2'
-        - not db_high_availability
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
