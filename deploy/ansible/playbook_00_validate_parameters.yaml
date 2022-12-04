@@ -201,7 +201,7 @@
       ansible.builtin.assert:
         that:
           - oracle_sbp_patch is defined
-          - oracle_sbp_patch | trim | length > 1
+          - oracle_sbp_patch | replace(' ', '') | length > 1
         fail_msg: "Oracle deployments requires that oracle_sbp_patch is provided"
       when:
         - platform == 'ORACLE'
@@ -211,7 +211,7 @@
         msg:
           - "ora_release: {{ ora_release }}"
           - "ora_version: {{ ora_version }}"
-          - "oracle_sbp_patch: {{ oracle_sbp_patch  | trim | length }}"
+          - "oracle_sbp_patch: {{ oracle_sbp_patch  | replace(' ', '') | length }}"
 
       when:
         - platform == 'ORACLE'
