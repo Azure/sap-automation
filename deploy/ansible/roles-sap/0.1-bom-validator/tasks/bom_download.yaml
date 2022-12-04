@@ -80,13 +80,12 @@
           become:                      true
           become_user:                 root
           register:                    result
-          until:                       result is succeeded or not result.changed
           no_log:                      false
 
-    - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
-      ansible.builtin.debug:
-        var:                           result
-        verbosity:                     2
+        - name:                            "BOM: {{ bom_name }} Download File {{ item.archive }}"
+          ansible.builtin.debug:
+            var:                           result
+            verbosity:                     2
 
     - name:                            "BOM: Create checksums"
       block:
