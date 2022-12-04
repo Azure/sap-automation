@@ -216,7 +216,7 @@ stages:
                   exit 2
                 fi
 
-                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+                az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                 return_code=$?
                 if [ 0 != $return_code ]; then
                   echo -e "$boldred--- Login failed ---$reset"
@@ -242,6 +242,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              ExtraParams:              $(ExtraParams)
+              ExtraParams:              ${{ parameters.ExtraParams }}
             failOnStderr:               false
 
