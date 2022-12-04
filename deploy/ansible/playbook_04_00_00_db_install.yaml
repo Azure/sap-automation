@@ -17,8 +17,8 @@
         path:                              "{{ item.path }}"
         state:                             directory
         mode:                              0755
-      become:                              "{{ bom_processing_become }}"
-      become_user:                         root
+      become:                              true
+      become_user:                         "{{ bom_processing_become }}"
       delegate_to:                         localhost
       loop:
         - path: "{{ download_directory }}"
