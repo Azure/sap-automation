@@ -191,8 +191,8 @@
     - name:                            "0.0 Validations - Validate ORACLE parameters"
       ansible.builtin.assert:
         that:
-          - "ora_release is version(ora_supported_version,'>=')"
-          - "ora_version is version(ora_supported_version,'>=')"
+          - ora_release is version(ora_supported_version,'>=')
+          - ora_version is version(ora_supported_version,'>=')
         fail_msg: "Oracle deployments requires that ora_release and ora_version are provided"
       when:
         - platform == 'ORACLE'
@@ -200,7 +200,8 @@
     - name:                            "0.0 Validations - Validate ORACLE parameters"
       ansible.builtin.assert:
         that:
-          - "{{ oracle_sbp_patch | trim | length > 1 }}"
+          - oracle_sbp_patch is defined
+          - oracle_sbp_patch | trim | length > 1
         fail_msg: "Oracle deployments requires that oracle_sbp_patch is provided"
       when:
         - platform == 'ORACLE'
