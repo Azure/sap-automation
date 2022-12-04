@@ -192,7 +192,7 @@
       ansible.builtin.assert:
         that:
           - "ora_release is version(ora_supported_version,'>=')"
-          - "ora_version is version(ora_supported_version',>=')"
+          - "ora_version is version(ora_supported_version,'>=')"
         fail_msg: "Oracle deployments requires that ora_release and ora_version are provided"
       when:
         - platform == 'ORACLE'
