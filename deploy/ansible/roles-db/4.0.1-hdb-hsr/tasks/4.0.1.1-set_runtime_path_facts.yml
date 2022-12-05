@@ -5,15 +5,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-- name:                                "Give {{ db_sid | lower }}adm user access to {{ tmp_directory }}"
-  ansible.builtin.file:
-    path:                              "{{ tmp_directory }}"
-    state:                             directory
-    mode:                              0775
-    recurse:                           true
-    owner:                             "{{ db_sid_admin_user }}"
-
 - name:                                "HANA HSR: - Determine runtime value of SAP global path"
   become_user:                         "{{ db_sid_admin_user }}"
   ansible.builtin.shell: >
