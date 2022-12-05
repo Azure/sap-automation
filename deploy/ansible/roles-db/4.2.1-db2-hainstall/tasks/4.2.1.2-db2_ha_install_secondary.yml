@@ -172,7 +172,6 @@
       register:                        db2_lock_escalation
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-        ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}"
 
     - name:                            "DB2 Install - Create lock escalation run flag"
       ansible.builtin.file:
