@@ -31,7 +31,7 @@
         regexp:                        "^SAPDBHOST = {{ db_lb_virtual_host }}"
         line:                          "SAPDBHOST = {{ db_lb_virtual_host }}"
         state:                         present
-      check_mode:                      yes
+      check_mode:                      true
       register:                        check_default_pfl
       when:
         - db_high_availability

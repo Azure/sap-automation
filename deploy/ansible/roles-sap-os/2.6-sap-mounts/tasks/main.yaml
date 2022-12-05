@@ -263,17 +263,20 @@
     - sap_mnt is undefined
 
 # Import this task only if the tier is ora.
-- import_tasks:                        "oracle.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle tasks"
+  ansible.builtin.import_tasks:        "oracle.yaml"
   when:
     - node_tier == "oracle"
 
-- import_tasks:                        "oracle-multi-sid.yaml"
+- name:                                "2.6 SAP Mounts: - Import Oracle multi sid tasks"
+  ansible.builtin.import_tasks:        "oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
     - node_tier != "oracle-asm"
 
 # Import this task only if the node_tier is db2.
-- import_tasks:                        "2.6.4-db2-mounts.yaml"
+- name:                                "2.6 SAP Mounts: - Import DB2 tasks"
+  ansible.builtin.import_tasks:        "2.6.4-db2-mounts.yaml"
   when:
     - node_tier == "db2"
 

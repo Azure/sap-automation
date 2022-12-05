@@ -166,7 +166,7 @@
 
 # [A] Add firewall rules for ASCS and ERS on both nodes Add the firewall rules for ASCS and ERS on both nodes.
 - name:                                 "5.6 SCSERS - RHEL - Add firewall rules for ASCS and ERS on both nodes"
-  ansible.builtin.firewalld:
+  ansible.posix.firewalld:
     zone:                               public
     port:                               "{{ item.port }}/tcp"
     permanent:                          true

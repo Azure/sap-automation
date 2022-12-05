@@ -69,7 +69,6 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
     task_prefix:                       "DBLoad: "
 
 - name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
@@ -96,7 +95,6 @@
     sap_db_hostname:                   "{{ db_virtual_host }}"
     sap_ciVirtualHostname:
     sap_appVirtualHostname:
-    tier:                              "{{ tier }}"
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
@@ -125,7 +123,8 @@
 #
 # *====================================4=======================================8
     # Import this task only if the tier is ora.
-    - import_tasks:                    "oracle.yaml"
+    - name:                            "DBLoad: import oracle tasks"
+      ansible.builtin.import_tasks:    oracle.yaml
       when:
         - node_tier == "oracle-multi-sid"
 
@@ -205,8 +204,8 @@
     - not dbload_installed.stat.exists
 
 - name:                                "DBLoad: - status"
+  when: dbload_installed.stat.exists
   block:
-
     - name:                            "DBLoad: - status"
       ansible.builtin.debug:
         msg:                           "DBLoad is already performed ({{ sid_to_be_deployed.sid | upper }})"
@@ -214,10 +213,6 @@
     - name:                            "DBLoad: - return value"
       ansible.builtin.set_fact:
         dbload_already_performed:      true
-  when:
-    - dbload_installed.stat.exists
-
-
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

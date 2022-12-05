@@ -217,7 +217,7 @@
               vars:
                 suffix:                "_PAS"
                 prefix:                "{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  "{{ pas_file_path.replace('//','/') }}"
+                path:                  "{{ pas_file_path.replace('//', '/') }}"
                 tier:                  'pas'
                 this_sid:              "{{ sid_to_be_deployed.sid | upper }}"
               loop:                    "{{ all_sids }}"

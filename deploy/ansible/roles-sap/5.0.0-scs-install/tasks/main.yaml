@@ -66,7 +66,6 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    tier:                              "{{ tier }}"
     task_prefix:                       "SCS Install: "
 
 - name:                                "SCS Install: Include roles-sap/3.3.1-bom-utility role"

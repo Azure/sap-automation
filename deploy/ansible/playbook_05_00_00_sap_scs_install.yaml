@@ -189,7 +189,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.0.0-scs-install
               vars:
-                scs_instance_number: "{{ sid_to_be_deployed.ascs_inst_no }}"
+                scs_instance_number:   "{{ sid_to_be_deployed.ascs_inst_no }}"
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed
@@ -235,8 +235,6 @@
 
           tags:
             - 5.0.0-scs-install
-          vars:
-            tier:                      "{{ tier }}"
       when:
         - not scs_high_availability
         - "'scs' in supported_tiers"
