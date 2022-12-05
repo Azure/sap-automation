@@ -115,6 +115,12 @@
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Install. Please wait"
 
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "SAP DB2 Install"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -156,7 +162,6 @@
       register:                        db2_lock_escalation
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-        ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}"
 
     - name:                            "DB2 Install - Create lock escalation run flag"
       ansible.builtin.file:

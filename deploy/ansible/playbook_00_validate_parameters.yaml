@@ -205,8 +205,7 @@
       ansible.builtin.assert:
         that:
           - oracle_sbp_patch is defined
-          - oracle_sbp_patch | type_debug != 'NoneType'
-          - oracle_sbp_patch | default('') | length > 1
+          - oracle_sbp_patch | default('') | trim | length > 1
         fail_msg: "Oracle deployments requires that oracle_sbp_patch is provided"
       when:
         - platform == 'ORACLE'

@@ -100,6 +100,7 @@
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
     virt_do_not_resolve_hostname:      "{{ db_lb_virtual_host }}"
+    # support older app inifile templates where hdb_instance_number was used
     hdb_instance_number:               "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
@@ -135,9 +136,14 @@
       ansible.builtin.debug:
         msg:                           "Starting App Install ({{ sid_to_be_deployed.sid | upper }})"
 
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
-                                       export SAPSYSTEMNAME={{ sid_to_be_deployed.sid | upper }};
                                        umask {{ custom_umask | default('022') }};
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                     \
@@ -148,7 +154,7 @@
         chdir:                         "{{ target_media_location }}/SWPM"
         creates:                       "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
       environment:
-        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
       register:                        app_installation
       failed_when:                     app_installation.rc > 0

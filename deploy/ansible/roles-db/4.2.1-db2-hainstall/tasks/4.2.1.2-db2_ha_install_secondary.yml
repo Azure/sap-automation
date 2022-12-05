@@ -16,6 +16,16 @@
 # Set BOM facts for SAP DB2 Install - Refer to sap-automation/deploy/ansible/BOM-catalog/ERP6_EHP8_LNX_DB2UDB_11_5_v0001ms
 - name:                                "SAP DB2 Install Secondary: Preparation"
   block:
+    - name:                            "SAP DB2: Create directories"
+      ansible.builtin.file:
+        path:                          "{{ item.path }}"
+        state:                         directory
+        mode:                          '{{ item.mode }}'
+      loop:
+        - { mode: '0755', path: '{{ dir_params }}' }
+        - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+        - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
+
     - name:                            "SAP DB2 Install Secondary: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-dbloadstandby-{{ ansible_hostname }}.params"
@@ -118,6 +128,12 @@
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Install - Secondary DB. Please wait"
 
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
+        state:                         directory
+        mode:                          0755
+
     - name:                            "SAP DB2 Install - Secondary DB"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -156,7 +172,6 @@
       register:                        db2_lock_escalation
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-        ANSIBLE_REMOTE_TEMP:           "{{ tmp_directory }}"
 
     - name:                            "DB2 Install - Create lock escalation run flag"
       ansible.builtin.file:

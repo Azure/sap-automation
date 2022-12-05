@@ -100,6 +100,7 @@
     param_directory:                   "{{ dir_params }}"
     sap_sid:                           "{{ sid_to_be_deployed.sid }}"
     sidadm_uid:                        "{{ sid_to_be_deployed.sidadm_uid }}"
+    # support older dbload inifile templates where hdb_instance_number was used
     hdb_instance_number:               "{{ db_instance_number }}"
   tags:
     - skip_ansible_lint
@@ -131,6 +132,12 @@
     - name:                            "DBLoad: progress"
       ansible.builtin.debug:
         msg:                           "Starting DBLoad for {{ sid_to_be_deployed.sid | upper }}. Please wait"
+
+    - name:                            "Create temp directory for sid"
+      ansible.builtin.file:
+        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
+        state:                         directory
+        mode:                          0755
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
