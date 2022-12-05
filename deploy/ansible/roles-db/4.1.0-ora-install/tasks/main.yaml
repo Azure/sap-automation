@@ -99,6 +99,8 @@
       environment:
         DB_SID:                        "{{ db_sid | upper }}"
         CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
+
       args:
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_pre_check_install.txt"
@@ -147,6 +149,7 @@
       environment:
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       args:
         executable:                    /bin/csh
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
@@ -189,6 +192,10 @@
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/orainstRoot_executed.txt"
         executable:                    /bin/csh
+      environment:
+        DB_SID:                        "{{ db_sid }}"
+        CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       tags:
         - skip_ansible_lint
 
@@ -218,6 +225,10 @@
       args:
         creates:                       "/etc/sap_deployment_automation/{{ sap_sid | upper }}/rootscripts_executed.txt"
         executable:                    /bin/csh
+      environment:
+        DB_SID:                        "{{ db_sid }}"
+        CV_ASSUME_DISTID:              OL7
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       tags:
         - skip_ansible_lint
 
@@ -329,6 +340,7 @@
         IHRDBMS:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}
         ORACLE_HOME:                   /oracle/{{ db_sid | upper }}/{{ ora_version }}
         RDBMS:                         /oracle/{{ db_sid | upper }}/{{ ora_version }}
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
       register:                        sbpscript_results
       failed_when:                     sbpscript_results.rc >= 2
       args:
