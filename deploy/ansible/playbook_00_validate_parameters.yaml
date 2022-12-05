@@ -66,28 +66,28 @@
         fail_msg: "{{ item_to_check.error }}"
       loop:
         - {
-            parameter:                 "bom_base_name",
-            error:                     "Please provide the Bill of materials name in bom_base_name parameter",
+          parameter:                 "bom_base_name",
+          error:                     "Please provide the Bill of materials name in bom_base_name parameter",
           }
         - {
-            parameter:                 "kv_name",
-            error:                     "Please provide the workload zone key vault name in kv_name parameter",
+          parameter:                 "kv_name",
+          error:                     "Please provide the workload zone key vault name in kv_name parameter",
           }
         - {
-            parameter:                 "sap_fqdn",
-            error:                     "Please provide the SAP fqdn in  in sap_fqdn parameter",
+          parameter:                 "sap_fqdn",
+          error:                     "Please provide the SAP fqdn in  in sap_fqdn parameter",
           }
         - {
-            parameter:                 "sap_sid",
-            error:                     "Please provide the SAP SID in sap_sid parameter",
+          parameter:                 "sap_sid",
+          error:                     "Please provide the SAP SID in sap_sid parameter",
           }
         - {
-            parameter:                 "secret_prefix",
-            error:                     "Please provide the Key Vault secret prefix in secret_prefix parameter",
+          parameter:                 "secret_prefix",
+          error:                     "Please provide the Key Vault secret prefix in secret_prefix parameter",
           }
         - {
-            parameter:                 "sapbits_location_base_path",
-            error:                     "Please provide the sapbits_location_base_path in the deployer key vault",
+          parameter:                 "sapbits_location_base_path",
+          error:                     "Please provide the sapbits_location_base_path in the deployer key vault",
           }
       loop_control:
         loop_var:                      item_to_check

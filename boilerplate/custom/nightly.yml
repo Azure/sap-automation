@@ -81,15 +81,14 @@ extends:
           config_repo_path: $(Build.SourcesDirectory)/config
 
 # 04-sap-software-download
-      - ${{ if eq(false, true) }}:
-        - template: deploy\pipelines\04-sap-software-download.yaml@sap-automation
-          parameters:
-            bom_base_name: ${{ variables.bom_base_name }}
-            environment: ${{ variables.deployer_environment_parameter }}
-            region: ${{ variables.region }}
-            re_download: ${{ variables.re_download }}
-            sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
-            config_repo_path: $(Build.SourcesDirectory)/config
+      - template: deploy\pipelines\04-sap-software-download.yaml@sap-automation
+        parameters:
+          bom_base_name: ${{ variables.bom_base_name }}
+          environment: ${{ variables.deployer_environment_parameter }}
+          region: ${{ variables.region }}
+          re_download: ${{ variables.re_download }}
+          sap_automation_repo_path: $(Build.SourcesDirectory)/sap-automation
+          config_repo_path: $(Build.SourcesDirectory)/config
 
 # 05-sap-software-deployment
       - template: deploy\pipelines\05-DB-and-SAP-installation.yaml@sap-automation
