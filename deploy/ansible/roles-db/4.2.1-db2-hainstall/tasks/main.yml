@@ -17,15 +17,6 @@
 # +                                                                           */
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "Give {{ db_sid | lower }}adm user access to {{ tmp_directory }}"
-  ansible.builtin.file:
-    path:                              "{{ tmp_directory }}"
-    state:                             directory
-    mode:                              0775
-    recurse:                           true
-    owner:                             "db2{{ db_sid | lower }}"
-
-
 - name:                                "DB2 Primary System Setup"
   block:
 
