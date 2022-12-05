@@ -26,6 +26,7 @@
 - name:                                "Determine if HANA is running on {{ ansible_hostname }}"
   ansible.builtin.debug:
     var:                               is_hana_running
+    verbosity:                         2
 
 - name:                                "Ensure HANA is running on {{ ansible_hostname }}"
   become_user:                         "{{ db_sid | lower }}adm"
