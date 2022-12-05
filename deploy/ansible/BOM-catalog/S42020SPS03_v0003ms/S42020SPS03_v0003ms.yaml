@@ -23,10 +23,10 @@
     
     materials:
       dependencies:
-        - name:     HANA_2_00_065_v0001ms
-        - name:     SWPM20SP12_latest
-        - name:     SUM20SP14_latest
-    
+        - name:     HANA_2_00_065_v0002ms
+        - name:     SWPM20SP13_latest
+        - name:     SUM20SP15_latest
+
       media:
         # SAPCAR 7.XX
     
@@ -966,10 +966,10 @@
           checksum: 230dab337a626543a3015d19888aff5fa1483fb0e7710b6559319c521f84f154
           url: https://softwaredownloads.sap.com/file/0010000001758902020
           download: false
-    
-        - name: "Attribute Change Package 04 for SAP_BASIS 755"
+
+        - name: "Attribute Change Package 05 for SAP_BASIS 755"
           archive: SAP_BASIS755.SAR
-          checksum: dc8e377797649abdc9fd7a7c9ab90d10c7a4d7f8c77c3d5abb6de9925e223182
+          checksum: 95cdf4eac1ffa2f5d69c06d7f219088dac4123a67d345e5fd6d2458c158859c9
           url: https://softwaredownloads.sap.com/file/0010000001467632021
           download: false
     

@@ -1,0 +1,17 @@
+---
+
+name:    'SWPM20SP13'
+target:  'SWPM20SP13'
+version: 001
+
+materials:
+
+  media:
+    # SWPM
+    - name:         "SWPM 2.0 SP13 ; OS: Linux on x86_64 64bit"
+      archive:      SWPM20SP13_1-80003424.SAR
+      checksum:     0cd5916b31c543cb2b4305b9a6324d04b408751ec5e69cb3ab7fb0e2c492eb3e
+      extract:      true
+      extractDir:   SWPM
+      creates:      SIGNATURE.SMF
+      url:          https://softwaredownloads.sap.com/file/0020000001492982022
