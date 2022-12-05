@@ -6,7 +6,7 @@
 # They may be overridden, if required, but normally are not
 
 db_sid_admin_user:                     "db2{{ db_sid | lower }}"
-db_sid_backup_dir:                    "{{ target_media_location }}/db2backup"
+db_sid_backup_dir:                     "{{ target_media_location }}/db2backup"
 
 # DB2 utility commands
 db2sql_command:                        "db2 connect to {{ db_sid }}"
