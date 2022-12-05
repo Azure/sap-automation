@@ -29,7 +29,7 @@
 
 - name:                                "1.5 Disk setup - Ensure installation directory exists"
   ansible.builtin.file:
-    path:                              "{{ tmp_directory }}/{{ sap_sid | upper }}"
+    path:                              "{{ tmp_directory }}"
     state:                             directory
     mode:                              0777
 
