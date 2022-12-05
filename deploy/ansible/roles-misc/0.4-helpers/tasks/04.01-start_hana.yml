@@ -24,6 +24,7 @@
   register:                            is_hana_running
   environment:
     TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
+    ANSIBLE_REMOTE_TMP:                "{{ tmp_directory }}"
 
 - name:                                "Determine if HANA is running on {{ ansible_hostname }}"
   ansible.builtin.debug:
@@ -37,6 +38,7 @@
   changed_when:                        false
   environment:
     TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
+    ANSIBLE_REMOTE_TMP:                "{{ tmp_directory }}"
 
 - name:                                "Validate HANA is running  on {{ ansible_hostname }}"
   become_user:                         "{{ db_sid | lower }}adm"
@@ -47,5 +49,6 @@
   failed_when:                         hana_running.rc != 3
   environment:
     TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
+    ANSIBLE_REMOTE_TMP:                "{{ tmp_directory }}"
 
 ...

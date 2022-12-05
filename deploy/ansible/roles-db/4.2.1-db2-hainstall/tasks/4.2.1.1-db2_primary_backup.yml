@@ -13,8 +13,8 @@
   args:
     executable:                        /bin/csh
   environment:
-    PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-    TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
+    PATH:                              "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+    TEMPDIR:                           "{{ tmp_directory }}/{{ sap_sid | upper }}"
   failed_when:                         false
   when:                                ansible_hostname == primary_instance_name
 
@@ -59,7 +59,7 @@
         executable: /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-        TEMPDIR:                       "{{ tmp_directory }}/{{ db_sid | upper }}"
+        TEMPDIR:                       "{{ tmp_directory }}/{{ sap_sid | upper }}"
     - name:                            "SAP DB2: check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
