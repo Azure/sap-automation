@@ -22,12 +22,16 @@
   failed_when:                         false
   changed_when:                        false
   register:                            hana_stopped
+  environment:
+    TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
 
 - name:                                "Ensure HANA is stopped {{ ansible_hostname }}"
+  when:                                hana_stopped.rc != 4
   become_user:                         "{{ db_sid | lower }}adm"
   become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
-  when:                                hana_stopped.rc != 4
+  environment:
+    TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
 
 - name:                                "Verify HANA is stopped on {{ ansible_hostname }}"
   become_user:                         "{{ db_sid | lower }}adm"
@@ -36,3 +40,5 @@
   changed_when:                        false
   register:                            hana_stopped
   failed_when:                         hana_stopped.rc != (4 or 0)
+  environment:
+    TEMPDIR:                           "{{ tmp_directory }}/{{ db_sid | upper }}"
