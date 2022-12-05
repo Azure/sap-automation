@@ -29,9 +29,9 @@
 
 - name:                                "1.5 Disk setup - Ensure installation directory exists"
   ansible.builtin.file:
-    path:                              "{{ tmp_directory }}"
+    path:                              "{{ tmp_directory }}/{{ sap_sid | upper }}"
     state:                             directory
-    mode:                              0775
+    mode:                              0777
 
 
 - name:                                "1.5 Disk setup - Load the disk configuration settings"
