@@ -401,7 +401,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "vm_disks" {
   caching                   = local.anydb_disks[count.index].caching
   write_accelerator_enabled = local.anydb_disks[count.index].write_accelerator_enabled
   lun                       = local.anydb_disks[count.index].lun
-  tier                      = local.anydb_disks[count.index].tier
+  # tier                      = local.anydb_disks[count.index].tier
 }
 
 
