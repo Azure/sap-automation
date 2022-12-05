@@ -16,7 +16,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "Determine if HANA is stopped on {{ ansible_hostname }}"
-#  become_user:                         "{{ db_sid | lower }}adm"
+  become_user:                         "{{ db_sid | lower }}adm"
   become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
   failed_when:                         false
@@ -24,13 +24,13 @@
   register:                            hana_stopped
 
 - name:                                "Ensure HANA is stopped {{ ansible_hostname }}"
-#  become_user:                         "{{ db_sid | lower }}adm"
+  become_user:                         "{{ db_sid | lower }}adm"
   become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
   when:                                hana_stopped.rc != 4
 
 - name:                                "Verify HANA is stopped on {{ ansible_hostname }}"
-#  become_user:                         "{{ db_sid | lower }}adm"
+  become_user:                         "{{ db_sid | lower }}adm"
   become:                              true
   ansible.builtin.command:             "{{ sapcontrol_command }} -function GetProcessList"
   changed_when:                        false
