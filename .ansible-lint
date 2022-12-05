@@ -14,6 +14,9 @@ skip_list:
   # Ignored because there is no easier way to do
   - no-handler
 
+  # Refactor needed
+  - key-order[task]
+
   # Following are ignored because of readability:
   - name[casing]
   - no-changed-when

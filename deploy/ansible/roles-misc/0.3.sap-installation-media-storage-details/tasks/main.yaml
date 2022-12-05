@@ -50,8 +50,8 @@
   when:                                sapbits_location_base_path is not defined
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
+  when: sapbits_access_key is not defined
   block:
-
     - name:                            "0.4 Installation Media: - Check if Access Key secret exists"
       ansible.builtin.command: >-
         az keyvault secret list
@@ -72,16 +72,15 @@
 
     - name:                            "0.4 Installation Media: - Extract Access Key details"
       ansible.builtin.set_fact:
-        sapbits_access_key: >-
-          {{ (keyvault_secret_show_accesskey.stdout | from_json).value }}
+        sapbits_access_key: "{{ (keyvault_secret_show_accesskey.stdout | from_json).value }}"
       when:
-       - keyvault_secrets.stdout | length > 0
-       - keyvault_secret_show_accesskey is defined
-
-  when:
-    - sapbits_access_key is not defined
+        - keyvault_secrets.stdout | length > 0
+        - keyvault_secret_show_accesskey is defined
 
 - name:                                "0.4 Installation Media: - Retrieve SAS token secret details "
+  when:
+    - sapbits_access_key is not defined
+    - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
   block:
     - name:                            "0.4 Installation Media: - Check if SAS token secret exists"
       ansible.builtin.command: >-
@@ -107,11 +106,7 @@
           {{ (keyvault_secret_show_sas_token.stdout | from_json).value }}
 
       no_log:                          true
-      when:
-       - keyvault_secret_show_sas_token is defined
-  when:
-    - sapbits_access_key is not defined
-    - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
+      when: keyvault_secret_show_sas_token is defined
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS secret"
   block:
@@ -149,7 +144,7 @@
   ansible.builtin.assert:
     that:
       - "{{ sapbits_sas_token is defined }}"                    # Has the variable been defined
-      - "{{ sapbits_sas_token | trim | length > 1  }}"          # Does the variable have a value
+      - "{{ sapbits_sas_token | trim | length > 1 }}"           # Does the variable have a value
     fail_msg: >-
       "The variable 'sapbits_sas_token' is not defined or is empty. Please provide it in the deployer key vault, sap-parameters file or pass it in as a parameter."
 

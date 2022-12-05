@@ -143,13 +143,11 @@
     - item.download is undefined or item.download
     - item.archive is defined
     - item.archive | trim | length > 1
+    - distribution_id in ['suse15', 'redhat8', 'sles_sap15' ]
   delay:                               5
-  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
-  when:
-    - item.download is undefined or item.download
-    - distribution_id in ['suse15', 'redhat8', 'sles_sap15' ]
+
 
 - name:                                "3.3 BoM Processing: - Download Files on {{ distribution_id }}"
   ansible.builtin.get_url:

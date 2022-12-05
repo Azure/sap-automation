@@ -263,8 +263,6 @@
         suffix:                        "_OBSERVER"
         tier:                          'oracle'
 
-
-
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
 # # |           Playbook for DB2 DB Install  -  High Availability              |

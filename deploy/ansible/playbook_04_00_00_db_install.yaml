@@ -118,8 +118,6 @@
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
-              vars:
-                scs_instance_number: "{{ scs_instance_number }}"
 
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
@@ -473,9 +471,6 @@
             prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             this_sid:                  "{{ sap_sid }}"
-
-      vars:
-        # become_user:                   root
       when:
         - platform == 'DB2'
         - db_high_availability

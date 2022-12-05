@@ -1,11 +1,19 @@
 ---
-- import_tasks:                    5.6.1-set_runtime_facts.yml
-- import_tasks:                    5.6.2-pre_checks.yml
-- import_tasks:                    5.6.3-prep_steps.yml
+- name: "5.6 SCSERS Pacemaker - set_runtime_facts"
+  ansible.builtin.import_tasks: 5.6.1-set_runtime_facts.yml
 
-- import_tasks:                    5.6.4-provision.yml
+- name: "5.6 SCSERS Pacemaker - pre_checks"
+  ansible.builtin.import_tasks: 5.6.2-pre_checks.yml
+
+- name: "5.6 SCSERS Pacemaker - prep_steps"
+  ansible.builtin.import_tasks: 5.6.3-prep_steps.yml
+
+- name: "5.6 SCSERS Pacemaker - provision"
+  ansible.builtin.import_tasks: 5.6.4-provision.yml
   # when:
   #   - cluster_existence_check_result is defined
   #   - not cluster_existence_check_result
-- import_tasks:                    5.6.5-post_provision_report.yml
+
+- name: "5.6 SCSERS Pacemaker - post_provision_report"
+  ansible.builtin.import_tasks: 5.6.5-post_provision_report.yml
 ...
