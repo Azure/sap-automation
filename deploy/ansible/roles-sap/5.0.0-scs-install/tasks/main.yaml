@@ -129,6 +129,13 @@
         state:                         directory
         mode:                          0755
 
+    - name:                            "SCS Install: - comment out required message server prots in /etc/services"
+      ansible.builtin.replace:
+        path:                          /etc/services
+        regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
+        replace:                       '# \1'
+        backup:                        true
+
     - name:                            "SCS Install: SAP SCS Install on {{ ansible_hostname }}"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }};
