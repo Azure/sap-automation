@@ -8,6 +8,9 @@
 
 - name:                                "5.6 SCSERS - RHEL - ENSA1 - SAP Resources - Cluster Configuration after Install"
   block:
+    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Enable Maintenance mode for the cluster"
+      ansible.builtin.command:         pcs property set maintenance-mode=true
+
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
@@ -58,6 +61,9 @@
 # Use the following if using ENSA2
 - name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install"
   block:
+    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Enable Maintenance mode for the cluster"
+      ansible.builtin.command:         pcs property set maintenance-mode=true
+
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ASCS{{ scs_instance_number }} SAPInstance \
