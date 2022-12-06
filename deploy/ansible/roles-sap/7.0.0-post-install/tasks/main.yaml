@@ -132,7 +132,7 @@
         - oracle_log_files.files | length > 0
 
     - name:                                "Post Installation: Compress the installation log files (Oracle)"
-      community.general.files.archive:
+      community.general.archive:
         path:                              "{{ oracle_list_of_files }}"
         dest:                              "/etc/sap_deployment_automation{{ ansible_hostname }}.zip"
         format:                            zip
