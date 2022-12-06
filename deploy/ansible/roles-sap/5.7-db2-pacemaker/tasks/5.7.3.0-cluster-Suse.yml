@@ -32,7 +32,7 @@
 - name:                                "Configure DB2 Cluster Resources"
   block:
     - name:                            "DB2 HA - SUSE - Ensure maintenance mode is enabled"
-      ansible.builtin.command:         "crm configure property maintenance-mode=true"
+      ansible.builtin.command:         crm configure property maintenance-mode=true
 
     - name:                            "DB2 HA - SUSE - Configure resource defaults - resource stickiness"
       ansible.builtin.command:         "crm configure rsc_defaults resource-stickiness=1000"

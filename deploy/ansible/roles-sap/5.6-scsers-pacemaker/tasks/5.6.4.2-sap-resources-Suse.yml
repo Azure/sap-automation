@@ -8,6 +8,8 @@
 
 - name:                                "5.6 SCSERS - SUSE - ENSA1 - SAP Resources - Cluster Configuration after Install "
   block:
+    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the cluster on maintenance mode"
+      ansible.builtin.command:         crm configure property maintenance-mode=true
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.command: >
@@ -53,7 +55,7 @@
     #   ansible.builtin.command:        crm node online {{ primary_instance_name }}
 
     - name:                           "5.6 SCSERS - SUSE - ENSA1 - Set the Cluster out of maintenance mode"
-      ansible.builtin.command:        crm configure property maintenance-mode="false"
+      ansible.builtin.command:        crm configure property maintenance-mode=false
 
   when:
     - inventory_hostname == primary_instance_name
@@ -66,7 +68,7 @@
 - name:                               "5.6 SCSERS - SUSE - ENSA2 - SAP Resources - Cluster Configuration after Install"
   block:
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the cluster on maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode="true"
+      ansible.builtin.command:         crm configure property maintenance-mode=true
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
@@ -110,8 +112,8 @@
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Bring primary node online "
       ansible.builtin.command:         crm node online {{ primary_instance_name }}
 
-    - name:                            "Set the Cluster out of maintenance mode"
-      ansible.builtin.command:         crm configure property maintenance-mode="false"
+    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
+      ansible.builtin.command:         crm configure property maintenance-mode=false
 
   when:
     - inventory_hostname == primary_instance_name
