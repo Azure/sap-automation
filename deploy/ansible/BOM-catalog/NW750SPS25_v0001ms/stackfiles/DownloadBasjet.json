@@ -1,0 +1,1329 @@
+{
+  "d": {
+    "results": [
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('USERID')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('USERID')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "USERID",
+        "Value": "MASKED"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('USERNAME1')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('USERNAME1')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "USERNAME1",
+        "Value": "MASKED"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('USERNAME2')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('USERNAME2')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "USERNAME2",
+        "Value": "MASKED"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067402016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067402016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000067402016",
+        "Value": "0010000000067402016|SPAT|Attribute Change Package 03 for SAP_GWFND 750|4|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062582015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062582015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000062582015",
+        "Value": "0010000000062582015|SPAT|Attribute Change Package 06 for SAP_BASIS 750|4|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000031692020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000031692020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000031692020",
+        "Value": "0010000000031692020|SPAT|Attribute Change Package 06 for SAP_UI 754|5|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067382016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067382016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000067382016",
+        "Value": "0010000000067382016|SPAT|Attribute Change Package 07 for SAP_BW 750|4|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000297212015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000297212015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000297212015",
+        "Value": "0010000000297212015|SPAT|Attribute Change Package 54 for ST-PI 740|4|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000534572021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000534572021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0020000000534572021",
+        "Value": "0020000000534572021|SP_B|Installation for SAP IGS integrated in SAP Kernel|101625|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000359642022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000359642022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0020000000359642022",
+        "Value": "0020000000359642022|SP_B|Kernel Part I (753)|374140|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000360502022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000360502022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0020000000360502022",
+        "Value": "0020000000360502022|SP_B|Kernel Part II (753)|17877|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000001534392022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000001534392022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0020000001534392022",
+        "Value": "0020000001534392022|SP_B|SAP HANA CLIENT Version 2.14|188759|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000001370172022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000001370172022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0020000001370172022",
+        "Value": "0020000001370172022|SP_B|SAP HOST AGENT 7.22 SP58|78257|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000703122018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0020000000703122018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0020000000703122018",
+        "Value": "0020000000703122018|SP_B|SAP IGS Fonts and Textures|61489|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062252015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062252015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000062252015",
+        "Value": "0010000000062252015|SPAT|SAP_ABA 750: SP 0001|4258|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066952016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066952016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000066952016",
+        "Value": "0010000000066952016|SPAT|SAP_ABA 750: SP 0002|9412|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066982016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066982016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000066982016",
+        "Value": "0010000000066982016|SPAT|SAP_ABA 750: SP 0003|2594|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065922016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065922016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000065922016",
+        "Value": "0010000000065922016|SPAT|SAP_ABA 750: SP 0004|9498|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508142016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508142016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000508142016",
+        "Value": "0010000000508142016|SPAT|SAP_ABA 750: SP 0005|5607|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869062016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869062016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000869062016",
+        "Value": "0010000000869062016|SPAT|SAP_ABA 750: SP 0006|9663|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004963902017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004963902017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000004963902017",
+        "Value": "0010000004963902017|SPAT|SAP_ABA 750: SP 0007|5139|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731672017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731672017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000018731672017",
+        "Value": "0010000018731672017|SPAT|SAP_ABA 750: SP 0008|8067|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379412017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379412017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019379412017",
+        "Value": "0010000019379412017|SPAT|SAP_ABA 750: SP 0009|11846|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960222017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960222017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019960222017",
+        "Value": "0010000019960222017|SPAT|SAP_ABA 750: SP 0010|5309|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174662018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174662018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000174662018",
+        "Value": "0010000000174662018|SPAT|SAP_ABA 750: SP 0011|6883|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940002018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940002018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000940002018",
+        "Value": "0010000000940002018|SPAT|SAP_ABA 750: SP 0012|6475|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555712018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555712018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001555712018",
+        "Value": "0010000001555712018|SPAT|SAP_ABA 750: SP 0013|5639|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000002622019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000002622019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000002622019",
+        "Value": "0010000000002622019|SPAT|SAP_ABA 750: SP 0014|11373|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794332019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794332019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000794332019",
+        "Value": "0010000000794332019|SPAT|SAP_ABA 750: SP 0015|7236|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001417012019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001417012019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001417012019",
+        "Value": "0010000001417012019|SPAT|SAP_ABA 750: SP 0016|8477|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325032019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325032019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000002325032019",
+        "Value": "0010000002325032019|SPAT|SAP_ABA 750: SP 0017|8596|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673222020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673222020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000673222020",
+        "Value": "0010000000673222020|SPAT|SAP_ABA 750: SP 0018|9143|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250502020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250502020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001250502020",
+        "Value": "0010000001250502020|SPAT|SAP_ABA 750: SP 0019|10029|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074672021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074672021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000074672021",
+        "Value": "0010000000074672021|SPAT|SAP_ABA 750: SP 0020|21877|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618092021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618092021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000618092021",
+        "Value": "0010000000618092021|SPAT|SAP_ABA 750: SP 0021|9853|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001100722021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001100722021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001100722021",
+        "Value": "0010000001100722021|SPAT|SAP_ABA 750: SP 0022|4321|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059732022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059732022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000059732022",
+        "Value": "0010000000059732022|SPAT|SAP_ABA 750: SP 0023|9946|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000536962022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000536962022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000536962022",
+        "Value": "0010000000536962022|SPAT|SAP_ABA 750: SP 0024|4072|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974702022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974702022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000974702022",
+        "Value": "0010000000974702022|SPAT|SAP_ABA 750: SP 0025|5931|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062262015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062262015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000062262015",
+        "Value": "0010000000062262015|SPAT|SAP_BASIS 750: SP 0001|100556|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062292015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062292015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000062292015",
+        "Value": "0010000000062292015|SPAT|SAP_BASIS 750: SP 0002|116695|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066992016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066992016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000066992016",
+        "Value": "0010000000066992016|SPAT|SAP_BASIS 750: SP 0003|115844|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065932016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065932016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000065932016",
+        "Value": "0010000000065932016|SPAT|SAP_BASIS 750: SP 0004|109602|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508152016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508152016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000508152016",
+        "Value": "0010000000508152016|SPAT|SAP_BASIS 750: SP 0005|150893|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869072016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869072016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000869072016",
+        "Value": "0010000000869072016|SPAT|SAP_BASIS 750: SP 0006|103996|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004963522017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004963522017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000004963522017",
+        "Value": "0010000004963522017|SPAT|SAP_BASIS 750: SP 0007|63358|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731682017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731682017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000018731682017",
+        "Value": "0010000018731682017|SPAT|SAP_BASIS 750: SP 0008|164030|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379502017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379502017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019379502017",
+        "Value": "0010000019379502017|SPAT|SAP_BASIS 750: SP 0009|97543|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960242017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960242017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019960242017",
+        "Value": "0010000019960242017|SPAT|SAP_BASIS 750: SP 0010|41633|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174692018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174692018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000174692018",
+        "Value": "0010000000174692018|SPAT|SAP_BASIS 750: SP 0011|50307|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940032018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940032018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000940032018",
+        "Value": "0010000000940032018|SPAT|SAP_BASIS 750: SP 0012|177758|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555662018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555662018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001555662018",
+        "Value": "0010000001555662018|SPAT|SAP_BASIS 750: SP 0013|39533|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000134642019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000134642019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000134642019",
+        "Value": "0010000000134642019|SPAT|SAP_BASIS 750: SP 0014|62907|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794362019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794362019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000794362019",
+        "Value": "0010000000794362019|SPAT|SAP_BASIS 750: SP 0015|46402|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001417142019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001417142019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001417142019",
+        "Value": "0010000001417142019|SPAT|SAP_BASIS 750: SP 0016|45563|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325042019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325042019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000002325042019",
+        "Value": "0010000002325042019|SPAT|SAP_BASIS 750: SP 0017|224052|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673242020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673242020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000673242020",
+        "Value": "0010000000673242020|SPAT|SAP_BASIS 750: SP 0018|30049|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250512020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250512020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001250512020",
+        "Value": "0010000001250512020|SPAT|SAP_BASIS 750: SP 0019|38605|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074682021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074682021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000074682021",
+        "Value": "0010000000074682021|SPAT|SAP_BASIS 750: SP 0020|47127|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618132021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618132021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000618132021",
+        "Value": "0010000000618132021|SPAT|SAP_BASIS 750: SP 0021|185428|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001198852021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001198852021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001198852021",
+        "Value": "0010000001198852021|SPAT|SAP_BASIS 750: SP 0022|26295|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059742022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059742022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000059742022",
+        "Value": "0010000000059742022|SPAT|SAP_BASIS 750: SP 0023|51914|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000536972022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000536972022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000536972022",
+        "Value": "0010000000536972022|SPAT|SAP_BASIS 750: SP 0024|31717|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974722022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974722022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000974722022",
+        "Value": "0010000000974722022|SPAT|SAP_BASIS 750: SP 0025|27602|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062272015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062272015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000062272015",
+        "Value": "0010000000062272015|SPAT|SAP_BW 750: SP 0001|82316|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066962016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066962016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000066962016",
+        "Value": "0010000000066962016|SPAT|SAP_BW 750: SP 0002|103747|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067002016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067002016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000067002016",
+        "Value": "0010000000067002016|SPAT|SAP_BW 750: SP 0003|67381|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065942016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065942016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000065942016",
+        "Value": "0010000000065942016|SPAT|SAP_BW 750: SP 0004|252817|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508182016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508182016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000508182016",
+        "Value": "0010000000508182016|SPAT|SAP_BW 750: SP 0005|128847|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869102016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869102016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000869102016",
+        "Value": "0010000000869102016|SPAT|SAP_BW 750: SP 0006|112100|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004963602017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004963602017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000004963602017",
+        "Value": "0010000004963602017|SPAT|SAP_BW 750: SP 0007|93778|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731712017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731712017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000018731712017",
+        "Value": "0010000018731712017|SPAT|SAP_BW 750: SP 0008|88337|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379582017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379582017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019379582017",
+        "Value": "0010000019379582017|SPAT|SAP_BW 750: SP 0009|79753|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960282017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960282017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019960282017",
+        "Value": "0010000019960282017|SPAT|SAP_BW 750: SP 0010|80319|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174712018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174712018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000174712018",
+        "Value": "0010000000174712018|SPAT|SAP_BW 750: SP 0011|79138|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940052018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940052018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000940052018",
+        "Value": "0010000000940052018|SPAT|SAP_BW 750: SP 0012|94698|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555672018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555672018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001555672018",
+        "Value": "0010000001555672018|SPAT|SAP_BW 750: SP 0013|82811|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000134652019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000134652019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000134652019",
+        "Value": "0010000000134652019|SPAT|SAP_BW 750: SP 0014|97988|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794372019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794372019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000794372019",
+        "Value": "0010000000794372019|SPAT|SAP_BW 750: SP 0015|98421|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001428782019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001428782019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001428782019",
+        "Value": "0010000001428782019|SPAT|SAP_BW 750: SP 0016|98603|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325072019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325072019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000002325072019",
+        "Value": "0010000002325072019|SPAT|SAP_BW 750: SP 0017|90989|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673272020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673272020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000673272020",
+        "Value": "0010000000673272020|SPAT|SAP_BW 750: SP 0018|82368|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250522020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250522020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001250522020",
+        "Value": "0010000001250522020|SPAT|SAP_BW 750: SP 0019|77833|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074692021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074692021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000074692021",
+        "Value": "0010000000074692021|SPAT|SAP_BW 750: SP 0020|87670|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618142021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618142021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000618142021",
+        "Value": "0010000000618142021|SPAT|SAP_BW 750: SP 0021|72878|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001100762021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001100762021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001100762021",
+        "Value": "0010000001100762021|SPAT|SAP_BW 750: SP 0022|72267|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059752022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059752022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000059752022",
+        "Value": "0010000000059752022|SPAT|SAP_BW 750: SP 0023|86918|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000536992022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000536992022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000536992022",
+        "Value": "0010000000536992022|SPAT|SAP_BW 750: SP 0024|69876|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974752022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974752022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000974752022",
+        "Value": "0010000000974752022|SPAT|SAP_BW 750: SP 0025|67560|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062282015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000062282015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000062282015",
+        "Value": "0010000000062282015|SPAT|SAP_GWFND 750: SP 0001|14861|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066972016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000066972016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000066972016",
+        "Value": "0010000000066972016|SPAT|SAP_GWFND 750: SP 0002|18454|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067012016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000067012016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000067012016",
+        "Value": "0010000000067012016|SPAT|SAP_GWFND 750: SP 0003|12108|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065952016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000065952016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000065952016",
+        "Value": "0010000000065952016|SPAT|SAP_GWFND 750: SP 0004|22314|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508162016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000508162016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000508162016",
+        "Value": "0010000000508162016|SPAT|SAP_GWFND 750: SP 0005|3465|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869082016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000869082016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000869082016",
+        "Value": "0010000000869082016|SPAT|SAP_GWFND 750: SP 0006|1176|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004966192017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000004966192017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000004966192017",
+        "Value": "0010000004966192017|SPAT|SAP_GWFND 750: SP 0007|1855|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731692017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000018731692017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000018731692017",
+        "Value": "0010000018731692017|SPAT|SAP_GWFND 750: SP 0008|1046|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379602017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019379602017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019379602017",
+        "Value": "0010000019379602017|SPAT|SAP_GWFND 750: SP 0009|733|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960292017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019960292017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019960292017",
+        "Value": "0010000019960292017|SPAT|SAP_GWFND 750: SP 0010|330|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174722018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000174722018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000174722018",
+        "Value": "0010000000174722018|SPAT|SAP_GWFND 750: SP 0011|35529|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940072018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000940072018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000940072018",
+        "Value": "0010000000940072018|SPAT|SAP_GWFND 750: SP 0012|24318|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555682018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001555682018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001555682018",
+        "Value": "0010000001555682018|SPAT|SAP_GWFND 750: SP 0013|283|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000134662019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000134662019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000134662019",
+        "Value": "0010000000134662019|SPAT|SAP_GWFND 750: SP 0014|170|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794382019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000794382019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000794382019",
+        "Value": "0010000000794382019|SPAT|SAP_GWFND 750: SP 0015|865|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001417282019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001417282019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001417282019",
+        "Value": "0010000001417282019|SPAT|SAP_GWFND 750: SP 0016|680|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325082019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002325082019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000002325082019",
+        "Value": "0010000002325082019|SPAT|SAP_GWFND 750: SP 0017|124|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673282020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000673282020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000673282020",
+        "Value": "0010000000673282020|SPAT|SAP_GWFND 750: SP 0018|267|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250532020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001250532020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001250532020",
+        "Value": "0010000001250532020|SPAT|SAP_GWFND 750: SP 0019|590|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074702021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000074702021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000074702021",
+        "Value": "0010000000074702021|SPAT|SAP_GWFND 750: SP 0020|573|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618152021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000618152021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000618152021",
+        "Value": "0010000000618152021|SPAT|SAP_GWFND 750: SP 0021|18|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001100772021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001100772021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001100772021",
+        "Value": "0010000001100772021|SPAT|SAP_GWFND 750: SP 0022|372|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059772022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059772022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000059772022",
+        "Value": "0010000000059772022|SPAT|SAP_GWFND 750: SP 0023|266|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000537002022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000537002022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000537002022",
+        "Value": "0010000000537002022|SPAT|SAP_GWFND 750: SP 0024|115|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974762022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000974762022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000974762022",
+        "Value": "0010000000974762022|SPAT|SAP_GWFND 750: SP 0025|209|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000183702019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000183702019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000183702019",
+        "Value": "0010000000183702019|SPAT|SAP_UI 754 Update: Meta-Commandfile|3668564|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001661402019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001661402019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001661402019",
+        "Value": "0010000001661402019|SPAT|SAP_UI 754: SP 0001|184220|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002197612019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002197612019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000002197612019",
+        "Value": "0010000002197612019|SPAT|SAP_UI 754: SP 0002|512321|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000380882020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000380882020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000380882020",
+        "Value": "0010000000380882020|SPAT|SAP_UI 754: SP 0003|230646|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000876572020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000876572020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000876572020",
+        "Value": "0010000000876572020|SPAT|SAP_UI 754: SP 0004|229060|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001523772020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001523772020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001523772020",
+        "Value": "0010000001523772020|SPAT|SAP_UI 754: SP 0005|215316|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000325802021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000325802021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000325802021",
+        "Value": "0010000000325802021|SPAT|SAP_UI 754: SP 0006|235664|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000771642021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000771642021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000771642021",
+        "Value": "0010000000771642021|SPAT|SAP_UI 754: SP 0007|218362|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001264832021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001264832021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001264832021",
+        "Value": "0010000001264832021|SPAT|SAP_UI 754: SP 0008|178839|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000299862022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000299862022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000299862022",
+        "Value": "0010000000299862022|SPAT|SAP_UI 754: SP 0009|214538|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000689632022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000689632022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000689632022",
+        "Value": "0010000000689632022|SPAT|SAP_UI 754: SP 0010|215488|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001058842022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001058842022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001058842022",
+        "Value": "0010000001058842022|SPAT|SAP_UI 754: SP 0011|238302|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001338162022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001338162022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001338162022",
+        "Value": "0010000001338162022|SPAT|SPAM/SAINT Update - Version 750/0083|10322|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000057482015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000057482015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000057482015",
+        "Value": "0010000000057482015|SPAT|ST-PI 740: SP 0002|9940|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000057492015')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000057492015')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000057492015",
+        "Value": "0010000000057492015|SPAT|ST-PI 740: SP 0003|4582|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059202016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000059202016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000059202016",
+        "Value": "0010000000059202016|SPAT|ST-PI 740: SP 0004|10424|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000841352016')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000841352016')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000841352016",
+        "Value": "0010000000841352016|SPAT|ST-PI 740: SP 0005|6487|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000012329692017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000012329692017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000012329692017",
+        "Value": "0010000012329692017|SPAT|ST-PI 740: SP 0006|5548|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019616252017')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000019616252017')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000019616252017",
+        "Value": "0010000019616252017|SPAT|ST-PI 740: SP 0007|4698|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000623832018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000623832018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000623832018",
+        "Value": "0010000000623832018|SPAT|ST-PI 740: SP 0008|9307|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002257102018')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002257102018')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000002257102018",
+        "Value": "0010000002257102018|SPAT|ST-PI 740: SP 0009|9783|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000161692019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000161692019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000161692019",
+        "Value": "0010000000161692019|SPAT|ST-PI 740: SP 0010|517|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001051532019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001051532019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001051532019",
+        "Value": "0010000001051532019|SPAT|ST-PI 740: SP 0011|7372|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002162182019')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000002162182019')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000002162182019",
+        "Value": "0010000002162182019|SPAT|ST-PI 740: SP 0012|5266|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000660652020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000660652020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000660652020",
+        "Value": "0010000000660652020|SPAT|ST-PI 740: SP 0013|6903|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001984822020')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001984822020')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001984822020",
+        "Value": "0010000001984822020|SPAT|ST-PI 740: SP 0014|8529|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000853222021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000853222021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000853222021",
+        "Value": "0010000000853222021|SPAT|ST-PI 740: SP 0015|9039|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001454472021')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001454472021')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001454472021",
+        "Value": "0010000001454472021|SPAT|ST-PI 740: SP 0016|20073|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000096822022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000096822022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000096822022",
+        "Value": "0010000000096822022|SPAT|ST-PI 740: SP 0017|4868|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000509342022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000509342022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000509342022",
+        "Value": "0010000000509342022|SPAT|ST-PI 740: SP 0018|5726|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000788312022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000000788312022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000000788312022",
+        "Value": "0010000000788312022|SPAT|ST-PI 740: SP 0019|5080|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001268542022')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('0010000001268542022')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "0010000001268542022",
+        "Value": "0010000001268542022|SPAT|ST-PI 740: SP 0020|17467|1|20221130062746|0"
+      },
+      {
+        "__metadata": {
+          "id": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('OBJCNT')",
+          "uri": "https://tech.support.sap.com/SMP_NG_WEB/odata/svt/swdcuisrv/DownloadContentSet('OBJCNT')",
+          "type": "SVT_SWDC_UI_SRV.DownloadContent"
+        },
+        "Name": "OBJCNT",
+        "Value": "143"
+      }
+    ]
+  }
+}
