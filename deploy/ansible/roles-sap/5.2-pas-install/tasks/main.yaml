@@ -141,15 +141,15 @@
         - db_high_availability
         - platform == "HANA"
 
-    - name:                            "PAS Install: progress"
-      ansible.builtin.debug:
-        msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
-
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
+
+    - name:                            "PAS Install: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "PAS Install"
       ansible.builtin.shell: |

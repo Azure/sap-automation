@@ -128,15 +128,15 @@
       when:
         - node_tier == "oracle-multi-sid"
 
-    - name:                            "DBLoad: progress"
-      ansible.builtin.debug:
-        msg:                           "Starting DBLoad for {{ sid_to_be_deployed.sid | upper }}. Please wait"
-
     - name:                            "Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
+
+    - name:                            "DBLoad: progress"
+      ansible.builtin.debug:
+        msg:                           "Starting DBLoad for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
     - name:                            "DBLoad: - run SAPInst"
       ansible.builtin.shell: |
