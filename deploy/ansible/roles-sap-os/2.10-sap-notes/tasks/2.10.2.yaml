@@ -35,16 +35,16 @@
     - soft
     - hard
 
-- name:                                "2.10.2 sap-notes: - Disable SELinux"
-  selinux:
-    state:                             disabled
-    # state:                             permissive
-  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
-  tags: ansible_skip_lint
+# - name:                                "2.10.2 sap-notes: - Disable SELinux"
+#   selinux:
+#     state:                             disabled
+#     # state:                             permissive
+#   notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+#   tags: ansible_skip_lint
 
 
-- name:                                "2.10.2 - Force all notified handlers to run now"
-  ansible.builtin.meta:                flush_handlers
+# - name:                                "2.10.2 - Force all notified handlers to run now"
+#   ansible.builtin.meta:                flush_handlers
 
 
 
