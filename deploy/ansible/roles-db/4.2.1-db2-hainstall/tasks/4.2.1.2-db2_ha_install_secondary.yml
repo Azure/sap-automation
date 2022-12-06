@@ -106,12 +106,6 @@
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Install - Secondary DB. Please wait"
 
-    - name:                            "Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
     - name:                            "SAP DB2 Install - Secondary DB"
       ansible.builtin.shell: |
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
