@@ -30,7 +30,8 @@
         mode:                          '{{ item.mode }}'
       loop:
         - { mode: '0755', path: '{{ dir_params }}' }
-        - { mode: '0777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+        - { mode: '1777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
+        - { mode: '1777', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
         - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
     - name:                            "SAP DB2 Secondary: Install reset"

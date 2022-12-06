@@ -14,7 +14,7 @@
     executable:                        /bin/csh
   environment:
     PATH:                              "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
-    TEMPDIR:                           "{{ tmp_directory }}/{{ _sid | upper }}"
+    TEMPDIR:                           "{{ tmp_directory }}/{{ sap_sid | upper }}"
   failed_when:                         false
   when:                                ansible_hostname == primary_instance_name
 
