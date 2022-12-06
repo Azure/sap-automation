@@ -31,7 +31,7 @@
   ansible.builtin.file:
     path:                              "{{ tmp_directory }}"
     state:                             directory
-    mode:                              0777
+    mode:                              1777
 
 
 - name:                                "1.5 Disk setup - Load the disk configuration settings"

@@ -21,6 +21,7 @@
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
   when:
     - ansible_hostname == secondary_instance_name
   become:                              true
@@ -38,10 +39,12 @@
         executable:                    /bin/csh
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
+        TMPDIR:                        "{{ tmp_directory }}/{{ sap_sid | upper }}"
   when:
     - ansible_hostname == primary_instance_name
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
+
 
 # ################### End of Section for Primary DB   ######################
 
