@@ -237,7 +237,6 @@ packages:
     - { tier: 'os',    package: 'net-tools',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'bind-utils',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'xfsprogs',                                     node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
@@ -298,6 +297,7 @@ packages:
   oraclelinux8.5:
   oraclelinux8.6:
     - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',     state: 'present' }
   oraclelinux8.7:
   oraclelinux8.8:  
 
