@@ -325,7 +325,7 @@ stages:
                     getLatestFromBranch: true
                 - bash: |
                       #!/bin/bash
-                      set -ue
+                      set -u
 
                       echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $(deployerfolder) $(libraryfolder)"
                           green="\e[1;32m"
@@ -584,8 +584,6 @@ stages:
                                  echo "##vso[task.logissue type=error]Error message: $error_message."
                              fi
                           fi
-
-                          az account set --subscription $ARM_SUBSCRIPTION_ID
 
                           echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
                           added=0
