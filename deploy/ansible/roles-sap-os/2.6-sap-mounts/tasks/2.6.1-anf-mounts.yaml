@@ -451,7 +451,7 @@
   block:
     - name:                             "ANF Mount: Create configuration file for the NetApp configuration settings"
       ansible.builtin.blockinfile:
-        path:                            /etc/sysctl.d/netapp-hana.conf
+        path:                            /etc/sysctl.d/91-NetApp-HANA.conf
         backup:                          true
         create:                          true
         mode:                            0644
@@ -462,8 +462,8 @@
           net.core.rmem_default = 16777216
           net.core.wmem_default = 16777216
           net.core.optmem_max = 16777216
-          net.ipv4.tcp_rmem = 65536 16777216 16777216
-          net.ipv4.tcp_wmem = 65536 16777216 16777216
+          net.ipv4.tcp_rmem = 4096 131072 16777216
+          net.ipv4.tcp_wmem = 4096 16384 16777216
           net.core.netdev_max_backlog = 300000
           net.ipv4.tcp_slow_start_after_idle=0
           net.ipv4.tcp_no_metrics_save = 1
