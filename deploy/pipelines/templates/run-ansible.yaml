@@ -1,0 +1,87 @@
+parameters:
+    azureClientId: ''
+    azureClientSecret: ''
+    azureTenantId: ''
+    azureSubscriptionId: ''
+    displayName: ''
+    ansibleFilePath: ''
+    sidHosts:  ''
+    secretName: ''
+    vaultName: ''
+    parametersFolder: ''
+    extraParams: ''
+    sapParams: ''
+    passwordSecretName: ''
+    userNameSecretName: ''
+
+steps:
+- script: |
+    #!/bin/bash
+    # Exit immediately if a command exits with a non-zero status.
+    # Treat unset variables as an error when substituting.
+
+    #Stage could be executed on a different machine by default, need to login again for ansible
+    #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
+
+    deployer_file=/etc/profile.d/deploy_server.sh
+    # if [ -f "$deployer_file" ]; then
+    #   echo "##[section]Running on a deployer..."
+    #   az login --identity --allow-no-subscriptions --output none
+    #   noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+
+    #   if [ -z "$noAccess" ]; then
+    #     az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+    #   fi
+    # else
+    #   echo "##[section]Running on an Azure DevOps agent..."
+    #   az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+    #   az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+
+    # fi
+    az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+    az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+    set -eu
+
+    if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
+      echo "##[section]Retrieving sshkey..."
+      az keyvault secret show --name $SSH_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv > $PARAMETERS_FOLDER/sshkey
+      sudo chmod 600 $PARAMETERS_FOLDER/sshkey
+    fi
+
+    echo $EXTRA_PARAMS
+
+    password_secret=$(az keyvault secret show --name $PASSWORD_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv)
+    export ANSIBLE_PASSWORD=$password_secret
+
+    # -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'
+
+    become_user_name=$(az keyvault secret show --name $USERNAME_KEY_NAME --vault-name $VAULT_NAME --query value -o tsv)
+
+    command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey -e @$SAP_PARAMS \
+      -e "_workspace_directory=$PARAMETERS_FOLDER"   \
+      -e become_user_name=$become_user_name $ANSIBLE_FILE_PATH"
+
+    echo "##[section]Executing [$command]..."
+    echo "##[group]- output"
+    eval $command
+    echo "##[endgroup]"
+
+  displayName:                      ${{ parameters.displayName }}
+  env:
+    AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
+    AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
+    AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
+    AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
+    ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+    ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+    ANSIBLE_HOST_KEY_CHECKING:      false
+    ANSIBLE_FILE_PATH:              ${{ parameters.ansibleFilePath }}
+    PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
+    EXTRA_PARAMS:                   ${{ parameters.extraParams }}
+    SAP_PARAMS:                     ${{ parameters.sapParams }}
+    INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
+    SSH_KEY_NAME:                   ${{ parameters.secretName }}
+    VAULT_NAME:                     ${{ parameters.vaultName }}
+    PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
+    USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}

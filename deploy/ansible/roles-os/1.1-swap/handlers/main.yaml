@@ -1,0 +1,8 @@
+# ---
+
+- name:                                Restart waagent
+  ansible.builtin.service:
+    name:                              waagent
+    state:                             restarted
+
+# ...

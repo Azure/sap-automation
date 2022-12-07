@@ -1,0 +1,34 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for HANA DB HSR                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB HCMT
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  become_user:                         root
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml      # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                    Run the db/hdb-hdb-hcmt role
+      ansible.builtin.include_role:
+        name:                  roles-db/4.0.2-hdb-hcmt
+      when: node_tier == 'hana'
+      tags:
+        - 4.0.2-hdb-hcmt
+
+...
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

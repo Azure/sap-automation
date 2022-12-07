@@ -1,0 +1,78 @@
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |                          SAP Notes and Recomendations                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+# -------------------------------------+---------------------------------------8
+#
+# Task: 2.10      - SAP Notes and Recomendations
+#
+# Implement manual preparation steps for all OS
+# The tasks' name follows:
+#   - SAP Notes for RHEL OS recommendations
+#
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# Task: 2.10.0    - SAP Note 2205917 - SAP HANA DB Recommended OS settings for
+#                   SLES 12 / SLES for SAP Applications 12
+#
+# TODO: 20210128 review the RHEL stuff and the SAP Note
+# RHEL-3.10 Disable Transparent Hugepages (THP)
+# RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))
+
+- name:                                2.10.0 - SAP Note 2205917
+  ansible.builtin.include_tasks:       2.10.0.yaml
+  when:
+    - node_tier == 'hana'
+    - distribution_id == 'suse12'
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+#
+# Task: 2.10.1   - SAP Note 2777782 - SAP HANA DB Recommended OS settings for
+#                   RHEL 8
+#
+# Set 'sap-hana' as tuned profile
+# Add GRUB arguments to the config
+# Set 'never' for transparent_hugepage
+# Disable SELinux
+# Disable core file creation
+
+# Disable SELinux
+- name:                                "2.10.1 sap-notes: - Disable SELinux"
+  ansible.posix.selinux:
+    state:                             disabled
+  when:                                node_tier not in ['scs', 'ers', 'pas', 'app']
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  tags: ansible_skip_lint
+
+- name:                                "2.10.1 sap-notes: - Disable SELinux"
+  ansible.posix.selinux:
+    policy:                            targeted
+    state:                             permissive
+  when:                                node_tier in ['scs', 'ers', 'pas', 'app']
+  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  tags: ansible_skip_lint
+
+- name:                                "2.10.1 - Force all notified handlers to run now"
+  ansible.builtin.meta:                flush_handlers
+
+
+- name:                                2.10.1 - SAP Note 2777782
+  ansible.builtin.include_tasks:       2.10.1.yaml
+  when:
+    - node_tier == 'hana'
+    - distribution_id == 'redhat8'
+
+# ToDo RHEL7 and also the other SAP nodes
+# -------------------------------------+---------------------------------------8
+
+
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/
