@@ -5,7 +5,7 @@
 # |                                                                                                                                                                     |
 # +------------------------------------4------------------------------------------------------------------------------------*/
 
-#TODO: set proper logic for failing on this.
+# TODO: set proper logic for failing on this.
 - name:                                "DB2 Primary DB - Set Offline log Dir path "
   ansible.builtin.shell:               db2 update db cfg for {{ db_sid }} using LOGARCHMETH1 "DISK:/db2/{{ db_sid | upper }}/offline_logdir"
   become:                              true
