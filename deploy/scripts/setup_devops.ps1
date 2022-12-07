@@ -12,10 +12,10 @@ $ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 #endregion
 if ($Env:ARM_TENANT_ID.Length -eq 0) {
-  az login --output none
+  az login --output none --only-show-errors
 }
 else {
-  az login --output none --tenant $Env:ARM_TENANT_ID
+  az login --output none --tenant $Env:ARM_TENANT_ID --only-show-errors
 }
 
 Write-Host ""
