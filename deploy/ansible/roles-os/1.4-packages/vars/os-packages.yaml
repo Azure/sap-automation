@@ -227,7 +227,6 @@ packages:
     # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
   
   oraclelinux8:
-    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
@@ -244,7 +243,6 @@ packages:
     - { tier: 'ha',    package: 'jq',                                           node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'oracleasm',                                    node_tier: 'all',     state: 'present' }
-    # - { tier: 'os',    package: 'compat-libstdc++-33',                          node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'elfutils-libelf',                              node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'elfutils-libelf-devel',                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'fontconfig-devel',                             node_tier: 'all',     state: 'present' }
@@ -262,11 +260,8 @@ packages:
     - { tier: 'os',    package: 'libgcc',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++-devel',                              node_tier: 'all',     state: 'present' }
-   # - { tier: 'os',    package: 'libxcbdnf',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'unixODBC',                                     node_tier: 'all',     state: 'present' }
-  # - { tier: 'os',    package: 'ipmiutil',                                     node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'libnsl2',                                      node_tier: 'all',     state: 'present' }
-  # - { tier: 'os',    package: 'libnsl2-devel',                                node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'libnsl',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'make',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'targetcli',                                    node_tier: 'all',     state: 'present' }
@@ -281,9 +276,6 @@ packages:
     - { tier: 'os',    package: 'libX11-devel',                                 node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'libSM-devel',                                  node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'libICE-devel',                                 node_tier: 'all',     state: 'present' }
-    # - { tier: 'os',    package: 'glibc-32bit',                                  node_tier: 'all',     state: 'present' }
-    # - { tier: 'os',    package: 'oracleasmlib',                                 node_tier: 'all',     state: 'present' }
-    # - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',     state: 'present' }
 
     
@@ -295,9 +287,20 @@ packages:
 
   oraclelinux8.4:
   oraclelinux8.5:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',     state: 'present' }
+  
   oraclelinux8.6:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
+  
   oraclelinux8.7:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
+  
   oraclelinux8.8:  
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
 
